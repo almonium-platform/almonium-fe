@@ -2,14 +2,21 @@ import { Component, OnInit } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { AuthService } from '../auth/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TuiAlertService } from '@taiga-ui/core';
+import {TuiAlertService, TuiButtonModule, TuiErrorModule} from '@taiga-ui/core';
+import {AsyncPipe} from "@angular/common";
+import {TuiFieldErrorPipeModule, TuiInputPasswordModule} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss'],
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AsyncPipe,
+    TuiErrorModule,
+    TuiFieldErrorPipeModule,
+    TuiInputPasswordModule,
+    TuiButtonModule
   ],
   standalone: true
 })
