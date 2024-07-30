@@ -79,8 +79,9 @@ export class AuthComponent {
         });
       } else {
         this.authService.login(emailValue, passwordValue).subscribe({
-          next: () => {
-            this.router.navigate(['/']).then(r => r);
+          next: response => {
+            this.authService.storeToken(response.accessToken);
+            this.router.navigate(['/home']).then(r => r);
           },
           error: error => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
