@@ -1,0 +1,131 @@
+.tui-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; // Ensures the container takes the full height of the viewport
+  width: 100%; // Ensures the container takes the full width of the viewport
+  padding: 20px; // Adds padding to the container
+  box-sizing: border-box; // Includes padding in the width calculation
+}
+
+form {
+  display: flex;
+  flex-direction: column; // Arrange children in a column
+  justify-content: center;
+  align-items: center;
+  width: 100%; // Ensures the form takes the full width of the container
+  max-width: 400px; // Maximum width of the form
+}
+
+.tui-col_8 {
+  width: 100%; // Full width of the form container
+  padding: 20px;
+  box-sizing: border-box; // Includes padding in the width calculation
+}
+
+.tui-form__header {
+  text-align: center; // Center-align the header text
+  margin-bottom: 20px; // Space below the header
+}
+
+.tui-form__row {
+  margin-bottom: 20px; // Space below each row
+}
+
+tui-input, tui-input-password {
+  width: 100%; // Ensure input fields take full width
+}
+
+button[tuiButton] {
+  width: 100%; // Make the button take the full width of its container
+  display: block;
+  margin-top: 20px; // Add space between the button and the input fields
+}
+
+.switch {
+  text-align: center;
+  margin-bottom: 20px;
+
+  span {
+    cursor: pointer;
+    padding: 5px 10px;
+    color: #007bff;
+    &.active {
+      font-weight: bold;
+      color: #0056b3;
+    }
+  }
+}
+
+.separator {
+  text-align: center;
+  margin: 20px 0;
+  font-weight: bold;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding: 0 10px; // Adjusted padding for smaller screens
+
+  .social-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px; // Reduced size for smaller screens
+    height: 50px; // Reduced size for smaller screens
+    border: none;
+    border-radius: 50%;
+    font-size: 20px; // Adjusted font size for smaller screens
+    cursor: pointer;
+
+    &.apple {
+      background-color: #000;
+      color: #fff;
+    }
+
+    &.facebook {
+      background-color: #3b5998;
+      color: #fff;
+    }
+
+    &.google {
+      background-color: #db4437;
+      color: #fff;
+    }
+  }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .tui-col_8 {
+    padding: 10px; // Reduce padding for smaller screens
+  }
+
+  .social-buttons {
+    padding: 0 5px; // Further adjust padding for smaller screens
+
+    .social-button {
+      width: 40px; // Further reduce size for smaller screens
+      height: 40px; // Further reduce size for smaller screens
+      font-size: 18px; // Adjust font size for smaller screens
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tui-col_8 {
+    padding: 10px;
+  }
+
+  .social-buttons {
+    padding: 0 5px;
+
+    .social-button {
+      width: 35px;
+      height: 35px;
+      font-size: 16px;
+    }
+  }
+}

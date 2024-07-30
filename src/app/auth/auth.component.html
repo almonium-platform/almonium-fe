@@ -1,1 +1,53 @@
-<p>auth works!</p>
+<div class="tui-container">
+  <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+    <div class="">
+      <div class="tui-col_8">
+        <h3 class="tui-form__header tui-form__header_margin-top_none">{{ currentGreeting }} 👋</h3>
+
+        <div class="social-buttons">
+          <button type="button" class="social-button google" (click)="onSocialLogin('google')">
+            <i class="fab fa-google"></i>
+          </button>
+          <button type="button" class="social-button facebook" (click)="onSocialLogin('facebook')">
+            <i class="fab fa-facebook-f"></i>
+          </button>
+          <button type="button" class="social-button apple" (click)="onSocialLogin('apple')">
+            <i class="fab fa-apple"></i>
+          </button>
+        </div>
+
+        <div class="separator"> ━━━━━━━━━ OR ━━━━━━━━━</div>
+
+        <div class="switch">
+          <span (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span> |
+          <span (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
+        </div>
+
+        <div class="">
+          <tui-input formControlName="emailValue">
+            Email
+            <input placeholder="Email" tuiTextfield/>
+            <span class="tui-required"></span>
+          </tui-input>
+          <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
+
+        <div class="tui-form__row">
+          <tui-input-password formControlName="passwordValue">Password</tui-input-password>
+          <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
+
+        <div class="tui-form__buttons">
+          <button
+            size="l"
+            tuiButton
+            type="submit"
+            class="tui-form__button"
+          >
+            {{ isSignUp ? 'Sign Up' : 'Log in' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
