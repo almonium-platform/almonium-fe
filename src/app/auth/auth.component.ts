@@ -5,7 +5,7 @@ import {TuiAlertService, TuiButtonModule, TuiErrorModule} from "@taiga-ui/core";
 import {AsyncPipe, NgIf} from "@angular/common";
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
-import {AppConstants} from "../app.constants";
+import {AppConstants} from '../app.constants';
 
 @Component({
   selector: 'app-auth',
@@ -53,10 +53,11 @@ export class AuthComponent implements OnInit {
     this.isSignUp = !this.isSignUp;
   }
 
-  constructor(private authService: AuthService,
-              private alertService: TuiAlertService,
-              private router: Router,
-              private route: ActivatedRoute
+  constructor(
+    private authService: AuthService,
+    private alertService: TuiAlertService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     setInterval(() => {
       this.currentGreeting = this.greetings[Math.floor(Math.random() * this.greetings.length)];
@@ -99,6 +100,22 @@ export class AuthComponent implements OnInit {
         });
       }
     }
+  }
+
+  onForgotPassword() {
+    const emailValue = this.authForm.get('emailValue')?.value!;
+    if (!emailValue) {
+      this.alertService.open('Please enter your email address', {status: 'error'}).subscribe();
+      return;
+    }
+    this.authService.forgotPassword(emailValue).subscribe({
+      next: response => {
+        this.alertService.open(response.message || 'Password reset link sent!', {status: 'success'}).subscribe();
+      },
+      error: error => {
+        this.alertService.open(error.error.message || 'Failed to send password reset link', {status: 'error'}).subscribe();
+      }
+    });
   }
 
   onSocialLogin(provider: string) {
