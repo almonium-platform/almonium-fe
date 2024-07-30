@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
-import {TuiAlertService, TuiButtonModule, TuiErrorModule} from "@taiga-ui/core";
+import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiLinkModule} from "@taiga-ui/core";
 import {AsyncPipe, NgIf} from "@angular/common";
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
@@ -19,6 +19,7 @@ import {AppConstants} from '../app.constants';
     AsyncPipe,
     TuiButtonModule,
     NgIf,
+    TuiLinkModule,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.scss'],

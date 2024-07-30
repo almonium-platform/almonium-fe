@@ -36,7 +36,7 @@
           <tui-input-password formControlName="passwordValue">Password</tui-input-password>
           <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
         </div>
-        <a *ngIf="!isSignUp" (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
+        <a *ngIf="!isSignUp" tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
         <div class="tui-form__buttons">
           <button size="l" tuiButton type="submit" class="tui-form__button">
             {{ isSignUp ? 'Sign Up' : 'Log in' }}
