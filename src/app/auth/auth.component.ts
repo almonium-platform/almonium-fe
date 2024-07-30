@@ -1,10 +1,10 @@
-import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
 import {TuiAlertService, TuiButtonModule, TuiErrorModule} from "@taiga-ui/core";
 import {AsyncPipe, NgIf} from "@angular/common";
 import {AuthService} from './auth.service';
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {AppConstants} from "../app.constants";
 
 @Component({
@@ -33,7 +33,7 @@ import {AppConstants} from "../app.constants";
     },
   ],
 })
-export class AuthComponent {
+export class AuthComponent implements OnInit {
   greetings: string[] = [
     'Bonjour', 'Namaste', 'Привіт', 'Hello', 'Hola', 'Ciao', 'Konnichiwa', 'Guten Tag',
     'Olá', 'Annyeong', 'Salaam', 'Здравствуйте',
@@ -55,13 +55,23 @@ export class AuthComponent {
 
   constructor(private authService: AuthService,
               private alertService: TuiAlertService,
-              private router: Router
+              private router: Router,
+              private route: ActivatedRoute
   ) {
     setInterval(() => {
       this.currentGreeting = this.greetings[Math.floor(Math.random() * this.greetings.length)];
     }, 1000);
   }
 
+  ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const token = params['token'];
+      if (token) {
+        this.authService.storeToken(token);
+        this.router.navigate(['/home']).then(r => r);
+      }
+    });
+  }
 
   onSubmit() {
     if (this.authForm.valid) {
