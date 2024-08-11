@@ -1,0 +1,23 @@
+<div class="autocomplete-container">
+  <div class="input-group">
+    <input
+      type="text"
+      placeholder=""
+      class="search-input"
+      [(ngModel)]="searchText"
+      (input)="onSearchChange(searchText)"
+      (keydown)="handleKeydown($event)"
+      autofocus
+    />
+  </div>
+  <ul *ngIf="filteredOptions.length > 0" class="autocomplete-list">
+    <li
+      *ngFor="let option of filteredOptions; let i = index"
+      (click)="onOptionSelected(option)"
+      class="autocomplete-item"
+      [class.autocomplete-item-focused]="isOptionFocused(i)"
+    >
+      {{ option }}
+    </li>
+  </ul>
+</div>
