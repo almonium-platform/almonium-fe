@@ -34,13 +34,13 @@ body, html {
   font-size: 5em;
   text-align: center;
   width: 100%;
-  background-color: transparent; /* Remove default background */
-  transition: background-color 0.3s ease; /* Smooth transition for background color */
-  line-height: 1.2em; /* Adjust line height */
-  max-height: calc(1.2em * 2); /* Allow up to two lines of text */
-  overflow: hidden; /* Hide overflow text */
-  white-space: pre-wrap; /* Allow wrapping within the textarea */
-  word-wrap: break-word; /* Break long words to fit */
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+  margin-top: -0.2em; /* Nudge the text upwards */
+  max-height: calc(1em * 2);
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .input-group:focus-within {
