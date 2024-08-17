@@ -1,12 +1,11 @@
-import {Component, ElementRef, Input, ViewChild} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {catchError, map} from 'rxjs/operators';
 import {of} from 'rxjs';
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {TuiTextareaModule} from "@taiga-ui/kit";
-import {TuiTextfieldControllerModule} from "@taiga-ui/core";
+import {FormsModule} from "@angular/forms";
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
+import {DiscoverService} from "./discover.service";
 
 @Component({
   selector: 'app-discover',
@@ -17,29 +16,24 @@ import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditab
     NgIf,
     FormsModule,
     NgOptimizedImage,
-    TuiTextareaModule,
-    TuiTextfieldControllerModule,
-    ReactiveFormsModule,
     ContenteditableValueAccessorModule
   ],
-  standalone: true
+  standalone: true,
 })
 export class DiscoverComponent {
   @Input() searchText: string = '';
   filteredOptions: string[] = [];
   currentFocus: number = -1;
 
-  @ViewChild('searchInput') searchInput!: ElementRef;
-  protected testForm = new FormGroup({
-    testValue1: new FormControl('A field', Validators.required),
-    testValue2: new FormControl('This one can be expanded', Validators.required),
-    testValue3: new FormControl(
-      'This one can be expanded (expandable on focus)',
-      Validators.required,
-    ),
-  });
+  constructor(private http: HttpClient,
+              private discoverService: DiscoverService) {
+  }
 
-  constructor(private http: HttpClient) {
+  onSubmit(): void {
+    console.log(' onSubmit');
+    this.discoverService.search(this.searchText).subscribe(data => {
+      console.log(data);
+    });
   }
 
   onSearchChange(searchText: string): void {
@@ -60,7 +54,6 @@ export class DiscoverComponent {
   onOptionSelected(option: string): void {
     this.searchText = option;
     this.filteredOptions = [];
-    console.log('Selected option:', option); // Perform your search action here
   }
 
   handleKeydown(event: KeyboardEvent): void {
@@ -82,6 +75,7 @@ export class DiscoverComponent {
       if (this.currentFocus > -1 && this.currentFocus < this.filteredOptions.length) {
         this.onOptionSelected(this.filteredOptions[this.currentFocus]);
       }
+      this.onSubmit();
     }
   }
 
