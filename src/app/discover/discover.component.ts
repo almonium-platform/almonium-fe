@@ -1,9 +1,12 @@
-import { Component, Input } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {Component, ElementRef, Input, ViewChild} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
-import { map, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
-import {FormsModule} from "@angular/forms";
+import {catchError, map} from 'rxjs/operators';
+import {of} from 'rxjs';
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {TuiTextareaModule} from "@taiga-ui/kit";
+import {TuiTextfieldControllerModule} from "@taiga-ui/core";
+import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
 
 @Component({
   selector: 'app-discover',
@@ -13,7 +16,11 @@ import {FormsModule} from "@angular/forms";
     NgForOf,
     NgIf,
     FormsModule,
-    NgOptimizedImage
+    NgOptimizedImage,
+    TuiTextareaModule,
+    TuiTextfieldControllerModule,
+    ReactiveFormsModule,
+    ContenteditableValueAccessorModule
   ],
   standalone: true
 })
@@ -22,7 +29,18 @@ export class DiscoverComponent {
   filteredOptions: string[] = [];
   currentFocus: number = -1;
 
-  constructor(private http: HttpClient) {}
+  @ViewChild('searchInput') searchInput!: ElementRef;
+  protected testForm = new FormGroup({
+    testValue1: new FormControl('A field', Validators.required),
+    testValue2: new FormControl('This one can be expanded', Validators.required),
+    testValue3: new FormControl(
+      'This one can be expanded (expandable on focus)',
+      Validators.required,
+    ),
+  });
+
+  constructor(private http: HttpClient) {
+  }
 
   onSearchChange(searchText: string): void {
     this.currentFocus = -1;

@@ -20,7 +20,7 @@ body, html {
   display: flex;
   align-items: center;
   border-bottom: 2px solid #ccc;
-  padding: 8px;
+  padding: 1em;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -29,18 +29,16 @@ body, html {
 
 .search-input {
   flex-grow: 1;
-  border: none;
-  outline: none;
   font-size: 5em;
   text-align: center;
   width: 100%;
   background-color: transparent;
   transition: background-color 0.3s ease;
-  margin-top: -0.2em; /* Nudge the text upwards */
-  max-height: calc(1em * 2);
-  overflow: hidden;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  line-height: 1em;
+}
+
+.search-input:focus {
+  outline: none;
 }
 
 .input-group:focus-within {
@@ -70,7 +68,6 @@ body, html {
   color: #fff; /* White text on hover */
 }
 
-/* Button styles */
 button {
   margin-top: 1em;
   padding: 0.5em 2em;

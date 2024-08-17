@@ -1,14 +1,13 @@
 <div class="autocomplete-container">
   <div class="input-group">
-    <textarea
-      type="text"
-      placeholder=""
+    <div
+      contenteditable="true"
       class="search-input"
       [(ngModel)]="searchText"
       (input)="onSearchChange(searchText)"
       (keydown)="handleKeydown($event)"
       autofocus>
-    </textarea>
+    </div>
   </div>
   <ul *ngIf="filteredOptions.length > 0" class="autocomplete-list">
     <li
