@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable} from 'rxjs';
 import {AppConstants} from "../app.constants";
 
 @Injectable({
@@ -10,7 +10,7 @@ export class DiscoverService {
   constructor(private http: HttpClient) {}
 
   search(text: string): Observable<any> {
-    const url = `${AppConstants.API_URL}/discover?text=${encodeURIComponent(text)}`;
+    const url = `${AppConstants.API_URL}/discover/freq/EN/?text=${encodeURIComponent(text)}`;
     return this.http.get(url);
   }
 }

@@ -19,4 +19,12 @@
       {{ option }}
     </li>
   </ul>
+  <div *ngIf="frequency > 0">
+    <tui-badge
+      size='l'
+      class="custom-2 tui-space_left-3"
+    >
+      {{ frequency }}
+    </tui-badge>
+  </div>
 </div>
