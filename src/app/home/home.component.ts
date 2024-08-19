@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {AuthService} from "../auth/auth.service";
 
 @Component({
@@ -7,7 +7,7 @@ import {AuthService} from "../auth/auth.service";
   standalone: true,
   imports: [CommonModule],
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
+  styleUrls: ['./home.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {

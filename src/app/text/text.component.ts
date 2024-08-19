@@ -1,16 +1,13 @@
-import {Component, ElementRef, Input, ViewChild} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {Component} from '@angular/core';
 import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
-import {catchError, map} from 'rxjs/operators';
-import {of} from 'rxjs';
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {TuiTextareaModule} from "@taiga-ui/kit";
 import {TuiTextfieldControllerModule} from "@taiga-ui/core";
 
 @Component({
   selector: 'app-text',
   templateUrl: './text.component.html',
-  styleUrls: ['./text.component.scss'],
+  styleUrls: ['./text.component.less'],
   imports: [
     NgForOf,
     NgIf,

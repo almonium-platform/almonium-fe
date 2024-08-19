@@ -22,7 +22,7 @@ import {AppConstants} from '../app.constants';
     TuiLinkModule,
   ],
   templateUrl: './auth.component.html',
-  styleUrls: ['./auth.component.scss'],
+  styleUrls: ['./auth.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
