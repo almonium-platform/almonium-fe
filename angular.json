@@ -60,7 +60,6 @@
               "outputHashing": "all",
               "optimization": true,
               "aot": true,
-              "extractCss": true,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
