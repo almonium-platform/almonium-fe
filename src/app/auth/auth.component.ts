@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
 import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiLinkModule} from "@taiga-ui/core";
@@ -23,7 +23,6 @@ import {AppConstants} from '../app.constants';
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,
@@ -50,19 +49,17 @@ export class AuthComponent implements OnInit {
     passwordValue: new FormControl('', Validators.required),
   });
 
-  toggleSignUp() {
-    this.isSignUp = !this.isSignUp;
-  }
-
   constructor(
     private authService: AuthService,
     private alertService: TuiAlertService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef  // Inject ChangeDetectorRef
   ) {
     setInterval(() => {
       this.currentGreeting = this.greetings[Math.floor(Math.random() * this.greetings.length)];
-    }, 1000);
+      this.cdr.detectChanges();  // Manually trigger change detection
+    }, 2000);  // Update every 2 seconds
   }
 
   ngOnInit(): void {
@@ -101,6 +98,10 @@ export class AuthComponent implements OnInit {
         });
       }
     }
+  }
+
+  toggleSignUp() {
+    this.isSignUp = !this.isSignUp;
   }
 
   onForgotPassword() {
