@@ -6,6 +6,7 @@
   width: 100%; // Ensures the container takes the full width of the viewport
   padding: 20px; // Adds padding to the container
   box-sizing: border-box; // Includes padding in the width calculation
+  background-color: #F9F3F1;
 }
 
 form {
@@ -17,15 +18,20 @@ form {
   max-width: 400px; // Maximum width of the form
 }
 
+.inner {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 35px;
+  background-color: white;
+}
+
 .tui-col_8 {
-  width: 100%; // Full width of the form container
+  width: 100%;
   padding: 20px;
   box-sizing: border-box; // Includes padding in the width calculation
 }
 
 .tui-form__header {
-  text-align: center; // Center-align the header text
-  margin-bottom: 20px; // Space below the header
+  text-align: center;
 }
 
 .tui-form__row {
@@ -45,14 +51,19 @@ button[tuiButton] {
 .switch {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 0.9rem;
 
   span {
+    font-weight: 600;
     cursor: pointer;
-    padding: 5px 10px;
-    color: #007bff;
+    padding: 2.0rem;
+    color: #8F2356;
+    opacity: 0.7; // Reduce opacity for inactive spans
+
     &.active {
-      font-weight: bold;
-      color: #0056b3;
+      font-weight: 700;
+      color: #5A1A74;
+      opacity: 1; // Full opacity for active spans
     }
   }
 }
@@ -64,28 +75,57 @@ button[tuiButton] {
 .forgot-password-link {
   text-align: center;
   margin-left: 10px;
+  font-size: 15px;
+  color: #8F2356;
 }
+
+.forgot-password-link:hover {
+  color: #5A1A74;
+}
+
 .separator {
   text-align: center;
   margin: 20px 0;
   font-weight: bold;
 }
 
+.greeting {
+  margin-bottom: 2rem;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.title {
+  width: 12rem;
+  margin-left: .2rem;
+}
+
+.logo {
+  width: 3rem;
+}
+
+.logo-div {
+  display: flex;
+  justify-content: center;
+  border-radius: 20px;
+  margin: 1rem 0 0 0;
+}
+
 .social-buttons {
   display: flex;
   justify-content: space-around;
-  margin-top: 20px;
-  padding: 0 10px; // Adjusted padding for smaller screens
+  padding: 0 10px;
 
   .social-button {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 50px; // Reduced size for smaller screens
-    height: 50px; // Reduced size for smaller screens
+    width: 3.4rem;
+    height: 3.4rem;
     border: none;
     border-radius: 50%;
-    font-size: 20px; // Adjusted font size for smaller screens
+    font-size: 20px;
     cursor: pointer;
 
     &.apple {
@@ -105,35 +145,36 @@ button[tuiButton] {
   }
 }
 
-/* Media queries for responsive design */
-@media (max-width: 768px) {
-  .tui-col_8 {
-    padding: 10px; // Reduce padding for smaller screens
-  }
-
-  .social-buttons {
-    padding: 0 5px; // Further adjust padding for smaller screens
-
-    .social-button {
-      width: 40px; // Further reduce size for smaller screens
-      height: 40px; // Further reduce size for smaller screens
-      font-size: 18px; // Adjust font size for smaller screens
-    }
-  }
+.auth-button {
+  width: 100%; // Make the button take the full width of its container
+  display: block;
+  margin-top: 20px; // Add space between the button and the input fields
+  font-size: 16px;
+  height: 55px;
+  background: linear-gradient(to right, #5A1A74, #8F2356);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
-@media (max-width: 480px) {
-  .tui-col_8 {
-    padding: 10px;
-  }
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  min-width: 270px;
+  padding: 0 1rem;
+}
 
-  .social-buttons {
-    padding: 0 5px;
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #000;
+}
 
-    .social-button {
-      width: 35px;
-      height: 35px;
-      font-size: 16px;
-    }
-  }
+.separator::before {
+  margin-right: .4em;
+}
+
+.separator::after {
+  margin-left: .4em;
 }

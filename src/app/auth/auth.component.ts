@@ -1,8 +1,14 @@
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
-import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiLinkModule} from "@taiga-ui/core";
-import {AsyncPipe, NgIf} from "@angular/common";
+import {
+  TuiAlertService,
+  TuiButtonModule,
+  TuiErrorModule,
+  TuiLinkModule,
+  TuiTextfieldControllerModule
+} from "@taiga-ui/core";
+import {AsyncPipe, NgIf, NgOptimizedImage} from "@angular/common";
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AppConstants} from '../app.constants';
@@ -20,6 +26,8 @@ import {AppConstants} from '../app.constants';
     TuiButtonModule,
     NgIf,
     TuiLinkModule,
+    TuiTextfieldControllerModule,
+    NgOptimizedImage,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -28,8 +36,10 @@ import {AppConstants} from '../app.constants';
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
         required: 'Value is required',
-        email: 'Invalid email address'
-      },
+        email: 'Invalid email address',
+        minlength: ({requiredLength, actualLength}: { requiredLength: number, actualLength: number }) =>
+          `Password is too short: ${actualLength}/${requiredLength} characters`
+      }
     },
   ],
 })
@@ -43,10 +53,11 @@ export class AuthComponent implements OnInit {
   ];
   currentGreeting: string = this.greetings[0];
   isSignUp: boolean = false;
+  minimumPasswordLength: number = 6;
 
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
-    passwordValue: new FormControl('', Validators.required),
+    passwordValue: new FormControl('', [Validators.required, Validators.minLength(this.minimumPasswordLength)]),
   });
 
   constructor(
@@ -54,12 +65,12 @@ export class AuthComponent implements OnInit {
     private alertService: TuiAlertService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef  // Inject ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {
     setInterval(() => {
       this.currentGreeting = this.greetings[Math.floor(Math.random() * this.greetings.length)];
-      this.cdr.detectChanges();  // Manually trigger change detection
-    }, 2000);  // Update every 2 seconds
+      this.cdr.detectChanges();
+    }, 2000);
   }
 
   ngOnInit(): void {
