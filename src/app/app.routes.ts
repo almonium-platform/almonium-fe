@@ -5,6 +5,8 @@ import {ResetPasswordComponent} from "./reset-password/reset-password.component"
 import {EmailVerificationComponent} from "./email-verification/email-verification.component";
 import {DiscoverComponent} from "./discover/discover.component";
 import {TextComponent} from "./text/text.component";
+import {PrivacyPolicyComponent} from "./privacy-policy/privacy-policy.component";
+import {TermsOfUseComponent} from "./terms-of-use/terms-of-use.component";
 
 export const routes: Routes = [
   {path: 'auth', component: AuthComponent},
@@ -13,4 +15,6 @@ export const routes: Routes = [
   {path: 'reset-password', component: ResetPasswordComponent},
   {path: 'discover', component: DiscoverComponent},
   {path: 'text', component: TextComponent},
+  {path: 'terms-of-use', component: TermsOfUseComponent},
+  {path: 'privacy-policy', component: PrivacyPolicyComponent},
 ];
