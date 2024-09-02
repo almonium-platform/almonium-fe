@@ -116,6 +116,14 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.fragment.subscribe(fragment => {
+      if (fragment === 'sign-up') {
+        this.isSignUp = true;
+      } else if (fragment === 'sign-in') {
+        this.isSignUp = false;
+      }
+    });
+
     this.route.queryParams.subscribe(params => {
       const token = params['token'];
       if (token) {
