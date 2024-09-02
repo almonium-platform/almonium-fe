@@ -83,6 +83,23 @@ button[tuiButton] {
   color: #5A1A74;
 }
 
+.agree-with-terms {
+  color: #8c838f;
+  font-size: 13px;
+  word-wrap: break-word;
+  white-space: normal;
+  margin-left: .3rem;
+  //max-width: 100%; /* Ensure the container does not exceed its parent's width */
+  max-width: 280px; /* Limit the width of the container */
+  overflow-wrap: break-word; /* Ensure long words break to fit within the container */
+}
+
+.agree-with-terms a {
+  color: #5A1A74; /* Different color for hyperlinks */
+  font-weight: bold; /* Make hyperlinks bold */
+  text-decoration: underline; /* Underline hyperlinks */
+}
+
 .separator {
   text-align: center;
   margin: 20px 0;
@@ -160,7 +177,7 @@ button[tuiButton] {
   align-items: center;
   text-align: center;
   margin: 20px 0;
-  min-width: 270px;
+  min-width: 280px;
   padding: 0 1rem;
 }
 

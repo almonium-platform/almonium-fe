@@ -44,6 +44,12 @@
           <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
         </div>
         <a *ngIf="!isSignUp" tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
+        <div *ngIf="isSignUp" class="agree-with-terms">
+          By signing up, you confirm that you accept our
+          <a [href]="termsOfUseUrl" target="_blank">Terms of Use</a>
+          and have read our
+          <a [href]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+        </div>
         <div class="tui-form__buttons">
           <button type="submit"
                   class="text-white font-bold rounded-full auth-button">

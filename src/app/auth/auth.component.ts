@@ -12,6 +12,7 @@ import {AsyncPipe, NgIf, NgOptimizedImage} from "@angular/common";
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AppConstants} from '../app.constants';
+import {environment} from "../../environments/environment";
 
 @Component({
   selector: 'app-auth',
@@ -54,6 +55,11 @@ export class AuthComponent implements OnInit {
   currentGreeting: string = this.greetings[0];
   isSignUp: boolean = false;
   minimumPasswordLength: number = 6;
+
+  private readonly TERMS_OF_USE_PATH = '/terms-of-use';
+  private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
+  termsOfUseUrl: string = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
+  privacyPolicyUrl: string = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
 
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
