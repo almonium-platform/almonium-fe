@@ -45,14 +45,46 @@ import {environment} from "../../environments/environment";
   ],
 })
 export class AuthComponent implements OnInit {
-  greetings: string[] = [
-    'Bonjour', 'Namaste', 'Привіт', 'Hello', 'Hola', 'Ciao', 'Konnichiwa', 'Guten Tag',
-    'Olá', 'Annyeong', 'Salaam', 'Здравствуйте',
-    'مرحبا', 'שלום', 'こんにちは', '안녕하세요', 'สวัสดี', 'Merhaba', 'Shalom', 'Sawubona',
-    'Hallo', 'Hej', 'Ahoj', 'Szia', 'Salam', 'Yassas', 'Selamat', 'Xin chào',
-    'Dzień dobry', 'Sveiki', 'Tere', 'God dag', 'Kamusta', 'Sawa dee', 'Marhaba'
-  ];
-  currentGreeting: string = this.greetings[0];
+  greetings: { [key: string]: string } = {
+    'Bonjour': 'French',
+    'Namaste': 'Hindi',
+    'Привіт': 'Ukrainian',
+    'Hello': 'English',
+    'Hola': 'Spanish',
+    'Ciao': 'Italian',
+    'Konnichiwa': 'Japanese',
+    'Guten Tag': 'German',
+    'Olá': 'Portuguese',
+    'Annyeong': 'Korean',
+    'Salaam': 'Persian',
+    'Здравствуйте': 'Russian',
+    'مرحبا': 'Arabic',
+    'שלום': 'Hebrew',
+    'こんにちは': 'Japanese',
+    '안녕하세요': 'Korean',
+    'สวัสดี': 'Thai',
+    'Merhaba': 'Turkish',
+    'Shalom': 'Hebrew',
+    'Sawubona': 'Zulu',
+    'Hallo': 'Dutch',
+    'Hej': 'Swedish',
+    'Ahoj': 'Czech',
+    'Szia': 'Hungarian',
+    'Salam': 'Azerbaijani',
+    'Yassas': 'Greek',
+    'Selamat': 'Malay/Indonesian',
+    'Xin chào': 'Vietnamese',
+    'Dzień dobry': 'Polish',
+    'Sveiki': 'Latvian',
+    'Tere': 'Estonian',
+    'God dag': 'Norwegian',
+    'Kamusta': 'Filipino',
+    'Sawa dee': 'Thai',
+    'Marhaba': 'Arabic'
+  };
+  currentGreeting: string = Object.keys(this.greetings)[0];
+  currentLanguage: string = this.greetings[this.currentGreeting];
+  isHovering: boolean = false;
   isSignUp: boolean = false;
   minimumPasswordLength: number = 6;
 
@@ -74,8 +106,12 @@ export class AuthComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     setInterval(() => {
-      this.currentGreeting = this.greetings[Math.floor(Math.random() * this.greetings.length)];
-      this.cdr.detectChanges();
+      if (!this.isHovering) {
+        const greetingKeys = Object.keys(this.greetings);
+        this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
+        this.currentLanguage = this.greetings[this.currentGreeting];
+        this.cdr.detectChanges();
+      }
     }, 2000);
   }
 
@@ -151,5 +187,14 @@ export class AuthComponent implements OnInit {
         break;
     }
     window.location.href = url;
+  }
+
+  // hovering over the greeting
+  onMouseEnter() {
+    this.isHovering = true;
+  }
+
+  onMouseLeave() {
+    this.isHovering = false;
   }
 }

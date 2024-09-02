@@ -7,8 +7,9 @@
       </div>
       <hr class="solid separator2">
       <div class="tui-col_8">
-        <h3 class="greeting">{{ currentGreeting }}👋</h3>
-
+        <h3 class="greeting" [title]="currentLanguage" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+          {{ currentGreeting }}👋
+        </h3>
         <div class="social-buttons">
           <button type="button" class="social-button google" (click)="onSocialLogin('google')">
             <i class="fab fa-google"></i>
