@@ -7,8 +7,10 @@ import {DiscoverComponent} from "./discover/discover.component";
 import {TextComponent} from "./text/text.component";
 import {PrivacyPolicyComponent} from "./privacy-policy/privacy-policy.component";
 import {TermsOfUseComponent} from "./terms-of-use/terms-of-use.component";
+import {LandingComponent} from "./landing/landing.component";
 
 export const routes: Routes = [
+  {path: '', component: LandingComponent},
   {path: 'auth', component: AuthComponent},
   {path: 'home', component: HomeComponent},
   {path: 'verify-email', component: EmailVerificationComponent},
