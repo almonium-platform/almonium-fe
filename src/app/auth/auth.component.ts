@@ -151,7 +151,7 @@ export class AuthComponent implements OnInit {
         this.authService.login(emailValue, passwordValue).subscribe({
           next: response => {
             this.authService.storeToken(response.accessToken);
-            this.router.navigate(['/home']).then(r => r);
+            this.router.navigate(['/home'], {queryParams: {token: response.accessToken}}).then(r => r);
           },
           error: error => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
