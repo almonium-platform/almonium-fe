@@ -11,9 +11,16 @@ import {AuthService} from "../auth/auth.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
-  token: string | null = '';
+  userInfo: any;
 
   constructor(private authService: AuthService) {
-    this.token = this.authService.getToken();
+    this.authService.getUserInfo().subscribe({
+      next: userInfo => {
+        this.userInfo = userInfo;
+      },
+      error: error => {
+        console.log('Failed to load user info', error);
+      }
+    });
   }
 }

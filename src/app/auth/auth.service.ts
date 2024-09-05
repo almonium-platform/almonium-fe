@@ -14,7 +14,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     const url = `${AppConstants.AUTH_API}/public/login`;
-    return this.http.post(url, {email, password});
+    return this.http.post(url, {email, password}, {withCredentials: true});
   }
 
   register(email: string, password: string): Observable<any> {
@@ -38,15 +38,24 @@ export class AuthService {
     return this.http.post(url, {email});
   }
 
-  storeToken(token: string): void {
-    localStorage.setItem(this.tokenKey, token);
+  refreshToken(): Observable<any> {
+    const url = `${AppConstants.API_URL}/refresh`;
+    return this.http.post(url, {}, {withCredentials: true});
   }
 
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+  getUserInfo(): Observable<any> {
+    const url = `${AppConstants.API_URL}/users/me`;
+    return this.http.get(url, {withCredentials: true});
   }
 
-  clearToken(): void {
-    localStorage.removeItem(this.tokenKey);
+  clearCookies(): void {
+    // Clear any stored tokens or session information
+    document.cookie = 'accessToken=; Max-Age=0; path=/';
+    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/refresh';
+  }
+
+  logout(): void {
+    const url = `${AppConstants.AUTH_API}/manage/logout`;
+    this.http.post(url, {}, {withCredentials: true}).subscribe();
   }
 }

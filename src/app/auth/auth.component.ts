@@ -123,14 +123,6 @@ export class AuthComponent implements OnInit {
         this.isSignUp = false;
       }
     });
-
-    this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      if (token) {
-        this.authService.storeToken(token);
-        this.router.navigate(['/home']).then(r => r);
-      }
-    });
   }
 
   onSubmit() {
@@ -149,9 +141,8 @@ export class AuthComponent implements OnInit {
         });
       } else {
         this.authService.login(emailValue, passwordValue).subscribe({
-          next: response => {
-            this.authService.storeToken(response.accessToken);
-            this.router.navigate(['/home'], {queryParams: {token: response.accessToken}}).then(r => r);
+          next: () => {
+            this.router.navigate(['/home']).then(r => r);
           },
           error: error => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
