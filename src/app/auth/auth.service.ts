@@ -55,7 +55,15 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearCookies();
     const url = `${AppConstants.AUTH_API}/manage/logout`;
-    this.http.post(url, {}, {withCredentials: true}).subscribe();
+    this.http.post(url, {}, {withCredentials: true}).subscribe({
+      next: () => {
+        console.log('User logged out successfully.');
+      },
+      error: (err) => {
+        console.error('Logout failed', err);
+      }
+    });
   }
 }
