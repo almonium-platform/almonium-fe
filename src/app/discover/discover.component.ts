@@ -7,6 +7,7 @@ import {FormsModule} from "@angular/forms";
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
 import {DiscoverService} from "./discover.service";
 import {TuiBadgeModule} from "@taiga-ui/kit";
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-discover',
@@ -32,10 +33,20 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   constructor(private http: HttpClient,
               private discoverService: DiscoverService,
-              private renderer: Renderer2) {
+              private renderer: Renderer2,
+              private route: ActivatedRoute
+  ) {
   }
 
   ngOnInit(): void {
+    // Listen for query parameter changes
+    this.route.queryParams.subscribe(params => {
+      this.searchText = params['text'] || '';
+      if (this.searchText) {
+        this.onSearchChange(this.searchText);
+      }
+    });
+
     this.globalKeydownListener = this.renderer.listen('document', 'keydown', (event: KeyboardEvent) => {
       if (event.key === '/') {
         this.focusSearchInput();
@@ -89,13 +100,39 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     } else {
       this.filteredOptions = [];
     }
+
+    // Move cursor to the end of the contenteditable element
+    const element = this.renderer.selectRootElement('.search-input', true);
+    console.log('Element:', element);
+    element.focus();
+
+    // Use a setTimeout to ensure cursor position logic executes after rendering
+    setTimeout(() => {
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      // Clear any previous selection
+      selection?.removeAllRanges();
+
+      // Set the range at the end of the element's contents
+      range.selectNodeContents(element);
+      range.collapse(false); // Collapse to the end of the range
+
+      // Apply the range as the current selection
+      selection?.addRange(range);
+
+      console.log('Cursor moved to the end.');
+    }, 0); // Timeout of 0 ensures the next task in the event loop
   }
 
   onOptionSelected(option: string): void {
     this.searchText = option;
     this.filteredOptions = [];
 
-    this.focusSearchInput();
+    // Use setTimeout to ensure DOM updates before focusing
+    setTimeout(() => {
+      this.focusSearchInput();
+    }, 0);
   }
 
   handleKeydown(event: KeyboardEvent): void {
