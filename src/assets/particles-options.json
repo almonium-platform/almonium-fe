@@ -1,0 +1,82 @@
+{
+  "background": {
+    "color": "#F9F3F1"
+  },
+  "particles": {
+    "color": {
+      "value": ["#6C1D6A", "#5A1A74", "#48177D", "#A1264C", "#7D2060", "#8F2356"]
+    },
+    "move": {
+      "direction": "bottom",
+      "enable": true,
+      "outModes": "out",
+      "speed": 2
+    },
+    "number": {
+      "density": {
+        "enable": false,
+        "height": 100,
+        "width": 100
+      },
+      "value": 150
+    },
+    "opacity": {
+      "value": 0.4
+    },
+    "shape": {
+      "type": "image",
+      "options": {
+        "image": {
+          "src": "/assets/img/icons/card_black.svg",
+          "width": 60,
+          "height": 100,
+          "replaceColor": true
+        }
+      }
+    },
+    "size": {
+      "value": 10
+    },
+    "wobble": {
+      "enable": true,
+      "distance": 5,
+      "speed": 1
+    },
+    "zIndex": {
+      "value": 0
+    }
+  },
+  "interactivity": {
+    "events": {
+      "onHover": {
+        "enable": true,
+        "mode": "repulse"
+      },
+      "onClick": {
+        "enable": true,
+        "mode": "push"
+      }
+    },
+    "modes": {
+      "grab": {
+        "distance": 100,
+        "links": {
+          "opacity": 1
+        }
+      },
+      "bubble": {
+        "distance": 100,
+        "duration": 0.5,
+        "size": 4
+      },
+      "repulse": {
+        "distance": 100,
+        "duration": 0.5
+      },
+      "push": {
+        "quantity": 10
+      }
+    }
+  },
+  "detectRetina": true
+}

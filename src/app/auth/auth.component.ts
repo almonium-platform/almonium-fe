@@ -1,3 +1,4 @@
+import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
@@ -8,11 +9,13 @@ import {
   TuiLinkModule,
   TuiTextfieldControllerModule
 } from "@taiga-ui/core";
-import {AsyncPipe, NgIf, NgOptimizedImage} from "@angular/common";
+import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from "@angular/common";
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router} from "@angular/router";
 import {AppConstants} from '../app.constants';
 import {environment} from "../../environments/environment";
+import {IParticlesProps, NgParticlesService, NgxParticlesModule} from "@tsparticles/angular";
+import {loadFull} from "tsparticles";
 
 @Component({
   selector: 'app-auth',
@@ -29,6 +32,8 @@ import {environment} from "../../environments/environment";
     TuiLinkModule,
     TuiTextfieldControllerModule,
     NgOptimizedImage,
+    NgxParticlesModule,
+    NgClass,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -100,8 +105,10 @@ export class AuthComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private readonly particlesService: NgParticlesService,
     private alertService: TuiAlertService,
     private router: Router,
+    private http: HttpClient,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {
@@ -115,7 +122,29 @@ export class AuthComponent implements OnInit {
     }, 2000);
   }
 
+  id = "tsparticles";
+  particlesOptions: IParticlesProps | undefined;
+
+  particlesLoaded(container: any): void {
+    console.log("particles loaded")
+  }
+
+  private loadParticlesOptions(): void {
+    this.http.get<IParticlesProps>('/assets/particles-options.json').subscribe(
+      (options) => {
+        this.particlesOptions = options;
+      },
+      (error) => {
+        console.error('Error loading particles options:', error);
+      }
+    );
+  }
+
   ngOnInit(): void {
+    this.loadParticlesOptions();
+    this.particlesService.init(async (engine) => {
+      await loadFull(engine);
+    });
     this.route.fragment.subscribe(fragment => {
       if (fragment === 'sign-up') {
         this.isSignUp = true;
