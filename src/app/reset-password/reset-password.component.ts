@@ -2,9 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {TuiAlertService, TuiButtonModule, TuiErrorModule} from '@taiga-ui/core';
+import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiTextfieldControllerModule} from '@taiga-ui/core';
 import {AsyncPipe} from "@angular/common";
-import {TuiFieldErrorPipeModule, TuiInputPasswordModule} from "@taiga-ui/kit";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputPasswordModule} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-reset-password',
@@ -16,9 +16,20 @@ import {TuiFieldErrorPipeModule, TuiInputPasswordModule} from "@taiga-ui/kit";
     TuiErrorModule,
     TuiFieldErrorPipeModule,
     TuiInputPasswordModule,
-    TuiButtonModule
+    TuiButtonModule,
+    TuiTextfieldControllerModule
   ],
-  standalone: true
+  standalone: true,
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useValue: {
+        required: 'Value is required',
+        minlength: ({requiredLength, actualLength}: { requiredLength: number, actualLength: number }) =>
+          `Password is too short: ${actualLength}/${requiredLength} characters`
+      }
+    }
+  ]
 })
 export class ResetPasswordComponent implements OnInit {
   resetForm: FormGroup;

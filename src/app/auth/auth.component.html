@@ -6,7 +6,7 @@
 
 <div class="tui-container">
   <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
-    <div class="inner">
+    <div class="card">
       <div class="logo-div">
         <img ngSrc="assets/img/icons/logo.svg" alt="Logo" class="logo" height="1481" width="1456">
         <img ngSrc="../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
@@ -62,7 +62,7 @@
         </div>
         <div class="">
           <button type="submit"
-                  class="text-white font-bold rounded-full auth-button">
+                  class="gradient-button">
             {{ isSignUp ? 'Sign Up' : 'Sign In' }}
           </button>
         </div>
