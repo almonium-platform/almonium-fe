@@ -51,20 +51,31 @@ button[tuiButton] {
 
 .switch {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   font-size: 0.9rem;
 
   span {
     font-weight: 600;
     cursor: pointer;
-    padding: 2.0rem;
+    padding: 0.5rem 1rem; /* Adjust padding to your preference */
     color: #8F2356;
-    opacity: 0.7; // Reduce opacity for inactive spans
+    opacity: 0.7; /* Reduced opacity for inactive spans */
+    border-radius: 20px; /* Add border-radius for better contour */
+    transition: all 0.3s ease; /* Smooth transition for hover/active state */
+    border: 1px solid transparent; /* Add a transparent border for effect */
+    margin: 0 1rem; /* Add horizontal margin to create gap between buttons */
 
     &.active {
       font-weight: 700;
       color: #5A1A74;
-      opacity: 1; // Full opacity for active spans
+      opacity: 1; /* Full opacity for active spans */
+      border-color: #5A1A74; /* Highlight active option with a border */
+      //box-shadow: 0px 1px 10px rgba(90, 26, 116, 0.2); /* Subtle shadow for depth */
+    }
+
+    &:hover {
+      opacity: 1; /* Hover state to make it clearer */
+      border-color: #5A1A74; /* Hover color matching the active state */
     }
   }
 }
@@ -89,11 +100,11 @@ button[tuiButton] {
 }
 
 .row-1 {
-   margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .row-2 {
-   margin-bottom: 7px;
+  margin-bottom: 7px;
 }
 
 .agree-with-terms {
