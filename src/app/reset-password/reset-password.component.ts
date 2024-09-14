@@ -3,55 +3,65 @@ import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiTextfieldControllerModule} from '@taiga-ui/core';
-import {AsyncPipe} from "@angular/common";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputPasswordModule} from "@taiga-ui/kit";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputPasswordModule} from '@taiga-ui/kit';
+import {ParticlesService} from '../services/particles.service';
+import {NgxParticlesModule} from '@tsparticles/angular';
+import {AsyncPipe, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.less'],
+  standalone: true,
   imports: [
     ReactiveFormsModule,
-    AsyncPipe,
     TuiErrorModule,
     TuiFieldErrorPipeModule,
     TuiInputPasswordModule,
     TuiButtonModule,
-    TuiTextfieldControllerModule
+    NgxParticlesModule,
+    TuiTextfieldControllerModule,
+    AsyncPipe,
+    NgIf,
   ],
-  standalone: true,
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
         required: 'Value is required',
-        minlength: ({requiredLength, actualLength}: { requiredLength: number, actualLength: number }) =>
-          `Password is too short: ${actualLength}/${requiredLength} characters`
-      }
-    }
-  ]
+        minlength: ({requiredLength, actualLength}: { requiredLength: number; actualLength: number }) =>
+          `Password is too short: ${actualLength}/${requiredLength} characters`,
+      },
+    },
+  ],
 })
 export class ResetPasswordComponent implements OnInit {
   resetForm: FormGroup;
   token: string = '';
+  id = 'tsparticles';
+  particlesOptions$ = this.particlesService.particlesOptions$;
 
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private alertService: TuiAlertService
+    private alertService: TuiAlertService,
+    public particlesService: ParticlesService
   ) {
     this.resetForm = new FormGroup({
-      newPassword: new FormControl('', [Validators.required, Validators.minLength(6)])
+      newPassword: new FormControl('', [Validators.required, Validators.minLength(6)]),
     });
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.particlesService.initParticles();
+    this.particlesService.loadParticlesOptions();
+
+    this.route.queryParams.subscribe((params) => {
       this.token = params['token'];
       if (!this.token) {
-        this.alertService.open('No token provided', {status: "error"}).subscribe();
-        this.router.navigate(['/auth']);
+        this.alertService.open('No token provided', {status: 'error'}).subscribe();
+        this.router.navigate(['/auth']).then(r => r);
       }
     });
   }
@@ -61,12 +71,12 @@ export class ResetPasswordComponent implements OnInit {
       const newPassword = this.resetForm.get('newPassword')?.value;
       this.authService.resetPassword(this.token, newPassword).subscribe({
         next: () => {
-          this.alertService.open('Password reset successfully!', {status: "success"}).subscribe();
-          this.router.navigate(['/auth']);
+          this.alertService.open('Password reset successfully!', {status: 'success'}).subscribe();
+          this.router.navigate(['/auth']).then(r => r);
         },
-        error: error => {
-          this.alertService.open(error.error.message || 'Password reset failed', {status: "error"}).subscribe();
-        }
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Password reset failed', {status: 'error'}).subscribe();
+        },
       });
     }
   }

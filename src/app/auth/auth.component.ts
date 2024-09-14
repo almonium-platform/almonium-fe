@@ -1,21 +1,20 @@
-import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from "@taiga-ui/kit";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from '@taiga-ui/kit';
 import {
   TuiAlertService,
   TuiButtonModule,
   TuiErrorModule,
   TuiLinkModule,
-  TuiTextfieldControllerModule
-} from "@taiga-ui/core";
-import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+  TuiTextfieldControllerModule,
+} from '@taiga-ui/core';
+import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from '@angular/common';
 import {AuthService} from './auth.service';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router} from '@angular/router';
 import {AppConstants} from '../app.constants';
-import {environment} from "../../environments/environment";
-import {IParticlesProps, NgParticlesService, NgxParticlesModule} from "@tsparticles/angular";
-import {loadFull} from "tsparticles";
+import {environment} from '../../environments/environment';
+import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
+import {ParticlesService} from '../services/particles.service'; // Import your service
 
 @Component({
   selector: 'app-auth',
@@ -43,9 +42,9 @@ import {loadFull} from "tsparticles";
       useValue: {
         required: 'Value is required',
         email: 'Invalid email address',
-        minlength: ({requiredLength, actualLength}: { requiredLength: number, actualLength: number }) =>
-          `Password is too short: ${actualLength}/${requiredLength} characters`
-      }
+        minlength: ({requiredLength, actualLength}: { requiredLength: number; actualLength: number }) =>
+          `Password is too short: ${actualLength}/${requiredLength} characters`,
+      },
     },
   ],
 })
@@ -85,7 +84,7 @@ export class AuthComponent implements OnInit {
     'God dag': 'Norwegian',
     'Kamusta': 'Filipino',
     'Sawa dee': 'Thai',
-    'Marhaba': 'Arabic'
+    'Marhaba': 'Arabic',
   };
   currentGreeting: string = Object.keys(this.greetings)[0];
   currentLanguage: string = this.greetings[this.currentGreeting];
@@ -103,14 +102,16 @@ export class AuthComponent implements OnInit {
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(this.minimumPasswordLength)]),
   });
 
+  id = 'tsparticles';
+  particlesOptions$ = this.particlesService.particlesOptions$;
+
   constructor(
     private authService: AuthService,
-    private readonly particlesService: NgParticlesService,
     private alertService: TuiAlertService,
     private router: Router,
-    private http: HttpClient,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    protected particlesService: ParticlesService // Inject ParticlesService
   ) {
     setInterval(() => {
       if (!this.isHovering) {
@@ -122,30 +123,11 @@ export class AuthComponent implements OnInit {
     }, 2000);
   }
 
-  id = "tsparticles";
-  particlesOptions: IParticlesProps | undefined;
-
-  particlesLoaded(container: any): void {
-    console.log("particles loaded")
-  }
-
-  private loadParticlesOptions(): void {
-    this.http.get<IParticlesProps>('/assets/particles-options.json').subscribe(
-      (options) => {
-        this.particlesOptions = options;
-      },
-      (error) => {
-        console.error('Error loading particles options:', error);
-      }
-    );
-  }
-
   ngOnInit(): void {
-    this.loadParticlesOptions();
-    this.particlesService.init(async (engine) => {
-      await loadFull(engine);
-    });
-    this.route.fragment.subscribe(fragment => {
+    this.particlesService.initParticles();
+    this.particlesService.loadParticlesOptions();
+
+    this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
         this.isSignUp = true;
       } else if (fragment === 'sign-in') {
@@ -161,21 +143,23 @@ export class AuthComponent implements OnInit {
 
       if (this.isSignUp) {
         this.authService.register(emailValue, passwordValue).subscribe({
-          next: response => {
-            this.alertService.open(response.message || 'Next step, verify your email!', {status: 'success'}).subscribe();
+          next: (response) => {
+            this.alertService
+              .open(response.message || 'Next step, verify your email!', {status: 'success'})
+              .subscribe();
           },
-          error: error => {
+          error: (error) => {
             this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
-          }
+          },
         });
       } else {
         this.authService.login(emailValue, passwordValue).subscribe({
           next: () => {
-            this.router.navigate(['/home']).then(r => r);
+            this.router.navigate(['/home']).then((r) => r);
           },
-          error: error => {
+          error: (error) => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
-          }
+          },
         });
       }
     }
@@ -192,12 +176,14 @@ export class AuthComponent implements OnInit {
       return;
     }
     this.authService.forgotPassword(emailValue).subscribe({
-      next: response => {
+      next: (response) => {
         this.alertService.open(response.message || 'Password reset link sent!', {status: 'success'}).subscribe();
       },
-      error: error => {
-        this.alertService.open(error.error.message || 'Failed to send password reset link', {status: 'error'}).subscribe();
-      }
+      error: (error) => {
+        this.alertService
+          .open(error.error.message || 'Failed to send password reset link', {status: 'error'})
+          .subscribe();
+      },
     });
   }
 
@@ -217,7 +203,7 @@ export class AuthComponent implements OnInit {
     window.location.href = url;
   }
 
-  // hovering over the greeting
+  // Hovering over the greeting
   onMouseEnter() {
     this.isHovering = true;
   }

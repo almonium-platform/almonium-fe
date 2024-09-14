@@ -1,7 +1,8 @@
 <ngx-particles
+  *ngIf="particlesOptions$ | async as particlesOptions"
   [id]="id"
   [options]="particlesOptions"
-  (particlesLoaded)="particlesLoaded($event)"
+  (particlesLoaded)="particlesService.particlesLoaded($event)"
 ></ngx-particles>
 
 <div class="tui-container">
