@@ -14,11 +14,11 @@
     },
     "number": {
       "density": {
-        "enable": false,
+        "enable": true,
         "height": 100,
         "width": 100
       },
-      "value": 150
+      "value": 2
     },
     "opacity": {
       "value": 0.4
