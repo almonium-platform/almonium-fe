@@ -1,3 +1,4 @@
+import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from '@taiga-ui/kit';
@@ -49,43 +50,7 @@ import {ParticlesService} from '../services/particles.service'; // Import your s
   ],
 })
 export class AuthComponent implements OnInit {
-  greetings: { [key: string]: string } = {
-    'Bonjour': 'French',
-    'Namaste': 'Hindi',
-    'Привіт': 'Ukrainian',
-    'Hello': 'English',
-    'Hola': 'Spanish',
-    'Ciao': 'Italian',
-    'Konnichiwa': 'Japanese',
-    'Guten Tag': 'German',
-    'Olá': 'Portuguese',
-    'Annyeong': 'Korean',
-    'Salaam': 'Persian',
-    'Здравствуйте': 'Russian',
-    'مرحبا': 'Arabic',
-    'שלום': 'Hebrew',
-    'こんにちは': 'Japanese',
-    '안녕하세요': 'Korean',
-    'สวัสดี': 'Thai',
-    'Merhaba': 'Turkish',
-    'Shalom': 'Hebrew',
-    'Sawubona': 'Zulu',
-    'Hallo': 'Dutch',
-    'Hej': 'Swedish',
-    'Ahoj': 'Czech',
-    'Szia': 'Hungarian',
-    'Salam': 'Azerbaijani',
-    'Yassas': 'Greek',
-    'Selamat': 'Malay/Indonesian',
-    'Xin chào': 'Vietnamese',
-    'Dzień dobry': 'Polish',
-    'Sveiki': 'Latvian',
-    'Tere': 'Estonian',
-    'God dag': 'Norwegian',
-    'Kamusta': 'Filipino',
-    'Sawa dee': 'Thai',
-    'Marhaba': 'Arabic',
-  };
+  greetings: { [key: string]: string } = {};
   currentGreeting: string = Object.keys(this.greetings)[0];
   currentLanguage: string = this.greetings[this.currentGreeting];
   isHovering: boolean = false;
@@ -111,16 +76,9 @@ export class AuthComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    protected particlesService: ParticlesService // Inject ParticlesService
+    protected particlesService: ParticlesService,
+    private http: HttpClient
   ) {
-    setInterval(() => {
-      if (!this.isHovering) {
-        const greetingKeys = Object.keys(this.greetings);
-        this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
-        this.currentLanguage = this.greetings[this.currentGreeting];
-        this.cdr.detectChanges();
-      }
-    }, 2000);
   }
 
   ngOnInit(): void {
@@ -134,6 +92,35 @@ export class AuthComponent implements OnInit {
         this.isSignUp = false;
       }
     });
+
+    this.loadGreetings();
+
+    setInterval(() => {
+      if (!this.isHovering && Object.keys(this.greetings).length > 0) {
+        const greetingKeys = Object.keys(this.greetings);
+        this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
+        this.currentLanguage = this.greetings[this.currentGreeting];
+        this.cdr.detectChanges();
+      }
+    }, 2000);
+  }
+
+  private loadGreetings(): void {
+    this.http.get<{ [key: string]: string }>('/assets/greetings.json').subscribe(
+      (data) => {
+        this.greetings = data;
+
+        // Initialize currentGreeting and currentLanguage after data is loaded
+        const greetingKeys = Object.keys(this.greetings);
+        if (greetingKeys.length > 0) {
+          this.currentGreeting = greetingKeys[0];
+          this.currentLanguage = this.greetings[this.currentGreeting];
+        }
+      },
+      (error) => {
+        console.error('Error loading greetings:', error);
+      }
+    );
   }
 
   onSubmit() {

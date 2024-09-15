@@ -1,0 +1,83 @@
+<div class="language-selection-container">
+  <h3 class="tui-form__header tui-form__header_margin-top_none">Select your languages</h3>
+  <p>
+    Some languages have special features, core functionality is available for all languages.
+  </p>
+  <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
+    <!-- Fluent Languages -->
+    <div class="form-group">
+      <label>I'm fluent in</label>
+      <tui-multi-select
+        formControlName="fluentLanguages"
+        [tuiTextfieldCleaner]="true"
+        [tuiTextfieldLabelOutside]="true"
+      >
+        these languages
+
+        <select
+          multiple
+          tuiSelect
+          [items]="groupItemsFluent"
+        ></select>
+      </tui-multi-select>
+      <tui-error
+        formControlName="fluentLanguages"
+        [error]="[] | tuiFieldError | async"
+      ></tui-error>
+    </div>
+
+    <!-- Target Languages -->
+    <div class="form-group">
+      <label>I want to learn</label>
+      <tui-multi-select
+        formControlName="targetLanguages"
+        [tuiTextfieldCleaner]="true"
+        [tuiTextfieldLabelOutside]="true"
+      >
+        those languages
+
+        <select
+          multiple
+          tuiSelect
+          [items]="groupItemsTarget"
+          [labels]="labels"
+        ></select>
+      </tui-multi-select>
+      <tui-error
+        formControlName="targetLanguages"
+        [error]="[] | tuiFieldError | async"
+      ></tui-error>
+    </div>
+
+    <!-- Features Display -->
+    <div class="features"
+         *ngIf="selectedTargetLanguageFeatures.special.length || selectedTargetLanguageFeatures.basic.length">
+      <h3>Features for Selected Target Languages</h3>
+      <ul class="features-list">
+        <!-- Special Features -->
+        <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
+          ✔️ 💫 {{ feature.feature }}
+          <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
+            ({{ feature.languages.join(', ') }})
+          </span>
+        </li>
+        <!-- Basic Features -->
+        <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
+          ✔️ {{ feature.feature }}
+          <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
+            ({{ feature.languages.join(', ') }})
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Submit Button -->
+    <button
+      type="submit"
+      [disabled]="languageForm.invalid"
+      class="gradient-button"
+    >
+      Continue
+    </button>
+  </form>
+</div>
