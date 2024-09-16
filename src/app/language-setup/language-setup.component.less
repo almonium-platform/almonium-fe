@@ -5,7 +5,25 @@
   --tui-primary-hover: #a32b5d;
   --tui-error-fill: #ac1c1c; // error field box color
   --tui-negative: #ac1c1c; // error text color
-  --tui-radius-m: 50px;
+  --tui-radius-m: 20px;
+}
+
+.text-sm {
+  line-height: 1.5rem;
+}
+
+.tui-col_8 {
+  width: 100%; // Full width of the form container
+  padding: 20px;
+  min-width: 360px;
+  box-sizing: border-box; // Includes padding in the width calculation
+}
+
+.card {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 35px;
+  background-color: white;
+  z-index: 9999;
 }
 
 .language-selection-container {
@@ -17,10 +35,6 @@
 
   h3 {
     margin-bottom: 1rem;
-  }
-
-  p {
-    margin-bottom: 2rem;
   }
 
   form {

@@ -1,92 +1,106 @@
-<div class="language-selection-container">
-  <h3 class="tui-form__header tui-form__header_margin-top_none">Select your languages</h3>
-  <p>
-    💫️ Some languages have special features.<br>✔️ Core functionality is available for all listed languages.
-  </p>
-  <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
-    <!-- Fluent Languages -->
-    <div class="form-group">
-      <label>I'm fluent in</label>
-      <tui-multi-select
-        formControlName="fluentLanguages"
-        [tuiTextfieldCleaner]="true"
-        [tuiTextfieldLabelOutside]="true"
-        placeholder="Search fluent languages..."
-        (searchChange)="fluentSearch$.next($event ?? '')"
-      >
-        Select your fluent languages
+<div class="tui-container">
+  <div class="language-selection-container">
+    <div class="card">
+      <div class="tui-col_8">
+        <h3 class="tui-form__header tui-form__header_margin-top_none">Select your languages</h3>
+        <div class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
+          <div class="text-left">
+            <p class="text-sm">
+              <span class="inline-block text-yellow-500">💫</span> Some languages have special features.
+            </p>
+            <p class="text-sm">
+              <span class="inline-block text-purple-500">✔️</span> Core functionality is available for all listed
+              languages.
+            </p>
+          </div>
+        </div>
+        <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
+          <!-- Fluent Languages -->
+          <div class="form-group">
+            <label>I'm fluent in</label>
+            <tui-multi-select
+              formControlName="fluentLanguages"
+              [tuiTextfieldCleaner]="true"
+              [tuiTextfieldLabelOutside]="true"
+              placeholder="Search fluent languages..."
+              (searchChange)="fluentSearch$.next($event ?? '')"
+            >
+              Select your fluent languages
 
-        <tui-data-list-wrapper
-          *tuiDataList
-          [items]="filteredFluentLanguages$ | async"
-        ></tui-data-list-wrapper>
-      </tui-multi-select>
-      <tui-error
-        formControlName="fluentLanguages"
-        [error]="[] | tuiFieldError | async"
-      ></tui-error>
-    </div>
+              <tui-data-list-wrapper
+                *tuiDataList
+                [items]="filteredFluentLanguages$ | async"
+              ></tui-data-list-wrapper>
+            </tui-multi-select>
+            <tui-error
+              formControlName="fluentLanguages"
+              [error]="[] | tuiFieldError | async"
+            ></tui-error>
+          </div>
 
-    <!-- Target Languages -->
-    <div class="form-group">
-      <label>I want to learn</label>
-      <tui-multi-select
-        formControlName="targetLanguages"
-        [tuiTextfieldCleaner]="true"
-        [tuiTextfieldLabelOutside]="true"
-        placeholder="Search target languages..."
-        (searchChange)="targetSearch$.next($event ?? '')"
-      >
-        Select your target languages
+          <!-- Target Languages -->
+          <div class="form-group">
+            <label>I want to learn</label>
+            <tui-multi-select
+              formControlName="targetLanguages"
+              [tuiTextfieldCleaner]="true"
+              [tuiTextfieldLabelOutside]="true"
+              placeholder="Search target languages..."
+              (searchChange)="targetSearch$.next($event ?? '')"
+            >
+              Select your target languages
 
-        <tui-data-list-wrapper
-          *tuiDataList
-          [labels]="labels"
-          [items]="filteredTargetLanguages$ | async"
-        ></tui-data-list-wrapper>
-      </tui-multi-select>
-      <tui-error
-        formControlName="targetLanguages"
-        [error]="[] | tuiFieldError | async"
-      ></tui-error>
-    </div>
+              <tui-data-list-wrapper
+                *tuiDataList
+                [labels]="labels"
+                [items]="filteredTargetLanguages$ | async"
+              ></tui-data-list-wrapper>
+            </tui-multi-select>
+            <tui-error
+              formControlName="targetLanguages"
+              [error]="[] | tuiFieldError | async"
+            ></tui-error>
+          </div>
 
-    <!-- Features Display -->
-    <div class="features"
-         *ngIf="selectedTargetLanguageFeatures.special.length || selectedTargetLanguageFeatures.basic.length">
-      <div class="columns">
-        <!-- Special Features Column -->
-        <div class="special-features" *ngIf="selectedTargetLanguageFeatures.special.length > 0">
-          <h4>Special Features</h4>
-          <ul class="features-list">
-            <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
-              💫 {{ feature.feature }}
-              <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
+          <!-- Features Display -->
+          <div class="features"
+               *ngIf="selectedTargetLanguageFeatures.special.length || selectedTargetLanguageFeatures.basic.length">
+            <div class="columns">
+              <!-- Special Features Column -->
+              <div class="special-features" *ngIf="selectedTargetLanguageFeatures.special.length > 0">
+                <h4>Special Features</h4>
+                <ul class="features-list">
+                  <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
+                    💫 {{ feature.feature }}
+                    <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
                 ({{ feature.languages.join(', ') }})
               </span>
-            </li>
-          </ul>
-        </div>
+                  </li>
+                </ul>
+              </div>
 
-        <!-- Basic Features Column -->
-        <div class="basic-features">
-          <h4>Core Features</h4>
-          <ul class="features-list">
-            <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
-              ✔️ {{ feature.feature }}
-            </li>
-          </ul>
-        </div>
+              <!-- Basic Features Column -->
+              <div class="basic-features">
+                <h4>Core Features</h4>
+                <ul class="features-list">
+                  <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
+                    ✔️ {{ feature.feature }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            [disabled]="languageForm.invalid"
+            class="gradient-button"
+          >
+            Continue
+          </button>
+        </form>
       </div>
     </div>
-
-    <!-- Submit Button -->
-    <button
-      type="submit"
-      [disabled]="languageForm.invalid"
-      class="gradient-button"
-    >
-      Continue
-    </button>
-  </form>
+  </div>
 </div>
