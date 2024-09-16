@@ -1,7 +1,7 @@
 <div class="language-selection-container">
   <h3 class="tui-form__header tui-form__header_margin-top_none">Select your languages</h3>
   <p>
-    Some languages have special features, core functionality is available for all languages.
+    💫️ Some languages have special features.<br>✔️ Core functionality is available for all listed languages.
   </p>
   <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
     <!-- Fluent Languages -->
@@ -54,23 +54,30 @@
     <!-- Features Display -->
     <div class="features"
          *ngIf="selectedTargetLanguageFeatures.special.length || selectedTargetLanguageFeatures.basic.length">
-      <h3>Features for Selected Target Languages</h3>
-      <ul class="features-list">
-        <!-- Special Features -->
-        <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
-          ✔️ 💫 {{ feature.feature }}
-          <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
-            ({{ feature.languages.join(', ') }})
-          </span>
-        </li>
-        <!-- Basic Features -->
-        <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
-          ✔️ {{ feature.feature }}
-          <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
-            ({{ feature.languages.join(', ') }})
-          </span>
-        </li>
-      </ul>
+      <div class="columns">
+        <!-- Special Features Column -->
+        <div class="special-features" *ngIf="selectedTargetLanguageFeatures.special.length > 0">
+          <h4>Special Features</h4>
+          <ul class="features-list">
+            <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
+              💫 {{ feature.feature }}
+              <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
+                ({{ feature.languages.join(', ') }})
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Basic Features Column -->
+        <div class="basic-features">
+          <h4>Core Features</h4>
+          <ul class="features-list">
+            <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
+              ✔️ {{ feature.feature }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <!-- Submit Button -->
