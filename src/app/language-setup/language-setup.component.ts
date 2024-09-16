@@ -28,9 +28,8 @@ const MAX_LANGUAGES = 3;
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
         required: 'At least one language is required',
-        maxLanguages: (_error: any, control: AbstractControl) => {
-          const actualLength = (control.value as string[] | null)?.length || 0;
-          return `You can select up to ${MAX_LANGUAGES} languages (selected ${actualLength})`;
+        maxLanguages: () => {
+          return `You can select up to ${MAX_LANGUAGES} languages`;
         },
       },
     },
