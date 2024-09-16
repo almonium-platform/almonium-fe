@@ -1,8 +1,8 @@
 @import 'src/styles/shared-styles.less';
 
 :host {
-  --tui-primary: #7b1593; // primary theme color, used for buttons, input fields, etc.
-  --tui-primary-hover: #520f6a;
+  --tui-primary: #d33778; // primary theme color, used for buttons, input fields, etc.
+  --tui-primary-hover: #a32b5d;
   --tui-error-fill: #ac1c1c; // error field box color
   --tui-negative: #ac1c1c; // error text color
   --tui-radius-m: 50px;
@@ -11,7 +11,7 @@
 .language-selection-container {
   margin: 0 auto;
   text-align: center;
-  max-width: 600px;
+  max-width: 400px;
   padding: 20px;
   border-radius: 35px;
 
@@ -36,7 +36,7 @@
       label {
         display: block;
         margin-bottom: 0.5rem;
-        font-size: .9rem;
+        font-size: 0.9rem;
         font-weight: 600;
       }
 
@@ -55,17 +55,29 @@
         font-size: 0.9rem;
       }
 
-      ul.features-list {
-        list-style-type: none; // Remove enumeration dots
-        padding: 0;
+      .columns {
         display: flex;
-        flex-wrap: wrap;
+        justify-content: space-between;
+      }
 
-        li {
-          margin-bottom: 0.5rem;
+      .column {
+        width: 48%; // Each column will take 48% of the available space
+      }
+
+      .special-features, .basic-features {
+        h4 {
           font-size: 1rem;
-          width: 50%; // Two columns
-          box-sizing: border-box;
+          margin-bottom: 0.5rem;
+        }
+
+        ul.features-list {
+          list-style-type: none; // Remove enumeration dots
+          padding: 0;
+
+          li {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+          }
         }
       }
     }
