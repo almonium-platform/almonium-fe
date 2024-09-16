@@ -1,3 +1,9 @@
+<ngx-particles
+  *ngIf="particlesOptions$ | async as particlesOptions"
+  [id]="id"
+  [options]="particlesOptions"
+  (particlesLoaded)="particlesService.particlesLoaded($event)"
+></ngx-particles>
 <div class="tui-container">
   <div class="language-selection-container">
     <div class="card">

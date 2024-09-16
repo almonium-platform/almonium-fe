@@ -41,9 +41,7 @@ export class EmailVerificationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Initialize particles
-    this.particlesService.initParticles();
-    this.particlesService.loadParticlesOptions();
+    this.particlesService.initializeParticles();
 
     // Start the verification process
     setTimeout(() => this.route.queryParams.subscribe({

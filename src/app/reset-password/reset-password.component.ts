@@ -54,8 +54,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.particlesService.initParticles();
-    this.particlesService.loadParticlesOptions();
+    this.particlesService.initializeParticles();
 
     this.route.queryParams.subscribe((params) => {
       this.token = params['token'];

@@ -82,8 +82,7 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.particlesService.initParticles();
-    this.particlesService.loadParticlesOptions();
+    this.particlesService.initializeParticles();
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {

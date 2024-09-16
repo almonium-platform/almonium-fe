@@ -23,6 +23,8 @@ import {delay, Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from './language.model';
 import {LanguageService} from './language.service';
+import {ParticlesService} from "../services/particles.service";
+import {NgxParticlesModule} from "@tsparticles/angular";
 
 const MAX_LANGUAGES = 3;
 
@@ -52,6 +54,7 @@ const MAX_LANGUAGES = 3;
     TuiErrorModule,
     TuiFieldErrorPipeModule,
     TuiDataListWrapperModule,
+    NgxParticlesModule,
   ],
 })
 export class LanguageSetupComponent implements OnInit {
@@ -80,6 +83,9 @@ export class LanguageSetupComponent implements OnInit {
   filteredFluentLanguages$: Observable<string[]>;
   filteredTargetLanguages$: Observable<string[][]>;
 
+  id = 'tsparticles';
+  particlesOptions$ = this.particlesService.particlesOptions$;
+
   // Grouped items for multi-select
   labels: string[] = ['Languages with Extra Features', 'Other Languages'];
 
@@ -102,7 +108,8 @@ export class LanguageSetupComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private languageService: LanguageService,
-    private router: Router
+    private router: Router,
+    protected particlesService: ParticlesService
   ) {
     this.languageForm = this.fb.group({
       fluentLanguages: this.fluentLanguageControl,
@@ -125,6 +132,7 @@ export class LanguageSetupComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.particlesService.initializeParticles();
     this.languageService.getLanguages().subscribe((languages) => {
       this.languages = languages;
 
