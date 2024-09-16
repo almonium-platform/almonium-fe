@@ -11,14 +11,15 @@
         formControlName="fluentLanguages"
         [tuiTextfieldCleaner]="true"
         [tuiTextfieldLabelOutside]="true"
+        placeholder="Search fluent languages..."
+        (searchChange)="fluentSearch$.next($event ?? '')"
       >
-        these languages
+        Select your fluent languages
 
-        <select
-          multiple
-          tuiSelect
-          [items]="groupItemsFluent"
-        ></select>
+        <tui-data-list-wrapper
+          *tuiDataList
+          [items]="filteredFluentLanguages$ | async"
+        ></tui-data-list-wrapper>
       </tui-multi-select>
       <tui-error
         formControlName="fluentLanguages"
@@ -33,15 +34,16 @@
         formControlName="targetLanguages"
         [tuiTextfieldCleaner]="true"
         [tuiTextfieldLabelOutside]="true"
+        placeholder="Search target languages..."
+        (searchChange)="targetSearch$.next($event ?? '')"
       >
-        those languages
+        Select your target languages
 
-        <select
-          multiple
-          tuiSelect
-          [items]="groupItemsTarget"
+        <tui-data-list-wrapper
+          *tuiDataList
           [labels]="labels"
-        ></select>
+          [items]="filteredTargetLanguages$ | async"
+        ></tui-data-list-wrapper>
       </tui-multi-select>
       <tui-error
         formControlName="targetLanguages"

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -11,10 +11,18 @@ import {
 } from '@angular/forms';
 import {Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiMultiSelectModule, TuiSelectModule,} from '@taiga-ui/kit';
+import {
+  TUI_VALIDATION_ERRORS,
+  TuiDataListWrapperModule,
+  TuiFieldErrorPipeModule,
+  TuiMultiSelectModule,
+  TuiSelectModule,
+} from '@taiga-ui/kit';
+import {TuiErrorModule, TuiTextfieldControllerModule,} from '@taiga-ui/core';
+import {delay, Observable, of, Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from './language.model';
 import {LanguageService} from './language.service';
-import {TuiErrorModule, TuiTextfieldControllerModule} from '@taiga-ui/core';
 
 const MAX_LANGUAGES = 3;
 
@@ -22,6 +30,7 @@ const MAX_LANGUAGES = 3;
   selector: 'app-language-setup',
   templateUrl: './language-setup.component.html',
   styleUrls: ['./language-setup.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   providers: [
     {
@@ -42,6 +51,7 @@ const MAX_LANGUAGES = 3;
     TuiTextfieldControllerModule,
     TuiErrorModule,
     TuiFieldErrorPipeModule,
+    TuiDataListWrapperModule,
   ],
 })
 export class LanguageSetupComponent implements OnInit {
@@ -52,7 +62,7 @@ export class LanguageSetupComponent implements OnInit {
 
   maxLanguages = 3;
 
-// Form controls with validators
+  // Form controls with validators
   fluentLanguageControl = new FormControl<string[]>([], [
     Validators.required,
     this.maxLanguagesValidator(this.maxLanguages),
@@ -61,9 +71,16 @@ export class LanguageSetupComponent implements OnInit {
     Validators.required,
     this.maxLanguagesValidator(this.maxLanguages),
   ]);
+
+  // Search subjects
+  fluentSearch$ = new Subject<string>();
+  targetSearch$ = new Subject<string>();
+
+  // Filtered items observables
+  filteredFluentLanguages$: Observable<string[]>;
+  filteredTargetLanguages$: Observable<string[][]>;
+
   // Grouped items for multi-select
-  groupItemsFluent: string[] = [];
-  groupItemsTarget: string[][] = [];
   labels: string[] = ['Languages with Extra Features', 'Other Languages'];
 
   // Features for selected target languages
@@ -91,6 +108,20 @@ export class LanguageSetupComponent implements OnInit {
       fluentLanguages: this.fluentLanguageControl,
       targetLanguages: this.targetLanguageControl,
     });
+
+    this.filteredFluentLanguages$ = this.fluentSearch$.pipe(
+      startWith(''),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((search) => this.filterFluentLanguages(search))
+    );
+
+    this.filteredTargetLanguages$ = this.targetSearch$.pipe(
+      startWith(''),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((search) => this.filterTargetLanguages(search))
+    );
   }
 
   ngOnInit(): void {
@@ -105,14 +136,6 @@ export class LanguageSetupComponent implements OnInit {
       this.otherLanguages = this.languages
         .filter((lang) => !Object.keys(this.languageFeatures).includes(lang.code))
         .sort((a, b) => a.name.localeCompare(b.name));
-
-      // Map to arrays of language names for the multi-select
-      const supportedLangNames = this.supportedLanguages.map((lang) => lang.name);
-      const otherLangNames = this.otherLanguages.map((lang) => lang.name);
-
-      // For the group items
-      this.groupItemsFluent = this.languages.map((lang) => lang.name);
-      this.groupItemsTarget = [supportedLangNames, otherLangNames];
     });
 
     // Update features when target languages change
@@ -129,6 +152,26 @@ export class LanguageSetupComponent implements OnInit {
       }
       return null;
     };
+  }
+
+  /**
+   * Filter languages based on search query and type (fluent or target)
+   */
+  private filterFluentLanguages(search: string): Observable<string[]> {
+    const filtered = this.languages
+      .map(lang => lang.name)
+      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
+    return of(filtered).pipe(delay(300)); // Simulate server delay if needed
+  }
+
+  private filterTargetLanguages(search: string): Observable<string[][]> {
+    const supportedLangNames = this.supportedLanguages
+      .map(lang => lang.name)
+      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
+    const otherLangNames = this.otherLanguages
+      .map(lang => lang.name)
+      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
+    return of([supportedLangNames, otherLangNames]).pipe(delay(300)); // Simulate server delay if needed
   }
 
 
