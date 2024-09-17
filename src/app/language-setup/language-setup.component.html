@@ -9,7 +9,8 @@
     <div class="card">
       <div class="tui-col_8">
         <h3 class="tui-form__header tui-form__header_margin-top_none">Select your languages</h3>
-        <div class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
+        <div *ngIf="!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length"
+             class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
           <div class="text-left">
             <p class="text-sm">
               <span class="inline-block text-yellow-500">💫</span> Some languages have special features.
