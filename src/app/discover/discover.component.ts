@@ -5,9 +5,9 @@ import {catchError, map} from 'rxjs/operators';
 import {of} from 'rxjs';
 import {FormsModule} from "@angular/forms";
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
-import {DiscoverService} from "./discover.service";
 import {TuiBadgeModule} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
+import {FrequencyService} from "../services/frequency.service";
 
 @Component({
   selector: 'app-discover',
@@ -32,14 +32,13 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private globalKeydownListener!: () => void;
 
   constructor(private http: HttpClient,
-              private discoverService: DiscoverService,
               private renderer: Renderer2,
-              private route: ActivatedRoute
+              private route: ActivatedRoute,
+              private frequencyService: FrequencyService,
   ) {
   }
 
   ngOnInit(): void {
-    // Listen for query parameter changes
     this.route.queryParams.subscribe(params => {
       this.searchText = params['text'] || '';
       if (this.searchText) {
@@ -50,7 +49,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.globalKeydownListener = this.renderer.listen('document', 'keydown', (event: KeyboardEvent) => {
       if (event.key === '/') {
         this.focusSearchInput();
-        event.preventDefault(); // Prevent the default action
+        event.preventDefault();
       }
     });
   }
@@ -82,9 +81,11 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     console.log('onSubmit');
     this.filteredOptions = [];
-    this.discoverService.search(this.searchText).subscribe(data => {
-      this.frequency = data;
-    });
+    if (this.searchText) {
+      this.frequencyService.getFrequency(this.searchText).subscribe(freq => {
+        this.frequency = freq;
+      });
+    }
   }
 
   onSearchChange(searchText: string): void {
@@ -127,7 +128,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   onOptionSelected(option: string): void {
     this.searchText = option;
-    this.filteredOptions = [];
+    this.onSubmit();
 
     // Use setTimeout to ensure DOM updates before focusing
     setTimeout(() => {
