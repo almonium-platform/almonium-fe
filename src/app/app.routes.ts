@@ -10,6 +10,7 @@ import {TermsOfUseComponent} from "./terms-of-use/terms-of-use.component";
 import {LandingComponent} from "./landing/landing.component";
 import {LogoutComponent} from "./logout/logout.component";
 import {LanguageSetupComponent} from "./language-setup/language-setup.component";
+import {SettingsComponent} from "./settings/settings.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -23,4 +24,5 @@ export const routes: Routes = [
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
   {path: 'logout', component: LogoutComponent},
   {path: 'setup-languages', component: LanguageSetupComponent},
+  {path: 'settings', component: SettingsComponent},
 ];
