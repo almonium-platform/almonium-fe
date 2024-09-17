@@ -11,23 +11,15 @@ import {iso6393} from "iso-639-3";
   providedIn: 'root',
 })
 export class LanguageService {
-  private apiUrl = '/public/lang';
+  private apiUrl = '/supported-langs';
   private userLangsUrl = '/users/me/langs';
-
-  // Custom map for unrecognized languages (if needed)
-  private customLanguageMap: { [code: string]: string } = {
-    bho: 'Bhojpuri',
-    ceb: 'Cebuano',
-    doi: 'Dogri',
-    // Add more custom language mappings if necessary
-  };
 
   constructor(private http: HttpClient) {
   }
 
   // Method to get languages from the backend
   getLanguages(): Observable<Language[]> {
-    const url = `${AppConstants.API_URL}${this.apiUrl}`;
+    const url = `${AppConstants.PUBLIC_URL}${this.apiUrl}`;
     return this.http.get<string[]>(url).pipe(
       map((languageCodes) => {
         return languageCodes.map((code) => {
@@ -42,11 +34,6 @@ export class LanguageService {
           if (!name && code.length === 3) {
             const language = iso6393.find((lang) => lang.iso6393 === code.toLowerCase());
             name = language ? language.name : undefined;
-          }
-
-          // If still not found, check the custom mapping
-          if (!name) {
-            name = this.customLanguageMap[code.toLowerCase()] || code.toUpperCase();
           }
 
           return {

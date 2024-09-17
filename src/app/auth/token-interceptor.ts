@@ -3,19 +3,12 @@ import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest}
 import {Observable, throwError} from 'rxjs';
 import {catchError, switchMap} from 'rxjs/operators';
 import {AuthService} from './auth.service';
-import {Router} from "@angular/router";
+import {Router} from '@angular/router';
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
 
-  private static readonly EXCLUDED_URLS = [
-    '/auth/public/login',
-    '/refresh',
-  ];
-
-  constructor(private authService: AuthService,
-              private router: Router
-  ) {
+  constructor(private authService: AuthService, private router: Router) {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -46,6 +39,6 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   private isExcluded(url: string): boolean {
-    return TokenInterceptor.EXCLUDED_URLS.some(excludedUrl => url.includes(excludedUrl));
+    return url.startsWith('/public');
   }
 }

@@ -10,7 +10,7 @@ export class DiscoverService {
   constructor(private http: HttpClient) {}
 
   search(text: string): Observable<any> {
-    const url = `${AppConstants.API_URL}/discover/freq/EN/?text=${encodeURIComponent(text)}`;
+    const url = `${AppConstants.PUBLIC_AUTH_URL}/discover/freq/EN/?text=${encodeURIComponent(text)}`;
     return this.http.get(url);
   }
 }

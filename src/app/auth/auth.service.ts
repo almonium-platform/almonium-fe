@@ -10,36 +10,34 @@ export class AuthService {
   constructor(private http: HttpClient) {
   }
 
-  private tokenKey = 'accessToken';
-
   login(email: string, password: string): Observable<any> {
-    const url = `${AppConstants.AUTH_API}/public/login`;
+    const url = `${AppConstants.PUBLIC_AUTH_URL}/login`;
     return this.http.post(url, {email, password}, {withCredentials: true});
   }
 
   register(email: string, password: string): Observable<any> {
-    const url = `${AppConstants.AUTH_API}/public/register`;
+    const url = `${AppConstants.PUBLIC_AUTH_URL}/register`;
     return this.http.post(url, {email, password});
   }
 
   verifyEmail(token: string): Observable<any> {
-    return this.http.post(`${AppConstants.AUTH_API}/public/verify-email?token=${token}`, {});
+    return this.http.post(`${AppConstants.PUBLIC_AUTH_URL}/verify-email?token=${token}`, {});
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${AppConstants.AUTH_API}/public/reset-password`, {
+    return this.http.post(`${AppConstants.PUBLIC_AUTH_URL}/reset-password`, {
       token,
       newPassword
     });
   }
 
   forgotPassword(email: string): Observable<any> {
-    const url = `${AppConstants.AUTH_API}/public/forgot-password`;
+    const url = `${AppConstants.PUBLIC_AUTH_URL}/forgot-password`;
     return this.http.post(url, {email});
   }
 
   refreshToken(): Observable<any> {
-    const url = `${AppConstants.API_URL}/refresh`;
+    const url = `${AppConstants.PUBLIC_AUTH_URL}/refresh-token`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
@@ -51,12 +49,12 @@ export class AuthService {
   clearCookies(): void {
     // Clear any stored tokens or session information
     document.cookie = 'accessToken=; Max-Age=0; path=/';
-    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/refresh';
+    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/public/auth/refresh-token';
   }
 
   logout(): void {
     this.clearCookies();
-    const url = `${AppConstants.AUTH_API}/manage/logout`;
+    const url = `${AppConstants.AUTH_URL}/logout`;
     this.http.post(url, {}, {withCredentials: true}).subscribe({
       next: () => {
         console.log('User logged out successfully.');

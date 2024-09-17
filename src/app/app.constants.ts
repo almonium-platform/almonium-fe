@@ -1,10 +1,11 @@
-import { environment } from '../environments/environment';
+import {environment} from '../environments/environment';
 
 export class AppConstants {
-  private static API_BASE_URL = environment.apiUrl;
-  public static API_URL = AppConstants.API_BASE_URL + '/api/v1';
+  public static API_URL = environment.apiUrl + '/api/v1';
+  public static PUBLIC_URL = AppConstants.API_URL + '/public';
 
-  public static AUTH_API = AppConstants.API_URL + '/auth';
+  public static PUBLIC_AUTH_URL = AppConstants.PUBLIC_URL + '/auth';
+  public static AUTH_URL = AppConstants.API_URL + '/auth';
 
   private static OAUTH2_URL = AppConstants.API_URL + '/oauth2/authorization';
   private static REDIRECT_URL = '?redirect_uri=' + environment.feUrl + '/home';
