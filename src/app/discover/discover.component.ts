@@ -28,6 +28,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   filteredOptions: string[] = [];
   currentFocus: number = -1;
   frequency: number = 0;
+  submitted: boolean = false;
 
   private globalKeydownListener!: () => void;
 
@@ -82,6 +83,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   onSubmit(): void {
     console.log('onSubmit');
     // Clear the filtered options to hide the autocomplete list
+    this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
       this.frequencyService.getFrequency(this.searchText).subscribe(freq => {
@@ -91,6 +93,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   onSearchChange(searchText: string): void {
+    this.submitted = false;
     this.currentFocus = -1;
     if (searchText && searchText.length >= 3) {
       const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
@@ -98,7 +101,9 @@ export class DiscoverComponent implements OnInit, OnDestroy {
         map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
         catchError(() => of([]))
       ).subscribe(options => {
-        this.filteredOptions = options;
+        if (!this.submitted) {
+          this.filteredOptions = options;
+        }
       });
     } else {
       this.filteredOptions = [];
