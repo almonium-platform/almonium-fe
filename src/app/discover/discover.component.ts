@@ -1,6 +1,6 @@
 import {Component, Input, OnDestroy, OnInit, Renderer2} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
+import {NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {catchError, map} from 'rxjs/operators';
 import {of} from 'rxjs';
 import {FormsModule} from "@angular/forms";
@@ -19,7 +19,8 @@ import {FrequencyService} from "../services/frequency.service";
     FormsModule,
     NgOptimizedImage,
     ContenteditableValueAccessorModule,
-    TuiBadgeModule
+    TuiBadgeModule,
+    NgClass
   ],
   standalone: true,
 })
@@ -172,5 +173,17 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   isOptionFocused(index: number): boolean {
     return this.currentFocus === index;
+  }
+
+  getGaussianGradient(frequency: number): string {
+    // Map frequency (1-100) to hue values in a broader range (250-340 for purple-pink-blue)
+    const startHue = 160;
+    const endHue = 280;
+    const hue = startHue + (endHue - startHue) * (frequency / 100);
+
+    const startColor = `hsl(${hue}, 80%, 60%)`;
+    const endColor = `hsl(${hue + 60}, 90%, 40%)`;
+
+    return `linear-gradient(45deg, ${startColor} 0%, ${endColor} 100%)`;
   }
 }

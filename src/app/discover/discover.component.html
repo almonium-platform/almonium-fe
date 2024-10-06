@@ -19,12 +19,12 @@
       {{ option }}
     </li>
   </ul>
-  <div *ngIf="frequency > 0">
-    <tui-badge
-      size='l'
-      class="custom-2 tui-space_left-3"
+  <div *ngIf="submitted && frequency > 0">
+    <div
+      [style.background-image]="getGaussianGradient(frequency)"
+      class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg"
     >
       {{ frequency }}
-    </tui-badge>
+    </div>
   </div>
 </div>
