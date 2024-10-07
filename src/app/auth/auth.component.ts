@@ -17,6 +17,8 @@ import {environment} from '../../environments/environment';
 import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
 import {ParticlesService} from '../services/particles.service'; // Import your service
 
+declare const google: any;
+
 @Component({
   selector: 'app-auth',
   standalone: true,
@@ -69,6 +71,7 @@ export class AuthComponent implements OnInit {
 
   id = 'tsparticles';
   particlesOptions$ = this.particlesService.particlesOptions$;
+  private clientId = environment.googleClientId;
 
   constructor(
     private authService: AuthService,
@@ -81,8 +84,36 @@ export class AuthComponent implements OnInit {
   ) {
   }
 
+  initializeGoogleSignIn() {
+    const handleResponse = this.handleCredentialResponse.bind(this);
+
+    google.accounts.id.initialize({
+      client_id: this.clientId,
+      callback: handleResponse,
+    });
+
+    // Automatically prompt the popup on page load
+    google.accounts.id.prompt();
+    console.log('Google Sign-In initialized');
+  }
+
+  handleCredentialResponse(response: any) {
+    const credential = response.credential;
+
+    this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/home']).then(r => r); // Redirect after successful auth
+        },
+        error: () => {
+          console.error('Error during login', response);
+        },
+      });
+  }
+
   ngOnInit(): void {
     this.particlesService.initializeParticles();
+    this.initializeGoogleSignIn();
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
