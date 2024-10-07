@@ -46,15 +46,7 @@ export class AuthService {
     return this.http.get(url, {withCredentials: true});
   }
 
-  logout(): void {
-    const url = `${AppConstants.AUTH_URL}/logout`;
-    this.http.post(url, {}, {withCredentials: true}).subscribe({
-      next: () => {
-        console.log('User logged out successfully.');
-      },
-      error: (err) => {
-        console.error('Logout failed', err);
-      }
-    });
+  logout(): Observable<void> {
+    return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
   }
 }
