@@ -53,7 +53,6 @@ export class AuthService {
   }
 
   logout(): void {
-    this.clearCookies();
     const url = `${AppConstants.AUTH_URL}/logout`;
     this.http.post(url, {}, {withCredentials: true}).subscribe({
       next: () => {
@@ -63,5 +62,6 @@ export class AuthService {
         console.error('Logout failed', err);
       }
     });
+    this.clearCookies();
   }
 }

@@ -112,8 +112,11 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadGoogleSignInScript().then(() => {
+      this.initializeGoogleSignIn();
+    });
+
     this.particlesService.initializeParticles();
-    this.initializeGoogleSignIn();
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
@@ -180,6 +183,23 @@ export class AuthComponent implements OnInit {
         });
       }
     }
+  }
+
+  private loadGoogleSignInScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (typeof google !== 'undefined') {
+        resolve();  // Script is already loaded
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.onload = () => {
+          console.log('Google Sign-In script loaded');
+          resolve();
+        };
+        script.onerror = () => reject('Google Sign-In script could not be loaded.');
+        document.head.appendChild(script);
+      }
+    });
   }
 
   toggleSignUp() {
