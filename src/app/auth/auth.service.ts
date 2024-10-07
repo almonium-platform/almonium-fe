@@ -48,8 +48,9 @@ export class AuthService {
 
   clearCookies(): void {
     // Clear any stored tokens or session information
-    document.cookie = 'accessToken=; Max-Age=0; path=/; domain=.api.almonium.com; Secure; SameSite=None';
-    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/public/auth/refresh-token; domain=.api.almonium.com; Secure; SameSite=None';
+    document.cookie = 'accessToken=; Max-Age=0; path=/; domain=.api.almonium.com; Secure';
+    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/public/auth/refresh-token; domain=.api.almonium.com; Secure';
+    console.log('Cookies cleared');
   }
 
   logout(): void {
