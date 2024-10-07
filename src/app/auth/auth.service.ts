@@ -46,13 +46,6 @@ export class AuthService {
     return this.http.get(url, {withCredentials: true});
   }
 
-  clearCookies(): void {
-    // Clear any stored tokens or session information
-    document.cookie = 'accessToken=; Max-Age=0; path=/; domain=.api.almonium.com; Secure; HttpOnly';
-    document.cookie = 'refreshToken=; Max-Age=0; path=/api/v1/public/auth/refresh-token; domain=.api.almonium.com; Secure; HttpOnly';
-    console.log('Cookies cleared');
-  }
-
   logout(): void {
     const url = `${AppConstants.AUTH_URL}/logout`;
     this.http.post(url, {}, {withCredentials: true}).subscribe({
@@ -63,6 +56,5 @@ export class AuthService {
         console.error('Logout failed', err);
       }
     });
-    this.clearCookies();
   }
 }
