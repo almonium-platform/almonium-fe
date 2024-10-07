@@ -49,4 +49,8 @@ export class AuthService {
   logout(): Observable<void> {
     return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
   }
+
+  logoutPublic(): Observable<void> {
+    return this.http.post<void>(`${AppConstants.PUBLIC_AUTH_URL}/logout`, {}, {withCredentials: true});
+  }
 }

@@ -10,7 +10,6 @@ import {AuthService} from "../auth/auth.service";
   styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {
-
   private router: Router;
 
   constructor(private authService: AuthService,
@@ -19,7 +18,15 @@ export class LogoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.authService.logout();
-    this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+    this.authService.logout().subscribe({
+      next: () => {
+        console.log('Logout successful');
+        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+      },
+      error: error => {
+        console.log('Logout failed', error);
+        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+      }
+    });
   }
 }

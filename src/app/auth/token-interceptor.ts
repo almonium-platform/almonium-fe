@@ -22,19 +22,15 @@ export class TokenInterceptor implements HttpInterceptor {
           // Attempt to refresh the token
           return this.authService.refreshToken().pipe(
             switchMap(() => {
-              // After refreshing, retry the original request
               return next.handle(req);
             }),
             catchError((refreshError: HttpErrorResponse) => {
-              // Instead of clearing cookies directly, call the logout endpoint
-              return this.authService.logout().pipe(
+              return this.authService.logoutPublic().pipe(
                 switchMap(() => {
-                  // Navigate to the login page after successful logout
                   this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
                   return throwError(() => refreshError);
                 }),
                 catchError(() => {
-                  // If logout fails, navigate to the login page regardless
                   this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
                   return throwError(() => refreshError);
                 })
