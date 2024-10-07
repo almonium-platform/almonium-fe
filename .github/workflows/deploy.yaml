@@ -1,0 +1,26 @@
+name: Deploy on Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up SSH to connect to your GCP instance
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Run your update script on the GCP instance
+      - name: Run Deployment Script
+        run: |
+          ssh -o StrictHostKeyChecking=no kuzanoleg@104.154.227.193 'bash ~/update_almonium.sh'
