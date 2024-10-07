@@ -1,5 +1,9 @@
 <div class="home-container">
   <h1>Home</h1>
   <p>Your info:</p>
-  <pre>{{ userInfo }}</pre>
+  <div *ngIf="userInfo != null">
+    <p>Email: {{ userInfo?.email }}</p>
+    <p>Fluent languages: {{ userInfo?.fluentLangs }}</p>
+    <p>Target languages: {{ userInfo?.targetLangs }}</p>
+  </div>
 </div>
