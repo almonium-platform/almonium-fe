@@ -25,4 +25,5 @@ export const routes: Routes = [
   {path: 'logout', component: LogoutComponent},
   {path: 'setup-languages', component: LanguageSetupComponent},
   {path: 'settings', component: SettingsComponent},
+  {path: '**', redirectTo: '/auth'}  // Fallback route for unknown paths
 ];
