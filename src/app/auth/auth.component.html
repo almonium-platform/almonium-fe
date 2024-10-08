@@ -9,7 +9,9 @@
   <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
     <div class="card">
       <div class="logo-div">
-        <img ngSrc="assets/img/icons/logo.svg" alt="Logo" class="logo" height="1481" width="1456">
+        <div class="logo-container" [ngClass]="{ rotating: isRotating }">
+          <img ngSrc="assets/img/icons/logo.svg" alt="Logo" class="logo" height="1481" width="1456">
+        </div>
         <img ngSrc="../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
              priority>
       </div>

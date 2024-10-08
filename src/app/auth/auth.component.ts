@@ -58,6 +58,7 @@ export class AuthComponent implements OnInit {
   isHovering: boolean = false;
   isSignUp: boolean = false;
   minimumPasswordLength: number = 6;
+  isRotating: boolean = false;
 
   private readonly TERMS_OF_USE_PATH = '/terms-of-use';
   private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
@@ -158,6 +159,7 @@ export class AuthComponent implements OnInit {
 
   onSubmit() {
     if (this.authForm.valid) {
+      this.isRotating = true;
       const emailValue = this.authForm.get('emailValue')?.value!;
       const passwordValue = this.authForm.get('passwordValue')?.value!;
 
