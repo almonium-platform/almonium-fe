@@ -1,0 +1,50 @@
+@import 'src/styles/shared-styles.less';
+
+.message {
+  text-align: center;
+  flex-grow: 1;
+  font-weight: 600;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  font-size: 1.3rem;
+}
+
+.tui-col_8 {
+  width: 100%;
+  padding: 20px;
+  min-width: 360px;
+  box-sizing: border-box;
+}
+
+.tui-form__row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  img {
+    width: 4rem;
+    height: 4rem;
+    /* Initially, no animation */
+  }
+
+  &.rotating img {
+    animation: rotate-logo 2s linear infinite;
+  }
+}
+
+@keyframes rotate-logo {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
