@@ -2,14 +2,14 @@ import { Component } from '@angular/core';
 import {NavbarComponent} from "../shared/navbar/navbar.component";
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-training',
   standalone: true,
   imports: [
     NavbarComponent
   ],
-  templateUrl: './settings.component.html',
-  styleUrl: './settings.component.less'
+  templateUrl: './training.component.html',
+  styleUrl: './training.component.less'
 })
-export class SettingsComponent {
+export class TrainingComponent {
 
 }

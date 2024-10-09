@@ -2,12 +2,36 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppConstants} from '../app.constants';
+import {tap} from "rxjs/operators";
+
+const USER_INFO_KEY = 'user_info';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   constructor(private http: HttpClient) {
+  }
+
+  // Save user info in local storage
+  saveUserInfo(userInfo: any): void {
+    window.localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+  }
+
+  // Retrieve user info from local storage
+  getLocalUserInfo(): any {
+    const data = window.localStorage.getItem(USER_INFO_KEY);
+    return data ? JSON.parse(data) : null;
+  }
+
+  // Fetch user info from the backend
+  getUserInfo(): Observable<any> {
+    const url = `${AppConstants.API_URL}/users/me`;
+    return this.http.get(url, {withCredentials: true}).pipe(
+      tap((userInfo: any) => {
+        this.saveUserInfo(userInfo); // Save to local storage after fetching
+      })
+    );
   }
 
   login(email: string, password: string): Observable<any> {
@@ -41,12 +65,8 @@ export class AuthService {
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  getUserInfo(): Observable<any> {
-    const url = `${AppConstants.API_URL}/users/me`;
-    return this.http.get(url, {withCredentials: true});
-  }
-
   logout(): Observable<void> {
+    localStorage.removeItem(USER_INFO_KEY);
     return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
   }
 

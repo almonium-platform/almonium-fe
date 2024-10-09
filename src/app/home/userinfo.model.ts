@@ -1,3 +1,5 @@
+import {Language} from "../services/language.enum";
+
 export interface UserInfo {
   id: string;
   username: string | null;
@@ -6,8 +8,8 @@ export interface UserInfo {
   profilePicLink: string | null;
   background: string | null;
   streak: number | null;
-  targetLangs: string[];
-  fluentLangs: string[];
+  targetLangs: Language[];
+  fluentLangs: Language[];
   setupCompleted: boolean;
   tags: string[] | null;
 }

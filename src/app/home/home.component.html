@@ -1,9 +1,4 @@
+<app-navbar></app-navbar>
 <div class="home-container">
-  <h1>Home</h1>
-  <p>Your info:</p>
-  <div *ngIf="userInfo != null">
-    <p>Email: {{ userInfo.email }}</p>
-    <p>Fluent languages: {{ userInfo.fluentLangs.join(', ') }}</p>
-    <p>Target languages: {{ userInfo.targetLangs.join(', ') }}</p>
-  </div>
+  <router-outlet></router-outlet>
 </div>

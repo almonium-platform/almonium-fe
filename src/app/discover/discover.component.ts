@@ -8,6 +8,9 @@ import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditab
 import {TuiBadgeModule} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
 import {FrequencyService} from "../services/frequency.service";
+import {NavbarComponent} from "../shared/navbar/navbar.component";
+import {LocalStorageService} from "../services/local.storage.service";
+import {Language} from "../services/language.enum";
 
 @Component({
   selector: 'app-discover',
@@ -20,7 +23,8 @@ import {FrequencyService} from "../services/frequency.service";
     NgOptimizedImage,
     ContenteditableValueAccessorModule,
     TuiBadgeModule,
-    NgClass
+    NgClass,
+    NavbarComponent
   ],
   standalone: true,
 })
@@ -38,6 +42,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private route: ActivatedRoute,
     private frequencyService: FrequencyService,
+    private localStorageService: LocalStorageService
   ) {
   }
 
@@ -87,16 +92,26 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
-      this.frequencyService.getFrequency(this.searchText).subscribe(freq => {
+      console.log(this.localStorageService.getCurrentLanguage());
+      this.frequencyService.getFrequency(this.searchText, this.localStorageService.getCurrentLanguage()).subscribe(freq => {
         this.frequency = freq;
       });
     }
   }
 
+  sanitizeInput(input: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = input;
+    return div.textContent || div.innerText || '';
+  }
+
   onSearchChange(searchText: string): void {
+    this.searchText = this.sanitizeInput(searchText);
     this.submitted = false;
     this.currentFocus = -1;
-    if (searchText && searchText.length >= 3) {
+    const currentLanguage = this.localStorageService.getCurrentLanguage();
+
+    if (searchText && searchText.length >= 3 && currentLanguage === Language.EN) {
       const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
       this.http.get<{ word: string }[]>(apiUrl).pipe(
         map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
@@ -110,28 +125,35 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       this.filteredOptions = [];
     }
 
-    // Move cursor to the end of the contenteditable element
+    // Preserve cursor position logic
     const element = this.renderer.selectRootElement('.search-input', true);
-    console.log('Element:', element);
-    element.focus();
+    const selection = window.getSelection();
 
-    // Use a setTimeout to ensure cursor position logic executes after rendering
-    setTimeout(() => {
-      const range = document.createRange();
-      const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const cursorPosition = range.startOffset;
 
-      // Clear any previous selection
-      selection?.removeAllRanges();
+      // Refocus the input and preserve cursor position
+      element.focus();
 
-      // Set the range at the end of the element's contents
-      range.selectNodeContents(element);
-      range.collapse(false); // Collapse to the end of the range
+      // Use a setTimeout to ensure cursor position logic executes after rendering
+      setTimeout(() => {
+        const newRange = document.createRange();
+        const newSelection = window.getSelection();
 
-      // Apply the range as the current selection
-      selection?.addRange(range);
+        // Set the range at the preserved cursor position
+        newRange.setStart(element.childNodes[0], cursorPosition);
+        newRange.collapse(true);
 
-      console.log('Cursor moved to the end.');
-    }, 0); // Timeout of 0 ensures the next task in the event loop
+        // Apply the new range as the current selection
+        newSelection?.removeAllRanges();
+        newSelection?.addRange(newRange);
+
+        console.log('Cursor moved to the preserved position.');
+      }, 0); // Timeout of 0 ensures the next task in the event loop
+    } else {
+      element.focus();
+    }
   }
 
   onOptionSelected(option: string): void {
@@ -185,5 +207,21 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     const endColor = `hsl(${hue + 60}, 90%, 40%)`;
 
     return `linear-gradient(45deg, ${startColor} 0%, ${endColor} 100%)`;
+  }
+
+  getFrequencyLabel(frequency: number): string {
+    if (frequency <= 20) return "Extremely Rare";
+    if (frequency <= 30) return "Pretty Rare";
+    if (frequency <= 40) return "Challenging";
+    if (frequency <= 75) return "Comfort Zone";
+    return "Essential";
+  }
+
+  getFrequencyDescription(frequency: number): string {
+    if (frequency <= 20) return "Too rare to be useful";
+    if (frequency <= 30) return "Learn if need to";
+    if (frequency <= 40) return "Ideal candidate";
+    if (frequency <= 75) return "You probably know it";
+    return "Top 50 words";
   }
 }

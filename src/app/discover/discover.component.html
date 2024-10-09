@@ -1,30 +1,37 @@
+<app-navbar></app-navbar>
 <div class="autocomplete-container">
-  <div class="input-group">
-    <div
-      contenteditable="true"
-      class="search-input"
-      [(ngModel)]="searchText"
-      (input)="onSearchChange(searchText)"
-      (keydown)="handleKeydown($event)"
-      autofocus>
+  <div class="white-card">
+    <div class="input-group">
+      <div
+        contenteditable="true"
+        class="search-input"
+        [(ngModel)]="searchText"
+        (input)="onSearchChange(searchText)"
+        (keydown)="handleKeydown($event)"
+        autofocus>
+      </div>
     </div>
-  </div>
-  <ul *ngIf="filteredOptions.length > 0" class="autocomplete-list">
-    <li
-      *ngFor="let option of filteredOptions; let i = index"
-      (click)="onOptionSelected(option)"
-      class="autocomplete-item"
-      [class.autocomplete-item-focused]="isOptionFocused(i)"
-    >
-      {{ option }}
-    </li>
-  </ul>
-  <div *ngIf="submitted && frequency > 0">
-    <div
-      [style.background-image]="getGaussianGradient(frequency)"
-      class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg"
-    >
-      {{ frequency }}
+    <ul *ngIf="filteredOptions.length > 0" class="autocomplete-list">
+      <li
+        *ngFor="let option of filteredOptions; let i = index"
+        (click)="onOptionSelected(option)"
+        class="autocomplete-item"
+        [class.autocomplete-item-focused]="isOptionFocused(i)"
+      >
+        {{ option }}
+      </li>
+    </ul>
+    <div *ngIf="submitted && frequency > 0" class="frequency-display flex items-center">
+      <div
+        [style.background-image]="getGaussianGradient(frequency)"
+        class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg mr-4"
+      >
+        {{ frequency }}
+      </div>
+      <div class="frequency-description text-lg">
+        <span class="font-bold">{{ getFrequencyLabel(frequency) }}</span>
+        <span class="text-xs">{{ getFrequencyDescription(frequency) }}</span>
+      </div>
     </div>
   </div>
 </div>

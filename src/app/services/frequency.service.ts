@@ -1,14 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-
-export enum Language {
-  EN = 'EN',
-  RU = 'RU',
-  DE = 'DE',
-  // Add other languages as needed
-}
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable, of} from 'rxjs';
+import {catchError, map} from 'rxjs/operators';
+import {Language} from "./language.enum";
 
 interface NgramsResponseDto {
   queryTokens: QueryToken[];
@@ -52,7 +46,8 @@ export class FrequencyService {
     // Add other languages and their corpus names as needed
   ]);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+  }
 
   /**
    * Fetches frequency data for a given word using the ngrams.dev API.
