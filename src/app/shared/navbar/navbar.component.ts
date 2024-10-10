@@ -4,6 +4,7 @@ import {
   ElementRef,
   HostListener,
   OnChanges,
+  OnDestroy,
   OnInit,
   QueryList,
   SimpleChanges,
@@ -31,12 +32,10 @@ import {AuthService} from "../../auth/auth.service";
   ],
   standalone: true
 })
-export class NavbarComponent implements OnChanges, OnInit {
+export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   protected isPopoverOpen: boolean = false;
-  isAppIconPopoverOpen = false; // New popover for the app icon
-
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -70,10 +69,6 @@ export class NavbarComponent implements OnChanges, OnInit {
     } else {
       this.navigateToHome();
     }
-  }
-
-  closeDiscoverMenu(): void {
-    this.isDiscoverMenuOpen = false;
   }
 
   private loadUserInfo(): void {
@@ -232,10 +227,5 @@ export class NavbarComponent implements OnChanges, OnInit {
 
   togglePopover(): void {
     this.isPopoverOpen = !this.isPopoverOpen;
-  }
-
-  // New toggle method for the app icon popover
-  toggleAppIconPopover(): void {
-    this.isAppIconPopoverOpen = !this.isAppIconPopoverOpen;
   }
 }
