@@ -7,7 +7,8 @@ import {
   OnDestroy,
   OnInit,
   QueryList,
-  SimpleChanges, ViewChild,
+  SimpleChanges,
+  ViewChild,
   ViewChildren
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
@@ -17,6 +18,7 @@ import {UserInfo} from "../../home/userinfo.model";
 import {LocalStorageService} from "../../services/local.storage.service";
 import {Language} from "../../services/language.enum";
 import {AuthService} from "../../auth/auth.service";
+import {NgClickOutsideDirective} from 'ng-click-outside2';
 
 @Component({
   selector: 'app-navbar',
@@ -28,15 +30,18 @@ import {AuthService} from "../../auth/auth.service";
     NgOptimizedImage,
     NgIf,
     NgClass,
-    NgStyle
+    NgStyle,
+    NgClickOutsideDirective
   ],
   standalone: true
 })
 export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
+  @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
   protected isProfilePopoverOpen: boolean = false;
   protected isDiscoverMenuOpen: boolean = false;
+  protected isLanguageDropdownOpen: boolean = false;
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -65,7 +70,6 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   toggleDiscoverMenu(): void {
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
-      this.isProfilePopoverOpen = false; // Close the popover when opening the Discover menu
     } else {
       this.navigateToHome();
     }
@@ -73,7 +77,6 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   toggleProfilePopover(): void {
     this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
-    this.isDiscoverMenuOpen = false; // Close the Discover menu when opening the popover
   }
 
   private loadUserInfo(): void {
@@ -102,7 +105,6 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.router.navigate(['/home']).then(r => r);
   }
 
-  isOpen = false;
   selectedLanguage!: Language;
   languages = [Language.EN, Language.DE, Language.FR];
   filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
@@ -115,6 +117,17 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
       event.preventDefault();
       this.changeToNextLanguage();
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: MouseEvent): void {
+    // Use a small timeout to ensure dropdown click is not detected as outside click
+    setTimeout(() => {
+      if (this.isLanguageDropdownOpen && this.langDropdown && !this.langDropdown.nativeElement.contains(event.target)) {
+        this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
+        this.cdr.detectChanges(); // Trigger change detection to update the view
+      }
+    }, 50);
   }
 
   private initializeLanguages(userInfo: UserInfo | null): void {
@@ -141,10 +154,12 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   toggleDropdown(): void {
-    this.isOpen = !this.isOpen;
+    console.log('toggleDropdown');
+    this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
+    console.log(this.isLanguageDropdownOpen)
 
     // If dropdown is opening, set focus to the first dropdown item
-    if (this.isOpen) {
+    if (this.isLanguageDropdownOpen) {
       this.cdr.detectChanges(); // Trigger change detection to ensure dropdown is rendered
       setTimeout(() => {
         this.focusedIndex = 0;
@@ -165,7 +180,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   changeLanguage(lang: Language): void {
     this.selectedLanguage = lang;
     this.filteredLanguages = this.languages.filter(language => language !== this.selectedLanguage);
-    this.isOpen = false;
+    this.isLanguageDropdownOpen = false;
     this.focusedIndex = -1;
     this.localStorageService.saveCurrentLanguage(lang);
   }
@@ -179,7 +194,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   handleKeydown(event: KeyboardEvent): void {
-    if (this.isOpen) {
+    if (this.isLanguageDropdownOpen) {
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
@@ -203,7 +218,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     } else if (event.key === 'ArrowDown') {
       // Open dropdown and directly focus on the first dropdown item when pressing ArrowDown on the main button
       event.preventDefault();
-      this.isOpen = true; // Open the dropdown
+      this.isLanguageDropdownOpen = true; // Open the dropdown
       this.cdr.detectChanges(); // Ensure the dropdown items are rendered
       this.focusedIndex = 0; // Focus the first item
       this.focusOnItem(this.focusedIndex); // Set focus to the first dropdown item
@@ -217,7 +232,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   closeDropdown(): void {
-    this.isOpen = false;
+    this.isLanguageDropdownOpen = false;
     this.focusedIndex = -1;
   }
 
@@ -241,5 +256,17 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
     const color = colorMap[language] || 'black';
     return {color: color, border: `1px solid ${color}`};
+  }
+
+  langsOnClickOutside(_: Event) {
+    this.closeDropdown();
+  }
+
+  profileOnClickOutside(_: Event) {
+    this.isProfilePopoverOpen = false;
+  }
+
+  discoverOnClickOutside(_: Event) {
+    this.isDiscoverMenuOpen = false;
   }
 }

@@ -1,6 +1,6 @@
 <nav class="navbar">
   <div class="navbar-content">
-    <div class="logo-container relative" (click)="toggleDiscoverMenu()">
+    <div class="logo-container relative" (click)="toggleDiscoverMenu()" (clickOutside)="discoverOnClickOutside($event)">
       <img ngSrc="assets/img/icons/logo.svg" alt="App Logo" class="app-icon" height="1481" width="1456"/>
 
       <!-- Popover Menu for App Icon (Only on Mobile Screens) -->
@@ -45,14 +45,15 @@
     </div>
     <span class="spacer"></span>
     <div class="nav-actions">
-      <div class="lang-dropdown">
+      <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
         <div class="relative lang-dropdown">
           <button (click)="toggleDropdown()" class="lang-btn text-lg"
                   [ngStyle]="getButtonStyles(selectedLanguage)">
             {{ selectedLanguage }}
           </button>
           <!-- Dropdown Menu (direct continuation of the button) -->
-          <div [ngClass]="{'block': isOpen, 'hidden': !isOpen}"
+
+          <div *ngIf="isLanguageDropdownOpen"
                class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
                (keydown)="handleKeydown($event)">
             <div class="py-1">
@@ -74,7 +75,7 @@
              width="40"/>
       </button>
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" (click)="toggleProfilePopover()">
+      <div class="user-profile relative" (click)="toggleProfilePopover()" (clickOutside)=profileOnClickOutside($event)>
         <div class="profile-circle bg-gradient-to-r from-purple-500 to-pink-500"></div>
         <!-- Popover Menu -->
         <div *ngIf="isProfilePopoverOpen"
