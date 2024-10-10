@@ -77,18 +77,14 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     if (cachedUserInfo) {
       this.userInfo = cachedUserInfo;
       console.log('Loaded user info from cache', this.userInfo);
-      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || Language.EN;
-      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-      this.cdr.markForCheck();
+      this.initializeLanguages(this.userInfo);
     } else {
       console.log('Loading user info from server');
       this.authService.getUserInfo().subscribe({
         next: (userInfo: UserInfo) => {
           this.userInfo = userInfo;
           this.localStorageService.saveUserInfo(userInfo); // Cache the user info
-          this.selectedLanguage = userInfo.targetLangs?.[0] || Language.EN;
-          this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-          this.cdr.markForCheck();
+          this.initializeLanguages(this.userInfo);
         },
         error: (error) => {
           console.log('Failed to load user info', error);
@@ -102,7 +98,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   isOpen = false;
-  selectedLanguage = Language.EN;
+  selectedLanguage!: Language;
   languages = [Language.EN, Language.DE, Language.FR];
   filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
   focusedIndex = -1; // Index of the currently focused dropdown item
@@ -115,6 +111,23 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
       this.changeToNextLanguage();
     }
   }
+
+  private initializeLanguages(userInfo: UserInfo | null): void {
+    if (!userInfo) return; // Return early if userInfo is null
+
+    const storedLanguage = this.localStorageService.getCurrentLanguage();
+    if (storedLanguage) {
+      this.selectedLanguage = storedLanguage;
+    } else if (userInfo.targetLangs && userInfo.targetLangs.length > 0) {
+      this.selectedLanguage = userInfo.targetLangs[0];
+    } else {
+      this.selectedLanguage = Language.EN; // Fallback option if nothing is set
+    }
+
+    this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
+    this.cdr.markForCheck();
+  }
+
 
   changeToNextLanguage(): void {
     const currentIndex = this.languages.indexOf(this.selectedLanguage);
