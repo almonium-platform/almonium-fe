@@ -42,6 +42,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   protected isProfilePopoverOpen: boolean = false;
   protected isDiscoverMenuOpen: boolean = false;
   protected isLanguageDropdownOpen: boolean = false;
+  protected isNotificationOpen: boolean = false;
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -77,6 +78,10 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   toggleProfilePopover(): void {
     this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
+  }
+
+  toggleNotificationPopover(): void {
+    this.isNotificationOpen = !this.isNotificationOpen;
   }
 
   private loadUserInfo(): void {
@@ -268,5 +273,9 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   discoverOnClickOutside(_: Event) {
     this.isDiscoverMenuOpen = false;
+  }
+
+  notificationOnClickOutside(_: Event) {
+    this.isNotificationOpen = false;
   }
 }
