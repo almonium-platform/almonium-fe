@@ -7,7 +7,7 @@ import {
   OnDestroy,
   OnInit,
   QueryList,
-  SimpleChanges,
+  SimpleChanges, ViewChild,
   ViewChildren
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
@@ -35,7 +35,8 @@ import {AuthService} from "../../auth/auth.service";
 export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
-  protected isPopoverOpen: boolean = false;
+  protected isProfilePopoverOpen: boolean = false;
+  protected isDiscoverMenuOpen: boolean = false;
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -61,14 +62,18 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  isDiscoverMenuOpen: boolean = false; // Track the Discover menu state
-
   toggleDiscoverMenu(): void {
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
+      this.isProfilePopoverOpen = false; // Close the popover when opening the Discover menu
     } else {
       this.navigateToHome();
     }
+  }
+
+  toggleProfilePopover(): void {
+    this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
+    this.isDiscoverMenuOpen = false; // Close the Discover menu when opening the popover
   }
 
   private loadUserInfo(): void {
@@ -236,9 +241,5 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
     const color = colorMap[language] || 'black';
     return {color: color, border: `1px solid ${color}`};
-  }
-
-  togglePopover(): void {
-    this.isPopoverOpen = !this.isPopoverOpen;
   }
 }
