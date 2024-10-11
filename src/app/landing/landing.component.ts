@@ -10,4 +10,5 @@ import {environment} from "../../environments/environment";
 })
 export class LandingComponent {
   protected readonly environment = environment;
+    protected readonly window = window;
 }
