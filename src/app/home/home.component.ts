@@ -1,48 +1,41 @@
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {AuthService} from "../auth/auth.service";
-import {RouterOutlet} from "@angular/router";
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {UserService} from '../services/user.service';
+import {Subscription} from 'rxjs';
+import {UserInfo} from "../models/userinfo.model";
 import {NavbarComponent} from "../shared/navbar/navbar.component";
+import {RouterOutlet} from "@angular/router";
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less'],
   imports: [
-    RouterOutlet,
-    NavbarComponent
-  ]
+    NavbarComponent,
+    RouterOutlet
+  ],
+  standalone: true
 })
-export class HomeComponent implements OnInit {
-  userInfo: any | null = null;
+export class HomeComponent implements OnInit, OnDestroy {
+  userInfo: UserInfo | null = null;
+  private userInfoSubscription: Subscription | null = null;
 
-  constructor(
-    private authService: AuthService,
-    private cdr: ChangeDetectorRef
-  ) {
+  constructor(private userService: UserService, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
-    this.loadUserInfo();
+    // Subscribe to the shared user info observable
+    this.userInfoSubscription = this.userService.userInfo$.subscribe((info) => {
+      this.userInfo = info;
+      this.cdr.markForCheck(); // Trigger change detection manually to update the view
+    });
+
+    // Optionally, load user info if not present
+    this.userService.loadUserInfo().subscribe();
   }
 
-  private loadUserInfo(): void {
-    const cachedUserInfo = this.authService.getLocalUserInfo();
-    if (cachedUserInfo) {
-      this.userInfo = cachedUserInfo;
-      console.log('Loaded user info from cache', this.userInfo);
-      this.cdr.markForCheck();
-    } else {
-      console.log('Loading user info from server');
-      this.authService.getUserInfo().subscribe({
-        next: userInfo => {
-          this.userInfo = userInfo;
-          this.cdr.markForCheck();
-        },
-        error: error => {
-          console.log('Failed to load user info', error);
-        }
-      });
+  ngOnDestroy(): void {
+    if (this.userInfoSubscription) {
+      this.userInfoSubscription.unsubscribe();
     }
   }
 }

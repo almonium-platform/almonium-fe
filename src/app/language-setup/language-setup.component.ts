@@ -21,8 +21,8 @@ import {
 import {TuiErrorModule, TuiTextfieldControllerModule,} from '@taiga-ui/core';
 import {delay, Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
-import {Language} from './language.model';
-import {LanguageService} from './language.service';
+import {Language} from '../models/language.model';
+import {LanguageSetupService} from './language-setup.service';
 import {ParticlesService} from "../services/particles.service";
 import {NgxParticlesModule} from "@tsparticles/angular";
 
@@ -107,7 +107,7 @@ export class LanguageSetupComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private languageService: LanguageService,
+    private languageService: LanguageSetupService,
     private router: Router,
     protected particlesService: ParticlesService
   ) {

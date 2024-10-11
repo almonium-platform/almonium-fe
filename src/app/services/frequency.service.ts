@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
-import {Language} from "./language.enum";
+import {Language} from "../models/language.enum";
 
 interface NgramsResponseDto {
   queryTokens: QueryToken[];

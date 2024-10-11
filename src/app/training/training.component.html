@@ -1,1 +1,12 @@
 <app-navbar></app-navbar>
+<div class="training-container">
+  <div *ngIf="cards.length === 0">
+    <div class="right-section text">
+      You don't have any cards saved for {{ this.displayLanguageName }}🥺
+      <br> Go to the <a routerLink="/discover">Discover</a>💫 page to add some
+    </div>
+    <div class="img-container">
+      <img ngSrc="../../assets/img/almo/empty_box.png" alt="404 Not Found" class="not-found-img" height="200" width="200">
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import {Language} from "../services/language.enum";
+import {Language} from "./language.enum";
 
 export interface UserInfo {
   id: string;

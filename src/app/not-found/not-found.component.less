@@ -2,73 +2,100 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh; /* Set height to occupy a large portion of the screen */
-  width: 100vw; /* Ensure full width of the screen */
-  margin-top: 0; /* Remove any top margin */
-  text-align: left; /* Left-align the text */
-  background-color: #f9f3f1; /* Background color */
+  height: 100vh;
+  width: 100vw;
+  margin-top: 0;
+  text-align: left;
+  background-color: #f9f3f1;
+  flex-wrap: nowrap; /* No wrapping by default */
 }
 
 .left-section, .right-section {
-  height: 100%; /* Make sure the sections take full height */
-}
-
-.left-section {
-  flex: 0 0 50%; /* Make it take exactly 50% */
+  height: auto;
+  width: 50%; /* Side-by-side in wide screens */
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+.left-section {
+  padding: 2rem;
+}
+
 .right-section {
-  flex: 0 0 50%; /* Make it take exactly 50% */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Vertically center the text */
+  justify-content: center;
   align-items: flex-start;
-  padding-left: 3rem; /* Add space between the image and text */
+  padding: 2rem;
 }
 
 .not-found-img {
-  height: 300px;
-  width: 300px;
+  max-width: 100%;
+  height: auto; /* Make sure the image is responsive */
 }
 
 .not-found-title {
-  font-size: 4em;
+  font-size: 4.5em;
   color: #000000;
   font-weight: bold;
   margin-bottom: 1em;
 }
 
 .not-found-caption {
-  font-size: 1.5em;
+  font-size: 2.2em;
   color: #333333;
   margin-bottom: 1.5em;
   line-height: 1.5;
 }
 
 .go-back-container {
-  display: flex;
-  justify-content: center; /* Centers the button horizontally */
-  align-items: center; /* Centers the button vertically */
-  margin-top: 10px; /* Add some spacing above the button */
+  margin-top: 10px;
 }
 
 .go-back-link {
   display: inline-block;
   text-decoration: none;
-  font-size: 1.2em;
+  font-size: 2.2em;
   color: #ffffff;
   background-color: #000000;
-  padding: 15px 100px;
-  //width: 20vw;
-  border: none; /* No border */
-  border-radius: 30px; /* Rounded button */
+  padding: 30px 50px;
+  border: none;
+  border-radius: 45px;
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .go-back-link:hover {
   background-color: #333333;
   transform: translateY(-2px);
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 900px) {
+  .not-found-container {
+    flex-direction: column; /* Stack elements vertically on smaller screens */
+  }
+
+  .left-section, .right-section {
+    width: 100%; /* Full width for both sections */
+    padding: 1rem; /* Adjust padding for smaller screens */
+  }
+
+  .right-section {
+    align-items: center; /* Center align the text */
+    text-align: center; /* Center text */
+  }
+
+  .not-found-title {
+    font-size: 3.5em;
+  }
+
+  .not-found-caption {
+    font-size: 2em;
+  }
+
+  .go-back-link {
+    padding: 20px 40px; /* Adjust padding on smaller screens */
+    font-size: 2em;
+  }
 }

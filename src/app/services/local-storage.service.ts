@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Language} from "./language.enum";
+import {Language} from "../models/language.enum";
 
 const USER_INFO_KEY = 'user_info';
 
@@ -27,7 +27,6 @@ export class LocalStorageService {
   }
 
   getCurrentLanguage(): Language {
-    // Default to `EN` if no language is found
     return (window.localStorage.getItem(CURRENT_LANGUAGE) as Language) || Language.EN;
   }
 }

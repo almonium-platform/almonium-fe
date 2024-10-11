@@ -14,11 +14,12 @@ import {
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
-import {UserInfo} from "../../home/userinfo.model";
-import {LocalStorageService} from "../../services/local.storage.service";
-import {Language} from "../../services/language.enum";
-import {AuthService} from "../../auth/auth.service";
+import {UserInfo} from "../../models/userinfo.model";
+import {Language} from "../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
+import {UserService} from "../../services/user.service";
+import {Subscription} from "rxjs";
+import {LanguageService} from "../../services/language.service";
 
 @Component({
   selector: 'app-navbar',
@@ -43,23 +44,32 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   protected isDiscoverMenuOpen: boolean = false;
   protected isLanguageDropdownOpen: boolean = false;
   protected isNotificationOpen: boolean = false;
+  private userInfoSubscription: Subscription | null = null;
+  isMobile: boolean = false;
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
-              private localStorageService: LocalStorageService,
-              private authService: AuthService
+              private userService: UserService,
+              private languageService: LanguageService
   ) {
   }
 
-  isMobile: boolean = false;
-
   ngOnInit(): void {
-    this.loadUserInfo();
+    this.userInfoSubscription = this.userService.userInfo$.subscribe((info) => {
+      this.userInfo = info;
+      if (info) {
+        this.initializeLanguages(info);
+      }
+    });
     this.checkDeviceType();
     window.addEventListener('resize', this.checkDeviceType.bind(this));
   }
 
   ngOnDestroy(): void {
+    if (this.userInfoSubscription) {
+      this.userInfoSubscription.unsubscribe();
+    }
+
     window.removeEventListener('resize', this.checkDeviceType.bind(this));
   }
 
@@ -84,34 +94,12 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.isNotificationOpen = !this.isNotificationOpen;
   }
 
-  private loadUserInfo(): void {
-    const cachedUserInfo = this.localStorageService.getUserInfo();
-
-    if (cachedUserInfo) {
-      this.userInfo = cachedUserInfo;
-      console.log('Loaded user info from cache', this.userInfo);
-      this.initializeLanguages(this.userInfo);
-    } else {
-      console.log('Loading user info from server');
-      this.authService.getUserInfo().subscribe({
-        next: (userInfo: UserInfo) => {
-          this.userInfo = userInfo;
-          this.localStorageService.saveUserInfo(userInfo); // Cache the user info
-          this.initializeLanguages(this.userInfo);
-        },
-        error: (error) => {
-          console.log('Failed to load user info', error);
-        },
-      });
-    }
-  }
-
   navigateToHome() {
     this.router.navigate(['/home']).then(r => r);
   }
 
   selectedLanguage!: Language;
-  languages = [Language.EN, Language.DE, Language.FR];
+  languages: Language[] = [];
   filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
   focusedIndex = -1; // Index of the currently focused dropdown item
 
@@ -136,21 +124,22 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   private initializeLanguages(userInfo: UserInfo | null): void {
-    if (!userInfo) return; // Return early if userInfo is null
+    if (!userInfo) return;
+    this.languageService.currentLanguage$.subscribe((storedLanguage) => {
+      if (storedLanguage) {
+        this.selectedLanguage = storedLanguage;
+      } else if (userInfo.targetLangs && userInfo.targetLangs.length > 0) {
+        this.languages = userInfo.targetLangs;
+        this.selectedLanguage = userInfo.targetLangs[0];
+        this.languageService.setCurrentLanguage(this.selectedLanguage); // Set default if none is stored
+      } else {
+        console.log('No target languages found in user info');
+      }
 
-    const storedLanguage = this.localStorageService.getCurrentLanguage();
-    if (storedLanguage) {
-      this.selectedLanguage = storedLanguage;
-    } else if (userInfo.targetLangs && userInfo.targetLangs.length > 0) {
-      this.selectedLanguage = userInfo.targetLangs[0];
-    } else {
-      this.selectedLanguage = Language.EN; // Fallback option if nothing is set
-    }
-
-    this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-    this.cdr.markForCheck();
+      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
+      this.cdr.markForCheck();
+    });
   }
-
 
   changeToNextLanguage(): void {
     const currentIndex = this.languages.indexOf(this.selectedLanguage);
@@ -187,7 +176,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.filteredLanguages = this.languages.filter(language => language !== this.selectedLanguage);
     this.isLanguageDropdownOpen = false;
     this.focusedIndex = -1;
-    this.localStorageService.saveCurrentLanguage(lang);
+    this.languageService.setCurrentLanguage(lang);
   }
 
   ngOnChanges(changes: SimpleChanges): void {

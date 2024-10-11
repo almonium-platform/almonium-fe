@@ -9,8 +9,8 @@ import {TuiBadgeModule} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
 import {FrequencyService} from "../services/frequency.service";
 import {NavbarComponent} from "../shared/navbar/navbar.component";
-import {LocalStorageService} from "../services/local.storage.service";
-import {Language} from "../services/language.enum";
+import {Language} from "../models/language.enum";
+import {LanguageService} from "../services/language.service";
 
 @Component({
   selector: 'app-discover',
@@ -42,7 +42,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     private renderer: Renderer2,
     private route: ActivatedRoute,
     private frequencyService: FrequencyService,
-    private localStorageService: LocalStorageService
+    private languageService: LanguageService
   ) {
   }
 
@@ -87,14 +87,15 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    console.log('onSubmit');
-    // Clear the filtered options to hide the autocomplete list
     this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
-      console.log(this.localStorageService.getCurrentLanguage());
-      this.frequencyService.getFrequency(this.searchText, this.localStorageService.getCurrentLanguage()).subscribe(freq => {
-        this.frequency = freq;
+      this.languageService.currentLanguage$.subscribe((currentLanguage) => {
+        if (currentLanguage) {
+          this.frequencyService.getFrequency(this.searchText, currentLanguage).subscribe((freq) => {
+            this.frequency = freq;
+          });
+        }
       });
     }
   }
@@ -109,51 +110,52 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.searchText = this.sanitizeInput(searchText);
     this.submitted = false;
     this.currentFocus = -1;
-    const currentLanguage = this.localStorageService.getCurrentLanguage();
+    this.languageService.currentLanguage$.subscribe((currentLanguage) => {
 
-    if (searchText && searchText.length >= 3 && currentLanguage === Language.EN) {
-      const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
-      this.http.get<{ word: string }[]>(apiUrl).pipe(
-        map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
-        catchError(() => of([]))
-      ).subscribe(options => {
-        if (!this.submitted) {
-          this.filteredOptions = options;
-        }
-      });
-    } else {
-      this.filteredOptions = [];
-    }
+      if (searchText && searchText.length >= 3 && currentLanguage === Language.EN) {
+        const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
+        this.http.get<{ word: string }[]>(apiUrl).pipe(
+          map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
+          catchError(() => of([]))
+        ).subscribe(options => {
+          if (!this.submitted) {
+            this.filteredOptions = options;
+          }
+        });
+      } else {
+        this.filteredOptions = [];
+      }
 
-    // Preserve cursor position logic
-    const element = this.renderer.selectRootElement('.search-input', true);
-    const selection = window.getSelection();
+      // Preserve cursor position logic
+      const element = this.renderer.selectRootElement('.search-input', true);
+      const selection = window.getSelection();
 
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const cursorPosition = range.startOffset;
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const cursorPosition = range.startOffset;
 
-      // Refocus the input and preserve cursor position
-      element.focus();
+        // Refocus the input and preserve cursor position
+        element.focus();
 
-      // Use a setTimeout to ensure cursor position logic executes after rendering
-      setTimeout(() => {
-        const newRange = document.createRange();
-        const newSelection = window.getSelection();
+        // Use a setTimeout to ensure cursor position logic executes after rendering
+        setTimeout(() => {
+          const newRange = document.createRange();
+          const newSelection = window.getSelection();
 
-        // Set the range at the preserved cursor position
-        newRange.setStart(element.childNodes[0], cursorPosition);
-        newRange.collapse(true);
+          // Set the range at the preserved cursor position
+          newRange.setStart(element.childNodes[0], cursorPosition);
+          newRange.collapse(true);
 
-        // Apply the new range as the current selection
-        newSelection?.removeAllRanges();
-        newSelection?.addRange(newRange);
+          // Apply the new range as the current selection
+          newSelection?.removeAllRanges();
+          newSelection?.addRange(newRange);
 
-        console.log('Cursor moved to the preserved position.');
-      }, 0); // Timeout of 0 ensures the next task in the event loop
-    } else {
-      element.focus();
-    }
+          console.log('Cursor moved to the preserved position.');
+        }, 0); // Timeout of 0 ensures the next task in the event loop
+      } else {
+        element.focus();
+      }
+    });
   }
 
   onOptionSelected(option: string): void {
