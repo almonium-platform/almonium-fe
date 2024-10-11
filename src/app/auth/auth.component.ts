@@ -232,9 +232,6 @@ export class AuthComponent implements OnInit {
       case 'google':
         url = AppConstants.GOOGLE_AUTH_URL;
         break;
-      case 'facebook':
-        url = AppConstants.FACEBOOK_AUTH_URL;
-        break;
       case 'apple':
         url = AppConstants.APPLE_AUTH_URL;
         break;
