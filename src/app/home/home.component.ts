@@ -4,6 +4,7 @@ import {Subscription} from 'rxjs';
 import {UserInfo} from "../models/userinfo.model";
 import {NavbarComponent} from "../shared/navbar/navbar.component";
 import {RouterOutlet} from "@angular/router";
+import {NgOptimizedImage} from "@angular/common";
 
 @Component({
   selector: 'app-home',
@@ -11,7 +12,8 @@ import {RouterOutlet} from "@angular/router";
   styleUrls: ['./home.component.less'],
   imports: [
     NavbarComponent,
-    RouterOutlet
+    RouterOutlet,
+    NgOptimizedImage
   ],
   standalone: true
 })
