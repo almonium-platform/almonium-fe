@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
-import {Router} from "@angular/router";
+import {NavigationEnd, Router} from "@angular/router";
 import {UserInfo} from "../../models/userinfo.model";
 import {Language} from "../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
@@ -46,12 +46,18 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   protected isNotificationOpen: boolean = false;
   private userInfoSubscription: Subscription | null = null;
   isMobile: boolean = false;
+  currentRoute: string = '';
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserService,
               private languageService: LanguageService
   ) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.currentRoute = event.urlAfterRedirects;
+      }
+    });
   }
 
   ngOnInit(): void {

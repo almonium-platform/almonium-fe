@@ -33,15 +33,25 @@
         </div>
       </div>
     </div>
-    <!-- Discover, Training, Games links -->
-    <div *ngIf="!isMobile" class="section">
-      <a href="/discover" class="nav-link ml-8">Discover</a>
-    </div>
-    <div *ngIf="!isMobile" class="section">
-      <a href="/training" class="nav-link ml-8">Training</a>
-    </div>
-    <div *ngIf="!isMobile" class="section">
-      <a href="/games" class="nav-link ml-8">Games</a>
+    <div *ngIf="!isMobile">
+      <a
+        href="/discover"
+        class="nav-link ml-8 section"
+        [ngClass]="{'active-link': currentRoute === '/discover'}">
+        Discover
+      </a>
+      <a
+        href="/training"
+        class="nav-link ml-8 section"
+        [ngClass]="{'active-link': currentRoute === '/training'}">
+        Training
+      </a>
+      <a
+        href="/games"
+        class="nav-link ml-8 section"
+        [ngClass]="{'active-link': currentRoute === '/games'}">
+        Games
+      </a>
     </div>
     <span class="spacer"></span>
     <div class="nav-actions">
