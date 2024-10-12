@@ -126,10 +126,11 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   private initializeLanguages(userInfo: UserInfo | null): void {
     if (!userInfo) return;
     this.languageService.currentLanguage$.subscribe((storedLanguage) => {
+      this.languages = userInfo.targetLangs;
+      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
       if (storedLanguage) {
         this.selectedLanguage = storedLanguage;
       } else if (userInfo.targetLangs && userInfo.targetLangs.length > 0) {
-        this.languages = userInfo.targetLangs;
         this.selectedLanguage = userInfo.targetLangs[0];
         this.languageService.setCurrentLanguage(this.selectedLanguage); // Set default if none is stored
       } else {
@@ -147,7 +148,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.changeLanguage(this.languages[nextIndex]);
   }
 
-  toggleDropdown(): void {
+  toggleLanguageDropdown(): void {
     console.log('toggleDropdown');
     this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
     console.log(this.isLanguageDropdownOpen)
