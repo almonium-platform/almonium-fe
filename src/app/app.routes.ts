@@ -19,6 +19,8 @@ import {CrosswordComponent} from "./games/crossword/crossword.component";
 import {DuelComponent} from "./games/duel/duel.component";
 import {authGuard} from "./authentication/auth/guard/auth.guard";
 import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
+import {AboutComponent} from "./static/about-us/about.component";
+import {NotFoundComponent} from "./static/not-found/not-found.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -57,6 +59,7 @@ export const routes: Routes = [
   // Static pages
   {path: 'terms-of-use', component: TermsOfUseComponent},
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
+  {path: 'about', component: AboutComponent},
 
   // Test route
   {path: 'test', component: TestComponent},
