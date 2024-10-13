@@ -99,6 +99,7 @@ export class AuthComponent implements OnInit {
   }
 
   handleCredentialResponse(response: any) {
+    this.isRotating = true;
     const credential = response.credential;
 
     this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
@@ -227,6 +228,7 @@ export class AuthComponent implements OnInit {
   }
 
   onSocialLogin(provider: string) {
+    this.isRotating = true;
     let url = '';
     switch (provider) {
       case 'google':
