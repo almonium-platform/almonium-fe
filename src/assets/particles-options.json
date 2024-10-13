@@ -27,7 +27,7 @@
       "type": "image",
       "options": {
         "image": {
-          "src": "/assets/img/icons/card_black.svg",
+          "src": "/assets/img/other/card_black.svg",
           "width": 60,
           "height": 100,
           "replaceColor": true
