@@ -13,32 +13,53 @@ import {LanguageSetupComponent} from "./authentication/language-setup/language-s
 import {SettingsComponent} from "./sections/settings/settings.component";
 import {TrainingComponent} from "./sections/training/training.component";
 import {GamesComponent} from "./sections/games/games.component";
-import {NotFoundComponent} from "./static/not-found/not-found.component";
-import {authGuard} from './authentication/auth/auth.guard';
 import {LadderComponent} from "./games/ladder/ladder.component";
 import {HigherLowerComponent} from "./games/higher-lower/higher-lower.component";
 import {CrosswordComponent} from "./games/crossword/crossword.component";
 import {DuelComponent} from "./games/duel/duel.component";
+import {authGuard} from "./authentication/auth/guard/auth.guard";
+import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
-  {path: 'auth', component: AuthComponent, canActivate: [authGuard]},
-  {path: 'home', component: HomeComponent},
-  {path: 'verify-email', component: EmailVerificationComponent},
-  {path: 'reset-password', component: ResetPasswordComponent},
-  {path: 'discover', component: DiscoverComponent},
-  {path: 'test', component: TestComponent},
+  {
+    path: '',
+    canActivate: [unauthGuard],
+    children: [
+      // Authentication flow
+      {path: 'auth', component: AuthComponent, canActivate: [unauthGuard]},
+      // when settings will be ready, those will be moved to unguarded routes
+      {path: 'verify-email', component: EmailVerificationComponent},
+      {path: 'reset-password', component: ResetPasswordComponent},
+      {path: 'setup-languages', component: LanguageSetupComponent},
+    ]
+  },
+  {
+    path: '',
+    canActivate: [authGuard],
+    children: [
+      {path: 'home', component: HomeComponent, canActivate: [authGuard]},
+      {path: 'training', component: TrainingComponent, canActivate: [authGuard]},
+      {path: 'discover', component: DiscoverComponent},
+      {path: 'games', component: GamesComponent},
+      {path: 'settings', component: SettingsComponent},
+
+      // Games
+      {path: 'games/ladder', component: LadderComponent},
+      {path: 'games/higher-lower', component: HigherLowerComponent},
+      {path: 'games/crossword', component: CrosswordComponent},
+      {path: 'games/duel', component: DuelComponent},
+    ]
+  },
+
+  {path: 'logout', component: LogoutComponent},
+
+  // Static pages
   {path: 'terms-of-use', component: TermsOfUseComponent},
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
-  {path: 'logout', component: LogoutComponent},
-  {path: 'setup-languages', component: LanguageSetupComponent},
-  {path: 'settings', component: SettingsComponent},
-  {path: 'training', component: TrainingComponent},
-  {path: 'games', component: GamesComponent},
-  {path: 'games/ladder', component: LadderComponent},
-  {path: 'games/higher-lower', component: HigherLowerComponent},
-  {path: 'games/crossword', component: CrosswordComponent},
-  {path: 'games/duel', component: DuelComponent},
-  {path: 'not-found', component: NotFoundComponent},
+
+  // Test route
+  {path: 'test', component: TestComponent},
+
   {path: '**', redirectTo: 'not-found'}  // Fallback route for unknown paths
 ];
