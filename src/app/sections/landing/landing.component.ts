@@ -1,10 +1,15 @@
 import {Component} from '@angular/core';
 import {environment} from "../../../environments/environment";
+import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
+import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [],
+  imports: [
+    NavbarWrapperComponent,
+    NotReadyComponent
+  ],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.less'
 })
