@@ -88,12 +88,16 @@ export class NavbarPublicComponent implements OnChanges, OnInit, OnDestroy {
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {
-      this.navigateToHome();
+      this.navigateToRoot();
     }
   }
 
-  navigateToHome() {
-    this.router.navigate(['/home']).then(r => r);
+  navigateToRoot() {
+    this.router.navigate(['/']).then(r => r);
+  }
+
+  redirectToAuth(): void {
+    this.router.navigate(['/auth']).then(r => r);
   }
 
   selectedLanguage!: Language;

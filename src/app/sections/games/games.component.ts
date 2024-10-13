@@ -2,6 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
 import {NavbarComponent} from "../../shared/navbar/navbar.component";
 import {RouterLink} from "@angular/router";
+import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-games',
@@ -12,7 +13,8 @@ import {RouterLink} from "@angular/router";
     NavbarComponent,
     RouterLink,
     NgIf,
-    NgOptimizedImage
+    NgOptimizedImage,
+    NavbarWrapperComponent
   ],
   styleUrls: ['./games.component.less']
 })

@@ -11,6 +11,7 @@ import {FrequencyService} from "../../services/frequency.service";
 import {NavbarComponent} from "../../shared/navbar/navbar.component";
 import {Language} from "../../models/language.enum";
 import {LanguageService} from "../../services/language.service";
+import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-discover',
@@ -24,7 +25,8 @@ import {LanguageService} from "../../services/language.service";
     ContenteditableValueAccessorModule,
     TuiBadgeModule,
     NgClass,
-    NavbarComponent
+    NavbarComponent,
+    NavbarWrapperComponent
   ],
   standalone: true,
 })

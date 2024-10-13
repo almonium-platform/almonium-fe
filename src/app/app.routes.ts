@@ -21,6 +21,7 @@ import {authGuard} from "./authentication/auth/guard/auth.guard";
 import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 import {AboutComponent} from "./static/about-us/about.component";
 import {NotFoundComponent} from "./static/not-found/not-found.component";
+import {PricingComponent} from "./static/pricing/pricing.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -42,8 +43,6 @@ export const routes: Routes = [
     children: [
       {path: 'home', component: HomeComponent, canActivate: [authGuard]},
       {path: 'training', component: TrainingComponent, canActivate: [authGuard]},
-      {path: 'discover', component: DiscoverComponent},
-      {path: 'games', component: GamesComponent},
       {path: 'settings', component: SettingsComponent},
 
       // Games
@@ -59,7 +58,13 @@ export const routes: Routes = [
   // Static pages
   {path: 'terms-of-use', component: TermsOfUseComponent},
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
+
+  {path: 'pricing', component: PricingComponent},
   {path: 'about', component: AboutComponent},
+
+  // sections of both auth and unauth
+  {path: 'games', component: GamesComponent},
+  {path: 'discover', component: DiscoverComponent},
 
   // Test route
   {path: 'test', component: TestComponent},

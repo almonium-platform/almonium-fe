@@ -4,16 +4,16 @@ import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
-  selector: 'app-about',
+  selector: 'app-pricing',
   standalone: true,
   imports: [
     NavbarPublicComponent,
     NotReadyComponent,
     NavbarWrapperComponent
   ],
-  templateUrl: './about.component.html',
-  styleUrl: './about.component.less'
+  templateUrl: './pricing.component.html',
+  styleUrl: './pricing.component.less'
 })
-export class AboutComponent {
+export class PricingComponent {
 
 }

@@ -1,0 +1,6 @@
+<ng-container *ngIf="isAuthenticated; else publicNavbar">
+  <app-navbar></app-navbar>
+</ng-container>
+<ng-template #publicNavbar>
+  <app-public-navbar></app-public-navbar>
+</ng-template>

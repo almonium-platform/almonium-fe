@@ -3,6 +3,7 @@ import {LocalStorageService} from '../../services/local-storage.service';
 import {NavbarComponent} from "../../shared/navbar/navbar.component";
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
+import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-not-found',
@@ -13,7 +14,8 @@ import {RouterLink} from "@angular/router";
     NavbarComponent,
     NgIf,
     RouterLink,
-    NgOptimizedImage
+    NgOptimizedImage,
+    NavbarWrapperComponent
   ]
 })
 export class NotFoundComponent implements OnInit {
