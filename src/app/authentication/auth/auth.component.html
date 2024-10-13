@@ -1,0 +1,73 @@
+<ngx-particles
+  *ngIf="particlesOptions$ | async as particlesOptions"
+  [id]="id"
+  [options]="particlesOptions"
+  (particlesLoaded)="particlesService.particlesLoaded($event)"
+></ngx-particles>
+
+<div class="tui-container">
+  <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+    <div class="card">
+      <div class="logo-div">
+        <div class="logo-container" [ngClass]="{ rotating: isRotating }">
+          <img ngSrc="../../../assets/img/logo/logo.svg" alt="Logo" class="logo" height="1481" width="1456">
+        </div>
+        <img ngSrc="../../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
+             priority>
+      </div>
+      <hr class="solid separator2">
+      <div class="tui-col_8">
+        <h3 class="greeting" [title]="currentLanguage" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+          {{ currentGreeting }}👋
+        </h3>
+        <div class="social-buttons">
+          <button type="button" class="social-button google" (click)="onSocialLogin('google')">
+            <i class="fab fa-google"></i>
+          </button>
+          <button type="button" class="social-button apple" (click)="onSocialLogin('apple')">
+            <i class="fab fa-apple"></i>
+          </button>
+        </div>
+
+        <div class="separator"><b>OR</b></div>
+
+        <div class="switch">
+          <span (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span>
+          <span (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
+        </div>
+
+        <div class="row-1">
+          <tui-input formControlName="emailValue" tuiTextfieldSize="l" [tuiTextfieldLabelOutside]="true"
+          >
+            Email
+            <input placeholder="Email" tuiTextfield/>
+          </tui-input>
+          <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
+
+        <div class="row-2">
+          <tui-input-password formControlName="passwordValue" [tuiTextfieldLabelOutside]="true"
+          >Password
+          </tui-input-password>
+          <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
+        <div class="forgot-div" *ngIf="!isSignUp">
+          <a tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
+        </div>
+        <div *ngIf="isSignUp" class="agree-with-terms">
+          By signing up, you confirm that you accept our <br>
+          <a [href]="termsOfUseUrl" target="_blank">Terms of Use</a>
+          and have read our
+          <a [href]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+        </div>
+        <div class="">
+          <button type="submit"
+                  class="gradient-button">
+            {{ isSignUp ? 'Sign Up' : 'Sign In' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+<div id="g_id_onload"></div>

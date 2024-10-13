@@ -4,7 +4,7 @@ import {ApplicationConfig, importProvidersFrom} from '@angular/core';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
-import {TokenInterceptor} from "./auth/token-interceptor";
+import {TokenInterceptor} from "./authentication/auth/token-interceptor";
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 
 export const appConfig: ApplicationConfig = {

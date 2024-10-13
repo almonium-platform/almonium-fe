@@ -1,0 +1,159 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.autocomplete-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2em 2em;
+  text-align: center;
+  box-sizing: border-box;
+  //width: 100vw;
+  height: calc(100vh - 80px);
+  background-color: #f9f3f1;
+}
+
+.white-card {
+  border-radius: 20px;
+  background-color: #ffffff;
+  width: 100%;
+  height: 100%;
+  //display: block;
+  //align-items: center;
+  //justify-content: center;
+
+  //padding: 2em;bu
+  //margin: 2em;
+}
+
+.input-group {
+  border-bottom: 2px solid #ccc;
+  padding: 3em 1em 1em;
+  width: 90%;
+  margin: 0 auto; /* Center the element horizontally */
+  color: #010323;
+  //max-width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease; /* Smooth transition for border color */
+}
+
+.search-input {
+  flex-grow: 1;
+  font-size: 5em;
+  text-align: center;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+  line-height: 1em;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.input-group:focus-within {
+  border-color: #7b1593; /* Change border color when input is focused */
+  border-color: #0a1067;
+}
+
+.autocomplete-list {
+  background-color: #fff;
+  border-top: none;
+  font-size: 3em;
+  text-align: center;
+  padding: 0;
+  margin-top: 1em;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 5px; /* Slightly round the corners */
+}
+
+.autocomplete-item {
+  padding: 0.5em;
+  list-style: none;
+  color: #0a1067;
+  transition: background-color 0.2s ease; /* Smooth transition for hover effect */
+}
+
+.autocomplete-item:hover, .autocomplete-item-focused {
+  background-color: #886591; /* Blue background on hover */
+  background-color: #647db3; /* Blue background on hover */
+  color: #fff; /* White test on hover */
+}
+
+/* Media Queries for Mobile Devices */
+@media (max-width: 600px) {
+  .autocomplete-container {
+    margin-top: 5em;
+    padding: 0 1em;
+  }
+
+  .search-input {
+    font-size: 3em;
+  }
+
+  .autocomplete-list {
+    font-size: 2em;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  .autocomplete-item {
+    padding: 0.5em;
+  }
+
+  button {
+    font-size: 1.5em;
+  }
+}
+
+@media (max-width: 400px) {
+  .search-input {
+    font-size: 2em;
+  }
+
+  .autocomplete-list {
+    font-size: 1.5em;
+  }
+
+  button {
+    font-size: 1.2em;
+  }
+}
+
+.freq-badge {
+  padding: 0.5em;
+  margin: 0.5em;
+  font-size: 1.5em;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
+}
+
+.frequency-display {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  width: fit-content;
+  margin: 2em auto;
+  border-radius: 30px;
+}
+
+.frequency-description {
+  display: flex;
+  flex-direction: column;
+  color: #444;
+  text-align: left;
+}
+
+.frequency-description .font-bold {
+  margin-bottom: 0.2rem; /* Adds space between the two lines */
+}
+
+.frequency-description .text-xs {
+  font-size: 0.85rem;
+  line-height: 1.2rem; /* Adjusts line height for better spacing */
+  padding-right: 0.5rem; /* Adds some padding to account for border-radius */
+}

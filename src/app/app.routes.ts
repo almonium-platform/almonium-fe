@@ -1,20 +1,24 @@
 import {Routes} from '@angular/router';
-import {AuthComponent} from './auth/auth.component';
-import {HomeComponent} from "./home/home.component";
-import {ResetPasswordComponent} from "./reset-password/reset-password.component";
-import {EmailVerificationComponent} from "./email-verification/email-verification.component";
-import {DiscoverComponent} from "./discover/discover.component";
-import {TextComponent} from "./text/text.component";
-import {PrivacyPolicyComponent} from "./privacy-policy/privacy-policy.component";
-import {TermsOfUseComponent} from "./terms-of-use/terms-of-use.component";
-import {LandingComponent} from "./landing/landing.component";
-import {LogoutComponent} from "./logout/logout.component";
-import {LanguageSetupComponent} from "./language-setup/language-setup.component";
-import {SettingsComponent} from "./settings/settings.component";
-import {TrainingComponent} from "./training/training.component";
-import {GamesComponent} from "./games/games.component";
-import {NotFoundComponent} from "./not-found/not-found.component";
-import {authGuard} from './auth/auth.guard';
+import {AuthComponent} from './authentication/auth/auth.component';
+import {HomeComponent} from "./sections/home/home.component";
+import {ResetPasswordComponent} from "./authentication/reset-password/reset-password.component";
+import {EmailVerificationComponent} from "./authentication/email-verification/email-verification.component";
+import {DiscoverComponent} from "./sections/discover/discover.component";
+import {TestComponent} from "./test/test.component";
+import {PrivacyPolicyComponent} from "./static/legal/privacy-policy/privacy-policy.component";
+import {TermsOfUseComponent} from "./static/legal/terms-of-use/terms-of-use.component";
+import {LandingComponent} from "./sections/landing/landing.component";
+import {LogoutComponent} from "./authentication/logout/logout.component";
+import {LanguageSetupComponent} from "./authentication/language-setup/language-setup.component";
+import {SettingsComponent} from "./sections/settings/settings.component";
+import {TrainingComponent} from "./sections/training/training.component";
+import {GamesComponent} from "./sections/games/games.component";
+import {NotFoundComponent} from "./static/not-found/not-found.component";
+import {authGuard} from './authentication/auth/auth.guard';
+import {LadderComponent} from "./games/ladder/ladder.component";
+import {HigherLowerComponent} from "./games/higher-lower/higher-lower.component";
+import {CrosswordComponent} from "./games/crossword/crossword.component";
+import {DuelComponent} from "./games/duel/duel.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -23,7 +27,7 @@ export const routes: Routes = [
   {path: 'verify-email', component: EmailVerificationComponent},
   {path: 'reset-password', component: ResetPasswordComponent},
   {path: 'discover', component: DiscoverComponent},
-  {path: 'text', component: TextComponent},
+  {path: 'test', component: TestComponent},
   {path: 'terms-of-use', component: TermsOfUseComponent},
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
   {path: 'logout', component: LogoutComponent},
@@ -31,6 +35,10 @@ export const routes: Routes = [
   {path: 'settings', component: SettingsComponent},
   {path: 'training', component: TrainingComponent},
   {path: 'games', component: GamesComponent},
+  {path: 'games/ladder', component: LadderComponent},
+  {path: 'games/higher-lower', component: HigherLowerComponent},
+  {path: 'games/crossword', component: CrosswordComponent},
+  {path: 'games/duel', component: DuelComponent},
   {path: 'not-found', component: NotFoundComponent},
   {path: '**', redirectTo: 'not-found'}  // Fallback route for unknown paths
 ];

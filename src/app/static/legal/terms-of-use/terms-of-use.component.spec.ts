@@ -1,18 +1,18 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {NavbarComponent} from './navbar.component';
+import {TermsOfUseComponent} from './terms-of-use.component';
 
-describe('NavbarComponent', () => {
-  let component: NavbarComponent;
-  let fixture: ComponentFixture<NavbarComponent>;
+describe('TermsOfUseComponent', () => {
+  let component: TermsOfUseComponent;
+  let fixture: ComponentFixture<TermsOfUseComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavbarComponent]
+      imports: [TermsOfUseComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NavbarComponent);
+    fixture = TestBed.createComponent(TermsOfUseComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

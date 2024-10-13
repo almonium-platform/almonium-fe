@@ -1,0 +1,94 @@
+<app-navbar></app-navbar>
+<div class="page-container">
+  <!-- Filter Buttons -->
+  <div class="filters">
+    <div class="filter-container">
+      <div class="filter-buttons">
+        <button
+          [ngClass]="{'active': filter === 'all'}"
+          (click)="filterGames('all')"
+          class="filter-btn">All
+        </button>
+
+        <button
+          [ngClass]="{'active': filter === 'solo'}"
+          (click)="filterGames('solo')"
+          class="filter-btn">Solo
+        </button>
+
+        <button
+          [ngClass]="{'active': filter === 'versus'}"
+          (click)="filterGames('versus')"
+          class="filter-btn">PvP
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Game Cards -->
+  <div class="games-container"
+  >
+    <!-- Ladder (Solo) -->
+    <a
+      *ngIf="isGameVisible('solo')"
+      routerLink="/games/ladder"
+      class="game-card ladder-card solo-game">
+      <div class="game-img ladder-img">
+        <img alt="Ladder image" ngSrc="/assets/img/games/ladder.png" height="1024" width="1024"/>
+      </div>
+      <div class="description-section">
+        <div class="title">Ladder</div>
+        <div class="description">
+          Almo will challenge your knowledge with words of decreasing frequency. How far can you climb?
+        </div>
+      </div>
+    </a>
+
+    <!-- Crosswords (Solo) -->
+    <a
+      *ngIf="isGameVisible('solo')"
+      routerLink="/games/crossword"
+      class="game-card crossword-card solo-game">
+      <div class="game-img">
+        <img alt="Crossword image" ngSrc="/assets/img/games/crossword.png" height="1024" width="1024"/>
+      </div>
+      <div class="description-section">
+        <div class="title">Crossword</div>
+        <div class="description">
+          Solve crosswords dynamically generated from your personal card deck.
+        </div>
+      </div>
+    </a>
+
+    <!-- Higher or Lower (Versus) -->
+    <a
+      *ngIf="isGameVisible('versus')"
+      routerLink="/games/higher-lower"
+      class="game-card hilo-card versus-game">
+      <div class="game-img arrows-img">
+        <img alt="Arrows image" ngSrc="/assets/img/games/arrows.png" height="639" width="842"/>
+      </div>
+      <div class="description-section">
+        <div class="title">Higher or Lower</div>
+        <div class="description">
+          One player guesses the frequency of a word, while the other must decide if it’s higher or lower.
+        </div>
+      </div>
+    </a>
+
+    <!-- Duel (Versus) -->
+    <a
+      *ngIf="isGameVisible('versus')"
+      routerLink="/games/duel"
+      class="game-card duel-card versus-game">
+      <div class="game-img">
+        <img alt="Hands image" ngSrc="/assets/img/games/hands.png" height="1024" width="1024"/>
+      </div>
+      <div class="description-section">
+        <div class="title">Duel</div>
+        <div class="description">
+          Face off against a friend with your own deck of words. Who will outsmart the other to claim victory?
+        </div>
+      </div>
+    </a>
+  </div>
+</div>

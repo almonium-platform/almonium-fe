@@ -1,18 +1,18 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {NavbarComponent} from './navbar.component';
+import {HigherLowerComponent} from './higher-lower.component';
 
-describe('NavbarComponent', () => {
-  let component: NavbarComponent;
-  let fixture: ComponentFixture<NavbarComponent>;
+describe('HigherLowerComponent', () => {
+  let component: HigherLowerComponent;
+  let fixture: ComponentFixture<HigherLowerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NavbarComponent]
+      imports: [HigherLowerComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(NavbarComponent);
+    fixture = TestBed.createComponent(HigherLowerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
