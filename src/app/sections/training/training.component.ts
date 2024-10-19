@@ -8,6 +8,7 @@ import {NavbarComponent} from "../../shared/navbar/navbar.component";
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
+import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-training',
@@ -17,7 +18,8 @@ import {RouterLink} from "@angular/router";
     NavbarComponent,
     NgIf,
     RouterLink,
-    NgOptimizedImage
+    NgOptimizedImage,
+    NavbarWrapperComponent
   ],
   standalone: true
 })

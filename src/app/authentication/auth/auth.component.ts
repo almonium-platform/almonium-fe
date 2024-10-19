@@ -11,7 +11,7 @@ import {
 } from '@taiga-ui/core';
 import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from '@angular/common';
 import {AuthService} from './auth.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
@@ -36,6 +36,7 @@ declare const google: any;
     NgOptimizedImage,
     NgxParticlesModule,
     NgClass,
+    RouterLink,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],

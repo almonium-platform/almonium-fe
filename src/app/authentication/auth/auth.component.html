@@ -56,9 +56,9 @@
         </div>
         <div *ngIf="isSignUp" class="agree-with-terms">
           By signing up, you confirm that you accept our <br>
-          <a [href]="termsOfUseUrl" target="_blank">Terms of Use</a>
+          <a [routerLink]="termsOfUseUrl" target="_blank">Terms of Use</a>
           and have read our
-          <a [href]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+          <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
         </div>
         <div class="">
           <button type="submit"

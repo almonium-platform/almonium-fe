@@ -10,25 +10,26 @@
           <hr class="border-gray-200"/>
           <!-- Menu Items -->
           <div class="menu-items p-2">
-            <a href="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
               <img ngSrc="/assets/img/icons/home.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
                    width="512">
               <span>Home</span>
             </a>
-            <a href="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
               <img ngSrc="/assets/img/icons/discover.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
                    width="512">
               <span>Discover</span>
             </a>
-            <a href="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
               <img ngSrc="/assets/img/icons/games.png" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
               <span>Games</span>
             </a>
-            <a href="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-              <img ngSrc="/assets/img/icons/pricing.svg" alt="Pricing Icon" class="w-5 h-5 mr-2" height="512" width="512">
+            <a routerLink="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+              <img ngSrc="/assets/img/icons/pricing.svg" alt="Pricing Icon" class="w-5 h-5 mr-2" height="512"
+                   width="512">
               <span>Pricing</span>
             </a>
-            <a href="/about" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <a routerLink="/about" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
               <img ngSrc="/assets/img/icons/about.svg" alt="About Icon" class="w-5 h-5 mr-2" height="512" width="512">
               <span>About</span>
             </a>
@@ -38,25 +39,25 @@
     </div>
     <div *ngIf="!isMobile">
       <a
-        href="/discover"
+        routerLink="/discover"
         class="nav-link ml-8 section"
         [ngClass]="{'active-link': currentRoute === '/discover'}">
         Discover
       </a>
       <a
-        href="/games"
+        routerLink="/games"
         class="nav-link ml-8 section"
         [ngClass]="{'active-link': currentRoute === '/games'}">
         Games
       </a>
       <a
-        href="/pricing"
+        routerLink="/pricing"
         class="nav-link ml-8 section"
         [ngClass]="{'active-link': currentRoute === '/about-us'}">
         Pricing
       </a>
       <a
-        href="/about"
+        routerLink="/about"
         class="nav-link ml-8 section"
         [ngClass]="{'active-link': currentRoute === '/about-us'}">
         About

@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -13,7 +14,7 @@ import {
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
-import {NavigationEnd, Router} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {UserInfo} from "../../models/userinfo.model";
 import {Language} from "../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
@@ -32,12 +33,14 @@ import {LanguageService} from "../../services/language.service";
     NgIf,
     NgClass,
     NgStyle,
-    NgClickOutsideDirective
+    NgClickOutsideDirective,
+    RouterLink
   ],
   standalone: true
 })
 export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
+  @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
   protected isProfilePopoverOpen: boolean = false;
@@ -46,18 +49,12 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   protected isNotificationOpen: boolean = false;
   private userInfoSubscription: Subscription | null = null;
   isMobile: boolean = false;
-  currentRoute: string = '';
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserService,
               private languageService: LanguageService
   ) {
-    this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        this.currentRoute = event.urlAfterRedirects;
-      }
-    });
   }
 
   ngOnInit(): void {

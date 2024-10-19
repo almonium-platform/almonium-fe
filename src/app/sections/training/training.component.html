@@ -1,4 +1,4 @@
-<app-navbar></app-navbar>
+<app-navbar-wrapper></app-navbar-wrapper>
 <div class="training-container">
   <div *ngIf="cards.length === 0">
     <div class="text">
@@ -6,7 +6,8 @@
       <br> Go to the <a routerLink="/discover">Discover</a>💫 page to add some
     </div>
     <div class="img-container">
-      <img ngSrc="../../../assets/img/almo/empty_box.png" alt="404 Not Found" class="not-found-img" height="200" width="200">
+      <img ngSrc="../../../assets/img/almo/empty_box.png" alt="404 Not Found" class="not-found-img" height="200"
+           width="200">
     </div>
   </div>
 </div>
