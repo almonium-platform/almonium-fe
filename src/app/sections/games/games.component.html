@@ -17,8 +17,8 @@
         </button>
 
         <button
-          [ngClass]="{'active': filter === 'versus'}"
-          (click)="filterGames('versus')"
+          [ngClass]="{'active': filter === 'pvp'}"
+          (click)="filterGames('pvp')"
           class="filter-btn">PvP
         </button>
       </div>
@@ -59,11 +59,11 @@
       </div>
     </a>
 
-    <!-- Higher or Lower (Versus) -->
+    <!-- Higher or Lower (pvp) -->
     <a
-      *ngIf="isGameVisible('versus')"
+      *ngIf="isGameVisible('pvp')"
       routerLink="/games/higher-lower"
-      class="game-card hilo-card versus-game">
+      class="game-card hilo-card pvp-game">
       <div class="game-img arrows-img">
         <img alt="Arrows image" ngSrc="/assets/img/games/arrows.png" height="639" width="842"/>
       </div>
@@ -75,11 +75,11 @@
       </div>
     </a>
 
-    <!-- Duel (Versus) -->
+    <!-- Duel (pvp) -->
     <a
-      *ngIf="isGameVisible('versus')"
+      *ngIf="isGameVisible('pvp')"
       routerLink="/games/duel"
-      class="game-card duel-card versus-game">
+      class="game-card duel-card pvp-game">
       <div class="game-img">
         <img alt="Hands image" ngSrc="/assets/img/games/hands.png" height="1024" width="1024"/>
       </div>
