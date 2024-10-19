@@ -80,11 +80,6 @@ a.nav-link {
   width: 20px;
 }
 
-.user-profile {
-  display: flex;
-  align-items: center;
-}
-
 .profile-circle {
   height: 30px;
   width: 30px;
@@ -104,7 +99,6 @@ a.nav-link {
 
 .lang-dropdown {
   order: 1; /* Place the language dropdown in the middle */
-  margin: 0 1rem; /* Add margin to prevent overlap */
 }
 
 /* Make notification icon and profile circle stay fixed */
@@ -178,12 +172,14 @@ a.nav-link {
 
 .popover-menu {
   background: #ffffff;
+  position: fixed;
   padding: 0.5rem 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   z-index: 20;
   border-radius: 25px;
   border: 1px solid #ff9393;
-  max-width: 16rem; /* Ensures responsive width */
+  min-width: fit-content;
+  top: 7em;
 }
 
 .notifications {
