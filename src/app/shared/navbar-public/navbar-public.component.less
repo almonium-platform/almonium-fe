@@ -30,7 +30,7 @@
   justify-content: space-between; /* Spreads content evenly */
   width: 100%;
   align-items: center;
-  padding: 20px 10px 10px 0px;
+  padding: 20px 10px 10px 0;
 }
 
 .logo-container {
@@ -58,38 +58,11 @@ a.nav-link {
   border-radius: 50%;
   padding: 7px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-  margin: 0px 15px;
+  margin: 0 15px;
 }
 
 .spacer {
   flex-grow: 1; /* Pushes other items to the right */
-}
-
-.btn-notification {
-  background: none;
-  border: none;
-  cursor: pointer;
-  //margin: 0 13px;
-  order: 2; /* Place the notification button after the language dropdown */
-  margin-left: auto; /* Push it to the right side */
-}
-
-.notification-icon {
-  height: 20px;
-  width: 20px;
-}
-
-.user-profile {
-  display: flex;
-  align-items: center;
-}
-
-.profile-circle {
-  height: 30px;
-  width: 30px;
-  border-radius: 50%;
-  margin: 10px 16px 10px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
 }
 
 .nav-actions {
@@ -101,79 +74,7 @@ a.nav-link {
   flex-grow: 1; /* Take up all available space */
 }
 
-.lang-dropdown {
-  order: 1; /* Place the language dropdown in the middle */
-  margin: 0 1rem; /* Add margin to prevent overlap */
-}
-
 /* Make notification icon and profile circle stay fixed */
-.btn-notification, .profile-circle {
-  flex-shrink: 0; /* Prevent these elements from shrinking */
-}
-
-.lang-btn {
-  border-radius: 25%;
-  padding: 5px 10px;
-  font-family: Arial, Helvetica, sans-serif; /* Sans-serif font */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-  border: 1px solid #402aa3;
-  color: #402aa3; /* Text color for "Discover" */
-  letter-spacing: 1px;
-  position: relative; /* Position relative to contain the ::before element */
-  z-index: 1; /* Ensure it is above the ::before element */
-  cursor: pointer; /* Pointer cursor */
-  background-color: #F9F3F1; /* Button background */
-  overflow: hidden; /* Prevents overflow of ::before */
-}
-
-.dropdown-menu {
-  box-shadow: none;
-}
-
-.dropdown-menu.block {
-  transform: translateY(0); /* Fix dropdown starting position */
-}
-
-.lang-option:hover {
-  scale: 1.05;
-}
-
-.dropdown-menu .block.w-full.text-center {
-  min-width: 0; /* Make all elements take equal space */
-  border-radius: 25%;
-  padding: 5px 10px;
-  font-family: Arial, Helvetica, sans-serif; /* Sans-serif font */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-  border: 1px solid #ff9393;
-  background-color: #fff;
-  color: #ff9393; /* Text color for "Discover" */
-  margin-top: 5px;
-  opacity: 0.9;
-  letter-spacing: 1px;
-}
-
-.user-profile {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  order: 3;
-}
-
-.profile-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-}
-
-.profile-circle-small {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 .popover-menu {
   background: #ffffff;
@@ -185,28 +86,10 @@ a.nav-link {
   max-width: 16rem; /* Ensures responsive width */
 }
 
-.notifications {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 5em;
-}
-
 .menu-section {
   display: flex;
   flex-direction: column;
-  padding: 0rem 1rem;
-}
-
-.user-details {
-  display: flex;
-  align-items: center;
-  padding: .5rem 0;
-}
-
-.user-info {
-  overflow: hidden; /* Prevents overflowing of long test */
-  white-space: nowrap;
+  padding: 0 1rem;
 }
 
 .user-info span, .user-info p {
