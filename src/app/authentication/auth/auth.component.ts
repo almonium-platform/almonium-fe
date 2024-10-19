@@ -110,6 +110,7 @@ export class AuthComponent implements OnInit {
         },
         error: () => {
           console.error('Error during login', response);
+          this.isRotating = false;
         },
       });
   }
@@ -174,6 +175,7 @@ export class AuthComponent implements OnInit {
           },
           error: (error) => {
             this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
+            this.isRotating = false;
           },
         });
       } else {
@@ -183,6 +185,7 @@ export class AuthComponent implements OnInit {
           },
           error: (error) => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
+            1
           },
         });
       }
