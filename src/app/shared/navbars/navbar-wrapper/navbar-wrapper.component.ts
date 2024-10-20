@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {NavbarComponent} from "../navbar/navbar.component";
 import {NavbarPublicComponent} from "../navbar-public/navbar-public.component";
-import {LocalStorageService} from "../../services/local-storage.service";
+import {LocalStorageService} from "../../../services/local-storage.service";
 import {NgIf} from "@angular/common";
 import {NavigationEnd, Router} from "@angular/router";
 

@@ -15,12 +15,12 @@ import {
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
-import {UserInfo} from "../../models/userinfo.model";
-import {Language} from "../../models/language.enum";
+import {UserInfo} from "../../../models/userinfo.model";
+import {Language} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
-import {UserService} from "../../services/user.service";
+import {UserService} from "../../../services/user.service";
 import {Subscription} from "rxjs";
-import {LanguageService} from "../../services/language.service";
+import {LanguageService} from "../../../services/language.service";
 
 @Component({
   selector: 'app-navbar',

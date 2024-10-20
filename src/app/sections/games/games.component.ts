@@ -1,8 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
-import {NavbarComponent} from "../../shared/navbar/navbar.component";
+import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {RouterLink} from "@angular/router";
-import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
+import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-games',

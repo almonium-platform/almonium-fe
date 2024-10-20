@@ -8,10 +8,10 @@ import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditab
 import {TuiBadgeModule} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
 import {FrequencyService} from "../../services/frequency.service";
-import {NavbarComponent} from "../../shared/navbar/navbar.component";
+import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {Language} from "../../models/language.enum";
 import {LanguageService} from "../../services/language.service";
-import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
+import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-discover',

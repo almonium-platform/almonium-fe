@@ -4,11 +4,11 @@ import {CardDto} from '../../models/card.model';
 import {Language} from '../../models/language.enum';
 import {Subscription} from 'rxjs';
 import {LanguageService} from "../../services/language.service";
-import {NavbarComponent} from "../../shared/navbar/navbar.component";
+import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
-import {NavbarWrapperComponent} from "../../shared/navbar-wrapper/navbar-wrapper.component";
+import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-training',

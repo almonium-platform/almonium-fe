@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
-import {NavbarComponent} from "../../../shared/navbar/navbar.component";
+import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {NotReadyComponent} from "../../../shared/not-ready/not-ready.component";
-import {NavbarPublicComponent} from "../../../shared/navbar-public/navbar-public.component";
-import {NavbarWrapperComponent} from "../../../shared/navbar-wrapper/navbar-wrapper.component";
+import {NavbarPublicComponent} from "../../../shared/navbars/navbar-public/navbar-public.component";
+import {NavbarWrapperComponent} from "../../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-terms-of-use',

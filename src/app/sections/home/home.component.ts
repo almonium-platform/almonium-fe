@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {UserService} from '../../services/user.service';
 import {Subscription} from 'rxjs';
 import {UserInfo} from "../../models/userinfo.model";
-import {NavbarComponent} from "../../shared/navbar/navbar.component";
+import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {RouterOutlet} from "@angular/router";
 import {NgOptimizedImage} from "@angular/common";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";

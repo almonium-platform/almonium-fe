@@ -1,76 +1,14 @@
-@import 'src/styles/shared-styles.less';
-
-.navbar {
-  display: flex;
-  align-items: center;
-  background-color: #f9f3f1;
-  position: relative;
-}
-
-.section {
-  margin-left: 20px
-}
-
-.section:hover {
-  filter: brightness(1.7);
-}
-
-.navbar-content::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 90px;
-  right: 30px;
-  height: 1px;
-  background-color: #edebe8;
-}
+@import '../../../../styles/shared-styles.less';
+@import '../navbar-base.less';
 
 .navbar-content {
-  display: flex;
-  justify-content: space-between; /* Spreads content evenly */
-  width: 100%;
-  align-items: center;
   padding: 15px 10px 5px 0;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  margin-left: 1em;
-  cursor: pointer;
-}
-
-a.nav-link {
-  font-size: 1.8em;
-  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-  margin-left: 10px;
-  color: #3d3d3d;
-}
-
-.nav-link.active-link {
-  color: black;
-  font-size: 2em;
-}
-
-.app-icon {
-  height: 50px;
-  width: 50px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  padding: 7px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-  margin: 0 15px;
-}
-
-.spacer {
-  flex-grow: 1; /* Pushes other items to the right */
 }
 
 .btn-notification {
   background: none;
   border: none;
   cursor: pointer;
-  //margin: 0 13px;
   order: 2; /* Place the notification button after the language dropdown */
   margin-left: auto; /* Push it to the right side */
 }
@@ -86,15 +24,6 @@ a.nav-link {
   border-radius: 50%;
   margin: 10px 16px 10px;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
-}
-
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Use a gap to manage spacing between items */
-  flex-wrap: nowrap; /* Prevent items from wrapping */
-  justify-content: end;
-  flex-grow: 1; /* Take up all available space */
 }
 
 .lang-dropdown {
@@ -168,18 +97,6 @@ a.nav-link {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.popover-menu {
-  background: #ffffff;
-  position: fixed;
-  padding: 0.5rem 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  z-index: 20;
-  border-radius: 25px;
-  border: 1px solid #ff9393;
-  min-width: fit-content;
-  top: 7em;
 }
 
 .menu-section {
