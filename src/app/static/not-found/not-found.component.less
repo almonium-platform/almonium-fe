@@ -1,25 +1,17 @@
-.not-found-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 80px);
-  width: 100vw;
-  margin-top: 0;
-  text-align: left;
-  background-color: var(--main-bg-color);
-  flex-wrap: nowrap; /* No wrapping by default */
-}
-
 .left-section, .right-section {
   height: auto;
   width: 50%; /* Side-by-side in wide screens */
+  padding: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.left-section {
-  padding: 2rem;
+.not-found-img {
+  padding-right: 5em;
+  max-width: 50vw; /* Keep the image responsive to width */
+  max-height: 40vh; /* Prevent the image from exceeding 80% of the viewport height */
+  object-fit: contain; /* Ensure that the entire image fits within the container */
 }
 
 .right-section {
@@ -27,23 +19,17 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  padding: 2rem;
-}
-
-.not-found-img {
-  max-width: 100%;
-  height: auto; /* Make sure the image is responsive */
 }
 
 .not-found-title {
-  font-size: 4.5em;
+  font-size: min(5vh, 5vw); /* Responsive font size based on viewport width */
   color: #000000;
   font-weight: bold;
   margin-bottom: 1em;
 }
 
 .not-found-caption {
-  font-size: 2.2em;
+  font-size: min(3vh, 3vw); /* Responsive font size based on viewport width */
   color: #333333;
   margin-bottom: 1.5em;
   line-height: 1.5;
@@ -56,13 +42,16 @@
 .go-back-link {
   display: inline-block;
   text-decoration: none;
-  font-size: 2.2em;
+  font-size: min(3vh, 3vw); /* Responsive font size based on viewport width */
   color: #ffffff;
   background-color: #000000;
-  padding: 30px 50px;
+  padding: min(2vh, 2vw) min(3vh, 3vw);
   border: none;
-  border-radius: 45px;
+  border-radius: min(6vh, 6vw);
   transition: background-color 0.3s ease, transform 0.3s ease;
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden; /* Hide overflow if it occurs */
+  text-overflow: ellipsis; /* Add ellipsis if text overflows */
 }
 
 .go-back-link:hover {
@@ -72,7 +61,7 @@
 
 /* Media Queries for responsiveness */
 @media (max-width: 900px) {
-  .not-found-container {
+  .base-container {
     flex-direction: column; /* Stack elements vertically on smaller screens */
   }
 
@@ -81,21 +70,31 @@
     padding: 1rem; /* Adjust padding for smaller screens */
   }
 
+  .not-found-img {
+    padding-right: unset;
+  }
+
   .right-section {
     align-items: center; /* Center align the test */
     text-align: center; /* Center test */
   }
 
   .not-found-title {
-    font-size: 3.5em;
+    font-size: min(6vh, 6vw); /* Responsive font size based on viewport width */
   }
 
   .not-found-caption {
-    font-size: 2em;
+    font-size: min(4vh, 4vw); /* Responsive font size based on viewport width */
   }
 
   .go-back-link {
-    padding: 20px 40px; /* Adjust padding on smaller screens */
-    font-size: 2em;
+    padding: min(3vh, 3vw) min(6vh, 6vw);
+    font-size: min(4vh, 4vw);
+  }
+}
+
+@media (max-height: 500px) {
+  .left-section {
+    padding: 1rem; /* Reduce padding on smaller heights */
   }
 }

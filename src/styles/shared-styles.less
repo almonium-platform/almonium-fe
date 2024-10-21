@@ -17,7 +17,7 @@
   z-index: 9999;
 }
 
-.tui-container {
+.headless-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -25,4 +25,15 @@
   width: 100%; // Ensures the container takes the full width of the viewport
   padding: 20px; // Adds padding to the container
   box-sizing: border-box; // Includes padding in the width calculation
+}
+
+.base-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - var(--header-height)); // Ensures the container takes the full height of the viewport minus the header height
+  width: 100%; // Ensures the container takes the full width of the viewport
+  padding: 20px; // Adds padding to the container
+  box-sizing: border-box; // Includes padding in the width calculation
+  background-color: var(--main-bg-color); // Uses the main background color
 }
