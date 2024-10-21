@@ -1,4 +1,3 @@
-@import '../../../../styles/shared-styles.less';
 @import '../navbar-base.less';
 
 .navbar-content {
@@ -46,7 +45,7 @@
   position: relative; /* Position relative to contain the ::before element */
   z-index: 1; /* Ensure it is above the ::before element */
   cursor: pointer; /* Pointer cursor */
-  background-color: #F9F3F1; /* Button background */
+  background-color: var(--main-bg-color); /* Button background */
   overflow: hidden; /* Prevents overflow of ::before */
 }
 

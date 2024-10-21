@@ -1,10 +1,17 @@
 {
   "background": {
-    "color": "#F9F3F1"
+    "color": "#FFFFFF"
   },
   "particles": {
     "color": {
-      "value": ["#6C1D6A", "#5A1A74", "#48177D", "#A1264C", "#7D2060", "#8F2356"]
+      "value": [
+        "#6C1D6A",
+        "#5A1A74",
+        "#48177D",
+        "#A1264C",
+        "#7D2060",
+        "#8F2356"
+      ]
     },
     "move": {
       "direction": "bottom",

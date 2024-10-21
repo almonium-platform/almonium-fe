@@ -21,6 +21,12 @@ export class ParticlesService {
   initializeParticles(): void {
     this.http.get<IParticlesProps>('/assets/particles-options.json').pipe(
       tap((options) => {
+        const dynamicColor = this.getDynamicColor();
+
+        if (options.background) {
+          options.background.color = dynamicColor;
+        }
+
         this.particlesOptionsSubject.next(options);
       }),
       switchMap(() => this.particlesService.init(async (engine) => {
@@ -43,5 +49,14 @@ export class ParticlesService {
 
   particlesLoaded(container: any): void {
     console.log('Particles loaded');
+  }
+
+  private getDynamicColor(): string {
+    // Retrieve the value of the --main-bg-color variable from the root element
+    const rootStyles = getComputedStyle(document.documentElement);
+    const mainBgColor = rootStyles.getPropertyValue('--main-bg-color').trim();
+
+    // Fallback if the variable is not set or is empty
+    return mainBgColor || '#F9F3F1'; // Default fallback color
   }
 }
