@@ -3,6 +3,7 @@ import {environment} from '../environments/environment';
 export class AppConstants {
   public static API_URL = environment.apiUrl + '/api/v1';
   public static PUBLIC_URL = AppConstants.API_URL + '/public';
+  public static USERS_URL = AppConstants.API_URL + '/users';
 
   // AUTHENTICATION
   public static PUBLIC_AUTH_URL = AppConstants.PUBLIC_URL + '/auth';

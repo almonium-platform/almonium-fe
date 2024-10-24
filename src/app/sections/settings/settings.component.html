@@ -1,3 +1,29 @@
 <app-navbar></app-navbar>
 <div class="base-container">
+  <div class="sidebar card">
+    <div class="title">
+      <img ngSrc="/assets/img/icons/settings.svg" alt="Pricing Icon" class="icon" height="512"
+           width="512">
+      Settings
+    </div>
+  </div>
+  <div class="main-section">
+    <div class="danger">
+      <span class="danger-text">Danger Zone</span>
+      <button class="btn btn-danger" (click)="showDeleteAccountPopup()">
+        <img ngSrc="../../../assets/img/icons/del-acc.svg" alt="Logo" class="delete-icon" height="512" width="512">
+        Delete Account
+      </button>
+    </div>
+  </div>
 </div>
+
+<!-- Confirm Modal -->
+<app-confirm-modal
+  [isVisible]="isModalVisible"
+  title="Delete account"
+  message="Are you sure you want to delete your account?"
+  confirmText="Delete"
+  (close)="closeModal()"
+  (confirm)="confirmDeletion()">
+</app-confirm-modal>
