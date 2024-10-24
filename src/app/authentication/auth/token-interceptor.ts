@@ -4,14 +4,14 @@ import {Observable, throwError} from 'rxjs';
 import {catchError, switchMap} from 'rxjs/operators';
 import {AuthService} from './auth.service';
 import {Router} from '@angular/router';
-import {UserService} from "../../services/user.service";
+import {UserInfoService} from "../../services/user-info.service";
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
 
   constructor(private authService: AuthService,
               private router: Router,
-              private userService: UserService
+              private userService: UserInfoService
   ) {
   }
 

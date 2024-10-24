@@ -18,7 +18,7 @@ import {Router, RouterLink} from "@angular/router";
 import {UserInfo} from "../../../models/userinfo.model";
 import {Language} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
-import {UserService} from "../../../services/user.service";
+import {UserInfoService} from "../../../services/user-info.service";
 import {Subscription} from "rxjs";
 import {LanguageService} from "../../../services/language.service";
 
@@ -52,7 +52,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
-              private userService: UserService,
+              private userService: UserInfoService,
               private languageService: LanguageService
   ) {
   }

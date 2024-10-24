@@ -9,7 +9,7 @@ import {AppConstants} from "../app.constants";
 @Injectable({
   providedIn: 'root',
 })
-export class UserService {
+export class UserInfoService {
   private userInfoSubject = new BehaviorSubject<UserInfo | null>(null);
   userInfo$ = this.userInfoSubject.asObservable();
 
@@ -18,14 +18,6 @@ export class UserService {
     private localStorageService: LocalStorageService
   ) {
     this.loadUserInfoFromLocalStorage();
-  }
-
-  // Load user info from local storage on initialization
-  private loadUserInfoFromLocalStorage(): void {
-    const cachedUserInfo = this.localStorageService.getUserInfo();
-    if (cachedUserInfo) {
-      this.userInfoSubject.next(cachedUserInfo); // Emit the cached user info as the current value
-    }
   }
 
   /**
@@ -38,6 +30,19 @@ export class UserService {
       return of(cachedUserInfo); // Return the cached user info if present
     } else {
       return this.fetchUserInfoFromServer(); // Fetch from server if not cached
+    }
+  }
+
+  clearUserInfo(): void {
+    this.localStorageService.clearUserInfo();
+    this.userInfoSubject.next(null);
+  }
+
+  // Load user info from local storage on initialization
+  private loadUserInfoFromLocalStorage(): void {
+    const cachedUserInfo = this.localStorageService.getUserInfo();
+    if (cachedUserInfo) {
+      this.userInfoSubject.next(cachedUserInfo); // Emit the cached user info as the current value
     }
   }
 
@@ -57,12 +62,7 @@ export class UserService {
     );
   }
 
-  getCurrentUserInfo(): UserInfo | null {
+  private getCurrentUserInfo(): UserInfo | null {
     return this.userInfoSubject.getValue();
-  }
-
-  clearUserInfo(): void {
-    this.localStorageService.clearUserInfo();
-    this.userInfoSubject.next(null);
   }
 }

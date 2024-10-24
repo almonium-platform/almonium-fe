@@ -2,14 +2,14 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppConstants} from '../../app.constants';
-import {UserService} from "../../services/user.service";
+import {UserInfoService} from "../../services/user-info.service";
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   constructor(private http: HttpClient,
-              private userService: UserService,
+              private userService: UserInfoService,
   ) {
   }
 

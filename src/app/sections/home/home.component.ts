@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {UserService} from '../../services/user.service';
+import {UserInfoService} from '../../services/user-info.service';
 import {Subscription} from 'rxjs';
 import {UserInfo} from "../../models/userinfo.model";
 import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   private userInfoSubscription: Subscription | null = null;
 
-  constructor(private userService: UserService, private cdr: ChangeDetectorRef) {
+  constructor(private userService: UserInfoService, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
