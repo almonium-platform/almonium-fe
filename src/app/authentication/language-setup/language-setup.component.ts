@@ -25,6 +25,7 @@ import {Language} from '../../models/language.model';
 import {LanguageSetupService} from './language-setup.service';
 import {ParticlesService} from "../../services/particles.service";
 import {NgxParticlesModule} from "@tsparticles/angular";
+import {UserInfoService} from "../../services/user-info.service";
 
 const MAX_LANGUAGES = 3;
 
@@ -109,7 +110,8 @@ export class LanguageSetupComponent implements OnInit {
     private fb: FormBuilder,
     private languageService: LanguageSetupService,
     private router: Router,
-    protected particlesService: ParticlesService
+    protected particlesService: ParticlesService,
+    private userInfoService: UserInfoService,
   ) {
     this.languageForm = this.fb.group({
       fluentLanguages: this.fluentLanguageControl,
@@ -258,6 +260,7 @@ export class LanguageSetupComponent implements OnInit {
       next: () => {
         // Redirect to /home
         this.router.navigate(['/home']).then(() => console.log('Navigated to /home'));
+        this.userInfoService.clearUserInfo();
       },
       error: (error) => {
         // Handle error (show message to user)

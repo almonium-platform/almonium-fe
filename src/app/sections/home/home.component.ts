@@ -3,7 +3,7 @@ import {UserInfoService} from '../../services/user-info.service';
 import {Subscription} from 'rxjs';
 import {UserInfo} from "../../models/userinfo.model";
 import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
-import {RouterOutlet} from "@angular/router";
+import {Router, RouterOutlet} from "@angular/router";
 import {NgOptimizedImage} from "@angular/common";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
@@ -23,13 +23,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   userInfo: UserInfo | null = null;
   private userInfoSubscription: Subscription | null = null;
 
-  constructor(private userService: UserInfoService, private cdr: ChangeDetectorRef) {
+  constructor(
+    private userService: UserInfoService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
+  ) {
   }
 
   ngOnInit(): void {
     // Subscribe to the shared user info observable
     this.userInfoSubscription = this.userService.userInfo$.subscribe((info) => {
       this.userInfo = info;
+      if (!info?.setupCompleted) {
+        this.router.navigate(['/setup-languages']).then(r => r);
+      }
       this.cdr.markForCheck(); // Trigger change detection manually to update the view
     });
 

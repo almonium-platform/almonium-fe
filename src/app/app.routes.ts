@@ -34,7 +34,6 @@ export const routes: Routes = [
       // when settings will be ready, those will be moved to unguarded routes
       {path: 'verify-email', component: EmailVerificationComponent},
       {path: 'reset-password', component: ResetPasswordComponent},
-      {path: 'setup-languages', component: LanguageSetupComponent},
     ]
   },
   {
@@ -44,6 +43,7 @@ export const routes: Routes = [
       {path: 'home', component: HomeComponent, canActivate: [authGuard]},
       {path: 'training', component: TrainingComponent, canActivate: [authGuard]},
       {path: 'settings', component: SettingsComponent},
+      {path: 'setup-languages', component: LanguageSetupComponent},
 
       // Games
       {path: 'games/ladder', component: LadderComponent},
