@@ -71,7 +71,7 @@
                       #dropdownItem
                       tabindex="0"
                       [ngStyle]="getButtonStylesDropDown(lang)"
-                      [class.focused]="i === focusedIndex"
+                      [class.focused]="i === focusedLangIndex"
                       (click)="changeLanguage(lang)"
                       class="lang-option block w-full px-4 py-2 text-center text-sm text-gray-700 hover:bg-pink-100">
                 {{ lang }}

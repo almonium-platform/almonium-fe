@@ -39,25 +39,40 @@ import {LanguageService} from "../../../services/language.service";
   standalone: true
 })
 export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
-  userInfo: UserInfo | null = null;
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
+
+  // Properties for toggling popovers and dropdowns
   protected isProfilePopoverOpen: boolean = false;
   protected isDiscoverMenuOpen: boolean = false;
   protected isLanguageDropdownOpen: boolean = false;
   protected isNotificationOpen: boolean = false;
+  protected isMobile: boolean = false;
+
+  // User info
+  protected userInfo: UserInfo | null = null;
   private userInfoSubscription: Subscription | null = null;
-  isMobile: boolean = false;
+
+  // Language dropdown
+  protected selectedLanguage!: Language;
+  protected focusedLangIndex = -1; // Index of the currently focused dropdown item
+  private languages: Language[] = [];
+  protected filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
+  private langColors: { [key: string]: string } = {};
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
-              private languageService: LanguageService
+              private languageService: LanguageService,
   ) {
   }
 
   ngOnInit(): void {
+    this.languageService.langColors$.subscribe((colors) => {
+      this.langColors = colors;
+    });
+
     this.userInfoSubscription = this.userService.userInfo$.subscribe((info) => {
       this.userInfo = info;
       if (info) {
@@ -81,31 +96,16 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  toggleDiscoverMenu(): void {
-    if (this.isMobile) {
-      this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
-    } else {
-      this.navigateToHome();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['userInfo'] && changes['userInfo'].currentValue) {
+      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || Language.EN;
+      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
+      this.cdr.detectChanges();
     }
   }
 
-  toggleProfilePopover(): void {
-    this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
-  }
 
-  toggleNotificationPopover(): void {
-    this.isNotificationOpen = !this.isNotificationOpen;
-  }
-
-  navigateToHome() {
-    this.router.navigate(['/home']).then(r => r);
-  }
-
-  selectedLanguage!: Language;
-  languages: Language[] = [];
-  filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-  focusedIndex = -1; // Index of the currently focused dropdown item
-
+  // LANGUAGE DROPDOWN
   // Shortcut Listener for "Alt + A"
   @HostListener('window:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent): void {
@@ -113,17 +113,6 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
       event.preventDefault();
       this.changeToNextLanguage();
     }
-  }
-
-  @HostListener('document:click', ['$event'])
-  clickOutside(event: MouseEvent): void {
-    // Use a small timeout to ensure dropdown click is not detected as outside click
-    setTimeout(() => {
-      if (this.isLanguageDropdownOpen && this.langDropdown && !this.langDropdown.nativeElement.contains(event.target)) {
-        this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
-        this.cdr.detectChanges(); // Trigger change detection to update the view
-      }
-    }, 50);
   }
 
   private initializeLanguages(userInfo: UserInfo | null): void {
@@ -160,11 +149,55 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     if (this.isLanguageDropdownOpen) {
       this.cdr.detectChanges(); // Trigger change detection to ensure dropdown is rendered
       setTimeout(() => {
-        this.focusedIndex = 0;
-        this.focusOnItem(this.focusedIndex); // Focus the first item
+        this.focusedLangIndex = 0;
+        this.focusOnItem(this.focusedLangIndex); // Focus the first item
       }, 0);
     } else {
-      this.focusedIndex = -1; // Reset focus index when closed
+      this.focusedLangIndex = -1; // Reset focus index when closed
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickOutside(event: MouseEvent): void {
+    // Use a small timeout to ensure dropdown click is not detected as outside click
+    setTimeout(() => {
+      if (this.isLanguageDropdownOpen && this.langDropdown && !this.langDropdown.nativeElement.contains(event.target)) {
+        this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
+        this.cdr.detectChanges(); // Trigger change detection to update the view
+      }
+    }, 50);
+  }
+
+  // Keyboard navigation for dropdown
+  handleKeydown(event: KeyboardEvent): void {
+    if (this.isLanguageDropdownOpen) {
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          this.focusedLangIndex = (this.focusedLangIndex + 1) % this.filteredLanguages.length; // Move down in the filtered list
+          this.focusOnItem(this.focusedLangIndex);
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          this.focusedLangIndex = (this.focusedLangIndex - 1 + this.filteredLanguages.length) % this.filteredLanguages.length; // Move up in the filtered list
+          this.focusOnItem(this.focusedLangIndex);
+          break;
+        case 'Enter':
+          event.preventDefault();
+          this.selectLanguage(this.focusedLangIndex);
+          break;
+        case 'Escape':
+          event.preventDefault();
+          this.closeDropdown();
+          break;
+      }
+    } else if (event.key === 'ArrowDown') {
+      // Open dropdown and directly focus on the first dropdown item when pressing ArrowDown on the main button
+      event.preventDefault();
+      this.isLanguageDropdownOpen = true; // Open the dropdown
+      this.cdr.detectChanges(); // Ensure the dropdown items are rendered
+      this.focusedLangIndex = 0; // Focus the first item
+      this.focusOnItem(this.focusedLangIndex); // Set focus to the first dropdown item
     }
   }
 
@@ -179,50 +212,35 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.selectedLanguage = lang;
     this.filteredLanguages = this.languages.filter(language => language !== this.selectedLanguage);
     this.isLanguageDropdownOpen = false;
-    this.focusedIndex = -1;
+    this.focusedLangIndex = -1;
     this.languageService.setCurrentLanguage(lang);
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['userInfo'] && changes['userInfo'].currentValue) {
-      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || Language.EN;
-      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-      this.cdr.detectChanges();
-    }
+  // dynamic styles
+  getButtonStyles(language: string): { color: string, border: string } {
+    const color = this.langColors[language] || 'black';
+    return {color: color, border: `1px solid ${color}`};
   }
 
-  handleKeydown(event: KeyboardEvent): void {
-    if (this.isLanguageDropdownOpen) {
-      switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault();
-          this.focusedIndex = (this.focusedIndex + 1) % this.filteredLanguages.length; // Move down in the filtered list
-          this.focusOnItem(this.focusedIndex);
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          this.focusedIndex = (this.focusedIndex - 1 + this.filteredLanguages.length) % this.filteredLanguages.length; // Move up in the filtered list
-          this.focusOnItem(this.focusedIndex);
-          break;
-        case 'Enter':
-          event.preventDefault();
-          this.selectLanguage(this.focusedIndex);
-          break;
-        case 'Escape':
-          event.preventDefault();
-          this.closeDropdown();
-          break;
-      }
-    } else if (event.key === 'ArrowDown') {
-      // Open dropdown and directly focus on the first dropdown item when pressing ArrowDown on the main button
-      event.preventDefault();
-      this.isLanguageDropdownOpen = true; // Open the dropdown
-      this.cdr.detectChanges(); // Ensure the dropdown items are rendered
-      this.focusedIndex = 0; // Focus the first item
-      this.focusOnItem(this.focusedIndex); // Set focus to the first dropdown item
-    }
+  getButtonStylesDropDown(language: string): { color: string, border: string } {
+    let color = this.langColors[language] || 'black';
+    color = this.dullColor(color, 0.5);
+    return {color: color, border: `1px solid ${color}`};
   }
 
+  private dullColor(hex: string, amount: number): string {
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
+
+    r = Math.min(255, Math.floor(r + (255 - r) * amount));
+    g = Math.min(255, Math.floor(g + (255 - g) * amount));
+    b = Math.min(255, Math.floor(b + (255 - b) * amount));
+
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  }
+
+  // Handling popovers and dropdowns
   selectLanguage(index: number): void {
     if (index >= 0 && index < this.filteredLanguages.length) {
       this.changeLanguage(this.filteredLanguages[index]);
@@ -231,35 +249,15 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   closeDropdown(): void {
     this.isLanguageDropdownOpen = false;
-    this.focusedIndex = -1;
-  }
-
-  getButtonStyles(language: string): { color: string, border: string } {
-    const colorMap: { [key: string]: string } = {
-      'EN': '#402aa3',
-      'DE': '#bcbf53',
-      'FR': '#a11d1d'
-    };
-
-    const color = colorMap[language] || 'black';
-    return {color: color, border: `1px solid ${color}`};
-  }
-
-  getButtonStylesDropDown(language: string): { color: string, border: string } {
-    const colorMap: { [key: string]: string } = {
-      'EN': '#8fa1c1',
-      'DE': '#c1b88f',
-      'FR': '#c18f8f'
-    };
-
-    const color = colorMap[language] || 'black';
-    return {color: color, border: `1px solid ${color}`};
+    this.focusedLangIndex = -1;
   }
 
   langsOnClickOutside(_: Event) {
     this.closeDropdown();
   }
 
+
+  // POPOVERS
   profileOnClickOutside(_: Event) {
     this.isProfilePopoverOpen = false;
   }
@@ -270,5 +268,21 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   notificationOnClickOutside(_: Event) {
     this.isNotificationOpen = false;
+  }
+
+  toggleDiscoverMenu(): void {
+    if (this.isMobile) {
+      this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
+    } else {
+      this.router.navigate(['/home']).then(r => r);
+    }
+  }
+
+  toggleProfilePopover(): void {
+    this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
+  }
+
+  toggleNotificationPopover(): void {
+    this.isNotificationOpen = !this.isNotificationOpen;
   }
 }

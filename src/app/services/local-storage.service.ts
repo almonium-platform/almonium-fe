@@ -4,6 +4,7 @@ import {Language} from "../models/language.enum";
 const USER_INFO_KEY = 'user_info';
 
 const CURRENT_LANGUAGE = 'current_language';
+const LANG_COLOR_KEY = 'langColors';
 
 @Injectable({
   providedIn: 'root'
@@ -28,5 +29,14 @@ export class LocalStorageService {
 
   getCurrentLanguage(): Language {
     return (window.localStorage.getItem(CURRENT_LANGUAGE) as Language) || Language.EN;
+  }
+
+  saveLangColors(colors: { [key: string]: string }): void {
+    localStorage.setItem(LANG_COLOR_KEY, JSON.stringify(colors));
+  }
+
+  getLangColors(): { [key: string]: string } | null {
+    const colors = localStorage.getItem(LANG_COLOR_KEY);
+    return colors ? JSON.parse(colors) : null;
   }
 }
