@@ -23,13 +23,11 @@ export class TokenInterceptor implements HttpInterceptor {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401) {
-          console.log('Token expired, refreshing token');
           return this.authService.refreshToken().pipe(
             switchMap(() => {
               return next.handle(req);
             }),
             catchError((refreshError: HttpErrorResponse) => {
-              console.log('Refresh token failed', refreshError);
               this.userService.clearUserInfo()
               return this.authService.logoutPublic().pipe(
                 switchMap(() => {

@@ -51,7 +51,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
 
   private fetchCardsForLanguage(language: Language): void {
     this.cardService.getCardsInLanguage(language).subscribe((cards) => {
-      console.log('Fetched cards:', cards);
       this.cards = cards;
     });
   }

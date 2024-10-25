@@ -151,8 +151,6 @@ export class DiscoverComponent implements OnInit, OnDestroy {
           // Apply the new range as the current selection
           newSelection?.removeAllRanges();
           newSelection?.addRange(newRange);
-
-          console.log('Cursor moved to the preserved position.');
         }, 0); // Timeout of 0 ensures the next task in the event loop
       } else {
         element.focus();

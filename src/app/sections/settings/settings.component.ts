@@ -43,16 +43,13 @@ export class SettingsComponent {
   }
 
   confirmDeletion() {
-    console.log('Account deletion confirmed.');
     this.closeModal();
 
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
         this.alertService.open('Account successfully deleted!', {status: 'success'}).subscribe();
         this.userInfoService.clearUserInfo();
-        this.router.navigate(['/']).then(() => {
-          console.log('Redirected to auth');
-        });
+        this.router.navigate(['/']).then(r => r);
         this.closeModal();
       },
       error: (error) => {

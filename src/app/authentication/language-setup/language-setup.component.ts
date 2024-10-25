@@ -259,7 +259,7 @@ export class LanguageSetupComponent implements OnInit {
     this.languageService.saveUserLanguages(payload).subscribe({
       next: () => {
         // Redirect to /home
-        this.router.navigate(['/home']).then(() => console.log('Navigated to /home'));
+        this.router.navigate(['/home']).then(r => r);
         this.userInfoService.clearUserInfo();
       },
       error: (error) => {

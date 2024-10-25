@@ -96,7 +96,6 @@ export class AuthComponent implements OnInit {
 
     // Automatically prompt the popup on page load
     google.accounts.id.prompt();
-    console.log('Google Sign-In initialized');
   }
 
   handleCredentialResponse(response: any) {
@@ -200,7 +199,6 @@ export class AuthComponent implements OnInit {
         const script = document.createElement('script');
         script.src = 'https://accounts.google.com/gsi/client';
         script.onload = () => {
-          console.log('Google Sign-In script loaded');
           resolve();
         };
         script.onerror = () => reject('Google Sign-In script could not be loaded.');

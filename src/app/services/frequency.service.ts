@@ -68,10 +68,7 @@ export class FrequencyService {
       map(response => {
         if (response.ngrams && response.ngrams.length > 0) {
           const relFrequency = response.ngrams[0].relTotalMatchCount;
-          console.log(`Word: ${word}, Raw relTotalMatchCount: ${relFrequency}`);
-          const calculatedFrequency = this.calculateFrequency(relFrequency, language);
-          console.log(`Word: ${word}, Calculated Frequency: ${calculatedFrequency}`);
-          return calculatedFrequency;
+          return this.calculateFrequency(relFrequency, language);
         }
         console.warn(`No ngrams data found for word: ${word}`);
         return 0; // Default frequency if not found
