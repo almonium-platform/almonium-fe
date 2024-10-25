@@ -19,8 +19,11 @@ import {finalize, forkJoin, timer} from "rxjs";
   styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {
+  private readonly timeout = 250;
   private router: Router;
   isRotating: boolean = true;
+  loggingOutMessage: string = 'Logging out';
+  private intervalId: any;
 
   constructor(private authService: AuthService,
               router: Router) {
@@ -28,6 +31,7 @@ export class LogoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.startMessageAnimation();
     const minDisplayTime$ = timer(1000);  // 1-second timer observable
     const logout$ = this.authService.logout();  // Logout API call
 
@@ -42,5 +46,14 @@ export class LogoutComponent implements OnInit {
         console.error('Logout failed, redirecting to login.');
       }
     });
+  }
+
+  private startMessageAnimation(): void {
+    const messages = ['Logging out', 'Logging out.', 'Logging out..', 'Logging out...'];
+    let index = 0;
+    this.intervalId = setInterval(() => {
+      this.loggingOutMessage = messages[index];
+      index = (index + 1) % messages.length;
+    }, this.timeout);
   }
 }

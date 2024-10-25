@@ -1,19 +1,17 @@
 <div class="headless-container">
-  <div class="card">
-    <div class="tui-col_8">
-      <div class="tui-form__row">
-        <div class="logo-container" [ngClass]="{ rotating: isRotating }">
-          <img
-            ngSrc="../../../assets/img/logo/logo-white.svg"
-            alt="Logo"
-            width="100"
-            height="100"
-            priority
-          />
-        </div>
-        <div class="message">
-          <p>Logging you out...</p>
-        </div>
+  <div class="tui-col_8">
+    <div class="tui-form__row">
+      <div class="logo-container" [ngClass]="{ rotating: isRotating }">
+        <img
+          ngSrc="../../../assets/img/logo/logo.svg"
+          alt="Logo"
+          width="100"
+          height="100"
+          priority
+        />
+      </div>
+      <div class="message">
+        <p>{{ loggingOutMessage }}</p>
       </div>
     </div>
   </div>
