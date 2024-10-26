@@ -5,6 +5,7 @@ import {catchError, switchMap} from 'rxjs/operators';
 import {AuthService} from './auth.service';
 import {Router} from '@angular/router';
 import {UserInfoService} from "../../services/user-info.service";
+import {AppConstants} from "../../app.constants";
 
 @Injectable()
 export class TokenInterceptor implements HttpInterceptor {
@@ -16,6 +17,8 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    console.log('intercepting request' + req.url);
+    console.log('starts with public: ' + this.isExcluded(req.url));
     if (this.isExcluded(req.url)) {
       return next.handle(req);
     }
@@ -48,6 +51,6 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   private isExcluded(url: string): boolean {
-    return url.startsWith('/public');
+    return url.startsWith(AppConstants.PUBLIC_URL);
   }
 }
