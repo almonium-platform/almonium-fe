@@ -26,7 +26,7 @@ import {NgIf, NgOptimizedImage} from "@angular/common";
             class="text-xl font-bold ml-0.5">Delete Account</h2>
 
         </div>
-        <p class="text-gray-700 mb-6 mt-6 text-sm">Are you sure? This action is irreversible</p>
+        <p class="text-gray-700 mb-6 mt-6 text-sm">Are you sure? This action cannot be undone</p>
         <div class="flex justify-between">
           <button (click)="onClose()" class="text-gray-950 underline font-bold hover:underline ">Cancel</button>
           <button (click)="onConfirm()" [disabled]="isButtonDisabled"
