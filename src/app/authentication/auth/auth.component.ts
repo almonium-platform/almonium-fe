@@ -184,7 +184,7 @@ export class AuthComponent implements OnInit {
           },
           error: (error) => {
             this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
-            1
+            this.isRotating = false;
           },
         });
       }
