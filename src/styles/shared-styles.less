@@ -37,3 +37,36 @@
   box-sizing: border-box; // Includes padding in the width calculation
   background-color: var(--main-bg-color); // Uses the main background color
 }
+
+.social-buttons {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 10px;
+
+  .social-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2.7em;
+    height: 2.7em;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+
+    &.apple {
+      background-color: #000;
+      color: #fff;
+    }
+
+    &.google {
+      background-color: #db4437;
+      color: #fff;
+    }
+
+    &.local {
+      background-color: #3b5998;
+      color: #fff;
+    }
+  }
+}

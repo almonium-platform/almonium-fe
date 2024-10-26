@@ -251,4 +251,10 @@ export class AuthComponent implements OnInit {
   onMouseLeave() {
     this.isHovering = false;
   }
+
+  showSeparatorAndForm: boolean = false;
+
+  localButton() {
+    this.showSeparatorAndForm = !this.showSeparatorAndForm;
+  }
 }
