@@ -142,8 +142,8 @@ export class AuthComponent implements OnInit {
   }
 
   private loadGreetings(): void {
-    this.http.get<{ [key: string]: string }>('/assets/greetings.json').subscribe(
-      (data) => {
+    this.http.get<{ [key: string]: string }>('/assets/greetings.json').subscribe({
+      next: (data) => {
         this.greetings = data;
 
         // Initialize currentGreeting and currentLanguage after data is loaded
@@ -153,10 +153,10 @@ export class AuthComponent implements OnInit {
           this.currentLanguage = this.greetings[this.currentGreeting];
         }
       },
-      (error) => {
+      error: (error) => {
         console.error('Error loading greetings:', error);
       }
-    );
+    });
   }
 
   onSubmit() {
