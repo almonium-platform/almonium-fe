@@ -17,8 +17,6 @@ export class TokenInterceptor implements HttpInterceptor {
   }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    console.log('intercepting request' + req.url);
-    console.log('starts with public: ' + this.isExcluded(req.url));
     if (this.isExcluded(req.url)) {
       return next.handle(req);
     }
