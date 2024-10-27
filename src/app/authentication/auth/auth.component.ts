@@ -53,27 +53,31 @@ declare const google: any;
   ],
 })
 export class AuthComponent implements OnInit {
+  // legal links
+  private readonly TERMS_OF_USE_PATH = '/terms-of-use';
+  private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
+  protected termsOfUseUrl: string = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
+  protected privacyPolicyUrl: string = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
+
+  // greetings
   greetings: { [key: string]: string } = {};
   currentGreeting: string = Object.keys(this.greetings)[0];
   currentLanguage: string = this.greetings[this.currentGreeting];
   isHovering: boolean = false;
-  isSignUp: boolean = false;
+
+  // form
   minimumPasswordLength: number = 6;
-  isRotating: boolean = false;
-
-  private readonly TERMS_OF_USE_PATH = '/terms-of-use';
-  private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
-  termsOfUseUrl: string = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
-  privacyPolicyUrl: string = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
-
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(this.minimumPasswordLength)]),
   });
+  isSignUp: boolean = false;
 
+  // particles
   id = 'tsparticles';
   particlesOptions$ = this.particlesService.particlesOptions$;
-  private clientId = environment.googleClientId;
+  // logo
+  isRotating: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -90,7 +94,7 @@ export class AuthComponent implements OnInit {
     const handleResponse = this.handleCredentialResponse.bind(this);
 
     google.accounts.id.initialize({
-      client_id: this.clientId,
+      client_id: environment.googleClientId,
       callback: handleResponse,
     });
 
