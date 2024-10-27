@@ -1,5 +1,14 @@
 import {HttpClient} from '@angular/common/http';
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from '@taiga-ui/kit';
 import {
@@ -14,8 +23,10 @@ import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
-import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
-import {ParticlesService} from '../../services/particles.service'; // Import your service
+import {IParticlesProps, NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
+import {ParticlesService} from '../../services/particles.service';
+import {Subscription} from "rxjs";
+import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component"; // Import your service
 
 declare const google: any;
 
@@ -37,6 +48,7 @@ declare const google: any;
     NgxParticlesModule,
     NgClass,
     RouterLink,
+    DismissButtonComponent,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -52,7 +64,21 @@ declare const google: any;
     },
   ],
 })
-export class AuthComponent implements OnInit {
+export class AuthComponent implements OnInit, OnDestroy {
+  // EMBEDDED MODE (REAUTHENTICATION)
+  @Input() embeddedMode: boolean = false;
+  @Output() close = new EventEmitter<void>(); // Emits close event for modal
+
+  onClose() {
+    this.close.emit();
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKeyDown(_: KeyboardEvent) {
+    this.onClose();
+  }
+
+  // MAIN COMPONENT
   // legal links
   private readonly TERMS_OF_USE_PATH = '/terms-of-use';
   private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
@@ -75,7 +101,9 @@ export class AuthComponent implements OnInit {
 
   // particles
   id = 'tsparticles';
-  particlesOptions$ = this.particlesService.particlesOptions$;
+  particlesOptions: IParticlesProps | undefined;
+  particlesOptionsSubscription: Subscription | undefined;
+
   // logo
   isRotating: boolean = false;
 
@@ -124,6 +152,9 @@ export class AuthComponent implements OnInit {
     });
 
     this.particlesService.initializeParticles();
+    this.particlesOptionsSubscription = this.particlesService.particlesOptions$.subscribe(options => {
+      this.particlesOptions = options;
+    });
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
@@ -143,6 +174,12 @@ export class AuthComponent implements OnInit {
         this.cdr.detectChanges();
       }
     }, 2000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.particlesOptionsSubscription) {
+      this.particlesOptionsSubscription.unsubscribe();
+    }
   }
 
   private loadGreetings(): void {
@@ -235,16 +272,12 @@ export class AuthComponent implements OnInit {
 
   onSocialLogin(provider: string) {
     this.isRotating = true;
-    let url = '';
-    switch (provider) {
-      case 'google':
-        url = AppConstants.GOOGLE_AUTH_URL;
-        break;
-      case 'apple':
-        url = AppConstants.APPLE_AUTH_URL;
-        break;
-    }
-    window.location.href = url;
+    const providerUrls: { [key: string]: string } = {
+      google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
+      apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
+    };
+
+    window.location.href = providerUrls[provider] + (this.embeddedMode ? '/settings' : '/home');
   }
 
   // Hovering over the greeting
@@ -256,7 +289,7 @@ export class AuthComponent implements OnInit {
     this.isHovering = false;
   }
 
-  showSeparatorAndForm: boolean = false;
+  showSeparatorAndForm: boolean = true;
 
   localButton() {
     this.showSeparatorAndForm = !this.showSeparatorAndForm;

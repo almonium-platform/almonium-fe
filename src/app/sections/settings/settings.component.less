@@ -5,9 +5,54 @@
   gap: 2rem;
 }
 
+.main-section {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  height: 100%;
+  gap: 2em;
+}
+
 .card {
   width: 15vw;
   height: 80vh;
+  box-shadow: unset;
+}
+
+.providers {
+  display: flex;
+  flex-direction: row;
+}
+
+.provider-block {
+  flex-grow: 1; /* Allows each block to grow and take up available space */
+  padding: 1em;
+  border: 1px solid var(--border-color);
+  border-radius: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 100%;
+  margin: 1rem 0 0 0;
+}
+
+.social-buttons {
+  gap: 1rem;
+  padding: 1em;
+}
+
+.section-block {
+  height: 205px;
+  width: 400px;
+}
+
+.section-block-email {
+  .section-block;
+  height: 120px;
 }
 
 .icon {
@@ -21,22 +66,16 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
-  padding: 1rem;
+  padding: 1em 1em 0 1.4em;
   color: var(--text-color);
   font-family: var(--font-family);
 }
 
-.main-section {
-  display: flex;
-  flex-direction: column;
-  width: 90%;
-  height: 100%;
-}
-
+// delete account
 .danger {
   background-color: var(--danger-color);
   color: var(--danger-text-color);

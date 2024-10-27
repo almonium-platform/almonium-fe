@@ -1,4 +1,35 @@
 <app-navbar></app-navbar>
+
+<app-confirm-modal
+  [isVisible]="isModalVisible"
+  [title]="modalTitle"
+  [message]="modalMessage"
+  [confirmText]="modalConfirmText"
+  (close)="closeModal()"
+  (confirm)="confirmModalAction()"
+  [useCountdown]="useCountdown">
+</app-confirm-modal>
+
+<ng-template #authButton let-provider="provider">
+  <button
+    type="button"
+    class="action-btn black-n-white-button"
+    (click)="handleProvider(provider)"
+    [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
+    [ngStyle]="{
+      cursor: isLastLinkedProvider(provider) ? 'not-allowed' : 'pointer',
+      opacity: isLastLinkedProvider(provider) ? 0.6 : 1
+    }"
+    title="{{ isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : '' }}">
+    {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
+  </button>
+</ng-template>
+
+<!-- Auth Modal Wrapper -->
+<div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
+  <app-auth (close)="closeAuthModal()" [embeddedMode]=true></app-auth>
+</div>
+
 <div class="base-container">
   <div class="sidebar card">
     <div class="title">
@@ -11,68 +42,44 @@
     <div class="section-block card">
       <div class="title">Linked accounts</div>
       <div class="social-buttons">
-        <!-- Google Provider Block -->
         <div class="provider-block">
+          <!-- Google Provider Block -->
           <button type="button" class="social-button google">
             <i class="fab fa-google text-2xl"></i>
           </button>
-          <button
-            type="button"
-            class="action-btn"
-            (click)="handleProvider('GOOGLE')">
-            {{ isProviderLinked('GOOGLE') ? 'Unlink' : 'Link' }}
-          </button>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'GOOGLE' }"></ng-container>
         </div>
 
-        <!-- Apple Provider Block -->
         <div class="provider-block">
+          <!-- Apple Provider Block -->
           <button type="button" class="social-button apple">
             <i class="fab fa-apple text-3xl"></i>
           </button>
-          <button
-            type="button"
-            class="action-btn"
-            (click)="handleProvider('APPLE')">
-            {{ isProviderLinked('APPLE') ? 'Unlink' : 'Link' }}
-          </button>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'APPLE' }"></ng-container>
         </div>
 
-        <!-- Local Provider Block -->
         <div class="provider-block">
-          <!-- Icon of the provider (always visible) -->
+          <!-- Local Provider Block -->
           <button type="button" class="social-button local">
             <i class="fas fa-envelope text-2xl"></i>
           </button>
-
-          <button
-            type="button"
-            class="action-btn"
-            (click)="handleProvider('LOCAL')">
-            {{ isProviderLinked('LOCAL') ? 'Unlink' : 'Link' }}
-          </button>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'LOCAL' }"></ng-container>
         </div>
       </div>
-
-      <!--      another card-->
-      <!--      another card-->
+    </div>
+    <div class="section-block-email card">
+      <div class="title">Email</div>
+      <div class="email-content">
+        {{ this.emailVerified ? 'Verified' : 'Not verified' }}
+      </div>
     </div>
     <br>
     <div class="danger">
       <span class="danger-text">Danger Zone</span>
-      <button class="btn btn-danger" (click)="showDeleteAccountPopup()">
+      <button class="btn btn-danger" (click)="onDeleteAccount()">
         <img ngSrc="../../../assets/img/icons/del-acc.svg" alt="Logo" class="delete-icon" height="512" width="512">
         Delete Account
       </button>
     </div>
   </div>
 </div>
-
-<app-confirm-modal
-  [isVisible]="isModalVisible"
-  [title]="modalTitle"
-  [message]="modalMessage"
-  [confirmText]="modalConfirmText"
-  (close)="closeModal()"
-  (confirm)="confirmModalAction()"
-  [useCountdown]="useCountdown">
-</app-confirm-modal>

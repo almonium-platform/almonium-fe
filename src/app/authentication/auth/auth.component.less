@@ -175,3 +175,34 @@ button[tuiButton] {
   --tui-negative: #ac1c1c; // error test color
   --tui-radius-m: 50px;
 }
+
+
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.modal-container {
+  border-radius: 35px;
+  //padding: 3em;
+  background-color: var(--main-bg-color);
+  max-width: 500px;
+  position: relative;
+}
+
+.close-button {
+  //position: absolute;
+  //top: 50px;
+  //right:50px;
+  //padding: 1em;
+  //cursor: pointer;
+  z-index: 9999;
+}
