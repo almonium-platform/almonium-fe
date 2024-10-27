@@ -8,6 +8,55 @@
     </div>
   </div>
   <div class="main-section">
+    <div class="section-block card">
+      <div class="title">Linked accounts</div>
+      <div class="social-buttons">
+        <!-- Google Provider Block -->
+        <div class="provider-block">
+          <button type="button" class="social-button google">
+            <i class="fab fa-google text-2xl"></i>
+          </button>
+          <button
+            type="button"
+            class="action-btn"
+            (click)="handleProvider('GOOGLE')">
+            {{ isProviderLinked('GOOGLE') ? 'Unlink' : 'Link' }}
+          </button>
+        </div>
+
+        <!-- Apple Provider Block -->
+        <div class="provider-block">
+          <button type="button" class="social-button apple">
+            <i class="fab fa-apple text-3xl"></i>
+          </button>
+          <button
+            type="button"
+            class="action-btn"
+            (click)="handleProvider('APPLE')">
+            {{ isProviderLinked('APPLE') ? 'Unlink' : 'Link' }}
+          </button>
+        </div>
+
+        <!-- Local Provider Block -->
+        <div class="provider-block">
+          <!-- Icon of the provider (always visible) -->
+          <button type="button" class="social-button local">
+            <i class="fas fa-envelope text-2xl"></i>
+          </button>
+
+          <button
+            type="button"
+            class="action-btn"
+            (click)="handleProvider('LOCAL')">
+            {{ isProviderLinked('LOCAL') ? 'Unlink' : 'Link' }}
+          </button>
+        </div>
+      </div>
+
+      <!--      another card-->
+      <!--      another card-->
+    </div>
+    <br>
     <div class="danger">
       <span class="danger-text">Danger Zone</span>
       <button class="btn btn-danger" (click)="showDeleteAccountPopup()">
@@ -18,12 +67,12 @@
   </div>
 </div>
 
-<!-- Confirm Modal -->
 <app-confirm-modal
   [isVisible]="isModalVisible"
-  title="Delete account"
-  message="Are you sure you want to delete your account?"
-  confirmText="Delete"
+  [title]="modalTitle"
+  [message]="modalMessage"
+  [confirmText]="modalConfirmText"
   (close)="closeModal()"
-  (confirm)="confirmDeletion()">
+  (confirm)="confirmModalAction()"
+  [useCountdown]="useCountdown">
 </app-confirm-modal>
