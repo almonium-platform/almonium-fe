@@ -25,6 +25,10 @@
         "height": 100,
         "width": 100
       },
+      "limit" : {
+        "mode" : "delete",
+        "value": 3
+      },
       "value": 2
     },
     "opacity": {
