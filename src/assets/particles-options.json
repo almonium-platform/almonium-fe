@@ -5,19 +5,19 @@
   "particles": {
     "color": {
       "value": [
-        "#6C1D6A",
-        "#5A1A74",
-        "#48177D",
-        "#A1264C",
-        "#7D2060",
-        "#8F2356"
+        "#E2D1DB",
+        "#DDD0DE",
+        "#E8D2D8",
+        "#EBD2D6",
+        "#E5D1D9",
+        "#DFD0DC"
       ]
     },
     "move": {
       "direction": "bottom",
       "enable": true,
       "outModes": "out",
-      "speed": 2
+      "speed": 1
     },
     "number": {
       "density": {
@@ -32,7 +32,7 @@
       "value": 2
     },
     "opacity": {
-      "value": 0.4
+      "value": 0.9
     },
     "shape": {
       "type": "image",
@@ -50,13 +50,14 @@
     },
     "wobble": {
       "enable": true,
-      "distance": 5,
+      "distance": 1,
       "speed": 1
     },
     "zIndex": {
       "value": 0
     }
   },
+  "fpsLimit": 120,
   "interactivity": {
     "events": {
       "onHover": {
@@ -69,23 +70,12 @@
       }
     },
     "modes": {
-      "grab": {
-        "distance": 100,
-        "links": {
-          "opacity": 1
-        }
-      },
-      "bubble": {
-        "distance": 100,
-        "duration": 0.5,
-        "size": 4
-      },
       "repulse": {
         "distance": 100,
         "duration": 0.5
       },
       "push": {
-        "quantity": 5
+        "quantity": 2
       }
     }
   },
