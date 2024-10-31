@@ -18,9 +18,9 @@ export class AuthService {
     return this.http.post(url, {email, password}, {withCredentials: true});
   }
 
-  linkLocalAccount(email: string, password: string): Observable<any> {
+  linkLocalAccount(password: string): Observable<any> {
     const url = `${AppConstants.AUTH_URL}/local`;
-    return this.http.post(url, {email, password}, {withCredentials: true});
+    return this.http.post(url, {password}, {withCredentials: true});
   }
 
   login(email: string, password: string): Observable<any> {

@@ -277,7 +277,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     const passwordValue = this.authForm.get('passwordValue')?.value!;
 
     if (this.mode === 'linkLocal') {
-      this.authService.linkLocalAccount(emailValue, passwordValue).subscribe({
+      this.authService.linkLocalAccount(passwordValue).subscribe({
         next: () => {
           this.alertService.open('Local account linked successfully', {status: 'success'}).subscribe();
           this.onClose();
