@@ -32,7 +32,6 @@ export const routes: Routes = [
       // Authentication flow
       {path: 'auth', component: AuthComponent, canActivate: [unauthGuard]},
       // when settings will be ready, those will be moved to unguarded routes
-      {path: 'verify-email', component: EmailVerificationComponent},
       {path: 'reset-password', component: ResetPasswordComponent},
     ]
   },
@@ -54,6 +53,8 @@ export const routes: Routes = [
   },
 
   {path: 'logout', component: LogoutComponent},
+  {path: 'change-email', component: EmailVerificationComponent}, // same component, determine purpose by route
+  {path: 'verify-email', component: EmailVerificationComponent},
 
   // Static pages
   {path: 'terms-of-use', component: TermsOfUseComponent},
