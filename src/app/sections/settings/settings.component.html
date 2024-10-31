@@ -13,68 +13,141 @@
 <ng-template #authButton let-provider="provider">
   <button
     type="button"
-    class="action-btn black-n-white-button"
-    (click)="handleProvider(provider)"
+    class="action-btn"
+    (click)="handleProviderWrapped(provider)"
     [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
+    [ngClass]="{
+      'unlink-btn': isProviderLinked(provider),
+      'black-n-white-button': !isProviderLinked(provider)
+    }"
     [ngStyle]="{
       cursor: isLastLinkedProvider(provider) ? 'not-allowed' : 'pointer',
-      opacity: isLastLinkedProvider(provider) ? 0.6 : 1
+      opacity: isLastLinkedProvider(provider) ? 0.6 : 1,
+      border: isProviderLinked(provider) ? 'none' : '1px solid black',
     }"
     title="{{ isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : '' }}">
     {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
   </button>
 </ng-template>
+<ng-template #iconButton let-provider="provider" let-sizeClass="sizeClass" let-connected="connected">
+  <button
+    type="button"
+    class="social-button"
+    [ngClass]="provider.toLowerCase()"
+    [ngStyle]="{
+      opacity: connected ? 1 : 0.5,
+      filter: connected ? 'none' : 'grayscale(20%)'
+    }"
+  >
+    <i
+      [ngClass]="[
+        provider === 'local' ? 'fas' : 'fab',
+        provider === 'local' ? 'fa-envelope' :  'fa-' + provider.toLowerCase(),
+        sizeClass
+      ]"
+    ></i>
+  </button>
+</ng-template>
 
 <!-- Auth Modal Wrapper -->
 <div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
-  <app-auth (close)="closeAuthModal()" [embeddedMode]=true></app-auth>
+  <app-auth (close)="closeAuthModal()" [mode]="this.authMode" [providers]="this.authProviders"></app-auth>
 </div>
 
 <div class="base-container">
-  <div class="sidebar card">
-    <div class="title">
-      <img ngSrc="/assets/img/icons/settings.svg" alt="Pricing Icon" class="icon" height="512"
-           width="512">
-      Settings
-    </div>
-  </div>
   <div class="main-section">
+    <div class="section-block email card">
+      <div class="title">Email {{ isProviderLinked('local') ? ' and password' : '' }}</div>
+      <div class="email-content">
+        <form [formGroup]="emailForm" (ngSubmit)="emailOnSubmit()" class="email-form">
+
+          <div class="email-field">
+            <tui-input #emailInput
+                       formControlName="emailValue"
+                       tuiTextfieldSize="m"
+                       [tuiTextfieldLabelOutside]="true"
+                       [readOnly]="!emailEditable"
+
+            >
+              Email
+              <input placeholder="Email" tuiTextfield/>
+            </tui-input>
+            <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+          </div>
+
+        </form>
+        <span [ngClass]="emailWaitIcon ? 'email-waiting' : emailVerified ? 'verified-icon' : 'unverified-icon'"
+              [title]="emailWaitIcon ? 'Email verification is pending' : emailVerified ? 'Email is verified' : 'Email is not verified'"
+        >
+          <i
+            [ngClass]="emailWaitIcon
+            ? 'fas fa-solid fa-hourglass-half text-xl'
+             : emailVerified
+              ? 'fas fa-check-circle text-xl'
+               : 'fas fa-circle-exclamation text-xl'"></i>
+        </span>
+
+        <button *ngIf="!emailVerified" class="black-n-white-button verify-btn"
+                (click)="requestEmailVerification()">
+          Verify
+        </button>
+        <button class="black-n-white-button edit-btn" (click)="this.onEmailChangeWrapped()">
+          {{ emailEditable ? 'Change email' : '' }}
+          <i *ngIf="!emailEditable" class="fa-regular fa-pen-to-square"></i>
+        </button>
+      </div>
+      <div class="password-content" *ngIf="isProviderLinked('local')">
+        <form [formGroup]="passwordForm" (ngSubmit)="passwordSubmitWrapped()" class="email-form">
+
+          <div class="email-field">
+            <tui-input-password
+              #passwordInput
+              formControlName="passwordValue"
+              [tuiTextfieldLabelOutside]="true"
+              tuiTextfieldSize="m"
+              [readOnly]="!passwordEditable"
+            >
+              Password
+            </tui-input-password>
+            <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+          </div>
+
+        </form>
+        <button class="black-n-white-button edit-btn" (click)="this.passwordSubmitWrapped()">
+          {{ passwordEditable ? 'Change password' : '' }}
+          <i *ngIf="!passwordEditable" class="fa-regular fa-pen-to-square"></i>
+        </button>
+      </div>
+    </div>
     <div class="section-block card">
       <div class="title">Linked accounts</div>
       <div class="social-buttons">
         <div class="provider-block">
           <!-- Google Provider Block -->
-          <button type="button" class="social-button google">
-            <i class="fab fa-google text-2xl"></i>
-          </button>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'GOOGLE' }"></ng-container>
+          <ng-container
+            *ngTemplateOutlet="iconButton; context: { provider: 'google', sizeClass: 'text-2xl', connected: isProviderLinked('google') }"
+          ></ng-container>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
         </div>
 
         <div class="provider-block">
           <!-- Apple Provider Block -->
-          <button type="button" class="social-button apple">
-            <i class="fab fa-apple text-3xl"></i>
-          </button>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'APPLE' }"></ng-container>
+          <ng-container
+            *ngTemplateOutlet="iconButton; context: { provider: 'apple', sizeClass: 'text-3xl', connected: isProviderLinked('apple') }"
+          ></ng-container>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
         </div>
 
         <div class="provider-block">
           <!-- Local Provider Block -->
-          <button type="button" class="social-button local">
-            <i class="fas fa-envelope text-2xl"></i>
-          </button>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'LOCAL' }"></ng-container>
+          <ng-container
+            *ngTemplateOutlet="iconButton; context: { provider: 'local', sizeClass: 'text-2xl', connected: isProviderLinked('local') }"
+          ></ng-container>
+          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
         </div>
       </div>
     </div>
-    <div class="section-block-email card">
-      <div class="title">Email</div>
-      <div class="email-content">
-        {{ this.emailVerified ? 'Verified' : 'Not verified' }}
-      </div>
-    </div>
-    <br>
-    <div class="danger">
+    <div class="danger section-block">
       <span class="danger-text">Danger Zone</span>
       <button class="btn btn-danger" (click)="onDeleteAccount()">
         <img ngSrc="../../../assets/img/icons/del-acc.svg" alt="Logo" class="delete-icon" height="512" width="512">

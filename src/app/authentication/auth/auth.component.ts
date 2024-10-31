@@ -18,7 +18,7 @@ import {
   TuiLinkModule,
   TuiTextfieldControllerModule,
 } from '@taiga-ui/core';
-import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgClass, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -26,7 +26,9 @@ import {environment} from '../../../environments/environment';
 import {IParticlesProps, NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
 import {ParticlesService} from '../../services/particles.service';
 import {Subscription} from "rxjs";
-import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component"; // Import your service
+import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
+import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
+import {UserInfoService} from "../../services/user-info.service"; // Import your service
 
 declare const google: any;
 
@@ -49,6 +51,9 @@ declare const google: any;
     NgClass,
     RouterLink,
     DismissButtonComponent,
+    NgTemplateOutlet,
+    NgStyle,
+    ProviderIconComponent,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -66,8 +71,12 @@ declare const google: any;
 })
 export class AuthComponent implements OnInit, OnDestroy {
   // EMBEDDED MODE (REAUTHENTICATION)
-  @Input() embeddedMode: boolean = false;
+  @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
+  embeddedMode: boolean = false;
   @Output() close = new EventEmitter<void>(); // Emits close event for modal
+  private intent: string = '';
+  showSeparatorAndForm: boolean = true;
+  @Input() providers: string[] = ['apple', 'google', 'local']; // Default are all, to make it work in default mode
 
   onClose() {
     this.close.emit();
@@ -92,7 +101,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   isHovering: boolean = false;
 
   // form
-  minimumPasswordLength: number = 6;
+  minimumPasswordLength: number = 8;
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(this.minimumPasswordLength)]),
@@ -114,6 +123,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     protected particlesService: ParticlesService,
+    private userInfoService: UserInfoService,
     private http: HttpClient
   ) {
   }
@@ -146,10 +156,40 @@ export class AuthComponent implements OnInit, OnDestroy {
       });
   }
 
+  private clearUrl() {
+    const url = this.router.createUrlTree([], {relativeTo: this.route, queryParams: {}}).toString();
+    this.router.navigateByUrl(url, {replaceUrl: true}).then(r => r);
+  }
+
   ngOnInit(): void {
-    this.loadGoogleSignInScript().then(() => {
-      this.initializeGoogleSignIn();
+    console.log('AuthComponent mode:', this.mode);
+    this.userInfoService.userInfo$.subscribe((info) => {
+        if (info && this.mode !== 'changeEmail') {
+          this.authForm.get('emailValue')?.setValue(info.email);
+          this.authForm.get('emailValue')?.disable();
+        }
+      }
+    );
+
+    this.setModes();
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) {
+        this.alertService.open(params['error'], {status: 'error'}).subscribe();
+        this.clearUrl();
+      }
     });
+
+    this.userInfoService.userInfo$.subscribe((info) => {
+      if (info) {
+        this.authForm.get('emailValue')?.setValue(info.email);
+      }
+    });
+
+    if (this.mode === 'default') {
+      this.loadGoogleSignInScript().then(() => {
+        this.initializeGoogleSignIn();
+      });
+    }
 
     this.particlesService.initializeParticles();
     this.particlesOptionsSubscription = this.particlesService.particlesOptions$.subscribe(options => {
@@ -174,6 +214,33 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     }, 2000);
+  }
+
+  private setModes() {
+    switch (this.mode) {
+      case 'embedded':
+        this.embeddedMode = true;
+        this.isSignUp = false;
+        this.showSeparatorAndForm = this.providers.length === 1 && this.providers[0].toLowerCase() === 'local';
+        this.intent = 'reauth';
+        break;
+      case 'linkLocal':
+        this.embeddedMode = true;
+        this.showSeparatorAndForm = true;
+        this.isSignUp = false;
+        this.intent = 'link';
+        break;
+      case 'changeEmail':
+        this.embeddedMode = true;
+        this.showSeparatorAndForm = true;
+        this.isSignUp = false;
+        break;
+      default:
+        this.embeddedMode = false;
+        this.isSignUp = true;
+        this.showSeparatorAndForm = true;
+        break;
+    }
   }
 
   ngOnDestroy(): void {
@@ -201,34 +268,66 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (this.authForm.valid) {
-      this.isRotating = true;
-      const emailValue = this.authForm.get('emailValue')?.value!;
-      const passwordValue = this.authForm.get('passwordValue')?.value!;
+    if (!this.authForm.valid) {
+      return;
+    }
 
-      if (this.isSignUp) {
-        this.authService.register(emailValue, passwordValue).subscribe({
-          next: (response) => {
-            this.alertService
-              .open(response.message || 'Next step, verify your email!', {status: 'success'})
-              .subscribe();
-          },
-          error: (error) => {
-            this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
-            this.isRotating = false;
-          },
-        });
-      } else {
-        this.authService.login(emailValue, passwordValue).subscribe({
-          next: () => {
+    this.isRotating = true;
+    const emailValue = this.authForm.get('emailValue')?.value!;
+    const passwordValue = this.authForm.get('passwordValue')?.value!;
+
+    if (this.mode === 'linkLocal') {
+      this.authService.linkLocalAccount(emailValue, passwordValue).subscribe({
+        next: () => {
+          this.alertService.open('Local account linked successfully', {status: 'success'}).subscribe();
+          this.onClose();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+          this.onClose();
+        },
+      });
+      return;
+    } else if (this.mode === 'changeEmail') {
+      this.authService.linkLocalWithNewEmail(emailValue, passwordValue).subscribe({
+        next: () => {
+          this.alertService.open('Local account with new email created successfully, please verify it', {status: 'success'}).subscribe();
+          this.onClose();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+          this.onClose();
+        },
+      });
+    }
+    if (this.isSignUp) {
+      this.authService.register(emailValue, passwordValue).subscribe({
+        next: (response) => {
+          this.isRotating = false;
+          this.alertService
+            .open(response.message || 'Next step, verify your email!', {status: 'success'})
+            .subscribe();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
+          this.isRotating = false;
+        },
+      });
+    } else {
+      this.authService.login(emailValue, passwordValue).subscribe({
+        next: () => {
+          if (this.embeddedMode) {
+            this.router.navigate(['/settings'], {queryParams: {intent: 'reauth'}}).then((r) => r);
+          } else {
             this.router.navigate(['/home']).then((r) => r);
-          },
-          error: (error) => {
-            this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
-            this.isRotating = false;
-          },
-        });
-      }
+          }
+          this.close.emit();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
+          this.isRotating = false;
+        },
+      });
     }
   }
 
@@ -270,15 +369,30 @@ export class AuthComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSocialLogin(provider: string) {
+  // should be defined as an arrow function to access 'this'
+  onSocialLogin = (provider: string) => {
+    console.log('cdr', this.cdr);
+    console.log(this);
+    console.log('Social login with', provider);
+
+    if (provider === 'local') {
+      this.showSeparatorAndForm = !this.showSeparatorAndForm;
+      this.cdr.markForCheck();
+      console.log('Local login');
+      console.log(this.showSeparatorAndForm);
+      return;
+    }
+
     this.isRotating = true;
     const providerUrls: { [key: string]: string } = {
       google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
       apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
     };
 
-    window.location.href = providerUrls[provider] + (this.embeddedMode ? '/settings' : '/home');
-  }
+    let url = providerUrls[provider] + (this.embeddedMode ? '/settings?intent=' + this.intent : '/home');
+    console.log(url)
+    window.location.href = url;
+  };
 
   // Hovering over the greeting
   onMouseEnter() {
@@ -287,11 +401,5 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   onMouseLeave() {
     this.isHovering = false;
-  }
-
-  showSeparatorAndForm: boolean = true;
-
-  localButton() {
-    this.showSeparatorAndForm = !this.showSeparatorAndForm;
   }
 }

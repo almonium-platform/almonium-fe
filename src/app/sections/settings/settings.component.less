@@ -1,21 +1,74 @@
+:host {
+  --tui-primary: #5A1A74; // primary theme color, used for buttons, input fields, etc.
+  --tui-error-fill: #ac1c1c; // error field box color
+  --tui-negative: #ac1c1c; // error test color
+  --tui-radius-m: 50px;
+}
+
+.email-form {
+  min-width: 50%;
+  display: flex;
+  flex-direction: row;
+}
+
+.email-field {
+  min-width: 100%;
+}
+
+.verified-icon {
+  color: #69bd69;
+  display: flex;
+  justify-content: center;
+  margin-left: 1em;
+  margin-top: 9px;
+}
+
+.unverified-icon {
+  .verified-icon;
+  color: var(--danger-text-color);
+}
+
+.email-waiting {
+  .verified-icon;
+  color: #f0ad4e;
+}
+
+.edit-btn {
+  background-color: white;
+  height: 40px;
+  margin-left: auto;
+  color: var(--text-color);
+  border-color: var(--text-color);
+}
+
+.email-content {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+}
+
+.password-content {
+  .email-content;
+}
+
 .base-container {
   flex-direction: row;
-  align-items: flex-start;
-  justify-content: left;
+  align-items: center;
+  justify-content: center;
   gap: 2rem;
 }
 
 .main-section {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
   width: 90%;
   height: 100%;
   gap: 2em;
 }
 
 .card {
-  width: 15vw;
-  height: 80vh;
   box-shadow: unset;
 }
 
@@ -25,7 +78,6 @@
 }
 
 .provider-block {
-  flex-grow: 1; /* Allows each block to grow and take up available space */
   padding: 1em;
   border: 1px solid var(--border-color);
   border-radius: 25px;
@@ -40,19 +92,37 @@
   margin: 1rem 0 0 0;
 }
 
+.unlink-btn {
+  padding: 0.5em 1em;
+  box-sizing: border-box;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 550;
+  color: black;
+  background: none;
+  text-decoration: underline;
+}
+
+.unlink-btn:hover {
+  background-color: #f0f0f0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
 .social-buttons {
-  gap: 1rem;
-  padding: 1em;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5%;
+  padding: 0;
 }
 
 .section-block {
-  height: 205px;
+  min-height: 90px;
   width: 400px;
-}
-
-.section-block-email {
-  .section-block;
-  height: 120px;
+  padding: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
 
 .icon {
@@ -70,7 +140,7 @@
   box-sizing: border-box;
   font-size: 18px;
   font-weight: bold;
-  padding: 1em 1em 0 1.4em;
+  padding: 0 0 0.3em .5em;
   color: var(--text-color);
   font-family: var(--font-family);
 }
@@ -79,12 +149,10 @@
 .danger {
   background-color: var(--danger-color);
   color: var(--danger-text-color);
-  width: 50%;
-  height: 15vh;
   border-radius: 35px;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-evenly;
   flex-direction: row;
 }
 
@@ -109,4 +177,51 @@
   width: 20px;
   height: 20px;
   margin-right: 6px;
+}
+
+.verify-btn {
+  color: var(--danger-text-color);
+  border-color: var(--danger-text-color);
+  background-color: white;
+  height: 40px;
+  margin: auto;
+}
+
+.verify-btn:hover {
+  background-color: var(--danger-text-color);
+  color: white;
+}
+
+
+@media (max-width: 450px) {
+  .section-block {
+    max-width: 350px;
+  }
+
+  .btn-danger {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .danger-text {
+    font-size: 17px;
+  }
+
+  .title {
+    font-size: 15px;
+  }
+
+  .unlink-btn {
+    font-size: 12px;
+    padding: 0.4em 0.9em;
+  }
+
+  .action-btn {
+    font-size: 12px;
+    padding: 0.4em 0.9em;
+  }
+
+  .provider-block {
+    padding: 0.8em;
+  }
 }
