@@ -33,6 +33,7 @@ export class EmailVerificationComponent implements OnInit {
 
   id = 'tsparticles';
   particlesOptions$ = this.particlesService.particlesOptions$;
+  isChangeEmailRoute: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -48,28 +49,30 @@ export class EmailVerificationComponent implements OnInit {
 
     // Minimum timer to keep rotating for at least 1 second
     const minRotateTimer$ = timer(this.MINIMUM_ROTATE_TIME);
+    this.isChangeEmailRoute = this.router.url.includes('/change-email'); // Determine purpose by route
 
     // Extract the token from the URL parameters
     this.route.queryParams.pipe(
       switchMap((params) => {
         const token = params['token'];
         if (token) {
-          // API call to verify the email
-          const verifyEmail$ = this.authService.verifyEmail(token).pipe(
+          const verification$ = this.isChangeEmailRoute
+            ? this.authService.changeEmail(token)
+            : this.authService.verifyEmail(token);
+
+          return combineLatest([minRotateTimer$, verification$.pipe(
             tap(() => {
               this.verificationSuccess = true;
-              this.pendingMessage = 'Email verified successfully!';  // Set the final message but don't display yet
+              this.pendingMessage = this.isChangeEmailRoute
+                ? 'Email changed successfully!'
+                : 'Email verified successfully!';
             }),
             catchError(error => {
-              // Handle verification error
               this.verificationSuccess = false;
-              this.pendingMessage = error.error.message || 'Email verification failed';  // Set the error message
-              return of(null);  // Return a value to complete the observable
+              this.pendingMessage = error.error.message || `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`;
+              return of(null);
             })
-          );
-
-          // Combine the API call and the timer to wait for both
-          return combineLatest([minRotateTimer$, verifyEmail$]);
+          )]);
         } else {
           // No token provided, set error message
           this.verificationSuccess = false;
@@ -106,7 +109,15 @@ export class EmailVerificationComponent implements OnInit {
     if (result === 'success') {
       // Set a minimum display time before redirecting
       timer(this.REDIRECT_TIMEOUT).subscribe(() => {
-        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+        if (this.isChangeEmailRoute) {
+          this.router.navigate(['/logout']).then(r => r);
+          // Logout will redirect to /auth for unauthenticated users,
+          // and will clear outdated authentication data for authenticated users
+        } else {
+          this.router.navigate(['/settings']).then(r => r);
+          // Redirect to settings page after verification for authenticated users
+          // (it's secured by the AuthGuard, so unauthenticated users will be redirected to /auth)
+        }
       });
     }
   }
