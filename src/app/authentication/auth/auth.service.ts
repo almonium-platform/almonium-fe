@@ -13,6 +13,16 @@ export class AuthService {
   ) {
   }
 
+  linkLocalWithNewEmail(email: string, password: string): Observable<any> {
+    const url = `${AppConstants.AUTH_URL}/email-changes/link-local`;
+    return this.http.post(url, {email, password}, {withCredentials: true});
+  }
+
+  linkLocalAccount(email: string, password: string): Observable<any> {
+    const url = `${AppConstants.AUTH_URL}/local`;
+    return this.http.post(url, {email, password}, {withCredentials: true});
+  }
+
   login(email: string, password: string): Observable<any> {
     const url = `${AppConstants.PUBLIC_AUTH_URL}/login`;
     return this.http.post(url, {email, password}, {withCredentials: true});
@@ -24,11 +34,15 @@ export class AuthService {
   }
 
   verifyEmail(token: string): Observable<any> {
-    return this.http.post(`${AppConstants.PUBLIC_AUTH_URL}/verify-email?token=${token}`, {});
+    return this.http.post(`${AppConstants.VERIFICATION_AUTH_URL}/emails?token=${token}`, {});
+  }
+
+  changeEmail(token: string): Observable<any> {
+    return this.http.post(`${AppConstants.VERIFICATION_AUTH_URL}/emails/change?token=${token}`, {});
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${AppConstants.PUBLIC_AUTH_URL}/reset-password`, {
+    return this.http.post(`${AppConstants.VERIFICATION_AUTH_URL}/password-resets`, {
       token,
       newPassword
     });

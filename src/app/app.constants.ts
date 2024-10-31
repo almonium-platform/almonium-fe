@@ -7,6 +7,7 @@ export class AppConstants {
 
   // AUTHENTICATION
   public static PUBLIC_AUTH_URL = AppConstants.PUBLIC_URL + '/auth';
+  public static VERIFICATION_AUTH_URL = AppConstants.PUBLIC_AUTH_URL + '/verification';
   public static AUTH_URL = AppConstants.API_URL + '/auth';
 
   private static OAUTH2_URL = AppConstants.API_URL + '/oauth2/authorization';
