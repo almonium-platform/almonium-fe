@@ -127,7 +127,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         }
       }
     });
-    this.passwordForm.get('passwordValue')?.setValue('********');
+    this.passwordForm.get('passwordValue')?.setValue(this.passwordPlaceholder);
 
     this.userInfoService.userInfo$.subscribe((info) => {
       this.userInfo = info;
@@ -177,7 +177,13 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.openAuthModal();
   }
 
+  private restoreEmailAndPasswordFields() {
+    this.restoreEmailField();
+    this.restorePasswordField();
+  }
+
   onDeleteAccount() {
+    this.restoreEmailAndPasswordFields();
     this.checkAuth(this.showDeleteAccountPopup.bind(this));
   }
 
@@ -253,6 +259,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
 
   handleProviderWrapped(provider: string) {
+    this.restoreEmailAndPasswordFields();
     this.checkAuth(() => this.handleProvider(provider));
   }
 
@@ -303,9 +310,25 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     return provider.charAt(0).toUpperCase() + provider.slice(1).toLowerCase();
   }
 
+  private readonly passwordPlaceholder = '********';
+
+  private restorePasswordField() {
+    this.passwordEditable = false;
+    this.passwordForm.setValue({passwordValue: this.passwordPlaceholder});
+    this.passwordForm.get('passwordValue')?.setErrors(null);
+  }
+
+  private restoreEmailField() {
+    if (this.emailEditable) {
+      this.emailEditable = false;
+      this.emailForm.setValue({emailValue: this.userInfo?.email!});
+      this.emailForm.get('emailValue')?.setErrors(null);
+    }
+  }
+
   onEmailChangeWrapped() {
     this.focusEmailInput();
-    this.cdr.detectChanges();
+    this.restorePasswordField();
 
     this.checkAuth(() => this.onEmailChange());
   }
@@ -313,7 +336,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   // auth modal toggle
   onEmailChange() {
     this.focusEmailInput();
-    this.cdr.detectChanges();
 
     console.log("PROVIDERS", this.authProviders);
     if (!this.isProviderLinked('local')) {
@@ -403,6 +425,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   }
 
   passwordSubmitWrapped() {
+    this.restoreEmailField();
     this.checkAuth(this.passwordSubmit.bind(this));
   }
 
