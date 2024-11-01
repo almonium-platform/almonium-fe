@@ -90,14 +90,16 @@
                 (click)="requestEmailVerification()">
           Verify
         </button>
-        <button class="black-n-white-button edit-btn" (click)="onEmailChangeWrapped()">
-          {{ emailEditable ? 'Change email' : '' }}
-          <i *ngIf="!emailEditable" class="fa-regular fa-pen-to-square"></i>
-        </button>
+        <app-edit-button
+          class="edit-element"
+          [label]="'Change email'"
+          [editable]="emailEditable"
+          (clickFunction)="onEmailEditClick()">
+        </app-edit-button>
       </div>
 
       <div class="password-content" *ngIf="isProviderLinked('local')">
-        <form [formGroup]="passwordForm" (ngSubmit)="passwordSubmitWrapped()" class="email-form">
+        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
 
           <div class="email-field">
             <tui-input-password
@@ -112,10 +114,12 @@
           </div>
 
         </form>
-        <button class="black-n-white-button edit-btn" (click)="passwordSubmitWrapped()">
-          {{ passwordEditable ? 'Change password' : '' }}
-          <i *ngIf="!passwordEditable" class="fa-regular fa-pen-to-square"></i>
-        </button>
+        <app-edit-button
+          class="edit-element"
+          [label]="'Change password'"
+          [editable]="passwordEditable"
+          (clickFunction)="onPasswordEditClick()">
+        </app-edit-button>
       </div>
     </div>
     <div class="section-block card">

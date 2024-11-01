@@ -21,6 +21,7 @@ import {
 import {UserInfo} from "../../models/userinfo.model";
 import {AuthService} from "../../authentication/auth/auth.service";
 import {UrlService} from "../../services/url.service";
+import {EditButtonComponent} from "../../shared/edit-button/edit-button.component";
 
 @Component({
   selector: 'app-settings',
@@ -42,7 +43,8 @@ import {UrlService} from "../../services/url.service";
     TuiFieldErrorPipeModule,
     TuiInputModule,
     TuiInputPasswordModule,
-    TuiTextfieldControllerModule
+    TuiTextfieldControllerModule,
+    EditButtonComponent
   ],
   templateUrl: './settings.component.html',
   providers: [
@@ -309,7 +311,7 @@ export class SettingsComponent implements OnInit {
 
 
   // EMAIL AND PASSWORD SETTINGS
-  protected passwordSubmitWrapped() {
+  protected onPasswordEditClick() {
     this.restoreEmailField();
     this.checkAuth(this.passwordSubmit.bind(this));
   }
@@ -363,7 +365,7 @@ export class SettingsComponent implements OnInit {
     }
   }
 
-  protected onEmailChangeWrapped() {
+  protected onEmailEditClick() {
     this.focusEmailInput();
     this.restorePasswordField();
 
