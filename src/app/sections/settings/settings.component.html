@@ -75,21 +75,25 @@
           </div>
 
         </form>
-        <span [ngClass]="emailWaitIcon ? 'email-waiting' : emailVerified ? 'verified-icon' : 'unverified-icon'"
-              [title]="emailWaitIcon ? 'Email verification is pending' : emailVerified ? 'Email is verified' : 'Email is not verified'"
+        <span *ngIf="!emailVerified"
+              class="unverified-icon"
+              title="Email not verified"
         >
-          <i
-            [ngClass]="emailWaitIcon
-            ? 'fas fa-solid fa-hourglass-half text-xl'
-             : emailVerified
-              ? 'fas fa-check-circle text-xl'
-               : 'fas fa-circle-exclamation text-xl'"></i>
+          <i class="fas fa-exclamation text-xl"></i>
         </span>
 
-        <button *ngIf="!emailVerified" class="black-n-white-button verify-btn"
+        <button *ngIf="!emailVerified && !emailEditable" class="black-n-white-button verify-btn"
                 (click)="requestEmailVerification()">
+          <i class="fa-solid fa-envelope-open-text"></i>
           Verify
         </button>
+
+        <div class="status-container" *ngIf="emailVerified" [ngClass]="{emailVerifiedTextExpanded : 'circular-icon'}">
+          <span class="status-box verified-box">
+            <i class="status-icon fas fa-check-circle"></i>
+            <span *ngIf="emailVerifiedTextExpanded" class="status-text">VERIFIED</span>
+          </span>
+        </div>
         <app-edit-button
           class="edit-element"
           [disabled]="!emailConfirmEnabled()"

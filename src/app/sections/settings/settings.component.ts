@@ -1,4 +1,4 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
@@ -66,9 +66,10 @@ export class SettingsComponent implements OnInit {
   protected authProviders: string[] = [];
 
   // email and password settings
+  protected emailVerifiedTextExpanded = true;
   protected emailEditable: boolean = false;
   protected passwordEditable: boolean = false;
-  protected emailWaitIcon: boolean = false;
+  protected emailWaitIcon: boolean = false; // not used
   protected emailVerified: boolean = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
@@ -311,6 +312,11 @@ export class SettingsComponent implements OnInit {
 
 
   // EMAIL AND PASSWORD SETTINGS
+  @HostListener('document:keydown.escape', ['$event'])
+  protected onEscape() {
+    this.restoreEmailAndPasswordFields();
+  }
+
   protected onPasswordEditClick() {
     this.restoreEmailField();
     this.checkAuth(this.passwordSubmit.bind(this));
@@ -376,6 +382,7 @@ export class SettingsComponent implements OnInit {
       this.emailEditable = false;
       this.emailForm.setValue({emailValue: this.userInfo?.email!});
       this.emailForm.get('emailValue')?.setErrors(null);
+      this.emailVerifiedTextExpanded = true;
     }
   }
 
@@ -397,6 +404,7 @@ export class SettingsComponent implements OnInit {
 
     if (!this.emailEditable) {
       this.emailEditable = true;
+      this.emailVerifiedTextExpanded = false;
       return;
     }
 

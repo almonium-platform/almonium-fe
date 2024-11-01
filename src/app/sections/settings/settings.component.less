@@ -19,8 +19,8 @@
   color: #69bd69;
   display: flex;
   justify-content: center;
-  margin-left: 1em;
-  margin-top: 9px;
+  margin-left: 10px;
+  margin-top: 8px;
 }
 
 .unverified-icon {
@@ -35,6 +35,7 @@
 
 .edit-element {
   margin-left: auto;
+  margin-top: 2px;
 }
 
 .email-content {
@@ -178,8 +179,12 @@
 .verify-btn {
   color: var(--warning-color);
   border-color: var(--warning-color);
-  height: 40px;
-  margin: auto;
+  display: flex;
+  gap: 0.5em;
+  margin: auto 0 auto auto;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
 }
 
 .verify-btn:hover {
@@ -187,10 +192,50 @@
   color: white;
 }
 
+.status-container {
+  margin-left: 1em;
+  margin-top: 7px;
+}
+
+.status-box {
+  display: flex;
+  align-items: center;
+  background-color: #d4f8d4; /* Light green background */
+  border-radius: 15px;
+  padding: 0.4em 0.4em;
+}
+
+.verified-box {
+  background-color: #E7F8F2; /* Light green for verified */
+}
+
+.status-icon {
+  color: #16BA7F; /* Dark green color */
+  font-size: 18px;
+}
+
+.status-text {
+  font-size: 10px;
+  color: #16BA7F; /* Dark green color */
+  font-weight: 650;
+  margin-left: 0.3em;
+}
+
+// ngClass
+.circular-icon {
+  height: 25px;
+  width: 25px;
+  padding: unset !important;
+  border-radius: 50%; /* Ensures the shape is a circle */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 @media (max-width: 450px) {
   .section-block {
     max-width: 350px;
+    padding: 1em;
   }
 
   .btn-danger {
