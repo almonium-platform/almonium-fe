@@ -351,6 +351,20 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  protected emailConfirmEnabled(): boolean {
+    if (!this.emailEditable) {
+      return true;
+    }
+    return this.emailForm.valid && this.getEmailFieldValue() !== this.userInfo?.email;
+  }
+
+  protected passwordConfirmEnabled(): boolean {
+    if (!this.passwordEditable) {
+      return true;
+    }
+    return this.passwordForm.valid;
+  }
+
   private restorePasswordField() {
     this.passwordEditable = false;
     this.passwordForm.setValue({passwordValue: this.passwordPlaceholder});

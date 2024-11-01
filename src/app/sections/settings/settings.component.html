@@ -92,6 +92,7 @@
         </button>
         <app-edit-button
           class="edit-element"
+          [disabled]="!emailConfirmEnabled()"
           [label]="'Change email'"
           [editable]="emailEditable"
           (clickFunction)="onEmailEditClick()">
@@ -116,6 +117,7 @@
         </form>
         <app-edit-button
           class="edit-element"
+          [disabled]="!passwordConfirmEnabled()"
           [label]="'Change password'"
           [editable]="passwordEditable"
           (clickFunction)="onPasswordEditClick()">
