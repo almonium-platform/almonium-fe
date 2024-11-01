@@ -269,66 +269,85 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     if (!this.authForm.valid) {
+      console.error('Button should be disabled');
       return;
     }
 
-    this.isRotating = true;
     const emailValue = this.authForm.get('emailValue')?.value!;
     const passwordValue = this.authForm.get('passwordValue')?.value!;
 
     if (this.mode === 'linkLocal') {
-      this.authService.linkLocalAccount(passwordValue).subscribe({
-        next: () => {
-          this.alertService.open('Local account linked successfully', {status: 'success'}).subscribe();
-          this.onClose();
-        },
-        error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
-          this.onClose();
-        },
-      });
-      return;
+      this.linkLocal(passwordValue);
     } else if (this.mode === 'changeEmail') {
-      this.authService.linkLocalWithNewEmail(emailValue, passwordValue).subscribe({
-        next: () => {
-          this.alertService.open('Local account with new email created successfully, please verify it', {status: 'success'}).subscribe();
-          this.onClose();
-        },
-        error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
-          this.onClose();
-        },
-      });
-    }
-    if (this.isSignUp) {
-      this.authService.register(emailValue, passwordValue).subscribe({
-        next: (response) => {
-          this.isRotating = false;
-          this.alertService
-            .open(response.message || 'Next step, verify your email!', {status: 'success'})
-            .subscribe();
-        },
-        error: (error) => {
-          this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
-          this.isRotating = false;
-        },
-      });
+      this.changeEmail(emailValue, passwordValue);
+    } else if (this.mode === 'embedded') {
+      this.login(emailValue, passwordValue);
     } else {
-      this.authService.login(emailValue, passwordValue).subscribe({
-        next: () => {
-          if (this.embeddedMode) {
-            this.router.navigate(['/settings'], {queryParams: {intent: 'reauth'}}).then((r) => r);
-          } else {
-            this.router.navigate(['/home']).then((r) => r);
-          }
-          this.close.emit();
-        },
-        error: (error) => {
-          this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
-          this.isRotating = false;
-        },
-      });
+      this.isRotating = true;
+      if (this.isSignUp) {
+        this.register(emailValue, passwordValue);
+      } else {
+        this.login(emailValue, passwordValue);
+      }
     }
+  }
+
+  private linkLocal(passwordValue: string) {
+    this.authService.linkLocalAccount(passwordValue).subscribe({
+      next: () => {
+        this.alertService.open('Local account linked successfully', {status: 'success'}).subscribe();
+        this.onClose();
+      },
+      error: (error) => {
+        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.onClose();
+      },
+    });
+  }
+
+  private changeEmail(emailValue: string, passwordValue: string) {
+    this.authService.linkLocalWithNewEmail(emailValue, passwordValue).subscribe({
+      next: () => {
+        this.alertService.open('Local account with new email created successfully, please verify it', {status: 'success'}).subscribe();
+        this.onClose();
+      },
+      error: (error) => {
+        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.onClose();
+      },
+    });
+  }
+
+  private register(emailValue: string, passwordValue: string) {
+    this.authService.register(emailValue, passwordValue).subscribe({
+      next: (response) => {
+        this.isRotating = false;
+        this.alertService
+          .open(response.message || 'Next step, verify your email!', {status: 'success'})
+          .subscribe();
+      },
+      error: (error) => {
+        this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
+        this.isRotating = false;
+      },
+    });
+  }
+
+  private login(emailValue: string, passwordValue: string) {
+    this.authService.login(emailValue, passwordValue).subscribe({
+      next: () => {
+        if (this.embeddedMode) {
+          this.router.navigate(['/settings'], {queryParams: {intent: 'reauth'}}).then((r) => r);
+        } else {
+          this.router.navigate(['/home']).then((r) => r);
+        }
+        this.close.emit();
+      },
+      error: (error) => {
+        this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
+        this.isRotating = false;
+      },
+    });
   }
 
   private loadGoogleSignInScript(): Promise<void> {
