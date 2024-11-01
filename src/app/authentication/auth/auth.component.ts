@@ -28,7 +28,8 @@ import {ParticlesService} from '../../services/particles.service';
 import {Subscription} from "rxjs";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
-import {UserInfoService} from "../../services/user-info.service"; // Import your service
+import {UserInfoService} from "../../services/user-info.service";
+import {UrlService} from "../../services/url.service"; // Import your service
 
 declare const google: any;
 
@@ -123,7 +124,8 @@ export class AuthComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     protected particlesService: ParticlesService,
     private userInfoService: UserInfoService,
-    private http: HttpClient
+    private http: HttpClient,
+    private urlService: UrlService,
   ) {
   }
 
@@ -155,11 +157,6 @@ export class AuthComponent implements OnInit, OnDestroy {
       });
   }
 
-  private clearUrl() {
-    const url = this.router.createUrlTree([], {relativeTo: this.route, queryParams: {}}).toString();
-    this.router.navigateByUrl(url, {replaceUrl: true}).then(r => r);
-  }
-
   ngOnInit(): void {
     console.log('AuthComponent mode:', this.mode);
     this.userInfoService.userInfo$.subscribe((info) => {
@@ -174,7 +171,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       if (params['error']) {
         this.alertService.open(params['error'], {status: 'error'}).subscribe();
-        this.clearUrl();
+        this.urlService.clearUrl();
       }
     });
 
