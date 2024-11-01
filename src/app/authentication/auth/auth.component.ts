@@ -101,10 +101,9 @@ export class AuthComponent implements OnInit, OnDestroy {
   isHovering: boolean = false;
 
   // form
-  minimumPasswordLength: number = 8;
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
-    passwordValue: new FormControl('', [Validators.required, Validators.minLength(this.minimumPasswordLength)]),
+    passwordValue: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
   });
   isSignUp: boolean = false;
 

@@ -1,6 +1,8 @@
 import {environment} from '../environments/environment';
 
 export class AppConstants {
+  // URLS
+
   public static API_URL = environment.apiUrl + '/api/v1';
   public static PUBLIC_URL = AppConstants.API_URL + '/public';
   public static USERS_URL = AppConstants.API_URL + '/users';
@@ -20,4 +22,8 @@ export class AppConstants {
   // Cards
   public static CARDS_URL = AppConstants.API_URL + '/cards';
   public static CARDS_IN_LANG = AppConstants.CARDS_URL + '/lang';
+
+
+  // OTHER
+  public static MIN_PASSWORD_LENGTH = 8;
 }
