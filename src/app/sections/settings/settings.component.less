@@ -117,7 +117,7 @@
 }
 
 .section-block {
-  min-height: 90px;
+  min-height: fit-content;
   width: 400px;
   padding: 1.3em;
   display: flex;
@@ -223,5 +223,11 @@
 
   .provider-block {
     padding: 0.8em;
+  }
+}
+
+@media (max-height: 630px) {
+  .main-section {
+    gap: 1em;
   }
 }

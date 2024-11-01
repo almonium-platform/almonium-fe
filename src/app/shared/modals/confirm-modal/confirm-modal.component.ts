@@ -12,7 +12,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   ],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" *ngIf="isVisible">
-      <div class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg p-7 relative">
+      <div class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative">
         <app-dismiss-button (close)="onClose()"></app-dismiss-button>
         <div class="flex items-center mb-4 flex-row">
           <img ngSrc="../../../../assets/img/icons/alert-triangle.svg" alt="Warning Icon" class="icon" height="512"
