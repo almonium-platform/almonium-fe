@@ -1,11 +1,11 @@
 <app-navbar></app-navbar>
 
 <app-confirm-modal
-  [isVisible]="isModalVisible"
+  [isVisible]="isConfirmModalVisible"
   [title]="modalTitle"
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
-  (close)="closeModal()"
+  (close)="closeConfirmModal()"
   (confirm)="confirmModalAction()"
   [useCountdown]="useCountdown">
 </app-confirm-modal>
@@ -51,7 +51,7 @@
 
 <!-- Auth Modal Wrapper -->
 <div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
-  <app-auth (close)="closeAuthModal()" [mode]="this.authMode" [providers]="this.authProviders"></app-auth>
+  <app-auth (close)="closeAuthModal()" [mode]="authMode" [providers]="authProviders"></app-auth>
 </div>
 
 <div class="base-container">
@@ -59,11 +59,10 @@
     <div class="section-block email card">
       <div class="title">Email {{ isProviderLinked('local') ? ' and Password' : '' }}</div>
       <div class="email-content">
-        <form [formGroup]="emailForm" (ngSubmit)="emailOnSubmit()" class="email-form">
+        <form [formGroup]="emailForm" class="email-form">
 
           <div class="email-field">
-            <tui-input #emailInput
-                       formControlName="emailValue"
+            <tui-input formControlName="emailValue"
                        tuiTextfieldSize="m"
                        [tuiTextfieldLabelOutside]="true"
                        [readOnly]="!emailEditable"
@@ -91,17 +90,17 @@
                 (click)="requestEmailVerification()">
           Verify
         </button>
-        <button class="black-n-white-button edit-btn" (click)="this.onEmailChangeWrapped()">
+        <button class="black-n-white-button edit-btn" (click)="onEmailChangeWrapped()">
           {{ emailEditable ? 'Change email' : '' }}
           <i *ngIf="!emailEditable" class="fa-regular fa-pen-to-square"></i>
         </button>
       </div>
+
       <div class="password-content" *ngIf="isProviderLinked('local')">
         <form [formGroup]="passwordForm" (ngSubmit)="passwordSubmitWrapped()" class="email-form">
 
           <div class="email-field">
             <tui-input-password
-              #passwordInput
               formControlName="passwordValue"
               [tuiTextfieldLabelOutside]="true"
               tuiTextfieldSize="m"
@@ -113,7 +112,7 @@
           </div>
 
         </form>
-        <button class="black-n-white-button edit-btn" (click)="this.passwordSubmitWrapped()">
+        <button class="black-n-white-button edit-btn" (click)="passwordSubmitWrapped()">
           {{ passwordEditable ? 'Change password' : '' }}
           <i *ngIf="!passwordEditable" class="fa-regular fa-pen-to-square"></i>
         </button>
