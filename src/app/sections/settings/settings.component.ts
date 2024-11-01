@@ -22,6 +22,7 @@ import {UserInfo} from "../../models/userinfo.model";
 import {AuthService} from "../../authentication/auth/auth.service";
 import {UrlService} from "../../services/url.service";
 import {EditButtonComponent} from "../../shared/edit-button/edit-button.component";
+import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 
 @Component({
   selector: 'app-settings',
@@ -44,7 +45,8 @@ import {EditButtonComponent} from "../../shared/edit-button/edit-button.componen
     TuiInputModule,
     TuiInputPasswordModule,
     TuiTextfieldControllerModule,
-    EditButtonComponent
+    EditButtonComponent,
+    ProviderIconComponent
   ],
   templateUrl: './settings.component.html',
   providers: [
@@ -215,6 +217,11 @@ export class SettingsComponent implements OnInit {
   // Linking and unlinking social accounts
 
   // boolean checkers
+
+  protected clickProviderIcon() {
+    return;
+  }
+
   protected isProviderLinked(provider: string): boolean {
     return this.authProviders.some(authProvider => authProvider.toLowerCase() === provider.toLowerCase());
   }

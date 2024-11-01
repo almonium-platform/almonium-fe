@@ -1,24 +1,3 @@
-<ng-template #iconButton let-provider="provider" let-sizeClass="sizeClass" let-connected="connected" let-click="click">
-  <button
-    type="button"
-    class="social-button"
-    (click)="click()"
-    [ngClass]="provider.toLowerCase()"
-    [ngStyle]="{
-      opacity: connected ? 1 : 0.5,
-      filter: connected ? 'none' : 'grayscale(20%)'
-    }"
-  >
-    <i
-      [ngClass]="[
-        provider === 'local' ? 'fas' : 'fab',
-        provider === 'local' ? 'fa-envelope' :  'fa-' + provider.toLowerCase(),
-        sizeClass
-      ]"
-    ></i>
-  </button>
-</ng-template>
-
 <div [ngClass]="{'auth-modal-overlay': embeddedMode}">
   <ngx-particles
     *ngIf="particlesOptions && mode === 'default'"

@@ -133,25 +133,31 @@
       <div class="social-buttons">
         <div class="provider-block">
           <!-- Google Provider Block -->
-          <ng-container
-            *ngTemplateOutlet="iconButton; context: { provider: 'google', sizeClass: 'text-2xl', connected: isProviderLinked('google') }"
-          ></ng-container>
+          <app-provider-icon
+            [provider]="'google'"
+            [connectedProviders]="this.authProviders"
+            [click]="clickProviderIcon"
+          ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
         </div>
 
         <div class="provider-block">
           <!-- Apple Provider Block -->
-          <ng-container
-            *ngTemplateOutlet="iconButton; context: { provider: 'apple', sizeClass: 'text-3xl', connected: isProviderLinked('apple') }"
-          ></ng-container>
+          <app-provider-icon
+            [provider]="'apple'"
+            [connectedProviders]="this.authProviders"
+            [click]="clickProviderIcon"
+          ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
         </div>
 
         <div class="provider-block">
           <!-- Local Provider Block -->
-          <ng-container
-            *ngTemplateOutlet="iconButton; context: { provider: 'local', sizeClass: 'text-2xl', connected: isProviderLinked('local') }"
-          ></ng-container>
+          <app-provider-icon
+            [provider]="'local'"
+            [connectedProviders]="this.authProviders"
+            [click]="clickProviderIcon"
+          ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
         </div>
       </div>
