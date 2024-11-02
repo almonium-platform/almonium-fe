@@ -295,7 +295,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.onClose();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to link local account', {status: 'error'}).subscribe();
         this.onClose();
       },
     });
@@ -308,7 +308,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.onClose();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to link local account', {status: 'error'}).subscribe();
         this.onClose();
       },
     });
@@ -323,7 +323,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           .subscribe();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Registration failed', {status: 'error'}).subscribe();
         this.isRotating = false;
       },
     });
@@ -340,7 +340,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.close.emit();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Login failed', {status: 'error'}).subscribe();
         this.isRotating = false;
       },
     });
@@ -378,7 +378,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to send password reset link', {status: 'error'})
+          .open(error.message || 'Failed to send password reset link', {status: 'error'})
           .subscribe();
       },
     });
