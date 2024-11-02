@@ -15,8 +15,11 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
       <div class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative">
         <app-dismiss-button (close)="onClose()"></app-dismiss-button>
         <div class="flex items-center mb-4 flex-row">
-          <img ngSrc="../../../../assets/img/icons/alert-triangle.svg" alt="Warning Icon" class="icon" height="512"
-               width="512" style="width: 20px; height: 20px; margin-right: 6px; margin-top: 2px">
+          <span class="flex items-center justify-center" style="margin-right: 6px">
+            <i class="fas fa-circle-exclamation text-xl text-red-500"
+               style="margin-top: 1px"
+            ></i>
+            </span>
           <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
         </div>
         <p class="text-gray-700 mb-6 mt-6 text-sm">{{ message }}</p>
@@ -33,9 +36,9 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
 })
 export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() isVisible: boolean = false;
-  @Input() title: string = 'Confirm Action';
-  @Input() message: string = 'Are you sure you want to proceed?';
-  @Input() confirmText: string = 'Delete Account';
+  @Input() title: string = '';
+  @Input() message: string = '';
+  @Input() confirmText: string = '';
   @Input() useCountdown: boolean = false;
 
   @Output() close = new EventEmitter<void>();
