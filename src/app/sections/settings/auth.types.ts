@@ -4,3 +4,8 @@ export interface AuthProvider {
   email: string;
   createdAt: string;
 }
+
+export interface TokenInfo {
+  email: string;
+  expiresAt: Date;
+}
