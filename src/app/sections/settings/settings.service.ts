@@ -46,7 +46,7 @@ export class SettingService {
   }
 
   requestEmailChange(email: string): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/email-changes/request`;
+    const url = `${AppConstants.EMAIL_CHANGE_REQUEST_URL}`;
     return this.http.post<any>(url, {email}, {withCredentials: true});
   }
 
@@ -57,6 +57,6 @@ export class SettingService {
 
   requestEmailVerification(): Observable<void> {
     const url = `${AppConstants.AUTH_URL}/email-verification/request`;
-    return this.http.post<void>(url, {}, { withCredentials: true });
+    return this.http.post<void>(url, {}, {withCredentials: true});
   }
 }
