@@ -10,7 +10,7 @@ import {NgClass, NgIf} from "@angular/common";
             [disabled]="disabled"
     >
       {{ editable ? label : '' }}
-      <i *ngIf="!editable" class="fa-regular fa-pen-to-square"></i>
+      <i *ngIf="!editable" class="fa-regular fa-pen-to-square text-sm"></i>
     </button>
   `,
   standalone: true,

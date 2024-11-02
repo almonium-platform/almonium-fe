@@ -14,7 +14,22 @@
   border-color: var(--text-color);
 }
 
+.edit-btn:hover {
+  background-color: var(--text-color);
+  height: 40px;
+  color: white;
+  border-color: var(--text-color);
+}
+
 .disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text-color);
+  border-color: var(--disabled-color);
+  pointer-events: none; /* Prevents hover effects and click events */
+}
+
+/* Ensure hover doesn't change the appearance if disabled */
+.edit-btn.disabled:hover {
   background-color: var(--disabled-color);
   color: var(--disabled-text-color);
   border-color: var(--disabled-color);
