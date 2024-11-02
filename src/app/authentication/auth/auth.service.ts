@@ -14,12 +14,12 @@ export class AuthService {
   }
 
   linkLocalWithNewEmail(email: string, password: string): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/email-changes/link-local`;
+    const url = `${AppConstants.AUTH_URL}/local/migrate`;
     return this.http.post(url, {email, password}, {withCredentials: true});
   }
 
   linkLocalAccount(password: string): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/local`;
+    const url = `${AppConstants.AUTH_URL}/local/link`;
     return this.http.post(url, {password}, {withCredentials: true});
   }
 
