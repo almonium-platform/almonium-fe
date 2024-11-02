@@ -10,6 +10,18 @@
   [useCountdown]="useCountdown">
 </app-confirm-modal>
 
+<app-action-modal
+  [isVisible]="isEmailTokenModalVisible"
+  [title]='"Email Verification Requests"'
+  [message]="getEmailTokenMessage()"
+  [actionOneText]="'Resend email'"
+  [actionTwoText]="'Cancel request'"
+  (close)="closeEmailTokenModal()"
+  (actionOne)="resendEmailChangeRequest()"
+  (actionTwo)="cancelEmailChangeRequest()"
+>
+</app-action-modal>
+
 <ng-template #authButton let-provider="provider">
   <button
     type="button"
@@ -82,7 +94,8 @@
           <i class="fas fa-exclamation text-xl"></i>
         </span>
 
-        <button *ngIf="!emailVerified && !emailEditable" class="black-n-white-button verify-btn"
+        <button *ngIf="!emailVerified && !emailEditable && !hasPendingEmailVerificationRequest()"
+                class="black-n-white-button verify-btn"
                 (click)="requestEmailVerification()">
           <i class="fa-solid fa-envelope-open-text"></i>
           Verify
@@ -94,7 +107,17 @@
             <span *ngIf="emailVerifiedTextExpanded" class="status-text">VERIFIED</span>
           </span>
         </div>
+
+        <button *ngIf="hasPendingEmailVerificationRequest()"
+                class="pending-icon edit-element"
+                title="Email not verified"
+                (click)="onPendingEmailVerificationClick()"
+        >
+          <i class="fi fi-rr-email-pending text-sm"></i>
+        </button>
+
         <app-edit-button
+          *ngIf="!hasPendingEmailVerificationRequest()"
           class="edit-element"
           [disabled]="!emailConfirmEnabled()"
           [label]="'Change email'"
@@ -135,7 +158,7 @@
           <!-- Google Provider Block -->
           <app-provider-icon
             [provider]="'google'"
-            [connectedProviders]="this.authProviders"
+            [connectedProviders]="authProviders"
             [click]="clickProviderIcon"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
@@ -145,7 +168,7 @@
           <!-- Apple Provider Block -->
           <app-provider-icon
             [provider]="'apple'"
-            [connectedProviders]="this.authProviders"
+            [connectedProviders]="authProviders"
             [click]="clickProviderIcon"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
@@ -155,7 +178,7 @@
           <!-- Local Provider Block -->
           <app-provider-icon
             [provider]="'local'"
-            [connectedProviders]="this.authProviders"
+            [connectedProviders]="authProviders"
             [click]="clickProviderIcon"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>

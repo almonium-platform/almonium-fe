@@ -23,6 +23,8 @@ import {AuthService} from "../../authentication/auth/auth.service";
 import {UrlService} from "../../services/url.service";
 import {EditButtonComponent} from "../../shared/edit-button/edit-button.component";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
+import {AuthProvider, TokenInfo} from "./auth.types";
+import {ActionModalComponent} from "../../shared/modals/action-modal/action-modal.component";
 
 @Component({
   selector: 'app-settings',
@@ -46,7 +48,8 @@ import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/
     TuiInputPasswordModule,
     TuiTextfieldControllerModule,
     EditButtonComponent,
-    ProviderIconComponent
+    ProviderIconComponent,
+    ActionModalComponent
   ],
   templateUrl: './settings.component.html',
   providers: [
@@ -65,13 +68,13 @@ import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/
 export class SettingsComponent implements OnInit {
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
+  protected authMethods: AuthProvider[] = [];
   protected authProviders: string[] = [];
 
   // email and password settings
   protected emailVerifiedTextExpanded = true;
   protected emailEditable: boolean = false;
   protected passwordEditable: boolean = false;
-  protected emailWaitIcon: boolean = false; // not used
   protected emailVerified: boolean = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
@@ -83,6 +86,10 @@ export class SettingsComponent implements OnInit {
   });
   @ViewChild(TuiInputComponent) emailInputComponent!: TuiInputComponent;
   @ViewChild(TuiInputPasswordComponent) passwordInputComponent!: TuiInputPasswordComponent;
+
+  // email token settings
+  protected tokenInfo: TokenInfo | null = null;
+  protected isEmailTokenModalVisible: boolean = false;
 
   // auth modal settings
   protected authMode: 'embedded' | 'linkLocal' | 'changeEmail' = 'embedded';
@@ -112,8 +119,9 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.displayAppropriateAlerts();
     this.populateAuthMethods();
-    this.populateEmail();
+    this.getUserInfo();
     this.checkEmailVerification();
+    this.populateLastToken();
   }
 
   private displayAppropriateAlerts() {
@@ -135,17 +143,19 @@ export class SettingsComponent implements OnInit {
   }
 
   private populateAuthMethods() {
-    this.settingService.getAuthProviders().subscribe({
-      next: (authProviders) => {
-        this.authProviders = authProviders.map(provider => provider.toLowerCase());
+    this.settingService.getAuthMethods().subscribe({
+      next: (methods) => {
+        this.authMethods = methods;
+        this.authProviders = methods.map(method => method.provider);
       },
       error: (error) => {
+        this.alertService.open(error.message || 'Failed to get auth methods', {status: 'error'}).subscribe();
         console.error(error);
       },
     });
   }
 
-  private populateEmail() {
+  private getUserInfo() {
     this.userInfoService.userInfo$.subscribe((info) => {
       this.userInfo = info;
       if (info) {
@@ -160,6 +170,7 @@ export class SettingsComponent implements OnInit {
         this.emailVerified = isVerified;
       },
       error: (error) => {
+        this.alertService.open(error.message || 'Failed to check email verification', {status: 'error'}).subscribe();
         console.error('Error checking email verification:', error);
       },
     });
@@ -195,20 +206,16 @@ export class SettingsComponent implements OnInit {
   }
 
   private confirmDeletion() {
-    this.closeConfirmModal();
-
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
         this.alertService.open('Account successfully deleted!', {status: 'success'}).subscribe();
         this.userInfoService.clearUserInfo();
         this.router.navigate(['/']).then(r => r);
-        this.closeConfirmModal();
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to delete account', {status: 'error'})
+          .open(error.message || 'Failed to delete account', {status: 'error'})
           .subscribe();
-        this.closeConfirmModal();
       },
     });
   }
@@ -223,11 +230,11 @@ export class SettingsComponent implements OnInit {
   }
 
   protected isProviderLinked(provider: string): boolean {
-    return this.authProviders.some(authProvider => authProvider.toLowerCase() === provider.toLowerCase());
+    return this.authMethods.some(method => method.provider.toLowerCase() === provider.toLowerCase());
   }
 
   protected isLastLinkedProvider(provider: string): boolean {
-    return this.authProviders.length === 1 && this.isProviderLinked(provider);
+    return this.authMethods.length === 1 && this.isProviderLinked(provider);
   }
 
   protected handleProviderWrapped(provider: string) {
@@ -268,7 +275,7 @@ export class SettingsComponent implements OnInit {
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
         this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {status: 'success'}).subscribe();
-        this.authProviders = this.authProviders.filter(authProvider => authProvider !== provider);
+        this.authMethods = this.authMethods.filter(method => method.provider !== provider);
         if (reauthRequired) {
           this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {status: 'info'}).subscribe();
           setTimeout(() => {
@@ -280,7 +287,7 @@ export class SettingsComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to unlink account', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to unlink account', {status: 'error'}).subscribe();
       },
     });
   }
@@ -306,6 +313,7 @@ export class SettingsComponent implements OnInit {
         }
       },
       error: (error) => {
+        this.alertService.open(error.message || 'Failed to check access token', {status: 'error'}).subscribe();
         console.error('Error checking access token:', error);
       }
     });
@@ -317,6 +325,81 @@ export class SettingsComponent implements OnInit {
     this.openAuthModal();
   }
 
+  // PENDING EMAIL CHANGE REQUEST
+  protected getEmailTokenMessage() {
+    return `
+      Your email <strong>${this.tokenInfo?.email}</strong> is pending verification.
+      Request will expire in <strong>${this.countMinutesLeft()}</strong> minutes.
+      `;
+  }
+
+  private countMinutesLeft(): number {
+    return Math.floor((this.tokenInfo?.expiresAt.getTime()! - new Date().getTime()) / 60000);
+  }
+
+  protected closeEmailTokenModal() {
+    this.isEmailTokenModalVisible = false;
+  }
+
+  protected onPendingEmailVerificationClick() {
+    this.checkAuth(() => this.isEmailTokenModalVisible = true);
+  }
+
+  private populateLastToken() {
+    this.settingService.getLastEmailVerificationToken().subscribe({
+      next: (token) => {
+        if (!token) {
+          this.tokenInfo = null;
+          return;
+        }
+        this.tokenInfo = {
+          ...token,
+          expiresAt: new Date(token.expiresAt),
+        };
+      },
+      error: (error) => {
+        this.alertService.open(error.message || 'Failed to get last token', {status: 'error'}).subscribe();
+        console.error('Error getting last token:', error);
+      },
+    });
+  }
+
+  protected hasPendingEmailVerificationRequest(): boolean {
+    return !!this.tokenInfo;
+  }
+
+  protected cancelEmailChangeRequest() {
+    this.checkAuth(() => {
+    })
+
+    this.settingService.cancelEmailChangeRequest().subscribe({
+      next: () => {
+        this.alertService.open('Email change request cancelled!', {status: 'success'}).subscribe();
+        this.populateLastToken();
+      },
+      error: (error) => {
+        this.alertService.open(error.message || 'Failed to cancel email change request', {status: 'error'}).subscribe();
+        console.error('Error cancelling email change request:', error);
+      },
+    });
+  }
+
+  protected resendEmailChangeRequest() {
+    this.checkAuth(() => {
+    })
+
+    this.settingService.resendEmailChangeRequest().subscribe({
+      next: () => {
+        this.alertService.open('Email change request resent!', {status: 'success'}).subscribe();
+        this.populateLastToken();
+      },
+      error: (error) => {
+        console.log('Error resending email change request:', error);
+        this.alertService.open(error.message || 'Failed to resend email change request', {status: 'error'}).subscribe();
+        console.error('Error resending email change request:', error);
+      },
+    });
+  }
 
   // EMAIL AND PASSWORD SETTINGS
   @HostListener('document:keydown.escape', ['$event'])
@@ -357,9 +440,10 @@ export class SettingsComponent implements OnInit {
     this.settingService.requestEmailVerification().subscribe({
       next: () => {
         this.alertService.open('Verification email sent!', {status: 'success'}).subscribe();
+        this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to send verification email', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to send verification email', {status: 'error'}).subscribe();
       },
     });
   }
@@ -394,8 +478,12 @@ export class SettingsComponent implements OnInit {
   }
 
   protected onEmailEditClick() {
-    this.focusEmailInput();
     this.restorePasswordField();
+    this.focusEmailInput();
+    if (this.hasPendingEmailVerificationRequest()) {
+      console.error('This button should not be visible');
+      return;
+    }
 
     this.checkAuth(() => this.onEmailChange());
   }
@@ -441,7 +529,7 @@ export class SettingsComponent implements OnInit {
         this.passwordEditable = false;
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to change password', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to change password', {status: 'error'}).subscribe();
       },
     });
   }
@@ -454,13 +542,13 @@ export class SettingsComponent implements OnInit {
           return;
         }
 
-        let hasLocal = this.authProviders.filter(provider => provider === 'local').length > 0
-        if (hasLocal) {
+        if (this.isProviderLinked('local')) {
           this.sendEmailChangeRequest();
         }
         this.emailEditable = false;
       },
       error: (error) => {
+        this.alertService.open(error.message || 'Failed to check email availability', {status: 'error'}).subscribe();
         console.error('Error checking email availability:', error);
       },
     });
@@ -470,9 +558,12 @@ export class SettingsComponent implements OnInit {
     this.settingService.requestEmailChange(this.getEmailFieldValue()).subscribe({
       next: () => {
         this.alertService.open('Email change request sent!', {status: 'success'}).subscribe();
-        this.emailWaitIcon = true;
+        this.emailForm.setValue({emailValue: this.userInfo?.email!});
+        this.populateAuthMethods();
+        this.populateLastToken();
       },
       error: (error) => {
+        this.alertService.open(error.message || 'Failed to send email change request', {status: 'error'}).subscribe();
         console.error('Error sending email change request:', error);
       }
     });
