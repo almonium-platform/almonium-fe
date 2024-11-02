@@ -42,7 +42,7 @@ export class AuthService {
   }
 
   resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${AppConstants.VERIFICATION_AUTH_URL}/password-resets`, {
+    return this.http.post(`${AppConstants.VERIFICATION_AUTH_URL}/passwords`, {
       token,
       newPassword
     });
