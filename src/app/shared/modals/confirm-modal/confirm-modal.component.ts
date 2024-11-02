@@ -87,8 +87,9 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   }
 
   onConfirm() {
-    this.confirm.emit();
     this.clearCountdown();
+    this.close.emit();
+    this.confirm.emit();
   }
 
   ngOnDestroy() {
