@@ -24,14 +24,15 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
         </div>
         <p class="text-gray-700 mb-6 mt-6 text-sm" [innerHTML]="message"></p>
         <div class="flex justify-between">
-          <button (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close</button>
+          <button (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close
+          </button>
           <button (click)="onConfirmTwo()"
                   class="bg-white border border-black text-black px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
-            {{ actionTwoText }}
+            {{ secondaryActionText }}
           </button>
           <button (click)="onConfirmOne()"
                   class="bg-black text-white px-4 py-2 font-bold rounded-3xl hover:bg-gray-800">
-            {{ actionOneText }}
+            {{ primaryActionText }}
           </button>
         </div>
       </div>
@@ -42,12 +43,12 @@ export class ActionModalComponent {
   @Input() isVisible: boolean = false;
   @Input() title: string = '';
   @Input() message: string = '';
-  @Input() actionOneText: string = '';
-  @Input() actionTwoText: string = '';
+  @Input() primaryActionText: string = '';
+  @Input() secondaryActionText: string = '';
 
   @Output() close = new EventEmitter<void>();
-  @Output() actionOne = new EventEmitter<void>();
-  @Output() actionTwo = new EventEmitter<void>();
+  @Output() primaryAction = new EventEmitter<void>();
+  @Output() secondaryAction = new EventEmitter<void>();
 
   onClose() {
     this.close.emit();
@@ -55,12 +56,12 @@ export class ActionModalComponent {
 
   onConfirmOne() {
     this.onClose();
-    this.actionOne.emit();
+    this.primaryAction.emit();
   }
 
   onConfirmTwo() {
     this.onClose();
-    this.actionTwo.emit();
+    this.secondaryAction.emit();
   }
 
   @HostListener('document:keydown.escape', ['$event'])

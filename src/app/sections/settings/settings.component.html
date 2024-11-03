@@ -14,11 +14,11 @@
   [isVisible]="isEmailTokenModalVisible"
   [title]='"Email Verification Requests"'
   [message]="getEmailTokenMessage()"
-  [actionOneText]="'Resend email'"
-  [actionTwoText]="'Cancel request'"
+  [primaryActionText]="'Resend email'"
+  [secondaryActionText]="'Cancel request'"
   (close)="closeEmailTokenModal()"
-  (actionOne)="resendEmailChangeRequest()"
-  (actionTwo)="cancelEmailChangeRequest()"
+  (primaryAction)="resendEmailChangeRequest()"
+  (secondaryAction)="cancelEmailChangeRequest()"
 >
 </app-action-modal>
 
