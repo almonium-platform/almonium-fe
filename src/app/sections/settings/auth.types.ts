@@ -3,6 +3,7 @@ export interface AuthProvider {
   emailVerified: boolean;
   email: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface TokenInfo {

@@ -77,6 +77,7 @@ export class SettingsComponent implements OnInit {
   protected emailVerifiedTextExpanded = true;
   protected emailEditable: boolean = false;
   protected passwordEditable: boolean = false;
+  protected lastPasswordUpdate: string = '';
   protected emailVerified: boolean = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
@@ -157,6 +158,10 @@ export class SettingsComponent implements OnInit {
       next: (methods) => {
         this.authMethods = methods;
         this.authProviders = methods.map(method => method.provider);
+        if (this.isProviderLinked('local')) {
+          let localMethod = methods.filter(method => method.provider.toLowerCase() === 'local').pop()!;
+          this.lastPasswordUpdate = new Date(localMethod.createdAt).toISOString().split('T')[0];
+        }
       },
       error: (error) => {
         this.alertService.open(error.message || 'Failed to get auth methods', {status: 'error'}).subscribe();
