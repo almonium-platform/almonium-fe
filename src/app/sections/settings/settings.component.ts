@@ -25,6 +25,7 @@ import {EditButtonComponent} from "../../shared/edit-button/edit-button.componen
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {AuthProvider, TokenInfo} from "./auth.types";
 import {ActionModalComponent} from "../../shared/modals/action-modal/action-modal.component";
+import {RecentAuthGuardService} from "./recent-auth-guard.service";
 
 @Component({
   selector: 'app-settings',
@@ -111,7 +112,8 @@ export class SettingsComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
-    private urlService: UrlService
+    private urlService: UrlService,
+    private authGuard: RecentAuthGuardService,
   ) {
   }
 
@@ -135,6 +137,9 @@ export class SettingsComponent implements OnInit {
           this.urlService.clearUrl();
         }
         if (params['intent'] === 'reauth') {
+          this.authGuard.cacheResult(true);
+          console.log("CACHED TRUE");
+          console.log(this.authGuard.getCachedResult());
           this.alertService.open('You successfully verified your identity!', {status: 'success'}).subscribe();
           this.urlService.clearUrl();
         }
@@ -304,19 +309,7 @@ export class SettingsComponent implements OnInit {
 
   // universal live token auth guard
   private checkAuth(onValidToken: () => void) {
-    this.settingService.checkCurrentAccessToken().subscribe({
-      next: (data: boolean) => {
-        if (data) {
-          onValidToken();
-        } else {
-          this.showIdentityVerificationPopup();
-        }
-      },
-      error: (error) => {
-        this.alertService.open(error.message || 'Failed to check access token', {status: 'error'}).subscribe();
-        console.error('Error checking access token:', error);
-      }
-    });
+    this.authGuard.checkAuth(onValidToken, this.showIdentityVerificationPopup.bind(this));
   }
 
   private showIdentityVerificationPopup() {

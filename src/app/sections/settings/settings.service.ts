@@ -13,7 +13,7 @@ export class SettingService {
   constructor(private http: HttpClient) {
   }
 
-  checkCurrentAccessToken(): Observable<boolean> {
+  checkCurrentAccessTokenIsLive(): Observable<boolean> {
     const url = `${AppConstants.AUTH_URL}/access-token/verify-live`;
     return this.http.get<boolean>(url, {withCredentials: true});
   }
