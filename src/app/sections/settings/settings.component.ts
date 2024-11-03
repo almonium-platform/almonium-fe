@@ -182,7 +182,7 @@ export class SettingsComponent implements OnInit {
   private checkEmailVerification() {
     this.settingService.isEmailVerified().subscribe({
       next: (isVerified) => {
-        this.emailVerified = false;
+        this.emailVerified = isVerified;
       },
       error: (error) => {
         this.alertService.open(error.message || 'Failed to check email verification', {status: 'error'}).subscribe();
