@@ -5,7 +5,7 @@ import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {SettingService} from "./settings.service";
 import {TuiAlertService, TuiErrorModule, TuiTextfieldControllerModule} from "@taiga-ui/core";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {UserInfoService} from "../../services/user-info.service";
 import {AppConstants} from "../../app.constants";
 import {AuthComponent} from "../../authentication/auth/auth.component";
@@ -50,7 +50,8 @@ import {RecentAuthGuardService} from "./recent-auth-guard.service";
     TuiTextfieldControllerModule,
     EditButtonComponent,
     ProviderIconComponent,
-    ActionModalComponent
+    ActionModalComponent,
+    RouterLink
   ],
   templateUrl: './settings.component.html',
   providers: [
@@ -87,6 +88,12 @@ export class SettingsComponent implements OnInit {
   });
   @ViewChild(TuiInputComponent) emailInputComponent!: TuiInputComponent;
   @ViewChild(TuiInputPasswordComponent) passwordInputComponent!: TuiInputPasswordComponent;
+
+  // Provider info modal
+  protected providerInfoVisible: boolean = false;
+  protected providerInfoTitle: string = '';
+  protected providerInfoText: string = '';
+  protected providerInfoIcon: string = '';
 
   // email token settings
   protected tokenInfo: TokenInfo | null = null;
@@ -224,14 +231,43 @@ export class SettingsComponent implements OnInit {
   }
 
   // AUTH PROVIDERS BLOCKS
+
+  // Provider info modal
+  protected prepareAndShowProviderModal = (provider: string) => {
+    this.providerInfoText = this.getProviderInfo(provider);
+    this.providerInfoTitle = this.getFormattedProvider(provider) + " Info";
+    this.providerInfoIcon = [
+      provider === 'local' ? 'fas' : 'fab',
+      provider === 'local' ? 'fa-envelope' : 'fa-' + provider.toLowerCase()
+    ].join(' ') + ' text-lg';
+    this.providerInfoVisible = true;
+  }
+
+  protected closeProviderInfo() {
+    this.providerInfoVisible = false;
+  }
+
+  protected getProviderInfo = (provider: string) => {
+    let method = this.authMethods
+      .filter(method => method.email.toLowerCase() === this.userInfo?.email.toLowerCase()) // to filter out lingering principal
+      .filter(method => method.provider.toLowerCase() === provider.toLowerCase())
+      .pop();
+
+    if (method) {
+      return `
+          <div>
+            <p><strong>Email:</strong> ${method.email}</p>
+            <p><strong>Verified:</strong> ${method.emailVerified ? 'Yes' : 'No'}</p>
+            <p><strong>Connected at:</strong> ${new Date(method.createdAt).toLocaleDateString()}</p>
+          </div>
+    `;
+    }
+    return 'No info available';
+  }
+
   // Linking and unlinking social accounts
 
   // boolean checkers
-
-  protected clickProviderIcon() {
-    return;
-  }
-
   protected isProviderLinked(provider: string): boolean {
     return this.authMethods.some(method => method.provider.toLowerCase() === provider.toLowerCase());
   }

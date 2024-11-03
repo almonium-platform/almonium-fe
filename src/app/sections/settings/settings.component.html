@@ -13,12 +13,22 @@
 <app-action-modal
   [isVisible]="isEmailTokenModalVisible"
   [title]='"Verification Requests"'
+  [titleIcon]='"fi fi-rr-email-pending text-xl"'
   [message]="getEmailTokenMessage()"
   [primaryActionText]="'Resend email'"
   [secondaryActionText]="'Cancel request'"
   (close)="closeEmailTokenModal()"
   (primaryAction)="resendEmailChangeRequest()"
   (secondaryAction)="cancelEmailChangeRequest()"
+>
+</app-action-modal>
+
+<app-action-modal
+  [isVisible]="providerInfoVisible"
+  [title]="providerInfoTitle"
+  [message]="providerInfoText"
+  [titleIcon]="providerInfoIcon"
+  (close)="closeProviderInfo()"
 >
 </app-action-modal>
 
@@ -140,7 +150,7 @@
           <app-provider-icon
             [provider]="'google'"
             [connectedProviders]="authProviders"
-            [click]="clickProviderIcon"
+            [click]="prepareAndShowProviderModal"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
         </div>
@@ -150,7 +160,7 @@
           <app-provider-icon
             [provider]="'apple'"
             [connectedProviders]="authProviders"
-            [click]="clickProviderIcon"
+            [click]="prepareAndShowProviderModal"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
         </div>
@@ -160,7 +170,7 @@
           <app-provider-icon
             [provider]="'local'"
             [connectedProviders]="authProviders"
-            [click]="clickProviderIcon"
+            [click]="prepareAndShowProviderModal"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
         </div>
