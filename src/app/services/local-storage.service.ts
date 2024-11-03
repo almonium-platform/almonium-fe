@@ -10,33 +10,55 @@ const LANG_COLOR_KEY = 'langColors';
   providedIn: 'root'
 })
 export class LocalStorageService {
+
+  // universal methods for saving, getting and removing items from local storage
+  public saveItem(key: string, value: any): void {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('Error saving to localStorage', e);
+    }
+  }
+
+  public getItem<T>(key: string): T | null {
+    try {
+      const data = window.localStorage.getItem(key);
+      return data ? JSON.parse(data) as T : null;
+    } catch (e) {
+      console.error('Error reading from localStorage', e);
+      return null;
+    }
+  }
+
+  public removeItem(key: string): void {
+    window.localStorage.removeItem(key);
+  }
+
   saveUserInfo(userInfo: any): void {
-    window.localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+    this.saveItem(USER_INFO_KEY, userInfo);
   }
 
   getUserInfo(): any {
-    const data = window.localStorage.getItem(USER_INFO_KEY);
-    return data ? JSON.parse(data) : null;
+    return this.getItem<any>(USER_INFO_KEY);
   }
 
   clearUserInfo(): void {
-    window.localStorage.removeItem(USER_INFO_KEY);
+    this.removeItem(USER_INFO_KEY);
   }
 
   saveCurrentLanguage(language: Language): void {
-    window.localStorage.setItem(CURRENT_LANGUAGE, language);
+    this.saveItem(CURRENT_LANGUAGE, language);
   }
 
   getCurrentLanguage(): Language {
-    return (window.localStorage.getItem(CURRENT_LANGUAGE) as Language) || Language.EN;
+    return this.getItem<Language>(CURRENT_LANGUAGE) || Language.EN;
   }
 
   saveLangColors(colors: { [key: string]: string }): void {
-    localStorage.setItem(LANG_COLOR_KEY, JSON.stringify(colors));
+    this.saveItem(LANG_COLOR_KEY, colors);
   }
 
   getLangColors(): { [key: string]: string } | null {
-    const colors = localStorage.getItem(LANG_COLOR_KEY);
-    return colors ? JSON.parse(colors) : null;
+    return this.getItem<{ [key: string]: string }>(LANG_COLOR_KEY);
   }
 }
