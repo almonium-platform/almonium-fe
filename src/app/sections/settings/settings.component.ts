@@ -567,7 +567,7 @@ export class SettingsComponent implements OnInit {
     this.settingService.changePassword(this.getPasswordFieldValue()).subscribe({
       next: () => {
         this.alertService.open('Password successfully changed!', {status: 'success'}).subscribe();
-        this.passwordEditable = false;
+        this.restorePasswordField();
       },
       error: (error) => {
         this.alertService.open(error.message || 'Failed to change password', {status: 'error'}).subscribe();
@@ -586,7 +586,7 @@ export class SettingsComponent implements OnInit {
         if (this.isProviderLinked('local')) {
           this.sendEmailChangeRequest();
         }
-        this.emailEditable = false;
+        this.restoreEmailField();
       },
       error: (error) => {
         this.alertService.open(error.message || 'Failed to check email availability', {status: 'error'}).subscribe();
