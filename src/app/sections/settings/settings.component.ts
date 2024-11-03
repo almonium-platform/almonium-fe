@@ -137,9 +137,7 @@ export class SettingsComponent implements OnInit {
           this.urlService.clearUrl();
         }
         if (params['intent'] === 'reauth') {
-          this.authGuard.cacheResult(true);
-          console.log("CACHED TRUE");
-          console.log(this.authGuard.getCachedResult());
+          this.authGuard.getRecentAuthStatus();
           this.alertService.open('You successfully verified your identity!', {status: 'success'}).subscribe();
           this.urlService.clearUrl();
         }

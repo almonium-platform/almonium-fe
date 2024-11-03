@@ -4,6 +4,7 @@ import {AppConstants} from "../../app.constants";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {AuthProvider, TokenInfo} from "./auth.types";
+import {ResponseModel} from "../../models/response.model";
 
 
 @Injectable({
@@ -13,9 +14,11 @@ export class SettingService {
   constructor(private http: HttpClient) {
   }
 
-  checkCurrentAccessTokenIsLive(): Observable<boolean> {
+  checkCurrentAccessTokenIsLive(): Observable<string | null> {
     const url = `${AppConstants.AUTH_URL}/access-token/verify-live`;
-    return this.http.get<boolean>(url, {withCredentials: true});
+    return this.http.get<ResponseModel>(url, {withCredentials: true}).pipe(
+      map(response => response.success ? response.message! : null)
+    );
   }
 
   // email change request

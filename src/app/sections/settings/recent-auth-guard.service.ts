@@ -7,9 +7,7 @@ import {TuiAlertService} from "@taiga-ui/core";
   providedIn: 'root'
 })
 export class RecentAuthGuardService {
-  private static readonly TOKEN_CACHE_KEY = 'token_check_cache';
-  private static readonly CACHE_TIMESTAMP_KEY = 'token_cache_timestamp';
-  private static readonly CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes - should be in sync with BE (access token lifespan)
+  private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   constructor(
     private settingService: SettingService,
@@ -18,52 +16,43 @@ export class RecentAuthGuardService {
   ) {
   }
 
-  private isCacheValid(): boolean {
-    const cacheTimestamp: number | null = this.localStorageService.getItem<number>(RecentAuthGuardService.CACHE_TIMESTAMP_KEY);
-    if (cacheTimestamp !== null && new Date().getTime() - cacheTimestamp < RecentAuthGuardService.CACHE_DURATION_MS) {
+  private getCachedResult(): boolean {
+    const cacheTimestamp: number | null = this.localStorageService.getItem<number>(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+
+    if (cacheTimestamp !== null && new Date().getTime() < cacheTimestamp) {
       return true;
     }
-    this.clearCache();
+    this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
     return false;
   }
 
-  cacheResult(isTokenLive: boolean): void {
-    this.localStorageService.saveItem(RecentAuthGuardService.TOKEN_CACHE_KEY, isTokenLive);
-    this.localStorageService.saveItem(RecentAuthGuardService.CACHE_TIMESTAMP_KEY, new Date().getTime());
-  }
-
-  getCachedResult(): boolean | null {
-    if (this.isCacheValid()) {
-      return this.localStorageService.getItem<boolean>(RecentAuthGuardService.TOKEN_CACHE_KEY);
+  checkAuth(onValidTokenAction: () => void, identityVerification: () => void): void {
+    console.log('Checking auth');
+    const cachedResult: boolean = this.getCachedResult();
+    console.log('Cached result:', cachedResult);
+    if (!cachedResult) {
+      console.log('Getting recent auth status');
+      this.getRecentAuthStatus(onValidTokenAction, identityVerification);
+    } else {
+      console.log('Executing onValidTokenAction');
+      onValidTokenAction();
     }
-    this.clearCache();
-    return null;
   }
 
-  private clearCache(): void {
-    this.localStorageService.removeItem(RecentAuthGuardService.TOKEN_CACHE_KEY);
-    this.localStorageService.removeItem(RecentAuthGuardService.CACHE_TIMESTAMP_KEY);
-  }
-
-  checkAuth(onValidToken: () => void, identityVerification: () => void): void {
-    const cachedResult = this.getCachedResult();
-    console.log("CACHED RESULT IS: ", cachedResult);
-    if (cachedResult !== null) {
-      if (cachedResult) {
-        onValidToken();
-      } else {
-        identityVerification();
-      }
-      return;
-    }
-
+  public getRecentAuthStatus(onValidTokenAction?: () => void, identityVerification?: () => void): void {
     this.settingService.checkCurrentAccessTokenIsLive().subscribe({
-      next: (isTokenLive: boolean) => {
-        this.cacheResult(isTokenLive);
-        if (isTokenLive) {
-          onValidToken();
+      next: (expiresAt: string | null) => {
+        if (expiresAt) {
+          const expirationTime = new Date(expiresAt).getTime();
+          this.localStorageService.saveItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY, expirationTime);
+          if (onValidTokenAction) {
+            onValidTokenAction();
+          }
         } else {
-          identityVerification();
+          this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+          if (identityVerification) {
+            identityVerification();
+          }
         }
       },
       error: (error) => {
