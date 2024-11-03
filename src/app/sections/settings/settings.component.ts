@@ -260,17 +260,26 @@ export class SettingsComponent implements OnInit {
 
     if (method) {
       return `
-          <div>
-            <p><strong>Email:</strong> ${method.email}</p>
-            <p><strong>Verified:</strong> ${method.emailVerified ? 'Yes' : 'No'}</p>
-            <p><strong>Connected at:</strong> ${new Date(method.createdAt).toLocaleDateString()}</p>
-          </div>
+      <div>
+        <p class="text-gray-700 mb-2 text-sm"><strong>Email:</strong> ${method.email}</p>
+        <p class="text-gray-700 mb-2 text-sm"><strong>Verified:</strong> ${method.emailVerified ? 'Yes' : 'No'}</p>
+        <p class="text-gray-700 mb-2 text-sm"><strong>Connected At:</strong> ${this.getFormattedDate(method.createdAt)}</p>
+        <p class="text-gray-700 mb-2 text-sm"><strong>Updated At:</strong> ${(this.getFormattedDate(method.updatedAt))}</p>
+      </div>
     `;
     }
     return 'No info available';
   }
 
-  // Linking and unlinking social accounts
+  private getFormattedDate(date: string) {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+// Linking and unlinking social accounts
 
   // boolean checkers
   protected isProviderLinked(provider: string): boolean {
