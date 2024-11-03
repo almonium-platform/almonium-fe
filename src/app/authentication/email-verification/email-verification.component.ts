@@ -69,7 +69,7 @@ export class EmailVerificationComponent implements OnInit {
             }),
             catchError(error => {
               this.verificationSuccess = false;
-              this.pendingMessage = error.message || `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`;
+              this.pendingMessage = error.error.message || `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`;
               return of(null);
             })
           )]);

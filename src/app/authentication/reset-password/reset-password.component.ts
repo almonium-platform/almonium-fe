@@ -74,7 +74,7 @@ export class ResetPasswordComponent implements OnInit {
           this.router.navigate(['/auth']).then(r => r);
         },
         error: (error) => {
-          this.alertService.open(error.message || 'Password reset failed', {status: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Password reset failed', {status: 'error'}).subscribe();
         },
       });
     }
