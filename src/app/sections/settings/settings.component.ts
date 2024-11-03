@@ -182,7 +182,7 @@ export class SettingsComponent implements OnInit {
   private checkEmailVerification() {
     this.settingService.isEmailVerified().subscribe({
       next: (isVerified) => {
-        this.emailVerified = isVerified;
+        this.emailVerified = false;
       },
       error: (error) => {
         this.alertService.open(error.message || 'Failed to check email verification', {status: 'error'}).subscribe();
@@ -287,7 +287,7 @@ export class SettingsComponent implements OnInit {
   }
 
   protected isLastLinkedProvider(provider: string): boolean {
-    return this.authMethods.length === 1 && this.isProviderLinked(provider);
+    return this.authMethods.filter(method => method.emailVerified).length === 1 && this.isProviderLinked(provider);
   }
 
   protected handleProviderWrapped(provider: string) {
