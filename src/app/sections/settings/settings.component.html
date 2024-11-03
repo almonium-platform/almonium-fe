@@ -41,25 +41,6 @@
     {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
   </button>
 </ng-template>
-<ng-template #iconButton let-provider="provider" let-sizeClass="sizeClass" let-connected="connected">
-  <button
-    type="button"
-    class="social-button"
-    [ngClass]="provider.toLowerCase()"
-    [ngStyle]="{
-      opacity: connected ? 1 : 0.5,
-      filter: connected ? 'none' : 'grayscale(20%)'
-    }"
-  >
-    <i
-      [ngClass]="[
-        provider === 'local' ? 'fas' : 'fab',
-        provider === 'local' ? 'fa-envelope' :  'fa-' + provider.toLowerCase(),
-        sizeClass
-      ]"
-    ></i>
-  </button>
-</ng-template>
 
 <!-- Auth Modal Wrapper -->
 <div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
