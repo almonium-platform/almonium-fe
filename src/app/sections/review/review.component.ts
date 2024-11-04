@@ -11,9 +11,9 @@ import {RouterLink} from "@angular/router";
 import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
-  selector: 'app-training',
-  templateUrl: './training.component.html',
-  styleUrls: ['./training.component.less'],
+  selector: 'app-review',
+  templateUrl: './review.component.html',
+  styleUrls: ['./review.component.less'],
   imports: [
     NavbarComponent,
     NgIf,
@@ -23,7 +23,7 @@ import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar
   ],
   standalone: true
 })
-export class TrainingComponent implements OnInit, OnDestroy {
+export class ReviewComponent implements OnInit, OnDestroy {
   cards: CardDto[] = [];
   selectedLanguage!: Language;
   private languageSubscription: Subscription | null = null;

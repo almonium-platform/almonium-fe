@@ -11,7 +11,7 @@ import {LandingComponent} from "./sections/landing/landing.component";
 import {LogoutComponent} from "./authentication/logout/logout.component";
 import {LanguageSetupComponent} from "./authentication/language-setup/language-setup.component";
 import {SettingsComponent} from "./sections/settings/settings.component";
-import {TrainingComponent} from "./sections/training/training.component";
+import {ReviewComponent} from "./sections/review/review.component";
 import {GamesComponent} from "./sections/games/games.component";
 import {LadderComponent} from "./games/ladder/ladder.component";
 import {HigherLowerComponent} from "./games/higher-lower/higher-lower.component";
@@ -40,7 +40,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       {path: 'home', component: HomeComponent, canActivate: [authGuard]},
-      {path: 'training', component: TrainingComponent, canActivate: [authGuard]},
+      {path: 'review', component: ReviewComponent, canActivate: [authGuard]},
       {path: 'settings', component: SettingsComponent},
       {path: 'setup-languages', component: LanguageSetupComponent},
 

@@ -97,7 +97,7 @@ export class LanguageSetupComponent implements OnInit {
   } = {special: [], basic: []};
 
   // Define basic features applicable to all languages
-  basicFeatures: string[] = ['Translation', 'Flashcards', 'Training Statistics', 'Standard Games',];
+  basicFeatures: string[] = ['Translation', 'Flashcards', 'Statistics', 'Standard Games',];
 
   // Additional features for specific languages
   languageFeatures: { [code: string]: string[] } = {
