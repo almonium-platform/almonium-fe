@@ -36,6 +36,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   currentFocus: number = -1;
   frequency: number = 0;
   submitted: boolean = false;
+  currentLanguage: Language = Language.EN;
 
   private globalKeydownListener!: () => void;
 
@@ -60,6 +61,11 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       if (event.key === '/') {
         this.focusSearchInput();
         event.preventDefault();
+      }
+    });
+    this.languageService.currentLanguage$.subscribe((currentLanguage) => {
+      if (currentLanguage) {
+        this.currentLanguage = currentLanguage;
       }
     });
   }
@@ -92,12 +98,8 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
-      this.languageService.currentLanguage$.subscribe((currentLanguage) => {
-        if (currentLanguage) {
-          this.frequencyService.getFrequency(this.searchText, currentLanguage).subscribe((freq) => {
-            this.frequency = freq;
-          });
-        }
+      this.frequencyService.getFrequency(this.searchText, this.currentLanguage).subscribe((freq) => {
+        this.frequency = freq;
       });
     }
   }
@@ -106,50 +108,48 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     this.searchText = this.sanitizeInput(searchText);
     this.submitted = false;
     this.currentFocus = -1;
-    this.languageService.currentLanguage$.subscribe((currentLanguage) => {
 
-      if (searchText && searchText.length >= 3 && currentLanguage === Language.EN) {
-        const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
-        this.http.get<{ word: string }[]>(apiUrl).pipe(
-          map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
-          catchError(() => of([]))
-        ).subscribe(options => {
-          if (!this.submitted) {
-            this.filteredOptions = options;
-          }
-        });
-      } else {
-        this.filteredOptions = [];
-      }
+    if (searchText && searchText.length >= 3 && this.currentLanguage === Language.EN) {
+      const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
+      this.http.get<{ word: string }[]>(apiUrl).pipe(
+        map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Slice to ensure only 5 suggestions
+        catchError(() => of([]))
+      ).subscribe(options => {
+        if (!this.submitted) {
+          this.filteredOptions = options;
+        }
+      });
+    } else {
+      this.filteredOptions = [];
+    }
 
-      // Preserve cursor position logic
-      const element = this.renderer.selectRootElement('.search-input', true);
-      const selection = window.getSelection();
+    // Preserve cursor position logic
+    const element = this.renderer.selectRootElement('.search-input', true);
+    const selection = window.getSelection();
 
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        const cursorPosition = range.startOffset;
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const cursorPosition = range.startOffset;
 
-        // Refocus the input and preserve cursor position
-        element.focus();
+      // Refocus the input and preserve cursor position
+      element.focus();
 
-        // Use a setTimeout to ensure cursor position logic executes after rendering
-        setTimeout(() => {
-          const newRange = document.createRange();
-          const newSelection = window.getSelection();
+      // Use a setTimeout to ensure cursor position logic executes after rendering
+      setTimeout(() => {
+        const newRange = document.createRange();
+        const newSelection = window.getSelection();
 
-          // Set the range at the preserved cursor position
-          newRange.setStart(element.childNodes[0], cursorPosition);
-          newRange.collapse(true);
+        // Set the range at the preserved cursor position
+        newRange.setStart(element.childNodes[0], cursorPosition);
+        newRange.collapse(true);
 
-          // Apply the new range as the current selection
-          newSelection?.removeAllRanges();
-          newSelection?.addRange(newRange);
-        }, 0); // Timeout of 0 ensures the next task in the event loop
-      } else {
-        element.focus();
-      }
-    });
+        // Apply the new range as the current selection
+        newSelection?.removeAllRanges();
+        newSelection?.addRange(newRange);
+      }, 0); // Timeout of 0 ensures the next task in the event loop
+    } else {
+      element.focus();
+    }
   }
 
   private sanitizeInput(input: string): string {
