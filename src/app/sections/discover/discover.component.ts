@@ -70,7 +70,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }
   }
 
-  focusSearchInput(): void {
+  private focusSearchInput(): void {
     const element = this.renderer.selectRootElement('.search-input', true);
     if (element) {
       element.focus();
@@ -88,7 +88,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }
   }
 
-  onSubmit(): void {
+  private onSubmit(): void {
     this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
@@ -100,12 +100,6 @@ export class DiscoverComponent implements OnInit, OnDestroy {
         }
       });
     }
-  }
-
-  sanitizeInput(input: string): string {
-    const div = document.createElement('div');
-    div.innerHTML = input;
-    return div.textContent || div.innerText || '';
   }
 
   onSearchChange(searchText: string): void {
@@ -158,7 +152,13 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     });
   }
 
-  onOptionSelected(option: string): void {
+  private sanitizeInput(input: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = input;
+    return div.textContent || div.innerText || '';
+  }
+
+  protected onOptionSelected(option: string): void {
     this.searchText = option;
     this.onSubmit();
 
@@ -168,7 +168,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  handleKeydown(event: KeyboardEvent): void {
+  protected handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'ArrowDown') {
       this.currentFocus++;
       if (this.currentFocus >= this.filteredOptions.length) {
@@ -195,11 +195,11 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     }
   }
 
-  isOptionFocused(index: number): boolean {
+  protected isOptionFocused(index: number): boolean {
     return this.currentFocus === index;
   }
 
-  getGaussianGradient(frequency: number): string {
+  protected getGaussianGradient(frequency: number): string {
     // Map frequency (1-100) to hue values in a broader range (250-340 for purple-pink-blue)
     const startHue = 160;
     const endHue = 280;
@@ -211,7 +211,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     return `linear-gradient(45deg, ${startColor} 0%, ${endColor} 100%)`;
   }
 
-  getFrequencyLabel(frequency: number): string {
+  protected getFrequencyLabel(frequency: number): string {
     if (frequency <= 20) return "Extremely Rare";
     if (frequency <= 30) return "Pretty Rare";
     if (frequency <= 40) return "Challenging";
@@ -219,7 +219,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     return "Essential";
   }
 
-  getFrequencyDescription(frequency: number): string {
+  protected getFrequencyDescription(frequency: number): string {
     if (frequency <= 20) return "Too rare to be useful";
     if (frequency <= 30) return "Learn if need to";
     if (frequency <= 40) return "Ideal candidate";
