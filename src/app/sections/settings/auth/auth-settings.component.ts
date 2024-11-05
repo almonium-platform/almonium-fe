@@ -1,14 +1,14 @@
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
-import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
+import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet} from "@angular/common";
-import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
-import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
-import {SettingService} from "./settings.service";
+import {NotReadyComponent} from "../../../shared/not-ready/not-ready.component";
+import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
+import {AuthSettingService} from "./auth-settings.service";
 import {TuiAlertService, TuiErrorModule, TuiTextfieldControllerModule} from "@taiga-ui/core";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
-import {UserInfoService} from "../../services/user-info.service";
-import {AppConstants} from "../../app.constants";
-import {AuthComponent} from "../../authentication/auth/auth.component";
+import {UserInfoService} from "../../../services/user-info.service";
+import {AppConstants} from "../../../app.constants";
+import {AuthComponent} from "../../../authentication/auth/auth.component";
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {
   TUI_VALIDATION_ERRORS,
@@ -18,13 +18,13 @@ import {
   TuiInputPasswordComponent,
   TuiInputPasswordModule
 } from "@taiga-ui/kit";
-import {UserInfo} from "../../models/userinfo.model";
-import {AuthService} from "../../authentication/auth/auth.service";
-import {UrlService} from "../../services/url.service";
-import {EditButtonComponent} from "../../shared/edit-button/edit-button.component";
-import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
+import {UserInfo} from "../../../models/userinfo.model";
+import {AuthService} from "../../../authentication/auth/auth.service";
+import {UrlService} from "../../../services/url.service";
+import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
+import {ProviderIconComponent} from "../../../shared/modals/elements/provider-icon/provider-icon.component";
 import {AuthProvider, TokenInfo} from "./auth.types";
-import {ActionModalComponent} from "../../shared/modals/action-modal/action-modal.component";
+import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "./recent-auth-guard.service";
 
 @Component({
@@ -53,7 +53,7 @@ import {RecentAuthGuardService} from "./recent-auth-guard.service";
     ActionModalComponent,
     RouterLink
   ],
-  templateUrl: './settings.component.html',
+  templateUrl: './auth-settings.component.html',
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,
@@ -65,9 +65,9 @@ import {RecentAuthGuardService} from "./recent-auth-guard.service";
       },
     },
   ],
-  styleUrls: ['./settings.component.less']
+  styleUrls: ['./auth-settings.component.less']
 })
-export class SettingsComponent implements OnInit {
+export class AuthSettingsComponent implements OnInit {
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
   protected authMethods: AuthProvider[] = [];
@@ -114,7 +114,7 @@ export class SettingsComponent implements OnInit {
 
 
   constructor(
-    private settingService: SettingService,
+    private settingService: AuthSettingService,
     private alertService: TuiAlertService,
     private userInfoService: UserInfoService,
     private router: Router,

@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
-import {SettingService} from "./settings.service";
-import {LocalStorageService} from "../../services/local-storage.service";
+import {AuthSettingService} from "./auth-settings.service";
+import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiAlertService} from "@taiga-ui/core";
 
 @Injectable({
@@ -10,7 +10,7 @@ export class RecentAuthGuardService {
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   constructor(
-    private settingService: SettingService,
+    private settingService: AuthSettingService,
     private alertService: TuiAlertService,
     private localStorageService: LocalStorageService
   ) {

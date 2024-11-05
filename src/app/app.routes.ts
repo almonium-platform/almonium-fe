@@ -10,7 +10,6 @@ import {TermsOfUseComponent} from "./static/legal/terms-of-use/terms-of-use.comp
 import {LandingComponent} from "./sections/landing/landing.component";
 import {LogoutComponent} from "./authentication/logout/logout.component";
 import {LanguageSetupComponent} from "./authentication/language-setup/language-setup.component";
-import {SettingsComponent} from "./sections/settings/settings.component";
 import {ReviewComponent} from "./sections/review/review.component";
 import {GamesComponent} from "./sections/games/games.component";
 import {LadderComponent} from "./games/ladder/ladder.component";
@@ -31,7 +30,6 @@ export const routes: Routes = [
     children: [
       // Authentication flow
       {path: 'auth', component: AuthComponent, canActivate: [unauthGuard]},
-      // when settings will be ready, those will be moved to unguarded routes
       {path: 'reset-password', component: ResetPasswordComponent},
     ]
   },
@@ -41,7 +39,12 @@ export const routes: Routes = [
     children: [
       {path: 'home', component: HomeComponent, canActivate: [authGuard]},
       {path: 'review', component: ReviewComponent, canActivate: [authGuard]},
-      {path: 'settings', component: SettingsComponent},
+      {
+        path: 'settings',
+        loadChildren:
+          () => import('../app/sections/settings/settings.module')
+            .then(m => m.SettingsModule),
+      },
       {path: 'setup-languages', component: LanguageSetupComponent},
 
       // Games

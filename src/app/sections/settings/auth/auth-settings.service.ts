@@ -1,16 +1,16 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {AppConstants} from "../../app.constants";
+import {AppConstants} from "../../../app.constants";
 import {Observable} from "rxjs";
 import {map} from "rxjs/operators";
 import {AuthProvider, TokenInfo} from "./auth.types";
-import {ResponseModel} from "../../models/response.model";
+import {ResponseModel} from "../../../models/response.model";
 
 
 @Injectable({
   providedIn: 'root',
 })
-export class SettingService {
+export class AuthSettingService {
   constructor(private http: HttpClient) {
   }
 
