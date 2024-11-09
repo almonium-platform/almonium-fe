@@ -1,8 +1,17 @@
+<app-diacritic-popup
+  *ngIf="popupOptions.length > 0"
+  [options]="popupOptions"
+  [position]="popupPosition"
+  [focusedIndex]="diacriticPopupFocusIndex"
+  (optionSelected)="selectDiacritic($event)">
+</app-diacritic-popup>
+
 <app-navbar-wrapper></app-navbar-wrapper>
 <div class="base-container">
   <div class="white-card">
     <div class="input-group">
       <div
+        #searchInput
         contenteditable="true"
         class="search-input"
         [(ngModel)]="searchText"
