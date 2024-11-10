@@ -109,7 +109,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   // Shortcut Listener for "Alt + A"
   @HostListener('window:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent): void {
-    if (event.ctrlKey && event.key === 'z') {
+    if (event.ctrlKey && event.key === 'j') {
       event.preventDefault();
       this.changeToNextLanguage();
     }
