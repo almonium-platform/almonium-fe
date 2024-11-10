@@ -144,7 +144,16 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Handles changes in the search input field */
   protected onSearchChange(searchText: string): void {
-    const {previousText, currentText, changeIndex} = this.trackTextChanges();
+    let {previousText, currentText, changeIndex} = this.trackTextChanges();
+
+    // **Add this code to replace multiple spaces with a single space**
+    const normalizedText = currentText.replace(/ {2,}/g, ' ');
+
+    if (normalizedText !== currentText) {
+      // If changes were made, update the content of the editable element
+      this.updateContentEditable(normalizedText);
+      currentText = normalizedText;
+    }
 
     if (this.searchText !== previousText && this.diacriticPopupFocused) {
       this.clearDiactrics();
@@ -196,6 +205,52 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
         });
     } else {
       this.filteredOptions = [];
+    }
+  }
+
+  private updateContentEditable(text: string): void {
+    const element = this.searchInput.nativeElement;
+
+    // Save the current selection
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+    const caretOffset = this.getCaretCharacterOffsetWithin(element);
+
+    // Update the content
+    element.textContent = text;
+
+    // Restore the selection
+    this.setCaretPosition(element, caretOffset);
+  }
+
+  private getCaretCharacterOffsetWithin(element: HTMLElement): number {
+    let caretOffset = 0;
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(element);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      caretOffset = preCaretRange.toString().length;
+    }
+    return caretOffset;
+  }
+
+  private setCaretPosition(element: HTMLElement, offset: number): void {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(element.firstChild || element, 0);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    // Move the caret to the desired offset
+    const textNode = element.firstChild;
+    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+      range.setStart(textNode, Math.min(offset, textNode.textContent?.length || 0));
+      range.collapse(true);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
     }
   }
 
