@@ -1,8 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild,} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
 import {NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
-import {catchError, map} from 'rxjs/operators';
-import {of} from 'rxjs';
 import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
 import {TuiBadgeModule} from '@taiga-ui/kit';
@@ -14,6 +11,7 @@ import {LanguageService} from '../../services/language.service';
 import {NavbarWrapperComponent} from '../../shared/navbars/navbar-wrapper/navbar-wrapper.component';
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
 import {DiacriticService} from "./diacritic-popup/diacritic.service";
+import {AutocompleteService} from "./diacritic-popup/autocomplete.service";
 
 @Component({
   selector: 'app-discover',
@@ -53,12 +51,12 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private globalKeydownListener!: () => void;
 
   constructor(
-    private http: HttpClient,
     private renderer: Renderer2,
     private route: ActivatedRoute,
     private frequencyService: FrequencyService,
     private languageService: LanguageService,
-    private diacriticService: DiacriticService
+    private diacriticService: DiacriticService,
+    private autocompleteService: AutocompleteService,
   ) {
   }
 
@@ -190,22 +188,11 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     this.submitted = false;
     this.currentAutocompleteItemFocusIndex = -1;
 
-    if (searchText && searchText.length >= 3 && this.currentLanguage === Language.EN) {
-      const apiUrl = `https://api.datamuse.com/sug?k=demo&s=${searchText}&max=5`;
-      this.http
-        .get<{ word: string }[]>(apiUrl)
-        .pipe(
-          map((data: { word: string }[]) => data.map(item => item.word).slice(0, 5)), // Ensure only 5 suggestions
-          catchError(() => of([]))
-        )
-        .subscribe(options => {
-          if (!this.submitted) {
-            this.filteredOptions = options;
-          }
-        });
-    } else {
-      this.filteredOptions = [];
-    }
+    this.autocompleteService.getAutocompleteSuggestions(searchText, this.currentLanguage).subscribe(options => {
+      if (!this.submitted) {
+        this.filteredOptions = options;
+      }
+    });
   }
 
   private updateContentEditable(text: string): void {
