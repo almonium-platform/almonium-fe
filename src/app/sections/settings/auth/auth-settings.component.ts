@@ -26,6 +26,7 @@ import {ProviderIconComponent} from "../../../shared/modals/elements/provider-ic
 import {AuthProvider, TokenInfo} from "./auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "./recent-auth-guard.service";
+import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 
 @Component({
   selector: 'app-settings',
@@ -51,7 +52,8 @@ import {RecentAuthGuardService} from "./recent-auth-guard.service";
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,
-    RouterLink
+    RouterLink,
+    SettingsTabsComponent
   ],
   templateUrl: './auth-settings.component.html',
   providers: [
