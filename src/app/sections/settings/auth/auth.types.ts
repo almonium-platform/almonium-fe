@@ -3,6 +3,7 @@ export interface AuthProvider {
   email: string;
   createdAt: string;
   updatedAt: string;
+  lastPasswordResetDate?: string; // Only for local provider
 }
 
 export interface TokenInfo {

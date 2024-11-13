@@ -160,8 +160,10 @@ export class AuthSettingsComponent implements OnInit {
         this.authMethods = methods;
         this.authProviders = methods.map(method => method.provider);
         if (this.isProviderLinked('local')) {
-          let localMethod = methods.filter(method => method.provider.toLowerCase() === 'local').pop()!;
-          this.lastPasswordUpdate = new Date(localMethod.createdAt).toISOString().split('T')[0];
+          const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
+          this.lastPasswordUpdate = localMethod.lastPasswordResetDate
+            ? new Date(localMethod.lastPasswordResetDate).toISOString().split('T')[0]
+            : new Date(localMethod.createdAt).toISOString().split('T')[0];
         }
       },
       error: (error) => {
