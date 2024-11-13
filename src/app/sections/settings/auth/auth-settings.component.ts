@@ -1,11 +1,10 @@
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
-import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet} from "@angular/common";
-import {NotReadyComponent} from "../../../shared/not-ready/not-ready.component";
+import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingService} from "./auth-settings.service";
 import {TuiAlertService, TuiErrorModule, TuiTextfieldControllerModule} from "@taiga-ui/core";
-import {ActivatedRoute, Router, RouterLink} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
@@ -27,17 +26,15 @@ import {AuthProvider, TokenInfo} from "./auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "./recent-auth-guard.service";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
+import {LocalStorageService} from "../../../services/local-storage.service";
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   imports: [
     NavbarComponent,
-    NgOptimizedImage,
-    NotReadyComponent,
     NgIf,
     ConfirmModalComponent,
-    NgForOf,
     NgStyle,
     NgTemplateOutlet,
     AuthComponent,
@@ -52,7 +49,6 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,
-    RouterLink,
     SettingsTabsComponent
   ],
   templateUrl: './auth-settings.component.html',
@@ -124,6 +120,7 @@ export class AuthSettingsComponent implements OnInit {
     private authService: AuthService,
     private urlService: UrlService,
     private authGuard: RecentAuthGuardService,
+    private localStorageService: LocalStorageService,
   ) {
   }
 
@@ -155,22 +152,40 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private populateAuthMethods() {
-    this.settingService.getAuthMethods().subscribe({
-      next: (methods) => {
-        this.authMethods = methods;
-        this.authProviders = methods.map(method => method.provider);
-        if (this.isProviderLinked('local')) {
-          const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
-          this.lastPasswordUpdate = localMethod.lastPasswordResetDate
-            ? new Date(localMethod.lastPasswordResetDate).toISOString().split('T')[0]
-            : new Date(localMethod.createdAt).toISOString().split('T')[0];
-        }
-      },
-      error: (error) => {
-        this.alertService.open(error.message || 'Failed to get auth methods', {status: 'error'}).subscribe();
-        console.error(error);
-      },
-    });
+    const cachedAuthMethods = this.localStorageService.getAuthMethods();
+    if (cachedAuthMethods) {
+      this.authMethods = cachedAuthMethods;
+      this.authProviders = cachedAuthMethods.map(method => method.provider);
+      this.updateLocalAuthData(cachedAuthMethods);
+    } else {
+      this.settingService.getAuthMethods().subscribe({
+        next: (methods) => {
+          this.authMethods = methods;
+          this.authProviders = methods.map(method => method.provider);
+          this.updateLocalAuthData(methods);
+
+          // Cache the retrieved methods
+          this.localStorageService.saveAuthMethods(methods);
+        },
+        error: (error) => {
+          this.alertService.open(error.message || 'Failed to get auth methods', {status: 'error'}).subscribe();
+          console.error(error);
+        },
+      });
+    }
+  }
+
+  private updateLocalAuthData(methods: AuthProvider[]): void {
+    if (this.isProviderLinked('local')) {
+      const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
+      this.lastPasswordUpdate = localMethod.lastPasswordResetDate
+        ? new Date(localMethod.lastPasswordResetDate).toISOString().split('T')[0]
+        : new Date(localMethod.createdAt).toISOString().split('T')[0];
+    }
+  }
+
+  private clearAuthCache(): void {
+    this.localStorageService.clearAuthMethods();
   }
 
   private getUserInfo() {
@@ -294,6 +309,8 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private linkAuthMethod(provider: string) {
+    this.clearAuthCache();
+
     if (provider === 'local') {
       this.authMode = 'linkLocal';
       this.openAuthModal();
@@ -310,15 +327,17 @@ export class AuthSettingsComponent implements OnInit {
     this.modalTitle = 'Unlink account';
     this.modalMessage = `Are you sure you want to unlink your ${this.getFormattedProvider(provider)} account?`;
     this.modalConfirmText = 'Unlink';
-    this.modalAction = () => this.unlinkAccount(provider);
+    this.modalAction = () => this.unlinkAuthMethod(provider);
     this.isConfirmModalVisible = true;
   }
 
-  private unlinkAccount(provider: string) {
+  private unlinkAuthMethod(provider: string) {
+    this.clearAuthCache();
+
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
         this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {status: 'success'}).subscribe();
-        this.authMethods = this.authMethods.filter(method => method.provider !== provider);
+        this.authMethods = this.authMethods.filter(method => method.provider.toLowerCase() !== provider.toLowerCase());
         if (reauthRequired) {
           this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {status: 'info'}).subscribe();
           setTimeout(() => {
@@ -554,9 +573,12 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private changePassword() {
+    this.clearAuthCache();
+
     this.settingService.changePassword(this.getPasswordFieldValue()).subscribe({
       next: () => {
         this.alertService.open('Password successfully changed!', {status: 'success'}).subscribe();
+        this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
         this.restorePasswordField();
       },
       error: (error) => {
