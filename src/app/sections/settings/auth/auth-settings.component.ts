@@ -132,7 +132,6 @@ export class AuthSettingsComponent implements OnInit {
     this.displayAppropriateAlerts();
     this.populateAuthMethods();
     this.getUserInfo();
-    this.checkEmailVerification();
     this.populateLastToken();
   }
 
@@ -177,19 +176,8 @@ export class AuthSettingsComponent implements OnInit {
       this.userInfo = info;
       if (info) {
         this.emailForm.get('emailValue')?.setValue(info.email);
+        this.emailVerified = info.emailVerified;
       }
-    });
-  }
-
-  private checkEmailVerification() {
-    this.settingService.isEmailVerified().subscribe({
-      next: (isVerified) => {
-        this.emailVerified = isVerified;
-      },
-      error: (error) => {
-        this.alertService.open(error.message || 'Failed to check email verification', {status: 'error'}).subscribe();
-        console.error('Error checking email verification:', error);
-      },
     });
   }
 
@@ -256,7 +244,6 @@ export class AuthSettingsComponent implements OnInit {
 
   protected getProviderInfo = (provider: string) => {
     let method = this.authMethods
-      .filter(method => method.email.toLowerCase() === this.userInfo?.email.toLowerCase()) // to filter out lingering principal
       .filter(method => method.provider.toLowerCase() === provider.toLowerCase())
       .pop();
 
@@ -264,7 +251,6 @@ export class AuthSettingsComponent implements OnInit {
       return `
       <div>
         <p class="text-gray-700 mb-2 text-sm"><strong>Email:</strong> ${method.email}</p>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Verified:</strong> ${method.emailVerified ? 'Yes' : 'No'}</p>
         <p class="text-gray-700 mb-2 text-sm"><strong>Connected At:</strong> ${this.getFormattedDate(method.createdAt)}</p>
         <p class="text-gray-700 mb-2 text-sm"><strong>Updated At:</strong> ${(this.getFormattedDate(method.updatedAt))}</p>
       </div>
@@ -289,7 +275,7 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   protected isLastLinkedProvider(provider: string): boolean {
-    return this.authMethods.filter(method => method.emailVerified).length === 1 && this.isProviderLinked(provider);
+    return this.authMethods.length === 1 && this.isProviderLinked(provider);
   }
 
   protected handleProviderWrapped(provider: string) {

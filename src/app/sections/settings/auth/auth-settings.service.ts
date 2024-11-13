@@ -38,11 +38,6 @@ export class AuthSettingService {
   }
 
   // email verification requests
-  isEmailVerified(): Observable<boolean> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/me`;
-    return this.http.get<boolean>(url, {withCredentials: true});
-  }
-
   requestEmailVerification(): Observable<void> {
     const url = `${AppConstants.EMAIL_VERIFICATION_URL}/request`;
     return this.http.post<void>(url, {}, {withCredentials: true});
