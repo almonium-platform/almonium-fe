@@ -151,7 +151,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       this.clearDiactrics();
     }
 
-    if (changeIndex !== null) {
+    if (changeIndex !== null && (this.isTouchDevice() ? (changeIndex === currentText.length - 1) : true)) {
       let lastChar: string | undefined;
 
       if (changeIndex < currentText.length) {
@@ -283,10 +283,38 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Handles the selection of a diacritic character */
   protected selectDiacritic(diacritic: string): void {
-    if (!this.diacriticPopupFocused) {
-      return;
+    if (this.isTouchDevice()) {
+      this.mobileHandle(diacritic);
+    } else {
+      this.desktopHandle(diacritic);
     }
 
+    this.clearDiactrics();
+
+    // Update `previousSearchText` to reflect the new text content of the input
+    this.previousSearchText = (this.searchInput.nativeElement.textContent || '').replace(/\u00A0/g, ' ');
+  }
+
+  private isTouchDevice() {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  }
+
+  private mobileHandle(diacritic: string) {
+    const input = this.searchInput.nativeElement;
+    input.focus();
+    const textContent = input.textContent || '';
+    input.textContent = textContent.slice(0, -1) + diacritic;
+
+    // Set caret at the end of content
+    const range = document.createRange();
+    range.selectNodeContents(input);
+    range.collapse(false);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private desktopHandle(diacritic: string) {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
@@ -319,11 +347,6 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       selection.removeAllRanges();
       selection.addRange(range);
     }
-
-    this.clearDiactrics();
-
-    // Update `previousSearchText` to reflect the new text content of the input
-    this.previousSearchText = (this.searchInput.nativeElement.textContent || '').replace(/\u00A0/g, ' ');
   }
 
   /** Helper function to get the previous text node relative to the current node */
