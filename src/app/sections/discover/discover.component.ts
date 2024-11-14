@@ -57,9 +57,6 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       this.searchText = params['text'] || '';
-      if (this.searchText) {
-        this.onSearchChange(this.searchText);
-      }
     });
 
     this.globalKeydownListener = this.renderer.listen('document', 'keydown', (event: KeyboardEvent) => {
@@ -135,7 +132,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /** Handles changes in the search input field */
-  protected onSearchChange(searchText: string): void {
+  protected onSearchChange(): void {
     let {previousText, currentText, changeIndex} = this.trackTextChanges();
 
     // **Add this code to replace multiple spaces with a single space**
@@ -151,7 +148,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       this.clearDiactrics();
     }
 
-    if (changeIndex !== null && (this.isTouchDevice() ? (changeIndex === currentText.length - 1) : true)) {
+    if (changeIndex !== null) {
       let lastChar: string | undefined;
 
       if (changeIndex < currentText.length) {
@@ -182,7 +179,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     this.submitted = false;
     this.currentAutocompleteItemFocusIndex = -1;
 
-    this.autocompleteService.getAutocompleteSuggestions(searchText, this.currentLanguage).subscribe(options => {
+    this.autocompleteService.getAutocompleteSuggestions(this.searchText, this.currentLanguage).subscribe(options => {
       if (!this.submitted) {
         this.filteredOptions = options;
       }
@@ -300,6 +297,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private mobileHandle(diacritic: string) {
+    console.log('Mobile handle');
     const input = this.searchInput.nativeElement;
     input.focus();
     const textContent = input.textContent || '';

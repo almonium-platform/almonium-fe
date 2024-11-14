@@ -3,7 +3,9 @@
   [options]="popupOptions"
   [position]="popupPosition"
   [focusedIndex]="diacriticPopupFocusIndex"
-  (optionSelected)="selectDiacritic($event)">
+  (optionSelected)="selectDiacritic($event)"
+
+>
 </app-diacritic-popup>
 
 <app-navbar-wrapper></app-navbar-wrapper>
@@ -15,7 +17,7 @@
         contenteditable="true"
         class="search-input"
         [(ngModel)]="searchText"
-        (input)="onSearchChange(searchText)"
+        (input)="onSearchChange()"
         (keydown)="handleKeydown($event)"
         autofocus>
       </div>
