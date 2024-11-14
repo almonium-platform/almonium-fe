@@ -33,14 +33,21 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   protected popupPosition = {top: '0px', left: '0px'};
   protected diacriticPopupFocusIndex = -1;
   private diacriticPopupFocused: boolean = false;
+
+  // input
+  @Input() searchText: string = '';
+  private singleLineHeight: number = 0;
+  protected submitted: boolean = false;
   private previousSearchText: string = '';
 
-  @Input() searchText: string = '';
-  filteredOptions: string[] = [];
-  currentAutocompleteItemFocusIndex: number = -1;
-  frequency: number = 0;
-  submitted: boolean = false;
-  currentLanguage: Language = Language.EN;
+  // autocomplete
+  protected filteredOptions: string[] = [];
+  private currentAutocompleteItemFocusIndex: number = -1;
+
+  // islands
+  protected frequency: number = 0;
+
+  private currentLanguage: Language = Language.EN;
 
   private globalKeydownListener!: () => void;
 
@@ -79,6 +86,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       event.preventDefault(); // Prevent the default paste behavior
       const text = event.clipboardData?.getData('text/plain') || ''; // Get plain text from the clipboard
       this.insertTextAtCursor(text); // Insert the plain text at the cursor position
+      this.changeTextAlignIfMoreThanOneLine();
     });
   }
 
@@ -133,6 +141,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Handles changes in the search input field */
   protected onSearchChange(): void {
+    this.changeTextAlignIfMoreThanOneLine();
     let {previousText, currentText, changeIndex} = this.trackTextChanges();
 
     // **Add this code to replace multiple spaces with a single space**
@@ -514,5 +523,22 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     if (frequency <= 40) return 'Ideal candidate';
     if (frequency <= 75) return 'You probably know it';
     return 'Top 50 words';
+  }
+
+  // UI utility methods
+  private changeTextAlignIfMoreThanOneLine() {
+    const inputElement = this.searchInput.nativeElement;
+    const currentContentHeight = inputElement.scrollHeight;
+
+    if (this.singleLineHeight == 0) {
+      this.singleLineHeight = currentContentHeight;
+      return;
+    }
+
+    if (currentContentHeight > this.singleLineHeight) {
+      inputElement.style.textAlign = 'left';
+    } else {
+      inputElement.style.textAlign = 'center';
+    }
   }
 }
