@@ -435,12 +435,20 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
         this.currentAutocompleteItemFocusIndex = this.filteredOptions.length - 1;
       }
     } else if (event.key === 'ArrowLeft') {
+      if (!this.diacriticPopupFocused) {
+        this.clearDiactrics();
+        return;
+      }
       if (this.popupOptions.length > 0) {
         event.preventDefault();
         this.movePopupFocus('down');
         return;
       }
     } else if (event.key === 'ArrowRight') {
+      if (!this.diacriticPopupFocused) {
+        this.clearDiactrics();
+        return;
+      }
       if (this.popupOptions.length > 0) {
         event.preventDefault();
         this.movePopupFocus('up');
