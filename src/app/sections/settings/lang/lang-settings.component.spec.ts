@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { LangSettingsComponent } from './lang-settings.component';
+import {LangSettingsComponent} from './lang-settings.component';
 
 describe('LangSettingsComponent', () => {
   let component: LangSettingsComponent;
@@ -11,7 +11,7 @@ describe('LangSettingsComponent', () => {
       imports: [LangSettingsComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(LangSettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

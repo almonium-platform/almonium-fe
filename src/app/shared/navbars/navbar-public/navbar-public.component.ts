@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule} from "@angular/forms";
-import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
+import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 
@@ -10,11 +10,9 @@ import {NgClickOutsideDirective} from 'ng-click-outside2';
   styleUrls: ['./navbar-public.component.less'],
   imports: [
     FormsModule,
-    NgForOf,
     NgOptimizedImage,
     NgIf,
     NgClass,
-    NgStyle,
     NgClickOutsideDirective,
     RouterLink
   ],

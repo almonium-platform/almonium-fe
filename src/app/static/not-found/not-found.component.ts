@@ -1,7 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {LocalStorageService} from '../../services/local-storage.service';
-import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
-import {NgIf, NgOptimizedImage} from "@angular/common";
+import {NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
@@ -11,8 +10,6 @@ import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar
   styleUrls: ['./not-found.component.less'],
   standalone: true,
   imports: [
-    NavbarComponent,
-    NgIf,
     RouterLink,
     NgOptimizedImage,
     NavbarWrapperComponent

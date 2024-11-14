@@ -1,4 +1,4 @@
-import { TuiTextfieldControllerModule, TuiMultiSelectModule, TuiSelectModule } from "@taiga-ui/legacy";
+import {TuiMultiSelectModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {
   AbstractControl,
@@ -12,8 +12,8 @@ import {
 } from '@angular/forms';
 import {Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import { TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe } from '@taiga-ui/kit';
-import { TuiError } from '@taiga-ui/core';
+import {TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
+import {TuiError} from '@taiga-ui/core';
 import {delay, Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';

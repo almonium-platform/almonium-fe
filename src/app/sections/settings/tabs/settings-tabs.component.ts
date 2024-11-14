@@ -1,4 +1,4 @@
-import { TuiTabs } from "@taiga-ui/kit";
+import {TuiTabs} from "@taiga-ui/kit";
 import {Component, WritableSignal} from '@angular/core';
 import {RouterLink, RouterLinkActive} from "@angular/router";
 

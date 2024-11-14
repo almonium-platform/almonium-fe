@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { NgForOf, NgIf, NgStyle } from "@angular/common";
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {NgForOf, NgIf, NgStyle} from "@angular/common";
 
 @Component({
   selector: 'app-diacritic-popup',

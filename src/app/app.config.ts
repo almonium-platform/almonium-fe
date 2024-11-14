@@ -1,5 +1,4 @@
-import { NG_EVENT_PLUGINS } from "@taiga-ui/event-plugins";
-import { TuiRoot } from "@taiga-ui/core";
+import {NG_EVENT_PLUGINS} from "@taiga-ui/event-plugins";
 import {provideAnimations} from "@angular/platform-browser/animations";
 import {ApplicationConfig, importProvidersFrom} from '@angular/core';
 import {provideRouter} from '@angular/router';

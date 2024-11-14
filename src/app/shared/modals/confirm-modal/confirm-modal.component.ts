@@ -1,5 +1,5 @@
 import {Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
-import {NgIf, NgOptimizedImage} from "@angular/common";
+import {NgIf} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
@@ -7,7 +7,6 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   standalone: true,
   imports: [
     NgIf,
-    NgOptimizedImage,
     DismissButtonComponent
   ],
   template: `

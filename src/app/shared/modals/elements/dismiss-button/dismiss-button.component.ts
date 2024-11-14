@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgClass, NgStyle} from "@angular/common";
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'app-dismiss-button',
@@ -28,7 +28,6 @@ import {NgClass, NgStyle} from "@angular/common";
   `,
   standalone: true,
   imports: [
-    NgStyle,
     NgClass
   ],
   styleUrls: ['./dismiss-button.component.less']

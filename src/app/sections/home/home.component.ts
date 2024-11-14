@@ -3,8 +3,7 @@ import {UserInfoService} from '../../services/user-info.service';
 import {Subscription} from 'rxjs';
 import {UserInfo} from "../../models/userinfo.model";
 import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
-import {Router, RouterOutlet} from "@angular/router";
-import {NgOptimizedImage} from "@angular/common";
+import {Router} from "@angular/router";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
 @Component({
@@ -13,8 +12,6 @@ import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
   styleUrls: ['./home.component.less'],
   imports: [
     NavbarComponent,
-    RouterOutlet,
-    NgOptimizedImage,
     NotReadyComponent
   ],
   standalone: true

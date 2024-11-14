@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from "@angular/router";
 import {AuthService} from "../auth/auth.service";
-import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+import {NgClass, NgOptimizedImage} from "@angular/common";
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {finalize, forkJoin, timer} from "rxjs";
 
@@ -9,8 +9,6 @@ import {finalize, forkJoin, timer} from "rxjs";
   selector: 'app-logout',
   standalone: true,
   imports: [
-    AsyncPipe,
-    NgIf,
     NgOptimizedImage,
     NgxParticlesModule,
     NgClass

@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { NavbarPublicComponent } from './navbar-public.component';
+import {NavbarPublicComponent} from './navbar-public.component';
 
 describe('NavbarPublicComponent', () => {
   let component: NavbarPublicComponent;
@@ -11,7 +11,7 @@ describe('NavbarPublicComponent', () => {
       imports: [NavbarPublicComponent]
     })
     .compileComponents();
-    
+
     fixture = TestBed.createComponent(NavbarPublicComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
