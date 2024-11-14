@@ -2,37 +2,8 @@
   <div class="navbar-content">
     <div class="logo-container relative" (click)="toggleDiscoverMenu()" (clickOutside)="discoverOnClickOutside($event)">
       <img ngSrc="../../../../assets/img/logo/logo.svg" alt="App Logo" class="app-icon" height="1481" width="1456"/>
-
-      <!-- Popover Menu for App Icon (Only on Mobile Screens) -->
-      <div *ngIf="isDiscoverMenuOpen"
-           class="popover-menu left-4 max-w-1 rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 mobile-only">
-        <div class="menu-section">
-          <hr class="border-gray-200"/>
-          <!-- Menu Items -->
-          <div class="menu-items p-2">
-            <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-              <img ngSrc="/assets/img/icons/home.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-                   width="512">
-              <span>Home</span>
-            </a>
-            <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-              <img ngSrc="/assets/img/icons/discover.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-                   width="512">
-              <span>Discover</span>
-            </a>
-            <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-              <img ngSrc="/src/assets/img/icons/review.png" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
-                   width="512">
-              <span>Review</span>
-            </a>
-            <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-              <img ngSrc="/assets/img/icons/games.png" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
-              <span>Games</span>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
+
     <div *ngIf="!isMobile">
       <a
         routerLink="/discover"
@@ -53,7 +24,9 @@
         Games
       </a>
     </div>
+
     <span class="spacer"></span>
+
     <div class="nav-actions">
       <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
         <div class="relative lang-dropdown">
@@ -80,52 +53,86 @@
           </div>
         </div>
       </div>
+
       <div class="btn-notification relative" (click)="toggleNotificationPopover()"
            (clickOutside)="notificationOnClickOutside($event)">
         <button>
           <img ngSrc="assets/img/icons/bell.svg" alt="Notification Icon" class="notification-icon" height="40"
                width="40"/>
         </button>
-        <div *ngIf="isNotificationOpen"
-             class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
-          <div class="menu-section">
-            <hr class="border-gray-200"/>
-            You have no new notifications.
-          </div>
-        </div>
       </div>
+
       <!-- Navbar User Profile Section -->
       <div class="user-profile relative" (click)="toggleProfilePopover()" (clickOutside)=profileOnClickOutside($event)>
         <div class="profile-circle bg-gradient-to-bl from-purple-500 to-pink-500"></div>
         <!-- Popover Menu -->
-        <div *ngIf="isProfilePopoverOpen"
-             class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
-          <div class="menu-section">
-            <div class="user-details flex items-center">
-              <!-- Profile Picture -->
-              <div class="profile-circle-small bg-gradient-to-bl from-purple-500 to-pink-500 mr-3 flex-shrink-0"></div>
-              <!-- User Info -->
-              <div class="user-info overflow-hidden">
-                <span class="font-semibold truncate block">{{ userInfo?.username || 'Anonymous Learner' }}</span>
-                <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
-              </div>
-            </div>
-            <div class="separator"></div>
-            <hr class="border-gray-200"/>
-            <!-- Menu Items -->
-            <div class="menu-items p-2">
-              <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <img ngSrc="/assets/img/icons/settings.svg" alt="gear icon" class="w-5 h-5 mr-2" height="40" width="40">
-                <span>Settings</span>
-              </a>
-              <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <img ngSrc="/assets/img/icons/logout.svg" alt="logout icon" class="w-5 h-5 mr-2" height="64" width="64">
-                <span>Logout</span>
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </nav>
+
+<!-- Popover Menu for App Icon (Only on Mobile Screens) -->
+<div *ngIf="isDiscoverMenuOpen"
+     class="popover-menu left-4 max-w-1 rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 mobile-only">
+  <div class="menu-section">
+    <hr class="border-gray-200"/>
+    <!-- Menu Items -->
+    <div class="menu-items p-2">
+      <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/assets/img/icons/home.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
+             width="512">
+        <span>Home</span>
+      </a>
+      <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/assets/img/icons/discover.png" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
+             width="512">
+        <span>Discover</span>
+      </a>
+      <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/src/assets/img/icons/review.png" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
+             width="512">
+        <span>Review</span>
+      </a>
+      <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/assets/img/icons/games.png" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
+        <span>Games</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isProfilePopoverOpen"
+     class="popover-menu menu2 right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+  <div class="menu-section">
+    <div class="user-details flex items-center">
+      <!-- Profile Picture -->
+      <div class="profile-circle-small bg-gradient-to-bl from-purple-500 to-pink-500 mr-3 flex-shrink-0"></div>
+      <!-- User Info -->
+      <div class="user-info overflow-hidden">
+        <span class="font-semibold truncate block">{{ userInfo?.username || 'Anonymous Learner' }}</span>
+        <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+      </div>
+    </div>
+    <div class="separator"></div>
+    <hr class="border-gray-200"/>
+    <!-- Menu Items -->
+    <div class="menu-items p-2">
+      <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/assets/img/icons/settings.svg" alt="gear icon" class="w-5 h-5 mr-2" height="40" width="40">
+        <span>Settings</span>
+      </a>
+      <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+        <img ngSrc="/assets/img/icons/logout.svg" alt="logout icon" class="w-5 h-5 mr-2" height="64" width="64">
+        <span>Logout</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isNotificationOpen"
+     class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+  <div class="menu-section">
+    <hr class="border-gray-200"/>
+    You have no new notifications.
+  </div>
+</div>
