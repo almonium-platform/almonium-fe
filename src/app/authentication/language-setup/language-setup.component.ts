@@ -1,3 +1,4 @@
+import { TuiTextfieldControllerModule, TuiMultiSelectModule, TuiSelectModule } from "@taiga-ui/legacy";
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {
   AbstractControl,
@@ -11,14 +12,8 @@ import {
 } from '@angular/forms';
 import {Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
-import {
-  TUI_VALIDATION_ERRORS,
-  TuiDataListWrapperModule,
-  TuiFieldErrorPipeModule,
-  TuiMultiSelectModule,
-  TuiSelectModule,
-} from '@taiga-ui/kit';
-import {TuiErrorModule, TuiTextfieldControllerModule,} from '@taiga-ui/core';
+import { TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe } from '@taiga-ui/kit';
+import { TuiError } from '@taiga-ui/core';
 import {delay, Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
@@ -52,9 +47,9 @@ const MAX_LANGUAGES = 3;
     TuiMultiSelectModule,
     TuiSelectModule,
     TuiTextfieldControllerModule,
-    TuiErrorModule,
-    TuiFieldErrorPipeModule,
-    TuiDataListWrapperModule,
+    TuiError,
+    TuiFieldErrorPipe,
+    TuiDataListWrapper,
     NgxParticlesModule,
   ],
 })

@@ -1,22 +1,22 @@
+import {
+  TuiInputComponent,
+  TuiInputModule,
+  TuiInputPasswordComponent,
+  TuiInputPasswordModule,
+  TuiTextfieldControllerModule
+} from "@taiga-ui/legacy";
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingService} from "./auth-settings.service";
-import {TuiAlertService, TuiErrorModule, TuiTextfieldControllerModule} from "@taiga-ui/core";
+import {TuiAlertService, TuiError} from "@taiga-ui/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {
-  TUI_VALIDATION_ERRORS,
-  TuiFieldErrorPipeModule,
-  TuiInputComponent,
-  TuiInputModule,
-  TuiInputPasswordComponent,
-  TuiInputPasswordModule
-} from "@taiga-ui/kit";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
@@ -41,8 +41,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     NgClass,
     AsyncPipe,
     ReactiveFormsModule,
-    TuiErrorModule,
-    TuiFieldErrorPipeModule,
+    TuiError,
+    TuiFieldErrorPipe,
     TuiInputModule,
     TuiInputPasswordModule,
     TuiTextfieldControllerModule,
@@ -135,16 +135,16 @@ export class AuthSettingsComponent implements OnInit {
   private displayAppropriateAlerts() {
     this.route.queryParams.subscribe(params => {
       if (params['error']) {
-        this.alertService.open(params['error'], {status: 'error'}).subscribe();
+        this.alertService.open(params['error'], {appearance: 'error'}).subscribe();
         this.urlService.clearUrl();
       } else {
         if (params['intent'] === 'link') {
-          this.alertService.open('Account successfully linked!', {status: 'success'}).subscribe();
+          this.alertService.open('Account successfully linked!', {appearance: 'success'}).subscribe();
           this.urlService.clearUrl();
         }
         if (params['intent'] === 'reauth') {
           this.authGuard.getRecentAuthStatus();
-          this.alertService.open('You successfully verified your identity!', {status: 'success'}).subscribe();
+          this.alertService.open('You successfully verified your identity!', {appearance: 'success'}).subscribe();
           this.urlService.clearUrl();
         }
       }
@@ -168,7 +168,7 @@ export class AuthSettingsComponent implements OnInit {
           this.localStorageService.saveAuthMethods(methods);
         },
         error: (error) => {
-          this.alertService.open(error.message || 'Failed to get auth methods', {status: 'error'}).subscribe();
+          this.alertService.open(error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
           console.error(error);
         },
       });
@@ -230,13 +230,13 @@ export class AuthSettingsComponent implements OnInit {
   private confirmDeletion() {
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
-        this.alertService.open('Account successfully deleted!', {status: 'success'}).subscribe();
+        this.alertService.open('Account successfully deleted!', {appearance: 'success'}).subscribe();
         this.userInfoService.clearUserInfo();
         this.router.navigate(['/']).then(r => r);
       },
       error: (error) => {
         this.alertService
-          .open(error.message || 'Failed to delete account', {status: 'error'})
+          .open(error.message || 'Failed to delete account', {appearance: 'error'})
           .subscribe();
       },
     });
@@ -336,10 +336,10 @@ export class AuthSettingsComponent implements OnInit {
 
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
-        this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {status: 'success'}).subscribe();
+        this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {appearance: 'success'}).subscribe();
         this.authMethods = this.authMethods.filter(method => method.provider.toLowerCase() !== provider.toLowerCase());
         if (reauthRequired) {
-          this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {status: 'info'}).subscribe();
+          this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {appearance: 'info'}).subscribe();
           setTimeout(() => {
             this.userInfoService.clearUserInfo();
             this.authService.logoutPublic().subscribe();
@@ -349,7 +349,7 @@ export class AuthSettingsComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to unlink account', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to unlink account', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -370,7 +370,7 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private showIdentityVerificationPopup() {
-    this.alertService.open('To continue with this action, we need to verify your identity.', {status: 'info'}).subscribe();
+    this.alertService.open('To continue with this action, we need to verify your identity.', {appearance: 'info'}).subscribe();
     this.authMode = 'embedded'; // do I need this?
     this.openAuthModal();
   }
@@ -408,7 +408,7 @@ export class AuthSettingsComponent implements OnInit {
         };
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to get last token', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to get last token', {appearance: 'error'}).subscribe();
         console.error('Error getting last token:', error);
       },
     });
@@ -424,11 +424,11 @@ export class AuthSettingsComponent implements OnInit {
 
     this.settingService.cancelEmailChangeRequest().subscribe({
       next: () => {
-        this.alertService.open('Email change request cancelled!', {status: 'success'}).subscribe();
+        this.alertService.open('Email change request cancelled!', {appearance: 'success'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to cancel email change request', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to cancel email change request', {appearance: 'error'}).subscribe();
         console.error('Error cancelling email change request:', error);
       },
     });
@@ -440,12 +440,12 @@ export class AuthSettingsComponent implements OnInit {
 
     this.settingService.resendEmailChangeRequest().subscribe({
       next: () => {
-        this.alertService.open('Email change request resent!', {status: 'success'}).subscribe();
+        this.alertService.open('Email change request resent!', {appearance: 'success'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
         console.log('Error resending email change request:', error);
-        this.alertService.open(error.message || 'Failed to resend email change request', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to resend email change request', {appearance: 'error'}).subscribe();
         console.error('Error resending email change request:', error);
       },
     });
@@ -472,7 +472,7 @@ export class AuthSettingsComponent implements OnInit {
     }
 
     if (!this.passwordForm.valid) {
-      this.alertService.open('Please enter a valid password', {status: 'error'}).subscribe();
+      this.alertService.open('Please enter a valid password', {appearance: 'error'}).subscribe();
       return;
     }
 
@@ -481,7 +481,7 @@ export class AuthSettingsComponent implements OnInit {
 
   protected requestEmailVerification() {
     if (!this.isProviderLinked('local')) {
-      this.alertService.open('To verify your email, you need to link a local account first', {status: 'info'}).subscribe();
+      this.alertService.open('To verify your email, you need to link a local account first', {appearance: 'info'}).subscribe();
       this.authMode = 'linkLocal';
       this.openAuthModal();
       return;
@@ -489,11 +489,11 @@ export class AuthSettingsComponent implements OnInit {
 
     this.settingService.requestEmailVerification().subscribe({
       next: () => {
-        this.alertService.open('Verification email sent!', {status: 'success'}).subscribe();
+        this.alertService.open('Verification email sent!', {appearance: 'success'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to send verification email', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to send verification email', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -554,12 +554,12 @@ export class AuthSettingsComponent implements OnInit {
     }
 
     if (!this.emailForm.valid) {
-      this.alertService.open('Please enter a valid email address', {status: 'error'}).subscribe();
+      this.alertService.open('Please enter a valid email address', {appearance: 'error'}).subscribe();
       return;
     }
 
     if (this.emailChanged()) {
-      this.alertService.open('No changes detected in the email address', {status: 'info'}).subscribe();
+      this.alertService.open('No changes detected in the email address', {appearance: 'info'}).subscribe();
       return;
     }
 
@@ -577,12 +577,12 @@ export class AuthSettingsComponent implements OnInit {
 
     this.settingService.changePassword(this.getPasswordFieldValue()).subscribe({
       next: () => {
-        this.alertService.open('Password successfully changed!', {status: 'success'}).subscribe();
+        this.alertService.open('Password successfully changed!', {appearance: 'success'}).subscribe();
         this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
         this.restorePasswordField();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to change password', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -591,7 +591,7 @@ export class AuthSettingsComponent implements OnInit {
     this.settingService.isEmailAvailable(this.getEmailFieldValue()).subscribe({
       next: (isAvailable) => {
         if (!isAvailable) {
-          this.alertService.open('Email is already in use', {status: 'error'}).subscribe();
+          this.alertService.open('Email is already in use', {appearance: 'error'}).subscribe();
           return;
         }
 
@@ -601,7 +601,7 @@ export class AuthSettingsComponent implements OnInit {
         this.restoreEmailField();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to check email availability', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
         console.error('Error checking email availability:', error);
       },
     });
@@ -610,13 +610,13 @@ export class AuthSettingsComponent implements OnInit {
   private sendEmailChangeRequest() {
     this.settingService.requestEmailChange(this.getEmailFieldValue()).subscribe({
       next: () => {
-        this.alertService.open('Email change request sent!', {status: 'success'}).subscribe();
+        this.alertService.open('Email change request sent!', {appearance: 'success'}).subscribe();
         this.emailForm.setValue({emailValue: this.userInfo?.email!});
         this.populateAuthMethods();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to send email change request', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to send email change request', {appearance: 'error'}).subscribe();
         console.error('Error sending email change request:', error);
       }
     });

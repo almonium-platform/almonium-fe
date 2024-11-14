@@ -1,3 +1,4 @@
+import { TuiTextfieldControllerModule, TuiInputModule, TuiInputPasswordModule } from "@taiga-ui/legacy";
 import {HttpClient} from '@angular/common/http';
 import {
   ChangeDetectorRef,
@@ -10,14 +11,8 @@ import {
   Output
 } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputModule, TuiInputPasswordModule} from '@taiga-ui/kit';
-import {
-  TuiAlertService,
-  TuiButtonModule,
-  TuiErrorModule,
-  TuiLinkModule,
-  TuiTextfieldControllerModule,
-} from '@taiga-ui/core';
+import { TUI_VALIDATION_ERRORS, TuiFieldErrorPipe } from '@taiga-ui/kit';
+import { TuiAlertService, TuiError, TuiLink, TuiButton } from '@taiga-ui/core';
 import {AsyncPipe, NgClass, NgIf, NgOptimizedImage, NgStyle, NgTemplateOutlet} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
@@ -38,14 +33,14 @@ declare const google: any;
   standalone: true,
   imports: [
     TuiInputModule,
-    TuiErrorModule,
+    TuiError,
     TuiInputPasswordModule,
     ReactiveFormsModule,
-    TuiFieldErrorPipeModule,
+    TuiFieldErrorPipe,
     AsyncPipe,
-    TuiButtonModule,
+    TuiButton,
     NgIf,
-    TuiLinkModule,
+    TuiLink,
     TuiTextfieldControllerModule,
     NgOptimizedImage,
     NgxParticlesModule,
@@ -170,7 +165,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.setModes();
     this.route.queryParams.subscribe(params => {
       if (params['error']) {
-        this.alertService.open(params['error'], {status: 'error'}).subscribe();
+        this.alertService.open(params['error'], {appearance: 'error'}).subscribe();
         this.urlService.clearUrl();
       }
     });
@@ -291,11 +286,11 @@ export class AuthComponent implements OnInit, OnDestroy {
   private linkLocal(passwordValue: string) {
     this.authService.linkLocalAccount(passwordValue).subscribe({
       next: () => {
-        this.alertService.open('Local account linked successfully', {status: 'success'}).subscribe();
+        this.alertService.open('Local account linked successfully', {appearance: 'success'}).subscribe();
         this.onClose();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
         this.onClose();
       },
     });
@@ -304,11 +299,11 @@ export class AuthComponent implements OnInit, OnDestroy {
   private changeEmail(emailValue: string, passwordValue: string) {
     this.authService.linkLocalWithNewEmail(emailValue, passwordValue).subscribe({
       next: () => {
-        this.alertService.open('Local account with new email created successfully, please verify it', {status: 'success'}).subscribe();
+        this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
         this.onClose();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {status: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
         this.onClose();
       },
     });
@@ -319,11 +314,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.isRotating = false;
         this.alertService
-          .open(response.message || 'Next step, verify your email!', {status: 'success'})
+          .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
           .subscribe();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Registration failed', {status: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
         this.isRotating = false;
       },
     });
@@ -340,7 +335,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.close.emit();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Login failed', {status: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
         this.isRotating = false;
       },
     });
@@ -369,16 +364,16 @@ export class AuthComponent implements OnInit, OnDestroy {
   onForgotPassword() {
     const emailValue = this.authForm.get('emailValue')?.value!;
     if (!emailValue) {
-      this.alertService.open('Please enter your email address', {status: 'error'}).subscribe();
+      this.alertService.open('Please enter your email address', {appearance: 'error'}).subscribe();
       return;
     }
     this.authService.forgotPassword(emailValue).subscribe({
       next: (response) => {
-        this.alertService.open(response.message || 'Password reset link sent!', {status: 'success'}).subscribe();
+        this.alertService.open(response.message || 'Password reset link sent!', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to send password reset link', {status: 'error'})
+          .open(error.error.message || 'Failed to send password reset link', {appearance: 'error'})
           .subscribe();
       },
     });

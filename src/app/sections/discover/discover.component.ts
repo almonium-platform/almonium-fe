@@ -1,8 +1,8 @@
+import { TuiBadge } from "@taiga-ui/kit";
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild,} from '@angular/core';
 import {NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
-import {TuiBadgeModule} from '@taiga-ui/kit';
 import {ActivatedRoute} from '@angular/router';
 import {FrequencyService} from '../../services/frequency.service';
 import {NavbarComponent} from '../../shared/navbars/navbar/navbar.component';
@@ -23,7 +23,7 @@ import {AutocompleteService} from "./diacritic-popup/autocomplete.service";
     FormsModule,
     NgOptimizedImage,
     ContenteditableValueAccessorModule,
-    TuiBadgeModule,
+    TuiBadge,
     NgClass,
     NavbarComponent,
     NavbarWrapperComponent,

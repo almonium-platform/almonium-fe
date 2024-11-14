@@ -1,6 +1,6 @@
+import { TuiTabs } from "@taiga-ui/kit";
 import {Component, WritableSignal} from '@angular/core';
 import {RouterLink, RouterLinkActive} from "@angular/router";
-import {TuiTabsModule} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-settings-tabs',
@@ -8,7 +8,7 @@ import {TuiTabsModule} from "@taiga-ui/kit";
   imports: [
     RouterLink,
     RouterLinkActive,
-    TuiTabsModule
+    TuiTabs
   ],
   templateUrl: './settings-tabs.component.html',
   styleUrl: './settings-tabs.component.less'

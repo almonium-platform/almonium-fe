@@ -105,7 +105,7 @@ export class EmailVerificationComponent implements OnInit {
 
   private displayResult(result: 'success' | 'error') {
     this.verificationCompleted = true;
-    this.alertService.open(this.message, {status: result}).subscribe();
+    this.alertService.open(this.message, {appearance: result}).subscribe();
     if (result === 'success') {
       // Set a minimum display time before redirecting
       timer(this.REDIRECT_TIMEOUT).subscribe(() => {

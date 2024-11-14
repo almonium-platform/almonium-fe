@@ -1,3 +1,4 @@
+import { TuiTextfieldControllerModule, TuiInputModule, TuiInputNumberModule, TuiInputPasswordModule } from "@taiga-ui/legacy";
 import { Component } from '@angular/core';
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {AsyncPipe, NgIf, NgTemplateOutlet} from "@angular/common";
@@ -7,8 +8,8 @@ import {EditButtonComponent} from "../../../shared/edit-button/edit-button.compo
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {ProviderIconComponent} from "../../../shared/modals/elements/provider-icon/provider-icon.component";
-import {TuiErrorModule, TuiTextfieldControllerModule} from "@taiga-ui/core";
-import {TuiFieldErrorPipeModule, TuiInputModule, TuiInputNumberModule, TuiInputPasswordModule} from "@taiga-ui/kit";
+import { TuiError } from "@taiga-ui/core";
+import { TuiFieldErrorPipe } from "@taiga-ui/kit";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 
 @Component({
@@ -26,8 +27,8 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
     NgTemplateOutlet,
     ProviderIconComponent,
     ReactiveFormsModule,
-    TuiErrorModule,
-    TuiFieldErrorPipeModule,
+    TuiError,
+    TuiFieldErrorPipe,
     TuiInputModule,
     TuiInputNumberModule,
     TuiInputPasswordModule,

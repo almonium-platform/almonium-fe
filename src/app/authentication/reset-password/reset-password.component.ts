@@ -1,9 +1,10 @@
+import {TuiInputPasswordModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {TuiAlertService, TuiButtonModule, TuiErrorModule, TuiTextfieldControllerModule} from '@taiga-ui/core';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipeModule, TuiInputPasswordModule} from '@taiga-ui/kit';
+import {TuiAlertService, TuiError} from '@taiga-ui/core';
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {ParticlesService} from '../../services/particles.service';
 import {NgxParticlesModule} from '@tsparticles/angular';
 import {AsyncPipe, NgIf} from '@angular/common';
@@ -15,10 +16,9 @@ import {AsyncPipe, NgIf} from '@angular/common';
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    TuiErrorModule,
-    TuiFieldErrorPipeModule,
+    TuiError,
+    TuiFieldErrorPipe,
     TuiInputPasswordModule,
-    TuiButtonModule,
     NgxParticlesModule,
     TuiTextfieldControllerModule,
     AsyncPipe,
@@ -59,7 +59,7 @@ export class ResetPasswordComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       this.token = params['token'];
       if (!this.token) {
-        this.alertService.open('No token provided', {status: 'error'}).subscribe();
+        this.alertService.open('No token provided', {appearance: 'error'}).subscribe();
         this.router.navigate(['/auth']).then(r => r);
       }
     });
@@ -70,11 +70,11 @@ export class ResetPasswordComponent implements OnInit {
       const newPassword = this.resetForm.get('newPassword')?.value;
       this.authService.resetPassword(this.token, newPassword).subscribe({
         next: () => {
-          this.alertService.open('Password reset successfully!', {status: 'success'}).subscribe();
+          this.alertService.open('Password reset successfully!', {appearance: 'success'}).subscribe();
           this.router.navigate(['/auth']).then(r => r);
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Password reset failed', {status: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Password reset failed', {appearance: 'error'}).subscribe();
         },
       });
     }

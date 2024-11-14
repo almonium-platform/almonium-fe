@@ -56,7 +56,7 @@ export class RecentAuthGuardService {
         }
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to check access token', {status: 'error'}).subscribe();
+        this.alertService.open(error.message || 'Failed to check access token', {appearance: 'error'}).subscribe();
         console.error('Error checking access token:', error);
       }
     });
