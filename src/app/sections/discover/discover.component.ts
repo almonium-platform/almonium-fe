@@ -35,6 +35,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private diacriticPopupFocused: boolean = false;
 
   // input
+  private readonly MAX_INPUT_LENGTH = 150;
   @Input() searchText: string = '';
   private singleLineHeight: number = 0;
   protected submitted: boolean = false;
@@ -142,15 +143,28 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Handles changes in the search input field */
   protected onSearchChange(): void {
     this.changeTextAlignIfMoreThanOneLine();
+
     let {previousText, currentText, changeIndex} = this.trackTextChanges();
 
-    // **Add this code to replace multiple spaces with a single space**
-    const normalizedText = currentText.replace(/ {2,}/g, ' ');
+    // Prevent leading whitespace
+    if (currentText.startsWith(' ')) {
+      currentText = currentText.trimStart(); // Remove leading whitespace immediately
+      this.updateContentEditable(currentText);
+    }
 
+    // Normalize spaces
+    const normalizedText = currentText.replace(/ {2,}/g, ' ');
     if (normalizedText !== currentText) {
-      // If changes were made, update the content of the editable element
       this.updateContentEditable(normalizedText);
       currentText = normalizedText;
+    }
+
+    if (currentText.length > this.MAX_INPUT_LENGTH) {
+      alert('Search text is too long. Please limit your search to ' + this.MAX_INPUT_LENGTH + ' characters.');
+
+      this.searchText = currentText.slice(0, this.MAX_INPUT_LENGTH);
+      this.updateContentEditable(this.searchText);
+      return;
     }
 
     if (this.searchText !== previousText && this.diacriticPopupFocused) {
