@@ -421,6 +421,12 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // KEYDOWN HANDLER
   protected handleKeydown(event: KeyboardEvent): void {
+    if (event.ctrlKey || event.metaKey) {
+      if (event.key === 'b' || event.key === 'i' || event.key === 'u') {
+        event.preventDefault(); // Prevent the formatting
+      }
+    }
+
     if (event.key === 'ArrowDown') {
       if (this.currentAutocompleteItemFocusIndex <= 0) {
         if (this.diacriticPopupFocused) {
