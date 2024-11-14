@@ -1,9 +1,20 @@
 <div class="tabs-wrapper">
   <tui-tabs [(activeItemIndex)]="activeItemIndex" class="settings-tabs">
-    <button tuiTab type="button" routerLinkActive routerLink="/settings/auth">
+    <button tuiTab
+            iconStart="@tui.id-card"
+            type="button"
+            routerLinkActive
+            routerLink="/settings/auth"
+    >
       Authentication
     </button>
-    <button tuiTab routerLinkActive routerLink="/settings/lang" type="button">
+
+    <button tuiTab
+            iconStart="@tui.languages"
+            routerLinkActive
+            routerLink="/settings/lang"
+            type="button"
+    >
       Languages
     </button>
   </tui-tabs>
