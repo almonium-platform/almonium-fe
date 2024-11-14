@@ -8,8 +8,8 @@ import {Language} from '../../models/language.enum';
 import {LanguageService} from '../../services/language.service';
 import {NavbarWrapperComponent} from '../../shared/navbars/navbar-wrapper/navbar-wrapper.component';
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
-import {DiacriticService} from "./diacritic-popup/diacritic.service";
-import {AutocompleteService} from "./diacritic-popup/autocomplete.service";
+import {DiacriticService} from "./service/diacritic.service";
+import {AutocompleteService} from "./service/autocomplete.service";
 
 @Component({
   selector: 'app-discover',
