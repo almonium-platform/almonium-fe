@@ -1,0 +1,20 @@
+<div class="">
+  <tui-multi-select
+    [formControl]="fluentLanguageControl"
+    [tuiTextfieldCleaner]="true"
+    [tuiTextfieldLabelOutside]="true"
+    placeholder="Search fluent languages..."
+    (searchChange)="fluentSearch$.next($event ?? '')"
+  >
+    Select your fluent languages
+
+    <tui-data-list-wrapper
+      *tuiDataList
+      [items]="filteredFluentLanguages$ | async"
+    ></tui-data-list-wrapper>
+  </tui-multi-select>
+  <tui-error
+    [formControl]="fluentLanguageControl"
+    [error]="[] | tuiFieldError | async"
+  ></tui-error>
+</div>

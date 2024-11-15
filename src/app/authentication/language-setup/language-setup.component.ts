@@ -21,6 +21,9 @@ import {LanguageSetupService} from './language-setup.service';
 import {ParticlesService} from "../../services/particles.service";
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {UserInfoService} from "../../services/user-info.service";
+import {
+  FluentLanguageSelectorComponent
+} from "../../shared/fluent-language-selector/fluent-language-selector.component";
 
 const MAX_LANGUAGES = 3;
 
@@ -51,6 +54,7 @@ const MAX_LANGUAGES = 3;
     TuiFieldErrorPipe,
     TuiDataListWrapper,
     NgxParticlesModule,
+    FluentLanguageSelectorComponent,
   ],
 })
 export class LanguageSetupComponent implements OnInit {
@@ -58,25 +62,19 @@ export class LanguageSetupComponent implements OnInit {
   languages: Language[] = [];
   supportedLanguages: Language[] = [];
   otherLanguages: Language[] = [];
+  selectedFluentLanguages: string[] = [];
 
   maxLanguages = 3;
 
-  // Form controls with validators
-  fluentLanguageControl = new FormControl<string[]>([], [
-    Validators.required,
-    this.maxLanguagesValidator(this.maxLanguages),
-  ]);
   targetLanguageControl = new FormControl<string[]>([], [
     Validators.required,
     this.maxLanguagesValidator(this.maxLanguages),
   ]);
 
   // Search subjects
-  fluentSearch$ = new Subject<string>();
   targetSearch$ = new Subject<string>();
 
   // Filtered items observables
-  filteredFluentLanguages$: Observable<string[]>;
   filteredTargetLanguages$: Observable<string[][]>;
 
   id = 'tsparticles';
@@ -109,16 +107,8 @@ export class LanguageSetupComponent implements OnInit {
     private userInfoService: UserInfoService,
   ) {
     this.languageForm = this.fb.group({
-      fluentLanguages: this.fluentLanguageControl,
       targetLanguages: this.targetLanguageControl,
     });
-
-    this.filteredFluentLanguages$ = this.fluentSearch$.pipe(
-      startWith(''),
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((search) => this.filterFluentLanguages(search))
-    );
 
     this.filteredTargetLanguages$ = this.targetSearch$.pipe(
       startWith(''),
@@ -162,11 +152,8 @@ export class LanguageSetupComponent implements OnInit {
   /**
    * Filter languages based on search query and type (fluent or target)
    */
-  private filterFluentLanguages(search: string): Observable<string[]> {
-    const filtered = this.languages
-      .map(lang => lang.name)
-      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
-    return of(filtered).pipe(delay(300)); // Simulate server delay if needed
+  onFluentLanguagesSelected(selectedLanguages: string[]): void {
+    this.selectedFluentLanguages = selectedLanguages;
   }
 
   private filterTargetLanguages(search: string): Observable<string[][]> {
@@ -228,7 +215,7 @@ export class LanguageSetupComponent implements OnInit {
       return;
     }
 
-    const fluentLanguageNames = this.fluentLanguageControl.value || [];
+    const fluentLanguageNames = this.selectedFluentLanguages;
     const targetLanguageNames = this.targetLanguageControl.value || [];
 
     // Map language names back to codes

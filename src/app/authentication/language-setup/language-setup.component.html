@@ -22,29 +22,14 @@
           </div>
         </div>
         <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
-          <!-- Fluent Languages -->
+          <!-- Fluent Languages-->
           <div class="form-group">
             <label>I'm fluent in</label>
-            <tui-multi-select
-              formControlName="fluentLanguages"
-              [tuiTextfieldCleaner]="true"
-              [tuiTextfieldLabelOutside]="true"
-              placeholder="Search fluent languages..."
-              (searchChange)="fluentSearch$.next($event ?? '')"
-            >
-              Select your fluent languages
-
-              <tui-data-list-wrapper
-                *tuiDataList
-                [items]="filteredFluentLanguages$ | async"
-              ></tui-data-list-wrapper>
-            </tui-multi-select>
-            <tui-error
-              formControlName="fluentLanguages"
-              [error]="[] | tuiFieldError | async"
-            ></tui-error>
+            <app-fluent-language-selector
+              [languages]="languages"
+              (selectedFluentLanguages)="onFluentLanguagesSelected($event)"
+            ></app-fluent-language-selector>
           </div>
-
           <!-- Target Languages -->
           <div class="form-group">
             <label>I want to learn</label>
