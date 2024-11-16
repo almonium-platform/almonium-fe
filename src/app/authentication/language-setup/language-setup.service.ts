@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {Language} from '../../models/language.model';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
@@ -18,7 +18,7 @@ export class LanguageSetupService {
   ) {
   }
 
-  // Method to get languages from the backend
+  // Method to get languages from the backend - TODO rename for clarity
   getLanguages(): Observable<Language[]> {
     const url = `${AppConstants.PUBLIC_URL}${this.apiUrl}`;
     return this.http.get<string[]>(url).pipe(
@@ -34,6 +34,11 @@ export class LanguageSetupService {
   }
 
   saveUserLanguages(payload: { fluentLangs: string[]; targetLangs: string[] }): Observable<any> {
+    const url = `${AppConstants.API_URL}${this.userLangsUrl}`;
+    return this.http.put(url, payload, {withCredentials: true});
+  }
+
+  saveFluentLanguages(payload: { fluentLangs: string[] }): Observable<any> {
     const url = `${AppConstants.API_URL}${this.userLangsUrl}`;
     return this.http.put(url, payload, {withCredentials: true});
   }
