@@ -61,7 +61,7 @@
 <div class="base-container">
   <div class="section-block email card">
     <div class="title">Email {{ isProviderLinked('local') ? ' and Password' : '' }}</div>
-    <div class="email-content">
+    <div class="row-content">
       <form [formGroup]="emailForm" class="email-form">
 
         <div class="field">
@@ -117,7 +117,7 @@
       </app-edit-button>
     </div>
 
-    <div class="password-content" *ngIf="isProviderLinked('local')">
+    <div class="row-content" *ngIf="isProviderLinked('local')">
       <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
 
         <div class="field">

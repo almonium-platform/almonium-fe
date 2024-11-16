@@ -35,21 +35,6 @@
   color: #f0ad4e;
 }
 
-.edit-element {
-  margin-left: auto;
-  margin-top: 2px;
-}
-
-.email-content {
-  display: flex;
-  flex-direction: row;
-  padding: 0;
-}
-
-.password-content {
-  .email-content;
-}
-
 .card {
   box-shadow: unset;
 }
@@ -121,7 +106,7 @@
 }
 
 .btn-danger {
-  border: 1px solid red;
+  border: 1px solid var(--danger-text-color);
   border-radius: 35px;
   padding: 15px 30px;
   font-size: 15px;
@@ -132,9 +117,12 @@
   gap: 10px;
 }
 
+.btn-danger:hover {
+  background-color: var(--danger-text-color);
+  color: white;
+}
+
 .delete-icon {
-  font-size: 18px;
-  margin-right: 4px;
   margin-top: 1px;
 }
 
