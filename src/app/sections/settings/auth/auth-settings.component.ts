@@ -10,7 +10,7 @@ import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingService} from "./auth-settings.service";
-import {TuiAlertService, TuiError} from "@taiga-ui/core";
+import {TuiAlertService, TuiError, TuiIcon} from "@taiga-ui/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
@@ -49,7 +49,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,
-    SettingsTabsComponent
+    SettingsTabsComponent,
+    TuiIcon
   ],
   templateUrl: './auth-settings.component.html',
   providers: [

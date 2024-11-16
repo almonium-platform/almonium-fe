@@ -186,7 +186,12 @@
   <div class="danger section-block">
     <span class="danger-text">Danger Zone</span>
     <button class="btn btn-danger" (click)="onDeleteAccount()">
-      <i class="fi fi-bs-user-xmark delete-icon"></i>
+      <tui-icon
+        icon="@tui.user-round-x"
+        class="delete-icon"
+        [style.height.px]="18"
+        [style.width.px]="18"
+      />
       Delete Account
     </button>
   </div>
