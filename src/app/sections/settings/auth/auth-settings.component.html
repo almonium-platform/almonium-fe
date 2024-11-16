@@ -59,137 +59,135 @@
 <app-settings-tabs></app-settings-tabs>
 
 <div class="base-container">
-  <div class="main-section">
-    <div class="section-block email card">
-      <div class="title">Email {{ isProviderLinked('local') ? ' and Password' : '' }}</div>
-      <div class="email-content">
-        <form [formGroup]="emailForm" class="email-form">
+  <div class="section-block email card">
+    <div class="title">Email {{ isProviderLinked('local') ? ' and Password' : '' }}</div>
+    <div class="email-content">
+      <form [formGroup]="emailForm" class="email-form">
 
-          <div class="field">
-            <tui-input formControlName="emailValue"
-                       tuiTextfieldSize="m"
-                       [tuiTextfieldLabelOutside]="true"
-                       [readOnly]="!emailEditable"
+        <div class="field">
+          <tui-input formControlName="emailValue"
+                     tuiTextfieldSize="m"
+                     [tuiTextfieldLabelOutside]="true"
+                     [readOnly]="!emailEditable"
 
-            >
-              Email
-              <input placeholder="Email" tuiTextfieldLegacy/>
-            </tui-input>
-            <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
-          </div>
+          >
+            Email
+            <input placeholder="Email" tuiTextfieldLegacy/>
+          </tui-input>
+          <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
 
-        </form>
-        <span *ngIf="!emailVerified"
-              class="unverified-icon"
-              title="Email not verified"
-        >
+      </form>
+      <span *ngIf="!emailVerified"
+            class="unverified-icon"
+            title="Email not verified"
+      >
           <i class="fas fa-exclamation text-xl"></i>
         </span>
 
-        <button *ngIf="!emailVerified && !emailEditable && !hasPendingEmailVerificationRequest()"
-                class="black-n-white-button verify-btn"
-                (click)="requestEmailVerification()">
-          <i class="fa-solid fa-envelope-open-text"></i>
-          Verify
-        </button>
+      <button *ngIf="!emailVerified && !emailEditable && !hasPendingEmailVerificationRequest()"
+              class="black-n-white-button verify-btn"
+              (click)="requestEmailVerification()">
+        <i class="fa-solid fa-envelope-open-text"></i>
+        Verify
+      </button>
 
-        <div class="status-container" *ngIf="emailVerified" [ngClass]="{emailVerifiedTextExpanded : 'circular-icon'}">
+      <div class="status-container" *ngIf="emailVerified" [ngClass]="{emailVerifiedTextExpanded : 'circular-icon'}">
           <span class="status-box verified-box">
             <i class="status-icon fas fa-check-circle"></i>
             <span *ngIf="emailVerifiedTextExpanded" class="status-text">VERIFIED</span>
           </span>
-        </div>
-
-        <button *ngIf="hasPendingEmailVerificationRequest()"
-                class="pending-icon edit-element"
-                title="Email not verified"
-                (click)="onPendingEmailVerificationClick()"
-        >
-          <i class="fi fi-rr-email-pending text-sm"></i>
-        </button>
-
-        <app-edit-button
-          *ngIf="!hasPendingEmailVerificationRequest()"
-          class="edit-element"
-          [disabled]="!emailConfirmEnabled()"
-          [label]="'Change email'"
-          [editable]="emailEditable"
-          (clickFunction)="onEmailEditClick()">
-        </app-edit-button>
       </div>
 
-      <div class="password-content" *ngIf="isProviderLinked('local')">
-        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
-
-          <div class="field">
-            <tui-input-password
-              formControlName="passwordValue"
-              [tuiTextfieldLabelOutside]="true"
-              tuiTextfieldSize="m"
-              [readOnly]="!passwordEditable"
-            >
-              Password
-            </tui-input-password>
-            <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
-          </div>
-
-        </form>
-        <div class="password-updated-box" *ngIf="!passwordEditable">
-          <div class="password-upd-text text-gray-700 tracking-tight leading-5 text-">LAST UPDATED<br>
-          </div>
-          <div class="text-xs text-gray-700 tracking-wide">
-            {{ lastPasswordUpdate }}
-          </div>
-        </div>
-        <app-edit-button
-          class="edit-element"
-          [disabled]="!passwordConfirmEnabled()"
-          [label]="'Change password'"
-          [editable]="passwordEditable"
-          (clickFunction)="onPasswordEditClick()">
-        </app-edit-button>
-      </div>
-    </div>
-    <div class="section-block card">
-      <div class="title">Linked Accounts</div>
-      <div class="social-buttons">
-        <div class="provider-block">
-          <!-- Google Provider Block -->
-          <app-provider-icon
-            [provider]="'google'"
-            [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
-        </div>
-
-        <div class="provider-block">
-          <!-- Apple Provider Block -->
-          <app-provider-icon
-            [provider]="'apple'"
-            [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
-        </div>
-
-        <div class="provider-block">
-          <!-- Local Provider Block -->
-          <app-provider-icon
-            [provider]="'local'"
-            [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
-        </div>
-      </div>
-    </div>
-    <div class="danger section-block">
-      <span class="danger-text">Danger Zone</span>
-      <button class="btn btn-danger" (click)="onDeleteAccount()">
-        <i class="fi fi-bs-user-xmark delete-icon"></i>
-        Delete Account
+      <button *ngIf="hasPendingEmailVerificationRequest()"
+              class="pending-icon edit-element"
+              title="Email not verified"
+              (click)="onPendingEmailVerificationClick()"
+      >
+        <i class="fi fi-rr-email-pending text-sm"></i>
       </button>
+
+      <app-edit-button
+        *ngIf="!hasPendingEmailVerificationRequest()"
+        class="edit-element"
+        [disabled]="!emailConfirmEnabled()"
+        [label]="'Change email'"
+        [editable]="emailEditable"
+        (clickFunction)="onEmailEditClick()">
+      </app-edit-button>
     </div>
+
+    <div class="password-content" *ngIf="isProviderLinked('local')">
+      <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
+
+        <div class="field">
+          <tui-input-password
+            formControlName="passwordValue"
+            [tuiTextfieldLabelOutside]="true"
+            tuiTextfieldSize="m"
+            [readOnly]="!passwordEditable"
+          >
+            Password
+          </tui-input-password>
+          <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+        </div>
+
+      </form>
+      <div class="password-updated-box" *ngIf="!passwordEditable">
+        <div class="password-upd-text text-gray-700 tracking-tight leading-5 text-">LAST UPDATED<br>
+        </div>
+        <div class="text-xs text-gray-700 tracking-wide">
+          {{ lastPasswordUpdate }}
+        </div>
+      </div>
+      <app-edit-button
+        class="edit-element"
+        [disabled]="!passwordConfirmEnabled()"
+        [label]="'Change password'"
+        [editable]="passwordEditable"
+        (clickFunction)="onPasswordEditClick()">
+      </app-edit-button>
+    </div>
+  </div>
+  <div class="section-block card">
+    <div class="title">Linked Accounts</div>
+    <div class="social-buttons">
+      <div class="provider-block">
+        <!-- Google Provider Block -->
+        <app-provider-icon
+          [provider]="'google'"
+          [connectedProviders]="authProviders"
+          [click]="prepareAndShowProviderModal"
+        ></app-provider-icon>
+        <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
+      </div>
+
+      <div class="provider-block">
+        <!-- Apple Provider Block -->
+        <app-provider-icon
+          [provider]="'apple'"
+          [connectedProviders]="authProviders"
+          [click]="prepareAndShowProviderModal"
+        ></app-provider-icon>
+        <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
+      </div>
+
+      <div class="provider-block">
+        <!-- Local Provider Block -->
+        <app-provider-icon
+          [provider]="'local'"
+          [connectedProviders]="authProviders"
+          [click]="prepareAndShowProviderModal"
+        ></app-provider-icon>
+        <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
+      </div>
+    </div>
+  </div>
+  <div class="danger section-block">
+    <span class="danger-text">Danger Zone</span>
+    <button class="btn btn-danger" (click)="onDeleteAccount()">
+      <i class="fi fi-bs-user-xmark delete-icon"></i>
+      Delete Account
+    </button>
   </div>
 </div>
