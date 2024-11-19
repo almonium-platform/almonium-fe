@@ -56,9 +56,10 @@
 <div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
   <app-auth (close)="closeAuthModal()" [mode]="authMode" [providers]="authProviders"></app-auth>
 </div>
-<app-settings-tabs></app-settings-tabs>
 
 <div class="base-container">
+  <app-settings-tabs></app-settings-tabs>
+
   <div class="section-block email card">
     <div class="title">Email {{ isProviderLinked('local') ? ' and Password' : '' }}</div>
     <div class="row-content">
