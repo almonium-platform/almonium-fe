@@ -1,5 +1,33 @@
 <app-navbar></app-navbar>
 
 <app-settings-tabs></app-settings-tabs>
+
 <div class="base-container">
+  <div class="section-block card">
+    <div class="title">Fluent Languages</div>
+
+    <div class="row-content">
+      <app-fluent-language-selector
+        *ngIf="fluentEditable"
+        class="fluent-language-selector"
+        [languages]="languages"
+        [size]="'m'"
+        [selectedLanguages]="currentFluentLanguages"
+        (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
+
+      <div class="fluent-chips" *ngIf="!fluentEditable">
+        <div *ngFor="let language of currentFluentLanguages">
+          <tui-chip appearance="primary">{{ language }}</tui-chip>
+        </div>
+      </div>
+
+      <app-edit-button
+        class="edit-element"
+        [disabled]="!(fluentEnabled$ | async)"
+        [label]="'Save'"
+        [editable]="fluentEditable"
+        (clickFunction)="onFluentEdit()">
+      </app-edit-button>
+    </div>
+  </div>
 </div>

@@ -56,9 +56,7 @@ export class FluentLanguageSelectorComponent implements OnInit {
   // **Filtered items observable**
   filteredFluentLanguages$: Observable<string[]>;
 
-  constructor(
-    private languageNameService: LanguageNameService
-  ) {
+  constructor() {
     // **Initialize filtered languages observable**
     this.filteredFluentLanguages$ = this.fluentSearch$.pipe(
       startWith(''),
@@ -75,13 +73,7 @@ export class FluentLanguageSelectorComponent implements OnInit {
     });
 
     if (this.selectedLanguages) {
-      const mappedLanguages = this.selectedLanguages.map((code) => {
-        return {
-          code: code.toLowerCase(),
-          name: this.languageNameService.getLanguageName(code),
-        };
-      });
-      this.fluentLanguageControl.setValue(mappedLanguages.map(lang => lang.name));
+      this.fluentLanguageControl.setValue(this.selectedLanguages);
     }
   }
 
