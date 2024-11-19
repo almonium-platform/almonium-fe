@@ -30,4 +30,13 @@
       </app-edit-button>
     </div>
   </div>
+  <div class="section-block card">
+    <div class="title">Target Languages</div>
+
+    <div class="row-content">
+      <tui-segmented size='m'>
+        <button *ngFor="let language of currentTargetLanguages" type="button"> {{ language }}</button>
+      </tui-segmented>
+    </div>
+  </div>
 </div>

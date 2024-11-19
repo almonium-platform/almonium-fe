@@ -14,7 +14,7 @@ import {EditButtonComponent} from "../../../shared/edit-button/edit-button.compo
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService} from "@taiga-ui/core";
 import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
-import {TuiChip} from "@taiga-ui/kit";
+import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
 import {BehaviorSubject} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 
@@ -34,7 +34,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     NgIf,
     NgForOf,
     TuiChip,
-    AsyncPipe
+    AsyncPipe,
+    TuiSegmented
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -48,6 +49,9 @@ export class LangSettingsComponent implements OnInit {
   protected currentFluentLanguages: string[] = [];
   protected fluentEditable: boolean = false;
   protected fluentEnabled$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+
+  // target languages
+  protected currentTargetLanguages: string[] = [];
 
   constructor(
     private languageService: LanguageSetupService,
@@ -70,9 +74,13 @@ export class LangSettingsComponent implements OnInit {
     this.userInfoService.userInfo$.subscribe((info) => {
       this.userInfo = info;
       if (info) {
+        // fluent
         this.selectedFluentLanguages = this.userInfo!.fluentLangs;
         this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, this.selectedFluentLanguages);
         this.updateFluentEnabled();
+
+        // target
+        this.currentTargetLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, this.userInfo!.targetLangs);
       }
     });
   }
