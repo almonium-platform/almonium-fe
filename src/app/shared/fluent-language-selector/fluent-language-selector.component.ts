@@ -7,6 +7,7 @@ import {TuiMultiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/lega
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {Language} from "../../models/language.model";
 import {TuiError} from "@taiga-ui/core";
+import {LanguageNameService} from "../../services/language-name.service";
 
 const MAX_LANGUAGES = 3;
 
@@ -37,6 +38,8 @@ const MAX_LANGUAGES = 3;
 })
 export class FluentLanguageSelectorComponent implements OnInit {
   @Input() languages: Language[] = []; // **Input from parent**
+  @Input() size: 's' | 'm' | 'l' = 'l';
+  @Input() selectedLanguages?: string[] = []; // **Input from parent**
   @Output() selectedFluentLanguages = new EventEmitter<string[]>(); // **Emit selected languages to parent**
 
   maxLanguages = MAX_LANGUAGES;
@@ -53,7 +56,9 @@ export class FluentLanguageSelectorComponent implements OnInit {
   // **Filtered items observable**
   filteredFluentLanguages$: Observable<string[]>;
 
-  constructor() {
+  constructor(
+    private languageNameService: LanguageNameService
+  ) {
     // **Initialize filtered languages observable**
     this.filteredFluentLanguages$ = this.fluentSearch$.pipe(
       startWith(''),
@@ -68,6 +73,16 @@ export class FluentLanguageSelectorComponent implements OnInit {
     this.fluentLanguageControl.valueChanges.subscribe((value) => {
       this.selectedFluentLanguages.emit(value || []);
     });
+
+    if (this.selectedLanguages) {
+      const mappedLanguages = this.selectedLanguages.map((code) => {
+        return {
+          code: code.toLowerCase(),
+          name: this.languageNameService.getLanguageName(code),
+        };
+      });
+      this.fluentLanguageControl.setValue(mappedLanguages.map(lang => lang.name));
+    }
   }
 
   // **Validator to enforce maximum number of languages**
