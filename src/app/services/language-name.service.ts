@@ -30,8 +30,8 @@ export class LanguageNameService {
     return name || code.toUpperCase();
   }
 
-  public mapLanguageCodesToNames(languages: Language[], targetLanguageCodes: string[]) {
-    return targetLanguageCodes
+  public mapLanguageCodesToNames(languages: Language[], languageCodes: string[]) {
+    return languageCodes
       .map((code) => {
         const lang = languages.find((l) => l.code === code.toLowerCase());
         return lang ? lang.name : null;
@@ -39,8 +39,8 @@ export class LanguageNameService {
       .filter((name): name is string => name !== null);
   }
 
-  public mapLanguageNamesToCodes(languages: Language[], targetLanguageNames: string[]) {
-    return targetLanguageNames
+  public mapLanguageNamesToCodes(languages: Language[], languageNames: string[]) {
+    return languageNames
       .map((name) => {
         const lang = languages.find((l) => l.name === name);
         return lang ? lang.code.toUpperCase() : null;
