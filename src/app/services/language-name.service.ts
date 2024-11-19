@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import iso6391 from 'iso-639-1';
 import {iso6393} from 'iso-639-3';
+import {Language} from "../models/language.model";
 
 @Injectable({
   providedIn: 'root',
@@ -27,5 +28,23 @@ export class LanguageNameService {
 
     // Return the name if found, otherwise return the code in uppercase as a fallback
     return name || code.toUpperCase();
+  }
+
+  public mapLanguageCodesToNames(languages: Language[], targetLanguageCodes: string[]) {
+    return targetLanguageCodes
+      .map((code) => {
+        const lang = languages.find((l) => l.code === code.toLowerCase());
+        return lang ? lang.name : null;
+      })
+      .filter((name): name is string => name !== null);
+  }
+
+  public mapLanguageNamesToCodes(languages: Language[], targetLanguageNames: string[]) {
+    return targetLanguageNames
+      .map((name) => {
+        const lang = languages.find((l) => l.name === name);
+        return lang ? lang.code.toUpperCase() : null;
+      })
+      .filter((code): code is string => code !== null);
   }
 }

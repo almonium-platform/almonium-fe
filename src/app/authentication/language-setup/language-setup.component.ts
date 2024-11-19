@@ -24,6 +24,7 @@ import {UserInfoService} from "../../services/user-info.service";
 import {
   FluentLanguageSelectorComponent
 } from "../../shared/fluent-language-selector/fluent-language-selector.component";
+import {LanguageNameService} from "../../services/language-name.service";
 
 const MAX_LANGUAGES = 3;
 
@@ -102,6 +103,7 @@ export class LanguageSetupComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private languageService: LanguageSetupService,
+    private languageNameService: LanguageNameService,
     private router: Router,
     protected particlesService: ParticlesService,
     private userInfoService: UserInfoService,
@@ -166,7 +168,6 @@ export class LanguageSetupComponent implements OnInit {
     return of([supportedLangNames, otherLangNames]).pipe(delay(300)); // Simulate server delay if needed
   }
 
-
   updateSelectedFeatures(): void {
     const selectedLangNames = this.targetLanguageControl.value || [];
     const specialFeaturesMap: { [feature: string]: Set<string> } = {};
@@ -211,7 +212,7 @@ export class LanguageSetupComponent implements OnInit {
 
   onSubmit(): void {
     if (this.languageForm.invalid) {
-      // Show error message
+      console.error('This should not happen: form is invalid but submit was called');
       return;
     }
 
@@ -219,19 +220,8 @@ export class LanguageSetupComponent implements OnInit {
     const targetLanguageNames = this.targetLanguageControl.value || [];
 
     // Map language names back to codes
-    const fluentLanguageCodes = fluentLanguageNames
-      .map((name) => {
-        const lang = this.languages.find((l) => l.name === name);
-        return lang ? lang.code.toUpperCase() : null;
-      })
-      .filter((code): code is string => code !== null);
-
-    const targetLanguageCodes = targetLanguageNames
-      .map((name) => {
-        const lang = this.languages.find((l) => l.name === name);
-        return lang ? lang.code.toUpperCase() : null;
-      })
-      .filter((code): code is string => code !== null);
+    const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, fluentLanguageNames);
+    const targetLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, targetLanguageNames);
 
     const payload = {
       fluentLangs: fluentLanguageCodes,
