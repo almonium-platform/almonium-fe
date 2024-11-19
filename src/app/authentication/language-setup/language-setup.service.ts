@@ -12,6 +12,7 @@ import {LanguageNameService} from "../../services/language-name.service";
 export class LanguageSetupService {
   private apiUrl = '/supported-langs';
   private userLangsUrl = '/users/me/langs';
+  private fluentLangsUrl = '/users/me/fluent-langs';
 
   constructor(private http: HttpClient,
               private languageNameService: LanguageNameService
@@ -38,8 +39,8 @@ export class LanguageSetupService {
     return this.http.put(url, payload, {withCredentials: true});
   }
 
-  saveFluentLanguages(payload: { fluentLangs: string[] }): Observable<any> {
-    const url = `${AppConstants.API_URL}${this.userLangsUrl}`;
+  saveFluentLanguages(payload: { langCodes: string[] }): Observable<any> {
+    const url = `${AppConstants.API_URL}${this.fluentLangsUrl}`;
     return this.http.put(url, payload, {withCredentials: true});
   }
 }
