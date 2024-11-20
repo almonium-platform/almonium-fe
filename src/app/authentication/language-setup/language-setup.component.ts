@@ -10,10 +10,10 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
-import {TuiError} from '@taiga-ui/core';
+import {TuiAlertService, TuiError} from '@taiga-ui/core';
 import {delay, Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
@@ -25,6 +25,7 @@ import {
   FluentLanguageSelectorComponent
 } from "../../shared/fluent-language-selector/fluent-language-selector.component";
 import {LanguageNameService} from "../../services/language-name.service";
+import {ValidationMessagesService} from "./validation-messages-service";
 
 const MAX_LANGUAGES = 3;
 
@@ -37,12 +38,10 @@ const MAX_LANGUAGES = 3;
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'At least one language is required',
-        maxLanguages: () => {
-          return `You can select up to ${MAX_LANGUAGES} languages`;
-        },
+      useFactory: (validationMessagesService: ValidationMessagesService) => {
+        return validationMessagesService.getValidationMessages();
       },
+      deps: [ValidationMessagesService],
     },
   ],
   imports: [
@@ -69,7 +68,7 @@ export class LanguageSetupComponent implements OnInit {
 
   targetLanguageControl = new FormControl<string[]>([], [
     Validators.required,
-    this.maxLanguagesValidator(this.maxLanguages),
+    this.maxLanguagesValidator(MAX_LANGUAGES),
   ]);
 
   // Search subjects
@@ -100,13 +99,18 @@ export class LanguageSetupComponent implements OnInit {
     // Add more if needed
   };
 
+  protected mode: 'add-target' | 'default' = 'default';
+
   constructor(
     private fb: FormBuilder,
-    private languageService: LanguageApiService,
+    private languageApiService: LanguageApiService,
     private languageNameService: LanguageNameService,
     private router: Router,
     protected particlesService: ParticlesService,
     private userInfoService: UserInfoService,
+    private route: ActivatedRoute,
+    private alertService: TuiAlertService,
+    private validationMessagesService: ValidationMessagesService,
   ) {
     this.languageForm = this.fb.group({
       targetLanguages: this.targetLanguageControl,
@@ -122,7 +126,23 @@ export class LanguageSetupComponent implements OnInit {
 
   ngOnInit(): void {
     this.particlesService.initializeParticles();
-    this.languageService.getLanguages().subscribe((languages) => {
+
+    this.route.queryParams.subscribe((params) => {
+      if (params['mode'] === 'add-target') {
+        this.mode = 'add-target';
+        const maxLanguages = 1;
+        this.validationMessagesService.setMaxLanguages(maxLanguages);
+
+        // Update validators dynamically
+        this.targetLanguageControl.setValidators([
+          Validators.required,
+          this.maxLanguagesValidator(maxLanguages),
+        ]);
+        this.targetLanguageControl.updateValueAndValidity();
+      }
+    });
+
+    this.languageApiService.getLanguages().subscribe((languages) => {
       this.languages = languages;
 
       // Separate languages with extra features and other languages
@@ -216,26 +236,40 @@ export class LanguageSetupComponent implements OnInit {
       return;
     }
 
-    const fluentLanguageNames = this.selectedFluentLanguages;
     const targetLanguageNames = this.targetLanguageControl.value || [];
-
-    // Map language names back to codes
-    const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, fluentLanguageNames);
     const targetLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, targetLanguageNames);
+    if (this.mode === 'add-target') {
+      let languageCode = targetLanguageCodes[0];
+
+      this.languageApiService.addTargetLang(languageCode).subscribe({
+        next: () => {
+          // TODO when we implement onboarding steps, this will change
+          this.userInfoService.forceReloadUserInfo();
+          this.router.navigate(['/settings/lang'], {queryParams: {target_lang: "success"}}).then(r => r);
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to add new target language', {appearance: 'error'}).subscribe();
+          console.error('Error saving languages:', error);
+        },
+      });
+      return;
+    }
+    const fluentLanguageNames = this.selectedFluentLanguages;
+    const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, fluentLanguageNames);
 
     const payload = {
       fluentLangs: fluentLanguageCodes,
       targetLangs: targetLanguageCodes,
     };
 
-    this.languageService.saveUserLanguages(payload).subscribe({
+    this.languageApiService.saveUserLanguages(payload).subscribe({
       next: () => {
         // Redirect to /home
         this.router.navigate(['/home']).then(r => r);
         this.userInfoService.clearUserInfo();
       },
       error: (error) => {
-        // Handle error (show message to user)
+        this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'error'}).subscribe();
         console.error('Error saving languages:', error);
       },
     });

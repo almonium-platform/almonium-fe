@@ -48,7 +48,7 @@ export class LanguageApiService {
     return this.http.delete(url, {withCredentials: true});
   }
 
-  addTargetLang(targetLang: string) {
+  addTargetLang(targetLang: LanguageCode) {
     const url = `${AppConstants.MY_LANGUAGES_URL}/target/${targetLang}`;
     return this.http.put(url, {}, {withCredentials: true});
   }

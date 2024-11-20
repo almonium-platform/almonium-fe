@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, tap} from 'rxjs/operators';
 import {UserInfo} from "../models/userinfo.model";
@@ -31,6 +31,18 @@ export class UserInfoService {
     } else {
       return this.fetchUserInfoFromServer(); // Fetch from server if not cached
     }
+  }
+
+  forceReloadUserInfo(): void {
+    this.fetchUserInfoFromServer().pipe(
+      tap((userInfo) => {
+        this.userInfoSubject.next(userInfo);
+      }),
+      catchError((error) => {
+        console.error('Error reloading user info:', error);
+        return of(this.userInfoSubject.getValue()); // Fallback to the current cached value
+      })
+    );
   }
 
   clearUserInfo(): void {

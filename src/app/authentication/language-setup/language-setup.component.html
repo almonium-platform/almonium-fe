@@ -23,7 +23,7 @@
         </div>
         <form [formGroup]="languageForm" (ngSubmit)="onSubmit()">
           <!-- Fluent Languages-->
-          <div class="form-group">
+          <div class="form-group" *ngIf="mode !== 'add-target'">
             <label>I'm fluent in</label>
             <app-fluent-language-selector
               [languages]="languages"
