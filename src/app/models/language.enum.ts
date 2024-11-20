@@ -1,4 +1,4 @@
-export enum Language {
+export enum LanguageCode {
   AF = 'AF', // Afrikaans
   SQ = 'SQ', // Albanian
   AM = 'AM', // Amharic

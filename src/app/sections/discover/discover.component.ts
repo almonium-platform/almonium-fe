@@ -4,7 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
 import {ActivatedRoute} from '@angular/router';
 import {FrequencyService} from '../../services/frequency.service';
-import {Language} from '../../models/language.enum';
+import {LanguageCode} from '../../models/language.enum';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {NavbarWrapperComponent} from '../../shared/navbars/navbar-wrapper/navbar-wrapper.component';
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
@@ -48,7 +48,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   // islands
   protected frequency: number = 0;
 
-  private currentLanguage: Language = Language.EN;
+  private currentLanguage: LanguageCode = LanguageCode.EN;
 
   private globalKeydownListener!: () => void;
 

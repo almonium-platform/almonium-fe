@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Language} from "../models/language.enum";
+import {LanguageCode} from "../models/language.enum";
 import {AuthProvider} from "../sections/settings/auth/auth.types";
 
 const USER_INFO_KEY = 'user_info';
@@ -48,12 +48,12 @@ export class LocalStorageService {
     this.removeItem(USER_INFO_KEY);
   }
 
-  saveCurrentLanguage(language: Language): void {
+  saveCurrentLanguage(language: LanguageCode): void {
     this.saveItem(CURRENT_LANGUAGE, language);
   }
 
-  getCurrentLanguage(): Language {
-    return this.getItem<Language>(CURRENT_LANGUAGE) || Language.EN;
+  getCurrentLanguage(): LanguageCode {
+    return this.getItem<LanguageCode>(CURRENT_LANGUAGE) || LanguageCode.EN;
   }
 
   saveLangColors(colors: { [key: string]: string }): void {

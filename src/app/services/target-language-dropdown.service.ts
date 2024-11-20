@@ -2,13 +2,13 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import {LocalStorageService} from './local-storage.service';
-import {Language} from '../models/language.enum';
+import {LanguageCode} from '../models/language.enum';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TargetLanguageDropdownService {
-  private currentLanguageSubject = new BehaviorSubject<Language>(this.localStorageService.getCurrentLanguage());
+  private currentLanguageSubject = new BehaviorSubject<LanguageCode>(this.localStorageService.getCurrentLanguage());
   currentLanguage$ = this.currentLanguageSubject.asObservable();
 
   private langColorsSubject = new BehaviorSubject<{ [key: string]: string }>(this.getCachedLangColors() || {});
@@ -22,7 +22,7 @@ export class TargetLanguageDropdownService {
   }
 
   // Set and update the selected language
-  setCurrentLanguage(language: Language): void {
+  setCurrentLanguage(language: LanguageCode): void {
     this.currentLanguageSubject.next(language);
     this.localStorageService.saveCurrentLanguage(language); // Save in local storage
   }

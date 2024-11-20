@@ -1,4 +1,4 @@
-import {Language} from "./language.enum";
+import {LanguageCode} from "./language.enum";
 
 export interface UserInfo {
   id: string;
@@ -9,8 +9,8 @@ export interface UserInfo {
   profilePicLink: string | null;
   background: string | null;
   streak: number | null;
-  targetLangs: Language[];
-  fluentLangs: Language[];
+  targetLangs: LanguageCode[];
+  fluentLangs: LanguageCode[];
   setupCompleted: boolean;
   tags: string[] | null;
 }

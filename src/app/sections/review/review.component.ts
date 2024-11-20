@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CardService} from '../../services/card.service';
 import {CardDto} from '../../models/card.model';
-import {Language} from '../../models/language.enum';
+import {LanguageCode} from '../../models/language.enum';
 import {Subscription} from 'rxjs';
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {NgIf, NgOptimizedImage} from "@angular/common";
@@ -23,7 +23,7 @@ import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar
 })
 export class ReviewComponent implements OnInit, OnDestroy {
   cards: CardDto[] = [];
-  selectedLanguage!: Language;
+  selectedLanguage!: LanguageCode;
   private languageSubscription: Subscription | null = null;
   displayLanguageName: string = ''; // Variable to store the full name of the language
 
@@ -47,7 +47,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
     }
   }
 
-  private fetchCardsForLanguage(language: Language): void {
+  private fetchCardsForLanguage(language: LanguageCode): void {
     this.cardService.getCardsInLanguage(language).subscribe((cards) => {
       this.cards = cards;
     });

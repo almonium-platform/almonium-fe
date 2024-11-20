@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
-import {Language} from "../models/language.enum";
+import {LanguageCode} from "../models/language.enum";
 
 interface NgramsResponseDto {
   queryTokens: QueryToken[];
@@ -31,18 +31,18 @@ export class FrequencyService {
   private readonly FREQUENCY_THRESHOLD = Math.pow(10, -this.EXPONENT);
 
   // Map language to its specific scale as defined in the backend
-  private readonly languageScale: Map<Language, number> = new Map([
-    [Language.EN, 12.78990589161462],
-    [Language.RU, 10.5], // Replace with actual RU scale
-    [Language.DE, 11.3], // Replace with actual DE scale
+  private readonly languageScale: Map<LanguageCode, number> = new Map([
+    [LanguageCode.EN, 12.78990589161462],
+    [LanguageCode.RU, 10.5], // Replace with actual RU scale
+    [LanguageCode.DE, 11.3], // Replace with actual DE scale
     // Continue for other languages
   ]);
 
   // Map language to corpus name as per ngrams.dev API
-  private readonly corpusName: Map<Language, string> = new Map([
-    [Language.EN, 'eng'],
-    [Language.RU, 'rus'],
-    [Language.DE, 'ger'],
+  private readonly corpusName: Map<LanguageCode, string> = new Map([
+    [LanguageCode.EN, 'eng'],
+    [LanguageCode.RU, 'rus'],
+    [LanguageCode.DE, 'ger'],
     // Add other languages and their corpus names as needed
   ]);
 
@@ -55,7 +55,7 @@ export class FrequencyService {
    * @param language The language of the word.
    * @returns Observable<number> representing the calculated frequency score.
    */
-  getFrequency(word: string, language: Language = Language.EN): Observable<number> {
+  getFrequency(word: string, language: LanguageCode = LanguageCode.EN): Observable<number> {
     const corpus = this.corpusName.get(language);
     if (!corpus) {
       console.error(`Language ${language} is not supported.`);
@@ -87,7 +87,7 @@ export class FrequencyService {
    * @param language The language of the word.
    * @returns The calculated frequency score.
    */
-  private calculateFrequency(frequency: number, language: Language): number {
+  private calculateFrequency(frequency: number, language: LanguageCode): number {
     if (frequency === 0) {
       return 0;
     }

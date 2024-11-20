@@ -16,7 +16,7 @@ import {FormsModule} from "@angular/forms";
 import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {UserInfo} from "../../../models/userinfo.model";
-import {Language} from "../../../models/language.enum";
+import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
 import {Subscription} from "rxjs";
@@ -55,9 +55,9 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   private userInfoSubscription: Subscription | null = null;
 
   // Language dropdown
-  protected selectedLanguage!: Language;
+  protected selectedLanguage!: LanguageCode;
   protected focusedLangIndex = -1; // Index of the currently focused dropdown item
-  private languages: Language[] = [];
+  private languages: LanguageCode[] = [];
   protected filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
   private langColors: { [key: string]: string } = {};
 
@@ -98,7 +98,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['userInfo'] && changes['userInfo'].currentValue) {
-      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || Language.EN;
+      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || LanguageCode.EN;
       this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
       this.cdr.detectChanges();
     }
@@ -204,7 +204,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
-  changeLanguage(lang: Language): void {
+  changeLanguage(lang: LanguageCode): void {
     this.selectedLanguage = lang;
     this.filteredLanguages = this.languages.filter(language => language !== this.selectedLanguage);
     this.isLanguageDropdownOpen = false;
