@@ -46,6 +46,43 @@
   margin-top: 2px;
 }
 
+// delete account
+// TODO TEMPORARY - remove from auth-settings?
+.danger {
+  background-color: var(--danger-bg-color);
+  color: var(--danger-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+}
+
+.danger-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.btn-danger {
+  border: 1px solid var(--danger-text-color);
+  border-radius: 35px;
+  padding: 15px 30px;
+  font-size: 15px;
+  background-color: white;
+  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.btn-danger:hover {
+  background-color: var(--danger-text-color);
+  color: white;
+}
+
+.delete-icon {
+  margin-top: 1px;
+}
+
 @media (max-width: 450px) {
   .section-block {
     max-width: 350px;

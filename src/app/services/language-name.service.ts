@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import iso6391 from 'iso-639-1';
 import {iso6393} from 'iso-639-3';
 import {Language} from "../models/language.model";
+import {LanguageCode} from "../models/language.enum";
 
 @Injectable({
   providedIn: 'root',
@@ -39,12 +40,14 @@ export class LanguageNameService {
       .filter((name): name is string => name !== null);
   }
 
-  public mapLanguageNamesToCodes(languages: Language[], languageNames: string[]) {
+  public mapLanguageNamesToCodes(languages: Language[], languageNames: string[]): LanguageCode[] {
     return languageNames
-      .map((name) => {
-        const lang = languages.find((l) => l.name === name);
-        return lang ? lang.code.toUpperCase() : null;
-      })
-      .filter((code): code is string => code !== null);
+      .map((name) => this.mapLanguageNameToCode(languages, name))
+      .filter((code): code is LanguageCode => code !== null);
+  }
+
+  public mapLanguageNameToCode(languages: Language[], name: string): LanguageCode | null {
+    const lang = languages.find((l) => l.name === name);
+    return lang ? (lang.code.toUpperCase() as LanguageCode) : null;
   }
 }

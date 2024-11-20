@@ -5,6 +5,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {AppConstants} from '../app.constants';
 import {LanguageNameService} from "./language-name.service";
+import {LanguageCode} from "../models/language.enum";
 
 @Injectable({
   providedIn: 'root',
@@ -42,7 +43,7 @@ export class LanguageApiService {
     return this.http.put(url, payload, {withCredentials: true});
   }
 
-  deleteTargetLang(currentTargetLanguage: string) {
+  deleteTargetLang(currentTargetLanguage: LanguageCode) {
     const url = `${AppConstants.MY_LANGUAGES_URL}/target/${currentTargetLanguage}`;
     return this.http.delete(url, {withCredentials: true});
   }

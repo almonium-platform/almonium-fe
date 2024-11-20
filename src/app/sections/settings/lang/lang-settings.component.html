@@ -1,3 +1,13 @@
+<app-confirm-modal
+  [isVisible]="isConfirmTargetLangDeletionModalVisible"
+  [title]="modalTitle"
+  [message]="modalMessage"
+  [confirmText]="modalConfirmText"
+  (close)="closeTargetLangDeletionConfirmModal()"
+  (confirm)="confirmTargetLangDeletion()"
+  [useCountdown]="true">
+</app-confirm-modal>
+
 <app-navbar></app-navbar>
 
 <div class="base-container">
@@ -34,9 +44,22 @@
     <div class="title">Target Languages</div>
 
     <div class="row-content">
-      <tui-segmented size='m'>
+      <tui-segmented size='m' [(activeItemIndex)]="selectedTargetedLanguageIndex">
         <button *ngFor="let language of currentTargetLanguages" type="button"> {{ language }}</button>
       </tui-segmented>
     </div>
+  </div>
+
+  <div class="danger section-block">
+    <span class="danger-text">Danger Zone</span>
+    <button class="btn btn-danger" (click)="deleteTargetLang()">
+      <tui-icon
+        icon="@tui.trash-2"
+        class="delete-icon"
+        [style.height.px]="18"
+        [style.width.px]="18"
+      />
+      Delete {{ currentTargetLanguages[selectedTargetedLanguageIndex] }}
+    </button>
   </div>
 </div>
