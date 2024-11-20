@@ -3,7 +3,7 @@ import {CardService} from '../../services/card.service';
 import {CardDto} from '../../models/card.model';
 import {Language} from '../../models/language.enum';
 import {Subscription} from 'rxjs';
-import {LanguageService} from "../../services/language.service";
+import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
@@ -28,7 +28,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
   displayLanguageName: string = ''; // Variable to store the full name of the language
 
   constructor(private cardService: CardService,
-              private languageService: LanguageService,
+              private languageService: TargetLanguageDropdownService,
               private languageNameService: LanguageNameService,
   ) {
   }

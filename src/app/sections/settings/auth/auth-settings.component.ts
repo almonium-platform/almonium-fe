@@ -9,7 +9,7 @@ import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
-import {AuthSettingService} from "./auth-settings.service";
+import {AuthSettingsService} from "./auth-settings.service";
 import {TuiAlertService, TuiError, TuiIcon} from "@taiga-ui/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
@@ -113,7 +113,7 @@ export class AuthSettingsComponent implements OnInit {
 
 
   constructor(
-    private settingService: AuthSettingService,
+    private settingService: AuthSettingsService,
     private alertService: TuiAlertService,
     private userInfoService: UserInfoService,
     private router: Router,

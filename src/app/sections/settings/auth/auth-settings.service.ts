@@ -10,7 +10,7 @@ import {ResponseModel} from "../../../models/response.model";
 @Injectable({
   providedIn: 'root',
 })
-export class AuthSettingService {
+export class AuthSettingsService {
   constructor(private http: HttpClient) {
   }
 

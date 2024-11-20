@@ -20,7 +20,7 @@ import {Language} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
 import {Subscription} from "rxjs";
-import {LanguageService} from "../../../services/language.service";
+import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 
 @Component({
   selector: 'app-navbar',
@@ -64,7 +64,7 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
-              private languageService: LanguageService,
+              private languageService: TargetLanguageDropdownService,
   ) {
   }
 

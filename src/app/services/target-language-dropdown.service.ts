@@ -7,7 +7,7 @@ import {Language} from '../models/language.enum';
 @Injectable({
   providedIn: 'root'
 })
-export class LanguageService {
+export class TargetLanguageDropdownService {
   private currentLanguageSubject = new BehaviorSubject<Language>(this.localStorageService.getCurrentLanguage());
   currentLanguage$ = this.currentLanguageSubject.asObservable();
 

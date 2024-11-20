@@ -5,7 +5,7 @@ import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditab
 import {ActivatedRoute} from '@angular/router';
 import {FrequencyService} from '../../services/frequency.service';
 import {Language} from '../../models/language.enum';
-import {LanguageService} from '../../services/language.service';
+import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {NavbarWrapperComponent} from '../../shared/navbars/navbar-wrapper/navbar-wrapper.component';
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
 import {DiacriticService} from "./service/diacritic.service";
@@ -56,7 +56,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     private renderer: Renderer2,
     private route: ActivatedRoute,
     private frequencyService: FrequencyService,
-    private languageService: LanguageService,
+    private languageService: TargetLanguageDropdownService,
     private diacriticService: DiacriticService,
     private autocompleteService: AutocompleteService,
   ) {
