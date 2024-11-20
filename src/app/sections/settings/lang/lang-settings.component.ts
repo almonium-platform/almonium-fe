@@ -20,6 +20,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
+import {ActivatedRoute, Router} from "@angular/router";
+import {UrlService} from "../../../services/url.service";
 
 @Component({
   selector: 'app-lang-settings',
@@ -75,10 +77,20 @@ export class LangSettingsComponent implements OnInit {
     private localStorageService: LocalStorageService,
     private languageApiService: LanguageApiService,
     private targetLanguageDropdownService: TargetLanguageDropdownService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private urlService: UrlService,
   ) {
   }
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      if (params['target_lang'] === 'success') {
+        this.alertService.open('Your target language has been successfully saved', {appearance: 'success'}).subscribe();
+        this.urlService.clearUrl();
+      }
+    });
+
     this.languageService.getLanguages().subscribe((languages) => {
       this.languages = languages;
       this.populateFromUserInfo();
@@ -197,7 +209,7 @@ export class LangSettingsComponent implements OnInit {
     this.languageApiService.deleteTargetLang(deletedLanguage).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${deletedLanguage} profile has been deleted`, {appearance: 'success'})
+          .open(`Your ${this.getSelectedTargetLangCode()} profile has been deleted`, {appearance: 'success'})
           .subscribe();
         this.currentTargetLanguages.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
         this.selectedTargetedLanguageIndex = 0; // reset to the first language
@@ -215,5 +227,9 @@ export class LangSettingsComponent implements OnInit {
     return this.languageNameService.mapLanguageNameToCode(
       this.languages,
       this.getCurrentTargetLanguage())!;
+  }
+
+  protected navigateToLangSetup() {
+    this.router.navigate(['/setup-languages'], {queryParams: {mode: 'add-target'}}).then(r => r);
   }
 }

@@ -47,6 +47,10 @@
       <tui-segmented size='m' [(activeItemIndex)]="selectedTargetedLanguageIndex">
         <button *ngFor="let language of currentTargetLanguages" type="button"> {{ language }}</button>
       </tui-segmented>
+
+      <button class="black-n-white-button edit-btn circular-icon edit-element" (click)="navigateToLangSetup()">
+        <i class="fa-regular fa-plus text-base"></i>
+      </button>
     </div>
   </div>
 
