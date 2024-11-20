@@ -31,8 +31,8 @@
       <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
         <div class="relative lang-dropdown">
           <button (click)="toggleLanguageDropdown()" class="lang-btn text-lg"
-                  [ngStyle]="getButtonStyles(selectedLanguage)">
-            {{ selectedLanguage }}
+                  [ngStyle]="getButtonStyles(currentLanguage)">
+            {{ currentLanguage }}
           </button>
           <!-- Dropdown Menu (direct continuation of the button) -->
 

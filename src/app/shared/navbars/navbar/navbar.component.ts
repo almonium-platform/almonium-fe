@@ -4,11 +4,9 @@ import {
   ElementRef,
   HostListener,
   Input,
-  OnChanges,
   OnDestroy,
   OnInit,
   QueryList,
-  SimpleChanges,
   ViewChild,
   ViewChildren
 } from '@angular/core';
@@ -38,7 +36,7 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
   ],
   standalone: true
 })
-export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
+export class NavbarComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
@@ -52,42 +50,65 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
 
   // User info
   protected userInfo: UserInfo | null = null;
-  private userInfoSubscription: Subscription | null = null;
 
   // Language dropdown
-  protected selectedLanguage!: LanguageCode;
+  protected currentLanguage!: LanguageCode;
   protected focusedLangIndex = -1; // Index of the currently focused dropdown item
-  private languages: LanguageCode[] = [];
-  protected filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
+  protected filteredLanguages: LanguageCode[] = [];
+  private targetLanguages: LanguageCode[] = [];
+  private subscriptions: Subscription[] = [];
+
   private langColors: { [key: string]: string } = {};
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
-              private languageService: TargetLanguageDropdownService,
+              private targetLanguageDropdownService: TargetLanguageDropdownService,
   ) {
   }
 
   ngOnInit(): void {
-    this.languageService.langColors$.subscribe((colors) => {
-      this.langColors = colors;
-    });
+    this.subscriptions.push(
+      this.targetLanguageDropdownService.langColors$.subscribe((colors) => {
+        this.langColors = colors;
+      })
+    );
 
-    this.userInfoSubscription = this.userService.userInfo$.subscribe((info) => {
-      this.userInfo = info;
-      if (info) {
-        this.initializeLanguages(info);
-      }
-    });
+    this.subscriptions.push(
+      this.targetLanguageDropdownService.currentLanguage$.subscribe((currentLanguage) => {
+        this.currentLanguage = currentLanguage;
+        this.cdr.markForCheck(); // Trigger UI update
+      })
+    );
+
+    this.subscriptions.push(
+      this.targetLanguageDropdownService.filteredLanguages$.subscribe((filteredLanguages) => {
+        this.filteredLanguages = filteredLanguages;
+        this.cdr.markForCheck();
+      })
+    );
+
+    this.subscriptions.push(
+      this.targetLanguageDropdownService.targetLanguages$.subscribe((targetLanguages) => {
+        this.targetLanguages = targetLanguages;
+        this.cdr.markForCheck();
+      })
+    );
+
+    this.subscriptions.push(
+      this.userService.userInfo$.subscribe((info) => {
+        if (info) {
+          this.userInfo = info;
+          this.targetLanguageDropdownService.initializeLanguages(info);
+        }
+      })
+    );
     this.checkDeviceType();
     window.addEventListener('resize', this.checkDeviceType.bind(this));
   }
 
   ngOnDestroy(): void {
-    if (this.userInfoSubscription) {
-      this.userInfoSubscription.unsubscribe();
-    }
-
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
     window.removeEventListener('resize', this.checkDeviceType.bind(this));
   }
 
@@ -95,15 +116,6 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     this.isMobile = window.innerWidth <= 690; // Adjust breakpoint as needed
     this.cdr.detectChanges();
   }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['userInfo'] && changes['userInfo'].currentValue) {
-      this.selectedLanguage = this.userInfo?.targetLangs?.[0] || LanguageCode.EN;
-      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-      this.cdr.detectChanges();
-    }
-  }
-
 
   // LANGUAGE DROPDOWN
   // Shortcut Listener for "Alt + A"
@@ -115,27 +127,10 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
     }
   }
 
-  private initializeLanguages(userInfo: UserInfo | null): void {
-    if (!userInfo) return;
-    this.languageService.currentLanguage$.subscribe((storedLanguage) => {
-      this.languages = userInfo.targetLangs;
-      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-      if (storedLanguage) {
-        this.selectedLanguage = storedLanguage;
-      } else if (userInfo.targetLangs && userInfo.targetLangs.length > 0) {
-        this.selectedLanguage = userInfo.targetLangs[0];
-        this.languageService.setCurrentLanguage(this.selectedLanguage); // Set default if none is stored
-      }
-
-      this.filteredLanguages = this.languages.filter(lang => lang !== this.selectedLanguage);
-      this.cdr.markForCheck();
-    });
-  }
-
   changeToNextLanguage(): void {
-    const currentIndex = this.languages.indexOf(this.selectedLanguage);
-    const nextIndex = (currentIndex + 1) % this.languages.length;
-    this.changeLanguage(this.languages[nextIndex]);
+    const currentIndex = this.targetLanguages.indexOf(this.currentLanguage);
+    const nextIndex = (currentIndex + 1) % this.targetLanguages.length;
+    this.changeLanguage(this.targetLanguages[nextIndex]);
   }
 
   toggleLanguageDropdown(): void {
@@ -205,11 +200,10 @@ export class NavbarComponent implements OnChanges, OnInit, OnDestroy {
   }
 
   changeLanguage(lang: LanguageCode): void {
-    this.selectedLanguage = lang;
-    this.filteredLanguages = this.languages.filter(language => language !== this.selectedLanguage);
+    this.currentLanguage = lang;
     this.isLanguageDropdownOpen = false;
     this.focusedLangIndex = -1;
-    this.languageService.setCurrentLanguage(lang);
+    this.targetLanguageDropdownService.setCurrentLanguage(lang);
   }
 
   // dynamic styles
