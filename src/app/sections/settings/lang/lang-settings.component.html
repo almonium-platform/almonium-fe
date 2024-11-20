@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <div class="danger section-block">
+  <div class="danger section-block" *ngIf="currentTargetLanguages.length > 1">
     <span class="danger-text">Danger Zone</span>
     <button class="btn btn-danger" (click)="deleteTargetLang()">
       <tui-icon
