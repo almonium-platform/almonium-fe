@@ -1,18 +1,16 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Language} from '../../models/language.model';
+import {Language} from '../models/language.model';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {AppConstants} from '../../app.constants';
-import {LanguageNameService} from "../../services/language-name.service";
+import {AppConstants} from '../app.constants';
+import {LanguageNameService} from "./language-name.service";
 
 @Injectable({
   providedIn: 'root',
 })
-export class LanguageSetupService {
+export class LanguageApiService {
   private apiUrl = '/supported-langs';
-  private userLangsUrl = '/users/me/langs';
-  private fluentLangsUrl = '/users/me/fluent-langs';
 
   constructor(private http: HttpClient,
               private languageNameService: LanguageNameService
@@ -35,12 +33,22 @@ export class LanguageSetupService {
   }
 
   saveUserLanguages(payload: { fluentLangs: string[]; targetLangs: string[] }): Observable<any> {
-    const url = `${AppConstants.API_URL}${this.userLangsUrl}`;
+    const url = `${AppConstants.MY_LANGUAGES_URL}`;
     return this.http.put(url, payload, {withCredentials: true});
   }
 
   saveFluentLanguages(payload: { langCodes: string[] }): Observable<any> {
-    const url = `${AppConstants.API_URL}${this.fluentLangsUrl}`;
+    const url = `${AppConstants.MY_LANGUAGES_URL}/fluent`;
     return this.http.put(url, payload, {withCredentials: true});
+  }
+
+  deleteTargetLang(currentTargetLanguage: string) {
+    const url = `${AppConstants.MY_LANGUAGES_URL}/target/${currentTargetLanguage}`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  addTargetLang(targetLang: string) {
+    const url = `${AppConstants.MY_LANGUAGES_URL}/target/${targetLang}`;
+    return this.http.put(url, {}, {withCredentials: true});
   }
 }

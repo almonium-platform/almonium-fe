@@ -1,8 +1,8 @@
 import {environment} from '../environments/environment';
 
 export class AppConstants {
-  // URLS
 
+  // BASE URLS
   public static API_URL = environment.apiUrl + '/api/v1';
   public static PUBLIC_URL = AppConstants.API_URL + '/public';
   public static USERS_URL = AppConstants.API_URL + '/users';
@@ -21,10 +21,12 @@ export class AppConstants {
   public static APPLE_AUTH_URL_WITH_REDIRECT_TO = AppConstants.OAUTH2_URL + '/apple' + AppConstants.REDIRECT_URL;
   public static GOOGLE_ONE_TAP_VERIFY_URL = AppConstants.PUBLIC_AUTH_URL + '/google/one-tap';
 
-  // Cards
+  // CARDS
   public static CARDS_URL = AppConstants.API_URL + '/cards';
   public static CARDS_IN_LANG = AppConstants.CARDS_URL + '/lang';
 
+  // LANGUAGES
+  public static MY_LANGUAGES_URL = AppConstants.USERS_URL + '/me/langs';
 
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
