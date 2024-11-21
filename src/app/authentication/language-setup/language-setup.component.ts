@@ -244,7 +244,7 @@ export class LanguageSetupComponent implements OnInit {
       this.languageApiService.addTargetLang(languageCode).subscribe({
         next: () => {
           // TODO when we implement onboarding steps, this will change
-          this.userInfoService.forceReloadUserInfo();
+          this.userInfoService.fetchUserInfoFromServer().subscribe();
           this.router.navigate(['/settings/lang'], {queryParams: {target_lang: "success"}}).then(r => r);
         },
         error: (error) => {

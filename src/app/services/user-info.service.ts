@@ -33,18 +33,6 @@ export class UserInfoService {
     }
   }
 
-  forceReloadUserInfo(): void {
-    this.fetchUserInfoFromServer().pipe(
-      tap((userInfo) => {
-        this.userInfoSubject.next(userInfo);
-      }),
-      catchError((error) => {
-        console.error('Error reloading user info:', error);
-        return of(this.userInfoSubject.getValue()); // Fallback to the current cached value
-      })
-    );
-  }
-
   clearUserInfo(): void {
     this.localStorageService.clearUserInfo();
     this.userInfoSubject.next(null);
@@ -61,7 +49,7 @@ export class UserInfoService {
   /**
    * Fetch user info from the server.
    */
-  private fetchUserInfoFromServer(): Observable<UserInfo | null> {
+  fetchUserInfoFromServer(): Observable<UserInfo | null> {
     return this.http.get<UserInfo>(`${AppConstants.API_URL}/users/me`, {withCredentials: true}).pipe(
       tap((userInfo: UserInfo) => {
         this.localStorageService.saveUserInfo(userInfo); // Cache in local storage
