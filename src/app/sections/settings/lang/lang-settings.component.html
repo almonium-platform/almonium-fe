@@ -44,11 +44,27 @@
     <div class="title">Target Languages</div>
 
     <div class="row-content">
-      <tui-segmented size='m' [(activeItemIndex)]="selectedTargetedLanguageIndex">
-        <button *ngFor="let language of currentTargetLanguages" type="button"> {{ language }}</button>
-      </tui-segmented>
-
-      <button class="black-n-white-button edit-btn circular-icon edit-element" (click)="navigateToLangSetup()">
+      <div class="segmented-block">
+        <tui-scrollbar>
+          <div class="tui-segmented-wrapper">
+            <tui-segmented
+              size="m"
+              [(activeItemIndex)]="selectedTargetedLanguageIndex"
+            >
+              <button
+                *ngFor="let language of currentTargetLanguages"
+                type="button"
+              >
+                {{ language }}
+              </button>
+            </tui-segmented>
+          </div>
+        </tui-scrollbar>
+      </div>
+      <button
+        class="black-n-white-button edit-btn circular-icon edit-element"
+        (click)="navigateToLangSetup()"
+      >
         <i class="fa-regular fa-plus text-base"></i>
       </button>
     </div>

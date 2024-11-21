@@ -44,6 +44,7 @@ import {UrlService} from "../../../services/url.service";
     TuiIcon,
     ConfirmModalComponent,
     TuiAutoColorPipe,
+    TuiScrollbar,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
