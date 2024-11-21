@@ -68,12 +68,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - var(--header-height)); // Ensures the container takes the full height of the viewport minus the header height
+  min-height: calc(100vh - var(--header-height)); // Ensures the container takes the full height of the viewport minus the header height
   width: 100%; // Ensures the container takes the full width of the viewport
   padding: 20px; // Adds padding to the container
   box-sizing: border-box; // Includes padding in the width calculation
   background-color: var(--main-bg-color); // Uses the main background color
-  overflow-y: auto; // Adds a vertical scrollbar if the content overflows
 }
 
 .social-buttons {
