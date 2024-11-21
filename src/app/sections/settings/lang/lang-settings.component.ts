@@ -210,7 +210,7 @@ export class LangSettingsComponent implements OnInit {
     this.languageApiService.deleteTargetLang(deletedLanguage).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${this.getSelectedTargetLangCode()} profile has been deleted`, {appearance: 'success'})
+          .open(`Your ${this.getCurrentTargetLanguage()} profile has been deleted`, {appearance: 'success'})
           .subscribe();
         this.currentTargetLanguages.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
         this.selectedTargetedLanguageIndex = 0; // reset to the first language
