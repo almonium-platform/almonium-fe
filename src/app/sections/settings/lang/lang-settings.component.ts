@@ -12,7 +12,7 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiAlertService, TuiIcon} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
 import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
 import {BehaviorSubject} from "rxjs";
@@ -42,7 +42,8 @@ import {UrlService} from "../../../services/url.service";
     AsyncPipe,
     TuiSegmented,
     TuiIcon,
-    ConfirmModalComponent
+    ConfirmModalComponent,
+    TuiAutoColorPipe,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'

@@ -26,9 +26,9 @@
         (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
 
       <div class="fluent-chips" *ngIf="!fluentEditable">
-        <div *ngFor="let language of currentFluentLanguages">
-          <tui-chip appearance="primary">{{ language }}</tui-chip>
-        </div>
+        <tui-chip *ngFor="let language of currentFluentLanguages"
+                  [style.background-color]="language | tuiAutoColor">{{ language }}
+        </tui-chip>
       </div>
 
       <app-edit-button
