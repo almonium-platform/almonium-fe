@@ -1,0 +1,29 @@
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+.fade-slide-in {
+  animation: fadeSlideIn 0.3s ease-out;
+}
+
+.fade-slide-out {
+  animation: fadeSlideOut 0.3s ease-out;
+}
