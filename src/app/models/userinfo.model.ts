@@ -56,8 +56,12 @@ export class Plan {
     return new Plan(data.name, data.limits, data.startDate, data.type);
   }
 
+  getLimit(key: string, defaultValue: number = Infinity): number {
+    return this.limits[key] ?? defaultValue;
+  }
+
   getMaxTargetLanguages(): number {
-    return this.limits[PlanLimitKeys.MAX_TARGET_LANGS] || 0;
+    return this.getLimit(PlanLimitKeys.MAX_TARGET_LANGS);
   }
 }
 
