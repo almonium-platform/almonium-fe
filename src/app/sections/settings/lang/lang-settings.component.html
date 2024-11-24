@@ -63,17 +63,16 @@
       </div>
       <div class="edit-element">
         <premium-badged-content
-          [display]="userInfo? userInfo.isTargetLangPaywalled() : false"
+          [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
           [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
           [badgeAltText]="'Premium'"
           [showIcon]="true"
           [badgeSize]="'24px'"
           [iconPosition]="{ top: '-10px', right: '-10px' }"
+          [originalClickHandler]="navigateToLangSetup.bind(this)"
         >
           <button
-            class="black-n-white-button edit-btn circular-icon"
-            (click)="navigateToLangSetup()"
-          >
+            class="black-n-white-button edit-btn circular-icon">
             <i class="fa-regular fa-plus text-base"></i>
           </button>
         </premium-badged-content>

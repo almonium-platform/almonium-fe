@@ -1,10 +1,15 @@
-import {Component, Input} from '@angular/core';
+import {Component, inject, Input, ViewChild} from '@angular/core';
 import {NgIf, NgOptimizedImage} from "@angular/common";
+import {TuiDialogContext, TuiDialogService, TuiDialogSize} from "@taiga-ui/core";
+import {PaywallComponent} from "../paywall/paywall.component";
+import {PolymorpheusContent} from "@taiga-ui/polymorpheus";
 
 @Component({
   selector: 'premium-badged-content',
   template: `
-    <div class="custom-badged-content">
+    <paywall #paywallComponent></paywall>
+
+    <div class="custom-badged-content" (click)="handleClick($event)">
       <ng-content></ng-content>
       <!-- Badge Icon at Top-Right -->
       <div *ngIf="display" class="custom-badge-container custom-badge-icon-container">
@@ -28,7 +33,8 @@ import {NgIf, NgOptimizedImage} from "@angular/common";
   styleUrls: ['./premium-badged-content.component.less'],
   imports: [
     NgIf,
-    NgOptimizedImage
+    NgOptimizedImage,
+    PaywallComponent
   ],
   standalone: true
 })
@@ -45,6 +51,11 @@ export class PremiumBadgedContentComponent {
   };
   @Input() labelPosition: { top?: string; right?: string; bottom?: string; left?: string } = {};
 
+  // paywall dialog
+  private readonly dialogs = inject(TuiDialogService);
+  @Input() originalClickHandler: (() => void) | null = null; // Original logic when not paywalled
+  @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
+
   // Get the parsed numeric value of badgeSize
   get badgeNumericSize(): number {
     return parseInt(this.badgeSize.replace('px', ''), 10) || 20; // Fallback to 20 if invalid
@@ -60,5 +71,27 @@ export class PremiumBadgedContentComponent {
       bottom: this.iconPosition.bottom,
       left: this.iconPosition.left,
     };
+  }
+
+  handleClick(event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.display) {
+      this.openPaywallDialog(this.paywallComponent.content, 'm');
+    } else if (this.originalClickHandler) {
+      this.originalClickHandler();
+    }
+  }
+
+  protected openPaywallDialog(
+    content: PolymorpheusContent<TuiDialogContext>,
+    size: TuiDialogSize,
+  ): void {
+    this.dialogs
+      .open(content, {
+        label: 'Upgrade to Premium 111',
+        size: size,
+      })
+      .subscribe();
   }
 }
