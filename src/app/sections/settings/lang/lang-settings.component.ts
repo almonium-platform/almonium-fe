@@ -22,6 +22,7 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
 import {LanguageCode} from "../../../models/language.enum";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
+import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
 
 @Component({
   selector: 'app-lang-settings',
@@ -45,6 +46,7 @@ import {UrlService} from "../../../services/url.service";
     ConfirmModalComponent,
     TuiAutoColorPipe,
     TuiScrollbar,
+    PremiumBadgedContentComponent,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -100,16 +102,14 @@ export class LangSettingsComponent implements OnInit {
   }
 
   private populateFromUserInfo() {
-    this.userInfoService.userInfo$.subscribe((info) => {
-      this.userInfo = info;
-      if (info) {
-        // fluent
-        this.selectedFluentLanguages = this.userInfo!.fluentLangs;
-        this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, this.selectedFluentLanguages);
-        this.updateFluentEnabled();
+    this.userInfoService.userInfo$.subscribe((info: UserInfo | null) => {
 
-        // target
-        this.currentTargetLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, this.userInfo!.targetLangs);
+      if (info) {
+        this.userInfo = info;
+        this.selectedFluentLanguages = info.fluentLangs;
+        this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
+        this.currentTargetLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
+        this.updateFluentEnabled();
       }
     });
   }

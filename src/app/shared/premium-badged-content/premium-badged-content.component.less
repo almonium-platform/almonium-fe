@@ -1,0 +1,46 @@
+.custom-badged-content {
+  position: relative; /* Allows absolute positioning of the badge */
+  display: inline-block;
+}
+
+/* Top-Right Badge Icon */
+.custom-badge-icon-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-badge-icon {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00d1ff, #8a2be2);
+  box-shadow: 0 0 1px rgba(138, 43, 226, 0.6), 0 0 2px rgba(0, 209, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+}
+
+/* Bottom-Center Badge Label */
+.custom-badge-label-container {
+  position: absolute;
+  bottom: -12px; /* Adjust to move closer to the bottom of the inner content */
+  left: 50%;
+  transform: translateX(-50%); /* Center align */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-badge-text {
+  color: var(--tui-text-primary-on-accent-1);
+  font-size: 10px;
+  padding: 0 5px;
+  border-radius: 8px;
+  line-height: 1.8;
+  font-weight: 600;
+  background: linear-gradient(135deg, #00d1ff, #8a2be2);
+  box-shadow: 0 0 1px rgba(138, 43, 226, 0.6), 0 0 2px rgba(0, 209, 255, 0.4);
+}

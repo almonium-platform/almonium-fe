@@ -61,12 +61,23 @@
           </div>
         </tui-scrollbar>
       </div>
-      <button
-        class="black-n-white-button edit-btn circular-icon edit-element"
-        (click)="navigateToLangSetup()"
-      >
-        <i class="fa-regular fa-plus text-base"></i>
-      </button>
+      <div class="edit-element">
+        <custom-badged-content
+          [display]="userInfo? userInfo.isTargetLangPaywalled() : false"
+          [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
+          [badgeAltText]="'Premium'"
+          [showIcon]="true"
+          [badgeSize]="'24px'"
+          [badgePosition]="{ top: '-10px', right: '-10px' }"
+        >
+          <button
+            class="black-n-white-button edit-btn circular-icon"
+            (click)="navigateToLangSetup()"
+          >
+            <i class="fa-regular fa-plus text-base"></i>
+          </button>
+        </custom-badged-content>
+      </div>
     </div>
   </div>
 
