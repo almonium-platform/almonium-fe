@@ -2,7 +2,7 @@ import {Component, Input} from '@angular/core';
 import {NgIf, NgOptimizedImage} from "@angular/common";
 
 @Component({
-  selector: 'custom-badged-content',
+  selector: 'premium-badged-content',
   template: `
     <div class="custom-badged-content">
       <ng-content></ng-content>
@@ -17,7 +17,8 @@ import {NgIf, NgOptimizedImage} from "@angular/common";
         </div>
       </div>
       <!-- Badge Label at Bottom Center -->
-      <div *ngIf="display && badgeText" class="custom-badge-container custom-badge-label-container">
+      <div *ngIf="display && badgeText" class="custom-badge-container custom-badge-label-container"
+           [style]="labelPosition">
         <div class="custom-badge-text">
           {{ badgeText }}
         </div>
@@ -38,10 +39,11 @@ export class PremiumBadgedContentComponent {
   @Input() badgeAltText: string = 'badge'; // Alt text for the badge
   @Input() badgeSize: string = '20px'; // Size of the badge
   @Input() badgeText: string | null = null; // Optional text for the badge
-  @Input() badgePosition: { top?: string; right?: string; bottom?: string; left?: string } = {
+  @Input() iconPosition: { top?: string; right?: string; bottom?: string; left?: string } = {
     top: '-5px',
     right: '-5px',
   };
+  @Input() labelPosition: { top?: string; right?: string; bottom?: string; left?: string } = {};
 
   // Get the parsed numeric value of badgeSize
   get badgeNumericSize(): number {
@@ -53,10 +55,10 @@ export class PremiumBadgedContentComponent {
       width: this.badgeSize,
       height: this.badgeSize,
       position: 'absolute',
-      top: this.badgePosition.top,
-      right: this.badgePosition.right,
-      bottom: this.badgePosition.bottom,
-      left: this.badgePosition.left,
+      top: this.iconPosition.top,
+      right: this.iconPosition.right,
+      bottom: this.iconPosition.bottom,
+      left: this.iconPosition.left,
     };
   }
 }

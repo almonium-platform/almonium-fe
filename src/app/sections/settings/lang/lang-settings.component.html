@@ -62,13 +62,13 @@
         </tui-scrollbar>
       </div>
       <div class="edit-element">
-        <custom-badged-content
+        <premium-badged-content
           [display]="userInfo? userInfo.isTargetLangPaywalled() : false"
           [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
           [badgeAltText]="'Premium'"
           [showIcon]="true"
           [badgeSize]="'24px'"
-          [badgePosition]="{ top: '-10px', right: '-10px' }"
+          [iconPosition]="{ top: '-10px', right: '-10px' }"
         >
           <button
             class="black-n-white-button edit-btn circular-icon"
@@ -76,7 +76,7 @@
           >
             <i class="fa-regular fa-plus text-base"></i>
           </button>
-        </custom-badged-content>
+        </premium-badged-content>
       </div>
     </div>
   </div>
