@@ -32,6 +32,7 @@
     "@taiga-ui/icons-fontawesome": "^4.15.0",
     "@taiga-ui/kit": "^4.15.0",
     "@taiga-ui/legacy": "4.15.0",
+    "@taiga-ui/polymorpheus": "^4.7.4",
     "@taiga-ui/styles": "^4.15.0",
     "@tinkoff/angular-contenteditable-accessor": "^2.0.0",
     "@tsparticles/angular": "^3.0.0",
