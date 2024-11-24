@@ -5,7 +5,7 @@ import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
 import {TokenInterceptor} from "./authentication/auth/token-interceptor";
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 
 export const appConfig: ApplicationConfig = {
   providers: [

@@ -1,5 +1,5 @@
 import {TuiInputModule, TuiInputPasswordModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {
   ChangeDetectorRef,
   Component,

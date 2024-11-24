@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {IParticlesProps, NgParticlesService} from '@tsparticles/angular';
 import {loadFull} from 'tsparticles';
 import {BehaviorSubject, Observable} from 'rxjs';

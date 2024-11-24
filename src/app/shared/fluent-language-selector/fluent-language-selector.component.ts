@@ -7,7 +7,6 @@ import {TuiMultiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/lega
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {Language} from "../../models/language.model";
 import {TuiError} from "@taiga-ui/core";
-import {LanguageNameService} from "../../services/language-name.service";
 
 const MAX_LANGUAGES = 3;
 
