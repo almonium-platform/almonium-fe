@@ -6,15 +6,14 @@ import {NgxParticlesModule} from "@tsparticles/angular";
 import {finalize, forkJoin, timer} from "rxjs";
 
 @Component({
-  selector: 'app-logout',
-  standalone: true,
-  imports: [
-    NgOptimizedImage,
-    NgxParticlesModule,
-    NgClass
-  ],
-  templateUrl: './logout.component.html',
-  styleUrl: './logout.component.less'
+    selector: 'app-logout',
+    imports: [
+        NgOptimizedImage,
+        NgxParticlesModule,
+        NgClass
+    ],
+    templateUrl: './logout.component.html',
+    styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {
   private readonly timeout = 250;

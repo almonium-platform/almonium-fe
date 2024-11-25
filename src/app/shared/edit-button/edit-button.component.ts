@@ -2,8 +2,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass, NgIf} from "@angular/common";
 
 @Component({
-  selector: 'app-edit-button',
-  template: `
+    selector: 'app-edit-button',
+    template: `
     <button class="black-n-white-button edit-btn"
             [ngClass]="{ 'circular-icon': !editable , 'disabled': disabled }"
             (click)="onClick()"
@@ -13,12 +13,11 @@ import {NgClass, NgIf} from "@angular/common";
       <i *ngIf="!editable" class="fa-regular fa-pen-to-square text-sm"></i>
     </button>
   `,
-  standalone: true,
-  imports: [
-    NgClass,
-    NgIf
-  ],
-  styleUrls: ['./edit-button.component.less']
+    imports: [
+        NgClass,
+        NgIf
+    ],
+    styleUrls: ['./edit-button.component.less']
 })
 export class EditButtonComponent {
   @Input() label: string = '';

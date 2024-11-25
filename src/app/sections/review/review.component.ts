@@ -10,16 +10,15 @@ import {RouterLink} from "@angular/router";
 import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
-  selector: 'app-review',
-  templateUrl: './review.component.html',
-  styleUrls: ['./review.component.less'],
-  imports: [
-    NgIf,
-    RouterLink,
-    NgOptimizedImage,
-    NavbarWrapperComponent
-  ],
-  standalone: true
+    selector: 'app-review',
+    templateUrl: './review.component.html',
+    styleUrls: ['./review.component.less'],
+    imports: [
+        NgIf,
+        RouterLink,
+        NgOptimizedImage,
+        NavbarWrapperComponent
+    ]
 })
 export class ReviewComponent implements OnInit, OnDestroy {
   cards: CardDto[] = [];

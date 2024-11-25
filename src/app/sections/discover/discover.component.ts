@@ -12,18 +12,17 @@ import {DiacriticService} from "./service/diacritic.service";
 import {AutocompleteService} from "./service/autocomplete.service";
 
 @Component({
-  selector: 'app-discover',
-  templateUrl: './discover.component.html',
-  styleUrls: ['./discover.component.less'],
-  imports: [
-    NgForOf,
-    NgIf,
-    FormsModule,
-    ContenteditableValueAccessorModule,
-    NavbarWrapperComponent,
-    DiacriticPopupComponent,
-  ],
-  standalone: true,
+    selector: 'app-discover',
+    templateUrl: './discover.component.html',
+    styleUrls: ['./discover.component.less'],
+    imports: [
+        NgForOf,
+        NgIf,
+        FormsModule,
+        ContenteditableValueAccessorModule,
+        NavbarWrapperComponent,
+        DiacriticPopupComponent,
+    ]
 })
 export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   // Diacritic popup

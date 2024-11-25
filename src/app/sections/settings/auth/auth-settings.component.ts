@@ -29,42 +29,43 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 
 @Component({
-  selector: 'app-settings',
-  standalone: true,
-  imports: [
-    NavbarComponent,
-    NgIf,
-    ConfirmModalComponent,
-    NgStyle,
-    NgTemplateOutlet,
-    AuthComponent,
-    NgClass,
-    AsyncPipe,
-    ReactiveFormsModule,
-    TuiError,
-    TuiFieldErrorPipe,
-    TuiInputModule,
-    TuiInputPasswordModule,
-    TuiTextfieldControllerModule,
-    EditButtonComponent,
-    ProviderIconComponent,
-    ActionModalComponent,
-    SettingsTabsComponent,
-    TuiIcon
-  ],
-  templateUrl: './auth-settings.component.html',
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
-        minlength: ({requiredLength, actualLength}: { requiredLength: number; actualLength: number }) =>
-          `Password is too short: ${actualLength}/${requiredLength} characters`,
-      },
-    },
-  ],
-  styleUrls: ['./auth-settings.component.less']
+    selector: 'app-settings',
+    imports: [
+        NavbarComponent,
+        NgIf,
+        ConfirmModalComponent,
+        NgStyle,
+        NgTemplateOutlet,
+        AuthComponent,
+        NgClass,
+        AsyncPipe,
+        ReactiveFormsModule,
+        TuiError,
+        TuiFieldErrorPipe,
+        TuiInputModule,
+        TuiInputPasswordModule,
+        TuiTextfieldControllerModule,
+        EditButtonComponent,
+        ProviderIconComponent,
+        ActionModalComponent,
+        SettingsTabsComponent,
+        TuiIcon
+    ],
+    templateUrl: './auth-settings.component.html',
+    providers: [
+        {
+            provide: TUI_VALIDATION_ERRORS,
+            useValue: {
+                required: 'Value is required',
+                email: 'Invalid email address',
+                minlength: ({ requiredLength, actualLength }: {
+                    requiredLength: number;
+                    actualLength: number;
+                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+            },
+        },
+    ],
+    styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit {
   // populated in ngOnInit

@@ -9,17 +9,16 @@ import {NgxParticlesModule} from "@tsparticles/angular";
 import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from "@angular/common";
 
 @Component({
-  selector: 'app-email-verification',
-  templateUrl: './email-verification.component.html',
-  styleUrls: ['./email-verification.component.less'],
-  standalone: true,
-  imports: [
-    NgxParticlesModule,
-    AsyncPipe,
-    NgIf,
-    NgClass,
-    NgOptimizedImage
-  ],
+    selector: 'app-email-verification',
+    templateUrl: './email-verification.component.html',
+    styleUrls: ['./email-verification.component.less'],
+    imports: [
+        NgxParticlesModule,
+        AsyncPipe,
+        NgIf,
+        NgClass,
+        NgOptimizedImage
+    ]
 })
 export class EmailVerificationComponent implements OnInit {
   private readonly REDIRECT_TIMEOUT = 3000;  // Time to wait before redirecting after verification completes

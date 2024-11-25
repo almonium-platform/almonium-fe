@@ -25,31 +25,30 @@ import {UrlService} from "../../../services/url.service";
 import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
 
 @Component({
-  selector: 'app-lang-settings',
-  standalone: true,
-  imports: [
-    FormsModule,
-    NavbarComponent,
-    ReactiveFormsModule,
-    TuiInputModule,
-    TuiInputNumberModule,
-    TuiTextfieldControllerModule,
-    SettingsTabsComponent,
-    FluentLanguageSelectorComponent,
-    EditButtonComponent,
-    NgIf,
-    NgForOf,
-    TuiChip,
-    AsyncPipe,
-    TuiSegmented,
-    TuiIcon,
-    ConfirmModalComponent,
-    TuiAutoColorPipe,
-    TuiScrollbar,
-    PremiumBadgedContentComponent,
-  ],
-  templateUrl: './lang-settings.component.html',
-  styleUrl: './lang-settings.component.less'
+    selector: 'app-lang-settings',
+    imports: [
+        FormsModule,
+        NavbarComponent,
+        ReactiveFormsModule,
+        TuiInputModule,
+        TuiInputNumberModule,
+        TuiTextfieldControllerModule,
+        SettingsTabsComponent,
+        FluentLanguageSelectorComponent,
+        EditButtonComponent,
+        NgIf,
+        NgForOf,
+        TuiChip,
+        AsyncPipe,
+        TuiSegmented,
+        TuiIcon,
+        ConfirmModalComponent,
+        TuiAutoColorPipe,
+        TuiScrollbar,
+        PremiumBadgedContentComponent,
+    ],
+    templateUrl: './lang-settings.component.html',
+    styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit {
   protected userInfo: UserInfo | null = null;

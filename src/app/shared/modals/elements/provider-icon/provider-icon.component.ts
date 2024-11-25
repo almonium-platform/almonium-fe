@@ -2,13 +2,12 @@ import {Component, Input} from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
-  selector: 'app-provider-icon',
-  standalone: true,
-  imports: [
-    NgClass,
-    NgStyle
-  ],
-  template: `
+    selector: 'app-provider-icon',
+    imports: [
+        NgClass,
+        NgStyle
+    ],
+    template: `
     <button
       type="button"
       class="social-button"

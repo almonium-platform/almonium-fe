@@ -4,12 +4,11 @@ import {Component} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, TuiRoot],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.less',
-  providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
+    selector: 'app-root',
+    imports: [RouterOutlet, TuiRoot],
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.less',
+    providers: [{ provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer }]
 })
 export class AppComponent {
   title = 'almonium-fe';

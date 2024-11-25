@@ -3,14 +3,13 @@ import {NgIf} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
-  selector: 'app-confirm-modal',
-  standalone: true,
-  imports: [
-    NgIf,
-    DismissButtonComponent
-  ],
-  styleUrls: ['./confirm-modal.component.less'],
-  template: `
+    selector: 'app-confirm-modal',
+    imports: [
+        NgIf,
+        DismissButtonComponent
+    ],
+    styleUrls: ['./confirm-modal.component.less'],
+    template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
       *ngIf="isVisible"

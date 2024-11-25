@@ -2,8 +2,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgForOf, NgIf, NgStyle} from "@angular/common";
 
 @Component({
-  selector: 'app-diacritic-popup',
-  template: `
+    selector: 'app-diacritic-popup',
+    template: `
     <div class="diacritic-popup" *ngIf="options.length > 0" [ngStyle]="position">
       <span *ngFor="let option of options; let i = index"
             (click)="selectOption(option)"
@@ -13,13 +13,12 @@ import {NgForOf, NgIf, NgStyle} from "@angular/common";
       </span>
     </div>
   `,
-  standalone: true,
-  imports: [
-    NgForOf,
-    NgIf,
-    NgStyle
-  ],
-  styleUrls: ['./diacritic-popup.component.less']
+    imports: [
+        NgForOf,
+        NgIf,
+        NgStyle
+    ],
+    styleUrls: ['./diacritic-popup.component.less']
 })
 export class DiacriticPopupComponent {
   @Input() options: string[] = [];

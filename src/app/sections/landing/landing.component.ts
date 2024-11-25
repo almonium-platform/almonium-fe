@@ -4,14 +4,13 @@ import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
 @Component({
-  selector: 'app-landing',
-  standalone: true,
-  imports: [
-    NavbarWrapperComponent,
-    NotReadyComponent
-  ],
-  templateUrl: './landing.component.html',
-  styleUrl: './landing.component.less'
+    selector: 'app-landing',
+    imports: [
+        NavbarWrapperComponent,
+        NotReadyComponent
+    ],
+    templateUrl: './landing.component.html',
+    styleUrl: './landing.component.less'
 })
 export class LandingComponent {
   protected readonly environment = environment;

@@ -2,8 +2,8 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass} from "@angular/common";
 
 @Component({
-  selector: 'app-dismiss-button',
-  template: `
+    selector: 'app-dismiss-button',
+    template: `
     <button
       (click)="onClose()"
       class="close-button"
@@ -26,11 +26,10 @@ import {NgClass} from "@angular/common";
       </svg>
     </button>
   `,
-  standalone: true,
-  imports: [
-    NgClass
-  ],
-  styleUrls: ['./dismiss-button.component.less']
+    imports: [
+        NgClass
+    ],
+    styleUrls: ['./dismiss-button.component.less']
 })
 export class DismissButtonComponent {
   @Input() isOutside: boolean = false;

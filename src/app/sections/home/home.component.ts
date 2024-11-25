@@ -7,14 +7,13 @@ import {Router} from "@angular/router";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.less'],
-  imports: [
-    NavbarComponent,
-    NotReadyComponent
-  ],
-  standalone: true
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.less'],
+    imports: [
+        NavbarComponent,
+        NotReadyComponent
+    ]
 })
 export class HomeComponent implements OnInit, OnDestroy {
   userInfo: UserInfo | null = null;

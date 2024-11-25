@@ -21,20 +21,19 @@ import {Subscription} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 
 @Component({
-  selector: 'app-navbar',
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.less'],
-  imports: [
-    FormsModule,
-    NgForOf,
-    NgOptimizedImage,
-    NgIf,
-    NgClass,
-    NgStyle,
-    NgClickOutsideDirective,
-    RouterLink
-  ],
-  standalone: true
+    selector: 'app-navbar',
+    templateUrl: './navbar.component.html',
+    styleUrls: ['./navbar.component.less'],
+    imports: [
+        FormsModule,
+        NgForOf,
+        NgOptimizedImage,
+        NgIf,
+        NgClass,
+        NgStyle,
+        NgClickOutsideDirective,
+        RouterLink
+    ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';

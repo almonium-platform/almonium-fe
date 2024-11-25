@@ -5,18 +5,17 @@ import {Router, RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 
 @Component({
-  selector: 'app-public-navbar',
-  templateUrl: './navbar-public.component.html',
-  styleUrls: ['./navbar-public.component.less'],
-  imports: [
-    FormsModule,
-    NgOptimizedImage,
-    NgIf,
-    NgClass,
-    NgClickOutsideDirective,
-    RouterLink
-  ],
-  standalone: true
+    selector: 'app-public-navbar',
+    templateUrl: './navbar-public.component.html',
+    styleUrls: ['./navbar-public.component.less'],
+    imports: [
+        FormsModule,
+        NgOptimizedImage,
+        NgIf,
+        NgClass,
+        NgClickOutsideDirective,
+        RouterLink
+    ]
 })
 export class NavbarPublicComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';

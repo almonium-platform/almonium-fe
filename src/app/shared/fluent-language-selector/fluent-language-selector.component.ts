@@ -11,29 +11,28 @@ import {TuiError} from "@taiga-ui/core";
 const MAX_LANGUAGES = 3;
 
 @Component({
-  selector: 'app-fluent-language-selector',
-  templateUrl: './fluent-language-selector.component.html',
-  styleUrls: ['./fluent-language-selector.component.less'],
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    TuiMultiSelectModule,
-    TuiTextfieldControllerModule,
-    TuiError,
-    TuiFieldErrorPipe,
-  ],
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'At least one language is required',
-        maxLanguages: () => {
-          return `You can select up to ${MAX_LANGUAGES} languages`;
+    selector: 'app-fluent-language-selector',
+    templateUrl: './fluent-language-selector.component.html',
+    styleUrls: ['./fluent-language-selector.component.less'],
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        TuiMultiSelectModule,
+        TuiTextfieldControllerModule,
+        TuiError,
+        TuiFieldErrorPipe,
+    ],
+    providers: [
+        {
+            provide: TUI_VALIDATION_ERRORS,
+            useValue: {
+                required: 'At least one language is required',
+                maxLanguages: () => {
+                    return `You can select up to ${MAX_LANGUAGES} languages`;
+                },
+            },
         },
-      },
-    },
-  ],
+    ]
 })
 export class FluentLanguageSelectorComponent implements OnInit {
   @Input() languages: Language[] = []; // **Input from parent**

@@ -29,38 +29,39 @@ import {UrlService} from "../../services/url.service"; // Import your service
 declare const google: any;
 
 @Component({
-  selector: 'app-auth',
-  standalone: true,
-  imports: [
-    TuiInputModule,
-    TuiError,
-    TuiInputPasswordModule,
-    ReactiveFormsModule,
-    TuiFieldErrorPipe,
-    AsyncPipe,
-    NgIf,
-    TuiLink,
-    TuiTextfieldControllerModule,
-    NgOptimizedImage,
-    NgxParticlesModule,
-    NgClass,
-    RouterLink,
-    DismissButtonComponent,
-    ProviderIconComponent,
-  ],
-  templateUrl: './auth.component.html',
-  styleUrls: ['./auth.component.less'],
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
-        minlength: ({requiredLength, actualLength}: { requiredLength: number; actualLength: number }) =>
-          `Password is too short: ${actualLength}/${requiredLength} characters`,
-      },
-    },
-  ],
+    selector: 'app-auth',
+    imports: [
+        TuiInputModule,
+        TuiError,
+        TuiInputPasswordModule,
+        ReactiveFormsModule,
+        TuiFieldErrorPipe,
+        AsyncPipe,
+        NgIf,
+        TuiLink,
+        TuiTextfieldControllerModule,
+        NgOptimizedImage,
+        NgxParticlesModule,
+        NgClass,
+        RouterLink,
+        DismissButtonComponent,
+        ProviderIconComponent,
+    ],
+    templateUrl: './auth.component.html',
+    styleUrls: ['./auth.component.less'],
+    providers: [
+        {
+            provide: TUI_VALIDATION_ERRORS,
+            useValue: {
+                required: 'Value is required',
+                email: 'Invalid email address',
+                minlength: ({ requiredLength, actualLength }: {
+                    requiredLength: number;
+                    actualLength: number;
+                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+            },
+        },
+    ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
   // EMBEDDED MODE (REAUTHENTICATION)

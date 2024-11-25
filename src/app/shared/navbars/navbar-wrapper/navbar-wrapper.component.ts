@@ -6,15 +6,14 @@ import {NgIf} from "@angular/common";
 import {NavigationEnd, Router} from "@angular/router";
 
 @Component({
-  selector: 'app-navbar-wrapper',
-  standalone: true,
-  imports: [
-    NavbarComponent,
-    NavbarPublicComponent,
-    NgIf
-  ],
-  templateUrl: './navbar-wrapper.component.html',
-  styleUrl: './navbar-wrapper.component.less'
+    selector: 'app-navbar-wrapper',
+    imports: [
+        NavbarComponent,
+        NavbarPublicComponent,
+        NgIf
+    ],
+    templateUrl: './navbar-wrapper.component.html',
+    styleUrl: './navbar-wrapper.component.less'
 })
 export class NavbarWrapperComponent implements OnInit {
   isAuthenticated: boolean = false;

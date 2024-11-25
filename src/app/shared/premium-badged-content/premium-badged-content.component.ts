@@ -5,8 +5,8 @@ import {PaywallComponent} from "../paywall/paywall.component";
 import {PolymorpheusContent} from "@taiga-ui/polymorpheus";
 
 @Component({
-  selector: 'premium-badged-content',
-  template: `
+    selector: 'premium-badged-content',
+    template: `
     <paywall #paywallComponent></paywall>
 
     <div class="custom-badged-content" (click)="handleClick($event)">
@@ -30,13 +30,12 @@ import {PolymorpheusContent} from "@taiga-ui/polymorpheus";
       </div>
     </div>
   `,
-  styleUrls: ['./premium-badged-content.component.less'],
-  imports: [
-    NgIf,
-    NgOptimizedImage,
-    PaywallComponent
-  ],
-  standalone: true
+    styleUrls: ['./premium-badged-content.component.less'],
+    imports: [
+        NgIf,
+        NgOptimizedImage,
+        PaywallComponent
+    ]
 })
 export class PremiumBadgedContentComponent {
   @Input() display: boolean = true; // Whether the badge is displayed

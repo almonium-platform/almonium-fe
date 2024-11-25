@@ -10,30 +10,31 @@ import {NgxParticlesModule} from '@tsparticles/angular';
 import {AsyncPipe, NgIf} from '@angular/common';
 
 @Component({
-  selector: 'app-reset-password',
-  templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.less'],
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    TuiError,
-    TuiFieldErrorPipe,
-    TuiInputPasswordModule,
-    NgxParticlesModule,
-    TuiTextfieldControllerModule,
-    AsyncPipe,
-    NgIf,
-  ],
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'Value is required',
-        minlength: ({requiredLength, actualLength}: { requiredLength: number; actualLength: number }) =>
-          `Password is too short: ${actualLength}/${requiredLength} characters`,
-      },
-    },
-  ],
+    selector: 'app-reset-password',
+    templateUrl: './reset-password.component.html',
+    styleUrls: ['./reset-password.component.less'],
+    imports: [
+        ReactiveFormsModule,
+        TuiError,
+        TuiFieldErrorPipe,
+        TuiInputPasswordModule,
+        NgxParticlesModule,
+        TuiTextfieldControllerModule,
+        AsyncPipe,
+        NgIf,
+    ],
+    providers: [
+        {
+            provide: TUI_VALIDATION_ERRORS,
+            useValue: {
+                required: 'Value is required',
+                minlength: ({ requiredLength, actualLength }: {
+                    requiredLength: number;
+                    actualLength: number;
+                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+            },
+        },
+    ]
 })
 export class ResetPasswordComponent implements OnInit {
   resetForm: FormGroup;

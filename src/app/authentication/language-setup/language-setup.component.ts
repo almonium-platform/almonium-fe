@@ -30,32 +30,31 @@ import {ValidationMessagesService} from "./validation-messages-service";
 const MAX_LANGUAGES = 3;
 
 @Component({
-  selector: 'app-language-setup',
-  templateUrl: './language-setup.component.html',
-  styleUrls: ['./language-setup.component.less'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useFactory: (validationMessagesService: ValidationMessagesService) => {
-        return validationMessagesService.getValidationMessages();
-      },
-      deps: [ValidationMessagesService],
-    },
-  ],
-  imports: [
-    ReactiveFormsModule,
-    CommonModule,
-    TuiMultiSelectModule,
-    TuiSelectModule,
-    TuiTextfieldControllerModule,
-    TuiError,
-    TuiFieldErrorPipe,
-    TuiDataListWrapper,
-    NgxParticlesModule,
-    FluentLanguageSelectorComponent,
-  ],
+    selector: 'app-language-setup',
+    templateUrl: './language-setup.component.html',
+    styleUrls: ['./language-setup.component.less'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        {
+            provide: TUI_VALIDATION_ERRORS,
+            useFactory: (validationMessagesService: ValidationMessagesService) => {
+                return validationMessagesService.getValidationMessages();
+            },
+            deps: [ValidationMessagesService],
+        },
+    ],
+    imports: [
+        ReactiveFormsModule,
+        CommonModule,
+        TuiMultiSelectModule,
+        TuiSelectModule,
+        TuiTextfieldControllerModule,
+        TuiError,
+        TuiFieldErrorPipe,
+        TuiDataListWrapper,
+        NgxParticlesModule,
+        FluentLanguageSelectorComponent,
+    ]
 })
 export class LanguageSetupComponent implements OnInit {
   languageForm: FormGroup;
