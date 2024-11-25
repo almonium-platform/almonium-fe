@@ -2,13 +2,9 @@ import {Component, TemplateRef, ViewChild} from "@angular/core";
 
 @Component({
   selector: 'paywall',
-  template: `
-    <ng-template #paywallContent>
-      <div>
-        Upgrade to Premium bro!
-      </div>
-    </ng-template>
-  `,
+  templateUrl: './paywall.component.html',
+  styleUrls: ['./paywall.component.less'],
+  imports: [],
   standalone: true
 })
 export class PaywallComponent {
