@@ -1,12 +1,11 @@
-import {Component, inject, Input, ViewChild} from '@angular/core';
+import {Component, Input, ViewChild} from '@angular/core';
 import {NgIf, NgOptimizedImage} from "@angular/common";
-import {TuiDialogContext, TuiDialogService, TuiDialogSize} from "@taiga-ui/core";
 import {PaywallComponent} from "../paywall/paywall.component";
-import {PolymorpheusContent} from "@taiga-ui/polymorpheus";
+import {DrawerService} from "../modals/popup-template/drawer.service";
 
 @Component({
-    selector: 'premium-badged-content',
-    template: `
+  selector: 'premium-badged-content',
+  template: `
     <paywall #paywallComponent></paywall>
 
     <div class="custom-badged-content" (click)="handleClick($event)">
@@ -30,12 +29,12 @@ import {PolymorpheusContent} from "@taiga-ui/polymorpheus";
       </div>
     </div>
   `,
-    styleUrls: ['./premium-badged-content.component.less'],
-    imports: [
-        NgIf,
-        NgOptimizedImage,
-        PaywallComponent
-    ]
+  styleUrls: ['./premium-badged-content.component.less'],
+  imports: [
+    NgIf,
+    NgOptimizedImage,
+    PaywallComponent
+  ]
 })
 export class PremiumBadgedContentComponent {
   @Input() display: boolean = true; // Whether the badge is displayed
@@ -51,11 +50,12 @@ export class PremiumBadgedContentComponent {
   @Input() labelPosition: { top?: string; right?: string; bottom?: string; left?: string } = {};
 
   // paywall dialog
-  private readonly dialogs = inject(TuiDialogService);
   @Input() originalClickHandler: (() => void) | null = null; // Original logic when not paywalled
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
 
-  // Get the parsed numeric value of badgeSize
+  constructor(private drawerService: DrawerService) {
+  }
+
   get badgeNumericSize(): number {
     return parseInt(this.badgeSize.replace('px', ''), 10) || 20; // Fallback to 20 if invalid
   }
@@ -76,21 +76,9 @@ export class PremiumBadgedContentComponent {
     event.stopPropagation();
 
     if (this.display) {
-      this.openPaywallDialog(this.paywallComponent.content, 'm');
+      this.drawerService.open(this.paywallComponent.content);
     } else if (this.originalClickHandler) {
       this.originalClickHandler();
     }
-  }
-
-  protected openPaywallDialog(
-    content: PolymorpheusContent<TuiDialogContext>,
-    size: TuiDialogSize,
-  ): void {
-    this.dialogs
-      .open(content, {
-        label: 'Upgrade to Premium 111',
-        size: size,
-      })
-      .subscribe();
   }
 }

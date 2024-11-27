@@ -1,2 +1,95 @@
 <ng-template #paywallContent>
+  <div class="container">
+    <div class="main-header">
+      <h1>
+        Compare Plans
+      </h1>
+    </div>
+    <div class="tui-segmented-wrapper">
+      <tui-segmented
+        size="m"
+        class="segmented"
+        [(activeItemIndex)]="selectedMode"
+      >
+        <button type="button" class="btn-text">Monthly</button>
+        <button type="button" class="btn-text yearly-btn">
+          <span>Yearly</span>
+          <span class="discount-badge">-15%</span>
+        </button>
+      </tui-segmented>
+    </div>
+    <div class="cards" #cardsContainer>
+      <div
+        tuiCardLarge
+        class="plan-section free"
+        tuiAppearance="outline"
+      >
+        <div class="plan-content">
+          <div class="header">
+            <h1 tuiTitle>
+              Free
+            </h1>
+          </div>
+          <div class="features">
+            <div class="feature" *ngFor="let feature of freeFeatures">
+              <div style="">
+                <tui-icon icon="check"></tui-icon>
+              </div>
+              <span>{{ feature }}</span>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <div class="price">
+            <span class="price-value">$0</span>
+            <span class="price-period">/ forever</span>
+          </div>
+
+          <button
+            type="button"
+            class="black-n-white-button disabled"
+          >
+            Current Plan
+          </button>
+        </footer>
+      </div>
+
+      <div
+        tuiAppearance="floating"
+        tuiCardLarge
+        class="plan-section premium custom-transition hover:-translate-y-1"
+      >
+        <div class="shining-effect"></div>
+        <div class="plan-content">
+          <div class="header">
+            <h1 tuiTitle>
+              Premium
+            </h1>
+          </div>
+          <div class="premium-star-badge">
+            <img
+              src="assets/img/icons/premium-star.svg"
+              alt="Premium"
+            />
+          </div>
+
+          <div class="features">
+            <div class="feature" *ngFor="let feature of premiumFeatures">
+              <div>
+                <tui-icon [icon]="getIcon(feature)" aria-hidden="true"></tui-icon>
+              </div>
+              <span>{{ feature }}</span>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <div class="price">
+            <span class="price-value">${{ currentPriceValue }}</span>
+            <span class="price-period">{{ currentPricePeriod }}</span>
+          </div>
+          <app-interactive-cta-button text="Upgrade"></app-interactive-cta-button>
+        </footer>
+      </div>
+    </div>
+  </div>
 </ng-template>

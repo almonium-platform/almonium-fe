@@ -1,0 +1,250 @@
+.container {
+  width: 100%;
+  background-color: #fcfcfc;
+  padding: 1rem;
+  z-index: 20;
+  border-radius: 0.5rem;
+}
+
+.tui-segmented-wrapper {
+  margin: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.cards {
+  margin-top: 1em;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 2em;
+  scroll-behavior: smooth; /* Enables smooth scrolling */
+}
+
+.plan-section {
+  flex: 1; /* Makes each card take equal available space */
+  max-width: 10rem;
+  min-width: fit-content;
+  display: flex;
+  flex-direction: column; /* Ensures content inside flexes properly */
+}
+
+.plan-section.free {
+  border-radius: 25px;
+  border: 1px solid var(--border-color);
+  background-color: white !important;
+  z-index: 100;
+}
+
+.main-header {
+  font-size: 2rem;
+  color: var(--text-color);
+  font-weight: 700;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.header h1 {
+  font-size: 2rem;
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.plan-content {
+  padding: 1rem;
+}
+
+.features {
+  margin-top: 2rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center; /* Center items vertically */
+  color: var(--text-color);
+}
+
+.feature tui-icon {
+  display: inline-block;
+  vertical-align: middle; /* Ensure vertical alignment of the icon */
+}
+
+.feature span {
+  margin-left: 1rem;
+  line-height: 1.5; /* Adjust to match the text size */
+}
+
+.disabled {
+  width: 100%;
+  display: block;
+  font-size: 16px;
+  height: 55px;
+  background-color: var(--disabled-color);
+  color: var(--disabled-text-color);
+  border-color: var(--disabled-color);
+  pointer-events: none; /* Prevents hover effects and click events */
+  border-radius: 30px;
+}
+
+.price {
+  display: flex;
+  padding: 1.5rem;
+}
+
+.price-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.price-period {
+  font-size: 1.2rem;
+  color: var(--disabled-text-color);
+  margin-left: 0.5rem;
+  font-weight: 700;
+}
+
+.segmented {
+  border-radius: 10px;
+}
+
+.btn-text {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 600px) {
+  .cards {
+    flex-direction: row; /* Keep cards in a row */
+    justify-content: flex-start;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    padding: 1rem; /* Add padding to avoid cutting shadows */
+    gap: 1rem; /* Adjust gap */
+  }
+
+  .plan-section {
+    flex: 0 0 auto; /* Allow cards to maintain their width in horizontal scrolling */
+    width: calc(100% - 2rem); /* Make cards narrower on smaller screens if needed */
+  }
+}
+
+.custom-transition {
+@apply transform transition-transform ease-in-out duration-700;
+}
+
+
+.shining-effect {
+  position: absolute;
+  top: 0;
+  left: -200%; /* Start further outside */
+  width: 300%; /* Cover a larger area */
+  height: 100%;
+  background: linear-gradient(90deg,
+  rgba(255, 255, 255, 0) 0%,
+  rgba(255, 255, 255, 0.4) 50%,
+  rgba(255, 255, 255, 0) 100%);
+  transform: skewX(20deg); /* Tilt the shine effect */
+  filter: blur(10px); /* Softens the shine effect */
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none; /* Ensure the effect doesn’t interfere with mouse events */
+  transition: opacity 0.5s ease-in-out;
+}
+
+.plan-section {
+  // uncomment to debug the shining effect
+  //position: relative;
+  //overflow: visible;
+}
+
+@keyframes shine {
+  0% {
+    left: -200%;
+  }
+  50% {
+    left: 200%;
+  }
+  100% {
+    left: 200%; /* Keep static during the delay */
+  }
+}
+
+.plan-section.premium:hover .shining-effect {
+  opacity: 1;
+  animation: shine 5s infinite;
+}
+
+.plan-section.premium tui-icon:after {
+  color: #4C75EF;
+}
+
+.discount-badge {
+  display: inline-block;
+  background-color: #f3597e;
+  color: white;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-left: auto;
+  vertical-align: middle;
+  animation: shine-in-out 3s infinite;
+}
+
+/* Optional shiny effect */
+@keyframes shine-in-out {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
+}
+
+.segmented button {
+  flex: 1; /* Makes buttons take equal width */
+  text-align: center;
+  padding: 0.5rem 1.5rem;
+  max-width: 120px; /* Optional: Limit button width */
+  min-width: 5.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.yearly-btn {
+  padding-left: 2rem !important;
+}
+
+.text-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem; /* Adds spacing between "Yearly" text and badge */
+}
+
+
+.premium-star-badge {
+  position: absolute;
+  top: 30px; /* Adjust position relative to the parent */
+  right: 30px;
+  border-radius: 50%;
+  background: var(--premium-gradient);
+  box-shadow: 0 0 1px rgba(138, 43, 226, 0.6), 0 0 4px rgba(0, 209, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.premium-star-badge img {
+  width: 25px; /* Size of the star icon */
+  height: 25px;
+}
