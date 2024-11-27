@@ -105,7 +105,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
     setTimeout(() => {
       this.close.emit();
       this.fadeOutAnimating = false;
-    }, 300); // Match animation duration in milliseconds
+    }, 200); // Match animation duration in milliseconds
   }
 
   onConfirm() {
