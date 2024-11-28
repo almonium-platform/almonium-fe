@@ -28,6 +28,9 @@ export class AppConstants {
   // LANGUAGES
   public static MY_LANGUAGES_URL = AppConstants.USERS_URL + '/me/langs';
 
+  // PLANS
+  public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
+
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
 }

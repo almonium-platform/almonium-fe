@@ -1,10 +1,11 @@
-import {Component, ElementRef, TemplateRef, ViewChild} from "@angular/core";
+import {Component, ElementRef, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
 import {TuiCardLarge} from "@taiga-ui/layout";
 import {NgForOf} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
+import {PlanService} from "../../services/plan.service";
 
 @Component({
   selector: 'paywall',
@@ -25,7 +26,7 @@ import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interacti
   ]
 
 })
-export class PaywallComponent {
+export class PaywallComponent implements OnInit {
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
   @ViewChild('cardsContainer') cardsContainer!: ElementRef;
 
@@ -50,6 +51,24 @@ export class PaywallComponent {
     monthly: 4.99,
     yearly: 49.99,
   };
+
+  constructor(
+    private planService: PlanService) {
+  }
+
+  ngOnInit() {
+    this.planService.getPlans().subscribe(plans => {
+      console.log(plans);
+      const monthlyPremium = plans.find(plan => plan.name === 'PREMIUM' && plan.type === 'MONTHLY');
+      const yearlyPremium = plans.find(plan => plan.name === 'PREMIUM' && plan.type === 'YEARLY');
+      if (monthlyPremium) {
+        this.premiumPrice.monthly = monthlyPremium.price;
+      }
+      if (yearlyPremium) {
+        this.premiumPrice.yearly = yearlyPremium.price;
+      }
+    });
+  }
 
   get currentPricePeriod(): string {
     return this.selectedMode === 0 ? '/ month' : '/ year';
