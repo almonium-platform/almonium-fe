@@ -87,7 +87,8 @@
             <span class="price-value">${{ currentPriceValue }}</span>
             <span class="price-period">{{ currentPricePeriod }}</span>
           </div>
-          <app-interactive-cta-button text="Upgrade"></app-interactive-cta-button>
+          <app-interactive-cta-button text="Upgrade" (buttonClick)="subscribeToPlan()"
+          ></app-interactive-cta-button>
         </footer>
       </div>
     </div>

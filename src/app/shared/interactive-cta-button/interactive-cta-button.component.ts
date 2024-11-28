@@ -1,10 +1,10 @@
-import {Component, Input, HostListener, ElementRef} from '@angular/core';
+import {Component, ElementRef, EventEmitter, HostListener, Input, Output} from '@angular/core';
 
 @Component({
   selector: 'app-interactive-cta-button',
   template: `
     <div class="interactive-cta-btn-container">
-      <button class="cta-btn">
+      <button class="cta-btn" (click)="onClick()">
         <span class="btn-text">{{ text }}</span>
       </button>
     </div>
@@ -13,6 +13,7 @@ import {Component, Input, HostListener, ElementRef} from '@angular/core';
 })
 export class InteractiveCtaButtonComponent {
   @Input() text: string = 'Click Me';
+  @Output() buttonClick: EventEmitter<void> = new EventEmitter<void>();
 
   constructor(private elRef: ElementRef) {
   }
@@ -27,6 +28,10 @@ export class InteractiveCtaButtonComponent {
     const angle = Math.round((xPercentage + yPercentage) / 2);
 
     button.style.background = `linear-gradient(${angle}deg, #00d1ff, #8a2be2)`;
+  }
+
+  onClick() {
+    this.buttonClick.emit();
   }
 }
 

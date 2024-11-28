@@ -10,7 +10,8 @@ import {PlanDto} from "../models/plan.model";
   providedIn: 'root',
 })
 export class PlanService {
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+  ) {
   }
 
   getPlans(): Observable<PlanDto[]> {
@@ -18,6 +19,15 @@ export class PlanService {
       catchError((error) => {
         console.error('Error fetching cards:', error);
         return of([]);
+      })
+    );
+  }
+
+  subscribeToPlan(planId: string): Observable<any> {
+    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/${planId}`, {}, {withCredentials: true}).pipe(
+      catchError((error) => {
+        console.error('Error subscribing to plan:', error);
+        return of(null);
       })
     );
   }

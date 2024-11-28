@@ -1,5 +1,5 @@
 export interface PlanDto {
-  id: number;
+  id: string;
   name: string;
   type: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
   description: string;

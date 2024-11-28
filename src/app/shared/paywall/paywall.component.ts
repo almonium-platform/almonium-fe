@@ -6,6 +6,7 @@ import {TuiCardLarge} from "@taiga-ui/layout";
 import {NgForOf} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'paywall',
@@ -51,9 +52,12 @@ export class PaywallComponent implements OnInit {
     monthly: 4.99,
     yearly: 49.99,
   };
+  premiumMonthlyId: string = '';
+  premiumYearlyId: string = '';
 
   constructor(
-    private planService: PlanService) {
+    private planService: PlanService,
+    ) {
   }
 
   ngOnInit() {
@@ -63,9 +67,11 @@ export class PaywallComponent implements OnInit {
       const yearlyPremium = plans.find(plan => plan.name === 'PREMIUM' && plan.type === 'YEARLY');
       if (monthlyPremium) {
         this.premiumPrice.monthly = monthlyPremium.price;
+        this.premiumMonthlyId = monthlyPremium.id;
       }
       if (yearlyPremium) {
         this.premiumPrice.yearly = yearlyPremium.price;
+        this.premiumYearlyId = yearlyPremium.id;
       }
     });
   }
@@ -83,5 +89,12 @@ export class PaywallComponent implements OnInit {
       return 'infinity';
     }
     return 'check';
+  }
+
+  subscribeToPlan() {
+    let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
+    this.planService.subscribeToPlan(String(selectedPlanId)).subscribe((url) => {
+      window.location.href = url.sessionUrl;
+    });
   }
 }
