@@ -1,2 +1,8 @@
 <app-navbar-wrapper></app-navbar-wrapper>
-<app-not-ready></app-not-ready>
+<paywall #paywallComponent></paywall>
+
+<div class="base-container">
+  <ng-container *ngIf="paywallComponent?.content">
+    <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
+  </ng-container>
+</div>
