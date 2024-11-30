@@ -21,6 +21,7 @@ import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 import {AboutComponent} from "./static/about-us/about.component";
 import {NotFoundComponent} from "./static/not-found/not-found.component";
 import {PricingComponent} from "./static/pricing/pricing.component";
+import {PaymentSuccessComponent} from "./payment/payment-success/payment-success.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -63,6 +64,10 @@ export const routes: Routes = [
   {path: 'terms-of-use', component: TermsOfUseComponent},
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
 
+  // Payment
+  {path: 'payment/success', component: PaymentSuccessComponent},
+
+  // Marketing
   {path: 'pricing', component: PricingComponent},
   {path: 'about', component: AboutComponent},
 

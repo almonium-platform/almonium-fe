@@ -1,0 +1,27 @@
+<app-navbar-wrapper></app-navbar-wrapper>
+<div class="base-container">
+  <div class="content">
+    <div class="premium-star-badge">
+      <img
+        ngSrc="assets/img/icons/premium-star.svg"
+        alt="Premium"
+        height="30" width="30"/>
+    </div>
+
+    <div class="text">
+      Upgraded to
+      <div class="premium-text">
+        Premium
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="gradient-button"
+      (click)="router.navigate(['/home'])"
+    >
+      Enjoy the platform
+    </button>
+  </div>
+
+</div>
