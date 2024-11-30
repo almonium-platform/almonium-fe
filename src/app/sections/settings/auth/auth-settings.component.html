@@ -52,6 +52,8 @@
   </button>
 </ng-template>
 
+<app-recent-auth-guard></app-recent-auth-guard>
+
 <!-- Auth Modal Wrapper -->
 <div *ngIf="isAuthModalVisible" class="auth-modal-overlay">
   <app-auth (close)="closeAuthModal()" [mode]="authMode" [providers]="authProviders"></app-auth>

@@ -27,45 +27,47 @@ import {ActionModalComponent} from "../../../shared/modals/action-modal/action-m
 import {RecentAuthGuardService} from "./recent-auth-guard.service";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
+import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 
 @Component({
-    selector: 'app-settings',
-    imports: [
-        NavbarComponent,
-        NgIf,
-        ConfirmModalComponent,
-        NgStyle,
-        NgTemplateOutlet,
-        AuthComponent,
-        NgClass,
-        AsyncPipe,
-        ReactiveFormsModule,
-        TuiError,
-        TuiFieldErrorPipe,
-        TuiInputModule,
-        TuiInputPasswordModule,
-        TuiTextfieldControllerModule,
-        EditButtonComponent,
-        ProviderIconComponent,
-        ActionModalComponent,
-        SettingsTabsComponent,
-        TuiIcon
-    ],
-    templateUrl: './auth-settings.component.html',
-    providers: [
-        {
-            provide: TUI_VALIDATION_ERRORS,
-            useValue: {
-                required: 'Value is required',
-                email: 'Invalid email address',
-                minlength: ({ requiredLength, actualLength }: {
-                    requiredLength: number;
-                    actualLength: number;
-                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
-            },
-        },
-    ],
-    styleUrls: ['./auth-settings.component.less']
+  selector: 'app-settings',
+  imports: [
+    NavbarComponent,
+    NgIf,
+    ConfirmModalComponent,
+    NgStyle,
+    NgTemplateOutlet,
+    AuthComponent,
+    NgClass,
+    AsyncPipe,
+    ReactiveFormsModule,
+    TuiError,
+    TuiFieldErrorPipe,
+    TuiInputModule,
+    TuiInputPasswordModule,
+    TuiTextfieldControllerModule,
+    EditButtonComponent,
+    ProviderIconComponent,
+    ActionModalComponent,
+    SettingsTabsComponent,
+    TuiIcon,
+    RecentAuthGuardComponent
+  ],
+  templateUrl: './auth-settings.component.html',
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useValue: {
+        required: 'Value is required',
+        email: 'Invalid email address',
+        minlength: ({requiredLength, actualLength}: {
+          requiredLength: number;
+          actualLength: number;
+        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+      },
+    },
+  ],
+  styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit {
   // populated in ngOnInit
@@ -368,13 +370,7 @@ export class AuthSettingsComponent implements OnInit {
 
   // universal live token auth guard
   private checkAuth(onValidToken: () => void) {
-    this.authGuard.checkAuth(onValidToken, this.showIdentityVerificationPopup.bind(this));
-  }
-
-  private showIdentityVerificationPopup() {
-    this.alertService.open('To continue with this action, we need to verify your identity.', {appearance: 'info'}).subscribe();
-    this.authMode = 'embedded'; // do I need this?
-    this.openAuthModal();
+    this.authGuard.guardAction(onValidToken);
   }
 
   // PENDING EMAIL CHANGE REQUEST
