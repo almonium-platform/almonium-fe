@@ -48,12 +48,17 @@
 
 .header h1 {
   font-size: 2rem;
-  color: var(--text-color);
   font-weight: 700;
+  display: inline-block;
+  line-height: 1.2;
+}
+
+.header.free h1 {
+  color: var(--text-color);
 }
 
 .plan-content {
-  padding: 1rem;
+  padding: 0 1rem;
 }
 
 .features {
@@ -177,7 +182,8 @@
 }
 
 .plan-section.premium tui-icon:after {
-  color: #4C75EF;
+  background: var(--premium-gradient);
+  color: transparent;
 }
 
 .discount-badge {
@@ -191,6 +197,10 @@
   margin-left: auto;
   vertical-align: middle;
   animation: shine-in-out 3s infinite;
+}
+
+.discount-badge:hover {
+@apply motion-preset-seesaw;
 }
 
 /* Optional shiny effect */
@@ -228,19 +238,14 @@
   gap: .5rem; /* Adds spacing between "Yearly" text and badge */
 }
 
-
 .premium-star-badge {
   position: absolute;
-  top: 30px; /* Adjust position relative to the parent */
-  right: 30px;
-  border-radius: 50%;
-  background: var(--premium-gradient);
-  box-shadow: 0 0 1px rgba(138, 43, 226, 0.6), 0 0 4px rgba(0, 209, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
+  top: 1.5rem;
+  right: 1.5rem;
+}
+
+.premium-star-badge :hover {
+@apply motion-preset-shake;
 }
 
 .premium-star-badge img {
