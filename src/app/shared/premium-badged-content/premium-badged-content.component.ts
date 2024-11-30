@@ -1,7 +1,7 @@
 import {Component, Input, ViewChild} from '@angular/core';
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {PaywallComponent} from "../paywall/paywall.component";
-import {DrawerService} from "../modals/popup-template/drawer.service";
+import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
 @Component({
   selector: 'premium-badged-content',
@@ -53,7 +53,7 @@ export class PremiumBadgedContentComponent {
   @Input() originalClickHandler: (() => void) | null = null; // Original logic when not paywalled
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
 
-  constructor(private drawerService: DrawerService) {
+  constructor(private drawerService: PopupTemplateStateService) {
   }
 
   get badgeNumericSize(): number {

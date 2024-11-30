@@ -1,5 +1,5 @@
 import {Component, HostListener, Input, OnInit} from '@angular/core';
-import {DrawerService} from './drawer.service';
+import {PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
@@ -41,7 +41,7 @@ export class PopupTemplateComponent implements OnInit {
   isVisible = false;
   content?: any;
 
-  constructor(private drawerService: DrawerService) {
+  constructor(private drawerService: PopupTemplateStateService) {
   }
 
   ngOnInit() {

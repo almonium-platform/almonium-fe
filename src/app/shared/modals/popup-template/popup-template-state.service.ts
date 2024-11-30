@@ -4,7 +4,7 @@ import {Subject} from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class DrawerService {
+export class PopupTemplateStateService {
   private drawerState = new Subject<{ visible: boolean; content?: any }>();
   drawerState$ = this.drawerState.asObservable();
 
