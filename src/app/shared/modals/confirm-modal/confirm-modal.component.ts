@@ -3,13 +3,13 @@ import {NgIf} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
-    selector: 'app-confirm-modal',
-    imports: [
-        NgIf,
-        DismissButtonComponent
-    ],
-    styleUrls: ['./confirm-modal.component.less'],
-    template: `
+  selector: 'app-confirm-modal',
+  imports: [
+    NgIf,
+    DismissButtonComponent
+  ],
+  styleUrls: ['./confirm-modal.component.less'],
+  template: `
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
       *ngIf="isVisible"
@@ -19,16 +19,15 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
         [class.fade-slide-out]="fadeOutAnimating"
         class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
       >
-        <app-dismiss-button (close)="onClose()"
-        ></app-dismiss-button>
+        <app-dismiss-button (close)="onClose()"/>
         <div class="flex items-center mb-4 flex-row">
-      <span
-        class="flex items-center justify-center" style="margin-right: 6px">
-        <i
-          class="fas fa-circle-exclamation text-xl text-red-500"
-          style="margin-top: 1px"
-        ></i>
-      </span>
+        <span
+          class="flex items-center justify-center" style="margin-right: 6px">
+            <i
+              class="fas fa-circle-exclamation text-xl text-red-500"
+              style="margin-top: 1px"
+            ></i>
+        </span>
           <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
         </div>
         <p class="text-gray-700 mb-6 mt-6 text-sm">{{ message }}</p>

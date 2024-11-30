@@ -11,17 +11,18 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
       [ngClass]="{
     'fixed inset-0 z-50 bg-black bg-opacity-75 flex': true,
     'flex-col': fullscreen,
-    'items-center justify-center': !fullscreen
+    'items-center justify-center': !fullscreen,
   }"
     >
       <div
         [ngClass]="{
       'bg-white relative': true,
       'w-screen h-screen': fullscreen,
-      'rounded-lg shadow-lg w-full max-w-3xl': !fullscreen
+      'rounded-lg shadow-lg w-full max-w-3xl': !fullscreen,
+      'motion-preset-slide-up': !fullscreen,
     }"
       >
-        <app-dismiss-button (close)="close()" class="absolute top-3 right-3 z-10"></app-dismiss-button>
+        <app-dismiss-button (close)="close()"></app-dismiss-button>
         <ng-container *ngIf="content">
           <ng-container *ngTemplateOutlet="content"></ng-container>
         </ng-container>
@@ -31,8 +32,8 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   imports: [
     NgIf,
     NgTemplateOutlet,
-    DismissButtonComponent,
-    NgClass
+    NgClass,
+    DismissButtonComponent
   ]
 })
 export class PopupTemplateComponent implements OnInit {
