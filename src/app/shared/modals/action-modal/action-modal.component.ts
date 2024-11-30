@@ -3,13 +3,13 @@ import {NgClass, NgIf} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
-    selector: 'app-action-modal',
-    imports: [
-        NgIf,
-        DismissButtonComponent,
-        NgClass
-    ],
-    template: `
+  selector: 'app-action-modal',
+  imports: [
+    NgIf,
+    DismissButtonComponent,
+    NgClass
+  ],
+  template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" *ngIf="isVisible">
       <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative">
         <app-dismiss-button (close)="onClose()"></app-dismiss-button>

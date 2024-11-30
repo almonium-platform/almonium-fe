@@ -6,7 +6,6 @@ import {TuiCardLarge} from "@taiga-ui/layout";
 import {NgForOf} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
-import {Router} from "@angular/router";
 
 @Component({
   selector: 'paywall',
