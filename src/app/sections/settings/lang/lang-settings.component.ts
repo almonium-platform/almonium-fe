@@ -23,32 +23,35 @@ import {LanguageCode} from "../../../models/language.enum";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
+import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
+import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 
 @Component({
-    selector: 'app-lang-settings',
-    imports: [
-        FormsModule,
-        NavbarComponent,
-        ReactiveFormsModule,
-        TuiInputModule,
-        TuiInputNumberModule,
-        TuiTextfieldControllerModule,
-        SettingsTabsComponent,
-        FluentLanguageSelectorComponent,
-        EditButtonComponent,
-        NgIf,
-        NgForOf,
-        TuiChip,
-        AsyncPipe,
-        TuiSegmented,
-        TuiIcon,
-        ConfirmModalComponent,
-        TuiAutoColorPipe,
-        TuiScrollbar,
-        PremiumBadgedContentComponent,
-    ],
-    templateUrl: './lang-settings.component.html',
-    styleUrl: './lang-settings.component.less'
+  selector: 'app-lang-settings',
+  imports: [
+    FormsModule,
+    NavbarComponent,
+    ReactiveFormsModule,
+    TuiInputModule,
+    TuiInputNumberModule,
+    TuiTextfieldControllerModule,
+    SettingsTabsComponent,
+    FluentLanguageSelectorComponent,
+    EditButtonComponent,
+    NgIf,
+    NgForOf,
+    TuiChip,
+    AsyncPipe,
+    TuiSegmented,
+    TuiIcon,
+    ConfirmModalComponent,
+    TuiAutoColorPipe,
+    TuiScrollbar,
+    PremiumBadgedContentComponent,
+    RecentAuthGuardComponent,
+  ],
+  templateUrl: './lang-settings.component.html',
+  styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit {
   protected userInfo: UserInfo | null = null;
@@ -83,6 +86,7 @@ export class LangSettingsComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private urlService: UrlService,
+    private authGuard: RecentAuthGuardService,
   ) {
   }
 
@@ -186,7 +190,9 @@ export class LangSettingsComponent implements OnInit {
       console.error("This should not happen: trying to delete the last target language");
       return;
     }
-    this.prepareTargetLangDeletionModal();
+    this.authGuard.guardAction(() => {
+      this.prepareTargetLangDeletionModal();
+    });
   }
 
   private getCurrentTargetLanguage() {
