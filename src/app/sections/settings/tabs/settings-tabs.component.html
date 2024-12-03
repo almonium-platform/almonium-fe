@@ -1,5 +1,15 @@
 <div class="tabs-wrapper">
   <tui-tabs [(activeItemIndex)]="activeItemIndex" class="settings-tabs">
+
+    <button tuiTab
+            iconStart="@tui.fa.solid.circle-user"
+            routerLinkActive
+            routerLink="/settings/me"
+            type="button"
+    >
+      Profile
+    </button>
+
     <button tuiTab
             iconStart="@tui.fa.solid.id-card"
             type="button"

@@ -24,9 +24,27 @@ export class PlanService {
   }
 
   subscribeToPlan(planId: string): Observable<any> {
-    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/${planId}`, {}, {withCredentials: true}).pipe(
+    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true}).pipe(
       catchError((error) => {
         console.error('Error subscribing to plan:', error);
+        return of(null);
+      })
+    );
+  }
+
+  accessCustomerPortal(): Observable<any> {
+    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true}).pipe(
+      catchError((error) => {
+        console.error('Error accessing portal:', error);
+        return of(null);
+      })
+    );
+  }
+
+  cancelSubscription() {
+    return this.http.delete(`${AppConstants.SUBSCRIPTION_URL}`, {withCredentials: true}).pipe(
+      catchError((error) => {
+        console.error('Error canceling subscription:', error);
         return of(null);
       })
     );

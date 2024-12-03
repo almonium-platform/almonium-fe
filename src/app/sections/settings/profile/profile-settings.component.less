@@ -1,0 +1,57 @@
+@import '../settings.styles.less';
+
+.text {
+  font-size: 1.3rem;
+  color: var(--text-color);
+  font-weight: 550;
+  border-radius: 1rem;
+  padding: .6rem;
+  letter-spacing: .1rem;
+}
+
+.text.free {
+  border: 2px solid var(--text-color);
+}
+
+.row-content {
+  align-items: center;
+}
+
+// buttons
+.cta {
+  display: flex;
+  width: 35%;
+  height: 3rem;
+  margin-left: auto;
+}
+
+.black-n-white-button {
+  height: 2.5rem;
+}
+
+// icons
+.icon.renewal {
+  margin-left: .5rem;
+  border-radius: 50%;
+  padding: .3rem;
+  color: white;
+}
+
+.icon.renewal:hover {
+  opacity: .8;
+}
+
+.icon.downgrade {
+  --red: var(--danger-text-color);
+  color: var(--red);
+  background-color: var(--danger-bg-color);
+  border-radius: 50%;
+  padding: .3rem;
+  margin: 0 .5rem 0 auto;
+  cursor: pointer;
+}
+
+.icon.downgrade:hover {
+  color: white;
+  background-color: var(--red);
+}

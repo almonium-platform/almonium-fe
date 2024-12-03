@@ -1,0 +1,75 @@
+<app-navbar></app-navbar>
+
+<paywall></paywall>
+
+<app-recent-auth-guard></app-recent-auth-guard>
+
+<app-confirm-modal
+  [isVisible]="isConfirmModalVisible"
+  [title]="modalTitle"
+  [message]="modalMessage"
+  [confirmText]="modalConfirmText"
+  (confirm)="cancelSubscription()"
+  (close)="closeModal()"
+  [useCountdown]="useCountdown">
+</app-confirm-modal>
+
+<div class="base-container">
+  <app-settings-tabs></app-settings-tabs>
+
+  <div class="section-block card">
+    <div class="title">Plan</div>
+
+    <div *ngIf="!premium" class="row-content">
+      <div class="plan">
+        <h1 class="text free">FREE</h1>
+      </div>
+      <app-interactive-cta-button text="Upgrade"
+                                  class="cta"
+                                  (buttonClick)="showComparePlansPopup()"
+      ></app-interactive-cta-button>
+    </div>
+
+    <!--      here goes view for premium users-->
+    <div class="row-content" *ngIf="premium">
+      <div class="plan">
+        <button class="text full-gradient-btn" (click)="accessCustomerPortal()">PREMIUM</button>
+      </div>
+
+      <lucide-icon *ngIf="userInfo?.subscription?.autoRenewal !== null"
+                   [name]="userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
+                   class="icon renewal"
+                   tuiHintAppearance="dark"
+                   tuiHintDirection="bottom"
+                   [tuiHint]="renewalTooltip"
+                   [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
+      >
+        <ng-template #renewalTooltip>
+          {{ userInfo?.subscription?.autoRenewal ? 'Subscription will renew automatically' : 'Subscription will not renew' }}
+        </ng-template>
+      </lucide-icon>
+
+      <lucide-icon name="star-off"
+                   class="icon downgrade"
+                   (click)="prepareCancelSubscriptionModalWrapper()"
+                   tuiHintAppearance="dark"
+                   tuiHintDirection="bottom"
+                   [tuiHint]="downgradeTooltip"
+      >
+        <ng-template #downgradeTooltip>
+          {{ this.modalMessageSubCancel }}
+        </ng-template>
+      </lucide-icon>
+
+      <button class="black-n-white-button" (click)="accessCustomerPortal()"
+              tuiHintAppearance="dark"
+              tuiHintDirection="bottom"
+              [tuiHint]="customerPortalTooltip"
+      >Manage
+        <ng-template #customerPortalTooltip>
+          Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
+        </ng-template>
+      </button>
+    </div>
+  </div>
+</div>

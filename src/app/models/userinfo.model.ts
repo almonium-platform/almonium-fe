@@ -48,7 +48,7 @@ export class Subscription {
     public name: string,
     public limits: { [key: string]: number },
     public type: PlanType,
-    public autoRenewal?: boolean,
+    public autoRenewal: boolean | null,
   ) {
   }
 

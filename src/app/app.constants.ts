@@ -30,7 +30,7 @@ export class AppConstants {
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
-  public static SUBSCRIPTION_URL = AppConstants.API_URL + '/subscriptions/plans';
+  public static SUBSCRIPTION_URL = AppConstants.API_URL + '/subscriptions';
 
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
