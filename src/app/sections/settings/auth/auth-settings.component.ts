@@ -213,7 +213,6 @@ export class AuthSettingsComponent implements OnInit {
 
   protected closeConfirmModal() {
     this.isConfirmModalVisible = false;
-    this.useCountdown = false;
   }
 
   // DELETE ACCOUNT

@@ -100,6 +100,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   }
 
   onClose() {
+    this.clearCountdown();
     this.fadeOutAnimating = true;
     setTimeout(() => {
       this.close.emit();
@@ -108,9 +109,8 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   }
 
   onConfirm() {
-    this.clearCountdown();
-    this.close.emit();
     this.confirm.emit();
+    this.onClose();
   }
 
   ngOnDestroy() {
