@@ -29,39 +29,39 @@ import {UrlService} from "../../services/url.service"; // Import your service
 declare const google: any;
 
 @Component({
-    selector: 'app-auth',
-    imports: [
-        TuiInputModule,
-        TuiError,
-        TuiInputPasswordModule,
-        ReactiveFormsModule,
-        TuiFieldErrorPipe,
-        AsyncPipe,
-        NgIf,
-        TuiLink,
-        TuiTextfieldControllerModule,
-        NgOptimizedImage,
-        NgxParticlesModule,
-        NgClass,
-        RouterLink,
-        DismissButtonComponent,
-        ProviderIconComponent,
-    ],
-    templateUrl: './auth.component.html',
-    styleUrls: ['./auth.component.less'],
-    providers: [
-        {
-            provide: TUI_VALIDATION_ERRORS,
-            useValue: {
-                required: 'Value is required',
-                email: 'Invalid email address',
-                minlength: ({ requiredLength, actualLength }: {
-                    requiredLength: number;
-                    actualLength: number;
-                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
-            },
-        },
-    ]
+  selector: 'app-auth',
+  imports: [
+    TuiInputModule,
+    TuiError,
+    TuiInputPasswordModule,
+    ReactiveFormsModule,
+    TuiFieldErrorPipe,
+    AsyncPipe,
+    NgIf,
+    TuiLink,
+    TuiTextfieldControllerModule,
+    NgOptimizedImage,
+    NgxParticlesModule,
+    NgClass,
+    RouterLink,
+    DismissButtonComponent,
+    ProviderIconComponent,
+  ],
+  templateUrl: './auth.component.html',
+  styleUrls: ['./auth.component.less'],
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useValue: {
+        required: 'Value is required',
+        email: 'Invalid email address',
+        minlength: ({requiredLength, actualLength}: {
+          requiredLength: number;
+          actualLength: number;
+        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+      },
+    },
+  ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
   // EMBEDDED MODE (REAUTHENTICATION)
@@ -326,7 +326,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.authService.login(emailValue, passwordValue).subscribe({
       next: () => {
         if (this.embeddedMode) {
-          this.router.navigate(['/settings'], {queryParams: {intent: 'reauth'}}).then((r) => r);
+          this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then((r) => r);
         } else {
           this.router.navigate(['/home']).then((r) => r);
         }
@@ -397,9 +397,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
     };
 
-    let url = providerUrls[provider] + (this.embeddedMode ? '/settings?intent=' + this.intent : '/home');
-    console.log(url)
-    window.location.href = url;
+    window.location.href = providerUrls[provider] + (this.embeddedMode ? this.router.url + '?intent=' + this.intent : '/home');
   };
 
   // Hovering over the greeting

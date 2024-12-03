@@ -113,7 +113,7 @@ export class EmailVerificationComponent implements OnInit {
           // Logout will redirect to /auth for unauthenticated users,
           // and will clear outdated authentication data for authenticated users
         } else {
-          this.router.navigate(['/settings']).then(r => r);
+          this.router.navigate(['/settings/auth']).then(r => r);
           // Redirect to settings page after verification for authenticated users
           // (it's secured by the AuthGuard, so unauthenticated users will be redirected to /auth)
         }

@@ -147,8 +147,7 @@ export class AuthSettingsComponent implements OnInit {
           this.urlService.clearUrl();
         }
         if (params['intent'] === 'reauth') {
-          this.authGuard.getRecentAuthStatus();
-          this.alertService.open('You successfully verified your identity!', {appearance: 'success'}).subscribe();
+          this.authGuard.updateStatusAndShowAlert();
           this.urlService.clearUrl();
         }
       }
@@ -323,7 +322,7 @@ export class AuthSettingsComponent implements OnInit {
       google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
       apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
     };
-    window.location.href = providerUrls[provider] + '/settings&intent=link';
+    window.location.href = providerUrls[provider] + '/settings/auth&intent=link';
   }
 
   private prepareUnlinkConfirmationModal(provider: string) {

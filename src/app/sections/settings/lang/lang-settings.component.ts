@@ -86,7 +86,7 @@ export class LangSettingsComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private urlService: UrlService,
-    private authGuard: RecentAuthGuardService,
+    private recentAuthGuardService: RecentAuthGuardService,
   ) {
   }
 
@@ -94,6 +94,11 @@ export class LangSettingsComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       if (params['target_lang'] === 'success') {
         this.alertService.open('Your target language has been successfully saved', {appearance: 'success'}).subscribe();
+        this.urlService.clearUrl();
+      }
+
+      if (params['intent'] === 'reauth') {
+        this.recentAuthGuardService.updateStatusAndShowAlert();
         this.urlService.clearUrl();
       }
     });
@@ -190,7 +195,7 @@ export class LangSettingsComponent implements OnInit {
       console.error("This should not happen: trying to delete the last target language");
       return;
     }
-    this.authGuard.guardAction(() => {
+    this.recentAuthGuardService.guardAction(() => {
       this.prepareTargetLangDeletionModal();
     });
   }

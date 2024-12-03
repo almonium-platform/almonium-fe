@@ -23,6 +23,11 @@ export class RecentAuthGuardService {
     this.checkAuth(onValidToken, this.showIdentityVerificationPopup.bind(this));
   }
 
+  public updateStatusAndShowAlert() {
+    this.getRecentAuthStatus();
+    this.alertService.open('You successfully verified your identity!', {appearance: 'success'}).subscribe();
+  }
+
   public getRecentAuthStatus(onValidTokenAction?: () => void, identityVerification?: () => void): void {
     this.settingService.checkCurrentAccessTokenIsLive().subscribe({
       next: (expiresAt: string | null) => {
