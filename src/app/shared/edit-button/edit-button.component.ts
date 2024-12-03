@@ -4,15 +4,15 @@ import {NgClass, NgIf} from "@angular/common";
 @Component({
     selector: 'app-edit-button',
     template: `
-    <button class="black-n-white-button edit-btn"
-            [ngClass]="{ 'circular-icon': !editable , 'disabled': disabled }"
-            (click)="onClick()"
-            [disabled]="disabled"
-    >
-      {{ editable ? label : '' }}
-      <i *ngIf="!editable" class="fa-regular fa-pen-to-square text-sm"></i>
-    </button>
-  `,
+      <button class="black-n-white-button edit-btn"
+              [ngClass]="{ 'circular-icon': !editable , 'disabled': disabled }"
+              (click)="onClick()"
+              [disabled]="disabled"
+      >
+        {{ editable ? label : '' }}
+        <i *ngIf="!editable" class="fa-regular fa-pen-to-square text-sm"></i>
+      </button>
+    `,
     imports: [
         NgClass,
         NgIf
