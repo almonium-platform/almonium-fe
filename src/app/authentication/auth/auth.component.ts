@@ -20,7 +20,7 @@ import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {IParticlesProps, NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
 import {ParticlesService} from '../../services/particles.service';
-import {Subscription} from "rxjs";
+import {Subject, Subscription, takeUntil} from "rxjs";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
@@ -64,6 +64,8 @@ declare const google: any;
   ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();  // Subject for emitting on destroy
+
   // EMBEDDED MODE (REAUTHENTICATION)
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
   embeddedMode: boolean = false;
@@ -181,9 +183,11 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     this.particlesService.initializeParticles();
-    this.particlesOptionsSubscription = this.particlesService.particlesOptions$.subscribe(options => {
-      this.particlesOptions = options;
-    });
+    this.particlesService.particlesOptions$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(options => {
+        this.particlesOptions = options;
+      });
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
@@ -233,9 +237,8 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.particlesOptionsSubscription) {
-      this.particlesOptionsSubscription.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadGreetings(): void {

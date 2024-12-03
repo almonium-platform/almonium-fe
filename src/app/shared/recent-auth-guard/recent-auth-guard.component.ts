@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
 import {NgIf} from "@angular/common";
 import {AuthComponent} from "../../authentication/auth/auth.component";
-import {Subscription} from "rxjs";
+import {Subject, takeUntil} from "rxjs";
 
 @Component({
   selector: 'app-recent-auth-guard',
@@ -17,8 +17,8 @@ import {Subscription} from "rxjs";
   ],
 })
 export class RecentAuthGuardComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   protected visible = false;
-  private subscription: Subscription | undefined;
 
   constructor(
     private recentGuardService: RecentAuthGuardStateService
@@ -26,13 +26,16 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.subscription = this.recentGuardService.recentAuthState$.subscribe((state) => {
-      this.visible = state.visible;
-    });
+    this.recentGuardService.recentAuthState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        this.visible = state.visible;
+      });
   }
 
   ngOnDestroy() {
-    this.subscription?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   closeAuthModal() {

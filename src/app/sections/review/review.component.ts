@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {CardService} from '../../services/card.service';
 import {CardDto} from '../../models/card.model';
 import {LanguageCode} from '../../models/language.enum';
-import {Subscription} from 'rxjs';
+import {Subject, takeUntil} from 'rxjs';
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
@@ -10,20 +10,20 @@ import {RouterLink} from "@angular/router";
 import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
-    selector: 'app-review',
-    templateUrl: './review.component.html',
-    styleUrls: ['./review.component.less'],
-    imports: [
-        NgIf,
-        RouterLink,
-        NgOptimizedImage,
-        NavbarWrapperComponent
-    ]
+  selector: 'app-review',
+  templateUrl: './review.component.html',
+  styleUrls: ['./review.component.less'],
+  imports: [
+    NgIf,
+    RouterLink,
+    NgOptimizedImage,
+    NavbarWrapperComponent
+  ]
 })
 export class ReviewComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   cards: CardDto[] = [];
   selectedLanguage!: LanguageCode;
-  private languageSubscription: Subscription | null = null;
   displayLanguageName: string = ''; // Variable to store the full name of the language
 
   constructor(private cardService: CardService,
@@ -33,17 +33,18 @@ export class ReviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.languageSubscription = this.languageService.currentLanguage$.subscribe((lang) => {
-      this.selectedLanguage = lang;
-      this.displayLanguageName = this.languageNameService.getLanguageName(lang);
-      this.fetchCardsForLanguage(lang);
-    });
+    this.languageService.currentLanguage$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((lang) => {
+        this.selectedLanguage = lang;
+        this.displayLanguageName = this.languageNameService.getLanguageName(lang);
+        this.fetchCardsForLanguage(lang);
+      });
   }
 
   ngOnDestroy(): void {
-    if (this.languageSubscription) {
-      this.languageSubscription.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private fetchCardsForLanguage(language: LanguageCode): void {
@@ -51,6 +52,4 @@ export class ReviewComponent implements OnInit, OnDestroy {
       this.cards = cards;
     });
   }
-
-  protected readonly length = length;
 }
