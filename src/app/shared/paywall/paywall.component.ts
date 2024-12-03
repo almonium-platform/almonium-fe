@@ -56,14 +56,14 @@ export class PaywallComponent implements OnInit {
 
   constructor(
     private planService: PlanService,
-    ) {
+  ) {
   }
 
   ngOnInit() {
     this.planService.getPlans().subscribe(plans => {
       console.log(plans);
-      const monthlyPremium = plans.find(plan => plan.name === 'PREMIUM' && plan.type === 'MONTHLY');
-      const yearlyPremium = plans.find(plan => plan.name === 'PREMIUM' && plan.type === 'YEARLY');
+      const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
+      const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
       if (monthlyPremium) {
         this.premiumPrice.monthly = monthlyPremium.price;
         this.premiumMonthlyId = monthlyPremium.id;
