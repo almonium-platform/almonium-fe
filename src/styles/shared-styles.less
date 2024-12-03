@@ -1,4 +1,64 @@
 //buttons
+
+// GRADIENT
+.full-gradient-btn {
+  --r: 1rem; /* border radius */
+  --b: 2px; /* border width */
+
+  background: var(--premium-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  position: relative;
+  z-index: 0;
+  text-decoration: none;
+
+}
+
+/* check lined question for the detail of the below code */
+.full-gradient-btn::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border: var(--b) solid transparent;
+  border-radius: var(--r);
+  background: inherit;
+  background-origin: border-box;
+  background-clip: border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box,
+  linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.full-gradient-btn:hover {
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.full-gradient-btn:hover::before {
+  -webkit-mask: none;
+}
+
+// border only
+.gradient-round-border {
+  background: linear-gradient(white, white) padding-box,
+  linear-gradient(to right, darkblue, darkorchid) border-box;
+  border-radius: 50em;
+  border: 4px solid transparent;
+}
+
 .gradient-button {
   width: 100%; // Make the button take the full width of its container
   display: block;
@@ -17,11 +77,11 @@
   border-radius: 25px;
   font-size: 14px;
   font-weight: 550;
-  border: 1px solid black;
+  border: 1px solid var(--text-color);
 }
 
 .black-n-white-button:hover {
-  background-color: black;
+  background-color: var(--text-color);
   color: white;
 }
 
@@ -92,7 +152,9 @@
 .premium-text {
   background: linear-gradient(135deg, #00d1ff, #8a2be2);
   -webkit-background-clip: text;
-  color: transparent !important;
+  color: transparent;
+  line-height: 1.5;
+  font-weight: bold;
 }
 
 .social-buttons {
