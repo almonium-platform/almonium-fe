@@ -14,7 +14,7 @@ export class UserInfo {
     public fluentLangs: LanguageCode[],
     public setupCompleted: boolean,
     public tags: string[] | null,
-    public plan: Plan,
+    public subscription: Subscription,
     public premium: boolean
   ) {
   }
@@ -33,27 +33,27 @@ export class UserInfo {
       data.fluentLangs,
       data.setupCompleted,
       data.tags,
-      Plan.fromJSON(data.plan),
+      Subscription.fromJSON(data.subscription),
       data.premium
     );
   }
 
   public isTargetLangPaywalled(): boolean {
-    return this.targetLangs.length >= this.plan.getMaxTargetLanguages();
+    return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
   }
 }
 
-export class Plan {
+export class Subscription {
   constructor(
     public name: string,
     public limits: { [key: string]: number },
-    public startDate: number,
-    public type: PlanType
+    public type: PlanType,
+    public autoRenewal?: boolean,
   ) {
   }
 
-  static fromJSON(data: any): Plan {
-    return new Plan(data.name, data.limits, data.startDate, data.type);
+  static fromJSON(data: any): Subscription {
+    return new Subscription(data.name, data.limits, data.type, data.autoRenewal);
   }
 
   getLimit(key: string, defaultValue: number = Infinity): number {
