@@ -37,7 +37,8 @@
       </div>
 
       <lucide-icon *ngIf="userInfo?.subscription?.autoRenewal !== null"
-                   [name]="userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
+                   [name]="userInfo?.subscription?.type === PlanType.LIFETIME ? 'infinity' :
+                    userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
                    class="icon renewal"
                    tuiHintAppearance="dark"
                    tuiHintDirection="bottom"

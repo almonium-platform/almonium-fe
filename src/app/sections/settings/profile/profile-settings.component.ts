@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
-import {UserInfo} from "../../../models/userinfo.model";
+import {PlanType, UserInfo} from "../../../models/userinfo.model";
 import {NgIf, NgStyle} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../../../shared/interactive-cta-button/interactive-cta-button.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
@@ -70,6 +70,32 @@ auto-renewal in the customer portal.`;
   }
 
   ngOnInit() {
+    this.dealWithQueryParams();
+
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
+      if (!info) {
+        return;
+      }
+      this.userInfo = info;
+      this.premium = info.premium;
+      this.setRenewalTooltip(info);
+    });
+  }
+
+  private setRenewalTooltip(info: UserInfo) {
+    const renewalStatus = info.subscription?.autoRenewal ? 'renew' : 'end';
+    const formattedDate = info.subscription?.endDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).replace(/(\d+)(?=\D*$)/, '$1');
+
+    this.tooltipRenewal = info.subscription?.type === PlanType.LIFETIME
+      ? 'Lifetime subscription 🎉'
+      : `Subscription will ${renewalStatus} on ${formattedDate}`;
+  }
+
+  private dealWithQueryParams() {
     this.activatedRoute.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['from'] === 'portal') {
         this.userInfoService.fetchUserInfoFromServer().subscribe();
@@ -79,21 +105,6 @@ auto-renewal in the customer portal.`;
         this.recentAuthGuardService.updateStatusAndShowAlert();
         this.urlService.clearUrl();
       }
-    });
-
-    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
-      if (!info) {
-        return;
-      }
-      this.userInfo = info;
-      this.premium = info.premium;
-      this.tooltipRenewal = 'Subscription will '
-        + (this.userInfo.subscription.autoRenewal ? 'renew' : 'end') + ' on '
-        + this.userInfo.subscription.endDate.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }).replace(/(\d+)(?=\D*$)/, '$1');
     });
   }
 
@@ -141,4 +152,6 @@ auto-renewal in the customer portal.`;
   protected closeModal() {
     this.isConfirmModalVisible = false;
   }
+
+  protected readonly PlanType = PlanType;
 }
