@@ -56,6 +56,7 @@ auto-renewal in the customer portal.`;
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
   protected useCountdown: boolean = false;
+  protected tooltipRenewal: string = '';
 
   constructor(
     private userInfoService: UserInfoService,
@@ -86,6 +87,13 @@ auto-renewal in the customer portal.`;
       }
       this.userInfo = info;
       this.premium = info.premium;
+      this.tooltipRenewal = 'Subscription will '
+        + (this.userInfo.subscription.autoRenewal ? 'renew' : 'end') + ' on '
+        + this.userInfo.subscription.endDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }).replace(/(\d+)(?=\D*$)/, '$1');
     });
   }
 

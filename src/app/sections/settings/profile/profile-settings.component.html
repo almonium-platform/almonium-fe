@@ -45,7 +45,7 @@
                    [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
       >
         <ng-template #renewalTooltip>
-          {{ userInfo?.subscription?.autoRenewal ? 'Subscription will renew automatically' : 'Subscription will not renew' }}
+          {{ this.tooltipRenewal }}
         </ng-template>
       </lucide-icon>
 

@@ -49,11 +49,13 @@ export class Subscription {
     public limits: { [key: string]: number },
     public type: PlanType,
     public autoRenewal: boolean | null,
+    public startDate: Date,
+    public endDate: Date
   ) {
   }
 
   static fromJSON(data: any): Subscription {
-    return new Subscription(data.name, data.limits, data.type, data.autoRenewal);
+    return new Subscription(data.name, data.limits, data.type, data.autoRenewal, new Date(data.startDate), new Date(data.endDate));
   }
 
   getLimit(key: string, defaultValue: number = Infinity): number {
