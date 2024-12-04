@@ -109,7 +109,8 @@
       <div class="profile-circle-small bg-gradient-to-bl from-purple-500 to-pink-500 mr-3 flex-shrink-0"></div>
       <!-- User Info -->
       <div class="user-info overflow-hidden">
-        <span class="font-semibold truncate block">{{ userInfo?.username || 'Anonymous Learner' }}</span>
+        <span class="font-semibold truncate block">&#64;{{ userInfo?.username || 'Anonymous Learner' }}
+        </span>
         <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
       </div>
     </div>
