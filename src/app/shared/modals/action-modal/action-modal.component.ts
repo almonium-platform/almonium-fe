@@ -11,7 +11,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   ],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" *ngIf="isVisible">
-      <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative">
+      <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative motion-preset-slide-up-sm">
         <app-dismiss-button (close)="onClose()"></app-dismiss-button>
         <div class="flex items-center mb-4 flex-row">
           <span class="flex items-center justify-center" style="margin-right: 6px">
