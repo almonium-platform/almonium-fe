@@ -123,7 +123,7 @@ export class AuthSettingsComponent implements OnInit {
     private route: ActivatedRoute,
     private authService: AuthService,
     private urlService: UrlService,
-    private authGuard: RecentAuthGuardService,
+    private recentAuthGuardService: RecentAuthGuardService,
     private localStorageService: LocalStorageService,
   ) {
   }
@@ -147,7 +147,7 @@ export class AuthSettingsComponent implements OnInit {
           this.urlService.clearUrl();
         }
         if (params['intent'] === 'reauth') {
-          this.authGuard.updateStatusAndShowAlert();
+          this.recentAuthGuardService.updateStatusAndShowAlert();
           this.urlService.clearUrl();
         }
       }
@@ -368,7 +368,7 @@ export class AuthSettingsComponent implements OnInit {
 
   // universal live token auth guard
   private checkAuth(onValidToken: () => void) {
-    this.authGuard.guardAction(onValidToken);
+    this.recentAuthGuardService.guardAction(onValidToken);
   }
 
   // PENDING EMAIL CHANGE REQUEST
