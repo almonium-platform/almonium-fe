@@ -21,7 +21,7 @@ import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 import {AboutComponent} from "./static/about-us/about.component";
 import {NotFoundComponent} from "./static/not-found/not-found.component";
 import {PricingComponent} from "./static/pricing/pricing.component";
-import {PaymentSuccessComponent} from "./payment/payment-success/payment-success.component";
+import {PaymentSuccessComponent} from "./static/payment-success/payment-success.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
