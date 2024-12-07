@@ -97,9 +97,12 @@ auto-renewal in the customer portal.`;
 
   private dealWithQueryParams() {
     this.activatedRoute.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      if (params['from'] === 'portal') {
+      if (params['portal'] === 'from') {
         this.userInfoService.fetchUserInfoFromServer().subscribe();
         this.urlService.clearUrl();
+      }
+      if (params['portal'] === 'to') {
+        this.accessCustomerPortal();
       }
       if (params['intent'] === 'reauth') {
         this.recentAuthGuardService.updateStatusAndShowAlert();
