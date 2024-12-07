@@ -418,14 +418,14 @@ export class AuthSettingsComponent implements OnInit {
     this.checkAuth(() => {
     })
 
-    this.settingService.cancelEmailChangeRequest().subscribe({
+    this.settingService.cancelEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email change request cancelled!', {appearance: 'success'}).subscribe();
+        this.alertService.open('Email verification request cancelled!', {appearance: 'success'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to cancel email change request', {appearance: 'error'}).subscribe();
-        console.error('Error cancelling email change request:', error);
+        this.alertService.open(error.error.message || 'Failed to cancel email verification request', {appearance: 'error'}).subscribe();
+        console.error('Error cancelling email verification request:', error);
       },
     });
   }
@@ -434,15 +434,14 @@ export class AuthSettingsComponent implements OnInit {
     this.checkAuth(() => {
     })
 
-    this.settingService.resendEmailChangeRequest().subscribe({
+    this.settingService.resendEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email change request resent!', {appearance: 'success'}).subscribe();
+        this.alertService.open('Email verification request resent!', {appearance: 'success'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        console.log('Error resending email change request:', error);
-        this.alertService.open(error.error.message || 'Failed to resend email change request', {appearance: 'error'}).subscribe();
-        console.error('Error resending email change request:', error);
+        this.alertService.open(error.error.message || 'Failed to resend email verification request', {appearance: 'error'}).subscribe();
+        console.error('Error resending email verification request:', error);
       },
     });
   }

@@ -23,23 +23,23 @@ export class AuthSettingsService {
 
   // email change request
   requestEmailChange(email: string): Observable<any> {
-    const url = `${AppConstants.EMAIL_CHANGE_REQUEST_URL}`;
+    const url = `${AppConstants.AUTH_URL}/email/change`;
     return this.http.post<any>(url, {email}, {withCredentials: true});
-  }
-
-  cancelEmailChangeRequest(): Observable<any> {
-    const url = `${AppConstants.EMAIL_CHANGE_REQUEST_URL}`;
-    return this.http.delete<any>(url, {withCredentials: true});
-  }
-
-  resendEmailChangeRequest(): Observable<void> {
-    const url = `${AppConstants.EMAIL_CHANGE_REQUEST_URL}/resend`;
-    return this.http.post<void>(url, {}, {withCredentials: true});
   }
 
   // email verification requests
   requestEmailVerification(): Observable<void> {
     const url = `${AppConstants.EMAIL_VERIFICATION_URL}/request`;
+    return this.http.post<void>(url, {}, {withCredentials: true});
+  }
+
+  cancelEmailVerificationRequest(): Observable<any> {
+    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
+    return this.http.delete<any>(url, {withCredentials: true});
+  }
+
+  resendEmailVerificationRequest(): Observable<void> {
+    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/resend`;
     return this.http.post<void>(url, {}, {withCredentials: true});
   }
 
