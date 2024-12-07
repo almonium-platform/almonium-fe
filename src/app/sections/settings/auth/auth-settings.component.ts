@@ -171,7 +171,7 @@ export class AuthSettingsComponent implements OnInit {
           this.localStorageService.saveAuthMethods(methods);
         },
         error: (error) => {
-          this.alertService.open(error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
           console.error(error);
         },
       });
@@ -351,7 +351,7 @@ export class AuthSettingsComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to unlink account', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to unlink account', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -404,7 +404,7 @@ export class AuthSettingsComponent implements OnInit {
         };
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to get last token', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to get last token', {appearance: 'error'}).subscribe();
         console.error('Error getting last token:', error);
       },
     });
@@ -424,7 +424,7 @@ export class AuthSettingsComponent implements OnInit {
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to cancel email change request', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to cancel email change request', {appearance: 'error'}).subscribe();
         console.error('Error cancelling email change request:', error);
       },
     });
@@ -441,7 +441,7 @@ export class AuthSettingsComponent implements OnInit {
       },
       error: (error) => {
         console.log('Error resending email change request:', error);
-        this.alertService.open(error.message || 'Failed to resend email change request', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to resend email change request', {appearance: 'error'}).subscribe();
         console.error('Error resending email change request:', error);
       },
     });
@@ -489,7 +489,7 @@ export class AuthSettingsComponent implements OnInit {
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to send verification email', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to send verification email', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -578,7 +578,7 @@ export class AuthSettingsComponent implements OnInit {
         this.restorePasswordField();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -597,7 +597,7 @@ export class AuthSettingsComponent implements OnInit {
         this.restoreEmailField();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
         console.error('Error checking email availability:', error);
       },
     });
@@ -612,7 +612,7 @@ export class AuthSettingsComponent implements OnInit {
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.message || 'Failed to send email change request', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to send email change request', {appearance: 'error'}).subscribe();
         console.error('Error sending email change request:', error);
       }
     });
