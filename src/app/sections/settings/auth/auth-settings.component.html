@@ -81,7 +81,7 @@
         </div>
 
       </form>
-      <span *ngIf="!emailVerified"
+      <span *ngIf="!emailVerified && !hasPendingEmailVerificationRequest()"
             class="unverified-icon"
             title="Email not verified"
       >
@@ -100,6 +100,13 @@
             <i class="status-icon fas fa-check-circle"></i>
             <span *ngIf="emailVerifiedTextExpanded" class="status-text">VERIFIED</span>
           </span>
+      </div>
+
+      <div class="status-container" *ngIf="!emailVerified && hasPendingEmailVerificationRequest()">
+        <span class="status-box unverified-box">
+          <i class="unverified-status-icon fas fa-hourglass-half"></i>
+          <span *ngIf="emailVerifiedTextExpanded" class="unverified-status-text">UNVERIFIED</span>
+        </span>
       </div>
 
       <button *ngIf="hasPendingEmailVerificationRequest()"
