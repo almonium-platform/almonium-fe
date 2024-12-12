@@ -29,7 +29,7 @@ export class AuthSettingsService {
 
   // email verification requests
   requestEmailVerification(): Observable<void> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/request`;
+    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
     return this.http.post<void>(url, {}, {withCredentials: true});
   }
 
@@ -44,7 +44,7 @@ export class AuthSettingsService {
   }
 
   getLastEmailVerificationToken(): Observable<TokenInfo> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/last-token`;
+    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/last/token`;
     return this.http.get<TokenInfo>(url, {withCredentials: true});
   }
 
