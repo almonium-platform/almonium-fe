@@ -4,6 +4,7 @@ import {HttpClient} from '@angular/common/http';
 import {LocalStorageService} from './local-storage.service';
 import {LanguageCode} from '../models/language.enum';
 import {map} from "rxjs/operators";
+import {UserInfoService} from "./user-info.service";
 
 
 @Injectable({
@@ -34,7 +35,8 @@ export class TargetLanguageDropdownService {
 
   constructor(
     private localStorageService: LocalStorageService,
-    private http: HttpClient
+    private http: HttpClient,
+    private userInfoService: UserInfoService
   ) {
     this.loadLangColors(); // Load colors on app start
   }
@@ -65,6 +67,7 @@ export class TargetLanguageDropdownService {
 
     // Update targetLanguages
     this.targetLanguagesSubject.next(targetLanguages);
+    this.userInfoService.updateUserInfo({targetLangs: targetLanguages});
 
     // Check if the deleted language was the current language
     if (this.currentLanguageSubject.getValue() === deletedLanguage) {

@@ -14,7 +14,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiError} from '@taiga-ui/core';
-import {delay, Observable, of, Subject} from 'rxjs';
+import {delay, Observable, of, Subject, take} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
 import {LanguageApiService} from '../../services/language-api.service';
@@ -30,31 +30,31 @@ import {ValidationMessagesService} from "./validation-messages-service";
 const MAX_LANGUAGES = 3;
 
 @Component({
-    selector: 'app-language-setup',
-    templateUrl: './language-setup.component.html',
-    styleUrls: ['./language-setup.component.less'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [
-        {
-            provide: TUI_VALIDATION_ERRORS,
-            useFactory: (validationMessagesService: ValidationMessagesService) => {
-                return validationMessagesService.getValidationMessages();
-            },
-            deps: [ValidationMessagesService],
-        },
-    ],
-    imports: [
-        ReactiveFormsModule,
-        CommonModule,
-        TuiMultiSelectModule,
-        TuiSelectModule,
-        TuiTextfieldControllerModule,
-        TuiError,
-        TuiFieldErrorPipe,
-        TuiDataListWrapper,
-        NgxParticlesModule,
-        FluentLanguageSelectorComponent,
-    ]
+  selector: 'app-language-setup',
+  templateUrl: './language-setup.component.html',
+  styleUrls: ['./language-setup.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useFactory: (validationMessagesService: ValidationMessagesService) => {
+        return validationMessagesService.getValidationMessages();
+      },
+      deps: [ValidationMessagesService],
+    },
+  ],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    TuiMultiSelectModule,
+    TuiSelectModule,
+    TuiTextfieldControllerModule,
+    TuiError,
+    TuiFieldErrorPipe,
+    TuiDataListWrapper,
+    NgxParticlesModule,
+    FluentLanguageSelectorComponent,
+  ]
 })
 export class LanguageSetupComponent implements OnInit {
   languageForm: FormGroup;
@@ -240,11 +240,16 @@ export class LanguageSetupComponent implements OnInit {
     if (this.mode === 'add-target') {
       let languageCode = targetLanguageCodes[0];
 
-      this.languageApiService.addTargetLang(languageCode).subscribe({
-        next: () => {
-          // TODO when we implement onboarding steps, this will change
-          this.userInfoService.fetchUserInfoFromServer().subscribe();
-          this.router.navigate(['/settings/lang'], {queryParams: {target_lang: "success"}}).then(r => r);
+      this.languageApiService.addTargetLang(languageCode).pipe(
+        switchMap(() => this.userInfoService.userInfo$), // Automatically handles unsubscribing from previous userInfo$ emissions
+        take(1) // Ensures we only take the latest value and don't keep an open subscription
+      ).subscribe({
+        next: (userInfo) => {
+          const existingTargetLangs = userInfo?.targetLangs || [];
+          const updatedLangs = [...existingTargetLangs, languageCode];
+          this.userInfoService.updateUserInfo({targetLangs: updatedLangs});
+
+          this.router.navigate(['/settings/lang'], {queryParams: {target_lang: "success"}}).then();
         },
         error: (error) => {
           this.alertService.open(error.error.message || 'Failed to add new target language', {appearance: 'error'}).subscribe();

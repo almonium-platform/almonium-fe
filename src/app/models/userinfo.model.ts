@@ -19,6 +19,25 @@ export class UserInfo {
   ) {
   }
 
+  update(updates: Partial<UserInfo>): UserInfo {
+    return new UserInfo(
+      this.id,
+      updates.username ?? this.username,
+      updates.email ?? this.email,
+      updates.emailVerified ?? this.emailVerified,
+      updates.uiLang ?? this.uiLang,
+      updates.avatarUrl ?? this.avatarUrl,
+      updates.background ?? this.background,
+      updates.streak ?? this.streak,
+      updates.targetLangs ?? this.targetLangs,
+      updates.fluentLangs ?? this.fluentLangs,
+      updates.setupCompleted ?? this.setupCompleted,
+      updates.tags ?? this.tags,
+      updates.subscription ?? this.subscription,
+      updates.premium ?? this.premium
+    );
+  }
+
   static fromJSON(data: any): UserInfo {
     return new UserInfo(
       data.id,

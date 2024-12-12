@@ -63,6 +63,15 @@ export class UserInfoService {
     );
   }
 
+  updateUserInfo(updates: Partial<UserInfo>): void {
+    const currentUserInfo = this.getCurrentUserInfo();
+    if (currentUserInfo) {
+      const updatedUserInfo = currentUserInfo.update(updates);
+      this.localStorageService.saveUserInfo(updatedUserInfo);
+      this.userInfoSubject.next(updatedUserInfo); // Notify subscribers
+    }
+  }
+
   private getCurrentUserInfo(): UserInfo | null {
     return this.userInfoSubject.getValue();
   }
