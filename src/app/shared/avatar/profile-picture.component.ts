@@ -21,7 +21,6 @@ import {NgIf, NgOptimizedImage} from "@angular/common";
     NgOptimizedImage,
     NgIf
   ],
-  styleUrls: ['./profile-picture.component.scss']
 })
 export class ProfilePictureComponent {
   @Input() avatarUrl: string | null = null;
