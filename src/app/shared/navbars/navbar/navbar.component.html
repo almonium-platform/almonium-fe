@@ -63,8 +63,14 @@
       </div>
 
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" (click)="toggleProfilePopover()" (clickOutside)=profileOnClickOutside($event)>
-        <div class="profile-circle bg-gradient-to-bl from-purple-500 to-pink-500"></div>
+      <div class="user-profile relative" (click)="toggleProfilePopover()"
+           (clickOutside)="profileOnClickOutside($event)">
+        <app-profile-picture
+          [avatarUrl]="userInfo?.avatarUrl ?? ''"
+          circleClass="profile-circle"
+          [width]="40"
+          [height]="40">
+        </app-profile-picture>
         <!-- Popover Menu -->
       </div>
     </div>
@@ -106,7 +112,12 @@
   <div class="menu-section">
     <div class="user-details flex items-center">
       <!-- Profile Picture -->
-      <div class="profile-circle-small bg-gradient-to-bl from-purple-500 to-pink-500 mr-3 flex-shrink-0"></div>
+      <app-profile-picture
+        [avatarUrl]="userInfo?.avatarUrl ?? ''"
+        circleClass="profile-circle-small mr-3 flex-shrink-0"
+        [width]="28"
+        [height]="28">
+      </app-profile-picture>
       <!-- User Info -->
       <div class="user-info overflow-hidden">
         <span class="font-semibold truncate block">&#64;{{ userInfo?.username || 'Anonymous Learner' }}

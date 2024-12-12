@@ -73,4 +73,13 @@
       </button>
     </div>
   </div>
+
+  <div class="section-block card">
+    <div class="title">Profile</div>
+    <div class="row-content">
+      <app-file-upload
+        (fileUploaded)="onFileUploaded($event)"
+      ></app-file-upload>
+    </div>
+  </div>
 </div>

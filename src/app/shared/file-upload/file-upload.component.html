@@ -1,0 +1,47 @@
+<label *ngIf="!control.value" tuiInputFiles>
+  <input accept="image/*" tuiInputFiles [formControl]="control"/>
+  <ng-template let-dragged>
+    <div *ngIf="dragged; else base" class="content">
+      <div>
+        Drop it like it's hot!
+      </div>
+    </div>
+    <ng-template #base>
+      <div class="content">
+        <div>
+          <a tuiLink>Choose a file</a>
+          or drop it here
+        </div>
+      </div>
+    </ng-template>
+  </ng-template>
+</label>
+
+<tui-files class="tui-space_top-1">
+  <tui-file
+    *ngIf="control.value | tuiFileRejected: { accept: 'image/*' } | async as file"
+    state="error"
+    [file]="file"
+    (remove)="removeFile()"
+  ></tui-file>
+
+  <tui-file
+    *ngIf="loadedFiles$ | async as file"
+    [file]="file"
+    (remove)="removeFile()"
+  ></tui-file>
+
+  <tui-file
+    *ngIf="failedFiles$ | async as file"
+    state="error"
+    [file]="file"
+    (remove)="removeFile()"
+  ></tui-file>
+
+  <tui-file
+    *ngIf="loadingFiles$ | async as file"
+    state="loading"
+    [file]="file"
+    (remove)="removeFile()"
+  ></tui-file>
+</tui-files>

@@ -16,6 +16,10 @@ import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
+import {FileUploadService} from "./file-upload.service";
+import {ProfileSettingsService} from "./profile-settings.service";
+import {ReactiveFormsModule} from "@angular/forms";
+import {FileUploadComponent} from "../../../shared/file-upload/file-upload.component";
 
 @Component({
   selector: 'app-profile-settings',
@@ -30,6 +34,8 @@ import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent
     TuiHintDirective,
     NgStyle,
     RecentAuthGuardComponent,
+    ReactiveFormsModule,
+    FileUploadComponent,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
@@ -40,6 +46,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
 
   protected userInfo: UserInfo | null = null;
   protected premium: boolean = true;
+  protected readonly PlanType = PlanType;
 
   // confirm modal settings
   protected isConfirmModalVisible: boolean = false;
@@ -58,6 +65,8 @@ auto-renewal in the customer portal.`;
   protected useCountdown: boolean = false;
   protected tooltipRenewal: string = '';
 
+  private readonly FIREBASE_AVATAR_URL_PATH = 'profile-pictures';
+
   constructor(
     private userInfoService: UserInfoService,
     private popupTemplateStateService: PopupTemplateStateService,
@@ -66,6 +75,8 @@ auto-renewal in the customer portal.`;
     private activatedRoute: ActivatedRoute,
     private urlService: UrlService,
     private alertService: TuiAlertService,
+    private fileUploadService: FileUploadService,
+    private profileSettingsService: ProfileSettingsService,
   ) {
   }
 
@@ -156,5 +167,16 @@ auto-renewal in the customer portal.`;
     this.isConfirmModalVisible = false;
   }
 
-  protected readonly PlanType = PlanType;
+  async onFileUploaded(file: File): Promise<void> {
+    try {
+      const path = `${this.FIREBASE_AVATAR_URL_PATH}/${file.name}`;
+      const downloadURL = await this.fileUploadService.uploadFile(file, path);
+      this.profileSettingsService.updateAvatarUrl(downloadURL).subscribe(() => {
+        this.userInfoService.updateUserInfo({avatarUrl: downloadURL});
+        this.alertService.open('Profile picture updated', {appearance: 'success'}).subscribe();
+      });
+    } catch (error) {
+      this.alertService.open('Failed to upload avatar', {appearance: 'error'}).subscribe();
+    }
+  }
 }

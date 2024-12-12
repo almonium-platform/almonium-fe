@@ -19,21 +19,23 @@ import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
 import {Subscription} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
+import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
 
 @Component({
     selector: 'app-navbar',
     templateUrl: './navbar.component.html',
     styleUrls: ['./navbar.component.less'],
-    imports: [
-        FormsModule,
-        NgForOf,
-        NgOptimizedImage,
-        NgIf,
-        NgClass,
-        NgStyle,
-        NgClickOutsideDirective,
-        RouterLink
-    ]
+  imports: [
+    FormsModule,
+    NgForOf,
+    NgOptimizedImage,
+    NgIf,
+    NgClass,
+    NgStyle,
+    NgClickOutsideDirective,
+    RouterLink,
+    ProfilePictureComponent
+  ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';
