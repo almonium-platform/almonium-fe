@@ -66,10 +66,9 @@
       <div class="user-profile relative" (click)="toggleProfilePopover()"
            (clickOutside)="profileOnClickOutside($event)">
         <app-profile-picture
-          [avatarUrl]="userInfo?.avatarUrl ?? ''"
-          circleClass="profile-circle"
-          [width]="40"
-          [height]="40">
+          class="profile-circle"
+          [avatarUrl]="userInfo?.avatarUrl ?? null"
+          [size]="40">
         </app-profile-picture>
         <!-- Popover Menu -->
       </div>
@@ -113,10 +112,9 @@
     <div class="user-details flex items-center">
       <!-- Profile Picture -->
       <app-profile-picture
-        [avatarUrl]="userInfo?.avatarUrl ?? ''"
-        circleClass="profile-circle-small mr-3 flex-shrink-0"
-        [width]="28"
-        [height]="28">
+        [avatarUrl]="userInfo?.avatarUrl ?? null"
+        class="mr-3"
+        [size]="28">
       </app-profile-picture>
       <!-- User Info -->
       <div class="user-info overflow-hidden">

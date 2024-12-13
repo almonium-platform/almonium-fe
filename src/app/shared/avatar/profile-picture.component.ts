@@ -1,32 +1,50 @@
 import {Component, Input} from '@angular/core';
-import {NgIf, NgOptimizedImage} from "@angular/common";
+import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-profile-picture',
   template: `
-    <ng-container *ngIf="avatarUrl; else gradientBackground">
+    <div
+      class="profile-circle"
+      [style.width.px]="size"
+      [style.height.px]="size"
+    >
       <img
-        [ngSrc]="avatarUrl || ''"
-        [alt]="altText"
-        [class]="circleClass"
-        [width]="width"
-        [height]="height"
+        *ngIf="avatarUrl"
+        [src]="avatarUrl"
+        [alt]="'Profile picture'"
+        class="profile-image"
       />
-    </ng-container>
-    <ng-template #gradientBackground>
-      <div [class]="circleClass + ' ' + gradientClass"></div>
-    </ng-template>
+      <div
+        *ngIf="!avatarUrl"
+        [class]="gradientClass"
+        class="profile-image"
+      ></div>
+    </div>
+
   `,
+  styles: [`
+    .profile-circle {
+      box-shadow: var(--box-shadow);
+      border-radius: 50%; /* Ensures circular shape */
+      overflow: hidden; /* Ensures child elements don't overlap */
+      position: relative; /* Ensures contained elements respect the boundaries */
+    }
+
+    .profile-image {
+      width: 100%; /* Fill the parent container */
+      height: 100%;
+      object-fit: cover; /* Ensures the image is properly cropped */
+      border-radius: 50%; /* Ensures the image follows the circle shape */
+    }
+  `
+  ],
   imports: [
-    NgOptimizedImage,
     NgIf
   ],
 })
 export class ProfilePictureComponent {
   @Input() avatarUrl: string | null = null;
-  @Input() altText: string = 'User Avatar';
-  @Input() circleClass: string = 'profile-circle';
+  @Input() size: number = 40;
   @Input() gradientClass: string = 'bg-gradient-to-bl from-purple-500 to-pink-500';
-  @Input() width: number = 40;
-  @Input() height: number = 40;
 }
