@@ -5,11 +5,11 @@ import {RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 
 @Component({
-    selector: 'app-root',
+  selector: 'app-root',
   imports: [RouterOutlet, TuiRoot, PopupTemplateComponent],
-    templateUrl: './app.component.html',
-    styleUrl: './app.component.less',
-    providers: [{ provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer }]
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.less',
+  providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
 export class AppComponent {
   title = 'almonium-fe';

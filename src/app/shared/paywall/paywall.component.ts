@@ -24,11 +24,9 @@ import {PlanService} from "../../services/plan.service";
   providers: [
     tuiSwitchOptionsProvider({showIcons: false, appearance: () => 'primary'}),
   ]
-
 })
 export class PaywallComponent implements OnInit {
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
-  @ViewChild('cardsContainer') cardsContainer!: ElementRef;
 
   protected value = false;
 

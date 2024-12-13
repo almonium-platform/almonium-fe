@@ -41,18 +41,18 @@ export class PopupTemplateComponent implements OnInit {
   isVisible = false;
   content?: any;
 
-  constructor(private drawerService: PopupTemplateStateService) {
+  constructor(private popupTemplateStateService: PopupTemplateStateService) {
   }
 
   ngOnInit() {
-    this.drawerService.drawerState$.subscribe((state) => {
+    this.popupTemplateStateService.drawerState$.subscribe((state) => {
       this.isVisible = state.visible;
       this.content = state.content;
     });
   }
 
   close() {
-    this.drawerService.close();
+    this.popupTemplateStateService.close();
   }
 
   @HostListener('document:keydown.escape', ['$event'])

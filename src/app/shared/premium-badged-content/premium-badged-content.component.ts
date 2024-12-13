@@ -53,7 +53,7 @@ export class PremiumBadgedContentComponent {
   @Input() originalClickHandler: (() => void) | null = null; // Original logic when not paywalled
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
 
-  constructor(private drawerService: PopupTemplateStateService) {
+  constructor(private popupTemplateStateService: PopupTemplateStateService) {
   }
 
   get badgeNumericSize(): number {
@@ -76,7 +76,7 @@ export class PremiumBadgedContentComponent {
     event.stopPropagation();
 
     if (this.display) {
-      this.drawerService.open(this.paywallComponent.content);
+      this.popupTemplateStateService.open(this.paywallComponent.content);
     } else if (this.originalClickHandler) {
       this.originalClickHandler();
     }
