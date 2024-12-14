@@ -1,3 +1,5 @@
+<app-manage-avatar></app-manage-avatar>
+
 <nav class="navbar">
   <div class="navbar-content">
     <div class="logo-container relative" (click)="toggleDiscoverMenu()" (clickOutside)="discoverOnClickOutside($event)">
@@ -68,7 +70,11 @@
         <app-profile-picture
           class="profile-circle"
           [avatarUrl]="userInfo?.avatarUrl ?? null"
-          [size]="40">
+          [username]="userInfo?.username ?? null"
+          [outline]="userInfo?.premium ?? false"
+          size="m"
+          [sizeInRem]=3
+        >
         </app-profile-picture>
         <!-- Popover Menu -->
       </div>
@@ -113,12 +119,16 @@
       <!-- Profile Picture -->
       <app-profile-picture
         [avatarUrl]="userInfo?.avatarUrl ?? null"
-        class="mr-3"
-        [size]="28">
+        [username]="userInfo?.username ?? null"
+        [outline]="userInfo?.premium ?? false"
+        class="mr-3 cursor-pointer"
+        size="m"
+        (click)="openChangeAvatarPopup()"
+      >
       </app-profile-picture>
       <!-- User Info -->
       <div class="user-info overflow-hidden">
-        <span class="font-semibold truncate block">&#64;{{ userInfo?.username || 'Anonymous Learner' }}
+        <span class="font-semibold truncate block text-base">&#64;{{ userInfo?.username || 'Anonymous Learner' }}
         </span>
         <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
       </div>

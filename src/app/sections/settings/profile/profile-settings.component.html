@@ -1,6 +1,8 @@
 <app-navbar></app-navbar>
 
+<!--content for popups-->
 <paywall></paywall>
+<app-manage-avatar></app-manage-avatar>
 
 <app-recent-auth-guard></app-recent-auth-guard>
 
@@ -16,6 +18,32 @@
 
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
+
+  <div class="section-block card">
+    <div class="title">Profile</div>
+    <div class="row-content">
+      <tui-badged-content>
+        <tui-icon
+          appearance="primary"
+          [icon]="this.userInfo?.avatarUrl ? '@tui.image-plus' : '@tui.image-up'"
+          size="xl"
+          tuiBadge
+          tuiSlot="bottom"
+          class="cursor-pointer hover:opacity-80"
+          (click)="changeAvatar()"
+        />
+
+        <app-profile-picture
+          [avatarUrl]="this.userInfo?.avatarUrl || ''"
+          [username]="this.userInfo?.username || ''"
+          [outline]="this.userInfo?.premium || false"
+          size="xl"
+        >
+        </app-profile-picture>
+      </tui-badged-content>
+    </div>
+  </div>
+
 
   <div class="section-block card">
     <div class="title">Plan</div>
@@ -71,15 +99,6 @@
           Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
         </ng-template>
       </button>
-    </div>
-  </div>
-
-  <div class="section-block card">
-    <div class="title">Profile</div>
-    <div class="row-content">
-      <app-file-upload
-        (fileUploaded)="onFileUploaded($event)"
-      ></app-file-upload>
     </div>
   </div>
 </div>

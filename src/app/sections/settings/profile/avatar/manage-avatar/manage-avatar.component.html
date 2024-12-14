@@ -1,0 +1,85 @@
+<ng-template #manageAvatar>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h1>Change Avatar</h1>
+    </div>
+
+    <div class="content">
+      <!-- Left Container -->
+      <div class="left-container">
+        <div class="profile-circle"
+             [ngClass]="{
+              'motion-preset-confetti': isUpdated,
+              'motion-preset-fade': isReset
+             }"
+        >
+          <tui-badged-content>
+            <app-profile-picture
+              [avatarUrl]="userInfo?.avatarUrl ?? null"
+              [username]="userInfo?.username ?? null"
+              [outline]="userInfo?.premium ?? false"
+              [sizeInRem]=8
+              size="xxl"
+            >
+            </app-profile-picture>
+
+            <tui-icon
+              appearance="primary"
+              icon="@tui.x"
+              size="xl"
+              tuiBadge
+              tuiSlot="top"
+              class="hover:opacity-80 cursor-pointer"
+              (click)="deleteCurrentAvatar()"
+            ></tui-icon>
+          </tui-badged-content>
+        </div>
+
+        <app-file-upload
+          class="upload-section"
+          (fileUploaded)="onFileUploaded($event)"></app-file-upload>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Right Avatars Section -->
+      <div class="avatars-container">
+        <!-- Custom Avatars -->
+
+        <tui-badged-content
+          *ngFor="let avatar of customAvatars"
+          class="avatar"
+          [ngClass]="{
+            'motion-preset-blink': avatar.id === deletedAvatarId,
+          }"
+        >
+          <tui-icon
+            appearance="primary"
+            icon="@tui.x"
+            size="m"
+            tuiBadge
+            tuiSlot="top"
+            class="hover:opacity-80 cursor-pointer"
+            (click)="deleteCustomAvatar(avatar.id)"
+          ></tui-icon>
+
+          <tui-avatar
+            [src]="avatar.url"
+            size="xl"
+            tuiAvatarOutline="var(--default-avatar-gradient)"
+            (click)="chooseAnotherCustomAvatar(avatar.id)"
+          ></tui-avatar>
+        </tui-badged-content>
+        <!-- Default Avatars -->
+        <tui-avatar
+          *ngFor="let avatarUrl of defaultAvatars"
+          [src]="avatarUrl"
+          size="xl"
+          class="avatar"
+          tuiAvatarOutline="var(--default-avatar-gradient)"
+          (click)="chooseDefaultAvatar(avatarUrl)"
+        ></tui-avatar>
+      </div>
+    </div>
+  </div>
+</ng-template>

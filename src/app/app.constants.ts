@@ -28,7 +28,7 @@ export class AppConstants {
   public static MY_LANGUAGES_URL = AppConstants.USERS_URL + '/me/langs';
 
   // PROFILE
-  public static PROFILE_URL = AppConstants.API_URL + '/profiles/me';
+  public static AVATARS_URL = AppConstants.API_URL + '/profiles/me/avatars';
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';

@@ -3,6 +3,7 @@ import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {finalize, Observable, of, Subject, switchMap} from 'rxjs';
 import {catchError, tap} from 'rxjs/operators';
 import {
+  TuiAvatar,
   TuiFile,
   TuiFileLike,
   TuiFileRejectedPipe,
@@ -17,6 +18,7 @@ import {TuiLink} from "@taiga-ui/core";
 @Component({
   selector: 'app-file-upload',
   templateUrl: './file-upload.component.html',
+  styleUrls: ['./file-upload.component.less'],
   imports: [
     NgIf,
     LucideAngularModule,
@@ -28,6 +30,7 @@ import {TuiLink} from "@taiga-ui/core";
     AsyncPipe,
     TuiFileRejectedPipe,
     TuiLink,
+    TuiAvatar,
   ],
 })
 export class FileUploadComponent {

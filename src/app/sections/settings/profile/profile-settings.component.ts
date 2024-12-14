@@ -9,17 +9,17 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
-import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
+import {TuiAlertService, TuiHintDirective, TuiIcon} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
-import {FileUploadService} from "./file-upload.service";
-import {ProfileSettingsService} from "./profile-settings.service";
 import {ReactiveFormsModule} from "@angular/forms";
-import {FileUploadComponent} from "../../../shared/file-upload/file-upload.component";
+import {ProfilePictureComponent} from "../../../shared/avatar/profile-picture.component";
+import {TuiBadge, TuiBadgedContent, TuiBadgedContentComponent} from "@taiga-ui/kit";
+import {ManageAvatarComponent} from "./avatar/manage-avatar/manage-avatar.component";
 
 @Component({
   selector: 'app-profile-settings',
@@ -35,13 +35,20 @@ import {FileUploadComponent} from "../../../shared/file-upload/file-upload.compo
     NgStyle,
     RecentAuthGuardComponent,
     ReactiveFormsModule,
-    FileUploadComponent,
+    ProfilePictureComponent,
+    TuiBadgedContentComponent,
+    TuiBadgedContent,
+    TuiIcon,
+    TuiBadge,
+    ManageAvatarComponent,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
 })
 export class ProfileSettingsComponent implements OnInit, OnDestroy {
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
+  @ViewChild(ManageAvatarComponent, {static: true}) uploadAvatarComponent!: ManageAvatarComponent;
+
   private destroy$ = new Subject<void>();
 
   protected userInfo: UserInfo | null = null;
@@ -65,8 +72,6 @@ auto-renewal in the customer portal.`;
   protected useCountdown: boolean = false;
   protected tooltipRenewal: string = '';
 
-  private readonly FIREBASE_AVATAR_URL_PATH = 'profile-pictures';
-
   constructor(
     private userInfoService: UserInfoService,
     private popupTemplateStateService: PopupTemplateStateService,
@@ -75,8 +80,6 @@ auto-renewal in the customer portal.`;
     private activatedRoute: ActivatedRoute,
     private urlService: UrlService,
     private alertService: TuiAlertService,
-    private fileUploadService: FileUploadService,
-    private profileSettingsService: ProfileSettingsService,
   ) {
   }
 
@@ -167,16 +170,8 @@ auto-renewal in the customer portal.`;
     this.isConfirmModalVisible = false;
   }
 
-  async onFileUploaded(file: File): Promise<void> {
-    try {
-      const path = `${this.FIREBASE_AVATAR_URL_PATH}/${file.name}`;
-      const downloadURL = await this.fileUploadService.uploadFile(file, path);
-      this.profileSettingsService.updateAvatarUrl(downloadURL).subscribe(() => {
-        this.userInfoService.updateUserInfo({avatarUrl: downloadURL});
-        this.alertService.open('Profile picture updated', {appearance: 'success'}).subscribe();
-      });
-    } catch (error) {
-      this.alertService.open('Failed to upload avatar', {appearance: 'error'}).subscribe();
-    }
+
+  changeAvatar() {
+    this.popupTemplateStateService.open(this.uploadAvatarComponent.content);
   }
 }

@@ -20,11 +20,13 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {Subscription} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
+import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
+import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 
 @Component({
-    selector: 'app-navbar',
-    templateUrl: './navbar.component.html',
-    styleUrls: ['./navbar.component.less'],
+  selector: 'app-navbar',
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.less'],
   imports: [
     FormsModule,
     NgForOf,
@@ -34,13 +36,15 @@ import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
     NgStyle,
     NgClickOutsideDirective,
     RouterLink,
-    ProfilePictureComponent
+    ProfilePictureComponent,
+    ManageAvatarComponent
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
+  @ViewChild(ManageAvatarComponent, {static: true}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
   protected isProfilePopoverOpen: boolean = false;
@@ -65,6 +69,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
               private targetLanguageDropdownService: TargetLanguageDropdownService,
+              private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -275,5 +280,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   toggleNotificationPopover(): void {
     this.isNotificationOpen = !this.isNotificationOpen;
+  }
+
+  openChangeAvatarPopup() {
+    this.popupTemplateStateService.open(this.manageAvatarComponent.content);
   }
 }

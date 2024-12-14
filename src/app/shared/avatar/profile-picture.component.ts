@@ -1,50 +1,50 @@
 import {Component, Input} from '@angular/core';
+import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
 import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-profile-picture',
   template: `
-    <div
-      class="profile-circle"
-      [style.width.px]="size"
-      [style.height.px]="size"
-    >
-      <img
-        *ngIf="avatarUrl"
-        [src]="avatarUrl"
-        [alt]="'Profile picture'"
-        class="profile-image"
-      />
-      <div
-        *ngIf="!avatarUrl"
-        [class]="gradientClass"
-        class="profile-image"
-      ></div>
-    </div>
+    <!--    ugly hack but I can't make tuiAvatarOutline work dynamically-->
+    <ng-container *ngIf="outline; else noOutlineAvatar">
+      <tui-avatar
+        [src]="avatarUrl || initials"
+        [size]="size"
+        [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
+        [style.color]="'white'"
+        tuiAvatarOutline="var(--premium-gradient)"
+        [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
+      >
+      </tui-avatar>
+    </ng-container>
 
+    <ng-template #noOutlineAvatar>
+      <tui-avatar
+        [src]="avatarUrl || initials"
+        [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
+        [style.color]="'white'"
+        [size]="size"
+        [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
+      >
+      </tui-avatar>
+    </ng-template>
   `,
-  styles: [`
-    .profile-circle {
-      box-shadow: var(--box-shadow);
-      border-radius: 50%; /* Ensures circular shape */
-      overflow: hidden; /* Ensures child elements don't overlap */
-      position: relative; /* Ensures contained elements respect the boundaries */
-    }
-
-    .profile-image {
-      width: 100%; /* Fill the parent container */
-      height: 100%;
-      object-fit: cover; /* Ensures the image is properly cropped */
-      border-radius: 50%; /* Ensures the image follows the circle shape */
-    }
-  `
-  ],
   imports: [
+    TuiAvatar,
+    TuiAvatarOutline,
     NgIf
   ],
 })
 export class ProfilePictureComponent {
   @Input() avatarUrl: string | null = null;
-  @Input() size: number = 40;
-  @Input() gradientClass: string = 'bg-gradient-to-bl from-purple-500 to-pink-500';
+  @Input() username: string | null = null;
+  @Input() outline: boolean = false;
+  @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
+  @Input() sizeInRem: number | null = null; // or calculate dynamically
+
+  get initials(): string {
+    return this.username
+      ? this.username.slice(0, 2).toUpperCase()
+      : '';
+  }
 }

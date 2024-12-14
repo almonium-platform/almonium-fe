@@ -57,6 +57,7 @@
     "tailwindcss-motion": "^0.4.3-beta",
     "tslib": "^2.8.1",
     "tsparticles": "^3.5.0",
+    "uuid": "^11.0.3",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
