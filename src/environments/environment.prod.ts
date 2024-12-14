@@ -4,12 +4,12 @@ export const environment = {
   feUrl: 'https://almonium.com',
   googleClientId: '33380019461-l4hq3eto00vvvgprtadahm5o2tqj65ti.apps.googleusercontent.com',
   firebaseConfig: {
-    apiKey: "AIzaSyDFEvI9VeFSnANDVlKlsiCGhaUk0jSZQ_Q",
-    authDomain: "almonium-firebase.firebaseapp.com",
-    projectId: "almonium-firebase",
-    storageBucket: "almonium-firebase.firebasestorage.app",
-    messagingSenderId: "173754393770",
-    appId: "1:173754393770:web:b7a14f5a25aa9c1b029cd3",
-    measurementId: "G-CRPBB55RWB"
+    apiKey: "AIzaSyCotfh0KzDpP3HniEfxyxoAw9HUFAA8gFs",
+    authDomain: "almonium.firebaseapp.com",
+    projectId: "almonium",
+    storageBucket: "almonium.firebasestorage.app",
+    messagingSenderId: "33380019461",
+    appId: "1:33380019461:web:6b4381869fdf5ec21ddb6c",
+    measurementId: "G-6XKWX9LS25"
   },
 };
