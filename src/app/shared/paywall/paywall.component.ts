@@ -59,7 +59,6 @@ export class PaywallComponent implements OnInit {
 
   ngOnInit() {
     this.planService.getPlans().subscribe(plans => {
-      console.log(plans);
       const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
       const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
       if (monthlyPremium) {
