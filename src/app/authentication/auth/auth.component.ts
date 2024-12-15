@@ -118,7 +118,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   // particles
   id = 'tsparticles';
   particlesOptions: IParticlesProps | undefined;
-  particlesOptionsSubscription: Subscription | undefined;
 
   // logo
   isRotating: boolean = false;
@@ -242,7 +241,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         break;
       default:
         this.embeddedMode = false;
-        this.isSignUp = true;
+        this.isSignUp = false;
         this.showSeparatorAndForm = true;
         break;
     }
@@ -329,6 +328,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.alertService
           .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
           .subscribe();
+        this.isSignUp = false;
       },
       error: (error) => {
         this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
