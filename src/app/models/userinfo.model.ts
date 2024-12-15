@@ -3,7 +3,7 @@ import {LanguageCode} from "./language.enum";
 export class UserInfo {
   constructor(
     public id: string,
-    public username: string | null,
+    public username: string,
     public email: string,
     public emailVerified: boolean,
     public uiLang: string | null,
