@@ -1,4 +1,4 @@
-import {TuiInputModule, TuiInputPasswordModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {HttpClient} from '@angular/common/http';
 import {
   ChangeDetectorRef,
@@ -11,8 +11,16 @@ import {
   Output
 } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from '@taiga-ui/kit';
-import {TuiAlertService, TuiError, TuiLink} from '@taiga-ui/core';
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
+import {
+  TuiAlertService,
+  TuiError,
+  TuiIcon,
+  TuiLink,
+  TuiTextfield,
+  TuiTextfieldComponent,
+  TuiTextfieldOptionsDirective
+} from '@taiga-ui/core';
 import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
@@ -33,7 +41,6 @@ declare const google: any;
   imports: [
     TuiInputModule,
     TuiError,
-    TuiInputPasswordModule,
     ReactiveFormsModule,
     TuiFieldErrorPipe,
     AsyncPipe,
@@ -46,6 +53,11 @@ declare const google: any;
     RouterLink,
     DismissButtonComponent,
     ProviderIconComponent,
+    TuiIcon,
+    TuiPassword,
+    TuiTextfieldComponent,
+    TuiTextfieldOptionsDirective,
+    TuiTextfield,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],

@@ -1,22 +1,16 @@
-import {
-  TuiInputComponent,
-  TuiInputModule,
-  TuiInputPasswordComponent,
-  TuiInputPasswordModule,
-  TuiTextfieldControllerModule
-} from "@taiga-ui/legacy";
+import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import {TuiAlertService, TuiError, TuiIcon} from "@taiga-ui/core";
+import {TuiAlertService, TuiError, TuiIcon, TuiTextfield, TuiTextfieldComponent} from "@taiga-ui/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
-import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
+import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from "@taiga-ui/kit";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
@@ -44,14 +38,17 @@ import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent
     TuiError,
     TuiFieldErrorPipe,
     TuiInputModule,
-    TuiInputPasswordModule,
     TuiTextfieldControllerModule,
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,
     SettingsTabsComponent,
     TuiIcon,
-    RecentAuthGuardComponent
+    RecentAuthGuardComponent,
+    TuiTextfieldComponent,
+    FormsModule,
+    TuiPassword,
+    TuiTextfield
   ],
   templateUrl: './auth-settings.component.html',
   providers: [
@@ -82,15 +79,22 @@ export class AuthSettingsComponent implements OnInit {
   protected lastPasswordUpdate: string = '';
   protected emailVerified: boolean = true;
   protected emailForm = new FormGroup({
-    emailValue: new FormControl('', [Validators.required, Validators.email]),
+    emailValue: new FormControl<string>('', {
+      validators: [Validators.required, Validators.email],
+      nonNullable: true,
+    }),
   });
   private readonly passwordPlaceholder = '********';
 
   protected passwordForm = new FormGroup({
-    passwordValue: new FormControl(this.passwordPlaceholder, [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
+    passwordValue: new FormControl(this.passwordPlaceholder, {
+      validators: [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)],
+      nonNullable: true,
+    }),
   });
-  @ViewChild(TuiInputComponent) emailInputComponent!: TuiInputComponent;
-  @ViewChild(TuiInputPasswordComponent) passwordInputComponent!: TuiInputPasswordComponent;
+
+  @ViewChild('passwordField') passwordField!: TuiTextfieldComponent<string>;
+  @ViewChild('emailField') emailField!: TuiTextfieldComponent<string>;
 
   // Provider info modal
   protected providerInfoVisible: boolean = false;
@@ -626,14 +630,14 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private focusPasswordInput() {
-    if (this.passwordInputComponent) {
-      this.passwordInputComponent.nativeFocusableElement?.focus();
+    if (this.passwordField) {
+      this.passwordField.input?.nativeElement.focus();
     }
   }
 
   private focusEmailInput() {
-    if (this.emailInputComponent) {
-      this.emailInputComponent.nativeFocusableElement?.focus();
+    if (this.emailField) {
+      this.emailField.input?.nativeElement.focus();
     }
   }
 

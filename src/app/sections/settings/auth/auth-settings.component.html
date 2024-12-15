@@ -68,15 +68,19 @@
       <form [formGroup]="emailForm" class="email-form">
 
         <div class="field">
-          <tui-input formControlName="emailValue"
-                     tuiTextfieldSize="m"
-                     [tuiTextfieldLabelOutside]="true"
-                     [readOnly]="!emailEditable"
-
+          <tui-textfield
+            #emailField
+            tuiTextfieldSize="m"
+            [tuiTextfieldLabelOutside]="true"
           >
-            Email
-            <input placeholder="Email" tuiTextfieldLegacy/>
-          </tui-input>
+            <input
+              tuiTextfield
+              formControlName="emailValue"
+              type="email"
+              placeholder="Email"
+              [readOnly]="!emailEditable"
+            />
+          </tui-textfield>
           <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
         </div>
 
@@ -131,14 +135,20 @@
       <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
 
         <div class="field">
-          <tui-input-password
-            formControlName="passwordValue"
-            [tuiTextfieldLabelOutside]="true"
+          <tui-textfield
+            #passwordField
             tuiTextfieldSize="m"
-            [readOnly]="!passwordEditable"
+            data-size="m"
           >
-            Password
-          </tui-input-password>
+            <input
+              tuiTextfield
+              [tuiTextfieldLabelOutside]="true"
+              [readOnly]="!passwordEditable"
+              formControlName="passwordValue"
+              type="password"
+            />
+            <tui-icon tuiPassword/>
+          </tui-textfield>
           <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
         </div>
 

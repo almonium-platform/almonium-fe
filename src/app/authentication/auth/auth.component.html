@@ -57,19 +57,36 @@
             </div>
 
             <div class="row-1">
-              <tui-input formControlName="emailValue" tuiTextfieldSize="l" [tuiTextfieldLabelOutside]="true"
-                         [readOnly]="this.mode === 'linkLocal'">
-
-                Email
-                <input placeholder="Email" tuiTextfieldLegacy/>
-              </tui-input>
+              <tui-textfield
+                tuiTextfieldSize="l"
+                data-size="l"
+                [tuiTextfieldLabelOutside]="true"
+              >
+                <input
+                  tuiTextfield
+                  formControlName="emailValue"
+                  type="email"
+                  placeholder="Email"
+                  [readOnly]="this.mode === 'linkLocal'"
+                />
+              </tui-textfield>
               <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
             </div>
 
             <div class="row-2">
-              <tui-input-password formControlName="passwordValue" [tuiTextfieldLabelOutside]="true">
-                Password
-              </tui-input-password>
+              <tui-textfield
+                tuiTextfieldSize="l"
+                data-size="l"
+              >
+                <input
+                  tuiTextfield
+                  [tuiTextfieldLabelOutside]="true"
+                  formControlName="passwordValue"
+                  type="password"
+                  placeholder="Password"
+                />
+                <tui-icon tuiPassword/>
+              </tui-textfield>
               <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
             </div>
 
