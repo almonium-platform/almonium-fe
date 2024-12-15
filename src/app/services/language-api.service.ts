@@ -50,6 +50,6 @@ export class LanguageApiService {
 
   addTargetLang(targetLang: LanguageCode) {
     const url = `${AppConstants.MY_LANGUAGES_URL}/target/${targetLang}`;
-    return this.http.put(url, {}, {withCredentials: true});
+    return this.http.post(url, {}, {withCredentials: true});
   }
 }
