@@ -1,6 +1,5 @@
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
-import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
@@ -27,7 +26,6 @@ import {Subject, takeUntil} from "rxjs";
 @Component({
   selector: 'app-settings',
   imports: [
-    NavbarComponent,
     NgIf,
     ConfirmModalComponent,
     NgStyle,
