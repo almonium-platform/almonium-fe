@@ -14,7 +14,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiError} from '@taiga-ui/core';
-import {delay, Observable, of, Subject, take} from 'rxjs';
+import {delay, Observable, of, Subject, take, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
 import {LanguageApiService} from '../../services/language-api.service';
@@ -27,6 +27,7 @@ import {
 import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
+import {UserInfo} from "../../models/userinfo.model";
 
 
 @Component({
@@ -57,12 +58,15 @@ import {SupportedLanguagesService} from "../../services/supported-langs.service"
   ]
 })
 export class LanguageSetupComponent implements OnInit {
+  private readonly destroy$ = new Subject<void>();
   private static readonly MAX_LANGUAGES = 3;
 
+  userInfo: UserInfo | null = null;
   languageForm: FormGroup;
-  languages: Language[] = [];
   supportedLanguages: Language[] = [];
-  otherLanguages: Language[] = [];
+  availableTargetLanguages: Language[] = [];
+  specialTargetLanguages: Language[] = [];
+  otherTargetLanguages: Language[] = [];
   selectedFluentLanguages: string[] = [];
 
   targetLanguageControl = new FormControl<string[]>([], [
@@ -146,16 +150,25 @@ export class LanguageSetupComponent implements OnInit {
       if (!languages) {
         return;
       }
-      this.languages = languages;
 
-      // Separate languages with extra features and other languages
-      this.supportedLanguages = this.languages
-        .filter((lang) => Object.keys(this.languageFeatures).includes(lang.code))
-        .sort((a, b) => a.name.localeCompare(b.name));
+      this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
+        if (!info) {
+          return;
+        }
+        this.userInfo = info;
 
-      this.otherLanguages = this.languages
-        .filter((lang) => !Object.keys(this.languageFeatures).includes(lang.code))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        this.supportedLanguages = languages;
+        this.availableTargetLanguages = this.supportedLanguages.filter(lang => !info.targetLangs.includes(lang.code));
+
+        // Separate languages with extra features and other languages
+        this.specialTargetLanguages = this.availableTargetLanguages
+          .filter((lang) => Object.keys(this.languageFeatures).includes(lang.code))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        this.otherTargetLanguages = this.availableTargetLanguages
+          .filter((lang) => !Object.keys(this.languageFeatures).includes(lang.code))
+          .sort((a, b) => a.name.localeCompare(b.name));
+      })
     });
 
     // Update features when target languages change
@@ -182,10 +195,10 @@ export class LanguageSetupComponent implements OnInit {
   }
 
   private filterTargetLanguages(search: string): Observable<string[][]> {
-    const supportedLangNames = this.supportedLanguages
+    const supportedLangNames = this.specialTargetLanguages
       .map(lang => lang.name)
       .filter(name => name.toLowerCase().includes(search.toLowerCase()));
-    const otherLangNames = this.otherLanguages
+    const otherLangNames = this.otherTargetLanguages
       .map(lang => lang.name)
       .filter(name => name.toLowerCase().includes(search.toLowerCase()));
     return of([supportedLangNames, otherLangNames]).pipe(delay(300)); // Simulate server delay if needed
@@ -197,7 +210,7 @@ export class LanguageSetupComponent implements OnInit {
     const basicFeaturesMap: { [feature: string]: Set<string> } = {};
 
     selectedLangNames.forEach((langName) => {
-      const lang = this.languages.find((l) => l.name === langName);
+      const lang = this.supportedLanguages.find((l) => l.name === langName);
       if (lang) {
         const langCode = lang.code;
 
@@ -240,16 +253,14 @@ export class LanguageSetupComponent implements OnInit {
     }
 
     const targetLanguageNames = this.targetLanguageControl.value || [];
-    const targetLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, targetLanguageNames);
+    const targetLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.supportedLanguages, targetLanguageNames);
     if (this.mode === 'add-target') {
       let languageCode = targetLanguageCodes[0];
 
-      this.languageApiService.addTargetLang(languageCode).pipe(
-        switchMap(() => this.userInfoService.userInfo$), // Automatically handles unsubscribing from previous userInfo$ emissions
-        take(1) // Ensures we only take the latest value and don't keep an open subscription
-      ).subscribe({
-        next: (userInfo) => {
-          const existingTargetLangs = userInfo?.targetLangs || [];
+      this.languageApiService.addTargetLang(languageCode).subscribe({
+        next: () => {
+
+          const existingTargetLangs = this.userInfo?.targetLangs || [];
           const updatedLangs = [...existingTargetLangs, languageCode];
           this.userInfoService.updateUserInfo({targetLangs: updatedLangs});
 
@@ -263,7 +274,7 @@ export class LanguageSetupComponent implements OnInit {
       return;
     }
     const fluentLanguageNames = this.selectedFluentLanguages;
-    const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, fluentLanguageNames);
+    const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.supportedLanguages, fluentLanguageNames);
 
     const payload = {
       fluentLangs: fluentLanguageCodes,
