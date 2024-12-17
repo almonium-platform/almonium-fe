@@ -103,7 +103,7 @@ export class LangSettingsComponent implements OnInit {
       }
     });
 
-    this.languageService.getLanguages().subscribe((languages) => {
+    this.languageService.getAllSupportedLanguages().subscribe((languages) => {
       this.languages = languages;
       this.populateFromUserInfo();
     });

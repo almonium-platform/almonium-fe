@@ -3,8 +3,7 @@ import {LanguageCode} from "../models/language.enum";
 import {AuthProvider} from "../sections/settings/auth/auth.types";
 
 const USER_INFO_KEY = 'user_info';
-
-const CURRENT_LANGUAGE = 'current_language';
+const CURRENT_LANGUAGE_KEY = 'current_language';
 const LANG_COLOR_KEY = 'langColors';
 const AUTH_METHODS_KEY = 'auth_methods';
 
@@ -49,11 +48,11 @@ export class LocalStorageService {
   }
 
   saveCurrentLanguage(language: LanguageCode): void {
-    this.saveItem(CURRENT_LANGUAGE, language);
+    this.saveItem(CURRENT_LANGUAGE_KEY, language);
   }
 
   getCurrentLanguage(): LanguageCode {
-    return this.getItem<LanguageCode>(CURRENT_LANGUAGE) || LanguageCode.EN;
+    return this.getItem<LanguageCode>(CURRENT_LANGUAGE_KEY) || LanguageCode.EN;
   }
 
   saveLangColors(colors: { [key: string]: string }): void {

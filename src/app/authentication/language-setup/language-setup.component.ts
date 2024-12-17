@@ -141,7 +141,7 @@ export class LanguageSetupComponent implements OnInit {
       }
     });
 
-    this.languageApiService.getLanguages().subscribe((languages) => {
+    this.languageApiService.getAllSupportedLanguages().subscribe((languages) => {
       this.languages = languages;
 
       // Separate languages with extra features and other languages

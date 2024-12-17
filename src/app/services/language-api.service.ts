@@ -18,8 +18,7 @@ export class LanguageApiService {
   ) {
   }
 
-  // Method to get languages from the backend - TODO rename for clarity
-  getLanguages(): Observable<Language[]> {
+  getAllSupportedLanguages(): Observable<Language[]> {
     const url = `${AppConstants.PUBLIC_URL}${this.apiUrl}`;
     return this.http.get<string[]>(url).pipe(
       map((languageCodes) => {
