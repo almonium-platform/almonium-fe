@@ -332,7 +332,7 @@ auto-renewal in the customer portal.`;
 
   private usernameAvailableAsyncValidator(): AsyncValidatorFn {
     return (control: AbstractControl): Observable<ValidationErrors | null> => {
-      if (!control.value) {
+      if (!control.value || !this.usernameEditable) {
         return of(null); // No need to validate empty value
       }
 
