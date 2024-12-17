@@ -60,7 +60,7 @@ export class ProfileSettingsService {
    */
   resetAvatar(): Observable<any> {
     const url = `${AppConstants.AVATARS_URL}/current`;
-    return this.http.patch(url, {withCredentials: true});
+    return this.http.patch(url, {}, {withCredentials: true});
   }
 
   // usernames
