@@ -29,6 +29,7 @@ export class AppConstants {
 
   // PROFILE
   public static AVATARS_URL = AppConstants.API_URL + '/profiles/me/avatars';
+  public static USERS_ME_URL = AppConstants.USERS_URL + '/me';
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
@@ -36,4 +37,8 @@ export class AppConstants {
 
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
+
+  public static MIN_USERNAME_LENGTH = 3;
+  public static MAX_USERNAME_LENGTH = 20;
+  public static USERNAME_PATTERN: string = '^[a-zA-Z0-9_]*$';
 }

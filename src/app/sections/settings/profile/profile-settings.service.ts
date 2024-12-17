@@ -25,7 +25,7 @@ export class ProfileSettingsService {
    */
   addAndSetNewAvatar(avatarUrl: string): Observable<any> {
     const url = `${AppConstants.AVATARS_URL}`;
-    return this.http.post(url, {avatarUrl: avatarUrl}, {withCredentials: true});
+    return this.http.post(url, {avatarUrl}, {withCredentials: true});
   }
 
   /**
@@ -61,5 +61,16 @@ export class ProfileSettingsService {
   resetAvatar(): Observable<any> {
     const url = `${AppConstants.AVATARS_URL}/current`;
     return this.http.patch(url, {withCredentials: true});
+  }
+
+  // usernames
+  updateUsername(username: string): Observable<any> {
+    const url = `${AppConstants.USERS_ME_URL}/username`;
+    return this.http.patch(url, {username}, {withCredentials: true});
+  }
+
+  checkUsernameAvailability(username: string): Observable<{ available: boolean }> {
+    const url = `${AppConstants.USERS_URL}/${username}/availability`;
+    return this.http.get<{ available: boolean }>(url, {withCredentials: true});
   }
 }

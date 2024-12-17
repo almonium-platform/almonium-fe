@@ -1,5 +1,12 @@
 @import '../settings.styles.less';
 
+:host {
+  --tui-background-accent-1: #5A1A74; // primary theme color, used for buttons, input fields, etc.
+  --tui-status-negative: #ac1c1c; // error field box color
+  --tui-text-negative: #ac1c1c; // error test color
+  --tui-radius-m: 2rem;
+}
+
 .text {
   font-size: 1.3rem;
   color: var(--text-color);
@@ -54,4 +61,38 @@
 .icon.downgrade:hover {
   color: white;
   background-color: var(--red);
+}
+
+// username
+.username-form {
+  width: 55%;
+}
+
+.username-label {
+  font-size: 1.3rem;
+  font-weight: 550;
+  letter-spacing: .03rem;
+  padding: .4rem 0;
+}
+
+.row-content.username-field {
+  align-items: unset;
+}
+
+.info-btn {
+  cursor: pointer;
+  background-color: var(--info-light-blue);
+  color: var(--info-dark-blue);
+  border-radius: 50%;
+  padding: .1rem;
+  margin-left: 1.5rem;
+  margin-top: .4rem;
+  display: flex;
+  align-items: center;
+  max-height: fit-content;
+}
+
+.info-btn:hover {
+  background-color: var(--info-dark-blue);
+  color: var(--info-light-blue);
 }
