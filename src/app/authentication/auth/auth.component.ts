@@ -77,7 +77,7 @@ declare const google: any;
   ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
-  private readonly destroy$ = new Subject<void>();  // Subject for emitting on destroy
+  private readonly destroy$ = new Subject<void>();
 
   // EMBEDDED MODE (REAUTHENTICATION)
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';

@@ -41,7 +41,7 @@ import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/m
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
@@ -115,6 +115,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     window.removeEventListener('resize', this.checkDeviceType.bind(this));
   }
 

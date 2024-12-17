@@ -1,5 +1,5 @@
 import {TuiInputModule, TuiInputNumberModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -54,8 +54,8 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
 })
-export class LangSettingsComponent implements OnInit {
-  private destroy$ = new Subject<void>();
+export class LangSettingsComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -113,6 +113,11 @@ export class LangSettingsComponent implements OnInit {
         this.populateFromUserInfo();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private populateFromUserInfo() {

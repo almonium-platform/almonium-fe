@@ -1,5 +1,5 @@
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {Component, HostListener, OnInit, ViewChild} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
@@ -65,8 +65,8 @@ import {Subject, takeUntil} from "rxjs";
   ],
   styleUrls: ['./auth-settings.component.less']
 })
-export class AuthSettingsComponent implements OnInit {
-  private destroy$ = new Subject<void>();
+export class AuthSettingsComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
 
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
@@ -139,6 +139,11 @@ export class AuthSettingsComponent implements OnInit {
     this.populateAuthMethods();
     this.getUserInfo();
     this.populateLastToken();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private displayAppropriateAlerts() {

@@ -1,4 +1,4 @@
-import {Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {FileUploadComponent} from "../../../../../shared/file-upload/file-upload.component";
 import {FirebaseService} from "../firebase.service";
 import {ProfileSettingsService} from "../../profile-settings.service";
@@ -34,14 +34,14 @@ import {ProfilePictureComponent} from "../../../../../shared/avatar/profile-pict
   ],
   styleUrls: ['./manage-avatar.component.less']
 })
-export class ManageAvatarComponent implements OnInit {
+export class ManageAvatarComponent implements OnInit, OnDestroy {
   @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<any>;
 
   private readonly FIREBASE_AVATAR_URL_PATH = 'avatars';
   private readonly FIREBASE_DEFAULT_URL_PATH = this.FIREBASE_AVATAR_URL_PATH + '/default';
 
   protected userInfo: UserInfo | null = null;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   defaultAvatars: string[] = [];
   customAvatars: Avatar[] = [];
@@ -63,6 +63,11 @@ export class ManageAvatarComponent implements OnInit {
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
       this.userInfo = info;
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected async onFileUploaded(file: File): Promise<void> {

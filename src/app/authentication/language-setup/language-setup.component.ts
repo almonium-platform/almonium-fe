@@ -1,5 +1,5 @@
 import {TuiMultiSelectModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -58,7 +58,7 @@ import {ParticlesComponent} from "../../shared/particles/particles.component";
     ParticlesComponent,
   ]
 })
-export class LanguageSetupComponent implements OnInit {
+export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private static readonly MAX_LANGUAGES = 3;
 
@@ -170,6 +170,11 @@ export class LanguageSetupComponent implements OnInit {
     this.targetLanguageControl.valueChanges.subscribe(() => {
       this.updateSelectedFeatures();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   maxLanguagesValidator(max: number): ValidatorFn {

@@ -107,7 +107,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
   @ViewChild(ManageAvatarComponent, {static: true}) uploadAvatarComponent!: ManageAvatarComponent;
 
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   protected userInfo: UserInfo | null = null;
   protected premium: boolean = true;
