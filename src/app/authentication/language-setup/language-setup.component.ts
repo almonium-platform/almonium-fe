@@ -28,7 +28,6 @@ import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
 
-const MAX_LANGUAGES = 3;
 
 @Component({
   selector: 'app-language-setup',
@@ -58,17 +57,17 @@ const MAX_LANGUAGES = 3;
   ]
 })
 export class LanguageSetupComponent implements OnInit {
+  private static readonly MAX_LANGUAGES = 3;
+
   languageForm: FormGroup;
   languages: Language[] = [];
   supportedLanguages: Language[] = [];
   otherLanguages: Language[] = [];
   selectedFluentLanguages: string[] = [];
 
-  maxLanguages = 3;
-
   targetLanguageControl = new FormControl<string[]>([], [
     Validators.required,
-    this.maxLanguagesValidator(MAX_LANGUAGES),
+    this.maxLanguagesValidator(LanguageSetupComponent.MAX_LANGUAGES),
   ]);
 
   // Search subjects
