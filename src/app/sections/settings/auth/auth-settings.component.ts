@@ -22,6 +22,7 @@ import {RecentAuthGuardService} from "./recent-auth-guard.service";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
+import {Subject, takeUntil} from "rxjs";
 
 @Component({
   selector: 'app-settings',
@@ -67,6 +68,8 @@ import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent
   styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit {
+  private destroy$ = new Subject<void>();
+
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
   protected authMethods: AuthProvider[] = [];
@@ -196,7 +199,7 @@ export class AuthSettingsComponent implements OnInit {
   }
 
   private getUserInfo() {
-    this.userInfoService.userInfo$.subscribe((info) => {
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       this.userInfo = info;
       if (info) {
         this.emailForm.get('emailValue')?.setValue(info.email);

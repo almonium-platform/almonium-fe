@@ -17,7 +17,7 @@ import {UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {Subscription} from "rxjs";
+import {Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
@@ -41,6 +41,8 @@ import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/m
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
@@ -61,7 +63,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected focusedLangIndex = -1; // Index of the currently focused dropdown item
   protected filteredLanguages: LanguageCode[] = [];
   private targetLanguages: LanguageCode[] = [];
-  private subscriptions: Subscription[] = [];
 
   private langColors: { [key: string]: string } = {};
 
@@ -74,47 +75,46 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.subscriptions.push(
-      this.targetLanguageDropdownService.langColors$.subscribe((colors) => {
+    this.targetLanguageDropdownService.langColors$
+      .pipe(takeUntil(this.destroy$)) // depends on whether it's dynamic
+      .subscribe((colors) => {
         this.langColors = colors;
-      })
-    );
+      });
 
-    this.subscriptions.push(
-      this.targetLanguageDropdownService.currentLanguage$.subscribe((currentLanguage) => {
+    this.targetLanguageDropdownService.currentLanguage$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((currentLanguage) => {
         this.currentLanguage = currentLanguage;
         this.cdr.markForCheck(); // Trigger UI update
-      })
-    );
+      });
 
-    this.subscriptions.push(
-      this.targetLanguageDropdownService.filteredLanguages$.subscribe((filteredLanguages) => {
+    this.targetLanguageDropdownService.filteredLanguages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((filteredLanguages) => {
         this.filteredLanguages = filteredLanguages;
         this.cdr.markForCheck();
-      })
-    );
+      });
 
-    this.subscriptions.push(
-      this.targetLanguageDropdownService.targetLanguages$.subscribe((targetLanguages) => {
+    this.targetLanguageDropdownService.targetLanguages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((targetLanguages) => {
         this.targetLanguages = targetLanguages;
         this.cdr.markForCheck();
-      })
-    );
+      });
 
-    this.subscriptions.push(
-      this.userService.userInfo$.subscribe((info) => {
+    this.userService.userInfo$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((info) => {
         if (info) {
           this.userInfo = info;
           this.targetLanguageDropdownService.initializeLanguages(info);
         }
-      })
-    );
+      });
     this.checkDeviceType();
     window.addEventListener('resize', this.checkDeviceType.bind(this));
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
     window.removeEventListener('resize', this.checkDeviceType.bind(this));
   }
 

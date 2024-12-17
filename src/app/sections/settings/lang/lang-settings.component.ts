@@ -15,7 +15,7 @@ import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
 import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
@@ -54,6 +54,8 @@ import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent
   styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit {
+  private destroy$ = new Subject<void>();
+
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
 
@@ -110,7 +112,7 @@ export class LangSettingsComponent implements OnInit {
   }
 
   private populateFromUserInfo() {
-    this.userInfoService.userInfo$.subscribe((info: UserInfo | null) => {
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info: UserInfo | null) => {
 
       if (info) {
         this.userInfo = info;
