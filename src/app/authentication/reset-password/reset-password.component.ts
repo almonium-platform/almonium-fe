@@ -1,62 +1,69 @@
-import {TuiInputPasswordModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {TuiAlertService, TuiError} from '@taiga-ui/core';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from '@taiga-ui/kit';
-import {ParticlesService} from '../../services/particles.service';
+import {
+  TuiAlertService,
+  TuiError,
+  TuiIcon,
+  TuiTextfieldComponent,
+  TuiTextfieldDirective,
+  TuiTextfieldOptionsDirective
+} from '@taiga-ui/core';
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
 import {NgxParticlesModule} from '@tsparticles/angular';
-import {AsyncPipe, NgIf} from '@angular/common';
+import {AsyncPipe} from '@angular/common';
+import {ParticlesComponent} from "../../shared/particles/particles.component";
+import {AppConstants} from "../../app.constants";
 
 @Component({
-    selector: 'app-reset-password',
-    templateUrl: './reset-password.component.html',
-    styleUrls: ['./reset-password.component.less'],
-    imports: [
-        ReactiveFormsModule,
-        TuiError,
-        TuiFieldErrorPipe,
-        TuiInputPasswordModule,
-        NgxParticlesModule,
-        TuiTextfieldControllerModule,
-        AsyncPipe,
-        NgIf,
-    ],
-    providers: [
-        {
-            provide: TUI_VALIDATION_ERRORS,
-            useValue: {
-                required: 'Value is required',
-                minlength: ({ requiredLength, actualLength }: {
-                    requiredLength: number;
-                    actualLength: number;
-                }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
-            },
-        },
-    ]
+  selector: 'app-reset-password',
+  templateUrl: './reset-password.component.html',
+  styleUrls: ['./reset-password.component.less'],
+  imports: [
+    ReactiveFormsModule,
+    TuiError,
+    TuiFieldErrorPipe,
+    NgxParticlesModule,
+    TuiTextfieldControllerModule,
+    AsyncPipe,
+    ParticlesComponent,
+    TuiIcon,
+    TuiPassword,
+    TuiTextfieldComponent,
+    TuiTextfieldDirective,
+    TuiTextfieldOptionsDirective,
+  ],
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useValue: {
+        required: 'Value is required',
+        minlength: ({requiredLength, actualLength}: {
+          requiredLength: number;
+          actualLength: number;
+        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+      },
+    },
+  ]
 })
 export class ResetPasswordComponent implements OnInit {
   resetForm: FormGroup;
   token: string = '';
-  id = 'tsparticles';
-  particlesOptions$ = this.particlesService.particlesOptions$;
 
   constructor(
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private alertService: TuiAlertService,
-    public particlesService: ParticlesService
   ) {
     this.resetForm = new FormGroup({
-      newPassword: new FormControl('', [Validators.required, Validators.minLength(6)]),
+      newPassword: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
     });
   }
 
   ngOnInit(): void {
-    this.particlesService.initializeParticles();
-
     this.route.queryParams.subscribe((params) => {
       this.token = params['token'];
       if (!this.token) {

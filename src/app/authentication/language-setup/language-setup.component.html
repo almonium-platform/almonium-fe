@@ -1,9 +1,5 @@
-<ngx-particles
-  *ngIf="particlesOptions$ | async as particlesOptions"
-  [id]="id"
-  [options]="particlesOptions"
-  (particlesLoaded)="particlesService.particlesLoaded($event)"
-></ngx-particles>
+<app-particles></app-particles>
+
 <div class="headless-container">
   <div class="language-selection-container">
     <div class="card">

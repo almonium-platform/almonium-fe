@@ -1,10 +1,7 @@
 <div [ngClass]="{'auth-modal-overlay': embeddedMode}">
-  <ngx-particles
-    *ngIf="particlesOptions && mode === 'default'"
-    [id]="id"
-    [options]="particlesOptions"
-    (particlesLoaded)="particlesService.particlesLoaded($event)"
-  ></ngx-particles>
+  <app-particles
+    *ngIf="mode === 'default'"
+  ></app-particles>
 
   <div [ngClass]="{'headless-container': mode === 'default', 'modal-container': embeddedMode}">
     <app-dismiss-button *ngIf="embeddedMode" (close)="onClose()" [isOutside]="true"></app-dismiss-button>
@@ -93,8 +90,6 @@
             <div class="forgot-div" *ngIf="!isSignUp && mode === 'default'">
               <a tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
             </div>
-
-            <!--            <br *ngIf="mode === 'linkLocal'">-->
 
             <div *ngIf="isSignUp && mode === 'default'" class="agree-with-terms">
               By signing up, you confirm that you accept our <br>

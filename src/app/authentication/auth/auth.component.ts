@@ -26,13 +26,13 @@ import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
-import {IParticlesProps, NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
-import {ParticlesService} from '../../services/particles.service';
-import {Subject, takeUntil} from "rxjs";
+import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
+import {Subject} from "rxjs";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
-import {UrlService} from "../../services/url.service"; // Import your service
+import {UrlService} from "../../services/url.service";
+import {ParticlesComponent} from "../../shared/particles/particles.component"; // Import your service
 
 declare const google: any;
 
@@ -58,6 +58,7 @@ declare const google: any;
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
     TuiTextfield,
+    ParticlesComponent,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -115,10 +116,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   });
   isSignUp: boolean = false;
 
-  // particles
-  id = 'tsparticles';
-  particlesOptions: IParticlesProps | undefined;
-
   // logo
   isRotating: boolean = false;
 
@@ -128,7 +125,6 @@ export class AuthComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    protected particlesService: ParticlesService,
     private userInfoService: UserInfoService,
     private http: HttpClient,
     private urlService: UrlService,
@@ -164,7 +160,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('AuthComponent mode:', this.mode);
     this.userInfoService.userInfo$.subscribe((info) => {
         if (info && this.mode !== 'changeEmail') {
           this.authForm.get('emailValue')?.setValue(info.email);
@@ -192,13 +187,6 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.initializeGoogleSignIn();
       });
     }
-
-    this.particlesService.initializeParticles();
-    this.particlesService.particlesOptions$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(options => {
-        this.particlesOptions = options;
-      });
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
@@ -394,15 +382,9 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   // should be defined as an arrow function to access 'this'
   onSocialLogin = (provider: string) => {
-    console.log('cdr', this.cdr);
-    console.log(this);
-    console.log('Social login with', provider);
-
     if (provider === 'local') {
       this.showSeparatorAndForm = !this.showSeparatorAndForm;
       this.cdr.markForCheck();
-      console.log('Local login');
-      console.log(this.showSeparatorAndForm);
       return;
     }
 

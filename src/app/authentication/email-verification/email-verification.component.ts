@@ -2,23 +2,23 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TuiAlertService} from '@taiga-ui/core';
 import {AuthService} from '../auth/auth.service';
-import {ParticlesService} from '../../services/particles.service';
 import {combineLatest, of, timer} from 'rxjs';
 import {catchError, switchMap, tap} from 'rxjs/operators';
 import {NgxParticlesModule} from "@tsparticles/angular";
-import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+import {ParticlesComponent} from "../../shared/particles/particles.component";
 
 @Component({
-    selector: 'app-email-verification',
-    templateUrl: './email-verification.component.html',
-    styleUrls: ['./email-verification.component.less'],
-    imports: [
-        NgxParticlesModule,
-        AsyncPipe,
-        NgIf,
-        NgClass,
-        NgOptimizedImage
-    ]
+  selector: 'app-email-verification',
+  templateUrl: './email-verification.component.html',
+  styleUrls: ['./email-verification.component.less'],
+  imports: [
+    NgxParticlesModule,
+    NgIf,
+    NgClass,
+    NgOptimizedImage,
+    ParticlesComponent
+  ]
 })
 export class EmailVerificationComponent implements OnInit {
   private readonly REDIRECT_TIMEOUT = 3000;  // Time to wait before redirecting after verification completes
@@ -29,9 +29,6 @@ export class EmailVerificationComponent implements OnInit {
   verificationCompleted: boolean = false;
   verificationSuccess: boolean = false;
   isRotating: boolean = true;
-
-  id = 'tsparticles';
-  particlesOptions$ = this.particlesService.particlesOptions$;
   isChangeEmailRoute: boolean = false;
 
   constructor(
@@ -39,13 +36,10 @@ export class EmailVerificationComponent implements OnInit {
     private route: ActivatedRoute,
     public router: Router,
     private alertService: TuiAlertService,
-    public particlesService: ParticlesService
   ) {
   }
 
   ngOnInit(): void {
-    this.particlesService.initializeParticles();
-
     // Minimum timer to keep rotating for at least 1 second
     const minRotateTimer$ = timer(this.MINIMUM_ROTATE_TIME);
     this.isChangeEmailRoute = this.router.url.includes('/change-email'); // Determine purpose by route

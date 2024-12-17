@@ -14,11 +14,10 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiError} from '@taiga-ui/core';
-import {delay, Observable, of, Subject, take, takeUntil} from 'rxjs';
+import {delay, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
 import {LanguageApiService} from '../../services/language-api.service';
-import {ParticlesService} from "../../services/particles.service";
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {UserInfoService} from "../../services/user-info.service";
 import {
@@ -28,6 +27,7 @@ import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
 import {UserInfo} from "../../models/userinfo.model";
+import {ParticlesComponent} from "../../shared/particles/particles.component";
 
 
 @Component({
@@ -55,6 +55,7 @@ import {UserInfo} from "../../models/userinfo.model";
     TuiDataListWrapper,
     NgxParticlesModule,
     FluentLanguageSelectorComponent,
+    ParticlesComponent,
   ]
 })
 export class LanguageSetupComponent implements OnInit {
@@ -79,9 +80,6 @@ export class LanguageSetupComponent implements OnInit {
 
   // Filtered items observables
   filteredTargetLanguages$: Observable<string[][]>;
-
-  id = 'tsparticles';
-  particlesOptions$ = this.particlesService.particlesOptions$;
 
   // Grouped items for multi-select
   labels: string[] = ['Languages with Extra Features', 'Other Languages'];
@@ -109,7 +107,6 @@ export class LanguageSetupComponent implements OnInit {
     private languageApiService: LanguageApiService,
     private languageNameService: LanguageNameService,
     private router: Router,
-    protected particlesService: ParticlesService,
     private userInfoService: UserInfoService,
     private route: ActivatedRoute,
     private alertService: TuiAlertService,
@@ -129,8 +126,6 @@ export class LanguageSetupComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.particlesService.initializeParticles();
-
     this.route.queryParams.subscribe((params) => {
       if (params['mode'] === 'add-target') {
         this.mode = 'add-target';
