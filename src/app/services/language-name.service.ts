@@ -34,7 +34,7 @@ export class LanguageNameService {
   public mapLanguageCodesToNames(languages: Language[], languageCodes: string[]) {
     return languageCodes
       .map((code) => {
-        const lang = languages.find((l) => l.code === code.toLowerCase());
+        const lang = languages.find((l) => l.code === code);
         return lang ? lang.name : null;
       })
       .filter((name): name is string => name !== null);

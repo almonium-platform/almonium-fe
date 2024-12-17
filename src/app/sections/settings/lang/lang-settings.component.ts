@@ -25,6 +25,7 @@ import {UrlService} from "../../../services/url.service";
 import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
 import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
+import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 
 @Component({
   selector: 'app-lang-settings',
@@ -89,6 +90,7 @@ export class LangSettingsComponent implements OnInit {
     private route: ActivatedRoute,
     private urlService: UrlService,
     private recentAuthGuardService: RecentAuthGuardService,
+    private supportedLanguagesService: SupportedLanguagesService,
   ) {
   }
 
@@ -105,9 +107,11 @@ export class LangSettingsComponent implements OnInit {
       }
     });
 
-    this.languageService.getAllSupportedLanguages().subscribe((languages) => {
-      this.languages = languages;
-      this.populateFromUserInfo();
+    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+      if (languages) {
+        this.languages = languages;
+        this.populateFromUserInfo();
+      }
     });
   }
 

@@ -1,11 +1,13 @@
 import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
 import {AuthProvider} from "../sections/settings/auth/auth.types";
+import {Language} from "../models/language.model";
 
 const USER_INFO_KEY = 'user_info';
 const CURRENT_LANGUAGE_KEY = 'current_language';
 const LANG_COLOR_KEY = 'langColors';
 const AUTH_METHODS_KEY = 'auth_methods';
+const SUPPORTED_LANGUAGES_KEY = 'supported_languages';
 
 @Injectable({
   providedIn: 'root'
@@ -73,5 +75,19 @@ export class LocalStorageService {
 
   clearAuthMethods(): void {
     this.removeItem(AUTH_METHODS_KEY);
+  }
+
+
+  // Specific methods for handling supported languages
+  saveSupportedLanguages(languages: Language[]): void {
+    this.saveItem(SUPPORTED_LANGUAGES_KEY, languages);
+  }
+
+  getSupportedLanguages(): Language[] | null {
+    return this.getItem(SUPPORTED_LANGUAGES_KEY);
+  }
+
+  removeSupportedLanguages(): void {
+    this.removeItem(SUPPORTED_LANGUAGES_KEY);
   }
 }

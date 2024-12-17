@@ -26,6 +26,7 @@ import {
 } from "../../shared/fluent-language-selector/fluent-language-selector.component";
 import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
+import {SupportedLanguagesService} from "../../services/supported-langs.service";
 
 const MAX_LANGUAGES = 3;
 
@@ -110,6 +111,7 @@ export class LanguageSetupComponent implements OnInit {
     private route: ActivatedRoute,
     private alertService: TuiAlertService,
     private validationMessagesService: ValidationMessagesService,
+    private supportedLanguagesService: SupportedLanguagesService,
   ) {
     this.languageForm = this.fb.group({
       targetLanguages: this.targetLanguageControl,
@@ -141,7 +143,10 @@ export class LanguageSetupComponent implements OnInit {
       }
     });
 
-    this.languageApiService.getAllSupportedLanguages().subscribe((languages) => {
+    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+      if (!languages) {
+        return;
+      }
       this.languages = languages;
 
       // Separate languages with extra features and other languages

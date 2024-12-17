@@ -1,35 +1,14 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Language} from '../models/language.model';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 import {AppConstants} from '../app.constants';
-import {LanguageNameService} from "./language-name.service";
 import {LanguageCode} from "../models/language.enum";
 
 @Injectable({
   providedIn: 'root',
 })
 export class LanguageApiService {
-  private apiUrl = '/supported-langs';
-
-  constructor(private http: HttpClient,
-              private languageNameService: LanguageNameService
-  ) {
-  }
-
-  getAllSupportedLanguages(): Observable<Language[]> {
-    const url = `${AppConstants.PUBLIC_URL}${this.apiUrl}`;
-    return this.http.get<string[]>(url).pipe(
-      map((languageCodes) => {
-        return languageCodes.map((code) => {
-          return {
-            code: code.toLowerCase(),
-            name: this.languageNameService.getLanguageName(code),
-          };
-        });
-      })
-    );
+  constructor(private http: HttpClient) {
   }
 
   saveUserLanguages(payload: { fluentLangs: string[]; targetLangs: string[] }): Observable<any> {

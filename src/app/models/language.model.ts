@@ -1,4 +1,6 @@
+import {LanguageCode} from "./language.enum";
+
 export interface Language {
-  code: string;
+  code: LanguageCode;
   name: string;
 }
