@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
