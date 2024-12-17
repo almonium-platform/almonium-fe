@@ -30,7 +30,7 @@ export const routes: Routes = [
     canActivate: [unauthGuard],
     children: [
       // Authentication flow
-      {path: 'auth', component: AuthComponent, canActivate: [unauthGuard]},
+      {path: 'auth', component: AuthComponent},
       {path: 'reset-password', component: ResetPasswordComponent},
     ]
   },
@@ -38,8 +38,8 @@ export const routes: Routes = [
     path: '',
     canActivate: [authGuard],
     children: [
-      {path: 'home', component: HomeComponent, canActivate: [authGuard]},
-      {path: 'review', component: ReviewComponent, canActivate: [authGuard]},
+      {path: 'home', component: HomeComponent},
+      {path: 'review', component: ReviewComponent},
       {
         path: 'settings',
         loadChildren:
