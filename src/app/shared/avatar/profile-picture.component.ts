@@ -2,6 +2,7 @@ import {Component, Input} from '@angular/core';
 import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
 import {NgIf} from "@angular/common";
 
+// TODO: rename to app-avatar
 @Component({
   selector: 'app-profile-picture',
   template: `
@@ -24,6 +25,7 @@ import {NgIf} from "@angular/common";
         [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
         [style.color]="'white'"
         [size]="size"
+        tuiAvatarOutline="var(--default-avatar-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       >
       </tui-avatar>
