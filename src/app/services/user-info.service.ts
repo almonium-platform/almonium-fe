@@ -50,7 +50,7 @@ export class UserInfoService {
    * Fetch user info from the server.
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
-    return this.http.get<UserInfo>(`${AppConstants.API_URL}/users/me`, {withCredentials: true}).pipe(
+    return this.http.get<UserInfo>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
       map((data) => UserInfo.fromJSON(data)),
       tap((userInfo: UserInfo) => {
         this.localStorageService.saveUserInfo(userInfo); // Cache in local storage

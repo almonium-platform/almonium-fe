@@ -65,7 +65,7 @@ export class ProfileSettingsService {
 
   // usernames
   updateUsername(username: string): Observable<any> {
-    const url = `${AppConstants.USERS_ME_URL}/username`;
+    const url = `${AppConstants.ME_URL}/username`;
     return this.http.patch(url, {username}, {withCredentials: true});
   }
 

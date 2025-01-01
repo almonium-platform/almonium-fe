@@ -24,16 +24,16 @@ export class AppConstants {
   public static CARDS_URL = AppConstants.API_URL + '/cards';
   public static CARDS_IN_LANG = AppConstants.CARDS_URL + '/lang';
 
-  // LANGUAGES
-  public static MY_LANGUAGES_URL = AppConstants.USERS_URL + '/me/langs';
-
   // PROFILE
   public static AVATARS_URL = AppConstants.API_URL + '/profiles/me/avatars';
-  public static USERS_ME_URL = AppConstants.USERS_URL + '/me';
+  public static ME_URL = AppConstants.USERS_URL + '/me';
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
   public static SUBSCRIPTION_URL = AppConstants.API_URL + '/subscriptions';
+
+  // LANGUAGES
+  public static MY_LANGUAGES_URL = AppConstants.ME_URL + '/langs';
 
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
