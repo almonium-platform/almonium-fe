@@ -22,6 +22,7 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
 import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
+import {LucideAngularModule} from "lucide-angular";
 
 @Component({
   selector: 'app-navbar',
@@ -37,7 +38,8 @@ import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/m
     NgClickOutsideDirective,
     RouterLink,
     ProfilePictureComponent,
-    ManageAvatarComponent
+    ManageAvatarComponent,
+    LucideAngularModule
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {

@@ -17,7 +17,7 @@ export class PlanService {
   getPlans(): Observable<PlanDto[]> {
     return this.http.get<PlanDto[]>(`${AppConstants.PLAN_URL}`).pipe(
       catchError((error) => {
-        console.error('Error fetching cards:', error);
+        console.error('Error fetching plans:', error);
         return of([]);
       })
     );
