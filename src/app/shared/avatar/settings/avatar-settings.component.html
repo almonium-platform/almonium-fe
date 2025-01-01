@@ -1,0 +1,21 @@
+<app-manage-avatar></app-manage-avatar>
+
+<tui-badged-content>
+  <tui-icon
+    appearance="primary"
+    [icon]="this.avatarUrl ? '@tui.image-plus' : '@tui.image-up'"
+    size="xl"
+    tuiBadge
+    tuiSlot="bottom"
+    class="cursor-pointer hover:opacity-80"
+    (click)="this.changeAvatar()"
+  ></tui-icon>
+
+  <app-profile-picture
+    [avatarUrl]="this.avatarUrl"
+    [username]="this.username"
+    [outline]="this.outline"
+    [size]="this.size"
+    [sizeInRem]="this.sizeInRem"
+  ></app-profile-picture>
+</tui-badged-content>
