@@ -1,6 +1,6 @@
 import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {PopupTemplateStateService} from './popup-template-state.service';
-import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
@@ -15,10 +15,11 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   }"
     >
       <div
+        [ngStyle]="{'background-color': backgroundColor}"
         [ngClass]="{
       'bg-white relative': true,
       'w-screen h-screen': fullscreen,
-      'rounded-lg shadow-lg w-full max-w-3xl': !fullscreen,
+      'rounded-2xl shadow-lg w-full max-w-3xl': !fullscreen,
       'motion-preset-slide-up': !fullscreen,
     }"
       >
@@ -33,13 +34,15 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     NgIf,
     NgTemplateOutlet,
     NgClass,
-    DismissButtonComponent
+    DismissButtonComponent,
+    NgStyle
   ]
 })
 export class PopupTemplateComponent implements OnInit {
   @Input() fullscreen = false;
   isVisible = false;
   content?: any;
+  backgroundColor: string = 'var(--gray-bg)';
 
   constructor(private popupTemplateStateService: PopupTemplateStateService) {
   }

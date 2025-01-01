@@ -1,5 +1,10 @@
 @import '../../../styles/popup-styles';
 
+.popup-container {
+  flex-direction: column;
+  max-width: 100vw;
+}
+
 .tui-segmented-wrapper {
   margin: 1.5rem 0;
   display: flex;
@@ -12,15 +17,14 @@
   flex-direction: row;
   justify-content: center;
   gap: 2em;
-  scroll-behavior: smooth; /* Enables smooth scrolling */
+  scroll-behavior: smooth;
 }
 
 .plan-section {
-  flex: 1; /* Makes each card take equal available space */
-  max-width: 10rem;
-  min-width: fit-content;
-  display: flex;
-  flex-direction: column; /* Ensures content inside flexes properly */
+  flex: 1 1 calc(50% - 2rem); /* Each card takes half the width minus the gap */
+  max-width: 300px;
+  min-width: 300px;
+  box-sizing: border-box;
 }
 
 .plan-section.free {
@@ -64,16 +68,26 @@
   line-height: 1.5; /* Adjust to match the text size */
 }
 
-.disabled {
+.plan-btn {
   width: 100%;
   display: block;
   font-size: 16px;
   height: 55px;
+  border-radius: 30px;
+  color: var(--text-color);
+}
+
+.plan-btn:hover {
+  background-color: var(--text-color);
+  color: white;
+}
+
+.disabled:hover,
+.disabled {
   background-color: var(--disabled-color);
   color: var(--disabled-text-color);
   border-color: var(--disabled-color);
-  pointer-events: none; /* Prevents hover effects and click events */
-  border-radius: 30px;
+  cursor: not-allowed;
 }
 
 .price {
@@ -232,7 +246,7 @@
 }
 
 .premium-star-badge img {
-  width: 25px; /* Size of the star icon */
+  width: 25px;
   height: 25px;
 }
 
