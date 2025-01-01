@@ -1,0 +1,16 @@
+<section>
+  <label
+    *ngFor="let interest of interests"
+    tuiChip
+    [appearance]="interest.selected ? 'neutral' : 'floating'"
+    [style.background-color]="interest.selected ? (interest.name | tuiAutoColor) : ''"
+  >
+    <input
+      hidden
+      type="checkbox"
+      [(ngModel)]="interest.selected"
+      (ngModelChange)="onInterestChange()"
+    />
+    {{ interest.name }}
+  </label>
+</section>

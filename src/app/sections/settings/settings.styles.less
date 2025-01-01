@@ -9,6 +9,13 @@
   padding-top: unset;
 }
 
+.card-container {
+  column-count: 2;
+  column-gap: 1rem;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
 .section-block {
   min-height: fit-content;
   width: 400px;
@@ -17,6 +24,15 @@
   flex-direction: column;
   gap: 1em;
   border-radius: 20px;
+  break-inside: avoid-column;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 820px) {
+  .card-container {
+    column-count: 1;
+  }
 }
 
 .card {
@@ -45,6 +61,13 @@
 .edit-element {
   margin-left: auto;
   margin-top: 2px;
+}
+
+.chips-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 1em;
 }
 
 // delete account

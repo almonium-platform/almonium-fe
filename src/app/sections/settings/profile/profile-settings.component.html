@@ -91,5 +91,66 @@
         </button>
       </div>
     </div>
+
+    <!--      interests-->
+    <div class="section-block card">
+      <div class="title">Interests</div>
+
+      <div *ngIf="interests.length !== 0 && !interestsEdit" class="chips-box">
+        <tui-chip *ngFor="let interest of interests"
+                  [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
+        </tui-chip>
+        <tui-chip
+          class="edit-chip"
+          appearance="outline"
+          (click)="editInterests()"
+        >
+          <lucide-icon name="pencil"
+                       [size]="'15'"
+                       [strokeWidth]="1.7"
+          >
+          </lucide-icon>
+          Edit
+        </tui-chip>
+      </div>
+
+      <div *ngIf="interests.length === 0 && !interestsEdit" class="interests">
+        <tui-chip
+          class="edit-chip"
+          appearance="outline"
+          (click)="editInterests()"
+        >
+          <lucide-icon name="plus"
+                       [size]="'15'"
+                       [strokeWidth]="1.7"
+                       (click)="editInterests()"
+          >
+          </lucide-icon>
+          Add
+        </tui-chip>
+        <p class="interest-text">Why so mysterious? Share your interests with us!</p>
+      </div>
+
+      <!--      load immediately, but it's hidden-->
+      <app-interests
+        [ngStyle]="{ display: interestsEdit ? 'block' : 'none' }"
+        [currentInterests]="userInfo?.interests || []"
+        (selectedInterestsChange)="onSelectedInterestsChange($event)">
+      </app-interests>
+      <div *ngIf="interestsEdit">
+        <button
+          class="black-n-white-button interest-button relative flex items-center justify-center"
+          (click)="saveInterests()"
+          [ngClass]="{ 'gradient-button-disabled': !validateInterests() }"
+          [disabled]="!validateInterests || (loading$ | async)"
+        >
+          <tui-loader
+            *ngIf="loading$ | async"
+            class="absolute loader"
+          ></tui-loader>
+          <span *ngIf="!(loading$ | async)">Save</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

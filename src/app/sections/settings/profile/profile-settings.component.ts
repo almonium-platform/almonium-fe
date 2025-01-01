@@ -3,13 +3,13 @@ import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
-import {NgIf, NgStyle} from "@angular/common";
+import {AsyncPipe, NgClass, NgForOf, NgIf, NgStyle} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../../../shared/interactive-cta-button/interactive-cta-button.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
-import {Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
-import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
@@ -20,6 +20,10 @@ import {ReactiveFormsModule} from "@angular/forms";
 import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-settings.component";
+import {InterestsComponent} from "../../../shared/interests/interests.component";
+import {TuiChip} from "@taiga-ui/kit";
+import {Interest} from "../../../shared/interests/interest.model";
+import {ProfileSettingsService} from "./profile-settings.service";
 
 @Component({
   selector: 'app-profile-settings',
@@ -38,6 +42,13 @@ import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-se
     TuiTextfieldControllerModule,
     UsernameComponent,
     AvatarSettingsComponent,
+    InterestsComponent,
+    NgForOf,
+    TuiAutoColorPipe,
+    TuiChip,
+    NgClass,
+    AsyncPipe,
+    TuiLoader,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
@@ -68,9 +79,15 @@ auto-renewal in the customer portal.`;
   protected useCountdown: boolean = false;
   protected tooltipRenewal: string = '';
 
+  // interests
+  protected interestsEdit: boolean = false;
+  protected interests: Interest[] = [];
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private userInfoService: UserInfoService,
+    private profileSettingsService: ProfileSettingsService,
     private popupTemplateStateService: PopupTemplateStateService,
     private planService: PlanService,
     private recentAuthGuardService: RecentAuthGuardService,
@@ -89,6 +106,7 @@ auto-renewal in the customer portal.`;
       }
       this.userInfo = info;
       this.premium = info.premium;
+      this.interests = info.interests;
       this.setRenewalTooltip(info);
     });
   }
@@ -165,5 +183,46 @@ auto-renewal in the customer portal.`;
 
   protected closeModal() {
     this.isConfirmModalVisible = false;
+  }
+
+  protected editInterests() {
+    this.interestsEdit = true;
+  }
+
+  protected async saveInterests() {
+    if (this.interests === this.userInfo?.interests) {
+      this.interestsEdit = false;
+      console.log('no changes');
+      return;
+    }
+
+    // Start loading
+    this.loadingSubject$.next(true);
+
+    try {
+      await firstValueFrom(
+        this.profileSettingsService.saveInterests(this.interests.map((i) => i.id))
+      );
+
+      this.interestsEdit = false;
+      this.userInfoService.updateUserInfo({interests: this.interests});
+      this.alertService
+        .open('Interests updated successfully', {appearance: 'success'})
+        .subscribe();
+    } catch (error) {
+      this.alertService
+        .open('Failed to update interests', {appearance: 'error'})
+        .subscribe();
+    } finally {
+      this.loadingSubject$.next(false);
+    }
+  }
+
+  onSelectedInterestsChange(interests: Interest[]) {
+    this.interests = interests;
+  }
+
+  validateInterests() {
+    return true;
   }
 }

@@ -8,7 +8,7 @@ import {
   Infinity,
   Info,
   LucideAngularModule,
-  Menu,
+  Menu, Pencil, Plus,
   RefreshCw,
   RefreshCwOff,
   StarOff,
@@ -21,7 +21,18 @@ import {
     SettingsRoutingModule,
     AuthSettingsComponent,
     ProfileSettingsComponent,
-    LucideAngularModule.pick({Home, Menu, UserCheck, StarOff, RefreshCw, Infinity, RefreshCwOff, Info}),
+    LucideAngularModule.pick({
+      Home,
+      Menu,
+      UserCheck,
+      StarOff,
+      Pencil,
+      Plus,
+      RefreshCw,
+      Infinity,
+      RefreshCwOff,
+      Info
+    }),
   ],
 })
 export class SettingsModule {

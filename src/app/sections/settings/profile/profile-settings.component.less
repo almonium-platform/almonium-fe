@@ -63,3 +63,43 @@
   background-color: var(--red);
 }
 
+.interest-button {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.interests {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.interest-text {
+  font-size: .8rem;
+  color: var(--text-color);
+  font-style: italic;
+  padding: .6rem;
+}
+
+.loader {
+  --tui-background-accent-1: var(--text-color);
+}
+
+.interest-button:hover {
+  .loader {
+    --tui-background-accent-1: white;
+  }
+}
+
+.edit-chip {
+  --tui-text-action: var(--text-color);
+  --tui-border-normal: var(--text-color);
+  border: 1px dashed var(--text-color);
+  box-shadow: unset;
+}
+
+.edit-chip:hover {
+  background-color: var(--text-color);
+  color: white;
+  cursor: pointer;
+}

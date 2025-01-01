@@ -73,4 +73,10 @@ export class ProfileSettingsService {
     const url = `${AppConstants.USERS_URL}/${username}/availability`;
     return this.http.get<{ available: boolean }>(url, {withCredentials: true});
   }
+
+  // interests
+  saveInterests(ids: number[]): Observable<any> {
+    const url = `${AppConstants.ME_URL}/interests`;
+    return this.http.patch(url, {ids}, {withCredentials: true});
+  }
 }

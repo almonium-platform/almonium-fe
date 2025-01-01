@@ -16,6 +16,7 @@ export class UserInfo {
     public tags: string[] | null,
     public subscription: Subscription,
     public premium: boolean
+    public interests: Interest[],
   ) {
   }
 
@@ -35,6 +36,7 @@ export class UserInfo {
       updates.tags ?? this.tags,
       updates.subscription ?? this.subscription,
       updates.premium ?? this.premium
+      updates.interests ?? this.interests,
     );
   }
 
@@ -54,6 +56,7 @@ export class UserInfo {
       data.tags,
       Subscription.fromJSON(data.subscription),
       data.premium
+      data.interests,
     );
   }
 
