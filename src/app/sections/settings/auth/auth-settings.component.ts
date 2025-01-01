@@ -22,6 +22,7 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {Subject, takeUntil} from "rxjs";
+import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 
 @Component({
   selector: 'app-settings',
@@ -47,7 +48,8 @@ import {Subject, takeUntil} from "rxjs";
     TuiTextfieldComponent,
     FormsModule,
     TuiPassword,
-    TuiTextfield
+    TuiTextfield,
+    NavbarComponent
   ],
   templateUrl: './auth-settings.component.html',
   providers: [
@@ -181,8 +183,8 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
           this.localStorageService.saveAuthMethods(methods);
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
           console.error(error);
+          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
         },
       });
     }
@@ -243,7 +245,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
         this.alertService.open('Account successfully deleted!', {appearance: 'success'}).subscribe();
-        this.userInfoService.clearUserInfo();
+        this.localStorageService.clearUserRelatedData();
         this.router.navigate(['/']).then(r => r);
       },
       error: (error) => {

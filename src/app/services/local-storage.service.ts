@@ -57,6 +57,10 @@ export class LocalStorageService {
     return this.getItem<LanguageCode>(CURRENT_LANGUAGE_KEY) || LanguageCode.EN;
   }
 
+  clearCurrentLanguage(): void {
+    this.removeItem(CURRENT_LANGUAGE_KEY);
+  }
+
   saveLangColors(colors: { [key: string]: string }): void {
     this.saveItem(LANG_COLOR_KEY, colors);
   }
@@ -89,5 +93,11 @@ export class LocalStorageService {
 
   removeSupportedLanguages(): void {
     this.removeItem(SUPPORTED_LANGUAGES_KEY);
+  }
+
+  public clearUserRelatedData(): void {
+    this.clearUserInfo();
+    this.clearCurrentLanguage();
+    this.clearAuthMethods();
   }
 }
