@@ -159,7 +159,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
       // Fetch the default avatars from Firebase
       this.defaultAvatars = await this.fileUploadService.getDefaultAvatars(this.FIREBASE_DEFAULT_URL_PATH);
     } catch (error) {
-      this.alertService.open('Failed to load default avatars', {label: 'Error'});
+      this.alertService.open('Failed to load default avatars', {label: 'Error'}).subscribe();
     }
   }
 
