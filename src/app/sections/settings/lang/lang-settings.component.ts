@@ -161,8 +161,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     return sortedArray1.every((value, index) => value === sortedArray2[index]);
   }
 
-  protected onFluentLanguagesSelected(selectedLanguages: string[]): void {
-    this.selectedFluentLanguages = selectedLanguages;
+  protected onFluentLanguagesSelected(state: { languages: string[]; valid: boolean }): void {
+    this.selectedFluentLanguages = state.languages;
+    // TODO validity check
     this.updateFluentEnabled();
   }
 

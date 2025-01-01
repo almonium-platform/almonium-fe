@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
 import {CommonModule} from '@angular/common';
 import {TuiMultiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
@@ -11,34 +11,35 @@ import {TuiError} from "@taiga-ui/core";
 const MAX_LANGUAGES = 3;
 
 @Component({
-    selector: 'app-fluent-language-selector',
-    templateUrl: './fluent-language-selector.component.html',
-    styleUrls: ['./fluent-language-selector.component.less'],
-    imports: [
-        ReactiveFormsModule,
-        CommonModule,
-        TuiMultiSelectModule,
-        TuiTextfieldControllerModule,
-        TuiError,
-        TuiFieldErrorPipe,
-    ],
-    providers: [
-        {
-            provide: TUI_VALIDATION_ERRORS,
-            useValue: {
-                required: 'At least one language is required',
-                maxLanguages: () => {
-                    return `You can select up to ${MAX_LANGUAGES} languages`;
-                },
-            },
+  selector: 'app-fluent-language-selector',
+  templateUrl: './fluent-language-selector.component.html',
+  styleUrls: ['./fluent-language-selector.component.less'],
+  imports: [
+    ReactiveFormsModule,
+    CommonModule,
+    TuiMultiSelectModule,
+    TuiTextfieldControllerModule,
+    TuiError,
+    TuiFieldErrorPipe,
+  ],
+  providers: [
+    {
+      provide: TUI_VALIDATION_ERRORS,
+      useValue: {
+        required: 'At least one language is required',
+        maxLanguages: () => {
+          return `You can select up to ${MAX_LANGUAGES} languages`;
         },
-    ]
+      },
+    },
+  ]
 })
 export class FluentLanguageSelectorComponent implements OnInit {
-  @Input() languages: Language[] = []; // **Input from parent**
+  @Input() languages: Language[] = [];
   @Input() size: 's' | 'm' | 'l' = 'l';
-  @Input() selectedLanguages?: string[] = []; // **Input from parent**
-  @Output() selectedFluentLanguages = new EventEmitter<string[]>(); // **Emit selected languages to parent**
+  // todo rename disambiguate
+  @Input() selectedLanguages?: string[] = [];
+  @Output() selectedFluentLanguages = new EventEmitter<{ languages: string[]; valid: boolean }>();
 
   maxLanguages = MAX_LANGUAGES;
 
@@ -65,9 +66,13 @@ export class FluentLanguageSelectorComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // **Emit selected languages whenever the form control value changes**
-    this.fluentLanguageControl.valueChanges.subscribe((value) => {
-      this.selectedFluentLanguages.emit(value || []);
+    this.fluentLanguageControl.valueChanges.pipe(
+      map((value) => ({
+        languages: value || [],
+        valid: this.fluentLanguageControl.valid,
+      }))
+    ).subscribe((state) => {
+      this.selectedFluentLanguages.emit(state);
     });
 
     if (this.selectedLanguages) {

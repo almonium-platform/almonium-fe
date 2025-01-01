@@ -1,13 +1,14 @@
 <div class="">
   <tui-multi-select
+    placeholder="Start typing..."
     [tuiTextfieldSize]="size"
     [formControl]="fluentLanguageControl"
+    [autoColor]="true"
     [tuiTextfieldCleaner]="true"
     [tuiTextfieldLabelOutside]="true"
-    placeholder="Search fluent languages..."
     (searchChange)="fluentSearch$.next($event ?? '')"
   >
-    Select your fluent languages
+    Languages you know well
 
     <tui-data-list-wrapper
       *tuiDataList
