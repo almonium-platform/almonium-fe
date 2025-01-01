@@ -65,10 +65,19 @@
   font-size: 16px;
   height: 55px;
   background: linear-gradient(to right, #5A1A74, #8F2356);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
   color: white; // Equivalent to test-white
   font-weight: bold; // Equivalent to font-bold
   border-radius: 9999px; // Equivalent to rounded-full
+}
+
+.gradient-button:hover {
+  opacity: 0.75;
+}
+
+.gradient-button-disabled {
+@extend gradient-button;
+  opacity: 0.75;
+  cursor: not-allowed;
 }
 
 .black-n-white-button {
@@ -122,7 +131,7 @@
   align-items: center;
   height: 100vh; // Ensures the container takes the full height of the viewport
   width: 100%; // Ensures the container takes the full width of the viewport
-  padding: 20px; // Adds padding to the container
+  padding: 1.2rem; // Adds padding to the container
   box-sizing: border-box; // Includes padding in the width calculation
 }
 
@@ -132,7 +141,7 @@
   align-items: center;
   min-height: calc(100vh - var(--header-height)); // Ensures the container takes the full height of the viewport minus the header height
   width: 100%; // Ensures the container takes the full width of the viewport
-  padding: 20px; // Adds padding to the container
+  padding: 1.2rem; // Adds padding to the container
   box-sizing: border-box; // Includes padding in the width calculation
   background-color: var(--main-bg-color); // Uses the main background color
 }
@@ -145,8 +154,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .premium-text {
