@@ -1,11 +1,16 @@
-import {Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
-import {TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
+import {TuiAlertService, TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
 import {TuiCardLarge} from "@taiga-ui/layout";
-import {NgForOf} from "@angular/common";
+import {NgClass, NgForOf} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
+import {UserInfoService} from "../../services/user-info.service";
+import {Subject, takeUntil} from "rxjs";
+import {Router} from "@angular/router";
+import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
+import {OnboardingService} from "../../onboarding/onboarding.service";
 
 @Component({
   selector: 'paywall',
@@ -19,16 +24,20 @@ import {PlanService} from "../../services/plan.service";
     NgForOf,
     TuiIcon,
     TuiSegmented,
-    InteractiveCtaButtonComponent
+    InteractiveCtaButtonComponent,
+    NgClass
   ],
   providers: [
     tuiSwitchOptionsProvider({showIcons: false, appearance: () => 'primary'}),
   ]
 })
-export class PaywallComponent implements OnInit {
+export class PaywallComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
+  private readonly step = SetupStep.PLAN;
 
-  protected value = false;
+  private userInfo: UserInfo | null = null;
+  protected onboarded: boolean = false;
 
   protected freeFeatures: string[] = [
     'One target language',
@@ -54,10 +63,36 @@ export class PaywallComponent implements OnInit {
 
   constructor(
     private planService: PlanService,
+    private userInfoService: UserInfoService,
+    private onboardingService: OnboardingService,
+    private alertService: TuiAlertService,
+    private router: Router,
   ) {
   }
 
   ngOnInit() {
+    this.populatePlanInfo();
+    this.populateUserInfo();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private populateUserInfo() {
+    this.userInfoService.userInfo$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(userInfo => {
+        if (!userInfo) {
+          return;
+        }
+        this.userInfo = userInfo;
+        this.onboarded = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+      });
+  }
+
+  private populatePlanInfo() {
     this.planService.getPlans().subscribe(plans => {
       const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
       const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
@@ -87,7 +122,28 @@ export class PaywallComponent implements OnInit {
     return 'check';
   }
 
+  chooseFreePlan() {
+    if (!this.onboarded) {
+      console.error('User is not onboarded');
+      return;
+    }
+    this.onboardingService.completeStep(this.step).subscribe({
+      next: () => {
+        this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
+      },
+      error: (error) => {
+        console.error('Failed to choose free plan:', error);
+        this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'error'}).subscribe();
+      }
+    });
+  }
+
   subscribeToPlan() {
+    if (!this.userInfo) {
+      this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
+      return;
+    }
+
     let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
     this.planService.subscribeToPlan(String(selectedPlanId)).subscribe((url) => {
       window.location.href = url.sessionUrl;

@@ -47,9 +47,12 @@
 
           <button
             type="button"
-            class="black-n-white-button disabled"
+            class="black-n-white-button plan-btn"
+            [ngClass]="{disabled: onboarded}"
+            [disabled]="onboarded"
+            (click)="chooseFreePlan()"
           >
-            Current Plan
+            {{ onboarded ? 'Current Plan' : 'Start for Free' }}
           </button>
         </footer>
       </div>
@@ -87,7 +90,8 @@
             <span class="price-value">${{ currentPriceValue }}</span>
             <span class="price-period">{{ currentPricePeriod }}</span>
           </div>
-          <app-interactive-cta-button text="Upgrade" class="cta" (buttonClick)="subscribeToPlan()"
+          <app-interactive-cta-button [text]="onboarded ? 'Upgrade' : 'Go Premium'" class="cta"
+                                      (buttonClick)="subscribeToPlan()"
           ></app-interactive-cta-button>
         </footer>
       </div>

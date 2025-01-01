@@ -1,0 +1,18 @@
+<div class="card step">
+  <div class="tui-header header-row">
+    Curate Your Reading Topics
+  </div>
+
+  <app-interests
+    [currentInterests]="currentInterests"
+    class="content"
+    (selectedInterestsChange)="onSelectedInterestsChange($event)">
+  </app-interests>
+
+  <button type="submit"
+          class="gradient-button start-btn"
+          (click)="submit()"
+  >
+    Go to The App
+  </button>
+</div>

@@ -9,7 +9,6 @@ import {PrivacyPolicyComponent} from "./static/legal/privacy-policy/privacy-poli
 import {TermsOfUseComponent} from "./static/legal/terms-of-use/terms-of-use.component";
 import {LandingComponent} from "./sections/landing/landing.component";
 import {LogoutComponent} from "./authentication/logout/logout.component";
-import {LanguageSetupComponent} from "./authentication/language-setup/language-setup.component";
 import {ReviewComponent} from "./sections/review/review.component";
 import {GamesComponent} from "./sections/games/games.component";
 import {LadderComponent} from "./games/ladder/ladder.component";
@@ -22,6 +21,7 @@ import {AboutComponent} from "./static/about-us/about.component";
 import {NotFoundComponent} from "./static/not-found/not-found.component";
 import {PricingComponent} from "./static/pricing/pricing.component";
 import {PaymentSuccessComponent} from "./static/payment-success/payment-success.component";
+import {OnboardingComponent} from "./onboarding/onboarding.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -38,6 +38,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [authGuard],
     children: [
+      {path: 'onboarding', component: OnboardingComponent},
       {path: 'home', component: HomeComponent},
       {path: 'review', component: ReviewComponent},
       {
@@ -46,7 +47,6 @@ export const routes: Routes = [
           () => import('../app/sections/settings/settings.module')
             .then(m => m.SettingsModule),
       },
-      {path: 'setup-languages', component: LanguageSetupComponent},
 
       // Games
       {path: 'games/ladder', component: LadderComponent},

@@ -13,7 +13,12 @@ export class ValidationMessagesService {
   getValidationMessages(): { [key: string]: string | (() => string) } {
     return {
       required: 'At least one language is required',
-      maxLanguages: () => `You can select up to ${this.maxLanguages} languages`,
+      maxLanguages: () => {
+        if (this.maxLanguages === 1) {
+          return 'You can select only one language in free plan';
+        }
+        return `You can select up to ${this.maxLanguages} languages`;
+      },
     };
   }
 }

@@ -1,0 +1,53 @@
+<div class="card step">
+
+  <div class="tui-header header-row">
+    Make Your Profile Unique
+  </div>
+
+  <div class="content">
+    <div class="section-block">
+      <div class="avatar-section">
+        <div class="flex flex-col">
+          <app-step-header
+            [number]="1"
+            [text]="'Avatar'"
+          ></app-step-header>
+
+          <p class="description">
+            {{
+              userInfo?.avatarUrl ?
+                'Looking good! If you\'d like to refresh your style, you can upload a new picture or pick from our fun selection below.' :
+                'A picture is worth a thousand words! Add a profile picture to give your account a personal touch. Upload your own or choose from our pre-designed avatars'
+            }}
+          </p>
+        </div>
+        <app-avatar-settings
+          *ngIf="userInfo"
+          [userInfo]="userInfo"
+        ></app-avatar-settings>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <app-step-header
+        [number]="2"
+        [text]="'Username'"
+      ></app-step-header>
+      <p class="description">
+        We’ve generated your username based on your email,
+        but you can change it to something more personal.
+        This is how we’ll address you and how others can connect with you.
+      </p>
+      <div class="username-wrapper">
+        <app-username></app-username>
+      </div>
+    </div>
+  </div>
+
+  <button type="submit"
+          class="gradient-button"
+          (click)="submit()"
+  >
+    Continue
+  </button>
+</div>

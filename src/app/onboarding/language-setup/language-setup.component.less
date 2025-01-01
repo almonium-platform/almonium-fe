@@ -1,29 +1,139 @@
+@import '../onboarding.styles.less';
+
 :host {
   --tui-status-negative: #ac1c1c;
   --tui-text-negative: #ac1c1c;
-  --tui-radius-m: 20px;
+  --tui-radius-m: 1rem;
+  --tui-font-text-s: normal 0.9rem/1.25rem var(--tui-font-text);
   --tui-text-tertiary: var(--tui-background-accent-1);
   --tui-background-accent-opposite-pressed: var(--purple-dark);
+}
+
+// fonts
+.custom-tui-select-wrapper tui-select {
+  --tui-font-text-s: normal 1.2rem/1.25rem var(--tui-font-text);
 }
 
 .text-sm {
   line-height: 1.5rem;
 }
 
-.tui-col_8 {
-  width: 100%;
-  padding: 20px;
-  min-width: 270px;
-  box-sizing: border-box;
+.header-row {
+  padding: 0 3rem;
 }
 
-.card {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
-  border-radius: 35px;
-  background-color: white;
-  z-index: 9999;
-  max-height: 90vh; /* Limit height to 80% of viewport */
-  overflow-y: auto; /* Enable vertical scrolling when content overflows */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      margin-left: 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+  }
+
+  .features {
+    text-align: left;
+    margin-bottom: 2rem;
+
+    h3 {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .columns {
+      display: flex;
+      justify-content: space-evenly;
+      gap: 1rem;
+    }
+
+    .column {
+      flex-grow: 1;
+    }
+
+    .special-features,
+    .basic-features {
+      h4 {
+        font-size: 1rem;
+        margin-bottom: 0.6rem;
+        margin-left: 0.5rem;
+        font-weight: 600;
+      }
+
+      ul.features-list {
+
+        li {
+          margin-bottom: 0.5rem;
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}
+
+// Second step, CEFR
+.cefr-form {
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.cefr-rows {
+  width: 100%;
+}
+
+.cefr-lang-chip {
+  padding: 1.3rem 1rem;
+  font-size: 1.2rem;
+}
+
+.cefr-select {
+  width: 6rem;
+}
+
+.cefr-language-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  margin-bottom: 1rem;
+}
+
+
+.header-icon {
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+  color: var(--text-color);
+  border-radius: 50%;
+  padding: .1rem;
+  margin-top: .1rem;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.go-back-icon {
+  .header-icon;
+  left: .5rem;
+}
+
+.go-back-icon:hover {
+  background-color: var(--text-color);
+  color: var(--info-light-blue);
+}
+
+.info-btn {
+  .header-icon;
+  right: .5rem;
 }
 
 /* Media query for small screens */
@@ -32,90 +142,5 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-  }
-  h4 {
-    text-align: center;
-  }
-}
-
-.language-selection-container {
-  margin: 0 auto;
-  text-align: center;
-  max-width: 500px;
-  padding: 20px;
-  border-radius: 35px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100vh; /* Take full height */
-  overflow-y: auto; /* Enable scrolling if content is taller than viewport */
-
-  h3 {
-    margin-bottom: 1rem;
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    .form-group {
-      width: 100%;
-      margin-bottom: 1.5rem;
-      text-align: left;
-
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        margin-left: 1.1rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-      }
-
-      tui-multi-select {
-        width: 100%;
-      }
-    }
-
-    .features {
-      width: 100%;
-      text-align: left;
-      margin-bottom: 2rem;
-
-      h3 {
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-      }
-
-      .columns {
-        display: flex;
-        justify-content: space-evenly;
-        gap: 1rem;
-      }
-
-      .column {
-        flex-grow: 1;
-      }
-
-      .special-features,
-      .basic-features {
-        h4 {
-          font-size: 1rem;
-          margin-bottom: 0.6rem;
-          font-weight: 600;
-        }
-
-        ul.features-list {
-          list-style-type: none;
-          padding: 0;
-
-          li {
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-          }
-        }
-      }
-    }
-
   }
 }

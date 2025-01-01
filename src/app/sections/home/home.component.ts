@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {UserInfoService} from '../../services/user-info.service';
 import {Subject, takeUntil} from 'rxjs';
-import {UserInfo} from "../../models/userinfo.model";
+import {SetupStep, UserInfo} from "../../models/userinfo.model";
 import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {Router} from "@angular/router";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
@@ -31,8 +31,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Subscribe to the shared user info observable
     this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       this.userInfo = info;
-      if (!info?.setupCompleted) {
-        this.router.navigate(['/setup-languages']).then(r => r);
+      if (info?.setupStep! !== SetupStep.COMPLETED) {
+        this.router.navigate(['/onboarding']).then(r => r);
       }
       this.cdr.markForCheck(); // Trigger change detection manually to update the view
     });

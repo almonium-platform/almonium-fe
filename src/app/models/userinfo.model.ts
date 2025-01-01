@@ -1,4 +1,5 @@
 import {LanguageCode} from "./language.enum";
+import {Interest} from "../shared/interests/interest.model";
 
 export class UserInfo {
   constructor(
@@ -10,12 +11,12 @@ export class UserInfo {
     public avatarUrl: string | null,
     public background: string | null,
     public streak: number | null,
-    public targetLangs: LanguageCode[],
     public fluentLangs: LanguageCode[],
-    public setupCompleted: boolean,
+    public setupStep: SetupStep,
     public tags: string[] | null,
     public subscription: Subscription,
-    public premium: boolean
+    public premium: boolean,
+    public learners: Learner[],
     public interests: Interest[],
   ) {
   }
@@ -30,12 +31,12 @@ export class UserInfo {
       updates.avatarUrl ?? this.avatarUrl,
       updates.background ?? this.background,
       updates.streak ?? this.streak,
-      updates.targetLangs ?? this.targetLangs,
       updates.fluentLangs ?? this.fluentLangs,
-      updates.setupCompleted ?? this.setupCompleted,
+      updates.setupStep ?? this.setupStep,
       updates.tags ?? this.tags,
       updates.subscription ?? this.subscription,
-      updates.premium ?? this.premium
+      updates.premium ?? this.premium,
+      updates.learners ?? this.learners,
       updates.interests ?? this.interests,
     );
   }
@@ -50,18 +51,41 @@ export class UserInfo {
       data.avatarUrl,
       data.background,
       data.streak,
-      data.targetLangs,
       data.fluentLangs,
-      data.setupCompleted,
+      data.setupStep,
       data.tags,
       Subscription.fromJSON(data.subscription),
-      data.premium
+      data.premium,
+      data.learners.map((learner: any) => Learner.fromJSON(learner)),
       data.interests,
     );
   }
 
+  // Dynamic method to get target languages
+  get targetLangs(): LanguageCode[] {
+    return this.learners
+      .map(learner => learner.language as LanguageCode);
+  }
+
   public isTargetLangPaywalled(): boolean {
     return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
+  }
+}
+
+export class Learner {
+  constructor(
+    public id: number,
+    public language: string, // Adjust the type if `Language` is an enum or a class
+    public selfReportedLevel: string // Assuming CEFR is a string or adjust accordingly
+  ) {
+  }
+
+  static fromJSON(data: any): Learner {
+    return new Learner(
+      data.id,
+      data.language,
+      data.selfReportedLevel
+    );
   }
 }
 
@@ -97,4 +121,38 @@ export enum PlanType {
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
   LIFETIME = 'LIFETIME',
+}
+
+export enum SetupStep {
+  WELCOME = 'WELCOME',
+  PLAN = 'PLAN',
+  LANGUAGES = 'LANGUAGES',
+  PROFILE = 'PROFILE',
+  INTERESTS = 'INTERESTS',
+  COMPLETED = 'COMPLETED',
+}
+
+// Define an order map
+export const SetupStepOrder: Record<SetupStep, number> = {
+  [SetupStep.WELCOME]: 0,
+  [SetupStep.PLAN]: 1,
+  [SetupStep.LANGUAGES]: 2,
+  [SetupStep.PROFILE]: 3,
+  [SetupStep.INTERESTS]: 4,
+  [SetupStep.COMPLETED]: 5,
+};
+
+export function isStepAfter(currentStep: SetupStep, referenceStep: SetupStep): boolean {
+  return SetupStepOrder[currentStep] > SetupStepOrder[referenceStep];
+}
+
+export function getNextStep(currentStep: SetupStep): SetupStep {
+  const currentIndex = SetupStepOrder[currentStep];
+  const nextIndex = currentIndex + 1;
+
+  const nextStep = Object.keys(SetupStepOrder).find(
+    key => SetupStepOrder[key as SetupStep] === nextIndex
+  ) as SetupStep | undefined;
+
+  return nextStep ?? SetupStep.COMPLETED;
 }

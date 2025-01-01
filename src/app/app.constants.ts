@@ -35,6 +35,10 @@ export class AppConstants {
   // LANGUAGES
   public static MY_LANGUAGES_URL = AppConstants.ME_URL + '/langs';
 
+  // ONBOARDING
+  public static ONBOARDING_URL = AppConstants.API_URL + '/onboarding';
+  public static ONBOARDING_STEP_URL = AppConstants.ONBOARDING_URL + '/step';
+
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
 

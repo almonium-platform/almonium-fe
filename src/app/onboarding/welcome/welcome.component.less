@@ -1,0 +1,53 @@
+@import "../onboarding.styles.less";
+
+.card.step.welcome {
+  flex-direction: row;
+  align-items: stretch;
+  max-width: 32rem;
+}
+
+.right-side {
+  font-size: 1rem;
+  color: var(--text-color);
+
+
+  h4 {
+    font-size: 1.3rem;
+    font-weight: 500;
+  }
+
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 10rem;
+}
+
+.left-side {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+
+  .logo {
+    transform: scale(2);
+  }
+}
+
+@media (max-width: 560px) {
+  .card.step.welcome {
+    flex-direction: column;
+    max-width: 85vw;
+  }
+
+  .right-side {
+    p, h4 {
+      padding: 0 1rem;
+      font-size: 1rem;
+    }
+
+    h4 {
+      font-size: 1.2rem;
+    }
+  }
+}

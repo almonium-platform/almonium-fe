@@ -1,0 +1,86 @@
+.top-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+}
+
+.stepper-container {
+  padding: 0.8rem 0.85rem;
+  margin-top: 2rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+  box-sizing: border-box;
+}
+
+.stepper-container .mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1.5rem;
+}
+
+.step-content {
+  margin-top: 1rem;
+  flex: 1;
+  overflow-x: auto;
+  display: flex;
+}
+
+.progress {
+  min-width: 15rem;
+}
+
+.plan {
+  height: fit-content;
+  border-radius: 2rem;
+  background-color: var(--gray-bg);
+  z-index: 2;
+  width: fit-content;
+}
+
+.stepper-container.card tui-stepper {
+  --tui-text-primary: var(--tui-background-accent-1);
+  --tui-text-action: var(--text-color);
+  --tui-text-action-hover: var(--lavender);
+  --tui-background-neutral-1-hover: var(--lavender);
+  font-size: 1rem;
+}
+
+.stepper-container.card tui-stepper:hover {
+  --tui-text-action-hover: black;
+}
+
+
+// TODO to base
+.header-icon {
+  display: flex;
+  vertical-align: middle;
+  cursor: pointer;
+  color: var(--tui-background-accent-1);
+  border-radius: 50%;
+}
+
+.navigate-icon {
+  .header-icon;
+}
+
+.navigate-icon.disabled {
+  opacity: 0.5;
+  color: var(--disabled-text-color);
+}
+
+.navigate-icon.disabled:hover {
+  background-color: transparent;
+  color: var(--disabled-text-color);
+}
+
+.navigate-icon:hover {
+  background-color: var(--tui-background-accent-1);
+  color: white;
+}

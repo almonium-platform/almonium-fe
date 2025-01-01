@@ -11,11 +11,6 @@ export class LanguageApiService {
   constructor(private http: HttpClient) {
   }
 
-  saveUserLanguages(payload: { fluentLangs: string[]; targetLangs: string[] }): Observable<any> {
-    const url = `${AppConstants.MY_LANGUAGES_URL}`;
-    return this.http.put(url, payload, {withCredentials: true});
-  }
-
   saveFluentLanguages(payload: { langCodes: string[] }): Observable<any> {
     const url = `${AppConstants.MY_LANGUAGES_URL}/fluent`;
     return this.http.put(url, payload, {withCredentials: true});
