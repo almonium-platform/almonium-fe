@@ -1,0 +1,59 @@
+@import '../../sections/settings/settings.styles.less';
+
+:host {
+  --tui-background-accent-1: #5A1A74;
+  --tui-status-negative: #ac1c1c;
+  --tui-text-negative: #ac1c1c;
+  --tui-radius-m: 2rem;
+}
+
+.section-block {
+  min-height: fit-content;
+  width: 400px;
+  padding: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  border-radius: 20px;
+}
+
+.username-form {
+  width: 55%;
+}
+
+.username-label {
+  font-size: 1.3rem;
+  font-weight: 550;
+  letter-spacing: .03rem;
+  padding: .4rem 0;
+  transition: font-size 0.3s ease-in-out;
+}
+
+.info-btn {
+  cursor: pointer;
+  background-color: var(--info-light-blue);
+  color: var(--info-dark-blue);
+  border-radius: 50%;
+  padding: .1rem;
+  margin-left: 1.5rem;
+  margin-top: .4rem;
+  display: flex;
+  align-items: center;
+  max-height: fit-content;
+}
+
+.info-btn:hover {
+  background-color: var(--info-dark-blue);
+  color: var(--info-light-blue);
+}
+
+.row-content {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+}
+
+.edit-element {
+  margin-left: auto;
+  margin-top: 2px;
+}

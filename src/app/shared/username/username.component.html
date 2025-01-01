@@ -1,0 +1,55 @@
+<div class="row-content">
+  <label
+    *ngIf="!usernameEditable"
+    [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
+    [style.font-size]="getUsernameFontSize()"
+    class="username-label flex items-center"
+  >&#64;{{ userInfo?.username }}
+  </label>
+
+  <form
+    *ngIf="usernameEditable"
+    [formGroup]="usernameForm"
+    class="username-form"
+    (ngSubmit)="onUsernameEditClick()"
+  >
+    <tui-textfield
+      #username
+      tuiTextfieldSize="m"
+      [tuiTextfieldLabelOutside]="true"
+    >
+      <input
+        tuiTextfield
+        formControlName="usernameValue"
+        placeholder="Username"
+        [readOnly]="!usernameEditable"
+      />
+    </tui-textfield>
+
+    <div *ngIf="isLoading">Checking availability...</div>
+
+    <tui-error formControlName="usernameValue" [error]="[] | tuiFieldError | async"></tui-error>
+  </form>
+  <!--todo replace with app-info-icon-->
+  <lucide-icon
+    name="info"
+    class="info-btn"
+    tuiHintAppearance="dark"
+    tuiHintDirection="top"
+    size="30"
+    [strokeWidth]="1.5"
+    [tuiHint]="usernameTooltip"
+  >
+    <ng-template #usernameTooltip>
+      <div [innerHTML]="tooltipUsername"></div>
+    </ng-template>
+  </lucide-icon>
+
+  <app-edit-button
+    class="edit-element"
+    [disabled]="this.usernameEditable && !this.usernameForm.valid || this.isLoading"
+    [label]="'Change'"
+    [editable]="usernameEditable"
+    (clickFunction)="onUsernameEditClick()">
+  </app-edit-button>
+</div>
