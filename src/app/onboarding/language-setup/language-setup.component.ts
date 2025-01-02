@@ -431,10 +431,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     // Send data to the backend
     this.onboardingService.setupLanguages(submittedData).subscribe({
-      next: () => {
+      next: (learners: Learner[]) => {
         this.userInfoService.updateUserInfo({
           fluentLangs: fluentLanguageCodes,
-          targetLangs: this.getTargetLangCodes(),
+          learners: learners,
         });
 
         const nextStep = getNextStep(this.step);

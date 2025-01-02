@@ -4,7 +4,7 @@ import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
 import {LanguageSetupRequest} from "./language-setup/language-setup.model";
 import {Interest} from "../shared/interests/interest.model";
-import {SetupStep} from "../models/userinfo.model";
+import {Learner, SetupStep} from "../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +18,9 @@ export class OnboardingService {
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  setupLanguages(payload: LanguageSetupRequest): Observable<any> {
+  setupLanguages(payload: LanguageSetupRequest): Observable<Learner[]> {
     const url = `${AppConstants.ONBOARDING_URL}/langs`;
-    return this.http.put(url, payload, {withCredentials: true});
+    return this.http.put<Learner[]>(url, payload, { withCredentials: true });
   }
 
   getInterests(): Observable<Interest[]> {
