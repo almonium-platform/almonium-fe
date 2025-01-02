@@ -37,7 +37,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   private readonly step = SetupStep.PLAN;
 
   private userInfo: UserInfo | null = null;
-  protected onboarded: boolean = false;
+  protected planChosen: boolean = false;
 
   protected freeFeatures: string[] = [
     'One target language',
@@ -88,7 +88,8 @@ export class PaywallComponent implements OnInit, OnDestroy {
           return;
         }
         this.userInfo = userInfo;
-        this.onboarded = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+        this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+        console.log(this.planChosen);
       });
   }
 
@@ -123,7 +124,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   chooseFreePlan() {
-    if (!this.onboarded) {
+    if (this.planChosen) {
       console.error('User is not onboarded');
       return;
     }
