@@ -27,7 +27,7 @@ import {
 import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
-import {Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
+import {getNextStep, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {LucideIconsModule} from "./lucide-icons.module";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
@@ -67,6 +67,8 @@ import {LanguageCode} from "../../models/language.enum";
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  private readonly step = SetupStep.LANGUAGES;
+
   @Output() continue = new EventEmitter<SetupStep>();
 
   protected onSecondForm: boolean = false;
@@ -435,9 +437,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           targetLangs: this.getTargetLangCodes(),
         });
 
-        const nextStep = SetupStep.PROFILE;
+        const nextStep = getNextStep(this.step);
 
-        if (this.userInfo!.setupStep <= SetupStep.LANGUAGES) {
+        if (this.userInfo!.setupStep <= this.step) {
           this.userInfoService.updateUserInfo({setupStep: nextStep});
         } else {
           this.continue.emit(nextStep);
