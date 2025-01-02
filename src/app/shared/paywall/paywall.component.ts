@@ -89,7 +89,6 @@ export class PaywallComponent implements OnInit, OnDestroy {
         }
         this.userInfo = userInfo;
         this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
-        console.log(this.planChosen);
       });
   }
 

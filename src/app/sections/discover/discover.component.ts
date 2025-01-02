@@ -319,7 +319,6 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private mobileHandle(diacritic: string) {
-    console.log('Mobile handle');
     const input = this.searchInput.nativeElement;
     input.focus();
     const textContent = input.textContent || '';

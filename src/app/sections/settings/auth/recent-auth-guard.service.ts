@@ -67,14 +67,10 @@ export class RecentAuthGuardService {
   }
 
   private checkAuth(onValidTokenAction: () => void, identityVerification: () => void): void {
-    console.log('Checking auth');
     const cachedResult: boolean = this.getCachedResult();
-    console.log('Cached result:', cachedResult);
     if (!cachedResult) {
-      console.log('Getting recent auth status');
       this.getRecentAuthStatus(onValidTokenAction, identityVerification);
     } else {
-      console.log('Executing onValidTokenAction');
       onValidTokenAction();
     }
   }
