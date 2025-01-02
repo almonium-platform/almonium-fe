@@ -7,6 +7,7 @@
 }
 
 .right-side {
+  flex: 1.2;
   font-size: 1rem;
   color: var(--text-color);
 
@@ -24,20 +25,31 @@
 }
 
 .left-side {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: fit-content;
-
-  .logo {
-    transform: scale(2);
-  }
 }
 
 @media (max-width: 560px) {
   .card.step.welcome {
     flex-direction: column;
     max-width: 85vw;
+  }
+
+  .left-side {
+    box-sizing: border-box;
+    position: relative;
+    padding-top: 100%; /* Create a square aspect ratio */
+
+    .logo {
+      position: absolute; /* Place the image inside the square */
+      top: 0;
+      left: 0;
+      width: 100%; /* Ensure the image spans the container width */
+      height: 100%; /* Ensure the image spans the container height */
+      object-fit: contain; /* Maintain aspect ratio */
+    }
   }
 
   .right-side {
