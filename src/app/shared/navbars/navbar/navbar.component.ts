@@ -23,6 +23,7 @@ import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {LucideAngularModule} from "lucide-angular";
+import {ViewportService} from "../../../services/viewport.service";
 
 @Component({
   selector: 'app-navbar',
@@ -73,6 +74,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private userService: UserInfoService,
               private targetLanguageDropdownService: TargetLanguageDropdownService,
               private popupTemplateStateService: PopupTemplateStateService,
+              private viewportService: ViewportService,
   ) {
   }
 
@@ -112,19 +114,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.targetLanguageDropdownService.initializeLanguages(info);
         }
       });
-    this.checkDeviceType();
-    window.addEventListener('resize', this.checkDeviceType.bind(this));
+
+    this.viewportService.setCustomWidth(690);
+    this.viewportService.isMobile$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isMobile: boolean) => {
+        this.isMobile = isMobile;
+        this.cdr.detectChanges();
+      });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    window.removeEventListener('resize', this.checkDeviceType.bind(this));
-  }
-
-  private checkDeviceType(): void {
-    this.isMobile = window.innerWidth <= 690; // Adjust breakpoint as needed
-    this.cdr.detectChanges();
   }
 
   // LANGUAGE DROPDOWN

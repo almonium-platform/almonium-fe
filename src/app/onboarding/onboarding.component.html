@@ -5,7 +5,7 @@
 
   <div class="stepper-container card">
     <!--    MOBILE-->
-    <div class="mobile" *ngIf="smallScreen">
+    <div class="mobile" *ngIf="isMobile">
       <lucide-icon
         [ngClass]="{ disabled: backDisabled() }"
         class="navigate-icon"
@@ -30,7 +30,7 @@
     </div>
 
     <tui-stepper
-      *ngIf="!smallScreen"
+      *ngIf="!isMobile"
       [activeItemIndex]="activeStepIndex"
       [tuiTextfieldSize]="'l'"
     >

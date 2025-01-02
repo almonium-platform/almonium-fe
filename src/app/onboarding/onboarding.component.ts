@@ -13,6 +13,7 @@ import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
 import {TuiTextfield} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
+import {ViewportService} from "../services/viewport.service";
 
 @Component({
   selector: 'app-onboarding',
@@ -42,7 +43,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   userInfo: UserInfo | null = null;
 
-  smallScreen: boolean = false;
+  protected isMobile: boolean = false;
   activeStep: SetupStep = SetupStep.WELCOME; // Active step in the stepper
   storedStep: SetupStep = SetupStep.WELCOME; // Step stored in the backend
   steps: SetupStep[] = [
@@ -57,6 +58,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     private userInfoService: UserInfoService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private viewportService: ViewportService,
   ) {
   }
 
@@ -76,18 +78,18 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       }
     });
 
-    window.addEventListener('resize', this.checkDeviceType.bind(this));
+    this.viewportService.setCustomWidth(768);
+    this.viewportService.isMobile$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isMobile: boolean) => {
+        this.isMobile = isMobile;
+        this.cdr.detectChanges();
+      });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    window.removeEventListener('resize', this.checkDeviceType.bind(this));
-  }
-
-  private checkDeviceType(): void {
-    this.smallScreen = window.innerWidth <= 650;
-    this.cdr.detectChanges();
   }
 
   protected canNavigateTo(stepIndex: number): boolean {
