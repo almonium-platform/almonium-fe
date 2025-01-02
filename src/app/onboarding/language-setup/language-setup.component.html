@@ -1,15 +1,15 @@
 <div class="card step">
   <div class="tui-header header-row">
     <lucide-icon
-      *ngIf="nextStep"
+      *ngIf="onSecondForm"
       class="go-back-icon"
       name="circle-chevron-left"
-      (click)="nextStep = false"
+      (click)="onSecondForm = false"
     ></lucide-icon>
 
-    {{ nextStep ? 'Assess Your CEFR Level' : 'Your Language Profile' }}
+    {{ onSecondForm ? 'Assess Your CEFR Level' : 'Your Language Profile' }}
     <app-info-icon
-      *ngIf="nextStep"
+      *ngIf="onSecondForm"
       class="info-btn"
       [size]=25
       [strokeWidth]="1.75"
@@ -17,7 +17,7 @@
     </app-info-icon>
 
   </div>
-  <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()" class="" *ngIf="!nextStep">
+  <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()" class="" *ngIf="!onSecondForm">
     <!-- Fluent Languages-->
     <div class="form-group" *ngIf="mode !== 'add-target'">
       <label>I'm fluent in</label>
@@ -107,7 +107,7 @@
   </form>
 
   <!--    Second Step -->
-  <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()" *ngIf="nextStep">
+  <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()" *ngIf="onSecondForm">
     <div class="cefr-form">
       <div *ngFor="let language of targetLanguageControl.value; let i = index" formArrayName="languages"
            class="cefr-rows">

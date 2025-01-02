@@ -69,7 +69,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   @Output() continue = new EventEmitter<SetupStep>();
 
-  protected nextStep: boolean = false;
+  protected onSecondForm: boolean = false;
 
   private userInfo: UserInfo | null = null;
   languageForm: FormGroup;
@@ -371,7 +371,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.nextStep) {
+    if (this.onSecondForm) {
       console.error('This should not happen');
       return;
     }
@@ -383,7 +383,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.nextStep = true
+    this.onSecondForm = true
     this.cachedFluentLanguages = this.selectedFluentLanguages;
     return;
   }
