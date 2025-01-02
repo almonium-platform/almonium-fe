@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {UserInfoService} from "../../services/user-info.service";
+import {LocalStorageService} from "../../services/local-storage.service";
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +11,7 @@ import {UserInfoService} from "../../services/user-info.service";
 export class AuthService {
   constructor(private http: HttpClient,
               private userService: UserInfoService,
+              private localStorageService: LocalStorageService,
   ) {
   }
 
@@ -60,6 +62,7 @@ export class AuthService {
 
   logout(): Observable<void> {
     this.userService.clearUserInfo();
+    this.localStorageService.clearUserRelatedData();
     return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
   }
 
