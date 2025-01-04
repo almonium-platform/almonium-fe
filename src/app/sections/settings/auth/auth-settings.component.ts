@@ -250,7 +250,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.message || 'Failed to delete account', {appearance: 'error'})
+          .open(error.error.message || 'Failed to delete account', {appearance: 'error'})
           .subscribe();
       },
     });

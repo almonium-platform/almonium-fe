@@ -241,7 +241,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.message || 'Failed to delete your target language', {appearance: 'error'})
+          .open(error.error.message || 'Failed to delete your target language', {appearance: 'error'})
           .subscribe();
       },
     });
