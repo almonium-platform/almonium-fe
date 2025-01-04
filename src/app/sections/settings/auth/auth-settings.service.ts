@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {AppConstants} from "../../../app.constants";
 import {Observable, of} from "rxjs";
 import {map, tap} from "rxjs/operators";
-import {AuthProvider, TokenInfo} from "./auth.types";
+import {AuthMethod, TokenInfo} from "./auth.types";
 import {ResponseModel} from "../../../models/response.model";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiAlertService} from "@taiga-ui/core";
@@ -73,9 +73,9 @@ export class AuthSettingsService {
   }
 
   // auth data retrieval
-  getAuthMethods(): Observable<AuthProvider[]> {
+  getAuthMethods(): Observable<AuthMethod[]> {
     const url = `${AppConstants.AUTH_URL}/providers`;
-    return this.http.get<AuthProvider[]>(url, {withCredentials: true});
+    return this.http.get<AuthMethod[]>(url, {withCredentials: true});
   }
 
   isEmailAvailable(email: string): Observable<boolean> {
@@ -83,7 +83,7 @@ export class AuthSettingsService {
     return this.http.post<boolean>(url, {email}, {withCredentials: true});
   }
 
-  populateAuthMethods(): Observable<AuthProvider[]> {
+  populateAuthMethods(): Observable<AuthMethod[]> {
     const cachedAuthMethods = this.localStorageService.getAuthMethods();
     if (cachedAuthMethods) {
       return of(cachedAuthMethods);

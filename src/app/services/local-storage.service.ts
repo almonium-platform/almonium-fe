@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
-import {AuthProvider} from "../sections/settings/auth/auth.types";
+import {AuthMethod} from "../sections/settings/auth/auth.types";
 import {Language} from "../models/language.model";
 
 const USER_INFO_KEY = 'user_info';
@@ -69,12 +69,12 @@ export class LocalStorageService {
     return this.getItem<{ [key: string]: string }>(LANG_COLOR_KEY);
   }
 
-  saveAuthMethods(authMethods: AuthProvider[]): void {
+  saveAuthMethods(authMethods: AuthMethod[]): void {
     this.saveItem(AUTH_METHODS_KEY, authMethods);
   }
 
-  getAuthMethods(): AuthProvider[] | null {
-    return this.getItem<AuthProvider[]>(AUTH_METHODS_KEY);
+  getAuthMethods(): AuthMethod[] | null {
+    return this.getItem<AuthMethod[]>(AUTH_METHODS_KEY);
   }
 
   clearAuthMethods(): void {

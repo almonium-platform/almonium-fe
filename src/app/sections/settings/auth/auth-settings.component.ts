@@ -15,7 +15,7 @@ import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {ProviderIconComponent} from "../../../shared/modals/elements/provider-icon/provider-icon.component";
-import {AuthProvider, TokenInfo} from "./auth.types";
+import {AuthMethod, TokenInfo} from "./auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "./recent-auth-guard.service";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -72,7 +72,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
-  protected authMethods: AuthProvider[] = [];
+  protected authMethods: AuthMethod[] = [];
   protected authProviders: string[] = [];
 
   // email and password settings
@@ -180,7 +180,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private updateLocalAuthData(methods: AuthProvider[]): void {
+  private updateLocalAuthData(methods: AuthMethod[]): void {
     if (this.isProviderLinked('local')) {
       const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
       this.lastPasswordUpdate = localMethod.lastPasswordResetDate

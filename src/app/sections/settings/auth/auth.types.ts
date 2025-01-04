@@ -1,4 +1,4 @@
-export interface AuthProvider {
+export interface AuthMethod {
   provider: string; // rename to name
   email: string;
   createdAt: string;
