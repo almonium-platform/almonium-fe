@@ -1,26 +1,29 @@
 import {Component, OnInit} from '@angular/core';
-import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {NgOptimizedImage} from "@angular/common";
-import {Router} from "@angular/router";
-import {UserInfoService} from "../../services/user-info.service";
+import {ActivatedRoute, Router} from "@angular/router";
+import {getNextStep, SetupStep, UserInfo} from "../../models/userinfo.model";
 
 @Component({
   selector: 'app-payment-success',
   imports: [
-    NavbarWrapperComponent,
     NgOptimizedImage
   ],
   templateUrl: './payment-success.component.html',
   styleUrl: './payment-success.component.less'
 })
 export class PaymentSuccessComponent implements OnInit {
-  constructor(
-    protected router: Router,
-    private userInfoService: UserInfoService,
+  protected userInfo: UserInfo | null = null;
+  protected onboardingMode = false;
+
+  constructor(private route: ActivatedRoute,
+              protected router: Router,
   ) {
   }
 
   ngOnInit() {
-    this.userInfoService.fetchUserInfoFromServer().subscribe();
+    this.userInfo = this.route.snapshot.data['userInfo'];
+    if (this.userInfo) {
+      this.onboardingMode = getNextStep(SetupStep.PLAN) === this.userInfo.setupStep;
+    }
   }
 }

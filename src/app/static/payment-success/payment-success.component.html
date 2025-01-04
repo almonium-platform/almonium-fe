@@ -1,5 +1,4 @@
-<app-navbar-wrapper></app-navbar-wrapper>
-<div class="base-container">
+<div class="headless-container">
   <div class="content">
     <div class="premium-star-badge">
       <img
@@ -9,7 +8,7 @@
     </div>
 
     <div class="text">
-      Upgraded to
+      {{ onboardingMode ? 'Welcome to' : 'Upgraded to ' }}
       <div class="premium-text">
         Premium
       </div>
@@ -20,7 +19,7 @@
       class="gradient-button"
       (click)="router.navigate(['/home'])"
     >
-      Enjoy the platform
+      {{ onboardingMode ? 'Continue Onboarding' : 'Enjoy the Platform' }}
     </button>
   </div>
 

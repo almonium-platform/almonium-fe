@@ -22,6 +22,7 @@ import {NotFoundComponent} from "./static/not-found/not-found.component";
 import {PricingComponent} from "./static/pricing/pricing.component";
 import {PaymentSuccessComponent} from "./static/payment-success/payment-success.component";
 import {OnboardingComponent} from "./onboarding/onboarding.component";
+import {UserInfoResolver} from "./services/user-info.resolver";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -65,7 +66,11 @@ export const routes: Routes = [
   {path: 'privacy-policy', component: PrivacyPolicyComponent},
 
   // Payment
-  {path: 'payment/success', component: PaymentSuccessComponent},
+  {
+    path: 'payment/success',
+    component: PaymentSuccessComponent,
+    resolve: {userInfo: UserInfoResolver}
+  },
 
   // Marketing
   {path: 'pricing', component: PricingComponent},
