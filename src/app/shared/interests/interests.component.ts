@@ -1,10 +1,10 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {OnboardingService} from "../../onboarding/onboarding.service";
 import {TuiAlertService, TuiAutoColorPipe} from "@taiga-ui/core";
 import {Interest} from "./interest.model";
 import {NgForOf} from "@angular/common";
 import {TuiChip} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
+import {StaticInfoService} from "../../services/static-info.service";
 
 @Component({
   selector: 'app-interests',
@@ -23,13 +23,13 @@ export class InterestsComponent implements OnInit {
   @Output() selectedInterestsChange = new EventEmitter<Interest[]>(); // Emit selected interests
 
   constructor(
-    private onboardingService: OnboardingService,
+    private staticInfoService: StaticInfoService,
     private alertService: TuiAlertService,
   ) {
   }
 
   ngOnInit() {
-    this.onboardingService.getInterests().subscribe({
+    this.staticInfoService.getInterests().subscribe({
       next: (interests) => {
         this.interests = interests.sort(() => Math.random() - 0.5);
         this.currentInterests.forEach(selectedInterest => {

@@ -1,12 +1,11 @@
 import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LocalStorageService} from './local-storage.service';
-import {AppConstants} from '../app.constants';
 import {Language} from '../models/language.model';
 import {LanguageNameService} from "./language-name.service";
-import {LanguageCode} from "../models/language.enum"; // Assuming a Language model exists
+import {LanguageCode} from "../models/language.enum";
+import {StaticInfoService} from "./static-info.service"; // Assuming a Language model exists
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +14,7 @@ export class SupportedLanguagesService {
   supportedLanguages$ = this.supportedLanguagesSubject.asObservable();
 
   constructor(
-    private http: HttpClient,
+    private staticInfoService: StaticInfoService,
     private localStorageService: LocalStorageService,
     private languageNameService: LanguageNameService
   ) {
@@ -41,7 +40,7 @@ export class SupportedLanguagesService {
    * Fetch supported languages from the server and cache them.
    */
   private getAllSupportedLanguages(): void {
-    this.http.get<string[]>(`${AppConstants.PUBLIC_URL}/supported-langs`).pipe(
+    this.staticInfoService.getSupportedLanguages().pipe(
       map((languageCodes) => {
         return languageCodes.map((code) => {
           return {

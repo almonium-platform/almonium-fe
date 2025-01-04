@@ -6,6 +6,7 @@ export class AppConstants {
   public static API_URL = environment.apiUrl + '/api/v1';
   public static PUBLIC_URL = AppConstants.API_URL + '/public';
   public static USERS_URL = AppConstants.API_URL + '/users';
+  public static INFO_URL = AppConstants.PUBLIC_URL + '/info';
 
   // AUTHENTICATION
   public static PUBLIC_AUTH_URL = AppConstants.PUBLIC_URL + '/auth';

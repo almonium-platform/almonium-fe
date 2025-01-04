@@ -20,12 +20,7 @@ export class OnboardingService {
 
   setupLanguages(payload: LanguageSetupRequest): Observable<Learner[]> {
     const url = `${AppConstants.ONBOARDING_URL}/langs`;
-    return this.http.put<Learner[]>(url, payload, { withCredentials: true });
-  }
-
-  getInterests(): Observable<Interest[]> {
-    const url = `${AppConstants.ONBOARDING_URL}/interests`;
-    return this.http.get<Interest[]>(url, {withCredentials: true});
+    return this.http.put<Learner[]>(url, payload, {withCredentials: true});
   }
 
   saveInterests(ids: number[]): Observable<any> {
