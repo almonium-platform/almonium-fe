@@ -309,7 +309,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     return this.authMethods.length === 1 && this.isProviderLinked(provider);
   }
 
-  protected handleProviderWrapped(provider: string) {
+  protected handleProviderWrapped = (provider: string) => () => {
     this.restoreEmailAndPasswordFields();
     this.checkAuth(() => this.universalProviderHandler(provider));
   }

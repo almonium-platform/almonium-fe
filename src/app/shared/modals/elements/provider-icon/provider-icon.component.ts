@@ -2,17 +2,16 @@ import {Component, Input} from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
-    selector: 'app-provider-icon',
-    imports: [
-        NgClass,
-        NgStyle
-    ],
-    template: `
+  selector: 'app-provider-icon',
+  imports: [
+    NgClass,
+    NgStyle
+  ],
+  template: `
     <button
       type="button"
       class="social-button"
       (click)="getClickHandler()()"
-      [disabled]="!isProviderConnected()"
       [ngClass]="getProviderClass()"
       [ngStyle]="{
         opacity: isProviderConnected() ? 1 : 0.5,
@@ -32,20 +31,21 @@ import {NgClass, NgStyle} from '@angular/common';
 export class ProviderIconComponent {
   @Input() provider!: string;
   @Input() connectedProviders!: string[];
-  @Input() click!: Function;
+  @Input() clickOnLinked!: Function;
+  @Input() clickOnUnlinked!: Function;
 
   private providerConfig: { [key: string]: { sizeClass: string; clickHandler: () => void } } = {
     google: {
       sizeClass: 'text-2xl',
-      clickHandler: () => this.click && this.click('google')
+      clickHandler: () => this.handleProviderAction('google')
     },
     apple: {
       sizeClass: 'text-3xl',
-      clickHandler: () => this.click && this.click('apple')
+      clickHandler: () => this.handleProviderAction('apple')
     },
     local: {
       sizeClass: 'text-2xl',
-      clickHandler: () => this.click && this.click('local')
+      clickHandler: () => this.handleProviderAction('local')
     }
   };
 
@@ -58,9 +58,6 @@ export class ProviderIconComponent {
   }
 
   getClickHandler(): () => void {
-    console.log('provider', this.provider);
-    console.log(this.providerConfig[this.provider.toLowerCase()]?.clickHandler || (() => {
-    }));
     return this.providerConfig[this.provider.toLowerCase()]?.clickHandler || (() => {
     });
   }
@@ -69,5 +66,13 @@ export class ProviderIconComponent {
     return this.connectedProviders?.some(
       (p) => p.toLowerCase() === this.provider.toLowerCase()
     );
+  }
+
+  private handleProviderAction(provider: string): void {
+    if (this.isProviderConnected()) {
+      this.clickOnLinked && this.clickOnLinked(provider);
+    } else {
+      this.clickOnUnlinked && this.clickOnUnlinked(provider);
+    }
   }
 }

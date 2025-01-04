@@ -36,7 +36,7 @@
   <button
     type="button"
     class="action-btn"
-    (click)="handleProviderWrapped(provider)"
+    (click)="handleProviderWrapped(provider)()"
     [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
     [ngClass]="{
       'unlink-btn': isProviderLinked(provider),
@@ -178,7 +178,8 @@
           <app-provider-icon
             [provider]="'google'"
             [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
+            [clickOnLinked]="prepareAndShowProviderModal"
+            [clickOnUnlinked]="handleProviderWrapped('google')"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
         </div>
@@ -188,7 +189,8 @@
           <app-provider-icon
             [provider]="'apple'"
             [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
+            [clickOnLinked]="prepareAndShowProviderModal"
+            [clickOnUnlinked]="handleProviderWrapped('apple')"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
         </div>
@@ -198,7 +200,8 @@
           <app-provider-icon
             [provider]="'local'"
             [connectedProviders]="authProviders"
-            [click]="prepareAndShowProviderModal"
+            [clickOnLinked]="prepareAndShowProviderModal"
+            [clickOnUnlinked]="handleProviderWrapped('local')"
           ></app-provider-icon>
           <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
         </div>
