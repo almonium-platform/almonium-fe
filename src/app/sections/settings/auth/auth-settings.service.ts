@@ -1,17 +1,22 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {AppConstants} from "../../../app.constants";
-import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import {Observable, of} from "rxjs";
+import {map, tap} from "rxjs/operators";
 import {AuthProvider, TokenInfo} from "./auth.types";
 import {ResponseModel} from "../../../models/response.model";
+import {LocalStorageService} from "../../../services/local-storage.service";
+import {TuiAlertService} from "@taiga-ui/core";
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthSettingsService {
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+              private localStorageService: LocalStorageService,
+              private alertService: TuiAlertService,
+  ) {
   }
 
   checkCurrentAccessTokenIsLive(): Observable<string | null> {
@@ -76,5 +81,21 @@ export class AuthSettingsService {
   isEmailAvailable(email: string): Observable<boolean> {
     const url = `${AppConstants.AUTH_URL}/email/availability`;
     return this.http.post<boolean>(url, {email}, {withCredentials: true});
+  }
+
+  populateAuthMethods(): Observable<AuthProvider[]> {
+    const cachedAuthMethods = this.localStorageService.getAuthMethods();
+    if (cachedAuthMethods) {
+      return of(cachedAuthMethods);
+    }
+    return this.getAuthMethods().pipe(
+      tap({
+        next: (methods) => this.localStorageService.saveAuthMethods(methods),
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
+        }
+      })
+    );
   }
 }

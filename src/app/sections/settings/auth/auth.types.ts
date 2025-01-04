@@ -1,5 +1,5 @@
 export interface AuthProvider {
-  provider: string;
+  provider: string; // rename to name
   email: string;
   createdAt: string;
   updatedAt: string;

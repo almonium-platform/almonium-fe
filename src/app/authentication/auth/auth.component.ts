@@ -32,7 +32,8 @@ import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-butto
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
-import {ParticlesComponent} from "../../shared/particles/particles.component"; // Import your service
+import {ParticlesComponent} from "../../shared/particles/particles.component";
+import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service"; // Import your service
 
 declare const google: any;
 
@@ -82,11 +83,12 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   // EMBEDDED MODE (REAUTHENTICATION)
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
-  embeddedMode: boolean = false;
+  protected embeddedMode: boolean = false;
   @Output() close = new EventEmitter<void>(); // Emits close event for modal
   private intent: string = '';
-  showSeparatorAndForm: boolean = true;
-  @Input() providers: string[] = ['apple', 'google', 'local']; // Default are all, to make it work in default mode
+  protected showSeparatorAndForm: boolean = true;
+  @Input() providers: string[] = ['google', 'apple', 'local'];
+  protected connectedProviders: string[] = [];
 
   onClose() {
     this.close.emit();
@@ -122,6 +124,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private authSettingsService: AuthSettingsService,
     private alertService: TuiAlertService,
     private router: Router,
     private route: ActivatedRoute,
@@ -170,6 +173,15 @@ export class AuthComponent implements OnInit, OnDestroy {
     );
 
     this.setModes();
+
+    if (this.mode === 'embedded') {
+      this.authSettingsService.populateAuthMethods().subscribe(
+        (providers) => {
+          this.connectedProviders = providers.map((provider) => provider.provider.toLowerCase());
+        }
+      );
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['error']) {
         this.alertService.open(params['error'], {appearance: 'error'}).subscribe();

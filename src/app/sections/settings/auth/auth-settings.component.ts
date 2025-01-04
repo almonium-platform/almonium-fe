@@ -167,27 +167,17 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private populateAuthMethods() {
-    const cachedAuthMethods = this.localStorageService.getAuthMethods();
-    if (cachedAuthMethods) {
-      this.authMethods = cachedAuthMethods;
-      this.authProviders = cachedAuthMethods.map(method => method.provider);
-      this.updateLocalAuthData(cachedAuthMethods);
-    } else {
-      this.settingService.getAuthMethods().subscribe({
-        next: (methods) => {
-          this.authMethods = methods;
-          this.authProviders = methods.map(method => method.provider);
-          this.updateLocalAuthData(methods);
-
-          // Cache the retrieved methods
-          this.localStorageService.saveAuthMethods(methods);
-        },
-        error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
-        },
-      });
-    }
+    this.settingService.populateAuthMethods().subscribe({
+      next: (methods) => {
+        this.authMethods = methods;
+        this.authProviders = methods.map(method => method.provider);
+        this.updateLocalAuthData(methods);
+      },
+      error: (error) => {
+        console.error(error);
+        this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
+      },
+    });
   }
 
   private updateLocalAuthData(methods: AuthProvider[]): void {

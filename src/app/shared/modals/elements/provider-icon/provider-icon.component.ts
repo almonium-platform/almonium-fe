@@ -12,10 +12,12 @@ import {NgClass, NgStyle} from '@angular/common';
       type="button"
       class="social-button"
       (click)="getClickHandler()()"
-      [ngClass]="getProviderClass()"
+      [disabled]="isDisabled"
+      [ngClass]="[getProviderClass(), isDisabled ? 'disabled-button' : '']"
       [ngStyle]="{
         opacity: isProviderConnected() ? 1 : 0.5,
-        filter: isProviderConnected() ? 'none' : 'grayscale(20%)'
+        filter: isProviderConnected() ? 'none' : 'grayscale(20%)',
+        cursor: isDisabled ? 'not-allowed' : 'pointer',
       }"
     >
       <i
@@ -26,13 +28,18 @@ import {NgClass, NgStyle} from '@angular/common';
         ]"
       ></i>
     </button>
-  `
+  `,
+  styles: [`
+    .disabled-button:hover {
+      opacity: 0.5 !important;
+    }
+  `]
 })
 export class ProviderIconComponent {
   @Input() provider!: string;
   @Input() connectedProviders!: string[];
   @Input() clickOnLinked!: Function;
-  @Input() clickOnUnlinked!: Function;
+  @Input() clickOnUnlinked?: Function;
 
   private providerConfig: { [key: string]: { sizeClass: string; clickHandler: () => void } } = {
     google: {
@@ -48,6 +55,10 @@ export class ProviderIconComponent {
       clickHandler: () => this.handleProviderAction('local')
     }
   };
+
+  get isDisabled(): boolean {
+    return this.clickOnUnlinked === undefined;
+  }
 
   getProviderClass(): string {
     return this.provider ? this.provider.toLowerCase() : '';
