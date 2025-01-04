@@ -32,24 +32,33 @@
 >
 </app-action-modal>
 
-<ng-template #authButton let-provider="provider">
-  <button
-    type="button"
-    class="action-btn"
-    (click)="handleProviderWrapped(provider)()"
-    [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
-    [ngClass]="{
-      'unlink-btn': isProviderLinked(provider),
-      'black-n-white-button': !isProviderLinked(provider)
-    }"
-    [ngStyle]="{
-      cursor: isLastLinkedProvider(provider) ? 'not-allowed' : 'pointer',
-      opacity: isLastLinkedProvider(provider) ? 0.6 : 1,
-      border: isProviderLinked(provider) ? 'none' : '1px solid black',
-    }"
-    title="{{ isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : '' }}">
-    {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
-  </button>
+<ng-template #providerBlock let-provider="provider">
+  <div class="provider-block">
+    <app-provider-icon
+      [provider]="provider"
+      [connectedProviders]="authProviders"
+      [clickOnLinked]="prepareAndShowProviderModal"
+      [clickOnUnlinked]="handleProviderWrapped(provider)"
+    ></app-provider-icon>
+    <button
+      type="button"
+      class="action-btn"
+      (click)="handleProviderWrapped(provider)()"
+      [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
+      [ngClass]="{
+        'unlink-btn': isProviderLinked(provider),
+        'black-n-white-button': !isProviderLinked(provider)
+      }"
+      [ngStyle]="{
+        cursor: isLastLinkedProvider(provider) ? 'not-allowed' : 'pointer',
+        opacity: isLastLinkedProvider(provider) ? 0.6 : 1,
+        border: isProviderLinked(provider) ? 'none' : '1px solid black'
+      }"
+      title="{{ isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : '' }}"
+    >
+      {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
+    </button>
+  </div>
 </ng-template>
 
 <app-recent-auth-guard></app-recent-auth-guard>
@@ -173,38 +182,9 @@
     <div class="section-block card">
       <div class="title">Linked Accounts</div>
       <div class="social-buttons">
-        <div class="provider-block">
-          <!-- Google Provider Block -->
-          <app-provider-icon
-            [provider]="'google'"
-            [connectedProviders]="authProviders"
-            [clickOnLinked]="prepareAndShowProviderModal"
-            [clickOnUnlinked]="handleProviderWrapped('google')"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'google' }"></ng-container>
-        </div>
-
-        <div class="provider-block">
-          <!-- Apple Provider Block -->
-          <app-provider-icon
-            [provider]="'apple'"
-            [connectedProviders]="authProviders"
-            [clickOnLinked]="prepareAndShowProviderModal"
-            [clickOnUnlinked]="handleProviderWrapped('apple')"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'apple' }"></ng-container>
-        </div>
-
-        <div class="provider-block">
-          <!-- Local Provider Block -->
-          <app-provider-icon
-            [provider]="'local'"
-            [connectedProviders]="authProviders"
-            [clickOnLinked]="prepareAndShowProviderModal"
-            [clickOnUnlinked]="handleProviderWrapped('local')"
-          ></app-provider-icon>
-          <ng-container *ngTemplateOutlet="authButton; context: { provider: 'local' }"></ng-container>
-        </div>
+        <ng-container *ngTemplateOutlet="providerBlock; context: { provider: 'google' }"></ng-container>
+        <ng-container *ngTemplateOutlet="providerBlock; context: { provider: 'apple' }"></ng-container>
+        <ng-container *ngTemplateOutlet="providerBlock; context: { provider: 'local' }"></ng-container>
       </div>
     </div>
     <div class="danger section-block">

@@ -27,19 +27,8 @@
 
           <div class="social-buttons" *ngIf="mode !== 'linkLocal' && mode !== 'changeEmail'">
             <app-provider-icon
-              [provider]="'google'"
-              [connectedProviders]="this.providers"
-              [clickOnLinked]="onSocialLogin"
-            ></app-provider-icon>
-
-            <app-provider-icon
-              [provider]="'apple'"
-              [connectedProviders]="this.providers"
-              [clickOnLinked]="onSocialLogin"
-            ></app-provider-icon>
-
-            <app-provider-icon
-              [provider]="'local'"
+              *ngFor="let provider of providers"
+              [provider]="provider"
               [connectedProviders]="this.providers"
               [clickOnLinked]="onSocialLogin"
             ></app-provider-icon>

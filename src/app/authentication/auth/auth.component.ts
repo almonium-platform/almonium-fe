@@ -21,7 +21,7 @@ import {
   TuiTextfieldComponent,
   TuiTextfieldOptionsDirective
 } from '@taiga-ui/core';
-import {AsyncPipe, NgClass, NgIf, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -59,6 +59,7 @@ declare const google: any;
     TuiTextfieldOptionsDirective,
     TuiTextfield,
     ParticlesComponent,
+    NgForOf,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
