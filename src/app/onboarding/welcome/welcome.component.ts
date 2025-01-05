@@ -4,10 +4,13 @@ import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {Subject, takeUntil} from "rxjs";
+import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 
 @Component({
   selector: 'app-welcome',
-  imports: [],
+  imports: [
+    GifPlayerComponent
+  ],
   templateUrl: './welcome.component.html',
   styleUrl: './welcome.component.less'
 })
