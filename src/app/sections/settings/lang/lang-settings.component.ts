@@ -242,6 +242,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.currentTargetLanguages.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
         this.selectedTargetedLanguageIndex = 0; // reset to the first language
         this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguage);
+        this.userInfoService.updateUserInfo({learners: this.userInfo?.learners.filter((learner) => learner.language !== deletedLanguage)});
       },
       error: (error) => {
         this.alertService
