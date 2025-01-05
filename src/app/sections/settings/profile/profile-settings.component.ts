@@ -12,7 +12,7 @@ import {PlanService} from "../../../services/plan.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
-import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
+import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";

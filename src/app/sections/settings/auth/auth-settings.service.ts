@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {AppConstants} from "../../../app.constants";
 import {Observable, of} from "rxjs";
 import {map, tap} from "rxjs/operators";
-import {AuthMethod, TokenInfo} from "./auth.types";
+import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
 import {ResponseModel} from "../../../models/response.model";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiAlertService} from "@taiga-ui/core";

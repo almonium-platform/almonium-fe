@@ -23,9 +23,10 @@ import {LanguageCode} from "../../../models/language.enum";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
-import {RecentAuthGuardService} from "../auth/recent-auth-guard.service";
+import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
+import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 
 @Component({
   selector: 'app-lang-settings',

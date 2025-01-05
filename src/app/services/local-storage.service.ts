@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
-import {AuthMethod} from "../sections/settings/auth/auth.types";
+import {AuthMethod} from "../authentication/auth/auth.types";
 import {Language} from "../models/language.model";
 
 const USER_INFO_KEY = 'user_info';

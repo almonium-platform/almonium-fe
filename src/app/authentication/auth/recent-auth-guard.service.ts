@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
-import {AuthSettingsService} from "./auth-settings.service";
-import {LocalStorageService} from "../../../services/local-storage.service";
+import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
+import {LocalStorageService} from "../../services/local-storage.service";
 import {TuiAlertService} from "@taiga-ui/core";
-import {RecentAuthGuardStateService} from "../../../shared/recent-auth-guard/recent-auth-guard-state.service";
+import {RecentAuthGuardStateService} from "../../shared/recent-auth-guard/recent-auth-guard-state.service";
 
 @Injectable({
   providedIn: 'root'
