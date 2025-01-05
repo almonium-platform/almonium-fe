@@ -15,10 +15,10 @@ import {NgClass, NgStyle} from '@angular/common';
       [disabled]="isDisabled"
       [ngClass]="[getProviderClass(), isDisabled ? 'disabled-button' : '']"
       [ngStyle]="{
-        opacity: isProviderConnected() ? 1 : 0.5,
-        filter: isProviderConnected() ? 'none' : 'grayscale(20%)',
-        cursor: isDisabled ? 'not-allowed' : 'pointer',
-      }"
+        opacity: loginFlow || isProviderConnected() ? 1 : 0.5,
+        filter: loginFlow || isProviderConnected() ? 'none' : 'grayscale(20%)',
+        cursor: (loginFlow || !isDisabled) ? 'pointer' : 'not-allowed',
+        }"
     >
       <i
         [ngClass]="[
@@ -40,6 +40,7 @@ export class ProviderIconComponent {
   @Input() connectedProviders!: string[];
   @Input() clickOnLinked!: Function;
   @Input() clickOnUnlinked?: Function;
+  @Input() loginFlow?: boolean = false;
 
   private providerConfig: { [key: string]: { sizeClass: string; clickHandler: () => void } } = {
     google: {
@@ -57,7 +58,7 @@ export class ProviderIconComponent {
   };
 
   get isDisabled(): boolean {
-    return this.clickOnUnlinked === undefined;
+    return this.clickOnUnlinked === undefined && !this.loginFlow;
   }
 
   getProviderClass(): string {
@@ -80,7 +81,7 @@ export class ProviderIconComponent {
   }
 
   private handleProviderAction(provider: string): void {
-    if (this.isProviderConnected()) {
+    if (this.isProviderConnected() || this.loginFlow) {
       this.clickOnLinked && this.clickOnLinked(provider);
     } else {
       this.clickOnUnlinked && this.clickOnUnlinked(provider);

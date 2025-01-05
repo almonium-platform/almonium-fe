@@ -243,7 +243,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       default:
         this.embeddedMode = false;
         this.isSignUp = false;
-        this.showSeparatorAndForm = true;
+        this.showSeparatorAndForm = false;
         break;
     }
   }
