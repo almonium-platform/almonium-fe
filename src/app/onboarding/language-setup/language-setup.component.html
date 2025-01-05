@@ -8,7 +8,7 @@
         (click)="onSecondForm = false"
       ></lucide-icon>
 
-      {{ onSecondForm ? 'Assess Your CEFR Level' : 'Your Language Profile' }}
+      {{ onSecondForm ? 'Assess Your CEFR Level' : 'Choose Your Languages' }}
       <app-info-icon
         *ngIf="onSecondForm"
         class="info-btn"
@@ -146,7 +146,7 @@
               [disabled]="cefrForm.invalid"
               [ngClass]="{ 'gradient-button-disabled': cefrForm.invalid }"
       >
-        Continue
+        Save & Continue
       </button>
     </form>
   </div>
