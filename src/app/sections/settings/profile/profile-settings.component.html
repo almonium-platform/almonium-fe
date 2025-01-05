@@ -138,18 +138,14 @@
         (selectedInterestsChange)="onSelectedInterestsChange($event)">
       </app-interests>
       <div *ngIf="interestsEdit">
-        <button
-          class="black-n-white-button interest-button relative flex items-center justify-center"
+        <app-button
+          label="Save"
+          [loading$]="loading$"
+          [disabled]="!validateInterests()"
           (click)="saveInterests()"
-          [ngClass]="{ 'gradient-button-disabled': !validateInterests() }"
-          [disabled]="!validateInterests || (loading$ | async)"
-        >
-          <tui-loader
-            *ngIf="loading$ | async"
-            class="absolute loader"
-          ></tui-loader>
-          <span *ngIf="!(loading$ | async)">Save</span>
-        </button>
+          class="interest-button"
+          type="bw"
+        ></app-button>
       </div>
     </div>
   </div>

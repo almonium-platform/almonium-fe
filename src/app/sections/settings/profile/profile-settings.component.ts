@@ -3,13 +3,13 @@ import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
-import {AsyncPipe, NgClass, NgForOf, NgIf, NgStyle} from "@angular/common";
+import {NgForOf, NgIf, NgStyle} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../../../shared/interactive-cta-button/interactive-cta-button.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
-import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
@@ -24,6 +24,7 @@ import {InterestsComponent} from "../../../shared/interests/interests.component"
 import {TuiChip} from "@taiga-ui/kit";
 import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
+import {ButtonComponent} from "../../../shared/button/button.component";
 
 @Component({
   selector: 'app-profile-settings',
@@ -46,9 +47,7 @@ import {ProfileSettingsService} from "./profile-settings.service";
     NgForOf,
     TuiAutoColorPipe,
     TuiChip,
-    NgClass,
-    AsyncPipe,
-    TuiLoader,
+    ButtonComponent,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
