@@ -6,7 +6,8 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  Output, TemplateRef,
+  Output,
+  TemplateRef,
   ViewChild
 } from '@angular/core';
 import {
@@ -20,7 +21,6 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {ActivatedRoute, Router} from '@angular/router';
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiChip, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiAutoColorPipe, TuiError} from '@taiga-ui/core';
@@ -40,7 +40,8 @@ import {getNextStep, Learner, SetupStep, UserInfo} from "../../models/userinfo.m
 import {OnboardingService} from "../onboarding.service";
 import {LucideIconsModule} from "./lucide-icons.module";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
-import {LanguageCode} from "../../models/language.enum";
+import {TargetLanguageWithProficiency} from "./language-setup.model";
+import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 
 
 @Component({
@@ -139,12 +140,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     private languageApiService: LanguageApiService,
     private onboardingService: OnboardingService,
     private languageNameService: LanguageNameService,
-    private router: Router,
     private userInfoService: UserInfoService,
-    private route: ActivatedRoute,
     private alertService: TuiAlertService,
     private validationMessagesService: ValidationMessagesService,
     private supportedLanguagesService: SupportedLanguagesService,
+    private popupTemplateStateService: PopupTemplateStateService,
   ) {
     this.languageForm = this.fb.group({
         targetLanguages: this.targetLanguageControl,
@@ -200,14 +200,14 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.userInfo = info;
         this.supportedLanguages = languages;
 
-        if (this.embeddedMode) {
-          const limit = this.userInfo.subscription.getMaxTargetLanguages();
-          setValidationForTargetLanguages.call(this, limit);
-          this.cachedFluentLanguages = this.languageNameService.mapLanguageCodesToNames(languages, info.fluentLangs);
-          const targetLangNames = this.languageNameService.mapLanguageCodesToNames(languages, info.targetLangs);
-          this.targetLanguageControl.setValue(targetLangNames);
-          this.initializeCefrForm(info.learners, targetLangNames);
-        }
+        const limit = this.userInfo.subscription.getMaxTargetLanguages();
+        setValidationForTargetLanguages.call(this, limit);
+
+        this.cachedFluentLanguages = this.languageNameService.mapLanguageCodesToNames(languages, info.fluentLangs);
+
+        const targetLangNames = this.languageNameService.mapLanguageCodesToNames(languages, info.targetLangs);
+        this.targetLanguageControl.setValue(this.embeddedMode ? [] : targetLangNames);
+        this.initializeCefrForm(info.learners, targetLangNames);
 
         if (this.embeddedMode && info.targetLangs.length > 0) {
           this.availableTargetLanguages = this.supportedLanguages.filter(lang => !info.targetLangs.includes(lang.code));
@@ -252,20 +252,6 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     this.cefrForm = this.fb.group({
       languages: this.fb.array(formGroups),
-    });
-  }
-
-  private initializeCefrFormEmpty(): void {
-    const selectedLanguages = this.targetLanguageControl.value || [];
-    this.cefrForm = this.fb.group({
-      languages: this.fb.array(
-        selectedLanguages.map((language: string) =>
-          this.fb.group({
-            language: [language, Validators.required],
-            cefrLevel: ['', Validators.required],
-          })
-        )
-      ),
     });
   }
 
@@ -374,38 +360,24 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.onSecondForm) {
-      console.error('This should not happen');
-      return;
-    }
-
-    const targetLanguageCodes = this.getTargetLangCodes();
-
-    if (this.embeddedMode) {
-      this.handleAddNewTargetLangMode(targetLanguageCodes);
-      return;
-    }
-
     this.onSecondForm = true
     this.cachedFluentLanguages = this.selectedFluentLanguages;
     return;
   }
 
-  private handleAddNewTargetLangMode(targetLanguageCodes: LanguageCode[]) {
-    let languageCode = targetLanguageCodes[0];
+  private handleAddNewTargetLangMode() {
+    const payload: TargetLanguageWithProficiency[] = this.prepareTargetLanguagesData();
 
-    this.languageApiService.addTargetLang(languageCode).subscribe({
-      next: () => {
-
-        const existingTargetLangs = this.userInfo?.targetLangs || [];
-        const updatedLangs = [...existingTargetLangs, languageCode];
-        this.userInfoService.updateUserInfo({targetLangs: updatedLangs});
-
-        this.router.navigate(['/settings/lang'], {queryParams: {target_lang: "success"}}).then();
+    this.languageApiService.setupLanguages(payload).subscribe({
+      next: (learners: Learner[]) => {
+        this.userInfoService.updateUserInfo({learners: learners});
+        this.popupTemplateStateService.close();
+        this.onSecondForm = false;
+        this.alertService.open('New target language added to your profile!', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to add new target language', {appearance: 'error'}).subscribe();
         console.error('Error saving languages:', error);
+        this.alertService.open(error.error.message || 'Failed to add new target languages', {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -416,18 +388,16 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.embeddedMode) {
+      this.handleAddNewTargetLangMode();
+      return;
+    }
+
     const fluentLanguageCodes = this.getFluentLangCodes();
 
     const submittedData = {
       fluentLangs: fluentLanguageCodes,
-      targetLangsData: this.cefrForm.value.languages.map((entry: any) => {
-        const languageCode = this.languageNameService.mapLanguageNameToCode(this.supportedLanguages, entry.language);
-        this.cachedCefrLevels.set(entry.language, entry.cefrLevel); // Cache CEFR level
-        return {
-          language: languageCode,
-          cefrLevel: entry.cefrLevel,
-        };
-      }),
+      targetLangsData: this.prepareTargetLanguagesData(),
     };
 
     // Send data to the backend
@@ -453,14 +423,20 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     });
   }
 
+  private prepareTargetLanguagesData(): { language: string; cefrLevel: string }[] {
+    return this.cefrForm.value.languages.map((entry: any) => {
+      const languageCode = this.languageNameService.mapLanguageNameToCode(this.supportedLanguages, entry.language);
+      this.cachedCefrLevels.set(entry.language, entry.cefrLevel); // Cache CEFR level
+      return {
+        language: languageCode,
+        cefrLevel: entry.cefrLevel,
+      };
+    });
+  }
+
   private getFluentLangCodes() {
     const fluentLanguageNames = this.selectedFluentLanguages;
     return this.languageNameService.mapLanguageNamesToCodes(this.supportedLanguages, fluentLanguageNames);
-  }
-
-  private getTargetLangCodes() {
-    const targetLanguageNames = this.targetLanguageControl.value || [];
-    return this.languageNameService.mapLanguageNamesToCodes(this.supportedLanguages, targetLanguageNames);
   }
 
   protected featuresVisible(): boolean {

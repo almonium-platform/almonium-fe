@@ -1,4 +1,4 @@
-interface TargetLanguageWithProficiency {
+export interface TargetLanguageWithProficiency {
   language: string;
   cefrLevel: string;
 }
