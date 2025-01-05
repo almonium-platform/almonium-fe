@@ -40,6 +40,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   protected readonly SetupStep = SetupStep;
   private readonly destroy$ = new Subject<void>();
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
+  @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   userInfo: UserInfo | null = null;
 

@@ -1,5 +1,4 @@
 <app-particles></app-particles>
-<paywall #paywallComponent></paywall>
 
 <div class="top-container">
 
@@ -56,10 +55,17 @@
 
     <app-language-setup
       *ngIf="activeStep === SetupStep.LANGUAGES"
-      (continue)="updateActiveStep($event)"
     ></app-language-setup>
 
+    <app-language-setup (continue)="updateActiveStep($event)"></app-language-setup>
+    <ng-container *ngIf="activeStep === SetupStep.LANGUAGES && paywallComponent?.content">
+      <div class="language-setup-wrapper">
+        <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
+      </div>
+    </ng-container>
+
     <div class="card plan">
+      <paywall #paywallComponent></paywall>
       <ng-container *ngIf="activeStep === SetupStep.PLAN && paywallComponent?.content">
         <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
       </ng-container>

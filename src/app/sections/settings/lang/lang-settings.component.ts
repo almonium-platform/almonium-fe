@@ -1,5 +1,5 @@
 import {TuiInputModule, TuiInputNumberModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -20,12 +20,13 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
+import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 
 @Component({
@@ -51,12 +52,14 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     TuiScrollbar,
     PremiumBadgedContentComponent,
     RecentAuthGuardComponent,
+    LanguageSetupComponent,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -87,7 +90,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     private localStorageService: LocalStorageService,
     private languageApiService: LanguageApiService,
     private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private router: Router,
+    private popupTemplateStateService: PopupTemplateStateService,
     private route: ActivatedRoute,
     private urlService: UrlService,
     private recentAuthGuardService: RecentAuthGuardService,
@@ -255,6 +258,6 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected navigateToLangSetup() {
-    this.router.navigate(['/setup-languages'], {queryParams: {mode: 'add-target'}}).then(r => r);
+    this.popupTemplateStateService.open(this.languageSetupComponent.content);
   }
 }

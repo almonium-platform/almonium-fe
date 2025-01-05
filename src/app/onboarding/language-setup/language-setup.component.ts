@@ -1,5 +1,14 @@
 import {TuiMultiSelectModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output, TemplateRef,
+  ViewChild
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -66,10 +75,12 @@ import {LanguageCode} from "../../models/language.enum";
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
+  @ViewChild('langSetup', {static: true}) content!: TemplateRef<any>;
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.LANGUAGES;
 
   @Output() continue = new EventEmitter<SetupStep>();
+  @Input() embeddedMode: boolean = false;
 
   protected onSecondForm: boolean = false;
 
@@ -105,8 +116,6 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     DE: ['Lexemes', 'Frequency', 'Prepared Decks'],
     // Add more if needed
   };
-
-  protected mode: 'add-target' | 'default' = 'default';
 
   cachedFluentLanguages: string[] = [];
   targetLanguageControl = new FormControl<string[]>([], []);
@@ -179,14 +188,6 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       this.targetLanguageControl.updateValueAndValidity();
     }
 
-    this.route.queryParams.subscribe((params) => {
-      if (params['mode'] === 'add-target') {
-        this.mode = 'add-target';
-        setValidationForTargetLanguages.call(this, 1);
-        this.initializeCefrFormEmpty();
-      }
-    });
-
     this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
       if (!languages) {
         return;
@@ -199,7 +200,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.userInfo = info;
         this.supportedLanguages = languages;
 
-        if (this.mode !== 'add-target') {
+        if (this.embeddedMode) {
           const limit = this.userInfo.subscription.getMaxTargetLanguages();
           setValidationForTargetLanguages.call(this, limit);
           this.cachedFluentLanguages = this.languageNameService.mapLanguageCodesToNames(languages, info.fluentLangs);
@@ -208,7 +209,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           this.initializeCefrForm(info.learners, targetLangNames);
         }
 
-        if (this.mode == 'add-target' && info.targetLangs.length > 0) {
+        if (this.embeddedMode && info.targetLangs.length > 0) {
           this.availableTargetLanguages = this.supportedLanguages.filter(lang => !info.targetLangs.includes(lang.code));
         } else {
           this.availableTargetLanguages = this.supportedLanguages;
@@ -380,7 +381,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     const targetLanguageCodes = this.getTargetLangCodes();
 
-    if (this.mode === 'add-target') {
+    if (this.embeddedMode) {
       this.handleAddNewTargetLangMode(targetLanguageCodes);
       return;
     }
