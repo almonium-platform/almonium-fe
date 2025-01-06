@@ -1,6 +1,6 @@
-import {Component, Input} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Observable} from 'rxjs';
-import {AsyncPipe, NgClass, NgIf} from "@angular/common";
+import {AsyncPipe, NgIf} from "@angular/common";
 import {TuiLoader} from "@taiga-ui/core";
 
 @Component({
@@ -10,12 +10,16 @@ import {TuiLoader} from "@taiga-ui/core";
       class="relative flex items-center justify-center w-full base"
       [class]="realType + ' ' + customClass"
       [disabled]="disabled || (loading$ | async)"
-      [ngClass]="{ 'gradient-button-disabled': disabled || (loading$ | async) }"
+      (click)="clickFunction.emit()"
     >
       <tui-loader
         *ngIf="loading$ | async"
         class="absolute loader"
       ></tui-loader>
+
+      <!-- Anything projected from outside (like <i> icons) goes here -->
+      <ng-content *ngIf="!(loading$ | async)"></ng-content>
+
       <span *ngIf="!(loading$ | async)">
         {{ label }}
       </span>
@@ -24,8 +28,7 @@ import {TuiLoader} from "@taiga-ui/core";
   imports: [
     NgIf,
     AsyncPipe,
-    TuiLoader,
-    NgClass
+    TuiLoader
   ],
   styleUrls: ['./button.component.less']
 })
@@ -35,6 +38,7 @@ export class ButtonComponent {
   @Input() disabled: boolean = false; // Disabled state
   @Input() type: 'bw' | 'gradient' = 'gradient'; // Predefined button types
   @Input() customClass: string = ''; // Optional custom CSS classes
+  @Output() clickFunction = new EventEmitter<void>();
 
   get realType() {
     if (this.type === 'bw') {

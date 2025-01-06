@@ -1,31 +1,32 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgClass, NgIf} from "@angular/common";
+import {Observable} from 'rxjs';
+import {NgIf} from '@angular/common';
+import {ButtonComponent} from '../button/button.component'; // Adjust path as needed
 
 @Component({
-    selector: 'app-edit-button',
-    template: `
-      <button class="black-n-white-button edit-btn"
-              [ngClass]="{ 'circular-icon': !editable , 'disabled': disabled }"
-              (click)="onClick()"
-              [disabled]="disabled"
-      >
-        {{ editable ? label : '' }}
-        <i *ngIf="!editable" class="fa-regular fa-pen-to-square text-sm"></i>
-      </button>
-    `,
-    imports: [
-        NgClass,
-        NgIf
-    ],
-    styleUrls: ['./edit-button.component.less']
+  selector: 'app-edit-button',
+  template: `
+    <app-button
+      [label]="editable ? label : ''"
+      [type]="'bw'"
+      [loading$]="loading$"
+      [disabled]="disabled"
+      [customClass]="'edit-btn ' + (editable ? '' : 'circular-icon')"
+      (clickFunction)="this.clickFunction.emit()"
+    >
+      <i
+        *ngIf="!editable"
+        class="fa-regular fa-pen-to-square text-sm"
+      ></i>
+    </app-button>
+  `,
+  standalone: true,
+  imports: [NgIf, ButtonComponent],
 })
 export class EditButtonComponent {
   @Input() label: string = '';
   @Input() editable: boolean = false;
   @Input() disabled: boolean = false;
+  @Input() loading$!: Observable<boolean>;
   @Output() clickFunction = new EventEmitter<void>();
-
-  onClick() {
-    this.clickFunction.emit();
-  }
 }

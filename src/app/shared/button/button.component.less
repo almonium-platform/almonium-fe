@@ -7,3 +7,11 @@
     --tui-background-accent-1: white;
   }
 }
+
+button:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text-color);
+  border-color: var(--disabled-color);
+  pointer-events: none;
+  cursor: not-allowed;
+}
