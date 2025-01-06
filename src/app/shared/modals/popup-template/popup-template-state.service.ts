@@ -5,11 +5,11 @@ import {Subject} from 'rxjs';
   providedIn: 'root',
 })
 export class PopupTemplateStateService {
-  private drawerState = new Subject<{ visible: boolean; content?: any }>();
+  private drawerState = new Subject<{ visible: boolean; content?: any; outside?: boolean }>();
   drawerState$ = this.drawerState.asObservable();
 
-  open(content: any) {
-    this.drawerState.next({visible: true, content});
+  open(content: any, outside: boolean = false) {
+    this.drawerState.next({visible: true, content, outside});
   }
 
   close() {

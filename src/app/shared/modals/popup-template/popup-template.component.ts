@@ -23,7 +23,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
       'motion-preset-slide-up': !fullscreen,
     }"
       >
-        <app-dismiss-button (close)="close()"></app-dismiss-button>
+        <app-dismiss-button (close)="close()" [isOutside]="outside"></app-dismiss-button>
         <ng-container *ngIf="content">
           <ng-container *ngTemplateOutlet="content"></ng-container>
         </ng-container>
@@ -41,6 +41,7 @@ export class PopupTemplateComponent implements OnInit {
   @Input() fullscreen = false;
   isVisible = false;
   content?: any;
+  outside = false;
 
   constructor(private popupTemplateStateService: PopupTemplateStateService) {
   }
@@ -49,6 +50,7 @@ export class PopupTemplateComponent implements OnInit {
     this.popupTemplateStateService.drawerState$.subscribe((state) => {
       this.isVisible = state.visible;
       this.content = state.content;
+      this.outside = state.outside || false;
     });
   }
 
