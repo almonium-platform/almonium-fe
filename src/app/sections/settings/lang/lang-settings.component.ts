@@ -69,6 +69,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected currentFluentLanguages: string[] = [];
   protected fluentEditable: boolean = false;
   protected fluentEnabled$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   // target languages
   protected currentTargetLanguages: string[] = [];
@@ -183,6 +185,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.loadingSubject$.next(true);
+
     const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, this.selectedFluentLanguages);
     this.languageService.saveFluentLanguages({
       langCodes: fluentLanguageCodes,
@@ -196,6 +200,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'error'}).subscribe();
         this.restoreFluent();
+      },
+      complete: () => {
+        this.loadingSubject$.next(false);
       },
     });
   }

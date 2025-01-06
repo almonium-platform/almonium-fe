@@ -50,6 +50,7 @@
     [disabled]="this.usernameEditable && !this.usernameForm.valid || this.isLoading"
     [label]="'Change'"
     [editable]="usernameEditable"
+    [loading$]="loading$"
     (clickFunction)="onUsernameEditClick()">
   </app-edit-button>
 </div>

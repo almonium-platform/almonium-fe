@@ -137,6 +137,7 @@
           [disabled]="!emailConfirmEnabled()"
           [label]="'Change email'"
           [editable]="emailEditable"
+          [loading$]="loadingEmail$"
           (clickFunction)="onEmailEditClick()">
         </app-edit-button>
       </div>
@@ -175,6 +176,7 @@
           [disabled]="!passwordConfirmEnabled()"
           [label]="'Change password'"
           [editable]="passwordEditable"
+          [loading$]="loadingPassword$"
           (clickFunction)="onPasswordEditClick()">
         </app-edit-button>
       </div>

@@ -21,7 +21,7 @@ import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-g
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
-import {Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, Subject, takeUntil} from "rxjs";
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 
 @Component({
@@ -120,6 +120,13 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
   protected useCountdown: boolean = false;
+
+
+  private readonly loadingSubjectEmail$ = new BehaviorSubject<boolean>(false);
+  protected readonly loadingEmail$ = this.loadingSubjectEmail$.asObservable();
+
+  private readonly loadingSubjectPassword$ = new BehaviorSubject<boolean>(false);
+  protected readonly loadingPassword$ = this.loadingSubjectPassword$.asObservable();
 
 
   constructor(
@@ -572,6 +579,8 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private changePassword() {
     this.clearAuthCache();
 
+    this.loadingSubjectPassword$.next(true);
+
     this.settingService.changePassword(this.getPasswordFieldValue()).subscribe({
       next: () => {
         this.alertService.open('Password successfully changed!', {appearance: 'success'}).subscribe();
@@ -581,10 +590,15 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       error: (error) => {
         this.alertService.open(error.error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
       },
+      complete: () => {
+        this.loadingSubjectPassword$.next(false);
+      }
     });
   }
 
   private checkAndChangeEmail() {
+    this.loadingSubjectEmail$.next(true);
+
     this.settingService.isEmailAvailable(this.getEmailFieldValue()).subscribe({
       next: (isAvailable) => {
         if (!isAvailable) {
@@ -601,6 +615,9 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         this.alertService.open(error.error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
         console.error('Error checking email availability:', error);
       },
+      complete: () => {
+        this.loadingSubjectEmail$.next(false);
+      }
     });
   }
 

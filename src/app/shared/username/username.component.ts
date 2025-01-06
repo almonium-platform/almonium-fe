@@ -15,7 +15,7 @@ import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {LucideAngularModule} from "lucide-angular";
 import {EditButtonComponent} from "../edit-button/edit-button.component";
 import {UserInfoService} from "../../services/user-info.service";
-import {Observable, of, Subject, takeUntil, timer} from "rxjs";
+import {BehaviorSubject, Observable, of, Subject, takeUntil, timer} from "rxjs";
 import {UserInfo} from "../../models/userinfo.model";
 import {AppConstants} from "../../app.constants";
 import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from "rxjs/operators";
@@ -72,6 +72,8 @@ export class UsernameComponent implements OnInit, OnDestroy {
 • lowercase Latin letters,
 • underscores, digits.
 `;
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private userInfoService: UserInfoService,
@@ -152,6 +154,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
     if (this.usernameForm.invalid) {
       return;
     }
+    this.loadingSubject$.next(true);
 
     const username = this.usernameForm.get('usernameValue')?.value!;
     this.profileSettingsService.updateUsername(username).subscribe({
@@ -162,6 +165,9 @@ export class UsernameComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.alertService.open('Failed to update username', {appearance: 'error'}).subscribe();
+      },
+      complete: () => {
+        this.loadingSubject$.next(false);
       }
     });
   }

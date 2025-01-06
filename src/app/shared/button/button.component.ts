@@ -33,11 +33,11 @@ import {TuiLoader} from "@taiga-ui/core";
   styleUrls: ['./button.component.less']
 })
 export class ButtonComponent {
-  @Input() loading$!: Observable<boolean>; // Observable for loading state
-  @Input() label!: string; // Text to display on the button
-  @Input() disabled: boolean = false; // Disabled state
-  @Input() type: 'bw' | 'gradient' = 'gradient'; // Predefined button types
-  @Input() customClass: string = ''; // Optional custom CSS classes
+  @Input() loading$!: Observable<boolean>;
+  @Input() label!: string;
+  @Input() disabled: boolean = false;
+  @Input() type: 'bw' | 'gradient' = 'gradient';
+  @Input() customClass: string = '';
   @Output() clickFunction = new EventEmitter<void>();
 
   get realType() {
