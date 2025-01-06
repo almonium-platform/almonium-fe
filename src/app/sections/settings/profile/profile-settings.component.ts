@@ -81,8 +81,12 @@ auto-renewal in the customer portal.`;
   // interests
   protected interestsEdit: boolean = false;
   protected interests: Interest[] = [];
-  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
-  protected readonly loading$ = this.loadingSubject$.asObservable();
+
+  private readonly loadingSubjectInterests$ = new BehaviorSubject<boolean>(false);
+  protected readonly loadingInterests$ = this.loadingSubjectInterests$.asObservable();
+
+  private readonly loadingSubjectCustomerPortal$ = new BehaviorSubject<boolean>(false);
+  protected readonly loadingCustomerPortal$ = this.loadingSubjectCustomerPortal$.asObservable();
 
   constructor(
     private userInfoService: UserInfoService,
@@ -149,7 +153,10 @@ auto-renewal in the customer portal.`;
   }
 
   protected accessCustomerPortal() {
+    this.loadingSubjectCustomerPortal$.next(true);
+
     this.planService.accessCustomerPortal().subscribe((url) => {
+      this.loadingSubjectCustomerPortal$.next(false);
       window.location.href = url.sessionUrl;
     });
   }
@@ -196,7 +203,7 @@ auto-renewal in the customer portal.`;
     }
 
     // Start loading
-    this.loadingSubject$.next(true);
+    this.loadingSubjectInterests$.next(true);
 
     try {
       await firstValueFrom(
@@ -213,7 +220,7 @@ auto-renewal in the customer portal.`;
         .open('Failed to update interests', {appearance: 'error'})
         .subscribe();
     } finally {
-      this.loadingSubject$.next(false);
+      this.loadingSubjectInterests$.next(false);
     }
   }
 

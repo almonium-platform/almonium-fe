@@ -80,15 +80,21 @@
           </ng-template>
         </lucide-icon>
 
-        <button class="black-n-white-button" (click)="accessCustomerPortal()"
-                tuiHintAppearance="dark"
-                tuiHintDirection="bottom"
-                [tuiHint]="customerPortalTooltip"
-        >Manage
-          <ng-template #customerPortalTooltip>
-            Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
-          </ng-template>
-        </button>
+        <app-button
+          [label]="'Manage'"
+          [type]="'bw'"
+          class="manage-btn"
+          (clickFunction)="accessCustomerPortal()"
+          hintAppearance="dark"
+          hintDirection="bottom"
+          [hint]="customerPortalTooltip"
+          [loading$]="loadingCustomerPortal$"
+        >
+        </app-button>
+
+        <ng-template #customerPortalTooltip>
+          Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
+        </ng-template>
       </div>
     </div>
 
@@ -140,7 +146,7 @@
       <div *ngIf="interestsEdit">
         <app-button
           label="Save"
-          [loading$]="loading$"
+          [loading$]="loadingInterests$"
           [disabled]="!validateInterests()"
           (click)="saveInterests()"
           class="interest-button"

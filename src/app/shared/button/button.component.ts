@@ -1,7 +1,8 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, TemplateRef} from '@angular/core';
 import {Observable} from 'rxjs';
-import {AsyncPipe, NgIf} from "@angular/common";
-import {TuiLoader} from "@taiga-ui/core";
+import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
+import {TuiHint, TuiLoader} from "@taiga-ui/core";
+import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 
 @Component({
   selector: 'app-button',
@@ -11,6 +12,9 @@ import {TuiLoader} from "@taiga-ui/core";
       [class]="realType + ' ' + customClass"
       [disabled]="disabled || (loading$ | async)"
       (click)="clickFunction.emit()"
+      [tuiHint]="hint"
+      [tuiHintAppearance]="hintAppearance"
+      [tuiHintDirection]="hintDirection"
     >
       <tui-loader
         *ngIf="loading$ | async"
@@ -20,7 +24,7 @@ import {TuiLoader} from "@taiga-ui/core";
       <!-- Anything projected from outside (like <i> icons) goes here -->
       <ng-content *ngIf="!(loading$ | async)"></ng-content>
 
-      <span *ngIf="!(loading$ | async)">
+      <span [ngStyle]="{ color: (loading$ | async) ? 'transparent' : 'inherit' }">
         {{ label }}
       </span>
     </button>
@@ -28,7 +32,9 @@ import {TuiLoader} from "@taiga-ui/core";
   imports: [
     NgIf,
     AsyncPipe,
-    TuiLoader
+    TuiLoader,
+    TuiHint,
+    NgStyle
   ],
   styleUrls: ['./button.component.less']
 })
@@ -39,6 +45,11 @@ export class ButtonComponent {
   @Input() type: 'bw' | 'gradient' = 'gradient';
   @Input() customClass: string = '';
   @Output() clickFunction = new EventEmitter<void>();
+
+  // Hint-related inputs
+  @Input() hint: string | TemplateRef<unknown> = '';
+  @Input() hintAppearance = 'onDark';
+  @Input() hintDirection: TuiHintDirection = 'top';
 
   get realType() {
     if (this.type === 'bw') {
