@@ -3,7 +3,6 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
 import {LanguageSetupRequest} from "./language-setup/language-setup.model";
-import {Interest} from "../shared/interests/interest.model";
 import {Learner, SetupStep} from "../models/userinfo.model";
 
 @Injectable({

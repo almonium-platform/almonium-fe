@@ -1,5 +1,5 @@
 import {Injectable, NgZone, OnDestroy} from '@angular/core';
-import {BehaviorSubject, fromEvent, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, fromEvent, Subject} from 'rxjs';
 import {debounceTime, map, startWith, takeUntil} from 'rxjs/operators';
 
 @Injectable({

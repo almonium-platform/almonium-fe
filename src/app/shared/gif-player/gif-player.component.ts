@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
+import {Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import {Subject} from 'rxjs';
 
 @Component({
   selector: 'app-gif-player',

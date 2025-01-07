@@ -1,5 +1,4 @@
 import {Routes} from '@angular/router';
-import {AuthComponent} from './authentication/auth/auth.component';
 import {HomeComponent} from "./sections/home/home.component";
 import {ResetPasswordComponent} from "./authentication/reset-password/reset-password.component";
 import {EmailVerificationComponent} from "./authentication/email-verification/email-verification.component";
