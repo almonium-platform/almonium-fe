@@ -266,6 +266,6 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected navigateToLangSetup() {
-    this.popupTemplateStateService.open(this.languageSetupComponent.content, true);
+    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'lang', true);
   }
 }

@@ -1,5 +1,5 @@
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
@@ -21,8 +21,9 @@ import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-g
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
-import {BehaviorSubject, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, filter, Subject, takeUntil} from "rxjs";
 import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
+import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 
 @Component({
   selector: 'app-settings',
@@ -98,6 +99,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   @ViewChild('passwordField') passwordField!: TuiTextfieldComponent<string>;
   @ViewChild('emailField') emailField!: TuiTextfieldComponent<string>;
+  @ViewChild(AuthComponent, {static: false}) authComponent!: AuthComponent;
 
   // Provider info modal
   protected providerInfoVisible: boolean = false;
@@ -139,6 +141,8 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     private urlService: UrlService,
     private recentAuthGuardService: RecentAuthGuardService,
     private localStorageService: LocalStorageService,
+    private popupTemplateStateService: PopupTemplateStateService,
+    private cdr: ChangeDetectorRef,
   ) {
   }
 
@@ -148,6 +152,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.populateAuthMethods();
     this.getUserInfo();
     this.populateLastToken();
+    this.listenToPopupClose();
   }
 
   ngOnDestroy(): void {
@@ -366,13 +371,29 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   // AUTH MODAL
-  protected closeAuthModal() {
-    this.isAuthModalVisible = false;
-    this.populateAuthMethods();
+  private listenToPopupClose() {
+    this.popupTemplateStateService.drawerState$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((state) => state.type === 'auth' && !state.visible)
+      )
+      .subscribe(() => {
+        if (this.isAuthModalVisible) {
+          this.isAuthModalVisible = false;
+          this.cdr.detectChanges();
+          this.populateAuthMethods();
+        }
+      });
   }
 
   private openAuthModal() {
     this.isAuthModalVisible = true;
+
+    setTimeout(() => {
+      if (this.authComponent) {
+        this.popupTemplateStateService.open(this.authComponent.content, 'auth', true);
+      }
+    });
   }
 
   // universal live token auth guard

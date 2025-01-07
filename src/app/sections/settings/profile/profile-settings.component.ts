@@ -149,7 +149,7 @@ auto-renewal in the customer portal.`;
   }
 
   protected showComparePlansPopup() {
-    this.popupTemplateStateService.open(this.paywallComponent.content);
+    this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
   }
 
   protected accessCustomerPortal() {
@@ -198,7 +198,7 @@ auto-renewal in the customer portal.`;
   protected async saveInterests() {
     if (this.interests === this.userInfo?.interests) {
       this.interestsEdit = false;
-      console.log('no changes');
+      console.info('no changes');
       return;
     }
 

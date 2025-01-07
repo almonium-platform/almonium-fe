@@ -76,7 +76,7 @@ export class PremiumBadgedContentComponent {
     event.stopPropagation();
 
     if (this.display) {
-      this.popupTemplateStateService.open(this.paywallComponent.content);
+      this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
     } else if (this.originalClickHandler) {
       this.originalClickHandler();
     }

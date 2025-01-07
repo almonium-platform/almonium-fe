@@ -289,6 +289,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   openChangeAvatarPopup() {
-    this.popupTemplateStateService.open(this.manageAvatarComponent.content);
+    this.popupTemplateStateService.open(this.manageAvatarComponent.content, 'avatar');
   }
 }

@@ -1,15 +1,6 @@
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {HttpClient} from '@angular/common/http';
-import {
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output
-} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
 import {
@@ -28,12 +19,11 @@ import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
 import {Subject} from "rxjs";
-import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
-import {ParticlesComponent} from "../../shared/particles/particles.component";
-import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service"; // Import your service
+import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
+import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service"; // Import your service
 
 declare const google: any;
 
@@ -52,14 +42,12 @@ declare const google: any;
     NgxParticlesModule,
     NgClass,
     RouterLink,
-    DismissButtonComponent,
     ProviderIconComponent,
     TuiIcon,
     TuiPassword,
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
     TuiTextfield,
-    ParticlesComponent,
     NgForOf,
   ],
   templateUrl: './auth.component.html',
@@ -80,24 +68,15 @@ declare const google: any;
 })
 export class AuthComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
 
-  // EMBEDDED MODE (REAUTHENTICATION)
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
+  @Input() providers: string[] = ['google', 'apple', 'local'];
+
   protected embeddedMode: boolean = false;
-  @Output() close = new EventEmitter<void>(); // Emits close event for modal
   private intent: string = '';
   protected showSeparatorAndForm: boolean = true;
-  @Input() providers: string[] = ['google', 'apple', 'local'];
   protected connectedProviders: string[] = [];
-
-  onClose() {
-    this.close.emit();
-  }
-
-  @HostListener('document:keydown.escape', ['$event'])
-  onEscapeKeyDown(_: KeyboardEvent) {
-    this.onClose();
-  }
 
   // MAIN COMPONENT
   // legal links
@@ -132,6 +111,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     private userInfoService: UserInfoService,
     private http: HttpClient,
     private urlService: UrlService,
+    private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -271,7 +251,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSubmit() {
+  protected onSubmit() {
     if (!this.authForm.valid) {
       console.error('Button should be disabled');
       return;
@@ -346,7 +326,7 @@ export class AuthComponent implements OnInit, OnDestroy {
         } else {
           this.router.navigate(['/home']).then((r) => r);
         }
-        this.close.emit();
+        this.onClose();
       },
       error: (error) => {
         this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
@@ -371,11 +351,11 @@ export class AuthComponent implements OnInit, OnDestroy {
     });
   }
 
-  toggleSignUp() {
+  protected toggleSignUp() {
     this.isSignUp = !this.isSignUp;
   }
 
-  onForgotPassword() {
+  protected onForgotPassword() {
     const emailValue = this.authForm.get('emailValue')?.value!;
     if (!emailValue) {
       this.alertService.open('Please enter your email address', {appearance: 'error'}).subscribe();
@@ -394,7 +374,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   // should be defined as an arrow function to access 'this'
-  onSocialLogin = (provider: string) => {
+  protected onSocialLogin = (provider: string) => {
     if (provider === 'local') {
       this.showSeparatorAndForm = !this.showSeparatorAndForm;
       this.cdr.markForCheck();
@@ -411,11 +391,15 @@ export class AuthComponent implements OnInit, OnDestroy {
   };
 
   // Hovering over the greeting
-  onMouseEnter() {
+  protected onMouseEnter() {
     this.isHovering = true;
   }
 
-  onMouseLeave() {
+  protected onMouseLeave() {
     this.isHovering = false;
+  }
+
+  private onClose() {
+    this.popupTemplateStateService.close();
   }
 }

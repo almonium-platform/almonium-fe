@@ -1,27 +1,25 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
-import {NgIf} from "@angular/common";
 import {AuthComponent} from "../../authentication/auth/auth.component";
 import {Subject, takeUntil} from "rxjs";
+import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
 @Component({
   selector: 'app-recent-auth-guard',
   template: `
-    <div *ngIf="visible" class="auth-modal-overlay">
-      <app-auth (close)="closeAuthModal()" [mode]="'embedded'"></app-auth>
-    </div>
+    <app-auth mode="embedded"></app-auth>
   `,
   imports: [
-    NgIf,
     AuthComponent
   ],
 })
 export class RecentAuthGuardComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  protected visible = false;
+  @ViewChild(AuthComponent, {static: true}) authComponent!: AuthComponent;
 
   constructor(
-    private recentGuardService: RecentAuthGuardStateService
+    private recentGuardService: RecentAuthGuardStateService,
+    private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -29,16 +27,17 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
     this.recentGuardService.recentAuthState$
       .pipe(takeUntil(this.destroy$))
       .subscribe((state) => {
-        this.visible = state.visible;
-      });
+          if (state.visible) {
+            this.popupTemplateStateService.open(this.authComponent.content, 'auth', true);
+          } else {
+            this.popupTemplateStateService.close();
+          }
+        }
+      );
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  closeAuthModal() {
-    this.visible = false;
   }
 }

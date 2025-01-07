@@ -1,11 +1,5 @@
-<div [ngClass]="{'auth-modal-overlay': embeddedMode}">
-  <app-particles
-    *ngIf="mode === 'default'"
-  ></app-particles>
-
-  <div [ngClass]="{'headless-container': mode === 'default', 'modal-container': embeddedMode}">
-    <app-dismiss-button *ngIf="embeddedMode" (close)="onClose()" [isOutside]="true"></app-dismiss-button>
-
+<ng-template #auth>
+  <div class="auth-body" [ngClass]="{'headless-container': mode === 'default', 'modal-container': embeddedMode}">
     <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
       <div class="card">
 
@@ -96,4 +90,4 @@
       </div>
     </form>
   </div>
-</div>
+</ng-template>

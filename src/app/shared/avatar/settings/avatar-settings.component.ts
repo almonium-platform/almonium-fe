@@ -33,7 +33,7 @@ export class AvatarSettingsComponent {
   }
 
   changeAvatar(): void {
-    this.popupTemplateStateService.open(this.manageAvatarComponent.content);
+    this.popupTemplateStateService.open(this.manageAvatarComponent.content, 'avatar');
   }
 
   get avatarUrl(): string | null {
