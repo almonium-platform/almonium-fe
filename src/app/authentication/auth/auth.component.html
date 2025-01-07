@@ -54,7 +54,9 @@
               <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
             </div>
 
-            <div class="row-2">
+            <div class="row-2"
+                 [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
+            >
               <tui-textfield
                 tuiTextfieldSize="l"
                 data-size="l"
