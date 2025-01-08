@@ -73,7 +73,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
 
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
-  @Input() providers: string[] = ['google', 'apple', 'local'];
+  protected providers: string[] = ['google', 'apple', 'local'];
 
   protected embeddedMode: boolean = false;
   private intent: string = '';

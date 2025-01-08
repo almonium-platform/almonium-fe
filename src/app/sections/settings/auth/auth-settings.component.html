@@ -62,10 +62,7 @@
 <app-recent-auth-guard></app-recent-auth-guard>
 
 <ng-container *ngIf="isAuthModalVisible">
-  <app-auth
-    [mode]="authMode"
-    [providers]="authProviders"
-  ></app-auth>
+  <app-auth [mode]="authMode"></app-auth>
 </ng-container>
 
 <div class="base-container">

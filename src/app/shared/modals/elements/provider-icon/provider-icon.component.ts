@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
@@ -58,7 +58,13 @@ export class ProviderIconComponent {
   };
 
   get isDisabled(): boolean {
-    return this.clickOnUnlinked === undefined && !this.loginFlow;
+    if (this.loginFlow) {
+      return false;
+    }
+    if (this.clickOnUnlinked) {
+      return false;
+    }
+    return !this.isProviderConnected();
   }
 
   getProviderClass(): string {
