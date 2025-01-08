@@ -1,5 +1,4 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
 import {NgIf, NgTemplateOutlet} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
@@ -9,7 +8,6 @@ import {UrlService} from "../../services/url.service";
 @Component({
   selector: 'app-pricing',
   imports: [
-    NavbarWrapperComponent,
     NgTemplateOutlet,
     NgIf,
     PaywallComponent

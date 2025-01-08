@@ -1,16 +1,38 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiRoot} from "@taiga-ui/core";
 import {Component} from '@angular/core';
-import {RouterOutlet} from '@angular/router';
+import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
+import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
+import {NgIf} from "@angular/common";
+import {UrlService} from "./services/url.service";
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent],
+  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.less',
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
 export class AppComponent {
   title = 'almonium-fe';
+  protected showNavbar: boolean = true;
+  private noNavbarRoutes: string[] = [
+    '/auth',
+    '/login',
+    '/logout',
+    '/reset-password',
+    '/verify-email',
+  ];
+
+  constructor(private router: Router,
+              private urlService: UrlService,
+  ) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        urlService.clearUrl();
+        this.showNavbar = !this.noNavbarRoutes.includes(event.urlAfterRedirects);
+      }
+    });
+  }
 }

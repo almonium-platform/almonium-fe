@@ -2,7 +2,6 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {UserInfoService} from '../../services/user-info.service';
 import {Subject, takeUntil} from 'rxjs';
 import {SetupStep, UserInfo} from "../../models/userinfo.model";
-import {NavbarComponent} from "../../shared/navbars/navbar/navbar.component";
 import {Router} from "@angular/router";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
 
@@ -11,7 +10,6 @@ import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less'],
   imports: [
-    NavbarComponent,
     NotReadyComponent
   ]
 })

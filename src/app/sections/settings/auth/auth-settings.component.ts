@@ -22,7 +22,6 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {BehaviorSubject, filter, Subject, takeUntil} from "rxjs";
-import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 
 @Component({
@@ -49,8 +48,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     TuiTextfieldComponent,
     FormsModule,
     TuiPassword,
-    TuiTextfield,
-    NavbarComponent
+    TuiTextfield
   ],
   templateUrl: './auth-settings.component.html',
   providers: [

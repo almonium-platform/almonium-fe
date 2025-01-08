@@ -7,7 +7,6 @@ import {TargetLanguageDropdownService} from "../../services/target-language-drop
 import {NgIf, NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
-import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar-wrapper.component";
 
 @Component({
   selector: 'app-review',
@@ -16,8 +15,7 @@ import {NavbarWrapperComponent} from "../../shared/navbars/navbar-wrapper/navbar
   imports: [
     NgIf,
     RouterLink,
-    NgOptimizedImage,
-    NavbarWrapperComponent
+    NgOptimizedImage
   ]
 })
 export class ReviewComponent implements OnInit, OnDestroy {

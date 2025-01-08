@@ -1,5 +1,4 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
@@ -29,7 +28,6 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 @Component({
   selector: 'app-profile-settings',
   imports: [
-    NavbarComponent,
     SettingsTabsComponent,
     NgIf,
     InteractiveCtaButtonComponent,

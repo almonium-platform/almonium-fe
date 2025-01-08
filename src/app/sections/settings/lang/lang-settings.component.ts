@@ -1,7 +1,6 @@
 import {TuiInputModule, TuiInputNumberModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {NavbarComponent} from "../../../shared/navbars/navbar/navbar.component";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
   FluentLanguageSelectorComponent
@@ -33,7 +32,6 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
   selector: 'app-lang-settings',
   imports: [
     FormsModule,
-    NavbarComponent,
     ReactiveFormsModule,
     TuiInputModule,
     TuiInputNumberModule,

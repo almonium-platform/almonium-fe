@@ -6,23 +6,21 @@ import {ActivatedRoute} from '@angular/router';
 import {FrequencyService} from '../../services/frequency.service';
 import {LanguageCode} from '../../models/language.enum';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
-import {NavbarWrapperComponent} from '../../shared/navbars/navbar-wrapper/navbar-wrapper.component';
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
 import {DiacriticService} from "./service/diacritic.service";
 import {AutocompleteService} from "./service/autocomplete.service";
 
 @Component({
-    selector: 'app-discover',
-    templateUrl: './discover.component.html',
-    styleUrls: ['./discover.component.less'],
-    imports: [
-        NgForOf,
-        NgIf,
-        FormsModule,
-        ContenteditableValueAccessorModule,
-        NavbarWrapperComponent,
-        DiacriticPopupComponent,
-    ]
+  selector: 'app-discover',
+  templateUrl: './discover.component.html',
+  styleUrls: ['./discover.component.less'],
+  imports: [
+    NgForOf,
+    NgIf,
+    FormsModule,
+    ContenteditableValueAccessorModule,
+    DiacriticPopupComponent,
+  ]
 })
 export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   // Diacritic popup
