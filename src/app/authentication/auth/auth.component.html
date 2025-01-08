@@ -4,9 +4,11 @@
       <div class="card">
 
         <div *ngIf="mode === 'default'" class="logo-div">
-          <div class="logo-container" [ngClass]="{ rotating: isRotating }">
-            <img ngSrc="../../../assets/img/logo/logo.svg" alt="Logo" class="logo" height="1481" width="1456">
-          </div>
+          <app-gif-player
+            class="logo-container"
+            (click)="replayGifTrigger.next()"
+            [replayTrigger]="replayGifTrigger"
+          ></app-gif-player>
           <img ngSrc="../../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
                priority>
         </div>

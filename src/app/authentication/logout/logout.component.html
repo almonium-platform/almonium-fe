@@ -1,15 +1,12 @@
 <div class="headless-container">
   <div class="tui-col_8">
     <div class="tui-form__row">
-      <div class="logo-container" [ngClass]="{ rotating: isRotating }">
-        <img
-          ngSrc="../../../assets/img/logo/logo.svg"
-          alt="Logo"
-          width="100"
-          height="100"
-          priority
-        />
-      </div>
+      <app-gif-player
+        class="logo-container"
+        [replayTrigger]="replayGifTrigger"
+        [looped]="true"
+      ></app-gif-player>
+
       <div class="message">
         <p>{{ loggingOutMessage }}</p>
       </div>

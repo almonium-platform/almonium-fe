@@ -23,7 +23,8 @@ import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/
 import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
-import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service"; // Import your service
+import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
+import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component"; // Import your service
 
 declare const google: any;
 
@@ -49,6 +50,7 @@ declare const google: any;
     TuiTextfieldOptionsDirective,
     TuiTextfield,
     NgForOf,
+    GifPlayerComponent,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -99,7 +101,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   isSignUp: boolean = false;
 
   // logo
-  isRotating: boolean = false;
+  protected replayGifTrigger = new Subject<void>();
 
   constructor(
     private authService: AuthService,
@@ -128,7 +130,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   handleCredentialResponse(response: any) {
-    this.isRotating = true;
+    this.replayGifTrigger.next();
     const credential = response.credential;
 
     this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
@@ -138,7 +140,6 @@ export class AuthComponent implements OnInit, OnDestroy {
         },
         error: () => {
           console.error('Error during login', response);
-          this.isRotating = false;
         },
       });
   }
@@ -267,7 +268,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     } else if (this.mode === 'embedded') {
       this.login(emailValue, passwordValue);
     } else {
-      this.isRotating = true;
+      this.replayGifTrigger.next();
       if (this.isSignUp) {
         this.register(emailValue, passwordValue);
       } else {
@@ -305,7 +306,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   private register(emailValue: string, passwordValue: string) {
     this.authService.register(emailValue, passwordValue).subscribe({
       next: (response) => {
-        this.isRotating = false;
         this.alertService
           .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
           .subscribe();
@@ -313,7 +313,6 @@ export class AuthComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
-        this.isRotating = false;
       },
     });
   }
@@ -330,7 +329,6 @@ export class AuthComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
-        this.isRotating = false;
       },
     });
   }
@@ -381,7 +379,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isRotating = true;
+    this.replayGifTrigger.next();
     const providerUrls: { [key: string]: string } = {
       google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
       apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,

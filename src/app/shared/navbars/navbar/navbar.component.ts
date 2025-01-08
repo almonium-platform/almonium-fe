@@ -24,6 +24,7 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
+import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 
 @Component({
   selector: 'app-navbar',
@@ -40,7 +41,8 @@ import {ViewportService} from "../../../services/viewport.service";
     RouterLink,
     ProfilePictureComponent,
     ManageAvatarComponent,
-    LucideAngularModule
+    LucideAngularModule,
+    GifPlayerComponent
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -68,6 +70,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private targetLanguages: LanguageCode[] = [];
 
   private langColors: { [key: string]: string } = {};
+
+  protected replayGifSubject = new Subject<void>();
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -272,7 +276,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.isNotificationOpen = false;
   }
 
-  toggleDiscoverMenu(): void {
+  onLogoClick(): void {
+    this.replayGifSubject.next();
+
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {

@@ -1,26 +1,25 @@
 import {Component, OnInit} from '@angular/core';
 import {Router} from "@angular/router";
 import {AuthService} from "../auth/auth.service";
-import {NgClass, NgOptimizedImage} from "@angular/common";
 import {NgxParticlesModule} from "@tsparticles/angular";
-import {finalize, forkJoin, timer} from "rxjs";
+import {finalize, forkJoin, Subject, timer} from "rxjs";
+import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 
 @Component({
-    selector: 'app-logout',
-    imports: [
-        NgOptimizedImage,
-        NgxParticlesModule,
-        NgClass
-    ],
-    templateUrl: './logout.component.html',
-    styleUrl: './logout.component.less'
+  selector: 'app-logout',
+  imports: [
+    NgxParticlesModule,
+    GifPlayerComponent
+  ],
+  templateUrl: './logout.component.html',
+  styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {
   private readonly timeout = 250;
   private router: Router;
-  isRotating: boolean = true;
   loggingOutMessage: string = 'Logging out';
-  private intervalId: any;
+  intervalId: any;
+  protected replayGifTrigger = new Subject<void>();
 
   constructor(private authService: AuthService,
               router: Router) {
@@ -29,6 +28,7 @@ export class LogoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.startMessageAnimation();
+    this.replayGifTrigger.next();
     const minDisplayTime$ = timer(1000);  // 1-second timer observable
     const logout$ = this.authService.logout();  // Logout API call
 
