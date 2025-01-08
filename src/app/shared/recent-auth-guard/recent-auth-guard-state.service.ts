@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
-import {Subject} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RecentAuthGuardStateService {
-  private recentAuthState = new Subject<{ visible: boolean }>();
+  private recentAuthState = new BehaviorSubject<{ visible: boolean }>({visible: false});
   recentAuthState$ = this.recentAuthState.asObservable();
 
   open() {
