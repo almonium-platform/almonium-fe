@@ -41,7 +41,6 @@ export class PopupTemplateStateService {
     });
 
     setTimeout(() => {
-      console.log('closing for real');
       this.drawerState.next({
         ...current,
         visible: false,

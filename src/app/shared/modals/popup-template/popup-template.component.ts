@@ -9,10 +9,12 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     <div
       *ngIf="drawerState.visible"
       [ngClass]="{
-        'fixed inset-0 z-50 bg-black bg-opacity-75 flex': true,
+        'fixed inset-0 z-50 flex bg-overlay': true,
         'flex-col': fullscreen,
         'items-center justify-center': !fullscreen
       }"
+      [class.bg-darkening]="drawerState.visible && !drawerState.closing"
+      [class.bg-lightening]="drawerState.closing"
     >
       <div
         class="relative"
@@ -35,38 +37,70 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
       </div>
     </div>
   `,
-  styles: [`
-    .slide-down {
-      animation: slideDown 0.5s ease-in-out forwards;
-    }
+  styles: [
+    `
+      .bg-overlay {
+        background-color: rgba(0, 0, 0, 0); /* Initial transparent state */
+        transition: background-color 0.4s ease;
+      }
 
-    @keyframes slideDown {
-      to {
-        transform: translateY(100%);
-        opacity: 0;
+      .bg-darkening {
+        animation: fadeInBackground 0.4s forwards ease-in-out;
       }
-      from {
-        transform: translateY(0%);
-        opacity: 1;
+
+      .bg-lightening {
+        animation: fadeOutBackground 0.4s forwards ease-in-out;
       }
-    }
-  `],
+
+      @keyframes fadeInBackground {
+        from {
+          background-color: rgba(0, 0, 0, 0);
+        }
+        to {
+          background-color: rgba(0, 0, 0, 0.80); /* Final dark state */
+        }
+      }
+
+      @keyframes fadeOutBackground {
+        from {
+          background-color: rgba(0, 0, 0, 0.80);
+        }
+        to {
+          background-color: rgba(0, 0, 0, 0); /* Back to transparent */
+        }
+      }
+
+      .slide-down {
+        animation: slideDown 0.5s ease-in-out forwards;
+      }
+
+      @keyframes slideDown {
+        to {
+          transform: translateY(100%);
+          opacity: 0;
+        }
+        from {
+          transform: translateY(0%);
+          opacity: 1;
+        }
+      }
+    `,
+  ],
   imports: [
     NgIf,
     NgTemplateOutlet,
     NgClass,
     DismissButtonComponent,
-  ]
+  ],
 })
 export class PopupTemplateComponent implements OnInit {
   @Input() fullscreen = false;
   drawerState!: DrawerState;
 
-  constructor(private popupTemplateStateService: PopupTemplateStateService) {
-  }
+  constructor(private popupTemplateStateService: PopupTemplateStateService) {}
 
   ngOnInit() {
-    this.popupTemplateStateService.drawerState$.subscribe(state => {
+    this.popupTemplateStateService.drawerState$.subscribe((state) => {
       this.drawerState = state;
     });
   }
