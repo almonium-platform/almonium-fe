@@ -51,7 +51,7 @@ export class ButtonComponent implements OnInit {
   @Input() customClass: string = '';
   @Input() fontSize?: number;
   @Input() padding?: string = '';
-  @Input() type?: 'button' | 'submit' | 'reset' = 'button';
+  @Input() type?: 'button' | 'submit' | 'reset' = 'submit';
   @Output() clickFunction = new EventEmitter<void>();
 
   // Hint-related inputs
