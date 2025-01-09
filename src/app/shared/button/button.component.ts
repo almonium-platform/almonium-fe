@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
-import {AsyncPipe, NgClass, NgIf, NgStyle} from "@angular/common";
+import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
 import {TuiHint, TuiLoader} from "@taiga-ui/core";
 import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 
@@ -15,7 +15,6 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
-      [ngClass]="this.appearance === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
@@ -38,8 +37,7 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
     AsyncPipe,
     TuiLoader,
     TuiHint,
-    NgStyle,
-    NgClass
+    NgStyle
   ],
   styleUrls: ['./button.component.less']
 })
