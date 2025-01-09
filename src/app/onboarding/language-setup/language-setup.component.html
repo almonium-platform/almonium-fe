@@ -139,13 +139,14 @@
           </div>
         </div>
       </div>
-      <button type="submit"
-              class="gradient-button"
-              [disabled]="cefrForm.invalid"
-              [ngClass]="{ 'gradient-button-disabled': cefrForm.invalid }"
-      >
-        Save & Continue
-      </button>
+      <app-button
+        appearance="gradient"
+        type="submit"
+        [label]="isDataChanged? 'Save & Continue' : 'Continue'"
+        [fontSize]="16"
+        [loading$]="loading$"
+        [disabled]="cefrForm.invalid"
+      ></app-button>
     </form>
   </div>
 </ng-template>

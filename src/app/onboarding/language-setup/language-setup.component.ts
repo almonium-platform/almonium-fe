@@ -24,7 +24,7 @@ import {
 import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiChip, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiAutoColorPipe, TuiError} from '@taiga-ui/core';
-import {delay, Observable, of, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, delay, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
 import {LanguageApiService} from '../../services/language-api.service';
@@ -42,6 +42,8 @@ import {LucideIconsModule} from "./lucide-icons.module";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
+import {ButtonComponent} from "../../shared/button/button.component";
+import {UtilsService} from "../../services/utils.service";
 
 
 @Component({
@@ -73,6 +75,7 @@ import {PopupTemplateStateService} from "../../shared/modals/popup-template/popu
     TuiChip,
     LucideIconsModule,
     InfoIconComponent,
+    ButtonComponent,
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -135,6 +138,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   fluentFormValid: boolean = true;
   private cachedCefrLevels = new Map<string, string>();
 
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
+
   constructor(
     private fb: FormBuilder,
     private languageApiService: LanguageApiService,
@@ -145,6 +151,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     private validationMessagesService: ValidationMessagesService,
     private supportedLanguagesService: SupportedLanguagesService,
     private popupTemplateStateService: PopupTemplateStateService,
+    private utilsService: UtilsService,
   ) {
     this.languageForm = this.fb.group({
         targetLanguages: this.targetLanguageControl,
@@ -400,27 +407,36 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       targetLangsData: this.prepareTargetLanguagesData(),
     };
 
+    if (!this.isDataChanged) {
+      console.info('No changes detected. Skipping request.');
+      this.continue.emit(getNextStep(this.step));
+      return;
+    }
+
+    this.loadingSubject$.next(true);
     // Send data to the backend
-    this.onboardingService.setupLanguages(submittedData).subscribe({
-      next: (learners: Learner[]) => {
-        this.userInfoService.updateUserInfo({
-          fluentLangs: fluentLanguageCodes,
-          learners: learners,
-        });
+    this.onboardingService.setupLanguages(submittedData)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: (learners: Learner[]) => {
+          this.userInfoService.updateUserInfo({
+            fluentLangs: fluentLanguageCodes,
+            learners: learners,
+          });
 
-        const nextStep = getNextStep(this.step);
+          const nextStep = getNextStep(this.step);
 
-        if (this.userInfo!.setupStep <= this.step) {
-          this.userInfoService.updateUserInfo({setupStep: nextStep});
-        } else {
-          this.continue.emit(nextStep);
-        }
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'error'}).subscribe();
-        console.error('Error saving languages:', error);
-      },
-    });
+          if (this.userInfo!.setupStep <= this.step) {
+            this.userInfoService.updateUserInfo({setupStep: nextStep});
+          } else {
+            this.continue.emit(nextStep);
+          }
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'error'}).subscribe();
+          console.error('Error saving languages:', error);
+        },
+      });
   }
 
   private prepareTargetLanguagesData(): { language: string; cefrLevel: string }[] {
@@ -432,6 +448,15 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         cefrLevel: entry.cefrLevel,
       };
     });
+  }
+
+  get isDataChanged(): boolean {
+    const currentData = this.prepareTargetLanguagesData();
+    const originalData = this.userInfo!.learners.map((learner: any) => ({
+      language: learner.language,
+      cefrLevel: learner.selfReportedLevel,
+    }));
+    return !this.utilsService.areArraysEqual(currentData, originalData, (a, b) => a.language === b.language && a.cefrLevel === b.cefrLevel);
   }
 
   private getFluentLangCodes() {
