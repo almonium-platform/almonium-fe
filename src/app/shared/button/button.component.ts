@@ -3,12 +3,13 @@ import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
 import {TuiHint, TuiLoader} from "@taiga-ui/core";
 import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-button',
   template: `
     <button
-      (click)="clickFunction.emit()"
+      (click)="onClick()"
       [disabled]="isDisabled"
       [type]="type"
       class="relative flex items-center justify-center w-full base"
@@ -44,7 +45,7 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
 })
 export class ButtonComponent implements OnInit {
   private readonly destroy$ = new Subject<void>();
-  @Input() loading$!: Observable<boolean>;
+  @Input() loading$?: Observable<boolean>;
   @Input() label!: string;
   @Input() disabled: boolean = false;
   @Input() appearance: 'bw' | 'gradient' = 'gradient';
@@ -52,6 +53,7 @@ export class ButtonComponent implements OnInit {
   @Input() fontSize?: number;
   @Input() padding?: string = '';
   @Input() type?: 'button' | 'submit' | 'reset' = 'submit';
+  @Input() redirectUrl?: string;
   @Output() clickFunction = new EventEmitter<void>();
 
   // Hint-related inputs
@@ -61,12 +63,17 @@ export class ButtonComponent implements OnInit {
 
   private loadingState: boolean = false;
 
+  constructor(private router: Router) {
+  }
+
   ngOnInit() {
-    this.loading$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((loading) => {
-        this.loadingState = loading;
-      });
+    if (this.loading$) {
+      this.loading$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((loading) => {
+          this.loadingState = loading;
+        });
+    }
   }
 
   get class() {
@@ -78,5 +85,13 @@ export class ButtonComponent implements OnInit {
 
   get isDisabled(): boolean {
     return this.disabled || this.loadingState;
+  }
+
+  onClick() {
+    if (this.redirectUrl) {
+      this.router.navigate([this.redirectUrl]).then();
+      return;
+    }
+    this.clickFunction.emit();
   }
 }
