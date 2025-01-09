@@ -31,7 +31,7 @@ export class ParticlesService {
       }),
       switchMap(() => this.particlesService.init(async (engine) => {
         await loadFull(engine);
-        console.log('Particles engine loaded');
+        console.info('Particles engine loaded');
       })),
       catchError((error) => {
         console.error('Error during particles initialization:', error);
@@ -39,7 +39,7 @@ export class ParticlesService {
       })
     ).subscribe({
       next: () => {
-        console.log('Particles initialized with loaded options');
+        console.info('Particles initialized with loaded options');
       },
       error: (error) => {
         console.error('Error loading particles options:', error);
@@ -48,7 +48,7 @@ export class ParticlesService {
   }
 
   particlesLoaded(container: any): void {
-    console.log('Particles loaded');
+    console.info('Particles loaded');
   }
 
   private getDynamicColor(): string {
