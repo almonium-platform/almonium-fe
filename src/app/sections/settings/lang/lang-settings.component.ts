@@ -14,7 +14,7 @@ import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
 import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
-import {BehaviorSubject, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
@@ -188,21 +188,19 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     const fluentLanguageCodes = this.languageNameService.mapLanguageNamesToCodes(this.languages, this.selectedFluentLanguages);
     this.languageService.saveFluentLanguages({
       langCodes: fluentLanguageCodes,
-    }).subscribe({
-      next: () => {
-        this.alertService.open('Fluent languages saved successfully', {appearance: 'success'}).subscribe();
-        this.localStorageService.clearUserInfo();
-        this.fluentEditable = false;
-        this.currentFluentLanguages = this.selectedFluentLanguages;
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'error'}).subscribe();
-        this.restoreFluent();
-      },
-      complete: () => {
-        this.loadingSubject$.next(false);
-      },
-    });
+    }).pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.alertService.open('Fluent languages saved successfully', {appearance: 'success'}).subscribe();
+          this.localStorageService.clearUserInfo();
+          this.fluentEditable = false;
+          this.currentFluentLanguages = this.selectedFluentLanguages;
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'error'}).subscribe();
+          this.restoreFluent();
+        },
+      });
   }
 
   private restoreFluent() {

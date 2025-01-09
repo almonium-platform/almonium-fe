@@ -21,7 +21,7 @@ import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-g
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
-import {BehaviorSubject, filter, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 
 @Component({
@@ -600,44 +600,42 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
     this.loadingSubjectPassword$.next(true);
 
-    this.settingService.changePassword(this.getPasswordFieldValue()).subscribe({
-      next: () => {
-        this.alertService.open('Password successfully changed!', {appearance: 'success'}).subscribe();
-        this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
-        this.restorePasswordField();
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
-      },
-      complete: () => {
-        this.loadingSubjectPassword$.next(false);
-      }
-    });
+    this.settingService.changePassword(this.getPasswordFieldValue())
+      .pipe(finalize(() => this.loadingSubjectPassword$.next(false)))
+      .subscribe({
+        next: () => {
+          this.alertService.open('Password successfully changed!', {appearance: 'success'}).subscribe();
+          this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
+          this.restorePasswordField();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
+        },
+      });
   }
 
   private checkAndChangeEmail() {
     this.loadingSubjectEmail$.next(true);
 
-    this.settingService.isEmailAvailable(this.getEmailFieldValue()).subscribe({
-      next: (isAvailable) => {
-        if (!isAvailable) {
-          this.alertService.open('Email is already in use', {appearance: 'error'}).subscribe();
-          return;
-        }
+    this.settingService.isEmailAvailable(this.getEmailFieldValue())
+      .pipe(finalize(() => this.loadingSubjectEmail$.next(false)))
+      .subscribe({
+        next: (isAvailable) => {
+          if (!isAvailable) {
+            this.alertService.open('Email is already in use', {appearance: 'error'}).subscribe();
+            return;
+          }
 
-        if (this.isProviderLinked('local')) {
-          this.sendEmailChangeRequest();
-        }
-        this.restoreEmailField();
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
-        console.error('Error checking email availability:', error);
-      },
-      complete: () => {
-        this.loadingSubjectEmail$.next(false);
-      }
-    });
+          if (this.isProviderLinked('local')) {
+            this.sendEmailChangeRequest();
+          }
+          this.restoreEmailField();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
+          console.error('Error checking email availability:', error);
+        },
+      });
   }
 
   private sendEmailChangeRequest() {

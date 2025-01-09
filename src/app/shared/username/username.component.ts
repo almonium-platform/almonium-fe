@@ -15,7 +15,7 @@ import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {LucideAngularModule} from "lucide-angular";
 import {EditButtonComponent} from "../edit-button/edit-button.component";
 import {UserInfoService} from "../../services/user-info.service";
-import {BehaviorSubject, Observable, of, Subject, takeUntil, timer} from "rxjs";
+import {BehaviorSubject, finalize, Observable, of, Subject, takeUntil, timer} from "rxjs";
 import {UserInfo} from "../../models/userinfo.model";
 import {AppConstants} from "../../app.constants";
 import {catchError, debounceTime, distinctUntilChanged, map, switchMap} from "rxjs/operators";
@@ -157,19 +157,18 @@ export class UsernameComponent implements OnInit, OnDestroy {
     this.loadingSubject$.next(true);
 
     const username = this.usernameForm.get('usernameValue')?.value!;
-    this.profileSettingsService.updateUsername(username).subscribe({
-      next: () => {
-        this.alertService.open('Username updated', {appearance: 'success'}).subscribe();
-        this.userInfoService.updateUserInfo({username: username});
-        this.usernameEditable = false;
-      },
-      error: () => {
-        this.alertService.open('Failed to update username', {appearance: 'error'}).subscribe();
-      },
-      complete: () => {
-        this.loadingSubject$.next(false);
-      }
-    });
+    this.profileSettingsService.updateUsername(username)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.alertService.open('Username updated', {appearance: 'success'}).subscribe();
+          this.userInfoService.updateUserInfo({username: username});
+          this.usernameEditable = false;
+        },
+        error: () => {
+          this.alertService.open('Failed to update username', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 
   // validators
