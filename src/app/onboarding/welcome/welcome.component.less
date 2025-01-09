@@ -3,24 +3,30 @@
 .card.step.welcome {
   flex-direction: row;
   align-items: stretch;
-  max-width: 32rem;
+  max-width: 38rem;
 }
 
 .right-side {
-  flex: 1.2;
-  font-size: 1rem;
+  padding: .3rem 0;
+  flex: 1.7;
+  font-size: 1.1rem;
   color: var(--text-color);
 
-
   h4 {
-    font-size: 1.3rem;
+    font-size: 1.7rem;
     font-weight: 500;
+    padding: .1rem;
+  }
+
+  p {
+    padding: 0 .7rem;
   }
 
   display: flex;
   gap: 2rem;
   flex-direction: column;
   justify-content: space-between;
+  align-items: center;
   min-width: 10rem;
 }
 
@@ -29,6 +35,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1rem;
 }
 
 @media (max-width: 560px) {
@@ -46,8 +53,7 @@
       position: absolute; /* Place the image inside the square */
       top: 0;
       left: 0;
-      width: 100%; /* Ensure the image spans the container width */
-      height: 100%; /* Ensure the image spans the container height */
+      padding: 3.5rem;
 
       img {
         object-fit: contain; /* Maintain aspect ratio */
@@ -56,13 +62,12 @@
   }
 
   .right-side {
-    p, h4 {
-      padding: 0 1rem;
-      font-size: 1rem;
+    p {
+      font-size: 1.1rem;
     }
 
     h4 {
-      font-size: 1.2rem;
+      font-size: 1.5rem;
     }
   }
 }

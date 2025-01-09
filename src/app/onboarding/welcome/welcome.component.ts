@@ -22,6 +22,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   private readonly step = SetupStep.WELCOME;
 
   protected userInfo: UserInfo | null = null;
+  protected replayGifSubject = new Subject<void>();
 
   constructor(
     private onboardingService: OnboardingService,
@@ -63,15 +64,5 @@ export class WelcomeComponent implements OnInit, OnDestroy {
         this.alertService.open('Failed to start onboarding', {appearance: 'error'}).subscribe()
       }
     });
-  }
-
-  replayGif() {
-    const gif = this.logoGif?.nativeElement;
-    if (gif) {
-      const src = gif.src;
-      setTimeout(() => {
-        gif.src = src; // Set the src back to replay the GIF
-      });
-    }
   }
 }
