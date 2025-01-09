@@ -10,6 +10,7 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
     <button
       (click)="clickFunction.emit()"
       [disabled]="isDisabled"
+      [type]="type"
       class="relative flex items-center justify-center w-full base"
       [class]="class + ' ' + customClass"
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
@@ -50,6 +51,7 @@ export class ButtonComponent implements OnInit {
   @Input() customClass: string = '';
   @Input() fontSize?: number = 14;
   @Input() padding?: string = '';
+  @Input() type?: 'button' | 'submit' | 'reset' = 'button';
   @Output() clickFunction = new EventEmitter<void>();
 
   // Hint-related inputs
