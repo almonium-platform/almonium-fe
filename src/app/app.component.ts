@@ -16,7 +16,7 @@ import {UrlService} from "./services/url.service";
 })
 export class AppComponent {
   title = 'almonium-fe';
-  protected showNavbar: boolean = true;
+  protected showNavbar: boolean = false;
   private noNavbarRoutes: string[] = [
     '/auth',
     '/login',
