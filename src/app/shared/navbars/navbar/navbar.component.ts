@@ -224,13 +224,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   // dynamic styles
   getButtonStyles(language: string): { color: string, border: string } {
-    const color = this.langColors[language] || 'black';
+    const color = this.langColors[language] || 'var(--purple-dark)';
     return {color: color, border: `1px solid ${color}`};
   }
 
   getButtonStylesDropDown(language: string): { color: string, border: string } {
-    let color = this.langColors[language] || 'black';
-    color = this.dullColor(color, 0.5);
+    let color = this.langColors[language];
+    color = color ? this.dullColor(color, 0.5) : 'var(--lavender)';
     return {color: color, border: `1px solid ${color}`};
   }
 
