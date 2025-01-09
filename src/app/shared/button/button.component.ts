@@ -11,11 +11,11 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
       (click)="clickFunction.emit()"
       [disabled]="isDisabled"
       class="relative flex items-center justify-center w-full base"
-      [class]="realType + ' ' + customClass"
-      [style.--tui-background-accent-1]="type === 'bw' ? 'var(--text-color)' : 'white'"
+      [class]="class + ' ' + customClass"
+      [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
-      [ngClass]="this.type === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
+      [ngClass]="this.appearance === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
@@ -48,7 +48,7 @@ export class ButtonComponent implements OnInit {
   @Input() loading$!: Observable<boolean>;
   @Input() label!: string;
   @Input() disabled: boolean = false;
-  @Input() type: 'bw' | 'gradient' = 'gradient';
+  @Input() appearance: 'bw' | 'gradient' = 'gradient';
   @Input() customClass: string = '';
   @Input() fontSize?: number = 14;
   @Input() padding?: string = '';
@@ -69,8 +69,8 @@ export class ButtonComponent implements OnInit {
       });
   }
 
-  get realType() {
-    if (this.type === 'bw') {
+  get class() {
+    if (this.appearance === 'bw') {
       return 'black-n-white-button';
     }
     return 'gradient-button';

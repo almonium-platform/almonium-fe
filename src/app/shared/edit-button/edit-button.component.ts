@@ -8,7 +8,7 @@ import {ButtonComponent} from '../button/button.component'; // Adjust path as ne
   template: `
     <app-button
       [label]="editable ? label : ''"
-      [type]="'bw'"
+      [appearance]="'bw'"
       [loading$]="loading$"
       [disabled]="disabled"
       [customClass]="'edit-btn ' + (editable ? '' : 'circular-icon')"
