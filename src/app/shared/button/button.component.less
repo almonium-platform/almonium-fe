@@ -1,21 +1,13 @@
 .loader {
-  --tui-background-accent-1: var(--text-color);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.base:hover {
-  .loader {
-    --tui-background-accent-1: white;
-  }
-}
-
 button:disabled {
   background-color: var(--disabled-color);
   color: var(--disabled-text-color);
   border-color: var(--disabled-color);
-  pointer-events: none;
   cursor: not-allowed;
 }

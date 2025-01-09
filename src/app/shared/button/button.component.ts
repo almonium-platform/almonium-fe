@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, Output, TemplateRef} from '@angular/core';
-import {Observable} from 'rxjs';
-import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
+import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
+import {Observable, Subject, takeUntil} from 'rxjs';
+import {AsyncPipe, NgClass, NgIf, NgStyle} from "@angular/common";
 import {TuiHint, TuiLoader} from "@taiga-ui/core";
 import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 
@@ -10,11 +10,13 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
     <button
       class="relative flex items-center justify-center w-full base"
       [class]="realType + ' ' + customClass"
-      [disabled]="disabled || (loading$ | async)"
+      [style.--tui-background-accent-1]="type === 'bw' ? 'var(--text-color)' : 'white'"
+      [disabled]="isDisabled"
       (click)="clickFunction.emit()"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
+      [ngClass]="this.type === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
     >
       <tui-loader
         *ngIf="loading$ | async"
@@ -34,11 +36,13 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
     AsyncPipe,
     TuiLoader,
     TuiHint,
-    NgStyle
+    NgStyle,
+    NgClass
   ],
   styleUrls: ['./button.component.less']
 })
-export class ButtonComponent {
+export class ButtonComponent implements OnInit {
+  private readonly destroy$ = new Subject<void>();
   @Input() loading$!: Observable<boolean>;
   @Input() label!: string;
   @Input() disabled: boolean = false;
@@ -51,10 +55,24 @@ export class ButtonComponent {
   @Input() hintAppearance = 'onDark';
   @Input() hintDirection: TuiHintDirection = 'top';
 
+  private loadingState: boolean = false;
+
+  ngOnInit() {
+    this.loading$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((loading) => {
+        this.loadingState = loading;
+      });
+  }
+
   get realType() {
     if (this.type === 'bw') {
       return 'black-n-white-button';
     }
     return 'gradient-button';
+  }
+
+  get isDisabled(): boolean {
+    return this.disabled || this.loadingState;
   }
 }
