@@ -65,12 +65,14 @@
     </div>
     <span class="spacer"></span>
     <div class="nav-actions">
-      <button
-        class="gradient-button auth-btn"
-        (click)="redirectToAuth()"
-      >
-        Sign In
-      </button>
+      <app-button
+        label="Sign In"
+        class="auth-btn"
+        [fontSize]="14"
+        padding="0.7rem 0"
+        redirectUrl="/auth"
+        appearance="gradient"
+      ></app-button>
     </div>
   </div>
 </nav>
