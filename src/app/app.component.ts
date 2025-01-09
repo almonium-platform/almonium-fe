@@ -24,6 +24,7 @@ export class AppComponent {
     '/onboarding',
     '/reset-password',
     '/verify-email',
+    '/payment/success',
   ];
 
   constructor(private router: Router,
