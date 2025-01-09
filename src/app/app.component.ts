@@ -31,8 +31,8 @@ export class AppComponent {
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        urlService.clearUrl();
-        this.showNavbar = !this.noNavbarRoutes.includes(event.urlAfterRedirects);
+        const clearedUrl = urlService.getClearedUrl();
+        this.showNavbar = !this.noNavbarRoutes.includes(clearedUrl);
       }
     });
   }

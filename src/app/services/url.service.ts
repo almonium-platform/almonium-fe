@@ -9,7 +9,11 @@ export class UrlService {
   }
 
   clearUrl() {
-    const url = this.router.createUrlTree([], {relativeTo: this.route, queryParams: {}}).toString();
-    this.router.navigateByUrl(url, {replaceUrl: true}).then(r => r);
+    const clearedUrl = this.getClearedUrl();
+    this.router.navigateByUrl(clearedUrl, {replaceUrl: true}).then(r => r);
+  }
+
+  getClearedUrl() {
+    return this.router.createUrlTree([], {relativeTo: this.route, queryParams: {}}).toString();
   }
 }
