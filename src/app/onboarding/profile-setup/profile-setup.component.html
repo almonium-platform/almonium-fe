@@ -43,11 +43,13 @@
       </div>
     </div>
   </div>
-
-  <button type="submit"
-          class="gradient-button"
-          (click)="submit()"
+  <app-button
+    label="Continue"
+    (click)="submit()"
+    appearance="gradient"
+    class="w-full"
+    [fontSize]="16"
+    [loading$]="loading$"
   >
-    Continue
-  </button>
+  </app-button>
 </div>

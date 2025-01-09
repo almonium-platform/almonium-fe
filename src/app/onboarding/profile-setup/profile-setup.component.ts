@@ -5,9 +5,10 @@ import {TuiAlertService} from "@taiga-ui/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {UsernameComponent} from "../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../shared/avatar/settings/avatar-settings.component";
-import {Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {NgIf} from "@angular/common";
 import {StepHeaderComponent} from "../../shared/step-header/step-header.component";
+import {ButtonComponent} from "../../shared/button/button.component";
 
 @Component({
   selector: 'app-profile-setup',
@@ -15,7 +16,8 @@ import {StepHeaderComponent} from "../../shared/step-header/step-header.componen
     UsernameComponent,
     AvatarSettingsComponent,
     NgIf,
-    StepHeaderComponent
+    StepHeaderComponent,
+    ButtonComponent
   ],
   templateUrl: './profile-setup.component.html',
   styleUrl: './profile-setup.component.less'
@@ -25,6 +27,9 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
   private readonly step = SetupStep.PROFILE;
   @Output() continue = new EventEmitter<SetupStep>();
   protected userInfo: UserInfo | null = null;
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private onboardingService: OnboardingService,
@@ -57,14 +62,18 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.onboardingService.completeStep(this.step).subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({setupStep: nextStep});
-      },
-      error: (err) => {
-        console.error('Failed to finish profile setup', err);
-        this.alertService.open('Failed to finish profile setup', {appearance: 'error'}).subscribe();
-      }
-    });
+    this.loadingSubject$.next(true);
+
+    this.onboardingService.completeStep(this.step)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.userInfoService.updateUserInfo({setupStep: nextStep});
+        },
+        error: (err) => {
+          console.error('Failed to finish profile setup', err);
+          this.alertService.open('Failed to finish profile setup', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 }
