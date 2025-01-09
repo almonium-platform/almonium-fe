@@ -18,13 +18,14 @@ import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
-import {Subject} from "rxjs";
+import {BehaviorSubject, finalize, Subject} from "rxjs";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
-import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component"; // Import your service
+import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
+import {ButtonComponent} from "../../shared/button/button.component"; // Import your service
 
 declare const google: any;
 
@@ -51,6 +52,7 @@ declare const google: any;
     TuiTextfield,
     NgForOf,
     GifPlayerComponent,
+    ButtonComponent,
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
@@ -102,6 +104,9 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   // logo
   protected replayGifTrigger = new Subject<void>();
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private authService: AuthService,
@@ -278,59 +283,75 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   private linkLocal(passwordValue: string) {
-    this.authService.linkLocalAccount(passwordValue).subscribe({
-      next: () => {
-        this.alertService.open('Local account linked successfully', {appearance: 'success'}).subscribe();
-        this.onClose();
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
-        this.onClose();
-      },
-    });
+    this.loadingSubject$.next(true);
+
+    this.authService.linkLocalAccount(passwordValue)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.alertService.open('Local account linked successfully', {appearance: 'success'}).subscribe();
+          this.onClose();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.onClose();
+        },
+      });
   }
 
   private changeEmail(emailValue: string, passwordValue: string) {
-    this.authService.linkLocalWithNewEmail(emailValue, passwordValue).subscribe({
-      next: () => {
-        this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
-        this.onClose();
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
-        this.onClose();
-      },
-    });
+    this.loadingSubject$.next(true);
+
+    this.authService.linkLocalWithNewEmail(emailValue, passwordValue)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
+          this.onClose();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.onClose();
+        },
+      });
   }
 
   private register(emailValue: string, passwordValue: string) {
-    this.authService.register(emailValue, passwordValue).subscribe({
-      next: (response) => {
-        this.alertService
-          .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
-          .subscribe();
-        this.isSignUp = false;
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
-      },
-    });
+    this.loadingSubject$.next(true);
+
+    this.authService.register(emailValue, passwordValue)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: (response) => {
+          this.alertService
+            .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
+            .subscribe();
+          this.isSignUp = false;
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
+        },
+      });
   }
 
   private login(emailValue: string, passwordValue: string) {
-    this.authService.login(emailValue, passwordValue).subscribe({
-      next: () => {
-        if (this.embeddedMode) {
-          this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then((r) => r);
-        } else {
-          this.router.navigate(['/home']).then((r) => r);
-        }
-        this.onClose();
-      },
-      error: (error) => {
-        this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
-      },
-    });
+    this.loadingSubject$.next(true);
+
+    this.authService.login(emailValue, passwordValue)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          if (this.embeddedMode) {
+            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then((r) => r);
+          } else {
+            this.router.navigate(['/home']).then((r) => r);
+          }
+          this.onClose();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
+        },
+      });
   }
 
   private loadGoogleSignInScript(): Promise<void> {
@@ -387,6 +408,16 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     window.location.href = providerUrls[provider] + (this.embeddedMode ? this.router.url + '?intent=' + this.intent : '/home');
   };
+
+  get actionBtnText(): string {
+    if (this.mode === 'linkLocal' || this.mode === 'changeEmail') {
+      return 'Link Account';
+    } else if (this.isSignUp) {
+      return 'Sign Up';
+    } else {
+      return 'Sign In';
+    }
+  }
 
   // Hovering over the greeting
   protected onMouseEnter() {

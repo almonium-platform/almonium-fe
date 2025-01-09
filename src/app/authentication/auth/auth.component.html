@@ -84,10 +84,13 @@
               <a [routerLink]="termsOfUseUrl" target="_blank">Terms of Use</a> and have read our
               <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
             </div>
-            <div>
-              <button type="submit" class="gradient-button auth-btn">
-                {{ mode === 'linkLocal' || mode === 'changeEmail' ? 'Link Account' : isSignUp ? 'Sign Up' : 'Sign In' }}
-              </button>
+
+            <div class="mt-2.5">
+              <app-button
+                [label]="actionBtnText"
+                [loading$]="loading$"
+                [disabled]="!authForm.valid"
+              ></app-button>
             </div>
           </div>
         </div>
