@@ -9,10 +9,13 @@
     (selectedInterestsChange)="onSelectedInterestsChange($event)">
   </app-interests>
 
-  <button type="submit"
-          class="gradient-button start-btn"
-          (click)="submit()"
+  <app-button
+    label="Start Your Journey"
+    (click)="submit()"
+    appearance="gradient"
+    class="w-full"
+    [fontSize]="16"
+    [loading$]="loading$"
   >
-    Start Your Journey
-  </button>
+  </app-button>
 </div>
