@@ -19,13 +19,12 @@
         </div>
       </div>
       <div *ngIf="verificationSuccess" class="tui-form__buttons">
-        <button
-          type="button"
-          class="gradient-button"
-          (click)="router.navigate(['/logout'])"
-        >
-          Go back to app
-        </button>
+        <app-button
+          label="Go Back to App"
+          class="w-full"
+          redirectUrl="/logout"
+          appearance="gradient"
+        ></app-button>
       </div>
     </div>
   </div>

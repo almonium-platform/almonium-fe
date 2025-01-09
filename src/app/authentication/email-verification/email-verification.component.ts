@@ -7,6 +7,7 @@ import {catchError, switchMap, tap} from 'rxjs/operators';
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
 import {ParticlesComponent} from "../../shared/particles/particles.component";
+import {ButtonComponent} from "../../shared/button/button.component";
 
 @Component({
   selector: 'app-email-verification',
@@ -17,7 +18,8 @@ import {ParticlesComponent} from "../../shared/particles/particles.component";
     NgIf,
     NgClass,
     NgOptimizedImage,
-    ParticlesComponent
+    ParticlesComponent,
+    ButtonComponent
   ]
 })
 export class EmailVerificationComponent implements OnInit {
