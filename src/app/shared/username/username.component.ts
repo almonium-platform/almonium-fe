@@ -53,7 +53,8 @@ import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
         pattern: 'Use only digits, lowercase Latin letters, and underscores',
         usernameTaken: 'Username is already taken',
         serverError: 'Server error',
-        unchanged: 'No changes'
+        unchanged: 'No changes',
+        appNameForbidden: 'You cannot use the app name in your username ',
       }
     }
   ],
@@ -89,6 +90,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
           Validators.maxLength(AppConstants.MAX_USERNAME_LENGTH),
           Validators.pattern(AppConstants.USERNAME_PATTERN),
           this.usernameChangedValidator(),
+          this.usernameAppNameValidator(),
         ],
         nonNullable: true,
       }),
@@ -182,6 +184,13 @@ export class UsernameComponent implements OnInit, OnDestroy {
         return {unchanged: 'No changes'};
       }
       return null;
+    };
+  }
+
+  private usernameAppNameValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const forbidden = control.value?.toLowerCase().includes('almonium');
+      return forbidden ? {appNameForbidden: 'You cannot use the app name in your username.'} : null;
     };
   }
 
