@@ -49,7 +49,7 @@ export class ButtonComponent implements OnInit {
   @Input() disabled: boolean = false;
   @Input() appearance: 'bw' | 'gradient' = 'gradient';
   @Input() customClass: string = '';
-  @Input() fontSize?: number = 14;
+  @Input() fontSize?: number;
   @Input() padding?: string = '';
   @Input() type?: 'button' | 'submit' | 'reset' = 'button';
   @Output() clickFunction = new EventEmitter<void>();
