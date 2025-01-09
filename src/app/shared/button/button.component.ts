@@ -8,15 +8,17 @@ import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.dire
   selector: 'app-button',
   template: `
     <button
+      (click)="clickFunction.emit()"
+      [disabled]="isDisabled"
       class="relative flex items-center justify-center w-full base"
       [class]="realType + ' ' + customClass"
       [style.--tui-background-accent-1]="type === 'bw' ? 'var(--text-color)' : 'white'"
-      [disabled]="isDisabled"
-      (click)="clickFunction.emit()"
+      [style.padding]="padding"
+      [style.font-size.px]="fontSize"
+      [ngClass]="this.type === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
-      [ngClass]="this.type === 'gradient' && isDisabled ? 'gradient-button-disabled' : ''"
     >
       <tui-loader
         *ngIf="loading$ | async"
@@ -48,6 +50,8 @@ export class ButtonComponent implements OnInit {
   @Input() disabled: boolean = false;
   @Input() type: 'bw' | 'gradient' = 'gradient';
   @Input() customClass: string = '';
+  @Input() fontSize?: number = 14;
+  @Input() padding?: string = '';
   @Output() clickFunction = new EventEmitter<void>();
 
   // Hint-related inputs

@@ -3,14 +3,15 @@ import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {TuiAlertService, TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
 import {TuiCardLarge} from "@taiga-ui/layout";
-import {NgClass, NgForOf} from "@angular/common";
+import {NgForOf} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
 import {UserInfoService} from "../../services/user-info.service";
-import {Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../../onboarding/onboarding.service";
+import {ButtonComponent} from "../button/button.component";
 
 @Component({
   selector: 'paywall',
@@ -25,7 +26,7 @@ import {OnboardingService} from "../../onboarding/onboarding.service";
     TuiIcon,
     TuiSegmented,
     InteractiveCtaButtonComponent,
-    NgClass
+    ButtonComponent
   ],
   providers: [
     tuiSwitchOptionsProvider({showIcons: false, appearance: () => 'primary'}),
@@ -60,6 +61,9 @@ export class PaywallComponent implements OnInit, OnDestroy {
   };
   premiumMonthlyId: string = '';
   premiumYearlyId: string = '';
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private planService: PlanService,
@@ -127,15 +131,20 @@ export class PaywallComponent implements OnInit, OnDestroy {
       console.error('User is not onboarded');
       return;
     }
-    this.onboardingService.completeStep(this.step).subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
-      },
-      error: (error) => {
-        console.error('Failed to choose free plan:', error);
-        this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'error'}).subscribe();
-      }
-    });
+
+    this.loadingSubject$.next(true);
+
+    this.onboardingService.completeStep(this.step)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
+        },
+        error: (error) => {
+          console.error('Failed to choose free plan:', error);
+          this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 
   subscribeToPlan() {

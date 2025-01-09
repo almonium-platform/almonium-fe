@@ -45,15 +45,16 @@
             <span class="price-period">/ forever</span>
           </div>
 
-          <button
-            type="button"
-            class="black-n-white-button plan-btn"
-            [ngClass]="{disabled: planChosen}"
+          <app-button
+            [label]="planChosen ? 'Current Plan' : 'Start for Free'"
+            [loading$]="loading$"
             [disabled]="planChosen"
+            [fontSize]="15"
+            [padding]="'.88rem 0'"
             (click)="chooseFreePlan()"
-          >
-            {{ planChosen ? 'Current Plan' : 'Start for Free' }}
-          </button>
+            class="plan-btn"
+            type="bw"
+          ></app-button>
         </footer>
       </div>
 
