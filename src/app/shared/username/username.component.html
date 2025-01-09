@@ -2,7 +2,7 @@
   <label
     *ngIf="!usernameEditable"
     [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
-    [style.font-size]="getUsernameFontSize()"
+    [style.font-size]="usernameFontSize"
     class="username-label flex items-center"
   >&#64;{{ userInfo?.username }}
   </label>
@@ -28,7 +28,10 @@
 
     <div *ngIf="isLoading">Checking availability...</div>
 
-    <tui-error formControlName="usernameValue" [error]="[] | tuiFieldError | async"></tui-error>
+    <tui-error
+      formControlName="usernameValue"
+      [error]="[] | tuiFieldError | async"
+    ></tui-error>
   </form>
   <!--todo replace with app-info-icon-->
   <lucide-icon
@@ -47,10 +50,14 @@
 
   <app-edit-button
     class="edit-element"
-    [disabled]="this.usernameEditable && !this.usernameForm.valid || this.isLoading"
+    [disabled]="
+      (usernameEditable && !usernameForm.valid)
+      || isLoading
+    "
     [label]="'Change'"
     [editable]="usernameEditable"
     [loading$]="loading$"
-    (clickFunction)="onUsernameEditClick()">
+    (clickFunction)="onUsernameEditClick()"
+  >
   </app-edit-button>
 </div>
