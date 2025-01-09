@@ -21,6 +21,7 @@ export class AppComponent {
     '/auth',
     '/login',
     '/logout',
+    '/onboarding',
     '/reset-password',
     '/verify-email',
   ];
