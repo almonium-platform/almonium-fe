@@ -16,6 +16,8 @@ import {NgxParticlesModule} from '@tsparticles/angular';
 import {AsyncPipe} from '@angular/common';
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {AppConstants} from "../../app.constants";
+import {ButtonComponent} from "../../shared/button/button.component";
+import {BehaviorSubject, finalize} from "rxjs";
 
 @Component({
   selector: 'app-reset-password',
@@ -34,6 +36,7 @@ import {AppConstants} from "../../app.constants";
     TuiTextfieldComponent,
     TuiTextfieldDirective,
     TuiTextfieldOptionsDirective,
+    ButtonComponent,
   ],
   providers: [
     {
@@ -49,8 +52,11 @@ import {AppConstants} from "../../app.constants";
   ]
 })
 export class ResetPasswordComponent implements OnInit {
-  resetForm: FormGroup;
-  token: string = '';
+  protected resetForm: FormGroup;
+  private token: string = '';
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private authService: AuthService,
@@ -75,16 +81,20 @@ export class ResetPasswordComponent implements OnInit {
 
   onSubmit() {
     if (this.resetForm.valid) {
+      this.loadingSubject$.next(true);
+
       const newPassword = this.resetForm.get('newPassword')?.value;
-      this.authService.resetPassword(this.token, newPassword).subscribe({
-        next: () => {
-          this.alertService.open('Password reset successfully!', {appearance: 'success'}).subscribe();
-          this.router.navigate(['/auth']).then(r => r);
-        },
-        error: (error) => {
-          this.alertService.open(error.error.message || 'Password reset failed', {appearance: 'error'}).subscribe();
-        },
-      });
+      this.authService.resetPassword(this.token, newPassword)
+        .pipe(finalize(() => this.loadingSubject$.next(false)))
+        .subscribe({
+          next: () => {
+            this.alertService.open('Password reset successfully!', {appearance: 'success'}).subscribe();
+            this.router.navigate(['/auth']).then(r => r);
+          },
+          error: (error) => {
+            this.alertService.open(error.error.message || 'Password reset failed', {appearance: 'error'}).subscribe();
+          },
+        });
     }
   }
 }
