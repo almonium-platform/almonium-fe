@@ -14,13 +14,10 @@
       </div>
     </div>
 
-    <button
-      type="button"
-      class="gradient-button"
-      (click)="router.navigate(['/home'])"
-    >
-      {{ onboardingMode ? 'Continue Onboarding' : 'Enjoy the Platform' }}
-    </button>
+    <app-button
+      [label]="onboardingMode ? 'Continue Onboarding' : 'Enjoy the Platform'"
+      redirectUrl="/home"
+      appearance="gradient"
+    ></app-button>
   </div>
-
 </div>

@@ -2,11 +2,13 @@ import {Component, OnInit} from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
 import {ActivatedRoute, Router} from "@angular/router";
 import {getNextStep, SetupStep, UserInfo} from "../../models/userinfo.model";
+import {ButtonComponent} from "../../shared/button/button.component";
 
 @Component({
   selector: 'app-payment-success',
   imports: [
-    NgOptimizedImage
+    NgOptimizedImage,
+    ButtonComponent
   ],
   templateUrl: './payment-success.component.html',
   styleUrl: './payment-success.component.less'
