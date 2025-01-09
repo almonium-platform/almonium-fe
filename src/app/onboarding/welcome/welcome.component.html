@@ -9,6 +9,12 @@
       Let’s guide you through the setup.
       Don’t worry, it will only take a minute.
     </p>
-    <button type="submit" class="gradient-button" (click)="startOnboarding()">Get Started</button>
+    <app-button
+      label="Get Started"
+      [loading$]="loading$"
+      (click)="startOnboarding()"
+      class="w-full"
+      type="gradient"
+    ></app-button>
   </div>
 </div>
