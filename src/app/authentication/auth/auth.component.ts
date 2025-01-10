@@ -18,14 +18,15 @@ import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {NgxParticlesModule} from '@tsparticles/angular'; // Keep this for the component
-import {BehaviorSubject, finalize, Subject} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {ProviderIconComponent} from "../../shared/modals/elements/provider-icon/provider-icon.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
-import {ButtonComponent} from "../../shared/button/button.component"; // Import your service
+import {ButtonComponent} from "../../shared/button/button.component";
+import {UserInfo} from "../../models/userinfo.model";
 
 declare const google: any;
 
@@ -72,6 +73,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
 
+  private userInfo: UserInfo | null = null;
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
   protected providers: string[] = ['google', 'apple', 'local'];
 
@@ -148,13 +150,19 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.userInfoService.userInfo$.subscribe((info) => {
-        if (info && this.mode !== 'changeEmail') {
-          this.authForm.get('emailValue')?.setValue(info.email);
-          this.authForm.get('emailValue')?.disable();
+    this.userInfoService.userInfo$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((info) => {
+          if (info) {
+            this.userInfo = info;
+
+            if (this.mode !== 'changeEmail') {
+              this.authForm.get('emailValue')?.setValue(info.email);
+              this.authForm.get('emailValue')?.disable();
+            }
+          }
         }
-      }
-    );
+      );
 
     this.setModes();
 
@@ -415,7 +423,12 @@ export class AuthComponent implements OnInit, OnDestroy {
       apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
     };
 
-    window.location.href = providerUrls[provider] + (this.embeddedMode ? this.router.url + '?intent=' + this.intent : '/home');
+    const redirectUrl = this.embeddedMode
+      ? this.router.url + '&intent=' + this.intent
+      + (this.intent === 'reauth' ? '&userId=' + this.userInfo?.id : '')
+      : '/home';
+
+    window.location.href = providerUrls[provider] + redirectUrl;
   };
 
   get actionBtnText(): string {
