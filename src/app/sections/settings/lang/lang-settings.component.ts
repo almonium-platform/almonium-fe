@@ -12,7 +12,7 @@ import {UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
-import {AsyncPipe, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe} from "@angular/common";
 import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
@@ -39,8 +39,6 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
     EditButtonComponent,
-    NgIf,
-    NgForOf,
     TuiChip,
     AsyncPipe,
     TuiSegmented,
@@ -50,7 +48,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     TuiScrollbar,
     PremiumBadgedContentComponent,
     RecentAuthGuardComponent,
-    LanguageSetupComponent,
+    LanguageSetupComponent
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'

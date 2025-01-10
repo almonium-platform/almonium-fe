@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NavbarComponent} from "../navbar/navbar.component";
 import {NavbarPublicComponent} from "../navbar-public/navbar-public.component";
-import {NgIf} from "@angular/common";
+
 import {NavigationEnd, Router} from "@angular/router";
 import {Subject, takeUntil} from "rxjs";
 import {UserInfo} from "../../../models/userinfo.model";
@@ -11,8 +11,7 @@ import {UserInfoService} from "../../../services/user-info.service";
   selector: 'app-navbar-wrapper',
   imports: [
     NavbarComponent,
-    NavbarPublicComponent,
-    NgIf
+    NavbarPublicComponent
   ],
   templateUrl: './navbar-wrapper.component.html',
   styleUrl: './navbar-wrapper.component.less'

@@ -20,19 +20,24 @@
       <div class="title">I Know</div>
 
       <div class="row-content">
-        <app-fluent-language-selector
-          *ngIf="fluentEditable"
-          class="fluent-language-selector"
-          [languages]="languages"
-          [size]="'m'"
-          [selectedLanguages]="currentFluentLanguages"
-          (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
+        @if (fluentEditable) {
+          <app-fluent-language-selector
+            class="fluent-language-selector"
+            [languages]="languages"
+            [size]="'m'"
+            [selectedLanguages]="currentFluentLanguages"
+            (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
+        }
 
-        <div class="chips-box" *ngIf="!fluentEditable">
-          <tui-chip *ngFor="let language of currentFluentLanguages"
-                    [style.background-color]="language | tuiAutoColor">{{ language }}
-          </tui-chip>
-        </div>
+        @if (!fluentEditable) {
+          <div class="chips-box">
+            @for (language of currentFluentLanguages; track language) {
+              <tui-chip
+                [style.background-color]="language | tuiAutoColor">{{ language }}
+              </tui-chip>
+            }
+          </div>
+        }
 
         <app-edit-button
           class="edit-element"
@@ -56,12 +61,13 @@
                 size="m"
                 [(activeItemIndex)]="selectedTargetedLanguageIndex"
               >
-                <button
-                  *ngFor="let language of currentTargetLanguages"
-                  type="button"
-                >
-                  {{ language }}
-                </button>
+                @for (language of currentTargetLanguages; track language) {
+                  <button
+                    type="button"
+                  >
+                    {{ language }}
+                  </button>
+                }
               </tui-segmented>
             </div>
           </tui-scrollbar>
@@ -85,17 +91,19 @@
       </div>
     </div>
 
-    <div class="danger section-block" *ngIf="currentTargetLanguages.length > 1">
-      <span class="danger-text">Danger Zone</span>
-      <button class="btn btn-danger" (click)="deleteTargetLang()">
-        <tui-icon
-          icon="@tui.trash-2"
-          class="delete-icon"
-          [style.height.px]="18"
-          [style.width.px]="18"
-        />
-        Delete {{ currentTargetLanguages[selectedTargetedLanguageIndex] }}
-      </button>
-    </div>
+    @if (currentTargetLanguages.length > 1) {
+      <div class="danger section-block">
+        <span class="danger-text">Danger Zone</span>
+        <button class="btn btn-danger" (click)="deleteTargetLang()">
+          <tui-icon
+            icon="@tui.trash-2"
+            class="delete-icon"
+            [style.height.px]="18"
+            [style.width.px]="18"
+          />
+          Delete {{ currentTargetLanguages[selectedTargetedLanguageIndex] }}
+        </button>
+      </div>
+    }
   </div>
 </div>

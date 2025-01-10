@@ -11,7 +11,7 @@ import {
   TuiInputFiles,
   TuiInputFilesDirective
 } from '@taiga-ui/kit';
-import {AsyncPipe, NgIf} from "@angular/common";
+import {AsyncPipe} from "@angular/common";
 import {LucideAngularModule} from "lucide-angular";
 import {TuiLink} from "@taiga-ui/core";
 
@@ -20,7 +20,6 @@ import {TuiLink} from "@taiga-ui/core";
   templateUrl: './file-upload.component.html',
   styleUrls: ['./file-upload.component.less'],
   imports: [
-    NgIf,
     LucideAngularModule,
     TuiFile,
     TuiFilesComponent,
@@ -30,7 +29,7 @@ import {TuiLink} from "@taiga-ui/core";
     AsyncPipe,
     TuiFileRejectedPipe,
     TuiLink,
-    TuiAvatar,
+    TuiAvatar
   ],
 })
 export class FileUploadComponent {

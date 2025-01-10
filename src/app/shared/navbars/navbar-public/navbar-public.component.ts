@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule} from "@angular/forms";
-import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+import {NgClass, NgOptimizedImage} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {ButtonComponent} from "../../button/button.component";
@@ -12,7 +12,6 @@ import {ButtonComponent} from "../../button/button.component";
   imports: [
     FormsModule,
     NgOptimizedImage,
-    NgIf,
     NgClass,
     NgClickOutsideDirective,
     RouterLink,

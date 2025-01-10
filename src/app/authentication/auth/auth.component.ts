@@ -12,7 +12,7 @@ import {
   TuiTextfieldComponent,
   TuiTextfieldOptionsDirective
 } from '@taiga-ui/core';
-import {AsyncPipe, NgClass, NgForOf, NgIf, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgClass, NgOptimizedImage} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -37,7 +37,6 @@ declare const google: any;
     ReactiveFormsModule,
     TuiFieldErrorPipe,
     AsyncPipe,
-    NgIf,
     TuiLink,
     TuiTextfieldControllerModule,
     NgOptimizedImage,
@@ -50,9 +49,8 @@ declare const google: any;
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
     TuiTextfield,
-    NgForOf,
     GifPlayerComponent,
-    ButtonComponent,
+    ButtonComponent
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],

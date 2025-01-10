@@ -3,96 +3,107 @@
     <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
       <div class="card">
 
-        <div *ngIf="mode === 'default'" class="logo-div">
-          <app-gif-player
-            class="logo-container"
-            (click)="replayGifTrigger.next()"
-            [replayTrigger]="replayGifTrigger"
-          ></app-gif-player>
-          <img ngSrc="../../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
-               priority>
-        </div>
+        @if (mode === 'default') {
+          <div class="logo-div">
+            <app-gif-player
+              class="logo-container"
+              (click)="replayGifTrigger.next()"
+              [replayTrigger]="replayGifTrigger"
+            ></app-gif-player>
+            <img ngSrc="../../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825"
+                 priority>
+          </div>
+        }
 
         <hr class="solid separator2">
 
         <div class="tui-col_8">
-          <h3 class="greeting" *ngIf="mode === 'default'" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
-              (mouseleave)="onMouseLeave()">
-            {{ currentGreeting }}👋
-          </h3>
+          @if (mode === 'default') {
+            <h3 class="greeting" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
+                (mouseleave)="onMouseLeave()">
+              {{ currentGreeting }}👋
+            </h3>
+          }
 
-          <div class="social-buttons" *ngIf="mode !== 'linkLocal' && mode !== 'changeEmail'">
-            <app-provider-icon
-              *ngFor="let provider of providers"
-              [provider]="provider"
-              [connectedProviders]="this.connectedProviders"
-              [clickOnLinked]="onSocialLogin"
-              [loginFlow]="mode ==='default'"
-            ></app-provider-icon>
-          </div>
-
-          <div *ngIf="this.showSeparatorAndForm">
-            <div class="separator" *ngIf="mode !== 'linkLocal' && mode !== 'changeEmail'"><b>OR</b></div>
-
-            <div class="switch" *ngIf="mode === 'default'">
-              <span (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span>
-              <span (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
+          @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
+            <div class="social-buttons">
+              @for (provider of providers; track provider) {
+                <app-provider-icon
+                  [provider]="provider"
+                  [connectedProviders]="this.connectedProviders"
+                  [clickOnLinked]="onSocialLogin"
+                  [loginFlow]="mode ==='default'"
+                ></app-provider-icon>
+              }
             </div>
+          }
 
-            <div class="row-1">
-              <tui-textfield
-                tuiTextfieldSize="l"
-                data-size="l"
-                [tuiTextfieldLabelOutside]="true"
-              >
-                <input
-                  tuiTextfield
-                  formControlName="emailValue"
-                  type="email"
-                  placeholder="Email"
-                  [readOnly]="this.mode === 'linkLocal'"
-                />
-              </tui-textfield>
-              <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
-            </div>
-
-            <div class="row-2"
-                 [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
-            >
-              <tui-textfield
-                tuiTextfieldSize="l"
-                data-size="l"
-              >
-                <input
-                  tuiTextfield
+          @if (this.showSeparatorAndForm) {
+            <div>
+              @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
+                <div class="separator"><b>OR</b></div>
+              }
+              @if (mode === 'default') {
+                <div class="switch">
+                  <span (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span>
+                  <span (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
+                </div>
+              }
+              <div class="row-1">
+                <tui-textfield
+                  tuiTextfieldSize="l"
+                  data-size="l"
                   [tuiTextfieldLabelOutside]="true"
-                  formControlName="passwordValue"
-                  type="password"
-                  placeholder="Password"
-                />
-                <tui-icon tuiPassword/>
-              </tui-textfield>
-              <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+                >
+                  <input
+                    tuiTextfield
+                    formControlName="emailValue"
+                    type="email"
+                    placeholder="Email"
+                    [readOnly]="this.mode === 'linkLocal'"
+                  />
+                </tui-textfield>
+                <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+              </div>
+              <div class="row-2"
+                   [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
+              >
+                <tui-textfield
+                  tuiTextfieldSize="l"
+                  data-size="l"
+                >
+                  <input
+                    tuiTextfield
+                    [tuiTextfieldLabelOutside]="true"
+                    formControlName="passwordValue"
+                    type="password"
+                    placeholder="Password"
+                  />
+                  <tui-icon tuiPassword/>
+                </tui-textfield>
+                <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+              </div>
+              @if (!isSignUp && mode === 'default') {
+                <div class="forgot-div">
+                  <a tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
+                </div>
+              }
+              @if (isSignUp && mode === 'default') {
+                <div class="agree-with-terms">
+                  By signing up, you confirm that you accept our <br>
+                  <a [routerLink]="termsOfUseUrl" target="_blank">Terms of Use</a> and have read our
+                  <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+                </div>
+              }
+              <div class="mt-2.5">
+                <app-button
+                  [label]="actionBtnText"
+                  [loading$]="loading$"
+                  [disabled]="!authForm.valid"
+                ></app-button>
+              </div>
             </div>
-
-            <div class="forgot-div" *ngIf="!isSignUp && mode === 'default'">
-              <a tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
-            </div>
-
-            <div *ngIf="isSignUp && mode === 'default'" class="agree-with-terms">
-              By signing up, you confirm that you accept our <br>
-              <a [routerLink]="termsOfUseUrl" target="_blank">Terms of Use</a> and have read our
-              <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
-            </div>
-
-            <div class="mt-2.5">
-              <app-button
-                [label]="actionBtnText"
-                [loading$]="loading$"
-                [disabled]="!authForm.valid"
-              ></app-button>
-            </div>
-          </div>
+          }
         </div>
       </div>
     </form>

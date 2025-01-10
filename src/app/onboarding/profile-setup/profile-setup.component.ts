@@ -6,7 +6,7 @@ import {UserInfoService} from "../../services/user-info.service";
 import {UsernameComponent} from "../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../shared/avatar/settings/avatar-settings.component";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
-import {NgIf} from "@angular/common";
+
 import {StepHeaderComponent} from "../../shared/step-header/step-header.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 
@@ -15,7 +15,6 @@ import {ButtonComponent} from "../../shared/button/button.component";
   imports: [
     UsernameComponent,
     AvatarSettingsComponent,
-    NgIf,
     StepHeaderComponent,
     ButtonComponent
   ],

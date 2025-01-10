@@ -1,6 +1,6 @@
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AsyncPipe, NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
+import {AsyncPipe, NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
 import {TuiAlertService, TuiError, TuiIcon, TuiTextfield, TuiTextfieldComponent} from "@taiga-ui/core";
@@ -27,7 +27,6 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 @Component({
   selector: 'app-settings',
   imports: [
-    NgIf,
     ConfirmModalComponent,
     NgStyle,
     NgTemplateOutlet,

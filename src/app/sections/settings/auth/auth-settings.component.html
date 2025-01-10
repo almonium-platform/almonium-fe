@@ -61,9 +61,9 @@
 
 <app-recent-auth-guard></app-recent-auth-guard>
 
-<ng-container *ngIf="isAuthModalVisible">
+@if (isAuthModalVisible) {
   <app-auth [mode]="authMode"></app-auth>
-</ng-container>
+}
 
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
@@ -92,91 +92,108 @@
           </div>
 
         </form>
-        <span *ngIf="!emailVerified && !hasPendingEmailVerificationRequest()"
-              class="unverified-icon"
-              title="Email not verified"
-        >
-          <i class="fas fa-exclamation text-xl"></i>
-        </span>
+        @if (!emailVerified && !hasPendingEmailVerificationRequest()) {
+          <span
+            class="unverified-icon"
+            title="Email not verified"
+          >
+              <i class="fas fa-exclamation text-xl"></i>
+            </span>
+        }
 
-        <button *ngIf="!emailVerified && !emailEditable && !hasPendingEmailVerificationRequest()"
-                class="black-n-white-button verify-btn"
-                (click)="requestEmailVerification()">
-          <i class="fa-solid fa-envelope-open-text"></i>
-          Verify
-        </button>
+        @if (!emailVerified && !emailEditable && !hasPendingEmailVerificationRequest()) {
+          <button
+            class="black-n-white-button verify-btn"
+            (click)="requestEmailVerification()">
+            <i class="fa-solid fa-envelope-open-text"></i>
+            Verify
+          </button>
+        }
 
-        <div class="status-container" *ngIf="emailVerified" [ngClass]="{emailVerifiedTextExpanded : 'circular-icon'}">
-          <span class="status-box verified-box">
-            <i class="status-icon fas fa-check-circle"></i>
-            <span *ngIf="emailVerifiedTextExpanded" class="status-text">VERIFIED</span>
-          </span>
-        </div>
+        @if (emailVerified) {
+          <div class="status-container" [ngClass]="{emailVerifiedTextExpanded : 'circular-icon'}">
+              <span class="status-box verified-box">
+                <i class="status-icon fas fa-check-circle"></i>
+                @if (emailVerifiedTextExpanded) {
+                  <span class="status-text">VERIFIED</span>
+                }
+              </span>
+          </div>
+        }
 
-        <div class="status-container" *ngIf="!emailVerified && hasPendingEmailVerificationRequest()">
-        <span class="status-box unverified-box">
-          <i class="unverified-status-icon fas fa-hourglass-half"></i>
-          <span *ngIf="emailVerifiedTextExpanded" class="unverified-status-text">UNVERIFIED</span>
-        </span>
-        </div>
+        @if (!emailVerified && hasPendingEmailVerificationRequest()) {
+          <div class="status-container">
+              <span class="status-box unverified-box">
+                <i class="unverified-status-icon fas fa-hourglass-half"></i>
+                @if (emailVerifiedTextExpanded) {
+                  <span class="unverified-status-text">UNVERIFIED</span>
+                }
+              </span>
+          </div>
+        }
 
-        <button *ngIf="hasPendingEmailVerificationRequest()"
-                class="pending-icon edit-element"
-                title="Email not verified"
-                (click)="onPendingEmailVerificationClick()"
-        >
-          <i class="fi fi-rr-email-pending text-sm"></i>
-        </button>
+        @if (hasPendingEmailVerificationRequest()) {
+          <button
+            class="pending-icon edit-element"
+            title="Email not verified"
+            (click)="onPendingEmailVerificationClick()"
+          >
+            <i class="fi fi-rr-email-pending text-sm"></i>
+          </button>
+        }
 
-        <app-edit-button
-          *ngIf="!hasPendingEmailVerificationRequest()"
-          class="edit-element"
-          [disabled]="!emailConfirmEnabled()"
-          [label]="'Change email'"
-          [editable]="emailEditable"
-          [loading$]="loadingEmail$"
-          (clickFunction)="onEmailEditClick()">
-        </app-edit-button>
+        @if (!hasPendingEmailVerificationRequest()) {
+          <app-edit-button
+            class="edit-element"
+            [disabled]="!emailConfirmEnabled()"
+            [label]="'Change email'"
+            [editable]="emailEditable"
+            [loading$]="loadingEmail$"
+            (clickFunction)="onEmailEditClick()">
+          </app-edit-button>
+        }
       </div>
 
-      <div class="row-content" *ngIf="isProviderLinked('local')">
-        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
-
-          <div class="field">
-            <tui-textfield
-              #passwordField
-              tuiTextfieldSize="m"
-              data-size="m"
-            >
-              <input
-                tuiTextfield
-                [tuiTextfieldLabelOutside]="true"
-                [readOnly]="!passwordEditable"
-                formControlName="passwordValue"
-                type="password"
-              />
-              <tui-icon tuiPassword/>
-            </tui-textfield>
-            <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
-          </div>
-
-        </form>
-        <div class="password-updated-box" *ngIf="!passwordEditable">
-          <div class="password-upd-text text-gray-700 tracking-tight leading-5 text-">LAST UPDATED<br>
-          </div>
-          <div class="text-xs text-gray-700 tracking-wide">
-            {{ lastPasswordUpdate }}
-          </div>
+      @if (isProviderLinked('local')) {
+        <div class="row-content">
+          <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="email-form">
+            <div class="field">
+              <tui-textfield
+                #passwordField
+                tuiTextfieldSize="m"
+                data-size="m"
+              >
+                <input
+                  tuiTextfield
+                  [tuiTextfieldLabelOutside]="true"
+                  [readOnly]="!passwordEditable"
+                  formControlName="passwordValue"
+                  type="password"
+                />
+                <tui-icon tuiPassword/>
+              </tui-textfield>
+              <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+            </div>
+          </form>
+          @if (!passwordEditable) {
+            <div class="password-updated-box">
+              <div class="password-upd-text text-gray-700 tracking-tight leading-5 text-">LAST UPDATED<br>
+              </div>
+              <div class="text-xs text-gray-700 tracking-wide">
+                {{ lastPasswordUpdate }}
+              </div>
+            </div>
+          }
+          <app-edit-button
+            class="edit-element"
+            [disabled]="!passwordConfirmEnabled()"
+            [label]="'Change password'"
+            [editable]="passwordEditable"
+            [loading$]="loadingPassword$"
+            (clickFunction)="onPasswordEditClick()">
+          </app-edit-button>
         </div>
-        <app-edit-button
-          class="edit-element"
-          [disabled]="!passwordConfirmEnabled()"
-          [label]="'Change password'"
-          [editable]="passwordEditable"
-          [loading$]="loadingPassword$"
-          (clickFunction)="onPasswordEditClick()">
-        </app-edit-button>
-      </div>
+      }
     </div>
     <div class="section-block card">
       <div class="title">Linked Accounts</div>

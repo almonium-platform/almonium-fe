@@ -1,5 +1,5 @@
 import {Component, Input, ViewChild} from '@angular/core';
-import {NgIf, NgOptimizedImage} from "@angular/common";
+import {NgOptimizedImage} from "@angular/common";
 import {PaywallComponent} from "../paywall/paywall.component";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
@@ -11,27 +11,32 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
     <div class="custom-badged-content" (click)="handleClick($event)">
       <ng-content></ng-content>
       <!-- Badge Icon at Top-Right -->
-      <div *ngIf="display" class="custom-badge-container custom-badge-icon-container">
-        <div *ngIf="showIcon" class="custom-badge-icon" [style]="badgeStyle">
-          <img [ngSrc]="badgeIconSrc"
-               [alt]="badgeAltText"
-               [width]="badgeNumericSize"
-               [height]="badgeNumericSize"
-          />
+      @if (display) {
+        <div class="custom-badge-container custom-badge-icon-container">
+          @if (showIcon) {
+            <div class="custom-badge-icon" [style]="badgeStyle">
+              <img [ngSrc]="badgeIconSrc"
+                   [alt]="badgeAltText"
+                   [width]="badgeNumericSize"
+                   [height]="badgeNumericSize"
+              />
+            </div>
+          }
         </div>
-      </div>
+      }
       <!-- Badge Label at Bottom Center -->
-      <div *ngIf="display && badgeText" class="custom-badge-container custom-badge-label-container"
-           [style]="labelPosition">
-        <div class="custom-badge-text">
-          {{ badgeText }}
+      @if (display && badgeText) {
+        <div class="custom-badge-container custom-badge-label-container"
+             [style]="labelPosition">
+          <div class="custom-badge-text">
+            {{ badgeText }}
+          </div>
         </div>
-      </div>
+      }
     </div>
   `,
   styleUrls: ['./premium-badged-content.component.less'],
   imports: [
-    NgIf,
     NgOptimizedImage,
     PaywallComponent
   ]

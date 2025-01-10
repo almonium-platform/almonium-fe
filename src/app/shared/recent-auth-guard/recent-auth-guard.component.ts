@@ -3,20 +3,18 @@ import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
 import {AuthComponent} from "../../authentication/auth/auth.component";
 import {filter, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
-import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-recent-auth-guard',
   template: `
-    <ng-container *ngIf="isAuthModalVisible">
+    @if (isAuthModalVisible) {
       <app-auth
         mode="embedded"
       ></app-auth>
-    </ng-container>
+    }
   `,
   imports: [
-    AuthComponent,
-    NgIf
+    AuthComponent
   ],
 })
 export class RecentAuthGuardComponent implements OnInit, OnDestroy {

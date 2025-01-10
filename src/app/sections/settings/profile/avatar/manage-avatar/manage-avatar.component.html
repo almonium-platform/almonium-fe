@@ -23,16 +23,17 @@
             >
             </app-profile-picture>
 
-            <tui-icon
-              *ngIf="userInfo?.avatarUrl"
-              appearance="primary"
-              icon="@tui.x"
-              size="xl"
-              tuiBadge
-              tuiSlot="top"
-              class="hover:opacity-80 cursor-pointer"
-              (click)="deleteCurrentAvatar()"
-            ></tui-icon>
+            @if (userInfo?.avatarUrl) {
+              <tui-icon
+                appearance="primary"
+                icon="@tui.x"
+                size="xl"
+                tuiBadge
+                tuiSlot="top"
+                class="hover:opacity-80 cursor-pointer"
+                (click)="deleteCurrentAvatar()"
+              ></tui-icon>
+            }
           </tui-badged-content>
         </div>
 
@@ -47,39 +48,40 @@
       <div class="avatars-container">
         <!-- Custom Avatars -->
 
-        <tui-badged-content
-          *ngFor="let avatar of customAvatars"
-          class="avatar"
-          [ngClass]="{
+        @for (avatar of customAvatars; track avatar) {
+          <tui-badged-content
+            class="avatar"
+            [ngClass]="{
             'motion-preset-blink': avatar.id === deletedAvatarId,
           }"
-        >
-          <tui-icon
-            appearance="primary"
-            icon="@tui.x"
-            size="m"
-            tuiBadge
-            tuiSlot="top"
-            class="hover:opacity-80 cursor-pointer"
-            (click)="deleteCustomAvatar(avatar.id)"
-          ></tui-icon>
-
-          <tui-avatar
-            [src]="avatar.url"
-            size="xl"
-            tuiAvatarOutline="var(--default-avatar-gradient)"
-            (click)="chooseAnotherCustomAvatar(avatar.id)"
-          ></tui-avatar>
-        </tui-badged-content>
+          >
+            <tui-icon
+              appearance="primary"
+              icon="@tui.x"
+              size="m"
+              tuiBadge
+              tuiSlot="top"
+              class="hover:opacity-80 cursor-pointer"
+              (click)="deleteCustomAvatar(avatar.id)"
+            ></tui-icon>
+            <tui-avatar
+              [src]="avatar.url"
+              size="xl"
+              tuiAvatarOutline="var(--default-avatar-gradient)"
+              (click)="chooseAnotherCustomAvatar(avatar.id)"
+            ></tui-avatar>
+          </tui-badged-content>
+        }
         <!-- Default Avatars -->
-        <tui-avatar
-          *ngFor="let avatarUrl of defaultAvatars"
-          [src]="avatarUrl"
-          size="xl"
-          class="avatar"
-          tuiAvatarOutline="var(--default-avatar-gradient)"
-          (click)="chooseDefaultAvatar(avatarUrl)"
-        ></tui-avatar>
+        @for (avatarUrl of defaultAvatars; track avatarUrl) {
+          <tui-avatar
+            [src]="avatarUrl"
+            size="xl"
+            class="avatar"
+            tuiAvatarOutline="var(--default-avatar-gradient)"
+            (click)="chooseDefaultAvatar(avatarUrl)"
+          ></tui-avatar>
+        }
       </div>
     </div>
   </div>

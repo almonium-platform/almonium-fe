@@ -5,7 +5,7 @@ import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
 import {catchError, switchMap, tap} from 'rxjs/operators';
 import {NgxParticlesModule} from "@tsparticles/angular";
-import {NgClass, NgIf, NgOptimizedImage} from "@angular/common";
+import {NgClass, NgOptimizedImage} from "@angular/common";
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 
@@ -15,7 +15,6 @@ import {ButtonComponent} from "../../shared/button/button.component";
   styleUrls: ['./email-verification.component.less'],
   imports: [
     NgxParticlesModule,
-    NgIf,
     NgClass,
     NgOptimizedImage,
     ParticlesComponent,

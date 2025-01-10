@@ -1,7 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {Observable} from 'rxjs';
-import {NgIf} from '@angular/common';
-import {ButtonComponent} from '../button/button.component'; // Adjust path as needed
+import {ButtonComponent} from "../button/button.component";
 
 @Component({
   selector: 'app-edit-button',
@@ -14,14 +13,17 @@ import {ButtonComponent} from '../button/button.component'; // Adjust path as ne
       [customClass]="'edit-btn ' + (editable ? '' : 'circular-icon')"
       (clickFunction)="this.clickFunction.emit()"
     >
-      <i
-        *ngIf="!editable"
-        class="fa-regular fa-pen-to-square text-sm"
-      ></i>
+      @if (!editable) {
+        <i
+          class="fa-regular fa-pen-to-square text-sm"
+        ></i>
+      }
     </app-button>
   `,
   standalone: true,
-  imports: [NgIf, ButtonComponent],
+  imports: [
+    ButtonComponent
+  ],
 })
 export class EditButtonComponent {
   @Input() label: string = '';

@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
-import {NgForOf, NgIf, NgStyle} from "@angular/common";
+import {NgStyle} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../../../shared/interactive-cta-button/interactive-cta-button.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
@@ -29,7 +29,6 @@ import {ButtonComponent} from "../../../shared/button/button.component";
   selector: 'app-profile-settings',
   imports: [
     SettingsTabsComponent,
-    NgIf,
     InteractiveCtaButtonComponent,
     PaywallComponent,
     LucideAngularModule,
@@ -42,10 +41,9 @@ import {ButtonComponent} from "../../../shared/button/button.component";
     UsernameComponent,
     AvatarSettingsComponent,
     InterestsComponent,
-    NgForOf,
     TuiAutoColorPipe,
     TuiChip,
-    ButtonComponent,
+    ButtonComponent
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'

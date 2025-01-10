@@ -21,10 +21,11 @@
             }}
           </p>
         </div>
-        <app-avatar-settings
-          *ngIf="userInfo"
-          [userInfo]="userInfo"
-        ></app-avatar-settings>
+        @if (userInfo) {
+          <app-avatar-settings
+            [userInfo]="userInfo"
+          ></app-avatar-settings>
+        }
       </div>
     </div>
 

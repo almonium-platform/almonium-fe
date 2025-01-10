@@ -1,57 +1,64 @@
 <div class="flex justify-center flex-col">
-  <label *ngIf="!control.value" tuiInputFiles>
-    <input accept="image/*" tuiInputFiles [formControl]="control"/>
-    <ng-template let-dragged>
-      <div *ngIf="dragged; else base" class="content">
-        <tui-avatar
-          appearance="secondary"
-          src="@tui.droplet"
-        />
-        <div>
-          Drop it like it's hot!
-        </div>
-      </div>
-      <ng-template #base>
-        <div class="content">
-          <tui-avatar
-            appearance="secondary"
-            src="@tui.cloud-upload"
-          />
-          <div>
-            <a tuiLink>Choose a file</a> <br>
-            or drop it here
+  @if (!control.value) {
+    <label tuiInputFiles>
+      <input accept="image/*" tuiInputFiles [formControl]="control"/>
+      <ng-template let-dragged>
+        @if (dragged) {
+          <div class="content">
+            <tui-avatar
+              appearance="secondary"
+              src="@tui.droplet"
+            />
+            <div>
+              Drop it like it's hot!
+            </div>
           </div>
-        </div>
+        } @else {
+          <div class="content">
+            <tui-avatar
+              appearance="secondary"
+              src="@tui.cloud-upload"
+            />
+            <div>
+              <a tuiLink>Choose a file</a> <br>
+              or drop it here
+            </div>
+          </div>
+        }
       </ng-template>
-    </ng-template>
-  </label>
+    </label>
+  }
 
   <tui-files class="tui-space_top-1">
-    <tui-file
-      *ngIf="control.value | tuiFileRejected: { accept: 'image/*' } | async as file"
-      state="error"
-      [file]="file"
-      (remove)="removeFile()"
-    ></tui-file>
+    @if (control.value | tuiFileRejected: {accept: 'image/*'} | async; as file) {
+      <tui-file
+        state="error"
+        [file]="file"
+        (remove)="removeFile()"
+      ></tui-file>
+    }
 
-    <tui-file
-      *ngIf="loadedFiles$ | async as file"
-      [file]="file"
-      (remove)="removeFile()"
-    ></tui-file>
+    @if (loadedFiles$ | async; as file) {
+      <tui-file
+        [file]="file"
+        (remove)="removeFile()"
+      ></tui-file>
+    }
 
-    <tui-file
-      *ngIf="failedFiles$ | async as file"
-      state="error"
-      [file]="file"
-      (remove)="removeFile()"
-    ></tui-file>
+    @if (failedFiles$ | async; as file) {
+      <tui-file
+        state="error"
+        [file]="file"
+        (remove)="removeFile()"
+      ></tui-file>
+    }
 
-    <tui-file
-      *ngIf="loadingFiles$ | async as file"
-      state="loading"
-      [file]="file"
-      (remove)="removeFile()"
-    ></tui-file>
+    @if (loadingFiles$ | async; as file) {
+      <tui-file
+        state="loading"
+        [file]="file"
+        (remove)="removeFile()"
+      ></tui-file>
+    }
   </tui-files>
 </div>

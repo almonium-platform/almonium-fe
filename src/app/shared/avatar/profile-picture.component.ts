@@ -1,13 +1,13 @@
 import {Component, Input} from '@angular/core';
 import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
-import {NgIf} from "@angular/common";
+
 
 // TODO: rename to app-avatar
 @Component({
   selector: 'app-profile-picture',
   template: `
     <!--    ugly hack but I can't make tuiAvatarOutline work dynamically-->
-    <ng-container *ngIf="outline; else noOutlineAvatar">
+    @if (outline) {
       <tui-avatar
         [src]="avatarUrl || initials"
         [size]="size"
@@ -17,9 +17,7 @@ import {NgIf} from "@angular/common";
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       >
       </tui-avatar>
-    </ng-container>
-
-    <ng-template #noOutlineAvatar>
+    } @else {
       <tui-avatar
         [src]="avatarUrl || initials"
         [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
@@ -29,12 +27,12 @@ import {NgIf} from "@angular/common";
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       >
       </tui-avatar>
-    </ng-template>
+    }
+
   `,
   imports: [
     TuiAvatar,
-    TuiAvatarOutline,
-    NgIf
+    TuiAvatarOutline
   ],
 })
 export class ProfilePictureComponent {

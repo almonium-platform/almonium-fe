@@ -4,81 +4,88 @@
 
   <div class="stepper-container card">
     <!--    MOBILE-->
-    <div class="mobile" *ngIf="isMobile">
-      <lucide-icon
-        [ngClass]="{ disabled: backDisabled() }"
-        class="navigate-icon"
-        name="chevron-left"
-        (click)="goBack()"
-      ></lucide-icon>
-      <progress
-        size="s"
-        class="progress"
-        tuiProgressBar
-        [max]="steps.length"
-        [segments]="steps.length"
-        [value]="activeStepIndex + 1"
-      ></progress>
+    @if (isMobile) {
+      <div class="mobile">
+        <lucide-icon
+          [ngClass]="{ disabled: backDisabled() }"
+          class="navigate-icon"
+          name="chevron-left"
+          (click)="goBack()"
+        ></lucide-icon>
+        <progress
+          size="s"
+          class="progress"
+          tuiProgressBar
+          [max]="steps.length"
+          [segments]="steps.length"
+          [value]="activeStepIndex + 1"
+        ></progress>
+        <lucide-icon
+          [ngClass]="{ disabled: forwardDisabled() }"
+          class="navigate-icon"
+          name="chevron-right"
+          (click)="goForward()"
+        ></lucide-icon>
+      </div>
+    }
 
-      <lucide-icon
-        [ngClass]="{ disabled: forwardDisabled() }"
-        class="navigate-icon"
-        name="chevron-right"
-        (click)="goForward()"
-      ></lucide-icon>
-    </div>
-
-    <tui-stepper
-      *ngIf="!isMobile"
-      [activeItemIndex]="activeStepIndex"
-      [tuiTextfieldSize]="'l'"
-    >
-      <button
-        tuiStep
-        type="button"
-        *ngFor="let s of steps; let i = index"
-        [disabled]="!canNavigateTo(i)"
-        (click)="goToStep(i)"
+    @if (!isMobile) {
+      <tui-stepper
+        [activeItemIndex]="activeStepIndex"
+        [tuiTextfieldSize]="'l'"
       >
-        {{ s.charAt(0) + s.slice(1).toLowerCase() }}
-      </button>
-    </tui-stepper>
+        @for (s of steps; track s; let i = $index) {
+          <button
+            tuiStep
+            type="button"
+            [disabled]="!canNavigateTo(i)"
+            (click)="goToStep(i)"
+          >
+            {{ s.charAt(0) + s.slice(1).toLowerCase() }}
+          </button>
+        }
+      </tui-stepper>
+    }
   </div>
 
   <div class="step-content">
 
-    <app-welcome
-      class="z-10"
-      *ngIf="activeStep === SetupStep.WELCOME"
-      (continue)="updateActiveStep($event)"
-    ></app-welcome>
+    @if (activeStep === SetupStep.WELCOME) {
+      <app-welcome
+        class="z-10"
+        (continue)="updateActiveStep($event)"
+      ></app-welcome>
+    }
 
-    <app-language-setup
-      *ngIf="activeStep === SetupStep.LANGUAGES"
-    ></app-language-setup>
+    @if (activeStep === SetupStep.LANGUAGES) {
+      <app-language-setup
+      ></app-language-setup>
+    }
 
     <app-language-setup (continue)="updateActiveStep($event)"></app-language-setup>
-    <ng-container *ngIf="activeStep === SetupStep.LANGUAGES && paywallComponent?.content">
+    @if (activeStep === SetupStep.LANGUAGES && paywallComponent?.content) {
       <div class="language-setup-wrapper">
         <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
       </div>
-    </ng-container>
+    }
 
     <div class="card plan">
       <paywall #paywallComponent></paywall>
-      <ng-container *ngIf="activeStep === SetupStep.PLAN && paywallComponent?.content">
+      @if (activeStep === SetupStep.PLAN && paywallComponent?.content) {
         <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
-      </ng-container>
+      }
     </div>
 
-    <app-profile-setup
-      *ngIf="activeStep === SetupStep.PROFILE"
-      (continue)="updateActiveStep($event)"
-    ></app-profile-setup>
+    @if (activeStep === SetupStep.PROFILE) {
+      <app-profile-setup
+        (continue)="updateActiveStep($event)"
+      ></app-profile-setup>
+    }
 
-    <app-interests-setup
-      [currentInterests]="userInfo?.interests ?? []"
-      *ngIf="activeStep === SetupStep.INTERESTS"
-    ></app-interests-setup>
+    @if (activeStep === SetupStep.INTERESTS) {
+      <app-interests-setup
+        [currentInterests]="userInfo?.interests ?? []"
+      ></app-interests-setup>
+    }
   </div>
 </div>

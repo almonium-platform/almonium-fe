@@ -1,9 +1,9 @@
 import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
-import {AsyncPipe, NgIf, NgStyle} from "@angular/common";
-import {TuiHint, TuiLoader} from "@taiga-ui/core";
+import {AsyncPipe, NgStyle} from "@angular/common";
 import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 import {Router} from "@angular/router";
+import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
 
 @Component({
   selector: 'app-button',
@@ -21,13 +21,16 @@ import {Router} from "@angular/router";
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
     >
-      <tui-loader
-        *ngIf="loading$ | async"
-        class="absolute loader"
-      ></tui-loader>
+      @if (loading$ | async) {
+        <tui-loader
+          class="absolute loader"
+        ></tui-loader>
+      }
 
       <!-- Anything projected from outside (like <i> icons) goes here -->
-      <ng-content *ngIf="!(loading$ | async)"></ng-content>
+      @if (!(loading$ | async)) {
+        <ng-content></ng-content>
+      }
 
       <span [ngStyle]="{ color: (loading$ | async) ? 'transparent' : 'inherit' }">
         {{ label }}
@@ -35,11 +38,10 @@ import {Router} from "@angular/router";
     </button>
   `,
   imports: [
-    NgIf,
     AsyncPipe,
+    NgStyle,
     TuiLoader,
-    TuiHint,
-    NgStyle
+    TuiHintDirective
   ],
   styleUrls: ['./button.component.less']
 })

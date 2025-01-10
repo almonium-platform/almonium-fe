@@ -1,41 +1,41 @@
 import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
-import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
   selector: 'app-popup-template',
   template: `
-    <div
-      *ngIf="drawerState.visible"
-      [ngClass]="{
+    @if (drawerState.visible) {
+      <div
+        [ngClass]="{
         'fixed inset-0 z-50 flex bg-overlay': true,
         'flex-col': fullscreen,
         'items-center justify-center': !fullscreen
       }"
-      [class.bg-darkening]="drawerState.visible && !drawerState.closing"
-      [class.bg-lightening]="drawerState.closing"
-    >
-      <div
-        class="relative"
-        [ngClass]="{
+        [class.bg-darkening]="drawerState.visible && !drawerState.closing"
+        [class.bg-lightening]="drawerState.closing"
+      >
+        <div
+          class="relative"
+          [ngClass]="{
           'w-screen h-screen': fullscreen,
           'rounded-2xl w-fit shadow-lg max-w-3xl motion-preset-slide-up': !fullscreen,
           'slide-down': drawerState.closing
         }"
-      >
-        <app-dismiss-button
-          (close)="close()"
-          [isOutside]="drawerState.outside"
-        ></app-dismiss-button>
-
-        <!-- Render the content if we have it -->
-        <ng-container *ngIf="drawerState.content">
-          <ng-container *ngTemplateOutlet="drawerState.content">
-          </ng-container>
-        </ng-container>
+        >
+          <app-dismiss-button
+            (close)="close()"
+            [isOutside]="drawerState.outside"
+          ></app-dismiss-button>
+          <!-- Render the content if we have it -->
+          @if (drawerState.content) {
+            <ng-container *ngTemplateOutlet="drawerState.content">
+            </ng-container>
+          }
+        </div>
       </div>
-    </div>
+    }
   `,
   styles: [
     `
@@ -87,17 +87,17 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     `,
   ],
   imports: [
-    NgIf,
     NgTemplateOutlet,
     NgClass,
-    DismissButtonComponent,
+    DismissButtonComponent
   ],
 })
 export class PopupTemplateComponent implements OnInit {
   @Input() fullscreen = false;
   drawerState!: DrawerState;
 
-  constructor(private popupTemplateStateService: PopupTemplateStateService) {}
+  constructor(private popupTemplateStateService: PopupTemplateStateService) {
+  }
 
   ngOnInit() {
     this.popupTemplateStateService.drawerState$.subscribe((state) => {

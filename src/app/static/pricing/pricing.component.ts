@@ -1,6 +1,6 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
-import {NgIf, NgTemplateOutlet} from "@angular/common";
+import {NgTemplateOutlet} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
 import {TuiAlertService} from "@taiga-ui/core";
 import {UrlService} from "../../services/url.service";
@@ -9,7 +9,6 @@ import {UrlService} from "../../services/url.service";
   selector: 'app-pricing',
   imports: [
     NgTemplateOutlet,
-    NgIf,
     PaywallComponent
   ],
   templateUrl: './pricing.component.html',

@@ -1,21 +1,20 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Subject, Subscription} from 'rxjs';
-import {NgIf} from "@angular/common";
+
 
 @Component({
   selector: 'app-gif-player',
   template: `
-    <img
-      #gifElement
-      *ngIf="visible"
-      [src]="gifSrc"
-      alt="logo"
-      class="logo"
-    />
+    @if (visible) {
+      <img
+        #gifElement
+        [src]="gifSrc"
+        alt="logo"
+        class="logo"
+      />
+    }
   `,
-  imports: [
-    NgIf
-  ],
+  imports: [],
 })
 export class GifPlayerComponent implements OnInit, OnDestroy {
   private foldingOnce: string = '../../../assets/gif/folding-once.gif';

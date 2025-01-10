@@ -1,6 +1,5 @@
-<ng-container *ngIf="isAuthenticated; else publicNavbar">
+@if (isAuthenticated) {
   <app-navbar [currentRoute]="currentRoute"></app-navbar>
-</ng-container>
-<ng-template #publicNavbar>
+} @else {
   <app-public-navbar [currentRoute]="currentRoute"></app-public-navbar>
-</ng-template>
+}

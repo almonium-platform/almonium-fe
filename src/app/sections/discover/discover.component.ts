@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild,} from '@angular/core';
-import {NgForOf, NgIf} from '@angular/common';
+
 import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
 import {ActivatedRoute} from '@angular/router';
@@ -15,11 +15,9 @@ import {AutocompleteService} from "./service/autocomplete.service";
   templateUrl: './discover.component.html',
   styleUrls: ['./discover.component.less'],
   imports: [
-    NgForOf,
-    NgIf,
     FormsModule,
     ContenteditableValueAccessorModule,
-    DiacriticPopupComponent,
+    DiacriticPopupComponent
   ]
 })
 export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {

@@ -31,12 +31,14 @@
             </h1>
           </div>
           <div class="features">
-            <div class="feature" *ngFor="let feature of freeFeatures">
-              <div style="">
-                <tui-icon icon="check"></tui-icon>
+            @for (feature of freeFeatures; track feature) {
+              <div class="feature">
+                <div style="">
+                  <tui-icon icon="check"></tui-icon>
+                </div>
+                <span>{{ feature }}</span>
               </div>
-              <span>{{ feature }}</span>
-            </div>
+            }
           </div>
         </div>
         <footer>
@@ -78,12 +80,14 @@
           </div>
 
           <div class="features">
-            <div class="feature" *ngFor="let feature of premiumFeatures">
-              <div>
-                <tui-icon [icon]="getIcon(feature)" aria-hidden="true"></tui-icon>
+            @for (feature of premiumFeatures; track feature) {
+              <div class="feature">
+                <div>
+                  <tui-icon [icon]="getIcon(feature)" aria-hidden="true"></tui-icon>
+                </div>
+                <span>{{ feature }}</span>
               </div>
-              <span>{{ feature }}</span>
-            </div>
+            }
           </div>
         </div>
         <footer>

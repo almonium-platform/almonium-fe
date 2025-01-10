@@ -18,14 +18,16 @@
           <p>{{ message }}</p>
         </div>
       </div>
-      <div *ngIf="verificationSuccess" class="tui-form__buttons">
-        <app-button
-          label="Go Back to App"
-          class="w-full"
-          redirectUrl="/logout"
-          appearance="gradient"
-        ></app-button>
-      </div>
+      @if (verificationSuccess) {
+        <div class="tui-form__buttons">
+          <app-button
+            label="Go Back to App"
+            class="w-full"
+            redirectUrl="/logout"
+            appearance="gradient"
+          ></app-button>
+        </div>
+      }
     </div>
   </div>
 </div>

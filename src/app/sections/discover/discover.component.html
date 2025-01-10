@@ -1,12 +1,12 @@
-<app-diacritic-popup
-  *ngIf="popupOptions.length > 0"
-  [options]="popupOptions"
-  [position]="popupPosition"
-  [focusedIndex]="diacriticPopupFocusIndex"
-  (optionSelected)="selectDiacritic($event)"
-
->
-</app-diacritic-popup>
+@if (popupOptions.length > 0) {
+  <app-diacritic-popup
+    [options]="popupOptions"
+    [position]="popupPosition"
+    [focusedIndex]="diacriticPopupFocusIndex"
+    (optionSelected)="selectDiacritic($event)"
+  >
+  </app-diacritic-popup>
+}
 
 <div class="base-container">
   <div class="white-card">
@@ -21,27 +21,32 @@
         autofocus>
       </div>
     </div>
-    <ul *ngIf="filteredOptions.length > 0" class="autocomplete-list">
-      <li
-        *ngFor="let option of filteredOptions; let i = index"
-        (click)="onOptionSelected(option)"
-        class="autocomplete-item"
-        [class.autocomplete-item-focused]="isOptionFocused(i)"
-      >
-        {{ option }}
-      </li>
-    </ul>
-    <div *ngIf="submitted && frequency > 0" class="frequency-display flex items-center">
-      <div
-        [style.background-image]="getGaussianGradient(frequency)"
-        class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg mr-4"
-      >
-        {{ frequency }}
+    @if (filteredOptions.length > 0) {
+      <ul class="autocomplete-list">
+        @for (option of filteredOptions; track option; let i = $index) {
+          <li
+            (click)="onOptionSelected(option)"
+            class="autocomplete-item"
+            [class.autocomplete-item-focused]="isOptionFocused(i)"
+          >
+            {{ option }}
+          </li>
+        }
+      </ul>
+    }
+    @if (submitted && frequency > 0) {
+      <div class="frequency-display flex items-center">
+        <div
+          [style.background-image]="getGaussianGradient(frequency)"
+          class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg mr-4"
+        >
+          {{ frequency }}
+        </div>
+        <div class="frequency-description text-lg">
+          <span class="font-bold">{{ getFrequencyLabel(frequency) }}</span>
+          <span class="text-xs">{{ getFrequencyDescription(frequency) }}</span>
+        </div>
       </div>
-      <div class="frequency-description text-lg">
-        <span class="font-bold">{{ getFrequencyLabel(frequency) }}</span>
-        <span class="text-xs">{{ getFrequencyDescription(frequency) }}</span>
-      </div>
-    </div>
+    }
   </div>
 </div>

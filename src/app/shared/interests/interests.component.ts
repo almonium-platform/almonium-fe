@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {TuiAlertService, TuiAutoColorPipe} from "@taiga-ui/core";
 import {Interest} from "./interest.model";
-import {NgForOf} from "@angular/common";
+
 import {TuiChip, TuiSkeleton} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {StaticInfoService} from "../../services/static-info.service";
@@ -9,7 +9,6 @@ import {StaticInfoService} from "../../services/static-info.service";
 @Component({
   selector: 'app-interests',
   imports: [
-    NgForOf,
     TuiChip,
     FormsModule,
     TuiAutoColorPipe,

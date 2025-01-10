@@ -1,150 +1,165 @@
 <ng-template #langSetup>
   <div class="card step">
     <div class="tui-header header-row">
-      <lucide-icon
-        *ngIf="onSecondForm"
-        class="go-back-icon"
-        name="circle-chevron-left"
-        (click)="onSecondForm = false"
-      ></lucide-icon>
+      @if (onSecondForm) {
+        <lucide-icon
+          class="go-back-icon"
+          name="circle-chevron-left"
+          (click)="onSecondForm = false"
+        ></lucide-icon>
+      }
 
       {{ onSecondForm ? 'Assess Your CEFR Level' : 'Choose Your Languages' }}
-      <app-info-icon
-        *ngIf="onSecondForm"
-        class="info-btn"
-        [size]=25
-        [strokeWidth]="1.75"
-        [tooltipText]="'CEFR stands for Common European Framework of Reference for Languages.'">
-      </app-info-icon>
+      @if (onSecondForm) {
+        <app-info-icon
+          class="info-btn"
+          [size]=25
+          [strokeWidth]="1.75"
+          [tooltipText]="'CEFR stands for Common European Framework of Reference for Languages.'">
+        </app-info-icon>
+      }
 
     </div>
-    <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()" class="" *ngIf="!onSecondForm">
-      <!-- Fluent Languages-->
-      <div class="form-group" *ngIf="!embeddedMode">
-        <label>I'm fluent in</label>
-        <app-fluent-language-selector
-          [languages]="supportedLanguages"
-          [selectedLanguages]="cachedFluentLanguages"
-          (selectedFluentLanguages)="listenToFluentForm($event)"
-        ></app-fluent-language-selector>
-      </div>
-      <!-- Target Languages -->
-
-      <div class="form-group">
-        <label>I want to learn</label>
-        <tui-multi-select
-          formControlName="targetLanguages"
-          placeholder="Start typing..."
-          [autoColor]="true"
-          [tuiTextfieldCleaner]="true"
-          [tuiTextfieldLabelOutside]="true"
-          (searchChange)="targetSearch$.next($event ?? '')"
-        >
-          Languages you want to master
-
-          <tui-data-list-wrapper
-            *tuiDataList
-            [labels]="labels"
-            [items]="filteredTargetLanguages$ | async"
-          ></tui-data-list-wrapper>
-        </tui-multi-select>
-        <tui-error
-          formControlName="targetLanguages"
-          [error]="[] | tuiFieldError | async"
-        ></tui-error>
-      </div>
-      <div *ngIf="!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length"
-           class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
-        <div class="text-left">
-          <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-            <span class="inline-block text-yellow-500">💫</span> Some languages have special features.
-          </p>
-          <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-            <span class="inline-block text-purple-500">✔️</span> Core functionality is available for all of them.
-          </p>
-        </div>
-      </div>
-
-      <!-- Features Display -->
-      <div class="features"
-           *ngIf="featuresVisible()"
-      >
-        <div class="columns">
-          <!-- Special Features Column -->
-          <div class="special-features" *ngIf="selectedTargetLanguageFeatures.special.length > 0">
-            <h4>Special Features</h4>
-            <ul class="features-list">
-              <li *ngFor="let feature of selectedTargetLanguageFeatures.special">
-                💫 {{ feature.feature }}
-                <span *ngIf="(targetLanguageControl.value?.length || 0) > 1">
-                ({{ feature.languages.join(', ') }})
-              </span>
-              </li>
-            </ul>
+    @if (!onSecondForm) {
+      <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()" class="">
+        <!-- Fluent Languages-->
+        @if (!embeddedMode) {
+          <div class="form-group">
+            <label>I'm fluent in</label>
+            <app-fluent-language-selector
+              [languages]="supportedLanguages"
+              [selectedLanguages]="cachedFluentLanguages"
+              (selectedFluentLanguages)="listenToFluentForm($event)"
+            ></app-fluent-language-selector>
           </div>
-
-          <!-- Basic Features Column -->
-          <div class="basic-features">
-            <h4>Core Features</h4>
-            <ul class="features-list">
-              <li *ngFor="let feature of selectedTargetLanguageFeatures.basic">
-                ✔️ {{ feature.feature }}
-              </li>
-            </ul>
-          </div>
+        }
+        <!-- Target Languages -->
+        <div class="form-group">
+          <label>I want to learn</label>
+          <tui-multi-select
+            formControlName="targetLanguages"
+            placeholder="Start typing..."
+            [autoColor]="true"
+            [tuiTextfieldCleaner]="true"
+            [tuiTextfieldLabelOutside]="true"
+            (searchChange)="targetSearch$.next($event ?? '')"
+          >
+            Languages you want to master
+            <tui-data-list-wrapper
+              *tuiDataList
+              [labels]="labels"
+              [items]="filteredTargetLanguages$ | async"
+            ></tui-data-list-wrapper>
+          </tui-multi-select>
+          <tui-error
+            formControlName="targetLanguages"
+            [error]="[] | tuiFieldError | async"
+          ></tui-error>
         </div>
-      </div>
-
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        [disabled]="languageForm.invalid"
-        class="gradient-button"
-      >
-        Continue
-      </button>
-    </form>
-
-    <!--    Second Step -->
-    <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()" *ngIf="onSecondForm">
-      <div class="cefr-form">
-        <div *ngFor="let language of targetLanguageControl.value; let i = index" formArrayName="languages"
-             class="cefr-rows">
-          <div [formGroupName]="i" class="cefr-language-row">
-            <tui-chip
-              class="cefr-lang-chip"
-              [style.background-color]="language | tuiAutoColor">
-              {{ language }}
-            </tui-chip>
-
-            <!-- CEFR Level Selector -->
-            <div class="custom-tui-select-wrapper">
-              <tui-select
-                tuiTextfieldSize="m"
-                class="cefr-select"
-                formControlName="cefrLevel"
-                [tuiTextfieldLabelOutside]="true"
-              >
-                Level
-                <input
-                  placeholder="👇"
-                  tuiTextfieldLegacy
-                />
-                <tui-data-list-wrapper
-                  *tuiDataList
-                  [items]="cefrLevels"
-                />
-              </tui-select>
+        @if (!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length) {
+          <div
+            class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
+            <div class="text-left">
+              <p class="text-sm break-words whitespace-normal max-w-[20rem]">
+                <span class="inline-block text-yellow-500">💫</span> Some languages have special features.
+              </p>
+              <p class="text-sm break-words whitespace-normal max-w-[20rem]">
+                <span class="inline-block text-purple-500">✔️</span> Core functionality is available for all of them.
+              </p>
             </div>
           </div>
+        }
+        <!-- Features Display -->
+        @if (featuresVisible()) {
+          <div class="features"
+          >
+            <div class="columns">
+              <!-- Special Features Column -->
+              @if (selectedTargetLanguageFeatures.special.length > 0) {
+                <div class="special-features">
+                  <h4>Special Features</h4>
+                  <ul class="features-list">
+                    @for (feature of selectedTargetLanguageFeatures.special; track feature) {
+                      <li>
+                        💫 {{ feature.feature }}
+                        @if ((targetLanguageControl.value?.length || 0) > 1) {
+                          <span>
+                            ({{ feature.languages.join(', ') }})
+                          </span>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+              <!-- Basic Features Column -->
+              <div class="basic-features">
+                <h4>Core Features</h4>
+                <ul class="features-list">
+                  @for (feature of selectedTargetLanguageFeatures.basic; track feature) {
+                    <li>
+                      ✔️ {{ feature.feature }}
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          </div>
+        }
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          [disabled]="languageForm.invalid"
+          class="gradient-button"
+        >
+          Continue
+        </button>
+      </form>
+    }
+
+    <!--    Second Step -->
+    @if (onSecondForm) {
+      <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
+        <div class="cefr-form">
+          @for (language of targetLanguageControl.value; track language; let i = $index) {
+            <div formArrayName="languages"
+                 class="cefr-rows">
+              <div [formGroupName]="i" class="cefr-language-row">
+                <tui-chip
+                  class="cefr-lang-chip"
+                  [style.background-color]="language | tuiAutoColor">
+                  {{ language }}
+                </tui-chip>
+                <!-- CEFR Level Selector -->
+                <div class="custom-tui-select-wrapper">
+                  <tui-select
+                    tuiTextfieldSize="m"
+                    class="cefr-select"
+                    formControlName="cefrLevel"
+                    [tuiTextfieldLabelOutside]="true"
+                  >
+                    Level
+                    <input
+                      placeholder="👇"
+                      tuiTextfieldLegacy
+                    />
+                    <tui-data-list-wrapper
+                      *tuiDataList
+                      [items]="cefrLevels"
+                    />
+                  </tui-select>
+                </div>
+              </div>
+            </div>
+          }
         </div>
-      </div>
-      <app-button
-        appearance="gradient"
-        [label]="isDataChanged? 'Save & Continue' : 'Continue'"
-        [loading$]="loading$"
-        [disabled]="cefrForm.invalid"
-      ></app-button>
-    </form>
+        <app-button
+          appearance="gradient"
+          [label]="isDataChanged? 'Save & Continue' : 'Continue'"
+          [loading$]="loading$"
+          [disabled]="cefrForm.invalid"
+        ></app-button>
+      </form>
+    }
   </div>
 </ng-template>

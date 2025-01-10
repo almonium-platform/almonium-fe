@@ -1,13 +1,16 @@
 import {Component, Input} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {TuiAvatar} from "@taiga-ui/kit";
-import {TuiHeader} from "@taiga-ui/layout";
 import {TuiTitle} from "@taiga-ui/core";
+import {TuiHeader} from "@taiga-ui/layout";
 
 @Component({
   selector: 'app-step-header',
   standalone: true,
-  imports: [CommonModule, TuiAvatar, TuiHeader, TuiTitle],
+  imports: [
+    TuiAvatar,
+    TuiTitle,
+    TuiHeader
+  ],
   template: `
     <div class="flex items-center space-x-4 mb-4">
       <tui-avatar

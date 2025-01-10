@@ -11,7 +11,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
-import {NgClass, NgForOf, NgIf, NgOptimizedImage, NgStyle} from "@angular/common";
+import {NgClass, NgOptimizedImage, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
@@ -32,9 +32,7 @@ import {GifPlayerComponent} from "../../gif-player/gif-player.component";
   styleUrls: ['./navbar.component.less'],
   imports: [
     FormsModule,
-    NgForOf,
     NgOptimizedImage,
-    NgIf,
     NgClass,
     NgStyle,
     NgClickOutsideDirective,

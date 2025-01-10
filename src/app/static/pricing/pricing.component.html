@@ -1,7 +1,7 @@
 <paywall #paywallComponent></paywall>
 
 <div class="base-container">
-  <ng-container *ngIf="paywallComponent?.content">
+  @if (paywallComponent?.content) {
     <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
-  </ng-container>
+  }
 </div>

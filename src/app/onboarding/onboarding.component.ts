@@ -2,7 +2,7 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angul
 import {TuiProgress, TuiStepper} from "@taiga-ui/kit";
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
-import {NgClass, NgForOf, NgIf, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {LanguageSetupComponent} from "./language-setup/language-setup.component";
 import {Subject, takeUntil} from "rxjs";
 import {SetupStep, UserInfo} from "../models/userinfo.model";
@@ -21,14 +21,12 @@ import {ViewportService} from "../services/viewport.service";
     TuiStepper,
     ParticlesComponent,
     TuiProgress,
-    NgIf,
     LanguageSetupComponent,
     WelcomeComponent,
     PaywallComponent,
     NgTemplateOutlet,
     ProfileSetupComponent,
     InterestsSetupComponent,
-    NgForOf,
     TuiTextfield,
     LucideAngularModule,
     NgClass

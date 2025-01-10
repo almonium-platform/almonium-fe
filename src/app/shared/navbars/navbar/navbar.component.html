@@ -6,26 +6,28 @@
       <app-gif-player [replayTrigger]="replayGifSubject" class="app-icon"></app-gif-player>
     </div>
 
-    <div *ngIf="!isMobile">
-      <a
-        routerLink="/discover"
-        class="nav-link ml-8 section"
-        [ngClass]="{'active-link': currentRoute === '/discover'}">
-        Discover
-      </a>
-      <a
-        routerLink="/review"
-        class="nav-link ml-8 section"
-        [ngClass]="{'active-link': currentRoute === '/review'}">
-        Review
-      </a>
-      <a
-        routerLink="/games"
-        class="nav-link ml-8 section"
-        [ngClass]="{'active-link': currentRoute === '/games'}">
-        Games
-      </a>
-    </div>
+    @if (!isMobile) {
+      <div>
+        <a
+          routerLink="/discover"
+          class="nav-link ml-8 section"
+          [ngClass]="{'active-link': currentRoute === '/discover'}">
+          Discover
+        </a>
+        <a
+          routerLink="/review"
+          class="nav-link ml-8 section"
+          [ngClass]="{'active-link': currentRoute === '/review'}">
+          Review
+        </a>
+        <a
+          routerLink="/games"
+          class="nav-link ml-8 section"
+          [ngClass]="{'active-link': currentRoute === '/games'}">
+          Games
+        </a>
+      </div>
+    }
 
     <span class="spacer"></span>
 
@@ -38,21 +40,25 @@
           </button>
           <!-- Dropdown Menu (direct continuation of the button) -->
 
-          <div *ngIf="isLanguageDropdownOpen"
-               class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
-               (keydown)="handleKeydown($event)">
-            <div class="py-1">
-              <button *ngFor="let lang of filteredLanguages; let i = index"
-                      #dropdownItem
-                      tabindex="0"
-                      [ngStyle]="getButtonStylesDropDown(lang)"
-                      [class.focused]="i === focusedLangIndex"
-                      (click)="changeLanguage(lang)"
-                      class="lang-option block w-full px-4 py-2 text-center text-sm text-gray-700 hover:bg-pink-100">
-                {{ lang }}
-              </button>
+          @if (isLanguageDropdownOpen) {
+            <div
+              class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
+              (keydown)="handleKeydown($event)">
+              <div class="py-1">
+                @for (lang of filteredLanguages; track lang; let i = $index) {
+                  <button
+                    #dropdownItem
+                    tabindex="0"
+                    [ngStyle]="getButtonStylesDropDown(lang)"
+                    [class.focused]="i === focusedLangIndex"
+                    (click)="changeLanguage(lang)"
+                    class="lang-option block w-full px-4 py-2 text-center text-sm text-gray-700 hover:bg-pink-100">
+                    {{ lang }}
+                  </button>
+                }
+              </div>
             </div>
-          </div>
+          }
         </div>
       </div>
 
@@ -83,78 +89,85 @@
 </nav>
 
 <!-- Popover Menu for App Icon (Only on Mobile Screens) -->
-<div *ngIf="isDiscoverMenuOpen"
-     class="popover-menu left-4 max-w-1 rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 mobile-only">
-  <div class="menu-section">
-    <hr class="border-gray-200"/>
-    <!-- Menu Items -->
-    <div class="menu-items p-2">
-      <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/home.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-             width="512">
-        <!--        TODO lucide icons-->
-        <span>Home</span>
-      </a>
-      <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/discover.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-             width="512">
-        <span>Discover</span>
-      </a>
-      <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/review.svg" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
-             width="512">
-        <span>Review</span>
-      </a>
-      <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/games.svg" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
-        <span>Games</span>
-      </a>
-    </div>
-  </div>
-</div>
-
-<div *ngIf="isProfilePopoverOpen"
-     class="popover-menu menu2 right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
-  <div class="menu-section">
-    <div class="user-details flex items-center">
-      <!-- Profile Picture -->
-      <app-profile-picture
-        [avatarUrl]="userInfo?.avatarUrl ?? null"
-        [username]="userInfo?.username ?? null"
-        [outline]="userInfo?.premium ?? false"
-        class="mr-3 cursor-pointer"
-        size="m"
-        (click)="openChangeAvatarPopup()"
-      >
-      </app-profile-picture>
-      <!-- User Info -->
-      <div class="user-info overflow-hidden">
-        <span class="font-semibold truncate block text-base">&#64;{{ userInfo?.username || 'Anonymous Learner' }}
-        </span>
-        <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+@if (isDiscoverMenuOpen) {
+  <div
+    class="popover-menu left-4 max-w-1 rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 mobile-only">
+    <div class="menu-section">
+      <hr class="border-gray-200"/>
+      <!-- Menu Items -->
+      <div class="menu-items p-2">
+        <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/home.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
+               width="512">
+          <!--        TODO lucide icons-->
+          <span>Home</span>
+        </a>
+        <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/discover.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
+               width="512">
+          <span>Discover</span>
+        </a>
+        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/review.svg" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
+               width="512">
+          <span>Review</span>
+        </a>
+        <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/games.svg" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
+          <span>Games</span>
+        </a>
       </div>
     </div>
-    <div class="separator"></div>
-    <hr class="border-gray-200"/>
-    <!-- Menu Items -->
-    <div class="menu-items p-2">
-      <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/settings.svg" alt="gear icon" class="w-5 h-5 mr-2" height="40" width="40">
-        <span>Settings</span>
-      </a>
+  </div>
+}
+
+@if (isProfilePopoverOpen) {
+  <div
+    class="popover-menu menu2 right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+    <div class="menu-section">
+      <div class="user-details flex items-center">
+        <!-- Profile Picture -->
+        <app-profile-picture
+          [avatarUrl]="userInfo?.avatarUrl ?? null"
+          [username]="userInfo?.username ?? null"
+          [outline]="userInfo?.premium ?? false"
+          class="mr-3 cursor-pointer"
+          size="m"
+          (click)="openChangeAvatarPopup()"
+        >
+        </app-profile-picture>
+        <!-- User Info -->
+        <div class="user-info overflow-hidden">
+                  <span
+                    class="font-semibold truncate block text-base">&#64;{{ userInfo?.username || 'Anonymous Learner' }}
+                  </span>
+          <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+        </div>
+      </div>
       <div class="separator"></div>
-      <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-        <img ngSrc="/assets/img/icons/logout.svg" alt="logout icon" class="w-5 h-5 mr-2" height="64" width="64">
-        <span>Logout</span>
-      </a>
+      <hr class="border-gray-200"/>
+      <!-- Menu Items -->
+      <div class="menu-items p-2">
+        <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/settings.svg" alt="gear icon" class="w-5 h-5 mr-2" height="40" width="40">
+          <span>Settings</span>
+        </a>
+        <div class="separator"></div>
+        <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <img ngSrc="/assets/img/icons/logout.svg" alt="logout icon" class="w-5 h-5 mr-2" height="64" width="64">
+          <span>Logout</span>
+        </a>
+      </div>
     </div>
   </div>
-</div>
+}
 
-<div *ngIf="isNotificationOpen"
-     class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
-  <div class="menu-section">
-    <hr class="border-gray-200"/>
-    You have no new notifications.
+@if (isNotificationOpen) {
+  <div
+    class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+    <div class="menu-section">
+      <hr class="border-gray-200"/>
+      You have no new notifications.
+    </div>
   </div>
-</div>
+}

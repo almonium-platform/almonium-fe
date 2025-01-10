@@ -1,27 +1,17 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgClass, NgIf} from "@angular/common";
+import {NgClass} from "@angular/common";
 import {TuiButton} from "@taiga-ui/core";
 import {TuiButtonClose} from "@taiga-ui/kit";
 
 @Component({
-    selector: 'app-dismiss-button',
-    template: `
+  selector: 'app-dismiss-button',
+  template: `
+    @if (isOutside) {
       <button
-        *ngIf="!isOutside"
-        tuiButtonClose
-        tuiIconButton
-        type="button"
         (click)="onClose()"
-        class="inner-close"
-      >
-        Close
-      </button>
-
-      <button *ngIf="isOutside"
-              (click)="onClose()"
-              class="close-button"
-              [ngClass]="{'outer-close': isOutside, 'inner-close': !isOutside}"
-              aria-label="Close"
+        class="close-button"
+        [ngClass]="{'outer-close': isOutside, 'inner-close': !isOutside}"
+        aria-label="Close"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -38,14 +28,24 @@ import {TuiButtonClose} from "@taiga-ui/kit";
           />
         </svg>
       </button>
-    `,
+    } @else {
+      <button
+        tuiButtonClose
+        tuiIconButton
+        type="button"
+        (click)="onClose()"
+        class="inner-close"
+      >
+        Close
+      </button>
+    }
+  `,
   imports: [
     NgClass,
     TuiButton,
-    TuiButtonClose,
-    NgIf
+    TuiButtonClose
   ],
-    styleUrls: ['./dismiss-button.component.less']
+  styleUrls: ['./dismiss-button.component.less']
 })
 export class DismissButtonComponent {
   @Input() isOutside: boolean = false;

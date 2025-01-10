@@ -1,7 +1,7 @@
 <tui-root>
-  <ng-container *ngIf="showNavbar">
+  @if (showNavbar) {
     <app-navbar-wrapper></app-navbar-wrapper>
-  </ng-container>
+  }
   <router-outlet/>
   <app-popup-template></app-popup-template>
 </tui-root>

@@ -1,38 +1,40 @@
 <div class="row-content">
-  <label
-    *ngIf="!usernameEditable"
-    [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
-    [style.font-size]="usernameFontSize"
-    class="username-label flex items-center"
-  >&#64;{{ userInfo?.username }}
-  </label>
+  @if (!usernameEditable) {
+    <label
+      [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
+      [style.font-size]="usernameFontSize"
+      class="username-label flex items-center"
+    >&#64;{{ userInfo?.username }}
+    </label>
+  }
 
-  <form
-    *ngIf="usernameEditable"
-    [formGroup]="usernameForm"
-    class="username-form"
-    (ngSubmit)="onUsernameEditClick()"
-  >
-    <tui-textfield
-      #username
-      tuiTextfieldSize="m"
-      [tuiTextfieldLabelOutside]="true"
+  @if (usernameEditable) {
+    <form
+      [formGroup]="usernameForm"
+      class="username-form"
+      (ngSubmit)="onUsernameEditClick()"
     >
-      <input
-        tuiTextfield
+      <tui-textfield
+        #username
+        tuiTextfieldSize="m"
+        [tuiTextfieldLabelOutside]="true"
+      >
+        <input
+          tuiTextfield
+          formControlName="usernameValue"
+          placeholder="Username"
+          [readOnly]="!usernameEditable"
+        />
+      </tui-textfield>
+      @if (isLoading) {
+        <div>Checking availability...</div>
+      }
+      <tui-error
         formControlName="usernameValue"
-        placeholder="Username"
-        [readOnly]="!usernameEditable"
-      />
-    </tui-textfield>
-
-    <div *ngIf="isLoading">Checking availability...</div>
-
-    <tui-error
-      formControlName="usernameValue"
-      [error]="[] | tuiFieldError | async"
-    ></tui-error>
-  </form>
+        [error]="[] | tuiFieldError | async"
+      ></tui-error>
+    </form>
+  }
   <!--todo replace with app-info-icon-->
   <lucide-icon
     name="info"

@@ -3,7 +3,7 @@ import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {TuiAlertService, TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
 import {TuiCardLarge} from "@taiga-ui/layout";
-import {NgForOf} from "@angular/common";
+
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
 import {UserInfoService} from "../../services/user-info.service";
@@ -22,7 +22,6 @@ import {ButtonComponent} from "../button/button.component";
     TuiAppearance,
     TuiTitle,
     TuiCardLarge,
-    NgForOf,
     TuiIcon,
     TuiSegmented,
     InteractiveCtaButtonComponent,

@@ -11,7 +11,7 @@ import {
   TuiBadgedContentComponent,
   TuiBadgedContentDirective
 } from "@taiga-ui/kit";
-import {NgClass, NgForOf, NgIf} from "@angular/common";
+import {NgClass} from "@angular/common";
 import {Avatar} from "../avatar.model";
 import {UserInfo} from "../../../../../models/userinfo.model";
 import {Subject, takeUntil} from "rxjs";
@@ -23,15 +23,13 @@ import {ProfilePictureComponent} from "../../../../../shared/avatar/profile-pict
   imports: [
     FileUploadComponent,
     TuiAvatar,
-    NgForOf,
     TuiAvatarOutline,
     TuiBadgedContentComponent,
     TuiIcon,
     TuiBadge,
     TuiBadgedContentDirective,
     ProfilePictureComponent,
-    NgClass,
-    NgIf
+    NgClass
   ],
   styleUrls: ['./manage-avatar.component.less']
 })

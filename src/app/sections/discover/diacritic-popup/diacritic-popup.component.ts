@@ -1,28 +1,30 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgForOf, NgIf, NgStyle} from "@angular/common";
+import {NgStyle} from "@angular/common";
 
 @Component({
-    selector: 'app-diacritic-popup',
-    template: `
-    <div class="diacritic-popup" *ngIf="options.length > 0" [ngStyle]="position">
-      <span *ngFor="let option of options; let i = index"
+  selector: 'app-diacritic-popup',
+  template: `
+    @if (options.length > 0) {
+      <div class="diacritic-popup" [ngStyle]="position">
+        @for (option of options; track option; let i = $index) {
+          <span
             (click)="selectOption(option)"
             [class.focused]="i === focusedIndex"
             class="letter">
-        {{ option }}
-      </span>
-    </div>
+            {{ option }}
+          </span>
+        }
+      </div>
+    }
   `,
-    imports: [
-        NgForOf,
-        NgIf,
-        NgStyle
-    ],
-    styleUrls: ['./diacritic-popup.component.less']
+  imports: [
+    NgStyle
+  ],
+  styleUrls: ['./diacritic-popup.component.less']
 })
 export class DiacriticPopupComponent {
   @Input() options: string[] = [];
-  @Input() position = { top: '0px', left: '0px' };
+  @Input() position = {top: '0px', left: '0px'};
   @Input() focusedIndex = 0;
   @Output() optionSelected = new EventEmitter<string>();
 

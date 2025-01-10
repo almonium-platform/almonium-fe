@@ -21,10 +21,11 @@
     <div class="section-block card">
       <div class="title">Profile</div>
       <div class="row-content">
-        <app-avatar-settings
-          *ngIf="userInfo"
-          [userInfo]="userInfo"
-        ></app-avatar-settings>
+        @if (userInfo) {
+          <app-avatar-settings
+            [userInfo]="userInfo"
+          ></app-avatar-settings>
+        }
       </div>
     </div>
 
@@ -36,104 +37,112 @@
     <div class="section-block card">
       <div class="title">Plan</div>
 
-      <div *ngIf="!premium" class="row-content">
-        <div class="plan">
-          <h1 class="text free">FREE</h1>
+      @if (!premium) {
+        <div class="row-content">
+          <div class="plan">
+            <h1 class="text free">FREE</h1>
+          </div>
+          <app-interactive-cta-button text="Upgrade"
+                                      class="cta"
+                                      (buttonClick)="showComparePlansPopup()"
+          ></app-interactive-cta-button>
         </div>
-        <app-interactive-cta-button text="Upgrade"
-                                    class="cta"
-                                    (buttonClick)="showComparePlansPopup()"
-        ></app-interactive-cta-button>
-      </div>
+      }
 
       <!--      here goes view for premium users-->
-      <div class="row-content" *ngIf="premium">
-        <div class="plan">
-          <button class="text full-gradient-btn" (click)="accessCustomerPortal()">PREMIUM</button>
-        </div>
-
-        <lucide-icon *ngIf="userInfo?.subscription?.autoRenewal !== null"
-                     [name]="userInfo?.subscription?.type === PlanType.LIFETIME ? 'infinity' :
+      @if (premium) {
+        <div class="row-content">
+          <div class="plan">
+            <button class="text full-gradient-btn" (click)="accessCustomerPortal()">PREMIUM</button>
+          </div>
+          @if (userInfo?.subscription?.autoRenewal !== null) {
+            <lucide-icon
+              [name]="userInfo?.subscription?.type === PlanType.LIFETIME ? 'infinity' :
                     userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
-                     class="icon renewal"
-                     tuiHintAppearance="dark"
-                     tuiHintDirection="bottom"
-                     [tuiHint]="renewalTooltip"
-                     [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
-        >
-          <ng-template #renewalTooltip>
-            {{ this.tooltipRenewal }}
+              class="icon renewal"
+              tuiHintAppearance="dark"
+              tuiHintDirection="bottom"
+              [tuiHint]="renewalTooltip"
+              [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
+            >
+              <ng-template #renewalTooltip>
+                {{ this.tooltipRenewal }}
+              </ng-template>
+            </lucide-icon>
+          }
+          <lucide-icon name="star-off"
+                       class="icon downgrade"
+                       (click)="prepareCancelSubscriptionModalWrapper()"
+                       tuiHintAppearance="dark"
+                       tuiHintDirection="bottom"
+                       [tuiHint]="downgradeTooltip"
+          >
+            <ng-template #downgradeTooltip>
+              {{ this.modalMessageSubCancel }}
+            </ng-template>
+          </lucide-icon>
+          <app-button
+            [label]="'Manage'"
+            appearance="bw"
+            class="manage-btn"
+            (clickFunction)="accessCustomerPortal()"
+            hintAppearance="dark"
+            hintDirection="bottom"
+            [hint]="customerPortalTooltip"
+            [loading$]="loadingCustomerPortal$"
+          >
+          </app-button>
+          <ng-template #customerPortalTooltip>
+            Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
           </ng-template>
-        </lucide-icon>
-
-        <lucide-icon name="star-off"
-                     class="icon downgrade"
-                     (click)="prepareCancelSubscriptionModalWrapper()"
-                     tuiHintAppearance="dark"
-                     tuiHintDirection="bottom"
-                     [tuiHint]="downgradeTooltip"
-        >
-          <ng-template #downgradeTooltip>
-            {{ this.modalMessageSubCancel }}
-          </ng-template>
-        </lucide-icon>
-
-        <app-button
-          [label]="'Manage'"
-          appearance="bw"
-          class="manage-btn"
-          (clickFunction)="accessCustomerPortal()"
-          hintAppearance="dark"
-          hintDirection="bottom"
-          [hint]="customerPortalTooltip"
-          [loading$]="loadingCustomerPortal$"
-        >
-        </app-button>
-
-        <ng-template #customerPortalTooltip>
-          Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
-        </ng-template>
-      </div>
+        </div>
+      }
     </div>
 
     <!--      interests-->
     <div class="section-block card">
       <div class="title">Interests</div>
 
-      <div *ngIf="interests.length !== 0 && !interestsEdit" class="chips-box">
-        <tui-chip *ngFor="let interest of interests"
-                  [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
-        </tui-chip>
-        <tui-chip
-          class="edit-chip"
-          appearance="outline"
-          (click)="editInterests()"
-        >
-          <lucide-icon name="pencil"
-                       [size]="'15'"
-                       [strokeWidth]="1.7"
+      @if (interests.length !== 0 && !interestsEdit) {
+        <div class="chips-box">
+          @for (interest of interests; track interest) {
+            <tui-chip
+              [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
+            </tui-chip>
+          }
+          <tui-chip
+            class="edit-chip"
+            appearance="outline"
+            (click)="editInterests()"
           >
-          </lucide-icon>
-          Edit
-        </tui-chip>
-      </div>
+            <lucide-icon name="pencil"
+                         [size]="'15'"
+                         [strokeWidth]="1.7"
+            >
+            </lucide-icon>
+            Edit
+          </tui-chip>
+        </div>
+      }
 
-      <div *ngIf="interests.length === 0 && !interestsEdit" class="interests">
-        <tui-chip
-          class="edit-chip"
-          appearance="outline"
-          (click)="editInterests()"
-        >
-          <lucide-icon name="plus"
-                       [size]="'15'"
-                       [strokeWidth]="1.7"
-                       (click)="editInterests()"
+      @if (interests.length === 0 && !interestsEdit) {
+        <div class="interests">
+          <tui-chip
+            class="edit-chip"
+            appearance="outline"
+            (click)="editInterests()"
           >
-          </lucide-icon>
-          Add
-        </tui-chip>
-        <p class="interest-text">Why so mysterious? Share your interests with us!</p>
-      </div>
+            <lucide-icon name="plus"
+                         [size]="'15'"
+                         [strokeWidth]="1.7"
+                         (click)="editInterests()"
+            >
+            </lucide-icon>
+            Add
+          </tui-chip>
+          <p class="interest-text">Why so mysterious? Share your interests with us!</p>
+        </div>
+      }
 
       <!--      load immediately, but it's hidden-->
       <app-interests
@@ -141,16 +150,18 @@
         [currentInterests]="userInfo?.interests || []"
         (selectedInterestsChange)="onSelectedInterestsChange($event)">
       </app-interests>
-      <div *ngIf="interestsEdit">
-        <app-button
-          label="Save"
-          [loading$]="loadingInterests$"
-          [disabled]="!validateInterests()"
-          (click)="saveInterests()"
-          class="interest-button"
-          appearance="bw"
-        ></app-button>
-      </div>
+      @if (interestsEdit) {
+        <div>
+          <app-button
+            label="Save"
+            [loading$]="loadingInterests$"
+            [disabled]="!validateInterests()"
+            (click)="saveInterests()"
+            class="interest-button"
+            appearance="bw"
+          ></app-button>
+        </div>
+      }
     </div>
   </div>
 </div>
