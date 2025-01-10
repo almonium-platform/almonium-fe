@@ -27,6 +27,7 @@ import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
+import {UtilsService} from "../../../services/utils.service";
 
 @Component({
   selector: 'app-lang-settings',
@@ -93,6 +94,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     private urlService: UrlService,
     private recentAuthGuardService: RecentAuthGuardService,
     private supportedLanguagesService: SupportedLanguagesService,
+    private utilsService: UtilsService,
   ) {
   }
 
@@ -142,25 +144,12 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   private updateFluentEnabled(): void {
     const isEnabled =
       !this.fluentEditable ||
-      (this.validateFluentLanguages() && !this.areStringArraysEqual(this.selectedFluentLanguages, this.currentFluentLanguages));
+      (this.validateFluentLanguages() && !this.utilsService.areArraysEqual(this.selectedFluentLanguages, this.currentFluentLanguages, (a, b) => a === b));
 
     Promise.resolve().then(() => {
       this.fluentEnabled$.next(isEnabled);
       this.cdr.detectChanges();
     });
-  }
-
-  private areStringArraysEqual(array1: string[], array2: string[]): boolean {
-    if (array1.length !== array2.length) {
-      return false;
-    }
-
-    // Create sorted copies of both arrays to compare
-    const sortedArray1 = [...array1].sort();
-    const sortedArray2 = [...array2].sort();
-
-    // Compare sorted arrays element by element
-    return sortedArray1.every((value, index) => value === sortedArray2[index]);
   }
 
   protected onFluentLanguagesSelected(state: { languages: string[]; valid: boolean }): void {
