@@ -18,13 +18,18 @@ export class LanguageApiService {
     return this.http.put(url, payload, {withCredentials: true});
   }
 
-  deleteTargetLang(currentTargetLanguage: LanguageCode) {
-    const url = `${AppConstants.MY_LANGUAGES_URL}/target/${currentTargetLanguage}`;
+  deleteLearner(currentTargetLanguage: LanguageCode) {
+    const url = `${AppConstants.LEARNER_PROFILES_URL}/${currentTargetLanguage}`;
     return this.http.delete(url, {withCredentials: true});
   }
 
+  updateLearnerActiveStatus(code: LanguageCode, active: boolean) {
+    const url = `${AppConstants.LEARNER_PROFILES_URL}/${code}`;
+    return this.http.patch(url, {active}, {withCredentials: true});
+  }
+
   setupLanguages(payload: TargetLanguageWithProficiency[]): Observable<Learner[]> {
-    const url = `${AppConstants.MY_LANGUAGES_URL}/target`;
+    const url = `${AppConstants.LEARNER_PROFILES_URL}`;
     return this.http.post<Learner[]>(url, {data: payload}, {withCredentials: true});
   }
 }

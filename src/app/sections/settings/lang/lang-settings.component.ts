@@ -235,7 +235,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected confirmTargetLangDeletion() {
     const deletedLanguage = this.getSelectedTargetLangCode();
-    this.languageApiService.deleteTargetLang(deletedLanguage).subscribe({
+    this.languageApiService.deleteLearner(deletedLanguage).subscribe({
       next: () => {
         this.alertService
           .open(`Your ${this.getCurrentTargetLanguage()} profile has been deleted`, {appearance: 'success'})

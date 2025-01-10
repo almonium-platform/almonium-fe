@@ -36,6 +36,9 @@ export class AppConstants {
   // LANGUAGES
   public static MY_LANGUAGES_URL = AppConstants.ME_URL + '/langs';
 
+  // LEARNER PROFILES
+  public static LEARNER_PROFILES_URL = AppConstants.API_URL + '/learners';
+
   // ONBOARDING
   public static ONBOARDING_URL = AppConstants.API_URL + '/onboarding';
   public static ONBOARDING_STEP_URL = AppConstants.ONBOARDING_URL + '/step';
