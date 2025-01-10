@@ -23,6 +23,7 @@ export class AppComponent {
     '/onboarding',
     '/reset-password',
     '/verify-email',
+    '/change-email',
     '/payment/success',
   ];
 
