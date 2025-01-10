@@ -57,7 +57,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.loadDefaultAvatars().then(r => r);
+    this.loadDefaultAvatars().then();
     this.loadCustomAvatars();
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
       this.userInfo = info;

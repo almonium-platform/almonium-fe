@@ -104,11 +104,11 @@ export class EmailVerificationComponent implements OnInit {
       // Set a minimum display time before redirecting
       timer(this.REDIRECT_TIMEOUT).subscribe(() => {
         if (this.isChangeEmailRoute) {
-          this.router.navigate(['/logout']).then(r => r);
+          this.router.navigate(['/logout']).then();
           // Logout will redirect to /auth for unauthenticated users,
           // and will clear outdated authentication data for authenticated users
         } else {
-          this.router.navigate(['/settings/auth']).then(r => r);
+          this.router.navigate(['/settings/auth']).then();
           // Redirect to settings page after verification for authenticated users
           // (it's secured by the AuthGuard, so unauthenticated users will be redirected to /auth)
         }

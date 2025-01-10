@@ -74,7 +74,7 @@ export class ResetPasswordComponent implements OnInit {
       this.token = params['token'];
       if (!this.token) {
         this.alertService.open('No token provided', {appearance: 'error'}).subscribe();
-        this.router.navigate(['/auth']).then(r => r);
+        this.router.navigate(['/auth']).then();
       }
     });
   }
@@ -89,7 +89,7 @@ export class ResetPasswordComponent implements OnInit {
         .subscribe({
           next: () => {
             this.alertService.open('Password reset successfully!', {appearance: 'success'}).subscribe();
-            this.router.navigate(['/auth']).then(r => r);
+            this.router.navigate(['/auth']).then();
           },
           error: (error) => {
             this.alertService.open(error.error.message || 'Password reset failed', {appearance: 'error'}).subscribe();

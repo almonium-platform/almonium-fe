@@ -30,7 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       this.userInfo = info;
       if (info?.setupStep! !== SetupStep.COMPLETED) {
-        this.router.navigate(['/onboarding']).then(r => r);
+        this.router.navigate(['/onboarding']).then();
       }
       this.cdr.markForCheck(); // Trigger change detection manually to update the view
     });

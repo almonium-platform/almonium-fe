@@ -139,7 +139,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
       .subscribe({
         next: () => {
-          this.router.navigate(['/home']).then(r => r); // Redirect after successful auth
+          this.router.navigate(['/home']).then(); // Redirect after successful auth
         },
         error: () => {
           console.error('Error during login', response);
@@ -340,9 +340,9 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           if (this.embeddedMode) {
-            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then((r) => r);
+            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
           } else {
-            this.router.navigate(['/home']).then((r) => r);
+            this.router.navigate(['/home']).then();
           }
           this.onClose();
         },

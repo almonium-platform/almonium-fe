@@ -280,7 +280,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {
-      this.router.navigate(['/home']).then(r => r);
+      this.router.navigate(['/home']).then();
     }
   }
 
