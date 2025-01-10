@@ -288,11 +288,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.alertService.open('Local account linked successfully', {appearance: 'success'}).subscribe();
-          this.onClose();
+          this.popupTemplateStateService.close();
         },
         error: (error) => {
           this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
-          this.onClose();
+          this.popupTemplateStateService.close();
         },
       });
   }
@@ -305,11 +305,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
-          this.onClose();
+          this.popupTemplateStateService.close();
         },
         error: (error) => {
           this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
-          this.onClose();
+          this.popupTemplateStateService.close();
         },
       });
   }
@@ -335,16 +335,27 @@ export class AuthComponent implements OnInit, OnDestroy {
   private login(emailValue: string, passwordValue: string) {
     this.loadingSubject$.next(true);
 
+    if (this.embeddedMode) {
+      this.authService.reauth(passwordValue)
+        .pipe(finalize(() => this.loadingSubject$.next(false)))
+        .subscribe({
+          next: () => {
+            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
+            this.popupTemplateStateService.close();
+          },
+          error: (error) => {
+            this.alertService.open(error.error.message || 'Identity verification failed', {appearance: 'error'}).subscribe();
+          },
+        });
+      return;
+    }
+
     this.authService.login(emailValue, passwordValue)
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          if (this.embeddedMode) {
-            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
-          } else {
-            this.router.navigate(['/home']).then();
-          }
-          this.onClose();
+          this.router.navigate(['/home']).then();
+          this.popupTemplateStateService.close();
         },
         error: (error) => {
           this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
@@ -424,9 +435,5 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   protected onMouseLeave() {
     this.isHovering = false;
-  }
-
-  private onClose() {
-    this.popupTemplateStateService.close();
   }
 }

@@ -27,7 +27,12 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     const url = `${AppConstants.PUBLIC_AUTH_URL}/login`;
-    return this.http.post(url, {email, password}, {withCredentials: true});
+    return this.http.post(url, {email, password}, {withCredentials: true}); // withCredentials is needed to receive cookies
+  }
+
+  reauth(password: string): Observable<any> {
+    const url = `${AppConstants.AUTH_URL}/reauth`;
+    return this.http.post(url, {password}, {withCredentials: true});
   }
 
   register(email: string, password: string): Observable<any> {
