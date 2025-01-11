@@ -14,7 +14,7 @@ import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe} from "@angular/common";
 import {TuiChip, TuiSegmented, TuiSwitch} from "@taiga-ui/kit";
-import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
@@ -64,7 +64,7 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
 })
 export class LangSettingsComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
+  @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -83,6 +83,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected learners: Learner[] = [];
   protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
   protected cefrEditable = false;
+  protected addTargetLangModalVisible = false;
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible: boolean = false;
@@ -110,6 +111,15 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.popupTemplateStateService.drawerState$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((state) => state.type === 'add-target-lang' && !state.visible)
+      ).subscribe(() => {
+      this.addTargetLangModalVisible = false;
+      this.cdr.detectChanges();
+    });
+
     this.route.queryParams.subscribe((params) => {
       if (params['target_lang'] === 'success') {
         this.alertService.open('Your target language has been successfully saved', {appearance: 'success'}).subscribe();
@@ -306,7 +316,10 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected openLangSetupPopup() {
-    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'lang', true);
+    this.addTargetLangModalVisible = true;
+    setTimeout(() => {
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', true);
+    }, 0);
   }
 
   protected activeToggleDisabled(): boolean {

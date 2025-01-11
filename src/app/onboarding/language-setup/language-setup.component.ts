@@ -375,9 +375,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     this.languageApiService.setupLanguages(payload).subscribe({
       next: (learners: Learner[]) => {
-        this.userInfoService.updateUserInfo({learners: learners});
         this.popupTemplateStateService.close();
-        this.onSecondForm = false;
+        setTimeout(() => {
+          // if no delay, for a split second, until popup is truly closed, user sees too many entries on second step
+          this.userInfoService.updateUserInfo({learners: learners});
+        }, 200);
         this.alertService.open('New target language added to your profile!', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
