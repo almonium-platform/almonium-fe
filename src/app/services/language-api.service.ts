@@ -23,13 +23,13 @@ export class LanguageApiService {
     return this.http.delete(url, {withCredentials: true});
   }
 
-  updateLearnerActiveStatus(code: LanguageCode, active: boolean) {
-    const url = `${AppConstants.LEARNER_PROFILES_URL}/${code}`;
-    return this.http.patch(url, {active}, {withCredentials: true});
-  }
-
   setupLanguages(payload: TargetLanguageWithProficiency[]): Observable<Learner[]> {
     const url = `${AppConstants.LEARNER_PROFILES_URL}`;
     return this.http.post<Learner[]>(url, {data: payload}, {withCredentials: true});
+  }
+
+  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: string }>) {
+    const url = `${AppConstants.LEARNER_PROFILES_URL}/${language}`;
+    return this.http.patch(url, updates, {withCredentials: true});
   }
 }
