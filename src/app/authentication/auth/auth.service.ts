@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
+import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(private http: HttpClient,
               private userService: UserInfoService,
               private localStorageService: LocalStorageService,
+              private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -67,6 +69,7 @@ export class AuthService {
 
   logout(): Observable<void> {
     this.userService.clearUserInfo();
+    this.popupTemplateStateService.close();
     this.localStorageService.clearUserRelatedData();
     return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
   }
