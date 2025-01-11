@@ -172,6 +172,20 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     };
   }
 
+  private cefrLevelValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+
+      // Check if the value is a valid CEFR level
+      const validLevels = Object.values(CEFRLevel);
+      if (!validLevels.includes(value)) {
+        return {invalidCefrLevel: true};
+      }
+
+      return null; // No error
+    };
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -250,8 +264,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       const learner = learners.find((l) => l.language === languageCode);
 
       return this.fb.group({
-        language: [languageName, Validators.required], // Use full name for display
-        cefrLevel: [learner?.selfReportedLevel || '', Validators.required], // Pre-fill CEFR level if available
+        language: [languageName, Validators.required],
+        cefrLevel: [
+          learner?.selfReportedLevel || null,
+          [Validators.required, this.cefrLevelValidator()],
+        ],
       });
     });
 
@@ -323,11 +340,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     targetLanguages.forEach((language) => {
       formArray.push(
         this.fb.group({
-          language: [language], // Read-only field for the language name
+          language: [language, Validators.required], // Read-only field for the language name
           cefrLevel: [
-            existingLevels.get(language) || this.cachedCefrLevels.get(language) || '👇',
-            Validators.required,
-          ], // Retain CEFR level if available
+            existingLevels.get(language) || this.cachedCefrLevels.get(language) || null,
+            [Validators.required, this.cefrLevelValidator()],
+          ],
         })
       );
     });
