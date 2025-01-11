@@ -51,11 +51,9 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         filter((state) => state.type === 'auth' && !state.visible)
-      ).subscribe((state) => {
-      if (!state.visible && state.type === 'auth') {
-        this.isAuthModalVisible = false;
-        this.cdr.detectChanges();
-      }
+      ).subscribe(() => {
+      this.isAuthModalVisible = false;
+      this.cdr.detectChanges();
     });
   }
 
