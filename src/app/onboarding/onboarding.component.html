@@ -63,15 +63,15 @@
     }
 
     <app-language-setup (continue)="updateActiveStep($event)"></app-language-setup>
-    @if (activeStep === SetupStep.LANGUAGES && paywallComponent?.content) {
+    @if (activeStep === SetupStep.LANGUAGES && languageSetupComponent.content) {
       <div class="language-setup-wrapper">
         <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
       </div>
     }
 
     <div class="card plan">
-      <paywall #paywallComponent></paywall>
-      @if (activeStep === SetupStep.PLAN && paywallComponent?.content) {
+      <paywall></paywall>
+      @if (activeStep === SetupStep.PLAN && paywallComponent.content) {
         <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
       }
     </div>
