@@ -365,7 +365,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.onSecondForm = true
+    this.onSecondForm = true;
     this.cachedFluentLanguages = this.selectedFluentLanguages;
     return;
   }

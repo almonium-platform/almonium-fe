@@ -1,6 +1,6 @@
 import {TuiInputModule, TuiInputNumberModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
   FluentLanguageSelectorComponent
@@ -8,12 +8,12 @@ import {
 import {LanguageApiService} from "../../../services/language-api.service";
 import {Language} from "../../../models/language.model";
 import {UserInfoService} from "../../../services/user-info.service";
-import {UserInfo} from "../../../models/userinfo.model";
+import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe} from "@angular/common";
-import {TuiChip, TuiSegmented} from "@taiga-ui/kit";
+import {TuiChip, TuiSegmented, TuiSwitch} from "@taiga-ui/kit";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -28,6 +28,10 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
 import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../../services/utils.service";
+import {CefrLevelSelectorComponent} from "../../../shared/cefr-input/cefr-level-selector.component";
+import {distinctUntilChanged} from "rxjs/operators";
+import {CefrComponent} from "../../../shared/cefr/cefr.component";
+import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
   selector: 'app-lang-settings',
@@ -49,7 +53,11 @@ import {UtilsService} from "../../../services/utils.service";
     TuiScrollbar,
     PremiumBadgedContentComponent,
     RecentAuthGuardComponent,
-    LanguageSetupComponent
+    LanguageSetupComponent,
+    TuiSwitch,
+    CefrLevelSelectorComponent,
+    CefrComponent,
+    NgClickOutsideDirective
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -70,8 +78,11 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   // target languages
-  protected currentTargetLanguages: string[] = [];
+  protected targetLanguageNames: string[] = [];
   protected selectedTargetedLanguageIndex: number = 0;
+  protected learners: Learner[] = [];
+  protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
+  protected cefrEditable = false;
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible: boolean = false;
@@ -117,6 +128,17 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.populateFromUserInfo();
       }
     });
+
+    this.cefrFormControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((newValue) => {
+        if (!newValue) return;
+        this.saveCefrLevelToServer(newValue);
+        this.cefrEditable = false;
+      });
   }
 
   ngOnDestroy(): void {
@@ -131,10 +153,44 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.userInfo = info;
         this.selectedFluentLanguages = info.fluentLangs;
         this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
-        this.currentTargetLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
+        this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
+        this.learners = info.learners;
         this.updateFluentEnabled();
+        this.patchCefrControlFromCurrentLearner();
       }
     });
+  }
+
+  private patchCefrControlFromCurrentLearner(): void {
+    const learner = this.currentLearner;
+    if (!learner) {
+      this.cefrFormControl.patchValue(null, {emitEvent: false});
+      return;
+    }
+    this.cefrFormControl.patchValue(
+      learner.selfReportedLevel as CEFRLevel,
+      {emitEvent: false} // so we don’t fire the .valueChanges subscription immediately
+    );
+  }
+
+  private saveCefrLevelToServer(newValue: CEFRLevel): void {
+    const oldValue = this.currentLearner.selfReportedLevel;
+    this.currentLearner.selfReportedLevel = newValue;
+
+    this.languageApiService.updateLearner(this.currentLearner.language, {level: newValue}).subscribe({
+      next: () => {
+        this.userInfoService.updateUserInfo({learners: this.learners});
+      },
+      error: (err) => {
+        console.error('Failed to update CEFR:', err);
+        this.alertService.open('Failed to update CEFR level', {appearance: 'error'}).subscribe();
+        this.currentLearner.selfReportedLevel = oldValue;
+      },
+    });
+  }
+
+  get currentLearner(): Learner {
+    return this.learners[this.selectedTargetedLanguageIndex];
   }
 
   private validateFluentLanguages() {
@@ -195,9 +251,16 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.selectedFluentLanguages = this.currentFluentLanguages;
   }
 
+
+  // TARGET
+  protected onTargetedLanguageIndexChange(): void {
+    this.cefrEditable = false;
+    this.cefrFormControl.patchValue(this.currentLearner.selfReportedLevel, {emitEvent: false});
+  }
+
   protected deleteTargetLang() {
     this.restoreFluent();
-    if (this.currentTargetLanguages.length === 1) {
+    if (this.learners.length === 1) {
       console.error("This should not happen: trying to delete the last target language");
       return;
     }
@@ -206,12 +269,12 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getCurrentTargetLanguage() {
-    return this.currentTargetLanguages[this.selectedTargetedLanguageIndex];
+  protected getCurrentTargetLanguageName() {
+    return this.targetLanguageNames[this.selectedTargetedLanguageIndex];
   }
 
   private prepareTargetLangDeletionModal() {
-    this.modalTitle = 'Delete ' + this.getCurrentTargetLanguage() + ' Profile';
+    this.modalTitle = 'Delete ' + this.getCurrentTargetLanguageName() + ' Profile';
     this.modalMessage = 'Are you sure? All your cards, progress, and settings will be lost.';
     this.modalConfirmText = 'Delete';
     this.modalAction = this.confirmTargetLangDeletion.bind(this);
@@ -223,13 +286,13 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected confirmTargetLangDeletion() {
-    const deletedLanguage = this.getSelectedTargetLangCode();
+    const deletedLanguage = this.currentLearner.language;
     this.languageApiService.deleteLearner(deletedLanguage).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${this.getCurrentTargetLanguage()} profile has been deleted`, {appearance: 'success'})
+          .open(`Your ${this.getCurrentTargetLanguageName()} profile has been deleted`, {appearance: 'success'})
           .subscribe();
-        this.currentTargetLanguages.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
+        this.targetLanguageNames.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
         this.selectedTargetedLanguageIndex = 0; // reset to the first language
         this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguage);
         this.userInfoService.updateUserInfo({learners: this.userInfo?.learners.filter((learner) => learner.language !== deletedLanguage)});
@@ -242,13 +305,49 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getSelectedTargetLangCode(): LanguageCode {
-    return this.languageNameService.mapLanguageNameToCode(
-      this.languages,
-      this.getCurrentTargetLanguage())!;
+  protected openLangSetupPopup() {
+    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'lang', true);
   }
 
-  protected navigateToLangSetup() {
-    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'lang', true);
+  protected activeToggleDisabled(): boolean {
+    return this.currentLearner.active && this.learners.filter((learner) => learner.active).length === 1;
+  }
+
+  protected onToggleActiveStatus(active: boolean, languageCode: LanguageCode): void {
+    const activeLearners = this.learners.filter((learner) => learner.active);
+
+    if (!active && activeLearners.length === 1) {
+      this.alertService.open('You must have at least one active target language', {appearance: 'error'}).subscribe();
+      return;
+    }
+
+    this.currentLearner.active = active;
+
+    this.languageApiService.updateLearner(languageCode, {active: active}).subscribe({
+      next: () => {
+        this.userInfoService.updateUserInfo({learners: this.learners});
+        if (!active) {
+          this.targetLanguageDropdownService.removeTargetLanguage(languageCode);
+        } else {
+          this.targetLanguageDropdownService.initializeLanguages(this.userInfo!);
+        }
+      },
+      error: (err) => {
+        this.alertService.open(err.error.message || 'Failed to update active status', {appearance: 'error'}).subscribe();
+        this.currentLearner.active = !active;
+      },
+    });
+  }
+
+  protected handleClickOutsideCefrSelector() {
+    if (this.cefrEditable) {
+      this.cefrEditable = false;
+    }
+  }
+
+  protected clickOnCefrBadge() {
+    setTimeout(() => {
+      this.cefrEditable = true;
+    }, 0);
   }
 }

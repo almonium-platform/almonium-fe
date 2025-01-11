@@ -60,8 +60,9 @@
               <tui-segmented
                 size="m"
                 [(activeItemIndex)]="selectedTargetedLanguageIndex"
+                (activeItemIndexChange)="onTargetedLanguageIndexChange()"
               >
-                @for (language of currentTargetLanguages; track language) {
+                @for (language of targetLanguageNames; track language) {
                   <button
                     type="button"
                   >
@@ -80,7 +81,7 @@
             [showIcon]="true"
             [badgeSize]="'24px'"
             [iconPosition]="{ top: '-10px', right: '-10px' }"
-            [originalClickHandler]="navigateToLangSetup.bind(this)"
+            [originalClickHandler]="openLangSetupPopup.bind(this)"
           >
             <button
               class="black-n-white-button edit-btn circular-icon">
@@ -89,9 +90,37 @@
           </premium-badged-content>
         </div>
       </div>
+      <div class="row-container lang-settings">
+        <div class="column">
+          <h4>Level</h4>
+          <div class="cefr-block">
+            @if (cefrEditable) {
+              <app-cefr-level-selector
+                [control]="cefrFormControl"
+                (clickOutside)="handleClickOutsideCefrSelector()"
+              ></app-cefr-level-selector>
+            } @else {
+              <app-cefr [level]="currentLearner.selfReportedLevel" (click)="clickOnCefrBadge()"
+                        class="cefr-btn"></app-cefr>
+            }
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="column">
+          <h4>Active</h4>
+          <input
+            tuiSwitch
+            type="checkbox"
+            [ngModel]="currentLearner.active"
+            [disabled]="activeToggleDisabled()"
+            (ngModelChange)="onToggleActiveStatus($event, currentLearner.language)"
+            [showIcons]="true"
+          />
+        </div>
+      </div>
     </div>
 
-    @if (currentTargetLanguages.length > 1) {
+    @if (learners.length > 1) {
       <div class="danger section-block">
         <span class="danger-text">Danger Zone</span>
         <button class="btn btn-danger" (click)="deleteTargetLang()">
@@ -101,7 +130,7 @@
             [style.height.px]="18"
             [style.width.px]="18"
           />
-          Delete {{ currentTargetLanguages[selectedTargetedLanguageIndex] }}
+          Delete {{ getCurrentTargetLanguageName() }}
         </button>
       </div>
     }
