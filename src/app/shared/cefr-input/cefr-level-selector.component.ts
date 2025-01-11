@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CommonModule} from '@angular/common';
 import {TuiSelectModule, TuiTextfieldControllerModule} from '@taiga-ui/legacy';
@@ -19,7 +19,7 @@ import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in ol
       tuiTextfieldSize="m"
       class="cefr-select"
       [formControl]="control"
-      [(tuiDropdownOpen)]="isDropdownOpen"
+      [(tuiDropdownOpen)]="openOnInit"
       [tuiTextfieldLabelOutside]="true"
     >
       <tui-data-list-wrapper
@@ -36,14 +36,10 @@ import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in ol
     }
   `],
 })
-export class CefrLevelSelectorComponent implements OnInit {
+export class CefrLevelSelectorComponent {
   @Input() control!: FormControl<CEFRLevel | null>;
   @Input() levels: CEFRLevel[] = Object.values(CEFRLevel);
-  isDropdownOpen = false;
-
-  ngOnInit() {
-    this.isDropdownOpen = true;
-  }
+  @Input() openOnInit = false;
 
   // TODO deprecated tuiDropdownOpen
 }

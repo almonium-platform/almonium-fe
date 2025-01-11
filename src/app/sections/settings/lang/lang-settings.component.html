@@ -96,6 +96,7 @@
           <div class="cefr-block">
             @if (cefrEditable) {
               <app-cefr-level-selector
+                [openOnInit]="true"
                 [control]="cefrFormControl"
                 (clickOutside)="handleClickOutsideCefrSelector()"
               ></app-cefr-level-selector>
