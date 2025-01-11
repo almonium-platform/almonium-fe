@@ -15,7 +15,7 @@
           class="info-btn"
           [size]=25
           [strokeWidth]="1.75"
-          [tooltipText]="'CEFR stands for Common European Framework of Reference for Languages.'">
+          tooltipText="CEFR stands for Common European Framework of Reference for Languages.">
         </app-info-icon>
       }
 
@@ -121,32 +121,25 @@
     @if (onSecondForm) {
       <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
         <div class="cefr-form">
-          @for (language of targetLanguageControl.value; track language; let i = $index) {
-            <div formArrayName="languages"
-                 class="cefr-rows">
-              <div [formGroupName]="i" class="cefr-language-row">
-                <tui-chip
-                  class="cefr-lang-chip"
-                  [style.background-color]="language | tuiAutoColor">
-                  {{ language }}
-                </tui-chip>
-                <!-- CEFR Level Selector -->
-                <div class="custom-tui-select-wrapper">
-                  <tui-select
-                    tuiTextfieldSize="m"
-                    class="cefr-select"
-                    formControlName="cefrLevel"
-                    [tuiTextfieldLabelOutside]="true"
-                  >
-                    <tui-data-list-wrapper
-                      *tuiDataList
-                      [items]="cefrLevels"
-                    />
-                  </tui-select>
-                </div>
-              </div>
+          <div formArrayName="languages" class="cefr-rows">
+            <div
+              *ngFor="let i of languages.controls; let idx = index"
+              [formGroupName]="idx"
+              class="cefr-language-row"
+            >
+              <tui-chip
+                class="cefr-lang-chip"
+                [style.background-color]="languages.at(idx).get('language')?.value | tuiAutoColor"
+              >
+                {{ languages.at(idx).get('language')?.value }}
+              </tui-chip>
+
+              <app-cefr-level-selector
+                [control]="getCefrLevelControl(idx)"
+                [levels]="cefrLevels"
+              ></app-cefr-level-selector>
             </div>
-          }
+          </div>
         </div>
         <app-button
           appearance="gradient"

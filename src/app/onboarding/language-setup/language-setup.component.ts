@@ -44,6 +44,7 @@ import {TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UtilsService} from "../../services/utils.service";
+import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 
 
 @Component({
@@ -76,6 +77,7 @@ import {UtilsService} from "../../services/utils.service";
     LucideIconsModule,
     InfoIconComponent,
     ButtonComponent,
+    CefrLevelSelectorComponent,
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -233,8 +235,12 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     });
   }
 
-  private get languages(): FormArray {
+  protected get languages(): FormArray {
     return this.cefrForm.get('languages') as FormArray;
+  }
+
+  protected getCefrLevelControl(idx: number): FormControl {
+    return this.languages.at(idx).get('cefrLevel') as FormControl;
   }
 
   private initializeCefrForm(learners: Learner[], targetLanguages: string[]): void {
