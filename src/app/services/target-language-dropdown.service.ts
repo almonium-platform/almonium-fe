@@ -42,9 +42,9 @@ export class TargetLanguageDropdownService {
   }
 
   // Initialize target languages and set the current language
-  initializeLanguages(userInfo: { targetLangs: LanguageCode[] }): void {
+  initializeLanguages(userInfo: { activeTargetLangs: LanguageCode[] }): void {
     const storedLanguage = this.localStorageService.getCurrentLanguage();
-    const targetLanguages = userInfo.targetLangs;
+    const targetLanguages = userInfo.activeTargetLangs;
 
     // Update targetLanguages
     this.targetLanguagesSubject.next(targetLanguages);

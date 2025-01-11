@@ -67,6 +67,13 @@ export class UserInfo {
       .map(learner => learner.language);
   }
 
+  // used in target-language-dropdown
+  get activeTargetLangs(): LanguageCode[] {
+    return this.learners
+      .filter(learner => learner.active)
+      .map(learner => learner.language);
+  }
+
   public isTargetLangPaywalled(): boolean {
     return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
   }
