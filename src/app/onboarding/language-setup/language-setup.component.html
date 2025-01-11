@@ -9,7 +9,7 @@
         ></lucide-icon>
       }
 
-      {{ onSecondForm ? 'Assess Your CEFR Level' : 'Choose Your Languages' }}
+      {{ onSecondForm ? 'Assess Your CEFR Level' : embeddedMode ? 'Add New Languages' : 'Choose Your Languages' }}
       @if (onSecondForm) {
         <app-info-icon
           class="info-btn"
