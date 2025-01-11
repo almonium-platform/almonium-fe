@@ -36,7 +36,7 @@ import {
 import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
-import {getNextStep, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
+import {CEFRLevel, getNextStep, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {LucideIconsModule} from "./lucide-icons.module";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
@@ -126,15 +126,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   // STEP 2. CEFR
   cefrForm!: FormGroup;
-  // todo enum
-  cefrLevels: string[] = [
-    'A1',
-    'A2',
-    'B1',
-    'B2',
-    'C1',
-    'C2',
-  ];
+  cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
   fluentFormValid: boolean = true;
   private cachedCefrLevels = new Map<string, string>();
 
@@ -327,7 +319,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.fb.group({
           language: [language], // Read-only field for the language name
           cefrLevel: [
-            existingLevels.get(language) || this.cachedCefrLevels.get(language) || '',
+            existingLevels.get(language) || this.cachedCefrLevels.get(language) || '👇',
             Validators.required,
           ], // Retain CEFR level if available
         })

@@ -64,7 +64,7 @@ export class UserInfo {
   // Dynamic method to get target languages
   get targetLangs(): LanguageCode[] {
     return this.learners
-      .map(learner => learner.language as LanguageCode);
+      .map(learner => learner.language);
   }
 
   public isTargetLangPaywalled(): boolean {
@@ -75,8 +75,9 @@ export class UserInfo {
 export class Learner {
   constructor(
     public id: number,
-    public language: string, // Adjust the type if `Language` is an enum or a class
-    public selfReportedLevel: string // Assuming CEFR is a string or adjust accordingly
+    public language: LanguageCode, // Adjust the type if `Language` is an enum or a class
+    public selfReportedLevel: CEFRLevel,
+    public active: boolean,
   ) {
   }
 
@@ -84,9 +85,19 @@ export class Learner {
     return new Learner(
       data.id,
       data.language,
-      data.selfReportedLevel
+      data.selfReportedLevel,
+      data.active,
     );
   }
+}
+
+export enum CEFRLevel {
+  A1 = 'A1',
+  A2 = 'A2',
+  B1 = 'B1',
+  B2 = 'B2',
+  C1 = 'C1',
+  C2 = 'C2',
 }
 
 export class Subscription {
