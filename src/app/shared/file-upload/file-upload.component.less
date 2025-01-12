@@ -1,3 +1,12 @@
 .content {
 @apply flex flex-row py-2 gap-3 px-1 items-center;
 }
+
+.loaded-file {
+  max-width: 13rem;
+}
+
+// TUI style override. ensure long filenames are truncated
+//:host ::ng-deep tui-file .t-wrapper .t-text {
+//  max-width: 100%;
+//}
