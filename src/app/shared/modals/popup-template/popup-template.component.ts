@@ -20,7 +20,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           class="relative"
           [ngClass]="{
           'w-screen h-screen': fullscreen,
-          'rounded-2xl w-fit shadow-lg max-w-3xl motion-preset-slide-up': !fullscreen,
+          'embedded': !fullscreen,
           'slide-down': drawerState.closing
         }"
         >
@@ -39,6 +39,11 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   `,
   styles: [
     `
+      .embedded {
+      @apply rounded-2xl w-fit shadow-lg motion-preset-slide-up;
+        max-width: min(48rem, 87%);
+      }
+
       .bg-overlay {
         background-color: rgba(0, 0, 0, 0); /* Initial transparent state */
         transition: background-color 0.4s ease;
