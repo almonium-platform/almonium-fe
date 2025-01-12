@@ -111,14 +111,24 @@
         <div class="divider"></div>
         <div class="column">
           <h4>Active</h4>
-          <input
-            tuiSwitch
-            type="checkbox"
-            [ngModel]="currentLearner.active"
-            [disabled]="activeToggleDisabled()"
-            (ngModelChange)="onToggleActiveStatus($event, currentLearner.language)"
-            [showIcons]="true"
-          />
+          <div
+            tuiHintAppearance="dark"
+            tuiHintDirection="bottom"
+            tuiHint
+            [tuiHint]="tooltipTemplate"
+          >
+            <input
+              tuiSwitch
+              type="checkbox"
+              [ngModel]="currentLearner.active"
+              [disabled]="activeToggleDisabled()"
+              (ngModelChange)="onToggleActiveStatus($event, currentLearner.language)"
+              [showIcons]="true"
+            />
+          </div>
+          <ng-template #tooltipTemplate>
+            <div [innerHTML]="getActiveToggleTooltip()"></div>
+          </ng-template>
         </div>
       </div>
     </div>

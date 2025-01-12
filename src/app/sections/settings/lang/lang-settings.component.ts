@@ -11,7 +11,7 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiAlertService, TuiAutoColorPipe, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
 import {AsyncPipe} from "@angular/common";
 import {TuiChip, TuiSegmented, TuiSwitch} from "@taiga-ui/kit";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
@@ -32,6 +32,7 @@ import {CefrLevelSelectorComponent} from "../../../shared/cefr-input/cefr-level-
 import {distinctUntilChanged} from "rxjs/operators";
 import {CefrComponent} from "../../../shared/cefr/cefr.component";
 import {NgClickOutsideDirective} from "ng-click-outside2";
+import {LucideAngularModule} from "lucide-angular";
 
 @Component({
   selector: 'app-lang-settings',
@@ -57,7 +58,9 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     TuiSwitch,
     CefrLevelSelectorComponent,
     CefrComponent,
-    NgClickOutsideDirective
+    NgClickOutsideDirective,
+    LucideAngularModule,
+    TuiHintDirective
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -323,13 +326,15 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected activeToggleDisabled(): boolean {
-    return this.currentLearner.active && this.learners.filter((learner) => learner.active).length === 1;
+    return this.currentLearner.active && this.getActiveLearnersCount() === 1;
+  }
+
+  protected getActiveLearnersCount(): number {
+    return this.learners.filter((learner) => learner.active).length;
   }
 
   protected onToggleActiveStatus(active: boolean, languageCode: LanguageCode): void {
-    const activeLearners = this.learners.filter((learner) => learner.active);
-
-    if (!active && activeLearners.length === 1) {
+    if (!active && this.getActiveLearnersCount() === 1) {
       this.alertService.open('You must have at least one active target language', {appearance: 'error'}).subscribe();
       return;
     }
@@ -362,5 +367,15 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.cefrEditable = true;
     }, 0);
+  }
+
+  protected getActiveToggleTooltip(): string {
+    if (this.getActiveLearnersCount() === 1 && this.currentLearner.active) {
+      return 'You must have at least one active target language';
+    }
+    if (this.currentLearner.active) {
+      return 'Deactivating language removes it from the navbar dropdown';
+    }
+    return 'Activating language adds it to the navbar dropdown';
   }
 }
