@@ -1,6 +1,8 @@
 <ng-template #langSetup>
   <div class="card step">
-    <div class="tui-header header-row">
+    <div class="tui-header header-row"
+         [style.padding]="onSecondForm ? '0 3rem' : ''"
+    >
       @if (onSecondForm) {
         <lucide-icon
           class="go-back-icon"
@@ -9,7 +11,7 @@
         ></lucide-icon>
       }
 
-      {{ onSecondForm ? 'Assess Your CEFR Level' : embeddedMode ? 'Add New Languages' : 'Choose Your Languages' }}
+      {{ onSecondForm ? 'Assess Your Level' : embeddedMode ? 'Add New Languages' : 'Choose Your Languages' }}
       @if (onSecondForm) {
         <app-info-icon
           class="info-btn"
