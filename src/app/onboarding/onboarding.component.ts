@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {TuiProgress, TuiStepper} from "@taiga-ui/kit";
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
@@ -14,6 +14,7 @@ import {InterestsSetupComponent} from "./interests-setup/interests-setup.compone
 import {TuiTextfield} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../services/viewport.service";
+import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
 
 @Component({
   selector: 'app-onboarding',
@@ -29,16 +30,15 @@ import {ViewportService} from "../services/viewport.service";
     InterestsSetupComponent,
     TuiTextfield,
     LucideAngularModule,
-    NgClass
+    NgClass,
+    UpgradeComponent
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.less'
 })
 export class OnboardingComponent implements OnInit, OnDestroy {
   protected readonly SetupStep = SetupStep;
-  private readonly destroy$ = new Subject<void>();
-  @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
-  @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
+  private readonly destroy$ = new Subject<void>();// @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   userInfo: UserInfo | null = null;
 

@@ -1,0 +1,23 @@
+<ng-template #upgrade>
+  <div class="content">
+    <div class="premium-star-badge">
+      <img
+        ngSrc="../../../assets/img/icons/premium-star.svg"
+        alt="Premium"
+        height="30" width="30"/>
+    </div>
+
+    <div class="text">
+      {{ onboardingMode ? 'Welcome to' : 'Upgraded to ' }}
+      <div class="premium-text">
+        Premium
+      </div>
+    </div>
+
+    <app-button
+      [label]="onboardingMode ? 'Continue' : 'Enjoy the Platform'"
+      (clickFunction)="handleClick()"
+      appearance="gradient"
+    ></app-button>
+  </div>
+</ng-template>

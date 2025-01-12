@@ -2,6 +2,7 @@
   @for (interest of interests; track interest) {
     <label
       tuiChip
+      size="s"
       [tuiSkeleton]="loading"
       [appearance]="interest.selected ? 'neutral' : 'floating'"
       [style.background-color]="interest.selected ? (interest.name | tuiAutoColor) : ''"

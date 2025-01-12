@@ -1,23 +1,6 @@
 <div class="headless-container">
-  <div class="content">
-    <div class="premium-star-badge">
-      <img
-        ngSrc="assets/img/icons/premium-star.svg"
-        alt="Premium"
-        height="30" width="30"/>
-    </div>
-
-    <div class="text">
-      {{ onboardingMode ? 'Welcome to' : 'Upgraded to ' }}
-      <div class="premium-text">
-        Premium
-      </div>
-    </div>
-
-    <app-button
-      [label]="onboardingMode ? 'Continue Onboarding' : 'Enjoy the Platform'"
-      redirectUrl="/home"
-      appearance="gradient"
-    ></app-button>
-  </div>
+  <app-upgrade [onboardingMode]="false" #upgradeComponent></app-upgrade>
+  @if (upgradeComponent?.content) {
+    <ng-container *ngTemplateOutlet="upgradeComponent.content"></ng-container>
+  }
 </div>

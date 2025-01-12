@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {UserInfo} from "../models/userinfo.model";
 import {UserInfoService} from "./user-info.service";
 
+// TODO unused consider removing
 @Injectable({providedIn: 'root'})
 export class UserInfoResolver implements Resolve<UserInfo | null> {
   constructor(private userInfoService: UserInfoService) {

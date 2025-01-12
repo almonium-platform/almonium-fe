@@ -62,19 +62,32 @@
       ></app-language-setup>
     }
 
-    <app-language-setup (continue)="updateActiveStep($event)"></app-language-setup>
+    <app-language-setup #languageSetupComponent (continue)="updateActiveStep($event)"></app-language-setup>
     @if (activeStep === SetupStep.LANGUAGES && languageSetupComponent.content) {
-      <div class="language-setup-wrapper">
-        <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
-      </div>
+      <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
     }
 
-    <div class="card plan">
-      <paywall></paywall>
-      @if (activeStep === SetupStep.PLAN && paywallComponent.content) {
-        <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
+    @if (activeStep === SetupStep.PLAN) {
+      @if (userInfo && userInfo.premium) {
+        <div class="card step upgraded">
+          <app-upgrade
+            [onboardingMode]="true"
+            (continue)="updateActiveStep($event)"
+            #upgradeComponent
+          ></app-upgrade>
+          @if (upgradeComponent?.content) {
+            <ng-container *ngTemplateOutlet="upgradeComponent.content"></ng-container>
+          }
+        </div>
+      } @else {
+        <div class="card plan">
+          <paywall #paywallComponent></paywall>
+          @if (paywallComponent.content) {
+            <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
+          }
+        </div>
       }
-    </div>
+    }
 
     @if (activeStep === SetupStep.PROFILE) {
       <app-profile-setup
