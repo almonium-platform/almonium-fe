@@ -1,10 +1,28 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Observable} from "rxjs";
+import {AppConstants} from "../app.constants";
+import {map} from "rxjs/operators";
+import {HttpClient} from "@angular/common/http";
 
 @Injectable({
   providedIn: 'root'
 })
 export class UtilsService {
+  constructor(private http: HttpClient) {
+  }
+
+  getQrCodeUrl(text: string): Observable<string> {
+    const url = `${AppConstants.UTILS_URL}/qr?text=${encodeURIComponent(text)}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      withCredentials: true,
+    }).pipe(
+      map((blob) => {
+        return URL.createObjectURL(blob);
+      })
+    );
+  }
+
   areArraysEqual<T>(
     array1: T[],
     array2: T[],

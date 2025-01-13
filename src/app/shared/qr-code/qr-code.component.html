@@ -1,0 +1,14 @@
+<div class="base-container">
+  @if (qrCodeUrl) {
+    <div class="qr-code-container">
+      <div
+        class="qr-code"
+        [ngStyle]="{
+        'mask-image': 'url(' + qrCodeUrl + ')',
+        '-webkit-mask-image': 'url(' + qrCodeUrl + ')'
+      }"
+      ></div>
+      <div class="logo"></div>
+    </div>
+  }
+</div>

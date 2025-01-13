@@ -43,6 +43,9 @@ export class AppConstants {
   public static ONBOARDING_URL = AppConstants.API_URL + '/onboarding';
   public static ONBOARDING_STEP_URL = AppConstants.ONBOARDING_URL + '/step';
 
+  // UTILS
+  public static UTILS_URL = AppConstants.API_URL + '/utils';
+
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
 
