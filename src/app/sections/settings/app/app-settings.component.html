@@ -1,4 +1,29 @@
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
-  <app-not-ready></app-not-ready>
+
+  <div class="">
+    <!-- Navbar Settings -->
+    <div class="section-block card">
+      <div class="title">Navbar</div>
+      <div class="row-container">
+        <div class="column" *ngFor="let column of navbarColumns">
+          <div *ngFor="let item of column" class="line">
+            <span>{{ item | titlecase }}</span>
+            <input
+              tuiSwitch
+              type="checkbox"
+              [ngModel]="uiPreferences.navbar[item]"
+              (ngModelChange)="onPreferenceChange('navbar', item, $event)"
+              [showIcons]="true"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Menu Settings -->
+    <div class="section-block card">
+      <div class="title">Profile Menu</div>
+    </div>
+  </div>
 </div>

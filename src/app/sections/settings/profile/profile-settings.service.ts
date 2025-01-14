@@ -3,6 +3,7 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../../../app.constants";
 import {Avatar} from "./avatar/avatar.model";
+import {UIPreferences} from "../../../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -78,5 +79,12 @@ export class ProfileSettingsService {
   saveInterests(ids: number[]): Observable<any> {
     const url = `${AppConstants.ME_URL}/interests`;
     return this.http.patch(url, {ids}, {withCredentials: true});
+  }
+
+  saveUiPreferences(uiPreferences: UIPreferences): Observable<any> {
+    const url = `${AppConstants.PROFILE_URL}/ui-preferences`;
+    return this.http.patch(url, uiPreferences, {
+      withCredentials: true,
+    });
   }
 }

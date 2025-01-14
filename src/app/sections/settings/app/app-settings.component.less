@@ -1,1 +1,35 @@
 @import '../settings.styles.less';
+
+.column {
+  flex: 1 1 calc(50% - 1.5rem); /* Each column takes 50% width minus gap */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  font-size: 1rem;
+  gap: .7rem;
+}
+
+.row-container {
+  display: flex;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.row-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background-color: var(--border-color);
+  transform: translateX(-50%);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}

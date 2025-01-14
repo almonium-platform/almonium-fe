@@ -13,7 +13,7 @@ import {
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgOptimizedImage, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
-import {UserInfo} from "../../../models/userinfo.model";
+import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
@@ -71,6 +71,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected replayGifSubject = new Subject<void>();
 
+  protected uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
+
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
@@ -114,6 +116,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         if (info) {
           this.userInfo = info;
           this.targetLanguageDropdownService.initializeLanguages(info);
+          this.uiPreferences = {...info.uiPreferences};
         }
       });
 

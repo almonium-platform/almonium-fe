@@ -8,28 +8,32 @@
 
     @if (!isMobile) {
       <div>
-        <a
-          routerLink="/discover"
-          class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/discover'}">
-          Discover
-        </a>
-        <a
-          routerLink="/review"
-          class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/review'}">
-          Review
-        </a>
-        <a
-          routerLink="/games"
-          class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/games'}">
-          Games
-        </a>
+        @if (this.uiPreferences.navbar.discover) {
+          <a
+            routerLink="/discover"
+            class="nav-link ml-8 section"
+            [ngClass]="{'active-link': currentRoute === '/discover'}">
+            Discover
+          </a>
+        }
+        @if (this.uiPreferences.navbar.review) {
+          <a
+            routerLink="/review"
+            class="nav-link ml-8 section"
+            [ngClass]="{'active-link': currentRoute === '/review'}">
+            Review
+          </a>
+        }
+        @if (this.uiPreferences.navbar.play) {
+          <a
+            routerLink="/games"
+            class="nav-link ml-8 section"
+            [ngClass]="{'active-link': currentRoute === '/games'}">
+            Games
+          </a>
+        }
       </div>
     }
-
-    <span class="spacer"></span>
 
     <div class="nav-actions">
       <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
@@ -62,13 +66,15 @@
         </div>
       </div>
 
-      <div class="btn-notification relative" (click)="toggleNotificationPopover()"
-           (clickOutside)="notificationOnClickOutside($event)">
-        <button>
-          <img ngSrc="assets/img/icons/bell.svg" alt="Notification Icon" class="notification-icon" height="40"
-               width="40"/>
-        </button>
-      </div>
+      @if (uiPreferences.navbar.notifications) {
+        <div class="btn-notification relative" (click)="toggleNotificationPopover()"
+             (clickOutside)="notificationOnClickOutside($event)">
+          <button>
+            <img ngSrc="assets/img/icons/bell.svg" alt="Notification Icon" class="notification-icon" height="40"
+                 width="40"/>
+          </button>
+        </div>
+      }
 
       <!-- Navbar User Profile Section -->
       <div class="user-profile relative" (click)="toggleProfilePopover()"
@@ -96,26 +102,28 @@
       <hr class="border-gray-200"/>
       <!-- Menu Items -->
       <div class="menu-items p-2">
-        <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/home.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-               width="512">
-          <!--        TODO lucide icons-->
-          <span>Home</span>
-        </a>
-        <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/discover.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-               width="512">
-          <span>Discover</span>
-        </a>
-        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/review.svg" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
-               width="512">
-          <span>Review</span>
-        </a>
-        <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/games.svg" alt="Games Icon" class="w-5 h-5 mr-2" height="512" width="512">
-          <span>Games</span>
-        </a>
+        @if (uiPreferences.navbar.discover) {
+          <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <img ngSrc="/assets/img/icons/home.svg" alt="Home Icon" class="w-5 h-5 mr-2" height="512"
+                 width="512">
+            <!--        TODO lucide icons-->
+            <span>Home</span>
+          </a>
+        }
+        @if (uiPreferences.navbar.review) {
+          <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <img ngSrc="/assets/img/icons/review.svg" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
+                 width="512">
+            <span>Review</span>
+          </a>
+        }
+        @if (uiPreferences.navbar.play) {
+          <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <img ngSrc="/assets/img/icons/games.svg" alt="Games Icon" class="w-5 h-5 mr-2" height="512"
+                 width="512">
+            <span>Games</span>
+          </a>
+        }
       </div>
     </div>
   </div>

@@ -18,6 +18,7 @@ export class UserInfo {
     public premium: boolean,
     public learners: Learner[],
     public interests: Interest[],
+    public uiPreferences: UIPreferences,
   ) {
   }
 
@@ -38,6 +39,7 @@ export class UserInfo {
       updates.premium ?? this.premium,
       updates.learners ?? this.learners,
       updates.interests ?? this.interests,
+      updates.uiPreferences ?? this.uiPreferences // Update new field
     );
   }
 
@@ -58,6 +60,7 @@ export class UserInfo {
       data.premium,
       data.learners.map((learner: any) => Learner.fromJSON(learner)),
       data.interests,
+      data.uiPreferences
     );
   }
 
@@ -78,6 +81,34 @@ export class UserInfo {
     return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
   }
 }
+
+export interface UIPreferences {
+  navbar: {
+    discover: boolean;
+    review: boolean;
+    play: boolean;
+    read: boolean;
+    write: boolean;
+    notifications: boolean;
+  };
+  profileMenu: {
+    billing: boolean;
+  };
+}
+
+export const DEFAULT_UI_PREFERENCES: UIPreferences = {
+  navbar: {
+    discover: true,
+    review: true,
+    play: true,
+    read: true,
+    write: true,
+    notifications: true,
+  },
+  profileMenu: {
+    billing: false,
+  },
+};
 
 export class Learner {
   constructor(

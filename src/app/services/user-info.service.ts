@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {UserInfo} from "../models/userinfo.model";
+import {DEFAULT_UI_PREFERENCES, UserInfo} from "../models/userinfo.model";
 import {LocalStorageService} from "./local-storage.service";
 import {AppConstants} from "../app.constants";
 
@@ -42,6 +42,7 @@ export class UserInfoService {
     const cachedUserInfo = this.localStorageService.getUserInfo();
     if (cachedUserInfo) {
       const userInfoInstance = UserInfo.fromJSON(cachedUserInfo);
+      userInfoInstance.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfoInstance.uiPreferences};
       this.userInfoSubject.next(userInfoInstance);
     }
   }
@@ -51,10 +52,14 @@ export class UserInfoService {
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
     return this.http.get<UserInfo>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
-      map((data) => UserInfo.fromJSON(data)),
+      map((data) => {
+        const userInfo = UserInfo.fromJSON(data);
+        userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
+        return userInfo;
+      }),
       tap((userInfo: UserInfo) => {
-        this.localStorageService.saveUserInfo(userInfo); // Cache in local storage
-        this.userInfoSubject.next(userInfo); // Update the subject
+        this.localStorageService.saveUserInfo(userInfo);
+        this.userInfoSubject.next(userInfo);
       }),
       catchError((error) => {
         console.error('Failed to load user info from server:', error);
