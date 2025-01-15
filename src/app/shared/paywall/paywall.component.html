@@ -20,47 +20,6 @@
     </div>
     <div class="cards">
       <div
-        tuiCardLarge
-        class="plan-section free"
-        tuiAppearance="outline"
-      >
-        <div class="plan-content">
-          <div class="header free">
-            <h1 tuiTitle>
-              Free
-            </h1>
-          </div>
-          <div class="features">
-            @for (feature of freeFeatures; track feature) {
-              <div class="feature">
-                <div style="">
-                  <tui-icon icon="check"></tui-icon>
-                </div>
-                <span>{{ feature }}</span>
-              </div>
-            }
-          </div>
-        </div>
-        <footer>
-          <div class="price">
-            <span class="price-value">$0</span>
-            <span class="price-period">/ forever</span>
-          </div>
-
-          <app-button
-            [label]="planChosen ? 'Current Plan' : 'Start for Free'"
-            [loading$]="loading$"
-            [disabled]="planChosen"
-            [fontSize]="16"
-            [padding]="'.88rem 0'"
-            (click)="chooseFreePlan()"
-            class="plan-btn"
-            appearance="bw"
-          ></app-button>
-        </footer>
-      </div>
-
-      <div
         tuiAppearance="floating"
         tuiCardLarge
         class="plan-section premium custom-transition hover:scale-105"
@@ -98,6 +57,47 @@
           <app-interactive-cta-button [text]="planChosen ? 'Upgrade' : 'Go Premium'" class="cta"
                                       (buttonClick)="subscribeToPlan()"
           ></app-interactive-cta-button>
+        </footer>
+      </div>
+
+      <div
+        tuiCardLarge
+        class="plan-section free"
+        tuiAppearance="outline"
+      >
+        <div class="plan-content">
+          <div class="header free">
+            <h1 tuiTitle>
+              Free
+            </h1>
+          </div>
+          <div class="features">
+            @for (feature of freeFeatures; track feature) {
+              <div class="feature">
+                <div style="">
+                  <tui-icon icon="check"></tui-icon>
+                </div>
+                <span>{{ feature }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <footer>
+          <div class="price">
+            <span class="price-value">$0</span>
+            <span class="price-period">/ forever</span>
+          </div>
+
+          <app-button
+            [label]="planChosen ? 'Current Plan' : 'Start for Free'"
+            [loading$]="loading$"
+            [disabled]="planChosen"
+            [fontSize]="16"
+            [padding]="'.88rem 0'"
+            (click)="chooseFreePlan()"
+            class="plan-btn"
+            appearance="bw"
+          ></app-button>
         </footer>
       </div>
     </div>
