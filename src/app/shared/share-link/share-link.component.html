@@ -1,0 +1,26 @@
+<ng-template #shareLink>
+  <div class="popup-container">
+    <h1 class="popup-header">{{ title }}</h1>
+
+    <app-qr-code class="qr" [textToEncode]="link" (click)="copy()"></app-qr-code>
+
+    <div class="separator"></div>
+    <div class="share-link-container">
+      <input
+        type="text"
+        class="share-link-input"
+        [value]="fieldText"
+        (click)="copy()"
+        readonly
+      />
+      <tui-icon
+        icon="@tui.copy"
+        size="xl"
+        tuiBadge
+        tuiSlot="top"
+        class="hover:opacity-80 cursor-pointer"
+        (click)="copy()"
+      ></tui-icon>
+    </div>
+  </div>
+</ng-template>
