@@ -2,6 +2,11 @@
 <paywall></paywall>
 <app-recent-auth-guard></app-recent-auth-guard>
 
+@if (userInfo) {
+  <app-share-link [link]="'almonium.com/users/' + userInfo.id"
+                  title="Share Your Profile"></app-share-link>
+}
+
 <app-confirm-modal
   [isVisible]="isConfirmModalVisible"
   [title]="modalTitle"
@@ -26,6 +31,12 @@
             [userInfo]="userInfo"
           ></app-avatar-settings>
         }
+        <lucide-icon name="qr-code"
+                     class="qr-icon"
+                     (click)="openShareProfile()"
+                     [size]="34"
+        >
+        </lucide-icon>
       </div>
     </div>
 
@@ -116,7 +127,7 @@
             (click)="editInterests()"
           >
             <lucide-icon name="pencil"
-                         [size]="'15'"
+                         [size]="15"
                          [strokeWidth]="1.7"
             >
             </lucide-icon>

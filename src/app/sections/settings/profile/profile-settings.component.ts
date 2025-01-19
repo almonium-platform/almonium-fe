@@ -24,6 +24,8 @@ import {TuiChip} from "@taiga-ui/kit";
 import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
+import {ShareLinkComponent} from "../../../shared/share-link/share-link.component";
+import {LucideIconsModule} from "../../../onboarding/language-setup/lucide-icons.module";
 
 @Component({
   selector: 'app-profile-settings',
@@ -43,13 +45,16 @@ import {ButtonComponent} from "../../../shared/button/button.component";
     InterestsComponent,
     TuiAutoColorPipe,
     TuiChip,
-    ButtonComponent
+    ButtonComponent,
+    ShareLinkComponent,
+    LucideIconsModule,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
 })
 export class ProfileSettingsComponent implements OnInit, OnDestroy {
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
+  @ViewChild(ShareLinkComponent, {static: false}) shareLinkComponent!: ShareLinkComponent;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -226,5 +231,9 @@ auto-renewal in the customer portal.`;
 
   validateInterests() {
     return true;
+  }
+
+  openShareProfile() {
+    this.popupTemplateStateService.open(this.shareLinkComponent.content, 'share-link');
   }
 }

@@ -1,5 +1,13 @@
 import {NgModule} from '@angular/core';
-import {ChevronLeft, ChevronRight, CircleChevronLeft, Info, LucideAngularModule, StepBack} from 'lucide-angular';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleChevronLeft,
+  Info,
+  LucideAngularModule, Pencil,
+  QrCode,
+  StepBack
+} from 'lucide-angular';
 
 @NgModule({
   imports: [
@@ -9,6 +17,8 @@ import {ChevronLeft, ChevronRight, CircleChevronLeft, Info, LucideAngularModule,
       ChevronRight,
       StepBack,
       Info,
+      Pencil,
+      QrCode,
     }),
   ],
   exports: [LucideAngularModule], // Export the configured module
