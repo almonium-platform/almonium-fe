@@ -6,6 +6,7 @@
       'mask-image': 'url(' + (qrCodeImgUrl || skeletonImgUrl) + ')',
       '-webkit-mask-image': 'url(' + (qrCodeImgUrl || skeletonImgUrl) + ')'
     }"
+    (click)="redirect()"
   ></div>
 
   <div class="logo" [tuiSkeleton]="qrCodeUrl === undefined"></div>
