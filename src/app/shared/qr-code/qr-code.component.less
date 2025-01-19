@@ -1,12 +1,13 @@
 .qr-code-container {
   position: relative;
-  width: 20rem;
-  height: 20rem;
+  width: 100%;
+  height: 100%;
   overflow: hidden; /* Crop everything outside the QR code area */
   display: flex;
   justify-content: center;
   align-items: center;
   --qr-code-gradient: linear-gradient(to top right, #171D7B, #793293);
+  aspect-ratio: 1 / 1; /* Enforce a square aspect ratio */
 }
 
 .qr-code {
