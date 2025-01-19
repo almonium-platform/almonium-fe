@@ -1,8 +1,9 @@
-import {Component, HostListener, Input, OnInit} from '@angular/core';
+import {Component, HostListener, Input, OnDestroy, OnInit} from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 import {NgClickOutsideDirective} from "ng-click-outside2";
+import {Subject, takeUntil} from "rxjs";
 
 @Component({
   selector: 'app-popup-template',
@@ -100,17 +101,34 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     NgClickOutsideDirective
   ],
 })
-export class PopupTemplateComponent implements OnInit {
+export class PopupTemplateComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   @Input() fullscreen = false;
   drawerState!: DrawerState;
+  private ignoreClicks = true;
 
   constructor(private popupTemplateStateService: PopupTemplateStateService) {
   }
 
   ngOnInit() {
-    this.popupTemplateStateService.drawerState$.subscribe((state) => {
-      this.drawerState = state;
-    });
+    this.popupTemplateStateService.drawerState$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        this.drawerState = state;
+
+        // Enable clicks only after a delay (e.g., 300ms) when the popup opens
+        if (state.visible) {
+          this.ignoreClicks = true;
+          setTimeout(() => {
+            this.ignoreClicks = false;
+          }, 300); // Match this with your opening animation duration
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   close() {
@@ -125,7 +143,7 @@ export class PopupTemplateComponent implements OnInit {
   }
 
   onClickOutside() {
-    if (this.drawerState.visible) {
+    if (this.drawerState.visible && !this.ignoreClicks) {
       this.close();
     }
   }
