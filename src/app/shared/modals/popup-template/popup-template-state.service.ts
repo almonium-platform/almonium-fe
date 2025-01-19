@@ -50,4 +50,16 @@ export class PopupTemplateStateService {
       });
     }, 200);
   }
+
+  closeImmediately() {
+    const current = this.drawerState.value;
+
+    this.drawerState.next({
+      ...current,
+      visible: false,
+      outside: false,
+      content: undefined,
+      closing: false,
+    });
+  }
 }

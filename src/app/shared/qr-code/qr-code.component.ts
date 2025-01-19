@@ -4,6 +4,7 @@ import {TuiSkeleton} from "@taiga-ui/kit";
 import {NgStyle} from "@angular/common";
 import {TuiAlertService} from "@taiga-ui/core";
 import {Router} from "@angular/router";
+import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
 @Component({
   selector: 'app-qr-code',
@@ -22,6 +23,7 @@ export class QRCodeComponent implements OnInit {
   constructor(private utilsService: UtilsService,
               private alertService: TuiAlertService,
               private router: Router,
+              private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -49,6 +51,9 @@ export class QRCodeComponent implements OnInit {
   }
 
   protected redirect() {
-    this.router.navigate([this.linkToEncode]).then();
+    this.popupTemplateStateService.closeImmediately();
+    setTimeout(() => {
+      this.router.navigate([this.linkToEncode]).then();
+    }, 0);
   }
 }
