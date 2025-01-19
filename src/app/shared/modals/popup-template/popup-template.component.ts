@@ -41,7 +41,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     `
       .embedded {
       @apply rounded-2xl w-fit shadow-lg motion-preset-slide-up;
-        max-width: min(48rem, 87%);
+        max-width: min(48rem, 95%);
       }
 
       .bg-overlay {

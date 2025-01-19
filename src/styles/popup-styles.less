@@ -5,12 +5,14 @@
 }
 
 .popup-header {
-  font-size: 2rem;
+  font-size: clamp(1rem, 7vw, 2rem);
   color: var(--text-color);
   font-weight: 700;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
