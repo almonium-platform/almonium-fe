@@ -134,8 +134,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
         const currentValue = control.value;
         // Check if we actually changed anything:
         if (transformedValue !== currentValue) {
-          control.setValue(transformedValue, {emitEvent: false});
-          this.usernameForm.updateValueAndValidity({onlySelf: true});
+          control.setValue(transformedValue /*lowercase*/, {emitEvent: true});
         }
       });
   }
