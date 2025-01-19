@@ -2,9 +2,8 @@ import {Component, Input} from '@angular/core';
 import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
 
 
-// TODO: rename to app-avatar
 @Component({
-  selector: 'app-profile-picture',
+  selector: 'app-avatar',
   template: `
     <!--    ugly hack but I can't make tuiAvatarOutline work dynamically-->
     @if (outline) {
@@ -35,7 +34,7 @@ import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
     TuiAvatarOutline
   ],
 })
-export class ProfilePictureComponent {
+export class AvatarComponent {
   @Input() avatarUrl: string | null = null;
   @Input() username: string | null = null;
   @Input() outline: boolean = false;

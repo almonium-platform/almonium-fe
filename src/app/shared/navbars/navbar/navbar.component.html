@@ -79,7 +79,7 @@
       <!-- Navbar User Profile Section -->
       <div class="user-profile relative" (click)="toggleProfilePopover()"
            (clickOutside)="profileOnClickOutside($event)">
-        <app-profile-picture
+        <app-avatar
           class="profile-circle"
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
@@ -87,7 +87,7 @@
           size="m"
           [sizeInRem]=3
         >
-        </app-profile-picture>
+        </app-avatar>
         <!-- Popover Menu -->
       </div>
     </div>
@@ -141,7 +141,7 @@
     <div class="menu-section">
       <div class="user-details flex items-center">
         <!-- Profile Picture -->
-        <app-profile-picture
+        <app-avatar
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
           [outline]="userInfo?.premium ?? false"
@@ -149,7 +149,7 @@
           size="m"
           (click)="openChangeAvatarPopup()"
         >
-        </app-profile-picture>
+        </app-avatar>
         <!-- User Info -->
         <div class="user-info overflow-hidden">
           <span class="font-semibold truncate block username">{{ userInfo?.username || 'Anonymous Learner' }}</span>

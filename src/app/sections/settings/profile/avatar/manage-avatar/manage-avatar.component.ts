@@ -15,7 +15,7 @@ import {NgClass} from "@angular/common";
 import {Avatar} from "../avatar.model";
 import {UserInfo} from "../../../../../models/userinfo.model";
 import {Subject, takeUntil} from "rxjs";
-import {ProfilePictureComponent} from "../../../../../shared/avatar/profile-picture.component";
+import {AvatarComponent} from "../../../../../shared/avatar/avatar.component";
 
 @Component({
   selector: 'app-manage-avatar',
@@ -28,7 +28,7 @@ import {ProfilePictureComponent} from "../../../../../shared/avatar/profile-pict
     TuiIcon,
     TuiBadge,
     TuiBadgedContentDirective,
-    ProfilePictureComponent,
+    AvatarComponent,
     NgClass
   ],
   styleUrls: ['./manage-avatar.component.less']

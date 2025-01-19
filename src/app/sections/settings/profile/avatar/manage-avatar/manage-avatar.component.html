@@ -14,14 +14,14 @@
              }"
         >
           <tui-badged-content>
-            <app-profile-picture
+            <app-avatar
               [avatarUrl]="userInfo?.avatarUrl ?? null"
               [username]="userInfo?.username ?? null"
               [outline]="userInfo?.premium ?? false"
               [sizeInRem]=8
               size="xxl"
             >
-            </app-profile-picture>
+            </app-avatar>
 
             @if (userInfo?.avatarUrl) {
               <tui-icon

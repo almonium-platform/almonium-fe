@@ -19,7 +19,7 @@ import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
 import {Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
-import {ProfilePictureComponent} from "../../avatar/profile-picture.component";
+import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {LucideAngularModule} from "lucide-angular";
@@ -37,7 +37,7 @@ import {GifPlayerComponent} from "../../gif-player/gif-player.component";
     NgStyle,
     NgClickOutsideDirective,
     RouterLink,
-    ProfilePictureComponent,
+    AvatarComponent,
     ManageAvatarComponent,
     LucideAngularModule,
     GifPlayerComponent
