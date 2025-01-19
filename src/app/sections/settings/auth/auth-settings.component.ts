@@ -9,7 +9,7 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from "@taiga-ui/kit";
+import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
@@ -46,7 +46,6 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     RecentAuthGuardComponent,
     TuiTextfieldComponent,
     FormsModule,
-    TuiPassword,
     TuiTextfield
   ],
   templateUrl: './auth-settings.component.html',
