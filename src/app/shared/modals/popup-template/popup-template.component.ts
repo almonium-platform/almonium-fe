@@ -2,6 +2,7 @@ import {Component, HostListener, Input, OnInit} from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
+import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
   selector: 'app-popup-template',
@@ -23,6 +24,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           'embedded': !fullscreen,
           'slide-down': drawerState.closing
         }"
+          (clickOutside)="onClickOutside()"
         >
           <app-dismiss-button
             (close)="close()"
@@ -94,7 +96,8 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   imports: [
     NgTemplateOutlet,
     NgClass,
-    DismissButtonComponent
+    DismissButtonComponent,
+    NgClickOutsideDirective
   ],
 })
 export class PopupTemplateComponent implements OnInit {
@@ -116,6 +119,12 @@ export class PopupTemplateComponent implements OnInit {
 
   @HostListener('document:keydown.escape', ['$event'])
   handleEscapeKey(_: KeyboardEvent) {
+    if (this.drawerState.visible) {
+      this.close();
+    }
+  }
+
+  onClickOutside() {
     if (this.drawerState.visible) {
       this.close();
     }
