@@ -86,6 +86,7 @@
                 type="email"
                 placeholder="Email"
                 [readOnly]="!emailEditable"
+                maxlength="320"
               />
             </tui-textfield>
             <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
@@ -169,6 +170,7 @@
                   [readOnly]="!passwordEditable"
                   formControlName="passwordValue"
                   type="password"
+                  maxlength="64"
                 />
               </tui-textfield>
               <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>

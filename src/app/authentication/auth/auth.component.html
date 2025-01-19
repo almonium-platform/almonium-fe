@@ -61,6 +61,7 @@
                     type="email"
                     placeholder="Email"
                     [readOnly]="this.mode === 'linkLocal'"
+                    maxlength="320"
                   />
                 </tui-textfield>
                 <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
@@ -78,6 +79,7 @@
                     formControlName="passwordValue"
                     type="password"
                     placeholder="Password"
+                    maxlength="64"
                   />
                   <tui-icon tuiPassword/>
                 </tui-textfield>
