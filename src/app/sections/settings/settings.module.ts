@@ -11,6 +11,7 @@ import {
   Menu,
   Pencil,
   Plus,
+  QrCode,
   RefreshCw,
   RefreshCwOff,
   StarOff,
@@ -33,7 +34,8 @@ import {
       RefreshCw,
       Infinity,
       RefreshCwOff,
-      Info
+      Info,
+      QrCode,
     }),
   ],
 })

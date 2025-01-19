@@ -25,7 +25,6 @@ import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {ShareLinkComponent} from "../../../shared/share-link/share-link.component";
-import {LucideIconsModule} from "../../../onboarding/language-setup/lucide-icons.module";
 
 @Component({
   selector: 'app-profile-settings',
@@ -47,7 +46,6 @@ import {LucideIconsModule} from "../../../onboarding/language-setup/lucide-icons
     TuiChip,
     ButtonComponent,
     ShareLinkComponent,
-    LucideIconsModule,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
