@@ -90,6 +90,8 @@ export interface UIPreferences {
     read: boolean;
     write: boolean;
     notifications: boolean;
+    social: boolean;
+    timer: boolean;
   };
   profileMenu: {
     billing: boolean;
@@ -104,6 +106,8 @@ export const DEFAULT_UI_PREFERENCES: UIPreferences = {
     read: true,
     write: true,
     notifications: true,
+    social: true,
+    timer: true,
   },
   profileMenu: {
     billing: false,

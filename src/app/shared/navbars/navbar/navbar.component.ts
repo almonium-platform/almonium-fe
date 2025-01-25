@@ -11,7 +11,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import {FormsModule} from "@angular/forms";
-import {NgClass, NgOptimizedImage, NgStyle} from "@angular/common";
+import {NgClass, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
@@ -25,6 +25,7 @@ import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/m
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
 import {GifPlayerComponent} from "../../gif-player/gif-player.component";
+import {NavbarLucideIconsModule} from "./navbar-icons.module";
 
 @Component({
   selector: 'app-navbar',
@@ -32,7 +33,6 @@ import {GifPlayerComponent} from "../../gif-player/gif-player.component";
   styleUrls: ['./navbar.component.less'],
   imports: [
     FormsModule,
-    NgOptimizedImage,
     NgClass,
     NgStyle,
     NgClickOutsideDirective,
@@ -40,7 +40,8 @@ import {GifPlayerComponent} from "../../gif-player/gif-player.component";
     AvatarComponent,
     ManageAvatarComponent,
     LucideAngularModule,
-    GifPlayerComponent
+    GifPlayerComponent,
+    NavbarLucideIconsModule,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {

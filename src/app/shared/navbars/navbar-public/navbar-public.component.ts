@@ -4,6 +4,7 @@ import {NgClass, NgOptimizedImage} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {ButtonComponent} from "../../button/button.component";
+import {LucideAngularModule} from "lucide-angular";
 
 @Component({
   selector: 'app-public-navbar',
@@ -15,7 +16,8 @@ import {ButtonComponent} from "../../button/button.component";
     NgClass,
     NgClickOutsideDirective,
     RouterLink,
-    ButtonComponent
+    ButtonComponent,
+    LucideAngularModule
   ]
 })
 export class NavbarPublicComponent implements OnInit, OnDestroy {

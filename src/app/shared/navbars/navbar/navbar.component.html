@@ -66,12 +66,37 @@
         </div>
       </div>
 
+      @if (uiPreferences.navbar.timer) {
+        <div class="btn-notification relative">
+          <button>
+            <lucide-icon name="timer"
+                         [size]="24"
+                         [strokeWidth]="1"
+            ></lucide-icon>
+          </button>
+        </div>
+      }
+
+      @if (uiPreferences.navbar.social) {
+        <div class="btn-notification relative">
+          <button>
+            <lucide-icon name="users"
+                         [size]="24"
+                         [strokeWidth]="1"
+                         routerLink="/social"
+            ></lucide-icon>
+          </button>
+        </div>
+      }
+
       @if (uiPreferences.navbar.notifications) {
         <div class="btn-notification relative" (click)="toggleNotificationPopover()"
              (clickOutside)="notificationOnClickOutside($event)">
           <button>
-            <img ngSrc="assets/img/icons/bell.svg" alt="Notification Icon" class="notification-icon" height="40"
-                 width="40"/>
+            <lucide-icon name="bell"
+                         [size]="24"
+                         [strokeWidth]="1"
+            ></lucide-icon>
           </button>
         </div>
       }
@@ -103,30 +128,25 @@
       <!-- Menu Items -->
       <div class="menu-items p-2">
         <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/home.svg" alt="Home Icon" class="w-5 h-5 mr-2" height="512"
-               width="512">
-          <!--        TODO lucide icons-->
+          <lucide-icon name="home" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
           <span>Home</span>
         </a>
 
         @if (uiPreferences.navbar.discover) {
           <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <img ngSrc="/assets/img/icons/discover.svg" alt="Discover Icon" class="w-5 h-5 mr-2" height="512"
-                 width="512">
+            <lucide-icon name="telescope" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
             <span>Discover</span>
           </a>
         }
         @if (uiPreferences.navbar.review) {
           <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <img ngSrc="/assets/img/icons/review.svg" alt="Review Icon" class="w-5 h-5 mr-2" height="512"
-                 width="512">
+            <lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
             <span>Review</span>
           </a>
         }
         @if (uiPreferences.navbar.play) {
           <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <img ngSrc="/assets/img/icons/games.svg" alt="Games Icon" class="w-5 h-5 mr-2" height="512"
-                 width="512">
+            <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
             <span>Games</span>
           </a>
         }
@@ -161,12 +181,12 @@
       <!-- Menu Items -->
       <div class="menu-items p-2">
         <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/settings.svg" alt="gear icon" class="w-5 h-5 mr-2" height="40" width="40">
+          <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
           <span>Settings</span>
         </a>
         <div class="separator"></div>
         <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <img ngSrc="/assets/img/icons/logout.svg" alt="logout icon" class="w-5 h-5 mr-2" height="64" width="64">
+          <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
           <span>Logout</span>
         </a>
       </div>
