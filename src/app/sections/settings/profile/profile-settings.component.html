@@ -3,7 +3,7 @@
 <app-recent-auth-guard></app-recent-auth-guard>
 
 @if (userInfo) {
-  <app-share-link [link]="'almonium.com/users/' + userInfo.id"
+  <app-share-link [link]="getProfileLink()"
                   title="Share Your Profile"></app-share-link>
 }
 
@@ -28,14 +28,20 @@
       <div class="row-content">
         @if (userInfo) {
           <app-avatar-settings
+            class="pt-3 pb-3"
             [userInfo]="userInfo"
           ></app-avatar-settings>
         }
         <div class="flex flex-col justify-center items-center ml-auto gap-2">
           @if (!userInfo?.hidden) {
-            <div>
+            <div class="flex flex-col gap-2">
+              <lucide-icon name="link"
+                           class="share-icon"
+                           (click)="copyProfileLink()"
+                           [size]="30"
+              ></lucide-icon>
               <lucide-icon name="qr-code"
-                           class="qr-icon"
+                           class="share-icon"
                            (click)="openShareProfile()"
                            [size]="34"
               ></lucide-icon>
@@ -43,6 +49,7 @@
           }
           <app-button
             [label]="userInfo?.hidden ? 'Hidden' : 'Hide'"
+            [hoverLabel]="userInfo?.hidden ? 'Unhide' : undefined"
             [appearance]="'underline'"
             [loading$]="loading$"
             [style.margin-left]="'auto'"

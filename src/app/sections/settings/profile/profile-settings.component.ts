@@ -227,16 +227,32 @@ auto-renewal in the customer portal.`;
     }
   }
 
-  onSelectedInterestsChange(interests: Interest[]) {
+  protected onSelectedInterestsChange(interests: Interest[]) {
     this.interests = interests;
   }
 
-  validateInterests() {
+  protected validateInterests() {
     return true;
   }
 
-  openShareProfile() {
+  protected openShareProfile() {
     this.popupTemplateStateService.open(this.shareLinkComponent.content, 'share-link');
+  }
+
+  protected copyProfileLink() {
+    const link = this.getProfileLink();
+    navigator.clipboard.writeText(link).then(
+      () => {
+        this.alertService.open('Link copied to clipboard', {appearance: 'neutral'}).subscribe();
+      },
+      (err) => {
+        console.error('Failed to copy: ', err);
+      }
+    );
+  }
+
+  protected getProfileLink() {
+    return 'almonium.com/users/' + this.userInfo?.id;
   }
 
   protected toggleHidden(): void {
