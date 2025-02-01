@@ -3,20 +3,7 @@ import {CommonModule} from '@angular/common';
 import {AuthSettingsComponent} from './auth/auth-settings.component';
 import {SettingsRoutingModule} from "./settings-routing.model";
 import {ProfileSettingsComponent} from "./profile/profile-settings.component";
-import {
-  Home,
-  Infinity,
-  Info,
-  LucideAngularModule,
-  Menu,
-  Pencil,
-  Plus,
-  QrCode,
-  RefreshCw,
-  RefreshCwOff,
-  StarOff,
-  UserCheck
-} from "lucide-angular";
+import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 
 @NgModule({
   imports: [
@@ -24,19 +11,7 @@ import {
     SettingsRoutingModule,
     AuthSettingsComponent,
     ProfileSettingsComponent,
-    LucideAngularModule.pick({
-      Home,
-      Menu,
-      UserCheck,
-      StarOff,
-      Pencil,
-      Plus,
-      RefreshCw,
-      Infinity,
-      RefreshCwOff,
-      Info,
-      QrCode,
-    }),
+    SharedLucideIconsModule
   ],
 })
 export class SettingsModule {
