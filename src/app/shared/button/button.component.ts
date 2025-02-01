@@ -12,14 +12,16 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       (click)="onClick()"
       [disabled]="isDisabled"
       [type]="type"
-      class="relative flex items-center justify-center w-full base"
+      class="relative flex items-center justify-center w-full base btn"
       [class]="class + ' ' + customClass"
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
+      [style.gap]="gap"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
+      [title]="title"
     >
       @if (loading$ | async) {
         <tui-loader
@@ -50,9 +52,11 @@ export class ButtonComponent implements OnInit {
   @Input() loading$?: Observable<boolean>;
   @Input() label!: string;
   @Input() disabled: boolean = false;
-  @Input() appearance: 'bw' | 'gradient' = 'gradient';
+  @Input() appearance: 'bw' | 'gradient' | 'underline' = 'gradient';
   @Input() customClass: string = '';
   @Input() fontSize?: number;
+  @Input() gap?: string = '0';
+  @Input() title?: string = '';
   @Input() padding?: string = '';
   @Input() type?: 'button' | 'submit' | 'reset' = 'submit';
   @Input() redirectUrl?: string;
@@ -81,6 +85,9 @@ export class ButtonComponent implements OnInit {
   get class() {
     if (this.appearance === 'bw') {
       return 'black-n-white-button';
+    }
+    if (this.appearance === 'underline') {
+      return 'underline-button';
     }
     return 'gradient-button';
   }
