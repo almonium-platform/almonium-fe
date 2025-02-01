@@ -75,7 +75,6 @@ export class ProfileSettingsService {
     return this.http.get<{ available: boolean }>(url, {withCredentials: true});
   }
 
-  // interests
   saveInterests(ids: number[]): Observable<any> {
     const url = `${AppConstants.ME_URL}/interests`;
     return this.http.patch(url, {ids}, {withCredentials: true});
@@ -83,8 +82,11 @@ export class ProfileSettingsService {
 
   saveUiPreferences(uiPreferences: UIPreferences): Observable<any> {
     const url = `${AppConstants.PROFILE_URL}/ui-preferences`;
-    return this.http.patch(url, uiPreferences, {
-      withCredentials: true,
-    });
+    return this.http.patch(url, uiPreferences, {withCredentials: true});
+  }
+
+  toggleHidden(hidden: boolean): Observable<any> {
+    const url = `${AppConstants.PROFILE_URL}/hidden`;
+    return this.http.patch(url, {hidden}, {withCredentials: true});
   }
 }

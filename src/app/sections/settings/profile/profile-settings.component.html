@@ -31,12 +31,43 @@
             [userInfo]="userInfo"
           ></app-avatar-settings>
         }
-        <lucide-icon name="qr-code"
-                     class="qr-icon"
-                     (click)="openShareProfile()"
-                     [size]="34"
-        >
-        </lucide-icon>
+        <div class="flex flex-col justify-center items-center ml-auto gap-2">
+          @if (!userInfo?.hidden) {
+            <div>
+              <lucide-icon name="qr-code"
+                           class="qr-icon"
+                           (click)="openShareProfile()"
+                           [size]="34"
+              ></lucide-icon>
+            </div>
+          }
+          <app-button
+            [label]="userInfo?.hidden ? 'Hidden' : 'Hide'"
+            [appearance]="'underline'"
+            [loading$]="loading$"
+            [style.margin-left]="'auto'"
+            [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
+            [gap]="(userInfo?.hidden ? '0.3rem' : '.3rem')"
+            [customClass]="userInfo?.hidden ? '' : ''"
+            (clickFunction)="toggleHidden()"
+            [hint]="hideProfileTooltip"
+            hintAppearance="dark"
+            hintDirection="bottom"
+          >
+            @if (userInfo?.hidden) {
+              <lucide-icon
+                [name]="'venetian-mask'"
+                [strokeWidth]="1"
+                [size]="34"
+              ></lucide-icon>
+            }
+
+          </app-button>
+          <ng-template #hideProfileTooltip>
+            When your profile is hidden, other users can only see your username and can't send you connection
+            requests.
+          </ng-template>
+        </div>
       </div>
     </div>
 

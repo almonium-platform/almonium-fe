@@ -15,7 +15,7 @@ import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-g
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
-import {ReactiveFormsModule} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-settings.component";
@@ -46,6 +46,7 @@ import {ShareLinkComponent} from "../../../shared/share-link/share-link.componen
     TuiChip,
     ButtonComponent,
     ShareLinkComponent,
+    FormsModule,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
@@ -86,6 +87,9 @@ auto-renewal in the customer portal.`;
 
   private readonly loadingSubjectCustomerPortal$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingCustomerPortal$ = this.loadingSubjectCustomerPortal$.asObservable();
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
 
   constructor(
     private userInfoService: UserInfoService,
@@ -233,5 +237,29 @@ auto-renewal in the customer portal.`;
 
   openShareProfile() {
     this.popupTemplateStateService.open(this.shareLinkComponent.content, 'share-link');
+  }
+
+  protected toggleHidden(): void {
+    const toggleValue = !this.userInfo?.hidden;
+    if (!this.userInfo || this.userInfo.hidden === undefined) {
+      return; // Exit early if userInfo is not set
+    }
+
+    const oldValue = this.userInfo.hidden;
+    this.userInfo.hidden = toggleValue; // Optimistic update
+
+    this.profileSettingsService.toggleHidden(toggleValue).subscribe({
+      next: () => {
+        this.userInfoService.updateUserInfo({hidden: toggleValue}); // Update cache on success
+        console.log('Action executed successfully');
+      },
+      error: (error) => {
+        if (this.userInfo) {
+          this.userInfo.hidden = oldValue;
+        }
+        console.error('Failed to save preferences:', error);
+        this.alertService.open('Failed to save preferences', {appearance: 'error'}).subscribe();
+      },
+    });
   }
 }
