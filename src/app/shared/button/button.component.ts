@@ -22,6 +22,10 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       [tuiHintAppearance]="hintAppearance"
       [tuiHintDirection]="hintDirection"
       [title]="title"
+      (mouseenter)="isHovered = true"
+      (mouseleave)="isHovered = false"
+      (focus)="isHovered = true"
+      (blur)="isHovered = false"
     >
       @if (loading$ | async) {
         <tui-loader
@@ -35,7 +39,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       }
 
       <span [ngStyle]="{ color: (loading$ | async) ? 'transparent' : 'inherit' }">
-        {{ label }}
+          {{ isHovered && hoverLabel ? hoverLabel : label }}
       </span>
     </button>
   `,
@@ -51,6 +55,7 @@ export class ButtonComponent implements OnInit {
   private readonly destroy$ = new Subject<void>();
   @Input() loading$?: Observable<boolean>;
   @Input() label!: string;
+  @Input() hoverLabel?: string;
   @Input() disabled: boolean = false;
   @Input() appearance: 'bw' | 'gradient' | 'underline' = 'gradient';
   @Input() customClass: string = '';
@@ -68,6 +73,7 @@ export class ButtonComponent implements OnInit {
   @Input() hintDirection: TuiHintDirection = 'top';
 
   private loadingState: boolean = false;
+  protected isHovered = false;
 
   constructor(private router: Router) {
   }
