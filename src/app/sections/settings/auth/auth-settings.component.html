@@ -38,24 +38,14 @@
       [clickOnLinked]="prepareAndShowProviderModal"
       [clickOnUnlinked]="handleProviderWrapped(provider)"
     ></app-provider-icon>
-    <button
-      type="button"
+    <app-button
+      [label]="isProviderLinked(provider) ? 'Unlink' : 'Link'"
+      [disabled]="isLastLinkedProvider(provider)"
+      (clickFunction)="handleProviderWrapped(provider)()"
+      [appearance]="isProviderLinked(provider) ? 'underline' : 'bw'"
+      [title]="isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : 'Click to link'"
       class="action-btn"
-      (click)="handleProviderWrapped(provider)()"
-      [disabled]="isLastLinkedProvider(provider) && isProviderLinked(provider)"
-      [ngClass]="{
-        'unlink-btn': isProviderLinked(provider),
-        'black-n-white-button': !isProviderLinked(provider)
-      }"
-      [ngStyle]="{
-        cursor: isLastLinkedProvider(provider) ? 'not-allowed' : 'pointer',
-        opacity: isLastLinkedProvider(provider) ? 0.6 : 1,
-        border: isProviderLinked(provider) ? 'none' : '1px solid black'
-      }"
-      title="{{ isLastLinkedProvider(provider) ? 'You cannot unlink your last authentication method.' : '' }}"
-    >
-      {{ isProviderLinked(provider) ? 'Unlink' : 'Link' }}
-    </button>
+    ></app-button>
   </div>
 </ng-template>
 
