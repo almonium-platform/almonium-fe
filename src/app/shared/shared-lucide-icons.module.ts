@@ -4,6 +4,7 @@ import {
   Home,
   Infinity,
   Info,
+  Link,
   LucideAngularModule,
   Menu,
   Pencil,
@@ -11,9 +12,13 @@ import {
   QrCode,
   RefreshCw,
   RefreshCwOff,
+  ScanLine,
+  ScanQrCode,
   StarOff,
   UserCheck,
-  VenetianMask
+  UserRoundPlus,
+  VenetianMask,
+  X
 } from 'lucide-angular';
 
 @NgModule({
@@ -32,6 +37,11 @@ import {
       RefreshCwOff,
       Info,
       QrCode,
+      X,
+      UserRoundPlus,
+      ScanLine,
+      ScanQrCode, // needed?
+      Link,
     }),
   ],
   exports: [LucideAngularModule],
