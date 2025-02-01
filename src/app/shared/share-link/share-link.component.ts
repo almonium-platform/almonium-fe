@@ -13,7 +13,7 @@ export class ShareLinkComponent implements OnInit {
   @ViewChild('shareLink', {static: true}) content!: TemplateRef<any>;
   @Input() link!: string;
   @Input() title!: string;
-
+  protected showCopied: boolean = false;
   protected fieldTextValue: string = '';
 
   ngOnInit(): void {
@@ -24,8 +24,10 @@ export class ShareLinkComponent implements OnInit {
     navigator.clipboard.writeText(this.link).then(
       () => {
         this.fieldTextValue = 'Copied!';
+        this.showCopied = true;
         setTimeout(() => {
           this.fieldTextValue = this.link;
+          this.showCopied = false;
         }, 1000);
       },
       (err) => {
