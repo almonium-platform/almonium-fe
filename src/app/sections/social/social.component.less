@@ -1,0 +1,187 @@
+.super-container {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--main-bg-color);
+}
+
+[tuiAppearance][data-appearance=textfield] {
+  --t-shadow: initial !important;
+}
+
+.right-container {
+  display: flex;
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--main-bg-color);
+  width: 100%;
+  padding: 1rem 1rem 0 1rem;
+
+  .chat-window {
+    width: 100%;
+    height: 100%;
+    border-radius: 2rem 2rem 0 0; /* Only top corners are rounded */
+    background-color: white;
+  }
+}
+
+.chats-container {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+  max-width: 30rem;
+  border-radius: 0 2rem 0 0; /* Only top-right corner is rounded */
+  margin: 1rem 0 0 0;
+  background-color: white;
+
+  .friend-input {
+    --tui-radius-m: 2rem;
+    --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
+    padding: .5rem;
+  }
+
+  .chats-header {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .chats {
+    display: flex;
+    flex-direction: column;
+
+    .chat-tile {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding: .6rem 0 .6rem .5rem;
+
+      &:hover {
+        background-color: var(--grey-color);
+        cursor: pointer;
+      }
+    }
+  }
+
+  .no-matches-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    gap: 1rem;
+
+    .no-matches-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.search-container {
+  --tui-radius-m: 2rem;
+  --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
+  width: 20rem;
+
+  .username-input {
+    margin-bottom: 1rem;
+  }
+}
+
+.username {
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: inline;
+  margin-left: .9rem;
+}
+
+.user-tile {
+  padding: .5rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 20rem;
+
+
+  .friend-action {
+    margin-left: auto;
+    cursor: pointer;
+    padding: .5rem;
+
+    &.negative {
+      color: var(--danger-text-color);
+    }
+
+    &.positive {
+      color: var(--tui-background-accent-1);
+    }
+
+    &.secondary {
+      margin-left: unset;
+    }
+
+    &:hover {
+      opacity: .8;
+    }
+  }
+}
+
+.tiles {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.requests {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start; /* Override the default center alignment */
+  height: 100%;
+  align-self: stretch; /* Ensure it stretches fully */
+  gap: 1rem;
+
+  .requests-toggle {
+    width: 20rem;
+    --tui-radius-l: 2rem;
+
+    .btn-text {
+      width: 50%;
+    }
+  }
+}
+
+
+.drawer {
+  top: 0;
+  border-radius: 0;
+  inline-size: 24rem;
+  background-color: var(--main-bg-color);
+}
+
+.header-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header {
+  position: sticky;
+  background-color: var(--main-bg-color) !important;
+
+  .header-inner {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  app-dismiss-button {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 400px) {
+  .drawer {
+    min-width: 100vw;
+  }
+}

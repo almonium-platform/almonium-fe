@@ -3,6 +3,16 @@
   max-width: 100%;
 }
 
+.shadowless-input {
+  [tuiAppearance][data-appearance=textfield] {
+    --t-shadow: initial;
+
+    &:hover {
+      --t-shadow: initial;
+    }
+  }
+}
+
 // GRADIENT
 .full-gradient-btn {
   --r: 1rem; /* border radius */

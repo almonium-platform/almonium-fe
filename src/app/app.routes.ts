@@ -22,6 +22,7 @@ import {PricingComponent} from "./static/pricing/pricing.component";
 import {PaymentSuccessComponent} from "./static/payment-success/payment-success.component";
 import {OnboardingComponent} from "./onboarding/onboarding.component";
 import {LoginComponent} from "./authentication/login/login.component";
+import {SocialComponent} from "./sections/social/social.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -42,6 +43,7 @@ export const routes: Routes = [
       {path: 'onboarding', component: OnboardingComponent},
       {path: 'home', component: HomeComponent},
       {path: 'review', component: ReviewComponent},
+      {path: 'social', component: SocialComponent},
       {
         path: 'settings',
         loadChildren:

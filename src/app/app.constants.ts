@@ -44,6 +44,9 @@ export class AppConstants {
   public static ONBOARDING_URL = AppConstants.API_URL + '/onboarding';
   public static ONBOARDING_STEP_URL = AppConstants.ONBOARDING_URL + '/step';
 
+  // SOCIAL
+  public static FRIENDSHIPS_URL = AppConstants.API_URL + '/friendships';
+
   // UTILS
   public static UTILS_URL = AppConstants.API_URL + '/utils';
 

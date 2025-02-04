@@ -1,0 +1,196 @@
+<tui-drawer
+  *tuiPopup="open()"
+  direction="left"
+  class="drawer"
+  [overlay]="true"
+  (click.self)="onClose()"
+>
+  <ng-template #skeletonLoader>
+    <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
+  </ng-template>
+
+  <header class="header">
+    <div class="header-inner pb-1">
+      <p class="header-text">Requests</p>
+      <app-dismiss-button [relative]="true" (close)="onClose()"></app-dismiss-button>
+    </div>
+  </header>
+  <div class="requests">
+    <tui-segmented
+      size="l"
+      class="requests-toggle"
+      [(activeItemIndex)]="requestsIndex"
+    >
+      <button type="button" class="btn-text">Received</button>
+      <button type="button" class="btn-text">Sent</button>
+    </tui-segmented>
+    <tui-scrollbar class="w-full p-1">
+      <div class="tiles">
+        @if (requestsIndex === 0) {
+          @if (loadingIncomingRequests) {
+            @for (i of range(3); track i) {
+              <ng-container [ngTemplateOutlet]="skeletonLoader"
+                            [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
+            }
+          } @else {
+            @for (friend of incomingRequests; track friend) {
+              <div class="user-tile card">
+                <app-avatar [avatarUrl]="friend.avatarUrl"
+                            [username]="friend.username"
+                            [size]="'m'"
+                ></app-avatar>
+                <p class="username">{{ friend.username }}</p>
+                <lucide-icon name="user-round-plus"
+                             class="friend-action positive"
+                             [size]="20"
+                             (click)="acceptFriendRequest(friend.friendshipId)"
+                ></lucide-icon>
+                <lucide-icon name="x"
+                             class="friend-action negative secondary"
+                             [size]="20"
+                             (click)="rejectFriendRequest(friend.friendshipId)"
+                ></lucide-icon>
+              </div>
+            }
+          }
+        }
+
+        @if (requestsIndex === 1) {
+          @if (loadingOutgoingRequests) {
+            @for (i of range(3); track i) {
+              <ng-container [ngTemplateOutlet]="skeletonLoader"
+                            [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
+            }
+          } @else {
+            @for (friend of outgoingRequests; track friend) {
+              <div class="user-tile card">
+                <app-avatar [avatarUrl]="friend.avatarUrl"
+                            [username]="friend.username"
+                            [size]="'m'"
+                ></app-avatar>
+                <p class="username">{{ friend.username }}</p>
+                <lucide-icon name="x"
+                             class="friend-action negative"
+                             [size]="20"
+                             (click)="cancelFriendRequest(friend.friendshipId)"
+                ></lucide-icon>
+              </div>
+            }
+          }
+        }
+      </div>
+    </tui-scrollbar>
+  </div>
+</tui-drawer>
+
+<div class="super-container">
+  <div class="chats-container">
+    <header class="chats-header">
+      <lucide-icon name="menu"
+                   class="cursor-pointer"
+                   (click)="openMenu()"
+      ></lucide-icon>
+
+      <p class="header-text">Chats</p>
+    </header>
+    <tui-input
+      [formControl]="friendFormControl"
+      [tuiTextfieldLabelOutside]="true"
+      class="friend-input shadowless-input"
+    >
+      Search
+      <input
+        tuiTextfieldLegacy
+        type="text"
+        (keydown.enter)="searchNewUsers()"
+      />
+    </tui-input>
+
+    @if (filteredFriends.length > 0) {
+      <div class="chats">
+        @for (chat of filteredFriends; track chat) {
+          <div class="chat-tile"
+               (click)="openChat(chat.friendshipId)"
+          >
+            <app-avatar [avatarUrl]="chat.avatarUrl"
+                        [username]="chat.username"
+                        [size]="'m'"
+            ></app-avatar>
+            <p class="username">{{ chat.username }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Show matched friends when searching -->
+    @if (!isNotFiltered() && matchedFriends.length > 0) {
+      <div class="matched-friends-container">
+        @for (friend of matchedFriends; track friend) {
+          <div class="chat-tile"
+               (click)="sendFriendRequest(friend.id)"
+          >
+            <app-avatar [avatarUrl]="friend.avatarUrl"
+                        [username]="friend.username"
+                        [size]="'m'">
+            </app-avatar>
+            <p class="username">{{ friend.username }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Show message when no friends exist initially -->
+    @if (friends.length === 0 && isNotFiltered()) {
+      <div class="no-friends-container">
+        You have no friends yet.
+      </div>
+    }
+
+    <!-- Show message when no matches found after searching -->
+    @if (!isNotFiltered() && nothingFound) {
+      <div class="no-matches-container">
+        <p class="no-matches-text">No matches found.</p>
+      </div>
+    }
+  </div>
+
+  <div class="right-container">
+    <div class="chat-window">
+
+    </div>
+    @if (false) {
+      <div class="search-container">
+        <tui-input
+          [formControl]="usernameFormControl"
+          [tuiTextfieldLabelOutside]="true"
+          class="username-input"
+          tuiTextfieldIconLeft="@tui.user-search"
+        >
+          Type a username
+          <input
+            tuiTextfieldLegacy
+            type="text"
+            (keydown.enter)="searchNewUsers()"
+          />
+        </tui-input>
+        <div class="tiles">
+          @for (friend of matchedUsers; track friend) {
+            <div class="user-tile card">
+              <app-avatar [avatarUrl]="friend.avatarUrl"
+                          [username]="friend.username"
+                          [size]="'m'"
+              ></app-avatar>
+              <p class="username">{{ friend.username }}</p>
+              <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
+                           class="friend-action"
+                           (click)="sendFriendRequest(friend.id)"
+                           [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
+                           [size]="20"
+              ></lucide-icon>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
