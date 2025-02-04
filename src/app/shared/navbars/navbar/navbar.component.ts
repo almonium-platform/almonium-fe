@@ -25,7 +25,7 @@ import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/m
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
 import {GifPlayerComponent} from "../../gif-player/gif-player.component";
-import {NavbarLucideIconsModule} from "./navbar-icons.module";
+import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
 
 @Component({
   selector: 'app-navbar',
@@ -41,7 +41,7 @@ import {NavbarLucideIconsModule} from "./navbar-icons.module";
     ManageAvatarComponent,
     LucideAngularModule,
     GifPlayerComponent,
-    NavbarLucideIconsModule,
+    SharedLucideIconsModule,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
