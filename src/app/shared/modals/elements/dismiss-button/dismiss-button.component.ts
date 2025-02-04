@@ -34,7 +34,7 @@ import {TuiButtonClose} from "@taiga-ui/kit";
         tuiIconButton
         type="button"
         (click)="onClose()"
-        class="inner-close"
+        [ngClass]="relative ? '' : 'inner-close'"
       >
         Close
       </button>
@@ -49,6 +49,7 @@ import {TuiButtonClose} from "@taiga-ui/kit";
 })
 export class DismissButtonComponent {
   @Input() isOutside: boolean = false;
+  @Input() relative: boolean = false;
   @Output() close = new EventEmitter<void>();
 
 
