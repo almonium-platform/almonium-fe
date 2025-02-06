@@ -1,4 +1,4 @@
-import {ApplicationConfig} from '@angular/core';
+import {ApplicationConfig, importProvidersFrom, provideZoneChangeDetection} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
@@ -22,9 +22,14 @@ import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {getStorage, provideStorage} from '@angular/fire/storage';
 import {environment} from '../environments/environment';
+import {TranslateModule} from "@ngx-translate/core";
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Stream Chat
+    provideZoneChangeDetection({eventCoalescing: true}),
+    importProvidersFrom(TranslateModule.forRoot()),
+
     provideAnimations(),
     provideRouter(routes),
 
