@@ -20,6 +20,7 @@ export class UserInfo {
     public learners: Learner[],
     public interests: Interest[],
     public uiPreferences: UIPreferences,
+    public streamChatToken: string,
   ) {
   }
 
@@ -41,7 +42,8 @@ export class UserInfo {
       updates.premium ?? this.premium,
       updates.learners ?? this.learners,
       updates.interests ?? this.interests,
-      updates.uiPreferences ?? this.uiPreferences // Update new field
+      updates.uiPreferences ?? this.uiPreferences,
+      updates.streamChatToken ?? this.streamChatToken,
     );
   }
 
@@ -63,7 +65,8 @@ export class UserInfo {
       data.premium,
       data.learners.map((learner: any) => Learner.fromJSON(learner)),
       data.interests,
-      data.uiPreferences
+      data.uiPreferences,
+      data.streamChatToken,
     );
   }
 
