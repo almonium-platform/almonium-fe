@@ -1,9 +1,18 @@
-import {AfterViewInit, Component, OnDestroy, OnInit, signal, TemplateRef, ViewChild} from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  signal,
+  TemplateRef,
+  ViewChild
+} from "@angular/core";
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {combineLatest, EMPTY, from, Subject, takeUntil} from "rxjs";
-import {catchError, debounceTime, distinctUntilChanged, switchMap} from "rxjs/operators";
+import {combineLatest, EMPTY, firstValueFrom, from, Subject, take, takeUntil} from "rxjs";
+import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiAlertService, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
@@ -19,6 +28,7 @@ import {
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
+  DefaultStreamChatGenerics,
   MessageService,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
@@ -95,12 +105,21 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     private userInfoService: UserInfoService,
     private customTemplatesService: CustomTemplatesService,
     private messageService: MessageService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
     this.displayAs = this.messageService.displayAs;
   }
 
   async ngOnInit() {
+    this.channelService.activeChannel$
+      .pipe(distinctUntilChanged(), startWith(await firstValueFrom(this.channelService.activeChannel$)))
+      .subscribe((channel) => {
+        if (channel) {
+          this.setChatTitle(channel);
+        }
+      });
+
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       if (!info) {
         return;
@@ -145,6 +164,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
     this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
+  }
+
+  private setChatTitle(channel: Channel<DefaultStreamChatGenerics>) {
+    setTimeout(() => {
+      const chatTitleElement = document.querySelector('[data-testid="name"]');
+      if (!chatTitleElement) return;
+
+      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || 'Private Chat');
+      this.cdr.detectChanges();
+    }, 1);
   }
 
   protected openMenu() {
@@ -464,7 +493,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.open.set(false);
   }
 
-  protected getChatName(channel: Channel, defaultName: string): string {
+  protected getChatName(channel: Channel<DefaultStreamChatGenerics>, defaultName: string): string {
     if (defaultName !== 'Private Chat') {
       return defaultName;
     }
