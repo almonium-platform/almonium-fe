@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, signal, TemplateRef, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, OnDestroy, OnInit, signal, TemplateRef, ViewChild} from "@angular/core";
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
@@ -15,6 +15,7 @@ import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 import {
+  ChannelHeaderInfoContext,
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
@@ -27,6 +28,7 @@ import {Channel, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
+import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
 
 
 @Component({
@@ -52,10 +54,12 @@ import {UserInfoService} from "../../services/user-info.service";
     StreamAutocompleteTextareaModule,
     StreamChatModule,
     NgIf,
+    ChatHeaderComponent,
   ]
 })
-export class SocialComponent implements OnInit, OnDestroy {
+export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
+  @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -97,8 +101,6 @@ export class SocialComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
-
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       if (!info) {
         return;
@@ -138,6 +140,11 @@ export class SocialComponent implements OnInit, OnDestroy {
     this.channelService.init({type: 'messaging'}).then();
     await this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
     await this.queryUserChannels();
+  }
+
+  ngAfterViewInit() {
+    this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
+    this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
   }
 
   protected openMenu() {

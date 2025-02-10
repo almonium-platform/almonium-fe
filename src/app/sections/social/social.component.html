@@ -220,8 +220,11 @@
   <div class="right-container">
     <div class="chat-window">
       <stream-channel>
-        <stream-channel-header>
-        </stream-channel-header>
+        <ng-template #customHeaderTemplate let-channel="channel">
+          <app-chat-header [channel]="channel"></app-chat-header>
+        </ng-template>
+
+        <stream-channel-header></stream-channel-header>
         <stream-message-list></stream-message-list>
         <stream-notification-list></stream-notification-list>
         <stream-message-input></stream-message-input>
