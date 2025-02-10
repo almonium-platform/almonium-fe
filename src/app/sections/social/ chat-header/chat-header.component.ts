@@ -18,7 +18,9 @@ import {TranslateModule} from "@ngx-translate/core";
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
     >
-      {{ isPrivateChat ? '' : ('streamChat.{{ memberCount }} members' | translate:memberCountParam) }}
+      @if (!isPrivateChat) {
+        {{ 'streamChat.{{ memberCount }} members' | translate:memberCountParam }}
+      }
       {{
         canReceiveConnectEvents
           ? (isPrivateChat
@@ -40,7 +42,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
   activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
   canReceiveConnectEvents: boolean | undefined;
-  protected isPrivateChat: boolean = false;
+  protected isPrivateChat: boolean | undefined;
   private subscriptions: Subscription[] = [];
 
   constructor(private channelService: ChannelService,
