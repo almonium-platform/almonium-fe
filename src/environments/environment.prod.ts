@@ -3,6 +3,7 @@ export const environment = {
   apiUrl: 'https://api.almonium.com',
   feUrl: 'https://almonium.com',
   googleClientId: '33380019461-l4hq3eto00vvvgprtadahm5o2tqj65ti.apps.googleusercontent.com',
+  streamChatApiKey: "gu8cqhq9nfsf",
   firebaseConfig: {
     apiKey: "AIzaSyCotfh0KzDpP3HniEfxyxoAw9HUFAA8gFs",
     authDomain: "almonium.firebaseapp.com",
