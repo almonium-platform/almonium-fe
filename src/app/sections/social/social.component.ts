@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit, signal} from "@angular/core";
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {Subject, takeUntil} from "rxjs";
+import {combineLatest, EMPTY, from, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -13,6 +13,18 @@ import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../services/url.service";
+import {TranslateModule} from "@ngx-translate/core";
+import {
+  ChannelService,
+  ChatClientService,
+  StreamAutocompleteTextareaModule,
+  StreamChatModule,
+  StreamI18nService
+} from "stream-chat-angular";
+import {StreamChat, User} from "stream-chat";
+import {environment} from "../../../environments/environment";
+import {UserInfo} from "../../models/userinfo.model";
+import {UserInfoService} from "../../services/user-info.service";
 
 
 @Component({
@@ -33,10 +45,16 @@ import {UrlService} from "../../services/url.service";
     TuiScrollbar,
     TuiSkeleton,
     NgTemplateOutlet,
+    StreamChatModule,
+    TranslateModule,
+    StreamAutocompleteTextareaModule,
+    StreamChatModule,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  private userInfo: UserInfo | null = null;
+
   protected usernameFormControl = new FormControl<string>('');
   protected friendFormControl = new FormControl<string>('');
   protected nothingFound = false;
@@ -53,37 +71,43 @@ export class SocialComponent implements OnInit, OnDestroy {
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
 
-  isNotFiltered() {
-    return this.friendFormControl.value?.trim() === '';
-  }
-
-  protected openRequestsTab() {
-    this.open.set(true);
-    this.getOutgoingRequests();
-    this.getIncomingRequests();
-  }
-
-  public onClose(): void {
-    this.open.set(false);
-  }
+  // CHATS
+  private chatClient: StreamChat;
 
   constructor(
     private socialService: SocialService,
     private alertService: TuiAlertService,
     private urlService: UrlService,
     private activatedRoute: ActivatedRoute,
+    private chatService: ChatClientService,
+    private channelService: ChannelService,
+    private streamI18nService: StreamI18nService,
+    private userInfoService: UserInfoService,
   ) {
+    this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
   }
 
-  protected openMenu() {
-    this.openRequestsTab();
-  }
+  async ngOnInit() {
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
+      if (!info) {
+        return;
+      }
+      this.userInfo = info;
 
-  protected openChat(friendshipId: number) {
-    console.log('Open chat');
-  }
+      const userId = this.userInfo.id;
+      const userToken = this.userInfo.streamChatToken;
+      const userName = this.userInfo.username;
+      const user: User = {
+        id: userId,
+        name: userName,
+        image: this.userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+      };
 
-  ngOnInit(): void {
+      this.chatService.init(environment.streamChatApiKey, user, userToken);
+    });
+
+    this.streamI18nService.setTranslation();
+
     this.activatedRoute.queryParams.subscribe(params => {
       if (params['requests'] === 'received') {
         this.requestsIndex = 0;
@@ -99,6 +123,94 @@ export class SocialComponent implements OnInit, OnDestroy {
     this.getFriends();
     this.listenToUsernameField();
     this.listenToFriendUsernameField();
+    this.listenToChannelSearch();
+    this.channelService.init({type: 'messaging'}).then();
+    await this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
+    await this.queryUserChannels();
+  }
+
+  protected openMenu() {
+    this.openRequestsTab();
+  }
+
+  protected async openChat(friendId: number) {
+    console.log('Open chat');
+
+    // Ensure the user is connected before creating a chat
+    await this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
+
+    console.log('User connected');
+
+    // Now create or retrieve the private chat
+    const channel = await this.createPrivateChat(this.userInfo!.id, friendId.toString());
+    if (!channel) {
+      console.error('Failed to create chat.');
+      return;
+    }
+    this.channelService.setAsActiveChannel(channel);
+
+    if (channel) {
+      console.log('Channel created:', channel);
+    } else {
+      console.error('Failed to create chat.');
+    }
+  }
+
+  async queryUserChannels() {
+    const channels = await this.chatService.chatClient.queryChannels({
+      members: {$in: [this.userInfo?.id ?? '5']}, // Ensure this matches the current user ID
+    });
+
+    console.log('Queried channels:', channels);
+  }
+
+  /**
+   * Creates a private 1-on-1 (P2P) chat channel between two users.
+   * @param userId The current user's ID (should already be connected).
+   * @param recipientId The user ID of the person they want to chat with.
+   * @returns A promise that resolves with the created channel.
+   */
+  async createPrivateChat(userId: string, recipientId: string) {
+    try {
+      if (!this.chatClient.user) {
+        throw new Error('User must be connected before creating a chat.');
+      }
+
+      // Unique channel ID (e.g., `private_user1_user2`)
+      const channelId = `private_${[userId, recipientId].sort().join('_')}`;
+
+      const channel = this.chatService.chatClient.channel('messaging', channelId, {
+        name: 'Private Chat',
+        members: [userId, recipientId], // Both users in the private chat
+        created_by_id: userId, // Set creator
+      });
+
+      await channel.create(); // Ensure the channel is created
+      console.log('Private chat created:', channelId);
+
+      return channel;
+    } catch (error) {
+      console.error('Error creating private chat:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Connects a user to Stream Chat.
+   * @param userId The unique ID of the user.
+   * @param userToken The authentication token for the user.
+   * @returns A promise that resolves when the user is connected.
+   */
+  async connectUser(userId: string, userToken: string): Promise<void> {
+    try {
+      await this.chatClient.connectUser(
+        {id: userId}, // User object with at least an ID
+        userToken
+      );
+      console.log('User connected to Stream Chat:', userId);
+    } catch (error) {
+      console.error('Error connecting user:', error);
+    }
   }
 
   private listenToUsernameField() {
@@ -126,6 +238,43 @@ export class SocialComponent implements OnInit, OnDestroy {
         this.matchedUsers = friends;
         this.nothingFound = friends.length === 0;
       });
+  }
+
+  private listenToChannelSearch() {
+    combineLatest([
+      this.friendFormControl.valueChanges.pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      ),
+      this.chatService.user$ // Observable containing the user
+    ])
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(([query, user]) => {
+          if (!query || query.length < 3) {
+            // Reset to show all channels if the search query is too short
+            return from(this.channelService.init({type: 'messaging'}));
+          }
+
+          if (!user) {
+            return EMPTY; // Prevent API calls if user is not available
+          }
+
+          // Define search filters
+          const filters = {
+            type: 'messaging',
+            name: {$autocomplete: query}, // Partial match on channel name
+            members: {$in: [user.id]} // Use the user ID from the observable
+          };
+
+          return from(this.channelService.init(filters)).pipe(
+            catchError(() => {
+              return EMPTY; // Handle errors gracefully
+            })
+          );
+        })
+      )
+      .subscribe();
   }
 
   private listenToFriendUsernameField() {
@@ -281,5 +430,19 @@ export class SocialComponent implements OnInit, OnDestroy {
         this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
       }
     });
+  }
+
+  protected isNotFiltered() {
+    return this.friendFormControl.value?.trim() === '';
+  }
+
+  protected openRequestsTab() {
+    this.open.set(true);
+    this.getOutgoingRequests();
+    this.getIncomingRequests();
+  }
+
+  public onClose(): void {
+    this.open.set(false);
   }
 }

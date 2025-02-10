@@ -84,79 +84,88 @@
 </tui-drawer>
 
 <div class="super-container">
-  <div class="chats-container">
-    <header class="chats-header">
-      <lucide-icon name="menu"
-                   class="cursor-pointer"
-                   (click)="openMenu()"
-      ></lucide-icon>
+  <div class="left-container">
+    <div class="chats-container">
+      <header class="chats-header">
+        <lucide-icon name="menu"
+                     class="cursor-pointer"
+                     (click)="openMenu()"
+        ></lucide-icon>
 
-      <p class="header-text">Chats</p>
-    </header>
-    <tui-input
-      [formControl]="friendFormControl"
-      [tuiTextfieldLabelOutside]="true"
-      class="friend-input shadowless-input"
-    >
-      Search
-      <input
-        tuiTextfieldLegacy
-        type="text"
-        (keydown.enter)="searchNewUsers()"
-      />
-    </tui-input>
-
-    @if (filteredFriends.length > 0) {
-      <div class="chats">
-        @for (chat of filteredFriends; track chat) {
-          <div class="chat-tile"
-               (click)="openChat(chat.friendshipId)"
-          >
-            <app-avatar [avatarUrl]="chat.avatarUrl"
-                        [username]="chat.username"
-                        [size]="'m'"
-            ></app-avatar>
-            <p class="username">{{ chat.username }}</p>
-          </div>
-        }
+        <p class="header-text">Chats</p>
+      </header>
+      <tui-input
+        [formControl]="friendFormControl"
+        [tuiTextfieldLabelOutside]="true"
+        class="friend-input shadowless-input"
+      >
+        Search
+        <input
+          tuiTextfieldLegacy
+          type="text"
+          (keydown.enter)="searchNewUsers()"
+        />
+      </tui-input>
+      <div class="channel-list">
+        <stream-channel-list></stream-channel-list>
       </div>
-    }
+      @if (filteredFriends.length > 0) {
+        <div class="chats">
+          @for (friend of filteredFriends; track friend) {
+            <div class="chat-tile"
+                 (click)="openChat(friend.id)"
+            >
+              <app-avatar [avatarUrl]="friend.avatarUrl"
+                          [username]="friend.username"
+                          [size]="'m'"
+              ></app-avatar>
+              <p class="username">{{ friend.username }}</p>
+            </div>
+          }
+        </div>
+      }
 
-    <!-- Show matched friends when searching -->
-    @if (!isNotFiltered() && matchedFriends.length > 0) {
-      <div class="matched-friends-container">
-        @for (friend of matchedFriends; track friend) {
-          <div class="chat-tile"
-               (click)="sendFriendRequest(friend.id)"
-          >
-            <app-avatar [avatarUrl]="friend.avatarUrl"
-                        [username]="friend.username"
-                        [size]="'m'">
-            </app-avatar>
-            <p class="username">{{ friend.username }}</p>
-          </div>
-        }
-      </div>
-    }
+      <!-- Show matched friends when searching -->
+      @if (!isNotFiltered() && matchedFriends.length > 0) {
+        <div class="matched-friends-container">
+          @for (friend of matchedFriends; track friend) {
+            <div class="chat-tile"
+                 (click)="sendFriendRequest(friend.id)"
+            >
+              <app-avatar [avatarUrl]="friend.avatarUrl"
+                          [username]="friend.username"
+                          [size]="'m'">
+              </app-avatar>
+              <p class="username">{{ friend.username }}</p>
+            </div>
+          }
+        </div>
+      }
 
-    <!-- Show message when no friends exist initially -->
-    @if (friends.length === 0 && isNotFiltered()) {
-      <div class="no-friends-container">
-        You have no friends yet.
-      </div>
-    }
+      <!-- Show message when no friends exist initially -->
+      @if (friends.length === 0 && isNotFiltered()) {
+        <div class="no-friends-container">
+          You have no friends yet.
+        </div>
+      }
 
-    <!-- Show message when no matches found after searching -->
-    @if (!isNotFiltered() && nothingFound) {
-      <div class="no-matches-container">
-        <p class="no-matches-text">No matches found.</p>
-      </div>
-    }
+      <!-- Show message when no matches found after searching -->
+      @if (!isNotFiltered() && nothingFound) {
+        <div class="no-matches-container">
+          <p class="no-matches-text">No matches found.</p>
+        </div>
+      }
+    </div>
   </div>
 
   <div class="right-container">
     <div class="chat-window">
-
+      <stream-channel>
+        <stream-channel-header></stream-channel-header>
+        <stream-message-list></stream-message-list>
+        <stream-notification-list></stream-notification-list>
+        <stream-message-input></stream-message-input>
+      </stream-channel>
     </div>
     @if (false) {
       <div class="search-container">
