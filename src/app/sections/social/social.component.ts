@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, signal} from "@angular/core";
+import {Component, OnDestroy, OnInit, signal, TemplateRef, ViewChild} from "@angular/core";
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
@@ -7,7 +7,7 @@ import {catchError, debounceTime, distinctUntilChanged, switchMap} from "rxjs/op
 import {Friend, FriendshipAction, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiAlertService, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
-import {NgClass, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
 import {TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
@@ -17,11 +17,13 @@ import {TranslateModule} from "@ngx-translate/core";
 import {
   ChannelService,
   ChatClientService,
+  CustomTemplatesService,
+  MessageService,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
   StreamI18nService
 } from "stream-chat-angular";
-import {StreamChat, User} from "stream-chat";
+import {Channel, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
@@ -49,9 +51,12 @@ import {UserInfoService} from "../../services/user-info.service";
     TranslateModule,
     StreamAutocompleteTextareaModule,
     StreamChatModule,
+    NgIf,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy {
+  @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
+
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
 
@@ -73,6 +78,7 @@ export class SocialComponent implements OnInit, OnDestroy {
 
   // CHATS
   private chatClient: StreamChat;
+  protected displayAs: 'text' | 'html';
 
   constructor(
     private socialService: SocialService,
@@ -83,11 +89,16 @@ export class SocialComponent implements OnInit, OnDestroy {
     private channelService: ChannelService,
     private streamI18nService: StreamI18nService,
     private userInfoService: UserInfoService,
+    private customTemplatesService: CustomTemplatesService,
+    private messageService: MessageService,
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
+    this.displayAs = this.messageService.displayAs;
   }
 
   async ngOnInit() {
+    this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
+
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       if (!info) {
         return;
@@ -444,5 +455,20 @@ export class SocialComponent implements OnInit, OnDestroy {
 
   public onClose(): void {
     this.open.set(false);
+  }
+
+  protected getChatName(channel: Channel, defaultName: string): string {
+    if (defaultName !== 'Private Chat') {
+      return defaultName;
+    }
+
+    const currentUserId = this.chatService.chatClient.userID;
+
+    // Get the other user in the channel
+    const otherMember = Object.values(channel.state.members).find(
+      (member) => member.user?.id !== currentUserId
+    );
+
+    return otherMember?.user?.name || 'Private Chat';
   }
 }

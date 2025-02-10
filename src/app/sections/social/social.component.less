@@ -62,6 +62,18 @@
       flex: 1; /* Takes up remaining space inside .chats-container */
       min-height: 0; /* Ensures proper overflow behavior */
       overflow-y: auto; /* Enables scrolling without overflowing */
+
+      ::ng-deep .str-chat__channel-preview {
+        column-gap: 1em;
+      }
+
+      ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
+        row-gap: .4rem;
+      }
+
+      ::ng-deep .stream-chat__paginated-list {
+        overflow-y: hidden;
+      }
     }
 
     .friend-input {
