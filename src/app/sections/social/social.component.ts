@@ -136,6 +136,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       };
 
       this.chatService.init(environment.streamChatApiKey, user, userToken);
+      this.channelService.init({type: 'messaging', members: {$in: [this.userInfo.id]}}).then();
+      this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
     });
 
     this.streamI18nService.setTranslation();
@@ -156,9 +158,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.listenToUsernameField();
     this.listenToFriendUsernameField();
     this.listenToChannelSearch();
-    this.channelService.init({type: 'messaging'}).then();
-    await this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
-    await this.queryUserChannels();
   }
 
   ngAfterViewInit() {
@@ -201,14 +200,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       console.error('Failed to create chat.');
     }
-  }
-
-  async queryUserChannels() {
-    const channels = await this.chatService.chatClient.queryChannels({
-      members: {$in: [this.userInfo?.id ?? '5']}, // Ensure this matches the current user ID
-    });
-
-    console.log('Queried channels:', channels);
   }
 
   /**
