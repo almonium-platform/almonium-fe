@@ -11,7 +11,7 @@ import {
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {combineLatest, EMPTY, firstValueFrom, from, Subject, take, takeUntil} from "rxjs";
+import {combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -76,7 +76,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private userInfo: UserInfo | null = null;
 
   protected usernameFormControl = new FormControl<string>('');
-  protected friendFormControl = new FormControl<string>('');
+  protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
   protected matchedUsers: UserPublicProfile[] = [];
   protected matchedFriends: Friend[] = [];
@@ -160,7 +160,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.getFriends();
     this.listenToUsernameField();
-    this.listenToFriendUsernameField();
     this.listenToChannelSearch();
   }
 
@@ -284,56 +283,36 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private listenToChannelSearch() {
     combineLatest([
-      this.friendFormControl.valueChanges.pipe(
+      this.chatFormControl.valueChanges.pipe(
         debounceTime(300),
         distinctUntilChanged()
       ),
-      this.chatService.user$ // Observable containing the user
+      this.chatService.user$ // Observable containing the current user
     ])
       .pipe(
         takeUntil(this.destroy$),
-        switchMap(([query, user]) => {
-          if (!query || query.length < 3) {
-            // Reset to show all channels if the search query is too short
-            return from(this.channelService.init({type: 'messaging'}));
-          }
-
+        switchMap(async ([query, user]) => {
           if (!user) {
             return EMPTY; // Prevent API calls if user is not available
           }
 
-          // Define search filters
-          const filters = {
+          const filters: Record<string, any> = {
             type: 'messaging',
-            name: {$autocomplete: query}, // Partial match on channel name
-            members: {$in: [user.id]} // Use the user ID from the observable
+            members: {$in: [user.id]} // Ensure the user is a member of the channels
           };
 
-          return from(this.channelService.init(filters)).pipe(
-            catchError(() => {
-              return EMPTY; // Handle errors gracefully
-            })
-          );
-        })
-      )
-      .subscribe();
-  }
+          if (query) {
+            filters["member.user.name"] = {$autocomplete: query};
+          }
 
-  private listenToFriendUsernameField() {
-    this.friendFormControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-        switchMap((username) => {
-          const filteredFriends = this.friends.filter(friend =>
-            friend.username.toLowerCase().includes((username ?? '').toLowerCase())
-          );
+          try {
+            this.channelService.reset();
+            await this.channelService.init(filters);
 
-          this.filteredFriends = filteredFriends;
-          this.nothingFound = filteredFriends.length === 0;
-
-          return [];
+            return [];
+          } catch (error) {
+            return EMPTY;
+          }
         })
       )
       .subscribe();
@@ -475,7 +454,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected isNotFiltered() {
-    return this.friendFormControl.value?.trim() === '';
+    return this.chatFormControl.value?.trim() === '';
   }
 
   protected openRequestsTab() {
