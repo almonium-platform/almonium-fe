@@ -80,11 +80,20 @@
       @if (uiPreferences.navbar.social) {
         <div class="btn-notification relative">
           <button>
-            <lucide-icon name="message-circle"
-                         [size]="24"
-                         [strokeWidth]="1"
-                         routerLink="/social"
-            ></lucide-icon>
+            <tui-badged-content>
+              @if (hasUnreadMessages) {
+                <tui-badge-notification
+                  size="xs"
+                  tuiSlot="bottom"
+                />
+              }
+              <lucide-icon name="message-circle"
+                           [size]="24"
+                           [color]="'var(--text-color)'"
+                           [strokeWidth]="1"
+                           routerLink="/social"
+              ></lucide-icon>
+            </tui-badged-content>
           </button>
         </div>
       }

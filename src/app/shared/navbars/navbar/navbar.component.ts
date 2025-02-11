@@ -26,6 +26,9 @@ import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
 import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
+import {StreamChat} from "stream-chat";
+import {environment} from "../../../../environments/environment";
+import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-navbar',
@@ -42,6 +45,8 @@ import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
     LucideAngularModule,
     GifPlayerComponent,
     SharedLucideIconsModule,
+    TuiBadgedContentComponent,
+    TuiBadgeNotification,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -74,6 +79,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
 
+  // CHATS
+  private chatClient: StreamChat;
+  protected hasUnreadMessages = false;
+
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
               private userService: UserInfoService,
@@ -81,9 +90,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private popupTemplateStateService: PopupTemplateStateService,
               private viewportService: ViewportService,
   ) {
+    this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
   }
 
   ngOnInit(): void {
+    this.chatClient.on('notification.message_new', (event) => {
+      this.updateUnreadCount();
+    });
+
+    // Initial check when the component loads
+    this.updateUnreadCount();
+
     this.targetLanguageDropdownService.langColors$
       .pipe(takeUntil(this.destroy$)) // depends on whether it's dynamic
       .subscribe((colors) => {
@@ -133,6 +150,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private updateUnreadCount() {
+    this.hasUnreadMessages = Number(this.chatClient.user?.total_unread_count ?? 0) > 0;
   }
 
   // LANGUAGE DROPDOWN
