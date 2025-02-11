@@ -168,21 +168,6 @@
           </ng-template>
         </stream-channel-list>
       </div>
-      @if (filteredFriends.length > 0) {
-        <div class="chats">
-          @for (friend of filteredFriends; track friend) {
-            <div class="chat-tile"
-                 (click)="openChat(friend.id)"
-            >
-              <app-avatar [avatarUrl]="friend.avatarUrl"
-                          [username]="friend.username"
-                          [size]="'m'"
-              ></app-avatar>
-              <p class="username">{{ friend.username }}</p>
-            </div>
-          }
-        </div>
-      }
 
       <!-- Show matched friends when searching -->
       @if (!isNotFiltered() && matchedFriends.length > 0) {
