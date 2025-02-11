@@ -39,6 +39,7 @@ import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
 import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
+import {ChatUnreadService} from "./chat-unread.service";
 
 
 @Component({
@@ -105,6 +106,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     private userInfoService: UserInfoService,
     private customTemplatesService: CustomTemplatesService,
     private messageService: MessageService,
+    private chatUnreadService: ChatUnreadService,
     private cdr: ChangeDetectorRef,
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
@@ -118,6 +120,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         if (channel) {
           this.setChatTitle(channel);
         }
+        this.chatUnreadService.fetchUnreadCount();
       });
 
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
@@ -138,6 +141,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.chatService.init(environment.streamChatApiKey, user, userToken);
       this.channelService.init({type: 'messaging', members: {$in: [this.userInfo.id]}}).then();
       this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
+      this.chatUnreadService.fetchUnreadCount();
     });
 
     this.streamI18nService.setTranslation();
