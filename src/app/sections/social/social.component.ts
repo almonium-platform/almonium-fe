@@ -13,7 +13,7 @@ import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
-import {Friend, FriendshipAction, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
+import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiAlertService, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
 import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
@@ -81,17 +81,20 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected matchedUsers: UserPublicProfile[] = [];
   protected matchedFriends: Friend[] = [];
   protected requestedIds: number[] = [];
-  protected outgoingRequests: RelatedUserPublicProfile[] = [];
-  protected incomingRequests: RelatedUserPublicProfile[] = [];
+  protected outgoingRequests: RelatedUserProfile[] = [];
+  protected incomingRequests: RelatedUserProfile[] = [];
   protected friends: Friend[] = [];
   protected filteredFriends: Friend[] = [];
   protected requestsIndex: number = 0;
 
-  protected readonly open = signal(false);
+  protected readonly requestsTabOpened = signal(false);
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
 
+  protected readonly FriendshipStatus = FriendshipStatus;
+
   // CHATS
+  private readonly PRIVATE_CHAT_NAME = 'Private Chat';
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
 
@@ -158,7 +161,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.urlService.clearUrl();
     });
 
-    this.getFriends();
     this.listenToUsernameField();
     this.listenToChannelSearch();
   }
@@ -173,36 +175,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || 'Private Chat');
+      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || this.PRIVATE_CHAT_NAME);
       this.cdr.detectChanges();
     }, 1);
-  }
-
-  protected openMenu() {
-    this.openRequestsTab();
-  }
-
-  protected async openChat(friendId: number) {
-    console.log('Open chat');
-
-    // Ensure the user is connected before creating a chat
-    await this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
-
-    console.log('User connected');
-
-    // Now create or retrieve the private chat
-    const channel = await this.createPrivateChat(this.userInfo!.id, friendId.toString());
-    if (!channel) {
-      console.error('Failed to create chat.');
-      return;
-    }
-    this.channelService.setAsActiveChannel(channel);
-
-    if (channel) {
-      console.log('Channel created:', channel);
-    } else {
-      console.error('Failed to create chat.');
-    }
   }
 
   /**
@@ -221,13 +196,15 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const channelId = `private_${[userId, recipientId].sort().join('_')}`;
 
       const channel = this.chatService.chatClient.channel('messaging', channelId, {
-        name: 'Private Chat',
+        name: this.PRIVATE_CHAT_NAME,
         members: [userId, recipientId], // Both users in the private chat
         created_by_id: userId, // Set creator
       });
 
       await channel.create(); // Ensure the channel is created
-      console.log('Private chat created:', channelId);
+      await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
+
+      console.log('Private chat created and watched:', channelId);
 
       return channel;
     } catch (error) {
@@ -356,6 +333,26 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  openChatWithNewFriend(friendId: number) {
+    this.closeRequestsTab();
+
+    const filters = {
+      type: 'messaging',
+      members: {$in: [this.userInfo!.id, friendId.toString()]},
+      name: {$eq: this.PRIVATE_CHAT_NAME},
+    };
+
+    this.chatService.chatClient.queryChannels(filters).then(
+      (channels) => {
+        if (channels.length > 0) {
+          this.channelService.setAsActiveChannel(channels[0]);
+        } else {
+          console.error('Chat with friend not found');
+        }
+      }
+    )
+  }
+
   cancelFriendRequest(id: number) {
     this.socialService.patchFriendship(id, FriendshipAction.CANCEL).subscribe({
       next: () => {
@@ -369,11 +366,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  acceptFriendRequest(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.ACCEPT).subscribe({
+  acceptFriendRequest(candidate: RelatedUserProfile) {
+    this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT).subscribe({
       next: () => {
-        this.getFriends();
-        this.incomingRequests = this.incomingRequests.filter(request => request.friendshipId !== id);
+        this.createPrivateChat(this.userInfo!.id, candidate.id.toString()).then(_ => {
+          this.incomingRequests
+            .filter(profile => profile === candidate)
+            .map(profile => profile.friendshipStatus = FriendshipStatus.FRIENDS);
+        })
         this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
@@ -458,17 +458,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected openRequestsTab() {
-    this.open.set(true);
+    this.requestsTabOpened.set(true);
     this.getOutgoingRequests();
     this.getIncomingRequests();
   }
 
-  public onClose(): void {
-    this.open.set(false);
+  public closeRequestsTab(): void {
+    this.requestsTabOpened.set(false);
   }
 
   protected getChatName(channel: Channel<DefaultStreamChatGenerics>, defaultName: string): string {
-    if (defaultName !== 'Private Chat') {
+    if (defaultName !== this.PRIVATE_CHAT_NAME) {
       return defaultName;
     }
 
@@ -479,6 +479,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       (member) => member.user?.id !== currentUserId
     );
 
-    return otherMember?.user?.name || 'Private Chat';
+    return otherMember?.user?.name || this.PRIVATE_CHAT_NAME;
   }
 }

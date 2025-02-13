@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
-import {Friend, Friendship, RelatedUserPublicProfile, UserPublicProfile} from "./social.model";
+import {Friend, Friendship, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AppConstants} from "../../app.constants";
 
 @Injectable({
@@ -17,12 +17,12 @@ export class SocialService {
     return this.http.get<Friend[]>(`${AppConstants.FRIENDSHIPS_URL}`, {withCredentials: true});
   }
 
-  getOutgoingRequests(): Observable<RelatedUserPublicProfile[]> {
-    return this.http.get<RelatedUserPublicProfile[]>(`${AppConstants.FRIENDSHIPS_URL}/requests/sent`, {withCredentials: true});
+  getOutgoingRequests(): Observable<RelatedUserProfile[]> {
+    return this.http.get<RelatedUserProfile[]>(`${AppConstants.FRIENDSHIPS_URL}/requests/sent`, {withCredentials: true});
   }
 
-  getIncomingRequests(): Observable<RelatedUserPublicProfile[]> {
-    return this.http.get<RelatedUserPublicProfile[]>(`${AppConstants.FRIENDSHIPS_URL}/requests/received`, {withCredentials: true});
+  getIncomingRequests(): Observable<RelatedUserProfile[]> {
+    return this.http.get<RelatedUserProfile[]>(`${AppConstants.FRIENDSHIPS_URL}/requests/received`, {withCredentials: true});
   }
 
   searchAllByUsername(username: string): Observable<UserPublicProfile[]> {
@@ -32,8 +32,8 @@ export class SocialService {
     );
   }
 
-  searchFriendsByUsername(username: string): Observable<RelatedUserPublicProfile[]> {
-    return this.http.get<RelatedUserPublicProfile[]>(
+  searchFriendsByUsername(username: string): Observable<RelatedUserProfile[]> {
+    return this.http.get<RelatedUserProfile[]>(
       `${AppConstants.FRIENDSHIPS_URL}/search/friends?username=${username}`,
       {withCredentials: true}
     );

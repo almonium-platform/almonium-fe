@@ -1,9 +1,9 @@
 <tui-drawer
-  *tuiPopup="open()"
+  *tuiPopup="requestsTabOpened()"
   direction="left"
   class="drawer"
   [overlay]="true"
-  (click.self)="onClose()"
+  (click.self)="closeRequestsTab()"
 >
   <ng-template #skeletonLoader>
     <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
@@ -12,7 +12,7 @@
   <header class="header">
     <div class="header-inner pb-1">
       <p class="header-text">Requests</p>
-      <app-dismiss-button [relative]="true" (close)="onClose()"></app-dismiss-button>
+      <app-dismiss-button [relative]="true" (close)="closeRequestsTab()"></app-dismiss-button>
     </div>
   </header>
   <div class="requests">
@@ -40,16 +40,27 @@
                             [size]="'m'"
                 ></app-avatar>
                 <p class="username">{{ friend.username }}</p>
-                <lucide-icon name="user-round-plus"
-                             class="friend-action positive"
-                             [size]="20"
-                             (click)="acceptFriendRequest(friend.friendshipId)"
-                ></lucide-icon>
-                <lucide-icon name="x"
-                             class="friend-action negative secondary"
-                             [size]="20"
-                             (click)="rejectFriendRequest(friend.friendshipId)"
-                ></lucide-icon>
+
+                @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
+                  <lucide-icon name="user-round-plus"
+                               class="friend-action positive"
+                               [size]="20"
+                               (click)="acceptFriendRequest(friend)"
+                  ></lucide-icon>
+                  <lucide-icon name="x"
+                               class="friend-action negative secondary"
+                               [size]="20"
+                               (click)="rejectFriendRequest(friend.friendshipId)"
+                  ></lucide-icon>
+                }
+
+                @if (friend.friendshipStatus === FriendshipStatus.FRIENDS) {
+                  <lucide-icon name="message-circle"
+                               class="friend-action positive"
+                               [size]="20"
+                               (click)="openChatWithNewFriend(friend.id)"
+                  ></lucide-icon>
+                }
               </div>
             }
           }
@@ -89,7 +100,7 @@
       <header class="chats-header">
         <lucide-icon name="menu"
                      class="cursor-pointer"
-                     (click)="openMenu()"
+                     (click)="openRequestsTab()"
         ></lucide-icon>
 
         <p class="header-text">Chats</p>

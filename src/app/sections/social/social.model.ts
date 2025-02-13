@@ -5,12 +5,12 @@ export interface UserPublicProfile {
   avatarUrl: string;
 }
 
-export interface RelatedUserPublicProfile {
+export interface RelatedUserProfile {
   id: number;
   username: string;
-  status: FriendStatus;
   avatarUrl: string;
   friendshipId: number;
+  friendshipStatus: FriendshipStatus;
 }
 
 export interface Friend {
@@ -24,12 +24,6 @@ export interface Friendship {
   id: number;
   requesterId: number;
   requesteeId: number;
-  status: FriendshipStatus;
-}
-
-export interface FriendshipToUserProjection {
-  userId: number;
-  isRequester: boolean;
   status: FriendshipStatus;
 }
 
