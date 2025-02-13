@@ -3,7 +3,7 @@ import {Interest} from "../shared/interests/interest.model";
 
 export class UserInfo {
   constructor(
-    public id: string,
+    public id: string, // change to number
     public username: string,
     public email: string,
     public emailVerified: boolean,
