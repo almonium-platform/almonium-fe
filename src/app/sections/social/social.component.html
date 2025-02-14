@@ -144,13 +144,14 @@
                   <button
                     tuiOption
                     type="button"
+                    class="context-button"
                     (click)="deleteChat(channel, dropdown)"
                   >
                     Delete
-                    <tui-icon
-                      class="icon"
-                      icon="@tui.trash"
-                    />
+                    <lucide-icon name="trash"
+                                 class="friend-action positive"
+                                 [size]="18"
+                    ></lucide-icon>
                   </button>
                 </tui-data-list>
               </ng-template>

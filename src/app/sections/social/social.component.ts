@@ -15,7 +15,7 @@ import {combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiIcon, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
+import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
 import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
@@ -65,7 +65,6 @@ import {ChatUnreadService} from "./chat-unread.service";
     StreamChatModule,
     NgIf,
     ChatHeaderComponent,
-    TuiIcon,
     TuiDataList,
     TuiDataListDropdownManager,
   ]
