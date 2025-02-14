@@ -15,9 +15,9 @@ import {combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {TuiAlertService, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
+import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiIcon, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
 import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
-import {TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
+import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ActivatedRoute} from "@angular/router";
@@ -40,7 +40,6 @@ import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
 import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
-
 
 @Component({
   selector: 'app-social',
@@ -66,11 +65,15 @@ import {ChatUnreadService} from "./chat-unread.service";
     StreamChatModule,
     NgIf,
     ChatHeaderComponent,
+    TuiIcon,
+    TuiDataList,
+    TuiDataListDropdownManager,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
+  @ViewChild('dropdown') dropdown!: TuiDropdownDirective;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -163,6 +166,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.listenToUsernameField();
     this.listenToChannelSearch();
+    this.getFriends();
   }
 
   ngAfterViewInit() {
@@ -480,5 +484,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     return otherMember?.user?.name || this.PRIVATE_CHAT_NAME;
+  }
+
+  deleteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    channel.delete().then(() => {
+      dropdown.toggle(false);
+    });
   }
 }
