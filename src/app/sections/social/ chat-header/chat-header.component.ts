@@ -18,17 +18,19 @@ import {TranslateModule} from "@ngx-translate/core";
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
     >
-      @if (!isPrivateChat) {
-        {{ 'streamChat.{{ memberCount }} members' | translate:memberCountParam }}
+      @if (!isSelfChat) {
+        @if (!isPrivateChat) {
+          {{ 'streamChat.{{ memberCount }} members' | translate:memberCountParam }}
+        }
+        {{
+          canReceiveConnectEvents
+            ? (isPrivateChat
+              ? (isInterlocutorOnline ? 'online' : 'offline')
+              : ('streamChat.{{ watcherCount }} online' |
+                translate:watcherCountParam))
+            : ''
+        }}
       }
-      {{
-        canReceiveConnectEvents
-          ? (isPrivateChat
-            ? (isInterlocutorOnline ? 'online' : 'offline')
-            : ('streamChat.{{ watcherCount }} online' |
-              translate:watcherCountParam))
-          : ''
-      }}
     </p>
   `,
   imports: [
@@ -43,6 +45,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
   canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
+  protected isSelfChat: boolean | undefined;
   private subscriptions: Subscription[] = [];
 
   constructor(private channelService: ChannelService,
@@ -53,6 +56,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
     this.channelService.activeChannel$.subscribe((c) => {
       this.activeChannel = c;
       this.isPrivateChat = c?.data?.name === 'Private Chat';
+      this.isSelfChat = c?.data?.name === 'Saved Messages';
       const capabilities = this.activeChannel?.data
         ?.own_capabilities as string[];
       if (!capabilities) {
