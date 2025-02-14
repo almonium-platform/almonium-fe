@@ -329,6 +329,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.channelService.deselectActiveChannel();
   }
 
   searchNewUsers() {
