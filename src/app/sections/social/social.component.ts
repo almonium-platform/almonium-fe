@@ -229,7 +229,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         {id: userId}, // User object with at least an ID
         userToken
       );
-      console.log('User connected to Stream Chat:', userId);
+      const user = this.chatClient.user;
+      console.log('User connected to Stream Chat:', user);
     } catch (error) {
       console.error('Error connecting user:', error);
     }
