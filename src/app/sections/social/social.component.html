@@ -150,6 +150,7 @@
                   >
                     Mute
                     <lucide-icon name="bell-off"
+                                 class="chat-icon"
                                  [size]="18"
                     ></lucide-icon>
                   </button>
@@ -162,6 +163,7 @@
                   >
                     Unmute
                     <lucide-icon name="bell"
+                                 class="chat-icon"
                                  [size]="18"
                     ></lucide-icon>
                   </button>
@@ -173,6 +175,7 @@
                   >
                     Delete
                     <lucide-icon name="trash"
+                                 class="chat-icon"
                                  [size]="18"
                     ></lucide-icon>
                   </button>
@@ -194,6 +197,7 @@
                 </div>
                 <lucide-icon name="bell-off"
                              *ngIf="isChannelMuted(channel)"
+                             class="chat-icon"
                              [size]="18"
                 ></lucide-icon>
               </div>
