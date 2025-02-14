@@ -80,6 +80,6 @@ export const routes: Routes = [
 
   // Test route
   {path: 'test', component: TestComponent},
-  {path: 'not-found', component: NotFoundComponent},
-  {path: '**', redirectTo: 'not-found'}  // Fallback route for unknown paths
+  {path: '404', component: NotFoundComponent},
+  {path: '**', redirectTo: '404'}  // Fallback route for unknown paths
 ];
