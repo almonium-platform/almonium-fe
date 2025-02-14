@@ -341,9 +341,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.closeRequestsTab();
 
     const filters = {
-      type: 'messaging',
-      members: {$in: [this.userInfo!.id, friendId.toString()]},
-      name: {$eq: this.PRIVATE_CHAT_NAME},
+      cid: {$eq: 'messaging:private_' + this.userInfo?.id + '_' + friendId},
     };
 
     this.chatService.chatClient.queryChannels(filters).then(
