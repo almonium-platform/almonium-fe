@@ -120,6 +120,20 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngOnInit() {
+    this.chatFormControl.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        debounceTime(300)
+      )
+      .subscribe(value => {
+        if (value === null) {
+          return;
+        }
+        const trimmedValue = value.trim();
+        if (value !== trimmedValue) {
+          this.chatFormControl.setValue(trimmedValue, {emitEvent: false}); // Prevent infinite loop
+        }
+      });
     this.channelService.activeChannel$
       .pipe(distinctUntilChanged(), startWith(await firstValueFrom(this.channelService.activeChannel$)))
       .subscribe((channel) => {
@@ -274,25 +288,41 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(
         takeUntil(this.destroy$),
         switchMap(async ([query, user]) => {
-          if (!user) {
+          if (!user || !query) {
             return EMPTY; // Prevent API calls if user is not available
           }
 
+          const trimmedQuery = query.trim(); // ✅ Remove spaces to avoid invalid queries
           const filters: Record<string, any> = {
             type: 'messaging',
             members: {$in: [user.id]} // Ensure the user is a member of the channels
           };
 
-          if (query) {
-            filters["member.user.name"] = {$autocomplete: query};
+          let orConditions: any[] = [];
+
+          if (trimmedQuery.length > 0) {  // ✅ Ensure it's not an empty string
+            orConditions.push({"member.user.name": {$autocomplete: trimmedQuery}});
+
+            // ✅ Include "Saved Messages" only if the query is a substring of its name
+            if ("Saved Messages".toLowerCase().includes(trimmedQuery.toLowerCase())) {
+              orConditions.push({"name": {$eq: "Saved Messages"}});
+            }
+          }
+
+          // ✅ Only add `$or` if there are at least 2 conditions
+          if (orConditions.length > 1) {
+            filters["$or"] = orConditions;
+          } else if (orConditions.length === 1) {
+            // If there's only one condition, apply it directly instead of using `$or`
+            Object.assign(filters, orConditions[0]);
           }
 
           try {
             this.channelService.reset();
             await this.channelService.init(filters);
-
             return [];
           } catch (error) {
+            console.error("Error fetching channels:", error);
             return EMPTY;
           }
         })
