@@ -142,6 +142,28 @@
                   class="context-menu"
                 >
                   <button
+                    *ngIf="!isChannelMuted(channel)"
+                    tuiOption
+                    type="button"
+                    (click)="muteChat(channel, dropdown)"
+                  >
+                    Mute
+                    <lucide-icon name="bell-off"
+                                 [size]="18"
+                    ></lucide-icon>
+                  </button>
+                  <button
+                    *ngIf="isChannelMuted(channel)"
+                    tuiOption
+                    type="button"
+                    (click)="unmuteChat(channel, dropdown)"
+                  >
+                    Unmute
+                    <lucide-icon name="bell"
+                                 [size]="18"
+                    ></lucide-icon>
+                  </button>
+                  <button
                     tuiOption
                     type="button"
                     class="context-button"
@@ -149,7 +171,6 @@
                   >
                     Delete
                     <lucide-icon name="trash"
-                                 class="friend-action positive"
                                  [size]="18"
                     ></lucide-icon>
                   </button>
@@ -169,7 +190,12 @@
                 >
                   {{ unreadCount }}
                 </div>
+                <lucide-icon name="bell-off"
+                             *ngIf="isChannelMuted(channel)"
+                             [size]="18"
+                ></lucide-icon>
               </div>
+
               <div class="str-chat__channel-preview-end-second-row">
                 <div
                   data-testid="latest-message"

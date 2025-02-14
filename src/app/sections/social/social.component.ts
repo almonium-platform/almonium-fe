@@ -489,4 +489,20 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       dropdown.toggle(false);
     });
   }
+
+  muteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    channel.mute().then(() => {
+      dropdown.toggle(false);
+    });
+  }
+
+  unmuteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    channel.unmute().then(() => {
+      dropdown.toggle(false);
+    });
+  }
+
+  isChannelMuted(channel: Channel<DefaultStreamChatGenerics>): boolean {
+    return channel.muteStatus().muted;
+  }
 }

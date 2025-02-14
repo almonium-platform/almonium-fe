@@ -2,6 +2,7 @@ import {NgModule} from '@angular/core';
 import {
   BadgeDollarSign,
   Bell,
+  BellOff,
   Dices,
   Edit,
   Ellipsis,
@@ -35,6 +36,7 @@ import {
     LucideAngularModule.pick({
       BadgeDollarSign,
       Bell,
+      BellOff,
       Dices,
       Edit,
       Ellipsis,
