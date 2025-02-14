@@ -63,12 +63,14 @@
       min-height: 0; /* Ensures proper overflow behavior */
       overflow-y: auto; /* Enables scrolling without overflowing */
 
-      ::ng-deep .str-chat__channel-preview {
-        column-gap: 1em;
+      .preview-tile {
+        display: flex;
+        flex-direction: column;
+        row-gap: .4rem;
       }
 
-      ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
-        row-gap: .4rem;
+      ::ng-deep .str-chat__channel-preview {
+        column-gap: 1em;
       }
 
       ::ng-deep .stream-chat__paginated-list {
