@@ -133,6 +133,7 @@
               class="preview-tile"
               tuiDropdownContext
               [tuiDropdown]="contextMenu"
+              (contextmenu)="dropdown.toggle(true)"
             >
               <ng-template #contextMenu>
 

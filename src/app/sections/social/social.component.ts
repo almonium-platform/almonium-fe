@@ -67,6 +67,7 @@ import {ChatUnreadService} from "./chat-unread.service";
     ChatHeaderComponent,
     TuiDataList,
     TuiDataListDropdownManager,
+
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -492,11 +493,21 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   muteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    channel.mute().then();
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.mute().then(() => {
+      });
+    }, 30);
   }
 
   unmuteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    channel.unmute().then();
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.unmute().then(() => {
+      });
+    }, 30);
   }
 
   isChannelMuted(channel: Channel<DefaultStreamChatGenerics>): boolean {
