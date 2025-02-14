@@ -145,6 +145,7 @@
                     *ngIf="!isChannelMuted(channel)"
                     tuiOption
                     type="button"
+                    class="context-button"
                     (click)="muteChat(channel, dropdown)"
                   >
                     Mute
@@ -156,6 +157,7 @@
                     *ngIf="isChannelMuted(channel)"
                     tuiOption
                     type="button"
+                    class="context-button"
                     (click)="unmuteChat(channel, dropdown)"
                   >
                     Unmute
