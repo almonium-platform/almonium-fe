@@ -6,7 +6,6 @@
       ? 'one-letter'
       : 'multiple-letters'
   }}"
-  title="{{ name }}"
 >
   <img
     *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
