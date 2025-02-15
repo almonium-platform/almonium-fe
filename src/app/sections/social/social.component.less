@@ -73,8 +73,19 @@
         column-gap: 1em;
       }
 
+      ::ng-deep .stream-chat__paginated-list:hover {
+        overflow-y: auto; // Automatically show scrollbar when needed
+        scrollbar-width: thin; // For Firefox, makes scrollbar less intrusive
+      }
+
       ::ng-deep .stream-chat__paginated-list {
-        overflow-y: hidden;
+        overflow-y: scroll; // Enable scrolling
+        scrollbar-width: none; // Hide scrollbar in Firefox
+        -ms-overflow-style: none; // Hide scrollbar in IE/Edge
+      }
+
+      ::ng-deep .stream-chat__paginated-list::-webkit-scrollbar {
+        display: none; // Hide scrollbar in Chrome, Safari, Edge
       }
     }
 
