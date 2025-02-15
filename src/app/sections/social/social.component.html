@@ -121,7 +121,27 @@
         />
       </tui-input>
       <div class="channel-list">
+
         <stream-channel-list>
+          <ng-template #avatarTemplate
+                       let-channel="channel"
+                       let-location="location"
+                       let-imageUrl="imageUrl"
+                       let-user="user"
+                       let-name="name"
+                       let-type="type"
+          >
+            <app-custom-chat-avatar
+              [type]="type"
+              [channel]="channel"
+              [user]="user"
+              [name]="name"
+              [imageUrl]="imageUrl"
+              [location]="location"
+              [showOnlineIndicator]="true"
+            ></app-custom-chat-avatar>
+          </ng-template>
+
           <ng-template
             #channelPreview
             let-channelDisplayTitle="channelDisplayTitle"

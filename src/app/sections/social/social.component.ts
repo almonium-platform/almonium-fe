@@ -24,6 +24,7 @@ import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 import {
+  AvatarContext,
   ChannelHeaderInfoContext,
   ChannelService,
   ChatClientService,
@@ -41,6 +42,7 @@ import {UserInfoService} from "../../services/user-info.service";
 import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
+import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
 
 @Component({
   selector: 'app-social',
@@ -68,13 +70,15 @@ import {AppConstants} from "../../app.constants";
     ChatHeaderComponent,
     TuiDataList,
     TuiDataListDropdownManager,
-
+    AvatarComponent,
+    CustomChatAvatarComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('dropdown') dropdown!: TuiDropdownDirective;
+  @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -189,6 +193,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
     this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
+    this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
   }
 
   private setChatTitle(channel: Channel<DefaultStreamChatGenerics>) {
