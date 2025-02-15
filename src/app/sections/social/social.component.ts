@@ -23,8 +23,10 @@ import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-butto
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
+
 import {
   AvatarContext,
+  AvatarLocation,
   ChannelHeaderInfoContext,
   ChannelService,
   ChatClientService,
@@ -77,7 +79,7 @@ import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
-  @ViewChild('dropdown') dropdown!: TuiDropdownDirective;
+  @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
 
   private readonly destroy$ = new Subject<void>();
@@ -105,6 +107,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   // CHATS
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
+  protected hoveredChannel: Channel<DefaultStreamChatGenerics> | null = null;
+  protected showContent = false;
+  protected hoverTimeout: any;
 
   constructor(
     private socialService: SocialService,
@@ -670,5 +675,32 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   amMember(channel: Channel<DefaultStreamChatGenerics>): boolean {
     return channel.state.members[this.userInfo!.id] !== undefined
+  }
+
+  getInterlocutorId(): string | null {
+    const userId = this.userInfo!.id;
+    const match = this.hoveredChannel!.cid.match(/messaging:private_(\d+)_(\d+)/);
+    if (!match) return null;
+
+    const [, id1, id2] = match;
+    return id1 === userId ? id2 : id2 === userId ? id1 : null;
+  }
+
+  startHover(channel: Channel<DefaultStreamChatGenerics>) {
+    this.hoveredChannel = channel;
+    this.hoverTimeout = setTimeout(() => this.showContent = true, 1000);
+  }
+
+  stopHover() {
+    this.hoveredChannel = null;
+    clearTimeout(this.hoverTimeout);
+    this.showContent = false;
+  }
+
+  openUser(location: AvatarLocation) {
+    if (location === 'channel-preview' && this.isPrivateChat(this.hoveredChannel!)) {
+      const interlocutorId = this.getInterlocutorId();
+      console.log('Opening chat with user:', interlocutorId);
+    }
   }
 }

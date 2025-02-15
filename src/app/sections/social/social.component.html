@@ -131,15 +131,35 @@
                        let-name="name"
                        let-type="type"
           >
-            <app-custom-chat-avatar
-              [type]="type"
-              [channel]="channel"
-              [user]="user"
-              [name]="name"
-              [imageUrl]="imageUrl"
-              [location]="location"
-              [showOnlineIndicator]="true"
-            ></app-custom-chat-avatar>
+            <div class="avatar-wrapper"
+                 (mouseenter)="startHover(channel)"
+                 (mouseleave)="stopHover()">
+
+              <app-custom-chat-avatar
+                class="custom-chat-avatar"
+                [type]="type"
+                [channel]="channel"
+                [user]="user"
+                [name]="name"
+                [imageUrl]="imageUrl"
+                [location]="location"
+                [showOnlineIndicator]="true"
+                #avatarDropdown="tuiDropdown"
+                (mouseleave)="avatarDropdown.toggle(false)"
+                tuiDropdownHover
+                [tuiDropdown]="dropdownTemplate"
+                (click)="openUser(location)"
+              >
+                <ng-template #dropdownTemplate>
+                  @if (location === 'channel-preview'
+                  && hoveredChannel !== null
+                  && isPrivateChat(hoveredChannel)) {
+                    ID: {{ getInterlocutorId() }}
+                  }
+                </ng-template>
+              </app-custom-chat-avatar>
+
+            </div>
           </ng-template>
 
           <ng-template
