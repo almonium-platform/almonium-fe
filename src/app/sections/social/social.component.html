@@ -185,6 +185,18 @@
                                    [size]="18"
                       ></lucide-icon>
                     </button>
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="hideChat(channel, dropdown)"
+                    >
+                      Hide
+                      <lucide-icon name="circle-x"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
                   }
 
                   @if (isPrivateChat(channel) || isSelfChat(channel)) {
