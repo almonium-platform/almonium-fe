@@ -96,6 +96,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected loadingOutgoingRequests: boolean = false;
 
   protected readonly FriendshipStatus = FriendshipStatus;
+  protected showHiddenChannels: boolean = false;
 
   // CHATS
   private chatClient: StreamChat;
@@ -547,9 +548,22 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   hideChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    channel.hide().then(() => {
-      dropdown.toggle(false);
-    });
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.hide().then(() => {
+      });
+    }, 30);
+  }
+
+  showChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.show().then(() => {
+        this.reload();
+      });
+    }, 30);
   }
 
   truncateChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
@@ -595,6 +609,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return !this.isPrivateChat(channel) && !this.isSelfChat(channel);
   }
 
+  isHiddenChannel(channel: Channel<DefaultStreamChatGenerics>) {
+    return channel.data?.hidden;
+  }
+
   leaveChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
     this.openSelfChat();
     dropdown.toggle(false);
@@ -603,5 +621,19 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       channel.removeMembers([this.userInfo!.id]).then(() => {
       });
     }, 30);
+  }
+
+  toggleHiddenChats() {
+    this.showHiddenChannels = !this.showHiddenChannels;
+    this.reload();
+  }
+
+  reload() {
+    this.channelService.reset();
+    this.channelService.init({
+      hidden: this.showHiddenChannels,
+      members: {$in: [this.userInfo!.id]}
+    }).then(() => {
+    });
   }
 }

@@ -104,6 +104,10 @@
         ></lucide-icon>
 
         <p class="header-text">Chats</p>
+        <lucide-icon [name]="showHiddenChannels ? 'eye-closed' : 'eye'"
+                     class="ml-auto cursor-pointer"
+                     (click)="toggleHiddenChats()"
+        ></lucide-icon>
       </header>
       <tui-input
         [formControl]="chatFormControl"
@@ -142,6 +146,33 @@
                   tuiDataListDropdownManager
                   class="context-menu"
                 >
+                  @if (!isHiddenChannel(channel)) {
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="hideChat(channel, dropdown)"
+                    >
+                      Hide
+                      <lucide-icon name="eye-closed"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  } @else {
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="showChat(channel, dropdown)"
+                    >
+                      Show
+                      <lucide-icon name="eye"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  }
                   @if (isPublicChannel(channel) || isPrivateChat(channel)) {
                     <button
                       *ngIf="!isChannelMuted(channel)"
@@ -185,18 +216,6 @@
                                    [size]="18"
                       ></lucide-icon>
                     </button>
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="hideChat(channel, dropdown)"
-                    >
-                      Hide
-                      <lucide-icon name="circle-x"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
                   }
 
                   @if (isPrivateChat(channel) || isSelfChat(channel)) {
@@ -232,9 +251,9 @@
 
               <div class="str-chat__channel-preview-end-first-row">
                 <div class="str-chat__channel-preview-messenger--name">
-                <span data-testid="channel-preview-title">
-                {{ getChatName(channel, channelDisplayTitle) }}
-              </span>
+                      <span data-testid="channel-preview-title">
+                      {{ getChatName(channel, channelDisplayTitle) }}
+                      </span>
                 </div>
                 <div
                   *ngIf="unreadCount"
@@ -259,18 +278,18 @@
                     {{ latestMessageText | translate }}
                   </ng-container>
                   <ng-template #asHTML>
-            <span
-              data-testid="html-content"
-              [innerHTML]="latestMessageText | translate"
-            ></span>
+                <span
+                  data-testid="html-content"
+                  [innerHTML]="latestMessageText | translate"
+                ></span>
                   </ng-template>
                 </div>
                 <div
                   *ngIf="latestMessageStatus"
                   data-testid="latest-message-status"
                   class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
-            latestMessageStatus
-          }}"
+                    latestMessageStatus
+                      }}"
                 >
                   <stream-icon-placeholder
                     [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
