@@ -104,7 +104,7 @@
         ></lucide-icon>
 
         <p class="header-text">Chats</p>
-        <lucide-icon [name]="showHiddenChannels ? 'eye-closed' : 'eye'"
+        <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
                      class="ml-auto cursor-pointer"
                      (click)="toggleHiddenChats()"
         ></lucide-icon>

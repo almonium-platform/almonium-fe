@@ -11,7 +11,7 @@ import {
 import {SocialService} from "./social.service";
 import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -96,7 +96,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected loadingOutgoingRequests: boolean = false;
 
   protected readonly FriendshipStatus = FriendshipStatus;
-  protected showHiddenChannels: boolean = false;
+  protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
 
   // CHATS
   private chatClient: StreamChat;
@@ -121,6 +121,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngOnInit() {
+    this.chatFormControl.valueChanges.subscribe(value => console.log("🔄 Input Changed:", value));
+
     this.chatFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
@@ -284,7 +286,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         debounceTime(300),
         distinctUntilChanged()
       ),
-      this.chatService.user$ // Observable containing the current user
+      this.chatService.user$,
+      this.showHiddenChannels$,
     ])
       .pipe(
         takeUntil(this.destroy$),
@@ -311,7 +314,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             orConditions.push(
               {
                 "member.user.name": {$autocomplete: trimmedQuery},
-                hidden: this.showHiddenChannels,
+                hidden: this.showHiddenChannels$.value,
               },
             );
 
@@ -329,7 +332,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           const filterForPublicChannels: Record<string, any> = {
             type: "broadcast",
             name: {$autocomplete: trimmedQuery},
-            hidden: this.showHiddenChannels,
+            hidden: this.showHiddenChannels$.value,
           };
 
           // ✅ Fix: Always include broadcast channels (including Almonium) in $or
@@ -634,15 +637,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   toggleHiddenChats() {
-    // this.chatFormControl.setValue('');
-    this.showHiddenChannels = !this.showHiddenChannels;
-    this.reloadChannelList();
+    this.showHiddenChannels$.next(!this.showHiddenChannels$.value);
   }
 
   reloadChannelList() {
     this.channelService.reset();
     this.channelService.init({
-      hidden: this.showHiddenChannels,
+      hidden: this.showHiddenChannels$.value,
       members: {$in: [this.userInfo!.id]}
     }).then(() => {
     });
