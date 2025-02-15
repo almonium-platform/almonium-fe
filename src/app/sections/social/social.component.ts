@@ -655,6 +655,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       channel.addMembers([this.userInfo!.id]).then(() => {
+        this.chatFormControl.setValue('');
+        setTimeout(() => {
+          this.channelService.setAsActiveChannel(channel);
+        }, 600);
       });
     }, 30);
   }
