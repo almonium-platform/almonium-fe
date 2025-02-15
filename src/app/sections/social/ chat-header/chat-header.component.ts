@@ -9,6 +9,7 @@ import {
 } from 'stream-chat-angular';
 import {Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
+import {AppConstants} from "../../../app.constants";
 
 @Component({
   selector: 'app-chat-header',
@@ -55,8 +56,8 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
     this.channelService = channelService;
     this.channelService.activeChannel$.subscribe((c) => {
       this.activeChannel = c;
-      this.isPrivateChat = c?.data?.name === 'Private Chat';
-      this.isSelfChat = c?.data?.name === 'Saved Messages';
+      this.isPrivateChat = c?.data?.name === AppConstants.PRIVATE_CHAT_NAME;
+      this.isSelfChat = c?.data?.name === AppConstants.SELF_CHAT_NAME;
       const capabilities = this.activeChannel?.data
         ?.own_capabilities as string[];
       if (!capabilities) {

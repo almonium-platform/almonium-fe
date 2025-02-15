@@ -40,6 +40,7 @@ import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
 import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
+import {AppConstants} from "../../app.constants";
 
 @Component({
   selector: 'app-social',
@@ -97,7 +98,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected readonly FriendshipStatus = FriendshipStatus;
 
   // CHATS
-  private readonly PRIVATE_CHAT_NAME = 'Private Chat';
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
 
@@ -193,7 +193,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || this.PRIVATE_CHAT_NAME);
+      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || AppConstants.PRIVATE_CHAT_NAME);
       this.cdr.detectChanges();
     }, 1);
   }
@@ -214,7 +214,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const channelId = `private_${[userId, recipientId].sort().join('_')}`;
 
       const channel = this.chatService.chatClient.channel('messaging', channelId, {
-        name: this.PRIVATE_CHAT_NAME,
+        name: AppConstants.PRIVATE_CHAT_NAME,
         members: [userId, recipientId], // Both users in the private chat
         created_by_id: userId, // Set creator
       });
@@ -316,8 +316,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           ];
 
           // ✅ Include "Saved Messages" if the query matches its name
-          if ("Saved Messages".toLowerCase().includes(trimmedQuery.toLowerCase())) {
-            orConditions.push({"name": {$eq: "Saved Messages"}});
+          if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
+            orConditions.push({"name": {$eq: AppConstants.SELF_CHAT_NAME}});
           }
 
           // ✅ Only add `$or` if there are multiple conditions
@@ -512,7 +512,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected getChatName(channel: Channel<DefaultStreamChatGenerics>, defaultName: string): string {
-    if (defaultName !== this.PRIVATE_CHAT_NAME) {
+    if (defaultName !== AppConstants.PRIVATE_CHAT_NAME) {
       return defaultName;
     }
 
@@ -523,7 +523,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       (member) => member.user?.id !== currentUserId
     );
 
-    return otherMember?.user?.name || this.PRIVATE_CHAT_NAME;
+    return otherMember?.user?.name || AppConstants.PRIVATE_CHAT_NAME;
   }
 
   deleteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
