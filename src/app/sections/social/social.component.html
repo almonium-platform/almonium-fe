@@ -174,18 +174,34 @@
                     </button>
                   }
                   @if (isPublicChannel(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="joinChannel(channel, dropdown)"
-                    >
-                      Join
-                      <lucide-icon name="log-in"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
+                    @if (!amMember(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="joinChannel(channel, dropdown)"
+                      >
+                        Join
+                        <lucide-icon name="log-in"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    }
+                    @if (amMember(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="leaveChannel(channel, dropdown)"
+                      >
+                        Leave
+                        <lucide-icon name="log-out"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    }
                   }
 
                   @if (isPublicChannel(channel) || isPrivateChat(channel)) {
@@ -216,21 +232,6 @@
                         ></lucide-icon>
                       </button>
                     }
-                  }
-
-                  @if (isPublicChannel(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="leaveChannel(channel, dropdown)"
-                    >
-                      Leave
-                      <lucide-icon name="log-out"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
                   }
 
                   @if (isPrivateChat(channel) || isSelfChat(channel)) {

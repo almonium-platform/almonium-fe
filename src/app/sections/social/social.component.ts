@@ -645,4 +645,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       });
     }, 30);
   }
+
+  amMember(channel: Channel<DefaultStreamChatGenerics>): boolean {
+    return channel.state.members[this.userInfo!.id] !== undefined
+  }
 }
