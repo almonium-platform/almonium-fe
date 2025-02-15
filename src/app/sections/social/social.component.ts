@@ -295,46 +295,56 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
           const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
 
-          const filters: Record<string, any> = {
-            members: {$in: [user.id]} // Ensure the user is a member of the channels
+          if (!trimmedQuery) {
+            this.reloadChannelList();
+            return EMPTY; // Prevent API calls if the query is empty
+          }
+
+          // 🔹 Filters for user’s channels (membership required)
+          const filterWithMembership: Record<string, any> = {
+            members: {$in: [user.id]}, // Ensure the user is a member of the channels
           };
 
-          if (!trimmedQuery) {
-            // ✅ If input is empty, return all channels (like in ngOnInit)
-            try {
-              this.channelService.reset();
-              await this.channelService.init(filters);
-              return [];
-            } catch (error) {
-              console.error("Error fetching all channels:", error);
-              return EMPTY;
+          let orConditions: any[] = [];
+
+          if (trimmedQuery) {
+            orConditions.push(
+              {
+                "member.user.name": {$autocomplete: trimmedQuery},
+                hidden: this.showHiddenChannels,
+              },
+            );
+
+            // ✅ Include "Saved Messages" if the query matches its name
+            if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
+              orConditions.push(
+                {
+                  name: {$eq: AppConstants.SELF_CHAT_NAME},
+                  ...filterWithMembership
+                });
             }
           }
 
-          let orConditions: any[] = [
-            {"member.user.name": {$autocomplete: trimmedQuery}}
-          ];
+          // 🔹 Filters for **public (broadcast) channels**, regardless of membership
+          const filterForPublicChannels: Record<string, any> = {
+            type: "broadcast",
+            name: {$autocomplete: trimmedQuery},
+            hidden: this.showHiddenChannels,
+          };
 
-          // ✅ Include "Saved Messages" if the query matches its name
-          if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
-            orConditions.push({"name": {$eq: AppConstants.SELF_CHAT_NAME}});
-          }
-
-          // ✅ Include "Almonium" chat if the query matches its name
-          if (AppConstants.DEFAULT_CHANNEL_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
-            orConditions.push({"name": {$eq: AppConstants.DEFAULT_CHANNEL_NAME}});
-          }
-
-          // ✅ Only add `$or` if there are multiple conditions
-          if (orConditions.length > 1) {
-            filters["$or"] = orConditions;
+          // ✅ Fix: Always include broadcast channels (including Almonium) in $or
+          if (orConditions.length > 0) {
+            orConditions.push(filterForPublicChannels);
           } else {
-            Object.assign(filters, orConditions[0]);
+            // If no other conditions exist, we still need the broadcast filter
+            orConditions = [filterForPublicChannels];
           }
+
+          let finalFilters: Record<string, any> = {$or: orConditions};
 
           try {
             this.channelService.reset();
-            await this.channelService.init(filters);
+            await this.channelService.init(finalFilters);
             return [];
           } catch (error) {
             console.error("Error fetching channels:", error);
@@ -561,7 +571,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       channel.show().then(() => {
-        this.reload();
+        this.reloadChannelList();
       });
     }, 30);
   }
@@ -624,11 +634,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   toggleHiddenChats() {
+    // this.chatFormControl.setValue('');
     this.showHiddenChannels = !this.showHiddenChannels;
-    this.reload();
+    this.reloadChannelList();
   }
 
-  reload() {
+  reloadChannelList() {
     this.channelService.reset();
     this.channelService.init({
       hidden: this.showHiddenChannels,
