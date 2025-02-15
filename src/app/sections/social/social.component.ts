@@ -386,8 +386,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openChatWithNewFriend(friendId: number) {
     this.closeRequestsTab();
 
+    const cid = 'messaging:private_' + this.userInfo?.id + '_' + friendId;
+    this.openChatById(cid);
+  }
+
+  openChatById(id: string) {
     const filters = {
-      cid: {$eq: 'messaging:private_' + this.userInfo?.id + '_' + friendId},
+      cid: {$eq: id},
     };
 
     this.chatService.chatClient.queryChannels(filters).then(
@@ -399,6 +404,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     )
+  }
+
+  openSelfChat() {
+    const cid = 'messaging:self_' + this.userInfo?.id;
+    this.openChatById(cid);
   }
 
   cancelFriendRequest(id: number) {
@@ -565,5 +575,27 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   isChannelMuted(channel: Channel<DefaultStreamChatGenerics>): boolean {
     return channel.muteStatus().muted;
+  }
+
+  isPrivateChat(channel: Channel<DefaultStreamChatGenerics>) {
+    return channel.data?.name === AppConstants.PRIVATE_CHAT_NAME;
+  }
+
+  isSelfChat(channel: Channel<DefaultStreamChatGenerics>) {
+    return channel.data?.name === AppConstants.SELF_CHAT_NAME;
+  }
+
+  isPublicChannel(channel: Channel<DefaultStreamChatGenerics>) {
+    return !this.isPrivateChat(channel) && !this.isSelfChat(channel);
+  }
+
+  leaveChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    this.openSelfChat();
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.removeMembers([this.userInfo!.id]).then(() => {
+      });
+    }, 30);
   }
 }

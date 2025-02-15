@@ -142,56 +142,79 @@
                   tuiDataListDropdownManager
                   class="context-menu"
                 >
-                  <button
-                    *ngIf="!isChannelMuted(channel)"
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    (click)="muteChat(channel, dropdown)"
-                  >
-                    Mute
-                    <lucide-icon name="bell-off"
-                                 class="chat-icon"
-                                 [size]="18"
-                    ></lucide-icon>
-                  </button>
-                  <button
-                    *ngIf="isChannelMuted(channel)"
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    (click)="unmuteChat(channel, dropdown)"
-                  >
-                    Unmute
-                    <lucide-icon name="bell"
-                                 class="chat-icon"
-                                 [size]="18"
-                    ></lucide-icon>
-                  </button>
-                  <button
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    (click)="truncateChat(channel, dropdown)"
-                  >
-                    Clear
-                    <lucide-icon name="circle-x"
-                                 class="chat-icon"
-                                 [size]="18"
-                    ></lucide-icon>
-                  </button>
-                  <button
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    (click)="deleteChat(channel, dropdown)"
-                  >
-                    Delete
-                    <lucide-icon name="trash"
-                                 class="chat-icon"
-                                 [size]="18"
-                    ></lucide-icon>
-                  </button>
+                  @if (isPublicChannel(channel) || isPrivateChat(channel)) {
+                    <button
+                      *ngIf="!isChannelMuted(channel)"
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="muteChat(channel, dropdown)"
+                    >
+                      Mute
+                      <lucide-icon name="bell-off"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+
+                    <button
+                      *ngIf="isChannelMuted(channel)"
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="unmuteChat(channel, dropdown)"
+                    >
+                      Unmute
+                      <lucide-icon name="bell"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  }
+
+                  @if (isPublicChannel(channel)) {
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="leaveChannel(channel, dropdown)"
+                    >
+                      Leave
+                      <lucide-icon name="log-out"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  }
+
+                  @if (isPrivateChat(channel) || isSelfChat(channel)) {
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="truncateChat(channel, dropdown)"
+                    >
+                      Clear
+                      <lucide-icon name="circle-x"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  }
+                  @if (isPrivateChat(channel)) {
+                    <button
+                      tuiOption
+                      type="button"
+                      class="context-button"
+                      (click)="deleteChat(channel, dropdown)"
+                    >
+                      Delete
+                      <lucide-icon name="trash"
+                                   class="chat-icon"
+                                   [size]="18"
+                      ></lucide-icon>
+                    </button>
+                  }
                 </tui-data-list>
               </ng-template>
 
