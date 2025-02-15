@@ -636,4 +636,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }).then(() => {
     });
   }
+
+  joinChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.addMembers([this.userInfo!.id]).then(() => {
+      });
+    }, 30);
+  }
 }

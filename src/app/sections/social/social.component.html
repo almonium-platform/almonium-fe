@@ -173,34 +173,49 @@
                       ></lucide-icon>
                     </button>
                   }
-                  @if (isPublicChannel(channel) || isPrivateChat(channel)) {
+                  @if (isPublicChannel(channel)) {
                     <button
-                      *ngIf="!isChannelMuted(channel)"
                       tuiOption
                       type="button"
                       class="context-button"
-                      (click)="muteChat(channel, dropdown)"
+                      (click)="joinChannel(channel, dropdown)"
                     >
-                      Mute
-                      <lucide-icon name="bell-off"
+                      Join
+                      <lucide-icon name="log-in"
                                    class="chat-icon"
                                    [size]="18"
                       ></lucide-icon>
                     </button>
+                  }
 
-                    <button
-                      *ngIf="isChannelMuted(channel)"
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="unmuteChat(channel, dropdown)"
-                    >
-                      Unmute
-                      <lucide-icon name="bell"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
+                  @if (isPublicChannel(channel) || isPrivateChat(channel)) {
+                    @if (isChannelMuted(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="unmuteChat(channel, dropdown)"
+                      >
+                        Unmute
+                        <lucide-icon name="bell"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    } @else {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="muteChat(channel, dropdown)"
+                      >
+                        Mute
+                        <lucide-icon name="bell-off"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    }
                   }
 
                   @if (isPublicChannel(channel)) {
