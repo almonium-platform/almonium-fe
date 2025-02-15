@@ -143,59 +143,31 @@
                 <tui-data-list
                   role="menu"
                   tuiDataListDropdownManager
-                  class="context-menu"
-                >
-                  @if (!isHiddenChannel(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="hideChat(channel, dropdown)"
-                    >
-                      Hide
-                      <lucide-icon name="eye-closed"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
-                  } @else {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="showChat(channel, dropdown)"
-                    >
-                      Show
-                      <lucide-icon name="eye"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                    </button>
-                  }
-                  @if (isPublicChannel(channel)) {
-                    @if (!amMember(channel)) {
+                  class="context-menu">
+
+                  @if (amMember(channel)) {
+                    @if (!isHiddenChannel(channel)) {
                       <button
                         tuiOption
                         type="button"
                         class="context-button"
-                        (click)="joinChannel(channel, dropdown)"
+                        (click)="hideChat(channel, dropdown)"
                       >
-                        Join
-                        <lucide-icon name="log-in"
+                        Hide
+                        <lucide-icon name="eye-closed"
                                      class="chat-icon"
                                      [size]="18"
                         ></lucide-icon>
                       </button>
-                    }
-                    @if (amMember(channel)) {
+                    } @else {
                       <button
                         tuiOption
                         type="button"
                         class="context-button"
-                        (click)="leaveChannel(channel, dropdown)"
+                        (click)="showChat(channel, dropdown)"
                       >
-                        Leave
-                        <lucide-icon name="log-out"
+                        Show
+                        <lucide-icon name="eye"
                                      class="chat-icon"
                                      [size]="18"
                         ></lucide-icon>
@@ -203,7 +175,7 @@
                     }
                   }
 
-                  @if (isPublicChannel(channel) || isPrivateChat(channel)) {
+                  @if (amMember(channel) && !isSelfChat(channel)) {
                     @if (isChannelMuted(channel)) {
                       <button
                         tuiOption
@@ -247,6 +219,7 @@
                       ></lucide-icon>
                     </button>
                   }
+
                   @if (isPrivateChat(channel)) {
                     <button
                       tuiOption
@@ -261,6 +234,39 @@
                       ></lucide-icon>
                     </button>
                   }
+
+                  @if (isPublicChannel(channel)) {
+                    @if (!amMember(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="joinChannel(channel, dropdown)"
+                      >
+                        Join
+                        <lucide-icon name="log-in"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    }
+
+                    @if (amMember(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="leaveChannel(channel, dropdown)"
+                      >
+                        Leave
+                        <lucide-icon name="log-out"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    }
+                  }
+
                 </tui-data-list>
               </ng-template>
 
