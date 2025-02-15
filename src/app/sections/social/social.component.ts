@@ -627,8 +627,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   leaveChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    this.openSelfChat();
     dropdown.toggle(false);
+    channel.show().then();
+    channel.unmute().then();
 
     setTimeout(() => {
       channel.removeMembers([this.userInfo!.id]).then(() => {
