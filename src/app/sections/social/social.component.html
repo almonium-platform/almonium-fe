@@ -172,6 +172,18 @@
                     tuiOption
                     type="button"
                     class="context-button"
+                    (click)="truncateChat(channel, dropdown)"
+                  >
+                    Clear
+                    <lucide-icon name="circle-x"
+                                 class="chat-icon"
+                                 [size]="18"
+                    ></lucide-icon>
+                  </button>
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button"
                     (click)="deleteChat(channel, dropdown)"
                   >
                     Delete
