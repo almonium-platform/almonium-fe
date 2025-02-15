@@ -159,7 +159,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       };
 
       this.chatService.init(environment.streamChatApiKey, user, userToken);
-      this.channelService.init({type: 'messaging', members: {$in: [this.userInfo.id]}}).then();
+      this.channelService.init({members: {$in: [this.userInfo.id]}}).then();
       this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
       this.chatUnreadService.fetchUnreadCount();
     });
@@ -295,7 +295,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
 
           const filters: Record<string, any> = {
-            type: 'messaging',
             members: {$in: [user.id]} // Ensure the user is a member of the channels
           };
 
@@ -318,6 +317,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           // ✅ Include "Saved Messages" if the query matches its name
           if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
             orConditions.push({"name": {$eq: AppConstants.SELF_CHAT_NAME}});
+          }
+
+          // ✅ Include "Almonium" chat if the query matches its name
+          if (AppConstants.DEFAULT_CHANNEL_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
+            orConditions.push({"name": {$eq: AppConstants.DEFAULT_CHANNEL_NAME}});
           }
 
           // ✅ Only add `$or` if there are multiple conditions

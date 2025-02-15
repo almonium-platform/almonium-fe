@@ -60,4 +60,5 @@ export class AppConstants {
   // CHATS
   public static PRIVATE_CHAT_NAME = 'Private Chat';
   public static SELF_CHAT_NAME = 'Saved Messages';
+  public static DEFAULT_CHANNEL_NAME = 'Almonium';
 }
