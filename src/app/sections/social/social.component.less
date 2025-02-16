@@ -200,6 +200,32 @@
   align-self: stretch; /* Ensure it stretches fully */
   gap: 1rem;
 
+  .menu-tiles {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .menu-tile {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      padding: .5rem;
+      width: 100%;
+      max-width: 20rem;
+      font-size: 1.5rem;
+
+      .menu-icon {
+        margin-right: .5rem;
+      }
+
+      &:hover {
+        background-color: var(--grey-color);
+        cursor: pointer;
+      }
+    }
+  }
+
   .no-results {
     font-size: 1.3rem;
   }
@@ -225,6 +251,8 @@
 .header-text {
   font-size: 1.5rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
 }
 
 .header {
@@ -235,6 +263,11 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: flex-end;
+  }
+
+  .header-text {
+    padding: .2rem;
   }
 
   app-dismiss-button {

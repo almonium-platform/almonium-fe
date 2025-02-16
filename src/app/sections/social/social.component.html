@@ -11,11 +11,32 @@
 
   <header class="header">
     <div class="header-inner pb-1">
+      <lucide-icon [name]="drawerIcon"
+                   class="cursor-pointer max-h-fit"
+                   (click)="setDrawerMode('menu')"
+      ></lucide-icon>
       <p class="header-text">{{ drawerHeader }}</p>
       <app-dismiss-button [relative]="true" (close)="closeDrawer()"></app-dismiss-button>
     </div>
   </header>
   <div class="drawer-container">
+    @if (drawerMode === 'menu') {
+      <div class="menu-tiles">
+        <div class="menu-tile card" (click)="setDrawerMode('friends')">
+          <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
+          <p class="menu-text">Friends</p>
+        </div>
+        <div class="menu-tile card" (click)="setDrawerMode('blocked')">
+          <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
+          <p class="menu-text">Blocked</p>
+        </div>
+        <div class="menu-tile card" (click)="setDrawerMode('requests')">
+          <lucide-icon name="user-round-plus" class="menu-icon" [size]="24"></lucide-icon>
+          <p class="menu-text">Requests</p>
+        </div>
+      </div>
+    }
+
     @if (drawerMode === 'requests') {
       <tui-segmented
         size="l"
@@ -35,7 +56,7 @@
                           [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
           }
         } @else {
-          @if (drawerUserTiles.length === 0) {
+          @if (drawerMode !== 'menu' && drawerUserTiles.length === 0) {
             <p class="no-results">
               {{ noResultMessage }}
             </p>

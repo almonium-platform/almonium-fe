@@ -101,13 +101,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // drawer
   protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'blocked';
-  protected drawerHeader: string = 'Requests';
+  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'menu' = 'menu';
+  protected drawerHeader: string = 'Menu';
   protected loadingFriends: boolean = false;
   protected loadingBlocked: boolean = false;
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
   protected noResultMessage: string = 'No results found';
+  protected drawerIcon: string = 'menu';
 
   protected readonly FriendshipStatus = FriendshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
@@ -537,6 +538,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected openDrawerAndSetupData() {
     this.openDrawer();
+    if (this.drawerMode === 'menu') {
+      this.menuSetup();
+    } else {
+      this.drawerIcon = 'chevron-left';
+    }
     if (this.drawerMode === 'requests') {
       this.drawerHeader = 'Requests';
       this.noResultMessage = 'No requests found';
@@ -743,5 +749,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   openFriendDropdown(id: number) {
     console.log('Opening dropdown for friend:', id);
+  }
+
+  setDrawerMode(mode: string) {
+    this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'menu';
+    this.openDrawerAndSetupData();
+  }
+
+  menuSetup() {
+    this.drawerUserTiles = [];
+    this.drawerHeader = 'Menu';
+    this.drawerIcon = 'menu';
   }
 }
