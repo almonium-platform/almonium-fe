@@ -15,7 +15,7 @@
       <app-dismiss-button [relative]="true" (close)="closeDrawer()"></app-dismiss-button>
     </div>
   </header>
-  <div class="requests">
+  <div class="drawer-container">
     @if (drawerMode === 'requests') {
       <tui-segmented
         size="l"
@@ -35,6 +35,11 @@
                           [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
           }
         } @else {
+          @if (drawerUserTiles.length === 0) {
+            <p class="no-results">
+              {{ noResultMessage }}
+            </p>
+          }
           @for (friend of drawerUserTiles; track friend) {
             <div class="user-tile card">
               <app-avatar [avatarUrl]="friend.avatarUrl"
@@ -434,13 +439,6 @@
               <p class="username">{{ friend.username }}</p>
             </div>
           }
-        </div>
-      }
-
-      <!-- Show message when no friends exist initially -->
-      @if (friends.length === 0 && isNotFiltered()) {
-        <div class="no-friends-container">
-          You have no friends yet.
         </div>
       }
 

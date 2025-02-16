@@ -99,6 +99,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected filteredFriends: Friend[] = [];
   protected requestsIndex: number = 0;
 
+  // drawer
   protected readonly isDrawerOpened = signal(false);
   protected drawerMode: 'requests' | 'friends' | 'blocked' = 'blocked';
   protected drawerHeader: string = 'Requests';
@@ -106,6 +107,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected loadingBlocked: boolean = false;
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
+  protected noResultMessage: string = 'No results found';
 
   protected readonly FriendshipStatus = FriendshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
@@ -537,6 +539,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.openDrawer();
     if (this.drawerMode === 'requests') {
       this.drawerHeader = 'Requests';
+      this.noResultMessage = 'No requests found';
+
       if (this.requestsIndex === 0) {
         this.getIncomingRequests();
       } else {
@@ -546,10 +550,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.drawerMode === 'friends') {
       this.drawerHeader = 'Friends';
       this.getFriends();
+      this.noResultMessage = `You don't have any friends yet.`;
       // this.drawerUserTiles = this.filteredFriends;
     }
     if (this.drawerMode === 'blocked') {
       this.drawerHeader = 'Blocked';
+      this.noResultMessage = `You haven't blocked anyone.`;
       this.getBlocked();
     }
   }
