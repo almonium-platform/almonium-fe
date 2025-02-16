@@ -549,12 +549,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.drawerMode === 'requests') {
       this.drawerHeader = 'Requests';
-      this.noResultMessage = 'No requests found';
 
       if (this.requestsIndex === 0) {
         this.getIncomingRequests();
+        this.noResultMessage = `You have no incoming friend requests.`;
       } else {
         this.getOutgoingRequests();
+        this.noResultMessage = `You have no outgoing friend requests.`;
       }
     }
     if (this.drawerMode === 'friends') {
