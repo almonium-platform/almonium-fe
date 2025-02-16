@@ -477,9 +477,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  unfriend(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.UNFRIEND).subscribe({
+  unfriend(friendId: number, friendshipId: number) {
+    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNFRIEND).subscribe({
       next: () => {
+        this.friends = this.friends.filter(friend => friend.id !== friendId);
+        this.drawerUserTiles = this.friends;
         this.alertService.open('Friend removed', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
@@ -494,6 +496,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.socialService.patchFriendship(friendshipId, FriendshipAction.BLOCK).subscribe({
       next: () => {
+        this.friends = this.friends.filter(friend => friend.id !== friendId);
+        this.drawerUserTiles = this.friends;
         this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
@@ -504,10 +508,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   unblock(friendId: number, friendshipId: number) {
+    console.log('Unblocking user:', friendId);
+    console.log('Unblocking friendship:', friendshipId);
     this.chatClient.unBlockUser(friendId.toString()).then(() => {
     });
     this.socialService.patchFriendship(friendshipId, FriendshipAction.UNBLOCK).subscribe({
       next: () => {
+        this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
+        this.drawerUserTiles = this.blockedUsers;
         this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
