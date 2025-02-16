@@ -38,13 +38,13 @@ import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
 import {CEFRLevel, getNextStep, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
-import {LucideIconsModule} from "./lucide-icons.module";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
+import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 
 
 @Component({
@@ -74,7 +74,7 @@ import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-sel
     FluentLanguageSelectorComponent,
     TuiAutoColorPipe,
     TuiChip,
-    LucideIconsModule,
+    SharedLucideIconsModule,
     InfoIconComponent,
     ButtonComponent,
     CefrLevelSelectorComponent,
