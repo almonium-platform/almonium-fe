@@ -26,13 +26,13 @@
           <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Friends</p>
         </div>
-        <div class="menu-tile card" (click)="setDrawerMode('blocked')">
-          <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Blocked</p>
-        </div>
         <div class="menu-tile card" (click)="setDrawerMode('requests')">
           <lucide-icon name="user-round-plus" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Requests</p>
+        </div>
+        <div class="menu-tile card" (click)="setDrawerMode('blocked')">
+          <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
+          <p class="menu-text">Blocked</p>
         </div>
       </div>
     }
