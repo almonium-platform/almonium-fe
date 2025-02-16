@@ -254,6 +254,7 @@
               tuiDropdownContext
               [tuiDropdown]="contextMenu"
               (contextmenu)="dropdown.toggle(true)"
+              (click)="dropdown.toggle(false)"
             >
               <ng-template #contextMenu>
 
