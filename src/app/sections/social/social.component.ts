@@ -172,7 +172,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.chatService.init(environment.streamChatApiKey, user, userToken);
       this.channelService.init({members: {$in: [this.userInfo.id]}}).then();
-      this.connectUser(this.userInfo!.id, this.userInfo?.streamChatToken ?? '');
       this.chatUnreadService.fetchUnreadCount();
     });
 
@@ -241,25 +240,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (error) {
       console.error('Error creating private chat:', error);
       return null;
-    }
-  }
-
-  /**
-   * Connects a user to Stream Chat.
-   * @param userId The unique ID of the user.
-   * @param userToken The authentication token for the user.
-   * @returns A promise that resolves when the user is connected.
-   */
-  async connectUser(userId: string, userToken: string): Promise<void> {
-    try {
-      await this.chatClient.connectUser(
-        {id: userId}, // User object with at least an ID
-        userToken
-      );
-      const user = this.chatClient.user;
-      console.log('User connected to Stream Chat:', user);
-    } catch (error) {
-      console.error('Error connecting user:', error);
     }
   }
 
