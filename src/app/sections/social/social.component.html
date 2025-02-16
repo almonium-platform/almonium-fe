@@ -4,6 +4,7 @@
   class="drawer"
   [overlay]="true"
   (click.self)="closeDrawer()"
+  (tuiActiveZoneChange)="!$event && isDrawerOpened.set(false)"
 >
   <ng-template #skeletonLoader>
     <div class="user-tile card h-14" [tuiSkeleton]="true"></div>

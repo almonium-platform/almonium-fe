@@ -1,7 +1,7 @@
 import {
   AfterViewInit,
   ChangeDetectorRef,
-  Component,
+  Component, HostListener,
   OnDestroy,
   OnInit,
   signal,
@@ -601,6 +601,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public closeDrawer(): void {
+    this.isDrawerOpened.set(false);
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscapeKey(_: KeyboardEvent) {
     this.isDrawerOpened.set(false);
   }
 
