@@ -45,6 +45,7 @@ import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
+import {TuiActiveZone} from "@taiga-ui/cdk";
 
 @Component({
   selector: 'app-social',
@@ -74,6 +75,7 @@ import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar
     TuiDataListDropdownManager,
     AvatarComponent,
     CustomChatAvatarComponent,
+    TuiActiveZone,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

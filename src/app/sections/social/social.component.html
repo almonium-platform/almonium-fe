@@ -75,6 +75,7 @@
                              [size]="20"
                              #friendDropdown="tuiDropdown"
                              tuiDropdown
+                             (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
                              [tuiDropdown]="friendDropdownTemplate"
                              (click)="friendDropdown.toggle(true); openFriendDropdown(friend.id)"
                 >
