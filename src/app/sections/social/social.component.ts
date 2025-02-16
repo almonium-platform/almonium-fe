@@ -228,30 +228,25 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
    * @returns A promise that resolves with the created channel.
    */
   async createPrivateChat(userId: string, recipientId: string) {
-    try {
-      if (!this.chatClient.user) {
-        throw new Error('User must be connected before creating a chat.');
-      }
-
-      // Unique channel ID (e.g., `private_user1_user2`)
-      const channelId = `private_${[userId, recipientId].sort().join('_')}`;
-
-      const channel = this.chatService.chatClient.channel('messaging', channelId, {
-        name: AppConstants.PRIVATE_CHAT_NAME,
-        members: [userId, recipientId], // Both users in the private chat
-        created_by_id: userId, // Set creator
-      });
-
-      await channel.create(); // Ensure the channel is created
-      await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
-
-      console.log('Private chat created and watched:', channelId);
-
-      return channel;
-    } catch (error) {
-      console.error('Error creating private chat:', error);
-      return null;
+    if (!this.chatClient.user) {
+      throw new Error('User must be connected before creating a chat.');
     }
+
+    // Unique channel ID (e.g., `private_user1_user2`)
+    const channelId = `private_${[userId, recipientId].sort().join('_')}`;
+
+    const channel = this.chatService.chatClient.channel('messaging', channelId, {
+      name: AppConstants.PRIVATE_CHAT_NAME,
+      members: [userId, recipientId], // Both users in the private chat
+      created_by_id: userId, // Set creator
+    });
+
+    await channel.create(); // Ensure the channel is created
+    await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
+
+    console.log('Private chat created and watched:', channelId);
+
+    return channel;
   }
 
   private listenToUsernameField() {
@@ -405,32 +400,31 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  openChatWithNewFriend(friendId: number) {
+  openChatWithFriend(friendId: number) {
     this.closeDrawer();
 
     const cid = 'messaging:private_' + this.userInfo?.id + '_' + friendId;
-    this.openChatById(cid);
+    this.openChatByCid(cid).then((found) => {
+      if (!found) {
+        this.createPrivateChat(this.userInfo!.id, friendId.toString()).then(channel => {
+          this.channelService.setAsActiveChannel(channel);
+        });
+      }
+    });
   }
 
-  openChatById(id: string) {
+  async openChatByCid(id: string): Promise<boolean> {
     const filters = {
       cid: {$eq: id},
     };
 
-    this.chatService.chatClient.queryChannels(filters).then(
-      (channels) => {
-        if (channels.length > 0) {
-          this.channelService.setAsActiveChannel(channels[0]);
-        } else {
-          console.error('Chat with friend not found');
-        }
-      }
-    )
-  }
-
-  openSelfChat() {
-    const cid = 'messaging:self_' + this.userInfo?.id;
-    this.openChatById(cid);
+    const channels = await this.chatService.chatClient.queryChannels(filters);
+    if (channels.length > 0) {
+      this.channelService.setAsActiveChannel(channels[0]);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   cancelFriendRequest(id: number) {
@@ -737,5 +731,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   onRequestsIndexChange($event: number) {
     this.requestsIndex = $event;
     this.openDrawerAndSetupData();
+  }
+
+  openFriendDropdown(id: number) {
+    console.log('Opening dropdown for friend:', id);
   }
 }

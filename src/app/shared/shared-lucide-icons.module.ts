@@ -1,6 +1,7 @@
 import {NgModule} from '@angular/core';
 import {
   BadgeDollarSign,
+  Ban,
   Bell,
   BellOff,
   CircleX,
@@ -31,14 +32,16 @@ import {
   Trash,
   UserCheck,
   UserRoundPlus,
+  UserRoundX,
   VenetianMask,
   X
-} from 'lucide-angular';
+} from 'lucide-angular'
 
 @NgModule({
   imports: [
     LucideAngularModule.pick({
       BadgeDollarSign,
+      Ban,
       Bell,
       BellOff,
       CircleX,
@@ -68,6 +71,7 @@ import {
       Trash,
       UserCheck,
       UserRoundPlus,
+      UserRoundX,
       VenetianMask,
       X
     }),

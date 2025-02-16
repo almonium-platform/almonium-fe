@@ -47,8 +47,55 @@
                 <lucide-icon name="ellipsis"
                              class="friend-action positive"
                              [size]="20"
-                             (click)="openChatWithNewFriend(friend.id)"
-                ></lucide-icon>
+                             #friendDropdown="tuiDropdown"
+                             tuiDropdown
+                             [tuiDropdown]="friendDropdownTemplate"
+                             (click)="friendDropdown.toggle(true); openFriendDropdown(friend.id)"
+                >
+                  <ng-template #friendDropdownTemplate>
+                    <tui-data-list
+                      role="menu"
+                      tuiDataListDropdownManager
+                      class="context-menu">
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="openChatWithFriend(friend.id)"
+                      >
+                        Message
+                        <lucide-icon name="message-circle"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="unfriend(friend.friendshipId)"
+                      >
+                        Unfriend
+                        <lucide-icon name="user-round-x"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="block(friend.friendshipId)"
+                      >
+                        Block
+                        <lucide-icon name="ban"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                      </button>
+                    </tui-data-list>
+                  </ng-template>
+                </lucide-icon>
               }
               @if (drawerMode === 'requests') {
                 @if (requestsIndex === 0) {
@@ -69,7 +116,7 @@
                     <lucide-icon name="message-circle"
                                  class="friend-action positive"
                                  [size]="20"
-                                 (click)="openChatWithNewFriend(friend.id)"
+                                 (click)="openChatWithFriend(friend.id)"
                     ></lucide-icon>
                   }
                 }
