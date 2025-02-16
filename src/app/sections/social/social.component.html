@@ -43,6 +43,13 @@
               ></app-avatar>
               <p class="username">{{ friend.username }}</p>
 
+              @if (drawerMode === 'friends') {
+                <lucide-icon name="ellipsis"
+                             class="friend-action positive"
+                             [size]="20"
+                             (click)="openChatWithNewFriend(friend.id)"
+                ></lucide-icon>
+              }
               @if (drawerMode === 'requests') {
                 @if (requestsIndex === 0) {
                   @if (friend.friendshipStatus === FriendshipStatus.PENDING) {

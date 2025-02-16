@@ -13,8 +13,8 @@ export class SocialService {
   ) {
   }
 
-  fetchFriends(): Observable<Friend[]> {
-    return this.http.get<Friend[]>(`${AppConstants.FRIENDSHIPS_URL}`, {withCredentials: true});
+  getFriends(): Observable<RelatedUserProfile[]> {
+    return this.http.get<RelatedUserProfile[]>(`${AppConstants.FRIENDSHIPS_URL}`, {withCredentials: true});
   }
 
   getOutgoingRequests(): Observable<RelatedUserProfile[]> {

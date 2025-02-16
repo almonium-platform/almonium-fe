@@ -95,14 +95,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected incomingRequests: RelatedUserProfile[] = [];
   protected drawerUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
-  protected friends: Friend[] = [];
+  protected friends: RelatedUserProfile[] = [];
   protected filteredFriends: Friend[] = [];
   protected requestsIndex: number = 0;
 
   protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'requests';
-  protected loadingFriends: boolean = false;
+  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'friends';
   protected drawerHeader: string = 'Requests';
+  protected loadingFriends: boolean = false;
   protected loadingBlocked: boolean = false;
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
@@ -203,7 +203,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.listenToUsernameField();
     this.listenToChannelSearch();
-    this.getFriends();
   }
 
   ngAfterViewInit() {
@@ -385,9 +384,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getFriends() {
     this.loadingFriends = true;
-    this.socialService.fetchFriends().subscribe(friends => {
+    this.socialService.getFriends().subscribe(friends => {
       this.friends = friends;
       this.filteredFriends = friends;
+      this.drawerUserTiles = friends;
       this.loadingFriends = false;
     });
   }
