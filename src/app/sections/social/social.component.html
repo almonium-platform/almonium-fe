@@ -97,6 +97,15 @@
                   </ng-template>
                 </lucide-icon>
               }
+
+              @if (drawerMode === 'blocked') {
+                <lucide-icon name="x"
+                             class="friend-action negative primary"
+                             [size]="20"
+                             (click)="unblock(friend.friendshipId)"
+                ></lucide-icon>
+              }
+
               @if (drawerMode === 'requests') {
                 @if (requestsIndex === 0) {
                   @if (friend.friendshipStatus === FriendshipStatus.PENDING) {

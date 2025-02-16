@@ -100,7 +100,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected requestsIndex: number = 0;
 
   protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'friends';
+  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'blocked';
   protected drawerHeader: string = 'Requests';
   protected loadingFriends: boolean = false;
   protected loadingBlocked: boolean = false;
@@ -388,9 +388,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getBlocked() {
+    this.loadingBlocked = true;
     this.socialService.getBlocked().subscribe(blocked => {
-      console.log(blocked);
       this.blockedUsers = blocked;
+      this.drawerUserTiles = blocked;
+      this.loadingBlocked = false;
     });
   }
 
