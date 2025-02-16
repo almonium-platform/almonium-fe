@@ -54,7 +54,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   @Input() currentRoute: string = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
-  @ViewChild(ManageAvatarComponent, {static: true}) manageAvatarComponent!: ManageAvatarComponent;
+  @ViewChild(ManageAvatarComponent, {static: false}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
   protected isProfilePopoverOpen: boolean = false;
