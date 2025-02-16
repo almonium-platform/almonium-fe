@@ -1,9 +1,9 @@
 <tui-drawer
-  *tuiPopup="requestsTabOpened()"
+  *tuiPopup="isDrawerOpened()"
   direction="left"
   class="drawer"
   [overlay]="true"
-  (click.self)="closeRequestsTab()"
+  (click.self)="closeDrawer()"
 >
   <ng-template #skeletonLoader>
     <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
@@ -11,82 +11,70 @@
 
   <header class="header">
     <div class="header-inner pb-1">
-      <p class="header-text">Requests</p>
-      <app-dismiss-button [relative]="true" (close)="closeRequestsTab()"></app-dismiss-button>
+      <p class="header-text">{{ drawerHeader }}</p>
+      <app-dismiss-button [relative]="true" (close)="closeDrawer()"></app-dismiss-button>
     </div>
   </header>
   <div class="requests">
-    <tui-segmented
-      size="l"
-      class="requests-toggle"
-      [(activeItemIndex)]="requestsIndex"
-    >
-      <button type="button" class="btn-text">Received</button>
-      <button type="button" class="btn-text">Sent</button>
-    </tui-segmented>
+    @if (drawerMode === 'requests') {
+      <tui-segmented
+        size="l"
+        class="requests-toggle"
+        [(activeItemIndex)]="requestsIndex"
+        (activeItemIndexChange)="onRequestsIndexChange($event)"
+      >
+        <button type="button" class="btn-text">Received</button>
+        <button type="button" class="btn-text">Sent</button>
+      </tui-segmented>
+    }
     <tui-scrollbar class="w-full p-1">
       <div class="tiles">
-        @if (requestsIndex === 0) {
-          @if (loadingIncomingRequests) {
-            @for (i of range(3); track i) {
-              <ng-container [ngTemplateOutlet]="skeletonLoader"
-                            [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
-            }
-          } @else {
-            @for (friend of incomingRequests; track friend) {
-              <div class="user-tile card">
-                <app-avatar [avatarUrl]="friend.avatarUrl"
-                            [username]="friend.username"
-                            [size]="'m'"
-                ></app-avatar>
-                <p class="username">{{ friend.username }}</p>
-
-                @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
-                  <lucide-icon name="user-round-plus"
-                               class="friend-action positive"
-                               [size]="20"
-                               (click)="acceptFriendRequest(friend)"
-                  ></lucide-icon>
-                  <lucide-icon name="x"
-                               class="friend-action negative secondary"
-                               [size]="20"
-                               (click)="rejectFriendRequest(friend.friendshipId)"
-                  ></lucide-icon>
-                }
-
-                @if (friend.friendshipStatus === FriendshipStatus.FRIENDS) {
-                  <lucide-icon name="message-circle"
-                               class="friend-action positive"
-                               [size]="20"
-                               (click)="openChatWithNewFriend(friend.id)"
-                  ></lucide-icon>
-                }
-              </div>
-            }
+        @if (isDrawerDataLoading()) {
+          @for (i of range(3); track i) {
+            <ng-container [ngTemplateOutlet]="skeletonLoader"
+                          [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
           }
-        }
+        } @else {
+          @for (friend of drawerUserTiles; track friend) {
+            <div class="user-tile card">
+              <app-avatar [avatarUrl]="friend.avatarUrl"
+                          [username]="friend.username"
+                          [size]="'m'"
+              ></app-avatar>
+              <p class="username">{{ friend.username }}</p>
 
-        @if (requestsIndex === 1) {
-          @if (loadingOutgoingRequests) {
-            @for (i of range(3); track i) {
-              <ng-container [ngTemplateOutlet]="skeletonLoader"
-                            [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
-            }
-          } @else {
-            @for (friend of outgoingRequests; track friend) {
-              <div class="user-tile card">
-                <app-avatar [avatarUrl]="friend.avatarUrl"
-                            [username]="friend.username"
-                            [size]="'m'"
-                ></app-avatar>
-                <p class="username">{{ friend.username }}</p>
-                <lucide-icon name="x"
-                             class="friend-action negative"
-                             [size]="20"
-                             (click)="cancelFriendRequest(friend.friendshipId)"
-                ></lucide-icon>
-              </div>
-            }
+              @if (drawerMode === 'requests') {
+                @if (requestsIndex === 0) {
+                  @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
+                    <lucide-icon name="user-round-plus"
+                                 class="friend-action positive"
+                                 [size]="20"
+                                 (click)="acceptFriendRequest(friend)"
+                    ></lucide-icon>
+                    <lucide-icon name="x"
+                                 class="friend-action negative secondary"
+                                 [size]="20"
+                                 (click)="rejectFriendRequest(friend.friendshipId)"
+                    ></lucide-icon>
+
+                  }
+                  @if (friend.friendshipStatus === FriendshipStatus.FRIENDS) {
+                    <lucide-icon name="message-circle"
+                                 class="friend-action positive"
+                                 [size]="20"
+                                 (click)="openChatWithNewFriend(friend.id)"
+                    ></lucide-icon>
+                  }
+                }
+                @if (requestsIndex === 1) {
+                  <lucide-icon name="x"
+                               class="friend-action negative"
+                               [size]="20"
+                               (click)="cancelFriendRequest(friend.friendshipId)"
+                  ></lucide-icon>
+                }
+              }
+            </div>
           }
         }
       </div>
@@ -100,7 +88,7 @@
       <header class="chats-header">
         <lucide-icon name="menu"
                      class="cursor-pointer"
-                     (click)="openRequestsTab()"
+                     (click)="openDrawerAndSetupData()"
         ></lucide-icon>
 
         <p class="header-text">Chats</p>
@@ -132,8 +120,8 @@
                        let-type="type"
           >
             <div class="avatar-wrapper"
-                 (mouseenter)="startHover(channel)"
-                 (mouseleave)="stopHover()">
+                 (mouseenter)="startAvatarHover(channel)"
+                 (mouseleave)="stopAvatarHover()">
 
               <app-custom-chat-avatar
                 class="custom-chat-avatar"

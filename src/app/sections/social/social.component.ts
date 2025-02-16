@@ -93,11 +93,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected requestedIds: number[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
+  protected drawerUserTiles: RelatedUserProfile[] = [];
+  protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: Friend[] = [];
   protected filteredFriends: Friend[] = [];
   protected requestsIndex: number = 0;
 
-  protected readonly requestsTabOpened = signal(false);
+  protected readonly isDrawerOpened = signal(false);
+  protected drawerMode: 'requests' | 'friends' | 'blocked' = 'requests';
+  protected loadingFriends: boolean = false;
+  protected drawerHeader: string = 'Requests';
+  protected loadingBlocked: boolean = false;
   protected loadingIncomingRequests: boolean = false;
   protected loadingOutgoingRequests: boolean = false;
 
@@ -127,6 +133,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
     this.displayAs = this.messageService.displayAs;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.channelService.deselectActiveChannel();
   }
 
   async ngOnInit() {
@@ -180,11 +192,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.activatedRoute.queryParams.subscribe(params => {
       if (params['requests'] === 'received') {
         this.requestsIndex = 0;
-        this.openRequestsTab();
+        this.openDrawerAndSetupData();
       }
       if (params['requests'] === 'sent') {
         this.requestsIndex = 1;
-        this.openRequestsTab();
+        this.openDrawerAndSetupData();
       }
       this.urlService.clearUrl();
     });
@@ -357,6 +369,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingOutgoingRequests = true;
     this.socialService.getOutgoingRequests().subscribe(outgoingRequests => {
       this.outgoingRequests = outgoingRequests;
+      this.drawerUserTiles = outgoingRequests;
       this.loadingOutgoingRequests = false;
     });
   }
@@ -365,21 +378,25 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingIncomingRequests = true;
     this.socialService.getIncomingRequests().subscribe(incomingRequests => {
       this.incomingRequests = incomingRequests;
+      this.drawerUserTiles = incomingRequests;
       this.loadingIncomingRequests = false;
     });
   }
 
   getFriends() {
+    this.loadingFriends = true;
     this.socialService.fetchFriends().subscribe(friends => {
       this.friends = friends;
       this.filteredFriends = friends;
+      this.loadingFriends = false;
     });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.channelService.deselectActiveChannel();
+  getBlocked() {
+    this.socialService.getBlocked().subscribe(blocked => {
+      console.log(blocked);
+      this.blockedUsers = blocked;
+    });
   }
 
   searchNewUsers() {
@@ -389,7 +406,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openChatWithNewFriend(friendId: number) {
-    this.closeRequestsTab();
+    this.closeDrawer();
 
     const cid = 'messaging:private_' + this.userInfo?.id + '_' + friendId;
     this.openChatById(cid);
@@ -520,14 +537,46 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.chatFormControl.value?.trim() === '';
   }
 
-  protected openRequestsTab() {
-    this.requestsTabOpened.set(true);
-    this.getOutgoingRequests();
-    this.getIncomingRequests();
+  protected openDrawerAndSetupData() {
+    this.openDrawer();
+    if (this.drawerMode === 'requests') {
+      this.drawerHeader = 'Requests';
+      if (this.requestsIndex === 0) {
+        this.getIncomingRequests();
+      } else {
+        this.getOutgoingRequests();
+      }
+    }
+    if (this.drawerMode === 'friends') {
+      this.drawerHeader = 'Friends';
+      this.getFriends();
+      // this.drawerUserTiles = this.filteredFriends;
+    }
+    if (this.drawerMode === 'blocked') {
+      this.drawerHeader = 'Blocked';
+      this.getBlocked();
+    }
   }
 
-  public closeRequestsTab(): void {
-    this.requestsTabOpened.set(false);
+  protected isDrawerDataLoading() {
+    if (this.drawerMode === 'requests') {
+      return this.requestsIndex === 0 ? this.loadingIncomingRequests : this.loadingOutgoingRequests;
+    }
+    if (this.drawerMode === 'friends') {
+      return this.loadingFriends;
+    }
+    if (this.drawerMode === 'blocked') {
+      return this.loadingBlocked;
+    }
+    return false;
+  }
+
+  public openDrawer(): void {
+    this.isDrawerOpened.set(true);
+  }
+
+  public closeDrawer(): void {
+    this.isDrawerOpened.set(false);
   }
 
   protected getChatName(channel: Channel<DefaultStreamChatGenerics>, defaultName: string): string {
@@ -667,12 +716,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return id1 === userId ? id2 : id2 === userId ? id1 : null;
   }
 
-  startHover(channel: Channel<DefaultStreamChatGenerics>) {
+  startAvatarHover(channel: Channel<DefaultStreamChatGenerics>) {
     this.hoveredChannel = channel;
     this.hoverTimeout = setTimeout(() => this.showContent = true, 1000);
   }
 
-  stopHover() {
+  stopAvatarHover() {
     this.hoveredChannel = null;
     clearTimeout(this.hoverTimeout);
     this.showContent = false;
@@ -683,5 +732,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const interlocutorId = this.getInterlocutorId();
       console.log('Opening chat with user:', interlocutorId);
     }
+  }
+
+  onRequestsIndexChange($event: number) {
+    this.requestsIndex = $event;
+    this.openDrawerAndSetupData();
   }
 }

@@ -52,4 +52,8 @@ export class SocialService {
       {action},
       {withCredentials: true});
   }
+
+  getBlocked(): Observable<RelatedUserProfile[]> {
+    return this.http.get<RelatedUserProfile[]>(`${AppConstants.FRIENDSHIPS_URL}/blocked`, {withCredentials: true});
+  }
 }
