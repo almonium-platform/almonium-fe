@@ -489,8 +489,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  block(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.BLOCK).subscribe({
+  block(friendId: number, friendshipId: number) {
+    this.chatClient.blockUser(friendId.toString()).then(() => {
+    });
+    this.socialService.patchFriendship(friendshipId, FriendshipAction.BLOCK).subscribe({
       next: () => {
         this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
       },
@@ -501,8 +503,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  unblock(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.UNBLOCK).subscribe({
+  unblock(friendId: number, friendshipId: number) {
+    this.chatClient.unBlockUser(friendId.toString()).then(() => {
+    });
+    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNBLOCK).subscribe({
       next: () => {
         this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
       },

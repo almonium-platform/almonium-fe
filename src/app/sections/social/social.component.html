@@ -111,7 +111,7 @@
                         tuiOption
                         type="button"
                         class="context-button"
-                        (click)="block(friend.friendshipId)"
+                        (click)="block(friend.id, friend.friendshipId)"
                       >
                         Block
                         <lucide-icon name="ban"
@@ -128,7 +128,7 @@
                 <lucide-icon name="x"
                              class="friend-action negative primary"
                              [size]="20"
-                             (click)="unblock(friend.friendshipId)"
+                             (click)="unblock(friend.id, friend.friendshipId)"
                 ></lucide-icon>
               }
 
