@@ -273,6 +273,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private listenToChannelSearch() {
     combineLatest([
       this.chatFormControl.valueChanges.pipe(
+        startWith(this.chatFormControl.value || ''), // Emit initial value immediately
         debounceTime(300),
         distinctUntilChanged()
       ),
