@@ -10,6 +10,7 @@ import {
 import {Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
+import {NgStyle} from "@angular/common";
 
 @Component({
   selector: 'app-chat-header',
@@ -18,6 +19,7 @@ import {AppConstants} from "../../../app.constants";
     <p
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
+      [ngStyle]="isPrivateChat && isInterlocutorOnline ? {'color': 'var(--chat-accent-color)'} : {}"
     >
       @if (!isSelfChat) {
         @if (!isPrivateChat) {
@@ -35,9 +37,14 @@ import {AppConstants} from "../../../app.constants";
     </p>
   `,
   imports: [
-    TranslateModule
+    TranslateModule,
+    NgStyle
   ],
-  styles: []
+  styles: [`
+    .str-chat__channel-header-info {
+      color: #708599;
+    }
+  `]
 })
 export class ChatHeaderComponent implements OnChanges, OnDestroy {
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;

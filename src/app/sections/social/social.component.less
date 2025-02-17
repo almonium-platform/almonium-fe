@@ -73,19 +73,8 @@
         column-gap: 1em;
       }
 
-      ::ng-deep .stream-chat__paginated-list:hover {
-        overflow-y: auto; // Automatically show scrollbar when needed
-        scrollbar-width: thin; // For Firefox, makes scrollbar less intrusive
-      }
-
       ::ng-deep .stream-chat__paginated-list {
-        overflow-y: scroll; // Enable scrolling
-        scrollbar-width: none; // Hide scrollbar in Firefox
-        -ms-overflow-style: none; // Hide scrollbar in IE/Edge
-      }
-
-      ::ng-deep .stream-chat__paginated-list::-webkit-scrollbar {
-        display: none; // Hide scrollbar in Chrome, Safari, Edge
+        overflow-y: auto;
       }
     }
 
@@ -93,6 +82,10 @@
       --tui-radius-m: 2rem;
       --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
       padding: .5rem;
+
+      input {
+        background-color: var(--gray-bg);
+      }
     }
 
     .chats-header {
@@ -267,6 +260,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: flex-end;
+    gap: 1rem;
   }
 
   .header-text {
@@ -298,6 +292,158 @@
 
 ::ng-deep .str-chat__message-textarea:placeholder-shown {
   min-height: 1.3em
+}
+
+::ng-deep .str-chat__icon {
+  color: var(--chat-accent-color);
+}
+
+// my messages color
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
+  background-color: var(--chat-lite);
+}
+
+::ng-deep .str-chat__reaction-selector {
+  .str-chat__message-reactions-options {
+  @include utils . component-layer-overrides('message-reactions-options');
+
+    .str-chat__message-reactions-option {
+    @include utils . component-layer-overrides('message-reactions-option');
+
+      &:hover {
+        background-color: var(--chat-lite);
+      }
+
+      &.str-chat__message-reactions-option-selected {
+        background-color: var(--chat-bg-color);
+      }
+    }
+  }
+}
+
+// three dot on message action
+::ng-deep .str-chat__message-action-icon {
+  .str-chat__icon {
+    color: var(--chat-accent-color) !important;
+  }
+}
+
+// read icon on my messages
+::ng-deep .str-chat__message.str-chat__message--me {
+  .str-chat__icon {
+    color: white;
+  }
+}
+
+// text of interlocutor's messages
+::ng-deep .str-chat__message-text-value {
+  color: black;
+}
+
+// interlocutor's messages color
+::ng-deep .str-chat__message .str-chat__message-bubble {
+  background-color: white;
+}
+
+// main chat background
+::ng-deep .str-chat__list {
+  background-color: var(--chat-bg-color);
+}
+
+// input field color
+::ng-deep .str-chat__message-input {
+  background-color: white;
+}
+
+// input field text color
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container .str-chat__message-textarea {
+  color: black;
+}
+
+// remove border from input field
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container {
+  border: none;
+}
+
+// default, right chat window header
+::ng-deep .str-chat__channel-header {
+  background-color: white;
+  color: black;
+}
+
+::ng-deep .str-chat__channel-preview {
+  &--active,
+  &-messenger--active {
+    // selected chat preview
+    background-color: var(--chat-accent-color);
+    color: white;
+
+    // Ensure hover does not affect active state
+    &:hover {
+      background-color: var(--chat-accent-color) !important;
+    }
+
+    .str-chat__icon {
+      color: white;
+    }
+
+    .str-chat__channel-preview-messenger--time {
+      color: white;
+    }
+
+    .online-indicator-buffer {
+      background-color: var(--chat-accent-color) !important;
+    }
+
+    .str-chat__avatar--online-indicator {
+      background-color: white !important;
+    }
+  }
+
+  &:hover {
+    background-color: var(--gray-bg);
+
+    .online-indicator-buffer {
+      background-color: var(--gray-bg);
+    }
+  }
+}
+
+// message reactions container
+::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
+  background-color: white;
+}
+
+::ng-deep .str-chat__message .str-chat__message-metadata, .str-chat__message .str-chat__custom-message-metadata {
+  color: white;
+}
+
+// in chat window, separator lines for timeline
+::ng-deep .str-chat__date-separator {
+  color: white;
+}
+
+::ng-deep .str-chat__date-separator-line {
+  background-color: white;
+}
+
+// You have no channels currently, No chats here yet...
+::ng-deep .str-chat__channel-list-empty {
+  color: var(--chat-accent-color) !important;
+}
+
+::ng-deep .str-chat__empty-channel-text {
+  color: var(--chat-accent-color) !important;
+}
+
+// You can't send messages in this channel
+::ng-deep .str-chat__message-input .str-chat__message-input-not-allowed {
+  color: var(--chat-bg-color);
+}
+
+// barely visible grey separator on the right side of the channel list
+::ng-deep .str-chat-channel-list {
+  border: none;
 }
 
 @media (max-width: 400px) {

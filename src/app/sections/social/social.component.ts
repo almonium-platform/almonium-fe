@@ -1,7 +1,8 @@
 import {
   AfterViewInit,
   ChangeDetectorRef,
-  Component, HostListener,
+  Component,
+  HostListener,
   OnDestroy,
   OnInit,
   signal,

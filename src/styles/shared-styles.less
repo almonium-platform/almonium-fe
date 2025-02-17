@@ -1,3 +1,29 @@
+.scrollable ::-webkit-scrollbar {
+  width: 8px; /* Adjust width */
+  height: 8px; /* Adjust height for horizontal scrollbars */
+}
+
+/* Scrollbar track */
+.scrollable ::-webkit-scrollbar-track {
+  background: white;
+}
+
+/* Scrollbar thumb */
+.scrollable ::-webkit-scrollbar-thumb {
+  background: var(--gray);
+  transition: background 0.3s ease-in-out;
+}
+
+/* Scrollbar thumb on hover */
+.scrollable ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray);
+}
+
+/* Optional: Hide scrollbar when not scrolling */
+.scrollable ::-webkit-scrollbar-thumb:active {
+  background: var(--gray);
+}
+
 // instead of NG-DEEP
 .loaded-file .t-wrapper .t-text {
   max-width: 100%;

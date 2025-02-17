@@ -199,7 +199,7 @@
           type="text"
         />
       </tui-input>
-      <div class="channel-list">
+      <div class="channel-list scrollable">
 
         <stream-channel-list>
           <ng-template #avatarTemplate
@@ -475,7 +475,7 @@
     </div>
   </div>
 
-  <div class="right-container">
+  <div class="right-container scrollable">
     <div class="chat-window">
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">
@@ -484,7 +484,6 @@
 
         <stream-channel-header></stream-channel-header>
         <stream-message-list></stream-message-list>
-        <stream-notification-list></stream-notification-list>
         <stream-message-input></stream-message-input>
       </stream-channel>
     </div>

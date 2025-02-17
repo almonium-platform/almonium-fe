@@ -21,6 +21,7 @@ import {NgIf} from "@angular/common";
 @Component({
   selector: 'app-custom-chat-avatar',
   templateUrl: './custom-chat-avatar.component.html',
+  styleUrl: './custom-chat-avatar.component.less',
   imports: [
     NgIf
   ]

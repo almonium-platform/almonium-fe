@@ -22,8 +22,12 @@
     </div>
   </ng-template>
   <div
-    *ngIf="isOnline && showOnlineIndicator"
+    *ngIf="isOnline && showOnlineIndicator && location==='channel-preview'"
     data-testid="online-indicator"
     class="str-chat__avatar--online-indicator"
+  ></div>
+  <div
+    *ngIf="isOnline && showOnlineIndicator && location==='channel-preview'"
+    class="online-indicator-buffer"
   ></div>
 </div>
