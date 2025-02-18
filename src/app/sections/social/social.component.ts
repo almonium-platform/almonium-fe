@@ -189,7 +189,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       };
 
       this.chatService.init(environment.streamChatApiKey, user, userToken);
-      this.channelService.init({members: {$in: [this.userInfo.id]}}).then();
+      this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false).then();
       this.chatUnreadService.fetchUnreadCount();
     });
 
@@ -352,7 +352,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
           try {
             this.channelService.reset();
-            await this.channelService.init(finalFilters);
+            await this.channelService.init(finalFilters, undefined, undefined, false);
             return [];
           } catch (error) {
             console.error("Error fetching channels:", error);
@@ -717,7 +717,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.channelService.init({
       hidden: this.showHiddenChannels$.value,
       members: {$in: [this.userInfo!.id]}
-    }).then(() => {
+    }, undefined, undefined, false).then(() => {
     });
   }
 
