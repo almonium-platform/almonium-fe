@@ -6,6 +6,12 @@ import {TokenInterceptor} from './authentication/auth/token-interceptor';
 
 import {TUI_VALIDATION_ERRORS} from '@taiga-ui/kit';
 import {NG_EVENT_PLUGINS} from '@taiga-ui/event-plugins';
+import {routes} from './app.routes';
+import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
+import {getStorage, provideStorage} from '@angular/fire/storage';
+import {environment} from '../environments/environment';
+import {TranslateModule} from "@ngx-translate/core";
+import {EN_CODE} from "./sections/social/i18n";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -18,17 +24,13 @@ const MY_CUSTOM_ERRORS = {
   unchanged: 'No changes',
 };
 
-import {routes} from './app.routes';
-import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
-import {getStorage, provideStorage} from '@angular/fire/storage';
-import {environment} from '../environments/environment';
-import {TranslateModule} from "@ngx-translate/core";
-
 export const appConfig: ApplicationConfig = {
   providers: [
     // Stream Chat
     provideZoneChangeDetection({eventCoalescing: true}),
-    importProvidersFrom(TranslateModule.forRoot()),
+    importProvidersFrom(TranslateModule.forRoot({
+      defaultLanguage: EN_CODE,
+    })),
 
     provideAnimations(),
     provideRouter(routes),

@@ -5,6 +5,8 @@ import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {UrlService} from "./services/url.service";
+import {StreamI18nService} from "stream-chat-angular";
+import {EN_CODE, STREAM_CHAT_TRANSLATIONS} from "./sections/social/i18n";
 
 @Component({
   selector: 'app-root',
@@ -29,7 +31,10 @@ export class AppComponent {
 
   constructor(private router: Router,
               private urlService: UrlService,
+              private streamI18nService: StreamI18nService,
   ) {
+    this.streamI18nService.setTranslation(EN_CODE, STREAM_CHAT_TRANSLATIONS);
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         const clearedUrl = urlService.getClearedUrl();
