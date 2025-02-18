@@ -85,6 +85,11 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
         }
         if (this.isPrivateChat) {
+          const user = this.getOtherMemberIfOneToOneChannel();
+          if (user) {
+            this.interlocutorId = user.id;
+            this.isOnline = user.online;
+          }
           this.fetchInterlocutorLastActive();
           this.subscribeToPresenceChanges();
         }
@@ -147,7 +152,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   }
 
   get isInterlocutorOnline() {
-    return this.watcherCountParam.watcherCount > 1;
+    return this.isOnline;
   }
 
   private fetchInterlocutorLastActive() {
@@ -186,5 +191,16 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
         this.cdRef.detectChanges();
       })
       .catch((error) => console.error('Error querying users:', error));
+  }
+
+  private getOtherMemberIfOneToOneChannel() {
+    const otherMembers = Object.values(
+      this.activeChannel?.state?.members || {}
+    ).filter((m) => m.user_id !== this.chatClient.userID);
+    if (otherMembers.length === 1) {
+      return otherMembers[0].user;
+    } else {
+      return undefined;
+    }
   }
 }
