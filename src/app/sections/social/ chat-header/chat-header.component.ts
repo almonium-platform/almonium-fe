@@ -7,7 +7,7 @@ import {
   CustomTemplatesService,
   DefaultStreamChatGenerics
 } from 'stream-chat-angular';
-import {fromEventPattern, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
 import {DatePipe, NgIf, NgStyle} from "@angular/common";
@@ -62,7 +62,6 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   protected isSelfChat: boolean | undefined;
 
   private subscriptions: Subscription[] = [];
-  private presenceSubscription: Subscription | undefined;
 
   private chatClient = StreamChat.getInstance(environment.streamChatApiKey);
   private interlocutorId: string | undefined;
@@ -85,27 +84,9 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
         }
         if (this.isPrivateChat) {
           this.fetchInterlocutorLastActive();
-          this.subscribeToPresenceChanges();
         }
       })
     );
-  }
-
-  private subscribeToPresenceChanges(): void {
-    if (!this.interlocutorId) return;
-
-    this.presenceSubscription = fromEventPattern(
-      (handler) => this.chatClient.on('user.presence.changed', handler),
-      (handler) => this.chatClient.off('user.presence.changed', handler)
-    ).subscribe((event: any) => {
-      if (event.user?.id === this.interlocutorId) {
-        if (event.user.online && this.interlocutorId) {
-          this.localStorageService.saveLastSeen(this.interlocutorId, new Date());
-          this.lastActiveTime = new Date();
-        }
-        this.cdRef.detectChanges();
-      }
-    });
   }
 
   ngOnChanges(): void {
@@ -125,9 +106,6 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    if (this.presenceSubscription) {
-      this.presenceSubscription.unsubscribe();
-    }
     this.saveLastOnline();
   }
 

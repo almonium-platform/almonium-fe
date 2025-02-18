@@ -1,8 +1,10 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, fromEventPattern} from 'rxjs';
 import {StreamChat} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfoService} from "../../services/user-info.service";
+import {LocalStorageService} from "../../services/local-storage.service";
+import {SocialService} from "./social.service";
 
 @Injectable({
   providedIn: 'root',
@@ -10,9 +12,12 @@ import {UserInfoService} from "../../services/user-info.service";
 export class ChatUnreadService {
   private unreadCount$ = new BehaviorSubject<number>(0);
   private chatClient: StreamChat;
+  private friendIds: number[] = [];
 
   constructor(
     private userInfoService: UserInfoService,
+    private localStorageService: LocalStorageService,
+    private socialService: SocialService,
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
 
@@ -22,6 +27,12 @@ export class ChatUnreadService {
         this.updateUnreadCount(event.total_unread_count);
       }
     });
+
+    // todo replace, friends should be part of userInfo
+    this.socialService.getFriends().subscribe((friends) => {
+      this.friendIds = friends.map((f) => f.id);
+    });
+
     this.userInfoService.userInfo$.subscribe((userInfo) => {
       if (!userInfo) {
         return;
@@ -34,6 +45,17 @@ export class ChatUnreadService {
           this.fetchUnreadCount().then(() => {
           });
         });
+      }
+    });
+
+    fromEventPattern(
+      (handler) => this.chatClient.on('user.presence.changed', handler),
+      (handler) => this.chatClient.off('user.presence.changed', handler)
+    ).subscribe((event: any) => {
+      if (this.friendIds.includes(event.user?.id)) {
+        if (event.user.online) {
+          this.localStorageService.saveLastSeen(event.user.id, new Date());
+        }
       }
     });
   }
