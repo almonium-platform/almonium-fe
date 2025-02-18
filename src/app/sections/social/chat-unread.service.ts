@@ -53,9 +53,7 @@ export class ChatUnreadService {
       (handler) => this.chatClient.off('user.presence.changed', handler)
     ).subscribe((event: any) => {
       if (this.friendIds.includes(event.user?.id)) {
-        if (event.user.online) {
-          this.localStorageService.saveLastSeen(event.user.id, new Date());
-        }
+        this.localStorageService.saveLastSeen(event.user.id, new Date());
       }
     });
   }
