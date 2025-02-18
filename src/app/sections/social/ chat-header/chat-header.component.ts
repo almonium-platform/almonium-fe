@@ -7,7 +7,7 @@ import {
   CustomTemplatesService,
   DefaultStreamChatGenerics
 } from 'stream-chat-angular';
-import {Subscription} from "rxjs";
+import {fromEventPattern, Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
 import {DatePipe, NgIf, NgStyle} from "@angular/common";
@@ -56,14 +56,17 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
-  activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
-  canReceiveConnectEvents: boolean | undefined;
+  private activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
+  protected canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
   protected isSelfChat: boolean | undefined;
+
   private subscriptions: Subscription[] = [];
+  private presenceSubscription: Subscription | undefined;
+
   private chatClient = StreamChat.getInstance(environment.streamChatApiKey);
-  lastActiveTime: Date | null | undefined;
   private interlocutorId: string | undefined;
+  protected lastActiveTime: Date | null | undefined;
 
   constructor(
     private channelService: ChannelService,
@@ -82,10 +85,27 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
         }
         if (this.isPrivateChat) {
           this.fetchInterlocutorLastActive();
+          this.subscribeToPresenceChanges();
         }
-        this.saveLastOnline();
       })
     );
+  }
+
+  private subscribeToPresenceChanges(): void {
+    if (!this.interlocutorId) return;
+
+    this.presenceSubscription = fromEventPattern(
+      (handler) => this.chatClient.on('user.presence.changed', handler),
+      (handler) => this.chatClient.off('user.presence.changed', handler)
+    ).subscribe((event: any) => {
+      if (event.user?.id === this.interlocutorId) {
+        if (event.user.online && this.interlocutorId) {
+          this.localStorageService.saveLastSeen(this.interlocutorId, new Date());
+          this.lastActiveTime = new Date();
+        }
+        this.cdRef.detectChanges();
+      }
+    });
   }
 
   ngOnChanges(): void {
@@ -105,6 +125,9 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+    if (this.presenceSubscription) {
+      this.presenceSubscription.unsubscribe();
+    }
     this.saveLastOnline();
   }
 
@@ -128,34 +151,39 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
 
   private fetchInterlocutorLastActive() {
     const members = this.activeChannel?.state?.members;
-    if (members) {
-      const interlocutor = Object.values(members).find(
-        (member) => member.user?.id !== this.chatClient.userID
-      );
+    if (!members) return;
 
-      if (interlocutor?.user?.id) {
-        this.interlocutorId = interlocutor.user.id;
+    const interlocutor = Object.values(members).find(
+      (member) => member.user?.id !== this.chatClient.userID
+    );
 
-        const localLastSeen = this.localStorageService.getLastSeen(this.interlocutorId);
+    if (!interlocutor?.user?.id) return;
 
-        this.chatClient.queryUsers({id: {$in: [this.interlocutorId]}})
-          .then((response) => {
-            const users = response.users;
-            if (users.length > 0) {
-              const apiLastActive = users[0].last_active ? new Date(users[0].last_active) : null;
+    this.interlocutorId = interlocutor.user.id;
 
-              // Use the most recent last seen
-              this.lastActiveTime = (localLastSeen && apiLastActive && localLastSeen > apiLastActive)
-                ? localLastSeen
-                : apiLastActive;
+    // Set last seen immediately to avoid UI flicker
+    const localLastSeen = this.localStorageService.getLastSeen(this.interlocutorId);
+    this.lastActiveTime = localLastSeen;
 
-              this.cdRef.detectChanges();
-            }
-          })
-          .catch((error) => {
-            console.error('Error querying users:', error);
-          });
-      }
-    }
+    this.chatClient.queryUsers({id: {$in: [this.interlocutorId]}})
+      .then((response) => {
+        const user = response.users?.[0];
+        if (!user) return;
+
+        const apiLastActive = user.last_active ? new Date(user.last_active) : null;
+
+        // Use the most recent last seen timestamp
+        this.lastActiveTime = (localLastSeen && apiLastActive && localLastSeen > apiLastActive)
+          ? localLastSeen
+          : apiLastActive;
+
+        // Only update local storage if API has more recent data
+        if (this.interlocutorId && apiLastActive && (!localLastSeen || apiLastActive > localLastSeen)) {
+          this.localStorageService.saveLastSeen(this.interlocutorId, apiLastActive);
+        }
+
+        this.cdRef.detectChanges();
+      })
+      .catch((error) => console.error('Error querying users:', error));
   }
 }
