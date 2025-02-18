@@ -446,9 +446,25 @@
   border: none;
 }
 
+.single-digit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; /* Default size for single digit */
+  height: 20px;
+  min-width: 20px;
+  padding: 0 4px; /* Ensures double-digit numbers have more space */
+  border-radius: 50%; /* Default: fully circular */
+}
+
 // unread messages indicator
 ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
   background: var(--chat-accent-color);
+}
+
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
+  padding: 0 6px;
 }
 
 // chat window, unread messages notification

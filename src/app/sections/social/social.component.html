@@ -400,7 +400,7 @@
                   *ngIf="unreadCount"
                   data-testid="unread-badge"
                   class="str-chat__channel-preview-unread-badge"
-                >
+                  [ngClass]="{'single-digit': unreadCount <= 9}">
                   {{ unreadCount }}
                 </div>
                 <lucide-icon name="bell-off"
