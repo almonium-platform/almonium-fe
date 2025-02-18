@@ -13,6 +13,7 @@ import {AppConstants} from "../../../app.constants";
 import {DatePipe, NgIf, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
+import {LocalStorageService} from "../../../services/local-storage.service";
 
 @Component({
   selector: 'app-chat-header',
@@ -61,12 +62,14 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   protected isSelfChat: boolean | undefined;
   private subscriptions: Subscription[] = [];
   private chatClient = StreamChat.getInstance(environment.streamChatApiKey);
-  lastActiveTime: Date | undefined;
+  lastActiveTime: Date | null | undefined;
+  private interlocutorId: string | undefined;
 
   constructor(
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
+    private localStorageService: LocalStorageService,
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((c) => {
@@ -77,9 +80,10 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
         if (capabilities) {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
         }
-        if (this.isPrivateChat && !this.isSelfChat) {
+        if (this.isPrivateChat) {
           this.fetchInterlocutorLastActive();
         }
+        this.saveLastOnline();
       })
     );
   }
@@ -101,6 +105,13 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+    this.saveLastOnline();
+  }
+
+  private saveLastOnline() {
+    if (this.isPrivateChat && this.interlocutorId && this.isInterlocutorOnline) {
+      this.localStorageService.saveLastSeen(this.interlocutorId, new Date());
+    }
   }
 
   get memberCountParam() {
@@ -121,13 +132,23 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
       const interlocutor = Object.values(members).find(
         (member) => member.user?.id !== this.chatClient.userID
       );
+
       if (interlocutor?.user?.id) {
-        this.chatClient.queryUsers({id: {$in: [interlocutor.user.id]}})
+        this.interlocutorId = interlocutor.user.id;
+
+        const localLastSeen = this.localStorageService.getLastSeen(this.interlocutorId);
+
+        this.chatClient.queryUsers({id: {$in: [this.interlocutorId]}})
           .then((response) => {
             const users = response.users;
             if (users.length > 0) {
-              const user = users[0];
-              this.updateLastActiveTime(user.last_active);
+              const apiLastActive = users[0].last_active ? new Date(users[0].last_active) : null;
+
+              // Use the most recent last seen
+              this.lastActiveTime = (localLastSeen && apiLastActive && localLastSeen > apiLastActive)
+                ? localLastSeen
+                : apiLastActive;
+
               this.cdRef.detectChanges();
             }
           })
@@ -136,9 +157,5 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
           });
       }
     }
-  }
-
-  private updateLastActiveTime(lastActive: Date | string | null | undefined): void {
-    this.lastActiveTime = lastActive ? new Date(lastActive) : undefined;
   }
 }

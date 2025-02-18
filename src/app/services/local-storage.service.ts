@@ -8,6 +8,7 @@ const CURRENT_LANGUAGE_KEY = 'current_language';
 const LANG_COLOR_KEY = 'langColors';
 const AUTH_METHODS_KEY = 'auth_methods';
 const SUPPORTED_LANGUAGES_KEY = 'supported_languages';
+const LAST_SEEN_KEY = 'last_seen_users';
 
 @Injectable({
   providedIn: 'root'
@@ -93,6 +94,18 @@ export class LocalStorageService {
 
   removeSupportedLanguages(): void {
     this.removeItem(SUPPORTED_LANGUAGES_KEY);
+  }
+
+  saveLastSeen(userId: string, timestamp: Date): void {
+    const lastSeenData = this.getItem<{ [key: string]: string }>(LAST_SEEN_KEY) || {};
+    lastSeenData[userId] = timestamp.toISOString();
+    this.saveItem(LAST_SEEN_KEY, lastSeenData);
+  }
+
+  // Retrieve last seen timestamp for a user
+  getLastSeen(userId: string): Date | null {
+    const lastSeenData = this.getItem<{ [key: string]: string }>(LAST_SEEN_KEY);
+    return lastSeenData?.[userId] ? new Date(lastSeenData[userId]) : null;
   }
 
   public clearUserRelatedData(): void {
