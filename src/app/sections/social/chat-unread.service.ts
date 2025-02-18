@@ -26,8 +26,15 @@ export class ChatUnreadService {
       if (!userInfo) {
         return;
       }
-      this.fetchUnreadCount().then(() => {
-      });
+      if (!this.chatClient.user) {
+        this.chatClient.connectUser(
+          {id: userInfo.id},
+          userInfo.streamChatToken
+        ).then(() => {
+          this.fetchUnreadCount().then(() => {
+          });
+        });
+      }
     });
   }
 
