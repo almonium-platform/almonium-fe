@@ -12,6 +12,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
 import {DatePipe, NgIf, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
+import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 
 @Component({
   selector: 'app-chat-header',
@@ -28,7 +29,7 @@ import {environment} from "../../../../environments/environment";
         </ng-container>
         <ng-container *ngIf="canReceiveConnectEvents">
           <ng-container *ngIf="isPrivateChat">
-            {{ isInterlocutorOnline ? 'online' : 'last seen ' + (lastActiveTime | date: 'short') }}
+            {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
           </ng-container>
           <ng-container *ngIf="!isPrivateChat">
             {{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }}
@@ -41,7 +42,7 @@ import {environment} from "../../../../environments/environment";
     TranslateModule,
     NgStyle,
     NgIf,
-    DatePipe
+    RelativeTimePipe
   ],
   styles: [`
     .str-chat__channel-header-info {
@@ -60,13 +61,12 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   protected isSelfChat: boolean | undefined;
   private subscriptions: Subscription[] = [];
   private chatClient = StreamChat.getInstance(environment.streamChatApiKey);
-  lastActiveTime: string | undefined;
+  lastActiveTime: Date | undefined;
 
   constructor(
     private channelService: ChannelService,
     private customTemplatesService: CustomTemplatesService,
     private cdRef: ChangeDetectorRef,
-    private datePipe: DatePipe
   ) {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((c) => {
@@ -139,8 +139,6 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   }
 
   private updateLastActiveTime(lastActive: Date | string | null | undefined): void {
-    this.lastActiveTime = lastActive
-      ? this.datePipe.transform(lastActive, 'short') ?? 'N/A'
-      : undefined;
+    this.lastActiveTime = lastActive ? new Date(lastActive) : undefined;
   }
 }
