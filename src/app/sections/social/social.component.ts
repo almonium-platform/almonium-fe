@@ -287,19 +287,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private listenToChannelSearch() {
     combineLatest([
       this.chatFormControl.valueChanges.pipe(
-        startWith(this.chatFormControl.value || ''), // Emit initial value immediately
+        startWith(this.chatFormControl.value || ''),
         debounceTime(300),
         distinctUntilChanged()
       ),
-      this.chatService.user$,
       this.showHiddenChannels$,
     ])
       .pipe(
         takeUntil(this.destroy$),
-        switchMap(async ([query, user]) => {
-          if (!user) {
-            return EMPTY; // Prevent API calls if the user is not available
-          }
+        switchMap(async ([query]) => {
+          const user = await firstValueFrom(this.chatService.user$); // ✅ Get user only when needed
+          if (!user) return;
 
           const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
 
