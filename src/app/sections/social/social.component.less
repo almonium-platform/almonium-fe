@@ -446,6 +446,50 @@
   border: none;
 }
 
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
+  background: var(--chat-accent-color);
+}
+
+// chat window, unread messages notification
+::ng-deep .str-chat__unread-messages-notification button {
+  color: white;
+  background-color: var(--chat-accent-color);
+
+  .str-chat__icon {
+    color: white;
+  }
+}
+
+
+// unread message separator in chat window
+::ng-deep .str-chat__unread-messages-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: white;
+  position: relative;
+  margin: 1rem 0;
+  background-color: transparent;
+}
+
+::ng-deep .str-chat__unread-messages-separator::before,
+::ng-deep .str-chat__unread-messages-separator::after {
+  content: "";
+  flex: none;
+  width: 38%;
+  height: var(--str-chat__spacing-px);
+  background-color: white;
+}
+
+::ng-deep .str-chat__unread-messages-separator::before {
+  margin-right: 1rem;
+}
+
+::ng-deep .str-chat__unread-messages-separator::after {
+  margin-left: 1rem;
+}
+
 @media (max-width: 400px) {
   .drawer {
     min-width: 100vw;
