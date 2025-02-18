@@ -1,3 +1,10 @@
+<ng-template #customChannelActions>
+  <lucide-icon name="circle-arrow-left"
+               [size]="20"
+               (click)="backToChannels()"
+               class="mr-2 block sm:hidden"
+  ></lucide-icon>
+</ng-template>
 <tui-drawer
   *tuiPopup="isDrawerOpened()"
   direction="left"
@@ -174,7 +181,7 @@
 </tui-drawer>
 
 <div class="super-container">
-  <div class="left-container">
+  <div class="left-container" [ngClass]="{'hidden': isChatOpen}">
     <div class="chats-container">
       <header class="chats-header">
         <lucide-icon name="menu"
@@ -475,7 +482,7 @@
     </div>
   </div>
 
-  <div class="right-container scrollable">
+  <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <div class="chat-window">
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">

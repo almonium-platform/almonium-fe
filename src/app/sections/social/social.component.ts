@@ -28,6 +28,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {
   AvatarContext,
   AvatarLocation,
+  ChannelActionsContext,
   ChannelHeaderInfoContext,
   ChannelService,
   ChatClientService,
@@ -84,6 +85,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
+  @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -122,6 +124,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected hoveredChannel: Channel<DefaultStreamChatGenerics> | null = null;
   protected showContent = false;
   protected hoverTimeout: any;
+  protected isChatOpen: boolean = false;
 
   constructor(
     private socialService: SocialService,
@@ -169,6 +172,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe((channel) => {
         if (channel) {
           this.setChatTitle(channel);
+          this.openChat();
         }
         this.chatUnreadService.fetchUnreadCount();
       });
@@ -217,6 +221,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
     this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
     this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
+    this.customTemplatesService.channelActionsTemplate$.next(this.customChannelActions);
   }
 
   private setChatTitle(channel: Channel<DefaultStreamChatGenerics>) {
@@ -781,5 +786,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.drawerUserTiles = [];
     this.drawerHeader = 'Menu';
     this.drawerIcon = 'menu';
+  }
+
+  openChat() {
+    this.isChatOpen = true;
+  }
+
+  backToChannels() {
+    this.isChatOpen = false;
   }
 }
