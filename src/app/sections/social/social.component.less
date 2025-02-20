@@ -564,10 +564,6 @@
   }
 }
 
-.search-open {
-
-}
-
 .resizer {
   width: 3px;
   background: var(--border-color);
@@ -575,4 +571,44 @@
   border-left: 1px solid var(--border-color);
   cursor: ew-resize;
   user-select: none;
+}
+
+.left-container.collapsed {
+  ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
+    display: none;
+  }
+
+  width: 76px;
+  min-width: unset;
+
+  .chats-container {
+    .chats-header {
+      .header-text.chats {
+        display: none;
+      }
+
+      .hidden-chat-icon {
+        display: none;
+      }
+    }
+
+    .friend-input {
+      display: none;
+    }
+
+    .search-header {
+      display: flex;
+      justify-content: center;
+      padding: 1rem 0;
+
+      &:hover {
+        background-color: var(--grey-color);
+        cursor: pointer;
+      }
+
+      .search-icon {
+        display: inline;
+      }
+    }
+  }
 }

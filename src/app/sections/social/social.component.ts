@@ -797,13 +797,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isChatOpen = false;
   }
 
-  searchOpen = false;
-
   openSearch() {
-    this.searchOpen = true;
+    if (!this.isCollapsed) return;
+    this.isCollapsed = false;
+    this.isManuallyResized = true;
+    this.sidebarWidth = 300;
   }
 
-  sidebarWidth = 250; // Default width
+  sidebarWidth = 300; // Default width
   isResizing = false;
   isCollapsed = false;
   isManuallyResized = false;

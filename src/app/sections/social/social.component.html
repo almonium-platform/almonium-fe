@@ -173,9 +173,7 @@
   </div>
 </tui-drawer>
 
-<div class="super-container"
-     [ngClass]="searchOpen ? 'search-open' : ''"
->
+<div class="super-container">
   <div class="left-container"
        [ngClass]="{
          'hidden': isChatOpen,
@@ -196,10 +194,10 @@
                      (click)="toggleHiddenChats()"
         ></lucide-icon>
       </header>
-      <div class="search-header">
+      <div class="search-header"
+           (click)="openSearch()">
         <lucide-icon name="search"
                      class="search-icon"
-                     (click)="openSearch()"
         ></lucide-icon>
 
         <tui-input
