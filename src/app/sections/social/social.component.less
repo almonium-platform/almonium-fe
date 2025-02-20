@@ -91,6 +91,7 @@
     .chats-header {
       display: flex;
       flex-direction: row;
+      justify-content: center;
       gap: 1rem;
       padding: 1rem;
     }
@@ -506,13 +507,75 @@
   margin-left: 1rem;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 640px) {
   .drawer {
     min-width: 100vw;
   }
 }
 
-@media (max-width: 768px) {
+.hidden-chat-icon {
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.search-icon {
+  display: none;
+}
+
+// from width 640px to 1024px
+@media (min-width: 640px) and (max-width: 1024px) {
+  .back-to-channels {
+    display: none;
+  }
+
+  .left-container {
+    width: 76px;
+
+    .chats-container {
+      .chats-header {
+        .header-text.chats {
+          display: none;
+        }
+
+        .hidden-chat-icon {
+          display: none;
+        }
+      }
+
+      .friend-input {
+        display: none;
+      }
+
+      .search-header {
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0;
+
+        &:hover {
+          background-color: var(--grey-color);
+          cursor: pointer;
+        }
+
+        .search-icon {
+          display: inline;
+        }
+      }
+    }
+  }
+
+
+  ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
+    display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .back-to-channels {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
   .right-container {
     display: none;
   }
@@ -531,4 +594,8 @@
     display: block;
     width: 100%;
   }
+}
+
+.search-open {
+
 }

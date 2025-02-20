@@ -795,4 +795,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   backToChannels() {
     this.isChatOpen = false;
   }
+
+  searchOpen = false;
+  openSearch() {
+    this.searchOpen = true;
+  }
 }

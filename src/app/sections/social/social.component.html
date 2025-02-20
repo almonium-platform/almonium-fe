@@ -1,10 +1,3 @@
-<ng-template #customChannelActions>
-  <lucide-icon name="circle-arrow-left"
-               [size]="20"
-               (click)="backToChannels()"
-               class="mr-2 block sm:hidden"
-  ></lucide-icon>
-</ng-template>
 <tui-drawer
   *tuiPopup="isDrawerOpened()"
   direction="left"
@@ -180,7 +173,9 @@
   </div>
 </tui-drawer>
 
-<div class="super-container">
+<div class="super-container"
+     [ngClass]="searchOpen ? 'search-open' : ''"
+>
   <div class="left-container" [ngClass]="{'hidden': isChatOpen}">
     <div class="chats-container">
       <header class="chats-header">
@@ -189,23 +184,30 @@
                      (click)="openDrawerAndSetupData()"
         ></lucide-icon>
 
-        <p class="header-text">Chats</p>
+        <p class="header-text chats">Chats</p>
         <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
-                     class="ml-auto cursor-pointer"
+                     class="hidden-chat-icon"
                      (click)="toggleHiddenChats()"
         ></lucide-icon>
       </header>
-      <tui-input
-        [formControl]="chatFormControl"
-        [tuiTextfieldLabelOutside]="true"
-        class="friend-input shadowless-input"
-      >
-        Search
-        <input
-          tuiTextfieldLegacy
-          type="text"
-        />
-      </tui-input>
+      <div class="search-header">
+        <lucide-icon name="search"
+                     class="search-icon"
+                     (click)="openSearch()"
+        ></lucide-icon>
+
+        <tui-input
+          [formControl]="chatFormControl"
+          [tuiTextfieldLabelOutside]="true"
+          class="friend-input shadowless-input"
+        >
+          Search
+          <input
+            tuiTextfieldLegacy
+            type="text"
+          />
+        </tui-input>
+      </div>
       <div class="channel-list scrollable">
 
         <stream-channel-list>
@@ -487,6 +489,13 @@
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">
           <app-chat-header [channel]="channel"></app-chat-header>
+        </ng-template>
+        <ng-template #customChannelActions>
+          <lucide-icon name="circle-arrow-left"
+                       [size]="20"
+                       (click)="backToChannels()"
+                       class="mr-2 block back-to-channels"
+          ></lucide-icon>
         </ng-template>
 
         <stream-channel-header></stream-channel-header>
