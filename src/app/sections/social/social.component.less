@@ -82,7 +82,7 @@
       }
     }
 
-    .friend-input {
+    .chat-input {
       --tui-radius-m: 2rem;
       --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
       padding: .5rem;
@@ -583,6 +583,11 @@
 
   .chats-container {
     .chats-header {
+      &:hover,
+      &:focus {
+        background-color: var(--grey-color);
+      }
+
       .header-text.chats {
         display: none;
       }
@@ -592,7 +597,7 @@
       }
     }
 
-    .friend-input {
+    .chat-input {
       display: none;
     }
 

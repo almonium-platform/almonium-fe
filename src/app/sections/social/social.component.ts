@@ -10,13 +10,20 @@ import {
   ViewChild
 } from "@angular/core";
 import {SocialService} from "./social.service";
-import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
+import {
+  TuiAlertService,
+  TuiDataList,
+  TuiDropdownDirective,
+  TuiPopup,
+  TuiScrollbar,
+  TuiTextfieldComponent
+} from "@taiga-ui/core";
 import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
@@ -87,6 +94,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
+  @ViewChild('chatSearch') chatSearchField!: TuiInputComponent;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -802,6 +810,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isCollapsed = false;
     this.isManuallyResized = true;
     this.sidebarWidth = 300;
+    setTimeout(() => {
+      this.chatSearchField?.nativeFocusableElement?.focus();
+    }, 100);
   }
 
   sidebarWidth = 300; // Default width
