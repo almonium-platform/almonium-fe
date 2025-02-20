@@ -331,6 +331,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             orConditions.push(
               {
                 "member.user.name": {$autocomplete: trimmedQuery},
+                name: AppConstants.PRIVATE_CHAT_NAME,
                 hidden: this.showHiddenChannels$.value,
               },
             );
@@ -361,7 +362,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           let finalFilters: Record<string, any> = {$or: orConditions};
-
+          console.log('Final filters:', finalFilters);
           try {
             this.channelService.reset();
             await this.channelService.init(finalFilters, undefined, undefined, false);
