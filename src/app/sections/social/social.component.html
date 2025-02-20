@@ -176,12 +176,13 @@
 <div class="super-container"
      [ngClass]="searchOpen ? 'search-open' : ''"
 >
-  <div class="left-container" [ngClass]="
-  {
-    'hidden': isChatOpen,
-    'collapsed': isCollapsed
-  }" [ngStyle]="isCollapsed ? {} : {}"
-  >
+  <div class="left-container"
+       [ngClass]="{
+         'hidden': isChatOpen,
+         'collapsed': isCollapsed
+       }"
+       [ngStyle]="isManuallyResized ? {'width.px': sidebarWidth} : {'flex': '1'}">
+
     <div class="chats-container">
       <header class="chats-header">
         <lucide-icon name="menu"
@@ -488,6 +489,8 @@
       }
     </div>
   </div>
+
+  <div class="resizer" (mousedown)="startResizing($event)"></div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <div class="chat-window">

@@ -803,5 +803,39 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.searchOpen = true;
   }
 
+  sidebarWidth = 250; // Default width
+  isResizing = false;
   isCollapsed = false;
+  isManuallyResized = false;
+
+  startResizing(event: MouseEvent) {
+    this.isResizing = true;
+    this.isManuallyResized = true;
+    document.addEventListener('mousemove', this.resizeSidebar);
+    document.addEventListener('mouseup', this.stopResizing);
+  }
+
+  resizeSidebar = (event: MouseEvent) => {
+    if (!this.isResizing) return;
+
+    let newWidth = event.clientX;
+
+    // Collapse to avatar mode if width is too small
+    if (newWidth < 76) {
+      this.sidebarWidth = 76;
+      this.isCollapsed = true;
+    } else if (newWidth > 600) {
+      this.sidebarWidth = 600; // Prevent exceeding max width
+      this.isCollapsed = false;
+    } else {
+      this.sidebarWidth = newWidth;
+      this.isCollapsed = false;
+    }
+  };
+
+  stopResizing = () => {
+    this.isResizing = false;
+    document.removeEventListener('mousemove', this.resizeSidebar);
+    document.removeEventListener('mouseup', this.stopResizing);
+  };
 }
