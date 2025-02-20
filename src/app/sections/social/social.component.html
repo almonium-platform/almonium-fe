@@ -176,7 +176,12 @@
 <div class="super-container"
      [ngClass]="searchOpen ? 'search-open' : ''"
 >
-  <div class="left-container" [ngClass]="{'hidden': isChatOpen}">
+  <div class="left-container" [ngClass]="
+  {
+    'hidden': isChatOpen,
+    'collapsed': isCollapsed
+  }" [ngStyle]="isCollapsed ? {} : {}"
+  >
     <div class="chats-container">
       <header class="chats-header">
         <lucide-icon name="menu"

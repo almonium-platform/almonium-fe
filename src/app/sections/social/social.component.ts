@@ -17,7 +17,7 @@ import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} fr
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
-import {NgClass, NgIf, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
@@ -78,6 +78,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
     AvatarComponent,
     CustomChatAvatarComponent,
     TuiActiveZone,
+    NgStyle,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -797,7 +798,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   searchOpen = false;
+
   openSearch() {
     this.searchOpen = true;
   }
+
+  isCollapsed = false;
 }
