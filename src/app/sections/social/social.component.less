@@ -13,13 +13,17 @@
   height: calc(100vh - var(--header-height));
   background-color: var(--main-bg-color);
   width: 100%;
-  padding: 1rem 1rem 0 1rem;
+  padding-top: 1rem;
+  padding-right: 1.5rem;
 
   .chat-window {
     width: 100%;
     height: 100%;
-    border-radius: 2rem 2rem 0 0; /* Only top corners are rounded */
+    border-radius: 0 2rem 0 0; /* Only top corners are rounded */
     background-color: white;
+    border-left: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
   }
 
   stream-channel {
@@ -52,7 +56,8 @@
     display: flex;
     flex-direction: column;
     background-color: white;
-    border-radius: 0 2rem 0 0; /* Only top-right corner is rounded */
+    border-radius: 0 0 0 0; /* Only top-right corner is rounded */
+    border-top: 1px solid var(--border-color);
     width: 100%;
     flex: 1; /* Ensures it takes up all available space inside .left-container */
     min-height: 0; /* Prevents flexbox overflow issues */
@@ -505,6 +510,16 @@
 
 ::ng-deep .str-chat__unread-messages-separator::after {
   margin-left: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .right-container {
+    padding-right: 0;
+
+    .chat-window {
+      border-radius: 0;
+    }
+  }
 }
 
 @media (max-width: 640px) {
