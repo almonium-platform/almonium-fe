@@ -198,13 +198,27 @@
         <lucide-icon name="menu"
                      class="cursor-pointer"
                      (click)="openDrawerAndSetupData()"
-        ></lucide-icon>
+                     tuiHintAppearance="dark"
+                     tuiHintDirection="bottom"
+                     [tuiHint]="menuTooltip"
+        >
+          <ng-template #menuTooltip>
+            <div>Your friends, requests, and more</div>
+          </ng-template>
+        </lucide-icon>
 
         <p class="header-text chats">Chats</p>
         <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
                      class="hidden-chat-icon"
                      (click)="toggleHiddenChats()"
-        ></lucide-icon>
+                     tuiHintAppearance="dark"
+                     tuiHintDirection="bottom"
+                     [tuiHint]="tooltipTemplate"
+        >
+          <ng-template #tooltipTemplate>
+            <div>{{ hiddenChatsTooltip }}</div>
+          </ng-template>
+        </lucide-icon>
       </header>
       <div class="search-header"
            (click)="openSearch()">

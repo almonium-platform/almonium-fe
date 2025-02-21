@@ -16,7 +16,14 @@ import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUnti
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
+import {
+  TuiAlertService,
+  TuiDataList,
+  TuiDropdownDirective,
+  TuiHintDirective,
+  TuiPopup,
+  TuiScrollbar
+} from "@taiga-ui/core";
 import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
@@ -80,6 +87,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
     CustomChatAvatarComponent,
     TuiActiveZone,
     NgStyle,
+    TuiHintDirective,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -873,4 +881,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     document.removeEventListener('mousemove', this.resizeSidebar);
     document.removeEventListener('mouseup', this.stopResizing);
   };
+
+  get hiddenChatsTooltip() {
+    return this.showHiddenChannels$.value ? 'Switch to visible chats' : 'Switch to hidden chats';
+  }
 }
