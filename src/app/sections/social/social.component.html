@@ -57,10 +57,49 @@
                           [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
           }
         } @else {
-          @if (drawerMode !== 'menu' && drawerUserTiles.length === 0) {
+          @if (drawerMode !== 'menu' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
             <p class="no-results">
               {{ noResultMessage }}
             </p>
+          }
+          @if (drawerMode === 'friends') {
+            <div class="search-container">
+              <tui-input
+                [formControl]="friendFormControl"
+                [tuiTextfieldLabelOutside]="true"
+                class="username-input shadowless-input"
+                tuiTextfieldIconLeft="@tui.user-search"
+              >
+                Search
+                <input
+                  tuiTextfieldLegacy
+                  type="text"
+                  (keydown.enter)="searchNewUsers()"
+                />
+              </tui-input>
+              <div class="tiles">
+                @for (friend of matchedUsers; track friend) {
+                  <div class="user-tile card">
+                    <app-avatar [avatarUrl]="friend.avatarUrl"
+                                [username]="friend.username"
+                                [size]="'m'"
+                    ></app-avatar>
+                    <p class="username">{{ friend.username }}</p>
+                    <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
+                                 class="friend-action"
+                                 (click)="sendFriendRequest(friend.id)"
+                                 [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
+                                 [size]="20"
+                    ></lucide-icon>
+                  </div>
+                }
+                @if (drawerUserTiles.length === 0 && friendFormControl.value !== '') {
+                  <p class="no-results">
+                    No one matched your search.
+                  </p>
+                }
+              </div>
+            </div>
           }
           @for (friend of drawerUserTiles; track friend) {
             <div class="user-tile card">
@@ -536,39 +575,5 @@
         <stream-message-input></stream-message-input>
       </stream-channel>
     </div>
-    @if (false) {
-      <div class="search-container">
-        <tui-input
-          [formControl]="usernameFormControl"
-          [tuiTextfieldLabelOutside]="true"
-          class="username-input"
-          tuiTextfieldIconLeft="@tui.user-search"
-        >
-          Type a username
-          <input
-            tuiTextfieldLegacy
-            type="text"
-            (keydown.enter)="searchNewUsers()"
-          />
-        </tui-input>
-        <div class="tiles">
-          @for (friend of matchedUsers; track friend) {
-            <div class="user-tile card">
-              <app-avatar [avatarUrl]="friend.avatarUrl"
-                          [username]="friend.username"
-                          [size]="'m'"
-              ></app-avatar>
-              <p class="username">{{ friend.username }}</p>
-              <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
-                           class="friend-action"
-                           (click)="sendFriendRequest(friend.id)"
-                           [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
-                           [size]="20"
-              ></lucide-icon>
-            </div>
-          }
-        </div>
-      </div>
-    }
   </div>
 </div>

@@ -103,6 +103,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private userInfo: UserInfo | null = null;
 
   protected usernameFormControl = new FormControl<string>('');
+  protected friendFormControl = new FormControl<string>('');
   protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
   protected matchedUsers: UserPublicProfile[] = [];
@@ -252,7 +253,15 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.listenToUsernameField();
+    this.listenToFriendSearch();
     this.listenToChannelSearch();
+  }
+
+  protected listenToFriendSearch() {
+    this.friendFormControl.valueChanges.subscribe(value => {
+      if (value === null) return;
+      this.drawerUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
+    });
   }
 
   ngAfterViewInit() {
@@ -819,6 +828,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   setDrawerMode(mode: string) {
     this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'menu';
+    this.friendFormControl.setValue(''); // Clear the search field when exiting the friends section
     this.openDrawerAndSetupData();
   }
 
