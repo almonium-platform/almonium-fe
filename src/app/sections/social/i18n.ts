@@ -12,7 +12,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
     'Connection failure, reconnecting now...',
   Delete: 'Delete',
   Delivered: 'Delivered',
-  'Edit Message': 'Edit Message',
+  'Edit Message': 'Edit',
   'Edit message request failed': 'Edit message request failed',
   'Emoji matching': 'Emoji matching',
   'Empty message...': 'Empty message...',

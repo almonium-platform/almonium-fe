@@ -16,14 +16,7 @@ import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUnti
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {
-  TuiAlertService,
-  TuiDataList,
-  TuiDropdownDirective,
-  TuiPopup,
-  TuiScrollbar,
-  TuiTextfieldComponent
-} from "@taiga-ui/core";
+import {TuiAlertService, TuiDataList, TuiDropdownDirective, TuiPopup, TuiScrollbar} from "@taiga-ui/core";
 import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
@@ -41,6 +34,7 @@ import {
   ChatClientService,
   CustomTemplatesService,
   DefaultStreamChatGenerics,
+  MessageActionsBoxContext,
   MessageService,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
@@ -95,6 +89,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
   @ViewChild('chatSearch') chatSearchField!: TuiInputComponent;
+  @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -134,6 +129,32 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected showContent = false;
   protected hoverTimeout: any;
   protected isChatOpen: boolean = false;
+  protected filteredActions: string[] = [
+    "cast-poll-vote",
+    "connect-events",
+    "create-attachment",
+    "delete-channel",
+    "delete-own-message",
+    "flag-message",
+    "join-channel",
+    "leave-channel",
+    "mute-channel",
+    "query-poll-votes",
+    "quote-message",
+    "read-events",
+    "search-messages",
+    "send-custom-events",
+    "send-links",
+    "send-message",
+    "send-poll",
+    "send-reaction",
+    "send-typing-events",
+    "typing-events",
+    "update-channel",
+    "update-channel-members",
+    "update-own-message",
+    "upload-file"
+  ];
 
   constructor(
     private socialService: SocialService,
@@ -231,6 +252,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
     this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
     this.customTemplatesService.channelActionsTemplate$.next(this.customChannelActions);
+    this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
   }
 
   private setChatTitle(channel: Channel<DefaultStreamChatGenerics>) {

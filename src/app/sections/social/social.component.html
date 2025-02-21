@@ -172,6 +172,18 @@
     </tui-scrollbar>
   </div>
 </tui-drawer>
+<ng-template #customMessageActions
+             let-isMine="isMine"
+             let-message="message"
+             let-messageTextHtmlElement="messageTextHtmlElement"
+             let-enabledActions="enabledActions">
+  <stream-message-actions-box
+    [isMine]="isMine"
+    [message]="message"
+    [messageTextHtmlElement]="messageTextHtmlElement"
+    [enabledActions]="filteredActions"
+  ></stream-message-actions-box>
+</ng-template>
 
 <div class="super-container">
   <div class="left-container"
