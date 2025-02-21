@@ -484,6 +484,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(id, FriendshipAction.CANCEL).subscribe({
       next: () => {
         this.outgoingRequests = this.outgoingRequests.filter(request => request.friendshipId !== id);
+        this.drawerUserTiles = this.outgoingRequests;
         this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
       },
       error: (error) => {
