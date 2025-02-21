@@ -23,6 +23,10 @@
   <div class="drawer-container">
     @if (drawerMode === 'menu') {
       <div class="menu-tiles">
+        <div class="menu-tile card" (click)="setDrawerMode('search')">
+          <lucide-icon name="user-round-search" class="menu-icon" [size]="24"></lucide-icon>
+          <p class="menu-text">Search</p>
+        </div>
         <div class="menu-tile card" (click)="setDrawerMode('friends')">
           <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Friends</p>
@@ -57,7 +61,44 @@
                           [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
           }
         } @else {
-          @if (drawerMode !== 'menu' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
+          @if (drawerMode === 'search') {
+            <div class="search-container">
+              <tui-input
+                [formControl]="usernameFormControl"
+                [tuiTextfieldLabelOutside]="true"
+                class="username-input shadowless-input"
+                tuiTextfieldIconLeft="@tui.user-search"
+              >
+                Search
+                <input
+                  tuiTextfieldLegacy
+                  type="text"
+                />
+              </tui-input>
+              @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
+                <p class="no-results">
+                  No one matched your search.
+                </p>
+              }
+            </div>
+            <div class="tiles">
+              @for (friend of matchedUsers; track friend) {
+                <div class="user-tile card">
+                  <app-avatar [avatarUrl]="friend.avatarUrl"
+                              [username]="friend.username"
+                              [size]="'m'"
+                  ></app-avatar>
+                  <p class="username">{{ friend.username }}</p>
+                  <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
+                               class="friend-action positive"
+                               (click)="sendFriendRequest(friend.id)"
+                               [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
+                               [size]="20"
+                  ></lucide-icon>
+                </div>
+              }
+            </div>
+          } @else if (drawerMode !== 'menu' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
             <p class="no-results">
               {{ noResultMessage }}
             </p>
@@ -74,31 +115,8 @@
                 <input
                   tuiTextfieldLegacy
                   type="text"
-                  (keydown.enter)="searchNewUsers()"
                 />
               </tui-input>
-              <div class="tiles">
-                @for (friend of matchedUsers; track friend) {
-                  <div class="user-tile card">
-                    <app-avatar [avatarUrl]="friend.avatarUrl"
-                                [username]="friend.username"
-                                [size]="'m'"
-                    ></app-avatar>
-                    <p class="username">{{ friend.username }}</p>
-                    <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
-                                 class="friend-action"
-                                 (click)="sendFriendRequest(friend.id)"
-                                 [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
-                                 [size]="20"
-                    ></lucide-icon>
-                  </div>
-                }
-                @if (drawerUserTiles.length === 0 && friendFormControl.value !== '') {
-                  <p class="no-results">
-                    No one matched your search.
-                  </p>
-                }
-              </div>
             </div>
           }
           @for (friend of drawerUserTiles; track friend) {
@@ -527,30 +545,6 @@
           </ng-template>
         </stream-channel-list>
       </div>
-
-      <!-- Show matched friends when searching -->
-      @if (!isNotFiltered() && matchedFriends.length > 0) {
-        <div class="matched-friends-container">
-          @for (friend of matchedFriends; track friend) {
-            <div class="chat-tile"
-                 (click)="sendFriendRequest(friend.id)"
-            >
-              <app-avatar [avatarUrl]="friend.avatarUrl"
-                          [username]="friend.username"
-                          [size]="'m'">
-              </app-avatar>
-              <p class="username">{{ friend.username }}</p>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Show message when no matches found after searching -->
-      @if (!isNotFiltered() && nothingFound) {
-        <div class="no-matches-container">
-          <p class="no-matches-text">No matches found.</p>
-        </div>
-      }
     </div>
   </div>
 

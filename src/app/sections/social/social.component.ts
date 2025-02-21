@@ -107,19 +107,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
   protected matchedUsers: UserPublicProfile[] = [];
-  protected matchedFriends: Friend[] = [];
   protected requestedIds: number[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
   protected drawerUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
-  protected filteredFriends: Friend[] = [];
   protected requestsIndex: number = 0;
 
   // drawer
   protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'menu' = 'menu';
+  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' | 'menu' = 'menu';
   protected drawerHeader: string = 'Menu';
   protected loadingFriends: boolean = false;
   protected loadingBlocked: boolean = false;
@@ -441,7 +439,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loadingFriends = true;
     this.socialService.getFriends().subscribe(friends => {
       this.friends = friends;
-      this.filteredFriends = friends;
       this.drawerUserTiles = friends;
       this.loadingFriends = false;
     });
@@ -453,12 +450,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.blockedUsers = blocked;
       this.drawerUserTiles = blocked;
       this.loadingBlocked = false;
-    });
-  }
-
-  searchNewUsers() {
-    this.socialService.searchAllByUsername(this.usernameFormControl.value ?? '').subscribe(friends => {
-      console.log(friends);
     });
   }
 
@@ -589,7 +580,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
         this.requestedIds.push(id);
         setTimeout(() => {
-          this.getOutgoingRequests();
           this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
           this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
         }, 2000);
@@ -599,10 +589,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
       }
     });
-  }
-
-  protected isNotFiltered() {
-    return this.chatFormControl.value?.trim() === '';
   }
 
   protected openDrawerAndSetupData() {
@@ -627,12 +613,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.drawerHeader = 'Friends';
       this.getFriends();
       this.noResultMessage = `You don't have any friends yet.`;
-      // this.drawerUserTiles = this.filteredFriends;
     }
     if (this.drawerMode === 'blocked') {
       this.drawerHeader = 'Blocked';
       this.noResultMessage = `You haven't blocked anyone.`;
       this.getBlocked();
+    }
+    if (this.drawerMode === 'search') {
+      this.drawerHeader = 'Search';
     }
   }
 
@@ -828,14 +816,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   setDrawerMode(mode: string) {
     this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'menu';
-    this.friendFormControl.setValue(''); // Clear the search field when exiting the friends section
     this.openDrawerAndSetupData();
   }
 
   menuSetup() {
-    this.drawerUserTiles = [];
+    this.matchedUsers = [];
     this.drawerHeader = 'Menu';
+    this.friendFormControl.setValue('');
+    this.usernameFormControl.setValue('');
     this.drawerIcon = 'menu';
+    this.drawerUserTiles = [];
   }
 
   openChat() {
