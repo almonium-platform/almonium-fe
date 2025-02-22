@@ -47,7 +47,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   New: 'New',
   'New Messages!': 'New Messages!',
   'No results found': 'No results found',
-  'Nothing yet...': 'Be the first to send a message!',
+  'Nothing yet...': 'Nothing here... yet!',
   'Only visible to you': 'Only visible to you',
   'Open emoji picker': 'Open emoji picker',
   'People matching': 'People matching',
