@@ -133,7 +133,7 @@
       </div>
     </div>
 
-    @if (learners.length > 1) {
+    @if (isDeleteTargetLangButtonVisible) {
       <div class="danger section-block">
         <span class="danger-text">Danger Zone</span>
         <button class="btn btn-danger" (click)="deleteTargetLang()">

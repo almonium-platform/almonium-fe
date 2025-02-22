@@ -378,4 +378,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }
     return 'Activating language adds it to the navbar dropdown';
   }
+
+  get isDeleteTargetLangButtonVisible() {
+    return this.learners.filter((learner) => learner.active).length > 1;
+  }
 }
