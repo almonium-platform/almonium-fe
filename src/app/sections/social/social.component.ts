@@ -709,6 +709,40 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
+  isUnread(channel: Channel<DefaultStreamChatGenerics>) {
+    return channel.countUnread() > 0;
+  }
+
+  isLastMessageFromOtherUser(channel: Channel<DefaultStreamChatGenerics>): boolean {
+    const lastMessage = channel.state.messages[channel.state.messages.length - 1];
+    return (lastMessage && lastMessage.user?.id !== this.chatService.chatClient.userID);
+  }
+
+  markAsRead(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      channel.markRead().then(() => {
+      });
+    }, 30);
+  }
+
+  markAsUnread(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+
+    setTimeout(() => {
+      const lastMessage = channel.state.messages[channel.state.messages.length - 1];
+
+      // Only mark as unread if the last message was sent by someone else
+      if (lastMessage && this.isLastMessageFromOtherUser(channel)) {
+        channel.markUnread({message_id: lastMessage.id}).then(() => {
+        }).catch(err => console.error('Mark as unread failed', err));
+      } else {
+        console.warn('Cannot mark as unread: No valid message from another user');
+      }
+    }, 30);
+  }
+
   unmuteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
