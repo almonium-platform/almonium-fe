@@ -29,7 +29,7 @@ import {Subject, takeUntil} from "rxjs";
         >
           <app-dismiss-button
             (close)="close()"
-            [isOutside]="drawerState.outside"
+            [isOutside]="drawerState.closeBtnOutside"
           ></app-dismiss-button>
           <!-- Render the content if we have it -->
           @if (drawerState.content) {
@@ -143,6 +143,8 @@ export class PopupTemplateComponent implements OnInit, OnDestroy {
   }
 
   onClickOutside() {
+    if (this.drawerState.doNotTrackOutsideClick) return;
+
     if (this.drawerState.visible && !this.ignoreClicks) {
       this.close();
     }

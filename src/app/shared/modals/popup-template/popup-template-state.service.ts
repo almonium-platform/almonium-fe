@@ -3,10 +3,11 @@ import {BehaviorSubject, Observable} from 'rxjs';
 
 export interface DrawerState {
   visible: boolean;
-  outside: boolean;
+  closeBtnOutside: boolean;
   content?: any;
   type?: string;
   closing: boolean;
+  doNotTrackOutsideClick?: boolean;
 }
 
 @Injectable({
@@ -15,7 +16,7 @@ export interface DrawerState {
 export class PopupTemplateStateService {
   private drawerState = new BehaviorSubject<DrawerState>({
     visible: false,
-    outside: false,
+    closeBtnOutside: false,
     content: undefined,
     type: undefined,
     closing: false,
@@ -23,13 +24,14 @@ export class PopupTemplateStateService {
 
   drawerState$: Observable<DrawerState> = this.drawerState.asObservable();
 
-  open(content: any, type: string, outside: boolean = false) {
+  open(content: any, type: string, outside: boolean = false, doNotTrackOutsideClick: boolean = false) {
     this.drawerState.next({
       visible: true,
-      outside,
+      closeBtnOutside: outside,
       content,
       type,
       closing: false,
+      doNotTrackOutsideClick: doNotTrackOutsideClick,
     });
   }
 
@@ -44,7 +46,7 @@ export class PopupTemplateStateService {
       this.drawerState.next({
         ...current,
         visible: false,
-        outside: false,
+        closeBtnOutside: false,
         content: undefined,
         closing: false,
       });
@@ -57,7 +59,7 @@ export class PopupTemplateStateService {
     this.drawerState.next({
       ...current,
       visible: false,
-      outside: false,
+      closeBtnOutside: false,
       content: undefined,
       closing: false,
     });

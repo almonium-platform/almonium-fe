@@ -321,7 +321,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected openLangSetupPopup() {
     this.addTargetLangModalVisible = true;
     setTimeout(() => {
-      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', true);
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', true, true);
     }, 0);
   }
 

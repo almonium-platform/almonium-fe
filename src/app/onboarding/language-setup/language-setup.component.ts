@@ -45,6 +45,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
+import {TuiActiveZone} from "@taiga-ui/cdk";
 
 
 @Component({
@@ -78,6 +79,7 @@ import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
     InfoIconComponent,
     ButtonComponent,
     CefrLevelSelectorComponent,
+    TuiActiveZone,
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -483,5 +485,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   protected featuresVisible(): boolean {
     return this.selectedTargetLanguageFeatures.special.length > 0 || this.selectedTargetLanguageFeatures.basic.length > 0;
+  }
+
+  protected onActiveZoneChange($event: boolean) {
+    if ($event) return;
+    this.popupTemplateStateService.close();
   }
 }
