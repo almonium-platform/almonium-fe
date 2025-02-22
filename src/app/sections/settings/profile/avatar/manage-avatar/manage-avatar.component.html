@@ -37,9 +37,11 @@
           </tui-badged-content>
         </div>
 
-        <app-file-upload
-          class="upload-section"
-          (fileUploaded)="onFileUploaded($event)"></app-file-upload>
+        <div class="upload-section">
+          <app-file-upload
+            (fileUploaded)="onFileUploaded($event)">
+          </app-file-upload>
+        </div>
       </div>
 
       <div class="divider"></div>

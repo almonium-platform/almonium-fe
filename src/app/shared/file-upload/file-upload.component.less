@@ -2,6 +2,12 @@
 @apply flex flex-row py-2 gap-3 px-1 items-center;
 }
 
+@media (max-width: 768px) {
+  .content {
+  @apply flex-col;
+  }
+}
+
 .loaded-file {
   max-width: 13rem;
 }

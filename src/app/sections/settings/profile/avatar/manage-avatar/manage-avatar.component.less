@@ -24,10 +24,20 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 2rem;
+  gap: 4rem;
   position: relative;
   max-width: 33%;
+
+  .profile-circle,
+  .upload-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
 }
+
 
 .avatars-container {
   flex: 2; /* Takes 60% of the space */
@@ -47,10 +57,6 @@
 
 .avatar:hover {
   transform: scale(1.09);
-}
-
-.upload-section {
-  width: 90%;
 }
 
 /* Mobile view adjustments */
