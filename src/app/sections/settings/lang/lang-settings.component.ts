@@ -86,6 +86,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
   protected targetLanguageSelectControl = new FormControl();
+  protected showTargetLangDropdown = true;
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible: boolean = false;
@@ -273,11 +274,6 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
 
   // TARGET
-  protected onTargetedLanguageIndexChange(): void {
-    this.cefrEditable = false;
-    this.cefrFormControl.patchValue(this.currentLearner.selfReportedLevel, {emitEvent: false});
-  }
-
   protected deleteTargetLang() {
     this.restoreFluent();
     if (this.learners.length === 1) {

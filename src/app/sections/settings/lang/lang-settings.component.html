@@ -55,19 +55,32 @@
     <div class="section-block card">
       <div class="title">I'm Learning</div>
 
-      <div class="row-content">
-        <tui-select
-          tuiTextfieldSize="s"
-          class="language-select"
-          [formControl]="targetLanguageSelectControl"
-          [tuiTextfieldLabelOutside]="true"
-        >
-          <tui-data-list-wrapper
-            *tuiDataList
-            [items]="targetLanguageNames"
+      <div class="row-content target-lang-head">
+        @if (showTargetLangDropdown) {
+          <div class="target-lang-chip" (click)="(showTargetLangDropdown = false)">
+            <tui-chip
+              [style.background-color]="getCurrentTargetLanguageName() | tuiAutoColor">{{ getCurrentTargetLanguageName() }}
+            </tui-chip>
+
+            @if (targetLanguageNames.length > 1) {
+              <p class="and-more">+{{ targetLanguageNames.length - 1 }} more</p>
+            }
+          </div>
+        } @else {
+          <tui-select
+            tuiTextfieldSize="m"
+            class="language-select"
+            [formControl]="targetLanguageSelectControl"
+            [tuiTextfieldLabelOutside]="true"
+            (clickOutside)="(showTargetLangDropdown = true)"
           >
-          </tui-data-list-wrapper>
-        </tui-select>
+            <tui-data-list-wrapper
+              *tuiDataList
+              [items]="targetLanguageNames"
+            >
+            </tui-data-list-wrapper>
+          </tui-select>
+        }
         <div class="edit-element">
           <premium-badged-content
             [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
