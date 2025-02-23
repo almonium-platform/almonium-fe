@@ -510,11 +510,11 @@
                       <button
                         tuiOption
                         type="button"
-                        class="context-button"
-                        (click)="leaveChannel(channel, dropdown)"
+                        class="context-button negative"
+                        (click)="prepareLeaveChannelModal(channel, dropdown)"
                       >
                         <lucide-icon name="log-out"
-                                     class="chat-icon"
+                                     class="chat-icon negative"
                                      [size]="18"
                         ></lucide-icon>
                         Leave

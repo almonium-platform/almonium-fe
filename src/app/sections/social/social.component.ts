@@ -767,17 +767,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return channel.data?.hidden;
   }
 
-  leaveChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
-    channel.show().then();
-    channel.unmute().then();
-
-    setTimeout(() => {
-      channel.removeMembers([this.userInfo!.id]).then(() => {
-      });
-    }, 30);
-  }
-
   toggleHiddenChats() {
     this.showHiddenChannels$.next(!this.showHiddenChannels$.value);
   }
@@ -926,12 +915,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.modalTitle = 'Delete Chat';
     this.modalMessage = 'Are you sure? This action cannot be undone';
     this.modalConfirmText = 'Delete';
-    this.modalAction = this.confirmDeleteChat.bind(this);
+    this.modalAction = this.deleteChat.bind(this);
     this.useCountdown = false;
     this.isConfirmModalVisible = true;
   }
 
-  protected confirmDeleteChat() {
+  protected deleteChat() {
     if (!this.targetChannel) {
       console.error('Channel to delete is not set');
       return;
@@ -962,6 +951,30 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.targetChannel.truncate().then(() => {
       this.targetChannel = null;
+    });
+  }
+
+  protected prepareLeaveChannelModal(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+    this.targetChannel = channel;
+
+    this.modalTitle = 'Leave Channel';
+    this.modalMessage = 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.';
+    this.modalConfirmText = 'Leave';
+    this.modalAction = this.leaveChannel.bind(this);
+    this.useCountdown = false;
+    this.isConfirmModalVisible = true;
+  }
+
+  protected leaveChannel() {
+    if (!this.targetChannel) {
+      console.error('Channel to clear is not set');
+      return;
+    }
+
+    this.targetChannel.show().then();
+    this.targetChannel.unmute().then();
+    this.targetChannel.removeMembers([this.userInfo!.id]).then(() => {
     });
   }
 
