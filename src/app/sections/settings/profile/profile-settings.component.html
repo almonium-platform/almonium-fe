@@ -55,6 +55,7 @@
             [style.margin-left]="'auto'"
             [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
             [gap]="(userInfo?.hidden ? '0.3rem' : '.3rem')"
+            [reverse]="userInfo?.hidden"
             [customClass]="userInfo?.hidden ? '' : ''"
             (clickFunction)="toggleHidden()"
             [hint]="hideProfileTooltip"

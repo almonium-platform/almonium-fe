@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, of} from 'rxjs';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LocalStorageService} from './local-storage.service';
 import {Language} from '../models/language.model';
@@ -32,15 +32,20 @@ export class SupportedLanguagesService {
       this.supportedLanguagesSubject.next(cachedLanguages);
     } else {
       // If no cached data, fetch from server
-      this.getAllSupportedLanguages();
+      this.getAllSupportedLanguages().subscribe();
     }
+  }
+
+  clearSupportedLanguages(): void {
+    this.supportedLanguagesSubject.next(null);
+    this.localStorageService.removeSupportedLanguages();
   }
 
   /**
    * Fetch supported languages from the server and cache them.
    */
-  private getAllSupportedLanguages(): void {
-    this.staticInfoService.getSupportedLanguages().pipe(
+  public getAllSupportedLanguages(): Observable<Language[]> {
+    return this.staticInfoService.getSupportedLanguages().pipe(
       map((languageCodes) => {
         return languageCodes.map((code) => {
           return {
@@ -57,7 +62,7 @@ export class SupportedLanguagesService {
         console.error('Error fetching supported languages:', error);
         return of([]); // Return an empty array in case of error
       })
-    ).subscribe();
+    );
   }
 
   private cacheSupportedLanguages(languages: Language[]): void {

@@ -12,9 +12,11 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       (click)="onClick()"
       [disabled]="isDisabled"
       [type]="type"
-      class="relative flex items-center justify-center w-full base btn"
+      class="relative flex items-center justify-center w-full base"
       [class]="class + ' ' + customClass"
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
+      [style.flex-direction]="reverse ? 'row-reverse' : 'row'"
+      [style.width]="width === 'fit' ? 'fit-content' : '100%'"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
       [style.gap]="gap"
@@ -34,9 +36,9 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       }
 
       <!-- Anything projected from outside (like <i> icons) goes here -->
-      @if (!(loading$ | async)) {
+      <div [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
         <ng-content></ng-content>
-      }
+      </div>
 
       <span [ngStyle]="{ color: (loading$ | async) ? 'transparent' : 'inherit' }">
           {{ isHovered && hoverLabel ? hoverLabel : label }}
@@ -61,6 +63,8 @@ export class ButtonComponent implements OnInit {
   @Input() customClass: string = '';
   @Input() fontSize?: number;
   @Input() gap?: string = '0';
+  @Input() reverse?: boolean = false;
+  @Input() width?: 'fit' | 'full' = 'full';
   @Input() title?: string = '';
   @Input() padding?: string = '';
   @Input() type?: 'button' | 'submit' | 'reset' = 'submit';

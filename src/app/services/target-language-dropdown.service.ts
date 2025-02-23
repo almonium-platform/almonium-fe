@@ -41,6 +41,11 @@ export class TargetLanguageDropdownService {
     this.loadLangColors(); // Load colors on app start
   }
 
+  clearTargetAndCurrentLanguages(): void {
+    this.targetLanguagesSubject.next([]);
+    this.localStorageService.removeCurrentLanguage();
+  }
+
   // Initialize target languages and set the current language
   initializeLanguages(userInfo: { activeTargetLangs: LanguageCode[] }): void {
     const storedLanguage = this.localStorageService.getCurrentLanguage();
@@ -80,7 +85,7 @@ export class TargetLanguageDropdownService {
   }
 
   // Load the JSON file from assets or cache
-  private loadLangColors(): void {
+  loadLangColors(): void {
     const cachedColors = this.getCachedLangColors();
     if (cachedColors) {
       this.langColorsSubject.next(cachedColors);

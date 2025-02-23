@@ -21,6 +21,32 @@
       </div>
     </div>
 
+    <div class="section-block card">
+      <div class="title">App</div>
+
+      <app-button
+        appearance="bw"
+        label="Clear Cache"
+        gap="1rem"
+        width="fit"
+        (click)="clearLocalStorage()"
+        [loading$]="loading$"
+        [hint]="clearCacheHint"
+        hintAppearance="dark"
+        hintDirection="bottom"
+      >
+        <ng-template #clearCacheHint>
+          Remove cached data from local storage and reload fresh data.
+          Use this if something looks outdated or incorrect.
+        </ng-template>
+
+        <tui-icon
+          [style.width.px]="16"
+          [style.height.px]="16"
+          icon="@tui.fa.solid.screwdriver-wrench"/>
+      </app-button>
+    </div>
+
     <!-- Profile Menu Settings -->
     <div class="section-block card">
       <div class="title">Profile Menu</div>

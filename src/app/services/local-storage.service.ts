@@ -58,7 +58,7 @@ export class LocalStorageService {
     return this.getItem<LanguageCode>(CURRENT_LANGUAGE_KEY) || LanguageCode.EN;
   }
 
-  clearCurrentLanguage(): void {
+  removeCurrentLanguage(): void {
     this.removeItem(CURRENT_LANGUAGE_KEY);
   }
 
@@ -68,6 +68,10 @@ export class LocalStorageService {
 
   getLangColors(): { [key: string]: string } | null {
     return this.getItem<{ [key: string]: string }>(LANG_COLOR_KEY);
+  }
+
+  clearLangColors(): void {
+    this.removeItem(LANG_COLOR_KEY);
   }
 
   saveAuthMethods(authMethods: AuthMethod[]): void {
@@ -108,9 +112,20 @@ export class LocalStorageService {
     return lastSeenData?.[userId] ? new Date(lastSeenData[userId]) : null;
   }
 
+  removeLastSeen(): void {
+    this.removeItem(LAST_SEEN_KEY);
+  }
+
   public clearUserRelatedData(): void {
     this.clearUserInfo();
-    this.clearCurrentLanguage();
+    this.removeCurrentLanguage();
     this.clearAuthMethods();
+  }
+
+  public clearAllData(): void {
+    this.clearUserRelatedData();
+    this.removeSupportedLanguages();
+    this.removeLastSeen();
+    this.clearLangColors();
   }
 }
