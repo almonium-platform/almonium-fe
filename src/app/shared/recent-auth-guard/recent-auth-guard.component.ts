@@ -42,7 +42,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
               } else {
                 console.error('AuthComponent or its content is undefined.');
               }
-            });
+            }, 50);
           }
         }
       );
