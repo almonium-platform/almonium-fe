@@ -168,7 +168,7 @@
                         tuiOption
                         type="button"
                         class="context-button negative"
-                        (click)="unfriend(friend.id, friend.friendshipId)"
+                        (click)="prepareUnfriendModal(friend.id, friend.friendshipId)"
                       >
                         <lucide-icon name="user-round-x"
                                      class="chat-icon negative"
@@ -180,7 +180,7 @@
                         tuiOption
                         type="button"
                         class="context-button negative"
-                        (click)="block(friend.id, friend.friendshipId)"
+                        (click)="prepareBlockModal(friend.id, friend.friendshipId)"
                       >
                         <lucide-icon name="ban"
                                      class="chat-icon negative"

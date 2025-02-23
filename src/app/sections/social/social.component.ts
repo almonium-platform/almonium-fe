@@ -541,7 +541,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;
-        this.alertService.open('Friend removed', {appearance: 'success'}).subscribe();
+        this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
+        this.setDrawerMode('friends');
       },
       error: (error) => {
         console.error(error);
@@ -558,6 +559,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;
         this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
+        this.setDrawerMode('blocked');
       },
       error: (error) => {
         console.error(error);
@@ -976,6 +978,24 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.targetChannel.unmute().then();
     this.targetChannel.removeMembers([this.userInfo!.id]).then(() => {
     });
+  }
+
+  protected prepareUnfriendModal(friendId: number, friendshipId: number) {
+    this.closeDrawer();
+    this.modalTitle = 'Unfriend';
+    this.modalMessage = 'Are you sure you want to unfriend this user?';
+    this.modalConfirmText = 'Unfriend';
+    this.modalAction = () => this.unfriend(friendId, friendshipId);
+    this.isConfirmModalVisible = true;
+  }
+
+  protected prepareBlockModal(friendId: number, friendshipId: number) {
+    this.closeDrawer();
+    this.modalTitle = 'Block User';
+    this.modalMessage = 'Are you sure you want to block this user?';
+    this.modalConfirmText = 'Block';
+    this.modalAction = () => this.block(friendId, friendshipId);
+    this.isConfirmModalVisible = true;
   }
 
   protected closeConfirmModal() {
