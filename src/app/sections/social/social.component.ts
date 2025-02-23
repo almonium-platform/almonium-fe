@@ -14,7 +14,7 @@ import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
-import {Friend, FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
+import {FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {
   TuiAlertService,
@@ -56,6 +56,7 @@ import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
 import {TuiActiveZone} from "@taiga-ui/cdk";
+import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 
 @Component({
   selector: 'app-social',
@@ -88,6 +89,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
     TuiActiveZone,
     NgStyle,
     TuiHintDirective,
+    ConfirmModalComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -128,6 +130,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected readonly FriendshipStatus = FriendshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
+
+  // confirm modal settings
+  protected isConfirmModalVisible: boolean = false;
+  protected modalTitle = '';
+  protected modalMessage = '';
+  protected modalConfirmText = '';
+  protected modalAction: (() => void) | null = null;
+  protected useCountdown: boolean = false;
 
   // CHATS
   private chatClient: StreamChat;
@@ -666,12 +676,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return otherMember?.user?.name || AppConstants.PRIVATE_CHAT_NAME;
   }
 
-  deleteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    channel.delete().then(() => {
-      dropdown.toggle(false);
-    });
-  }
-
   hideChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
@@ -687,15 +691,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       channel.show().then(() => {
         this.reloadChannelList();
-      });
-    }, 30);
-  }
-
-  truncateChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
-
-    setTimeout(() => {
-      channel.truncate().then(() => {
       });
     }, 30);
   }
@@ -919,5 +914,67 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get hiddenChatsTooltip() {
     return this.showHiddenChannels$.value ? 'Switch to visible chats' : 'Switch to hidden chats';
+  }
+
+  // confirm modal chats
+  protected targetChannel: Channel<DefaultStreamChatGenerics> | null = null;
+
+  protected prepareConfirmModalForChatDeletion(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+    this.targetChannel = channel;
+
+    this.modalTitle = 'Delete Chat';
+    this.modalMessage = 'Are you sure? This action cannot be undone';
+    this.modalConfirmText = 'Delete';
+    this.modalAction = this.confirmDeleteChat.bind(this);
+    this.useCountdown = false;
+    this.isConfirmModalVisible = true;
+  }
+
+  protected confirmDeleteChat() {
+    if (!this.targetChannel) {
+      console.error('Channel to delete is not set');
+      return;
+    }
+
+    this.targetChannel.delete().then(() => {
+      this.targetChannel = null;
+    });
+  }
+
+  protected prepareChatTruncationConfirmationModal(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+    this.targetChannel = channel;
+
+    this.modalTitle = 'Clear Chat History';
+    this.modalMessage = 'Are you sure? This action cannot be undone';
+    this.modalConfirmText = 'Clear';
+    this.modalAction = this.clearChat.bind(this);
+    this.useCountdown = false;
+    this.isConfirmModalVisible = true;
+  }
+
+  protected clearChat() {
+    if (!this.targetChannel) {
+      console.error('Channel to clear is not set');
+      return;
+    }
+
+    this.targetChannel.truncate().then(() => {
+      this.targetChannel = null;
+    });
+  }
+
+  protected closeConfirmModal() {
+    this.isConfirmModalVisible = false;
+  }
+
+  protected confirmModalAction() {
+    if (this.modalAction) {
+      this.modalAction();
+    } else {
+      console.error('No action set for confirm modal');
+    }
+    this.closeConfirmModal();
   }
 }
