@@ -57,6 +57,13 @@ export class AuthService {
     });
   }
 
+  validateResetPasswordToken(token: string): Observable<boolean> {
+    return this.http.get<boolean>(`${AppConstants.VERIFICATION_AUTH_URL}/passwords/tokens`, {
+        params: {token},
+      }
+    );
+  }
+
   forgotPassword(email: string): Observable<any> {
     const url = `${AppConstants.PUBLIC_AUTH_URL}/forgot-password`;
     return this.http.post(url, {email});

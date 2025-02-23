@@ -76,6 +76,16 @@ export class ResetPasswordComponent implements OnInit {
         this.alertService.open('No token provided', {appearance: 'error'}).subscribe();
         this.router.navigate(['/auth']).then();
       }
+
+      // Preemptively validate the token
+      this.authService.validateResetPasswordToken(this.token).subscribe({
+        next: (isValid) => {
+          if (!isValid) {
+            this.showErrorAndRedirect('Invalid or expired reset token');
+          }
+        },
+        error: () => this.showErrorAndRedirect('Failed to validate reset token'),
+      });
     });
   }
 
@@ -92,9 +102,15 @@ export class ResetPasswordComponent implements OnInit {
             this.router.navigate(['/auth']).then();
           },
           error: (error) => {
-            this.alertService.open(error.error.message || 'Password reset failed', {appearance: 'error'}).subscribe();
+            const message = error.error.message;
+            this.showErrorAndRedirect(message);
           },
         });
     }
+  }
+
+  private showErrorAndRedirect(message: string) {
+    this.alertService.open(message, {appearance: 'error'}).subscribe();
+    this.router.navigate(['/auth']).then();
   }
 }
