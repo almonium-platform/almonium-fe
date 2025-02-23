@@ -865,13 +865,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     if (!this.isCollapsed) return;
     this.isCollapsed = false;
     this.isManuallyResized = true;
-    this.sidebarWidth = 300;
+    this.sidebarWidth = window.innerWidth / 3 - 8;
     setTimeout(() => {
       this.chatSearchField?.nativeFocusableElement?.focus();
     }, 100);
   }
 
-  sidebarWidth = 300; // Default width
+  sidebarWidth = window.innerWidth / 3 - 8;
   isResizing = false;
   isCollapsed = false;
   isManuallyResized = false;
