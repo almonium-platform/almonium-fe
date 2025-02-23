@@ -12,7 +12,7 @@ import {
 import {SocialService} from "./social.service";
 import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {BehaviorSubject, combineLatest, EMPTY, firstValueFrom, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, combineLatest, EMPTY, finalize, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
 import {FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -494,50 +494,135 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  cancelFriendRequest(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.CANCEL).subscribe({
-      next: () => {
-        this.outgoingRequests = this.outgoingRequests.filter(request => request.friendshipId !== id);
-        this.drawerUserTiles = this.outgoingRequests;
-        this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
-      },
-      error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
-      }
-    });
+  // to avoid multiple requests
+  protected sendRequestInProgressIds = new Set<number>();
+  protected unblockInProgressIds = new Set<number>();
+  protected acceptInProgressIds = new Set<number>();
+  protected rejectInProgressIds = new Set<number>();
+  protected cancelInProgressIds = new Set<number>();
+
+  cancelFriendRequest(friendshipId: number) {
+    if (this.cancelInProgressIds.has(friendshipId)) {
+      console.warn('Cancel request already in progress');
+      return;
+    }
+    this.cancelInProgressIds.add(friendshipId);
+
+    this.socialService.patchFriendship(friendshipId, FriendshipAction.CANCEL)
+      .pipe(finalize(() => this.cancelInProgressIds.delete(friendshipId)))
+      .subscribe({
+        next: () => {
+          this.outgoingRequests = this.outgoingRequests.filter(request => request.friendshipId !== friendshipId);
+          this.drawerUserTiles = this.outgoingRequests;
+          this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 
   acceptFriendRequest(candidate: RelatedUserProfile) {
-    this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT).subscribe({
-      next: () => {
-        this.createPrivateChat(this.userInfo!.id, candidate.id.toString()).then(_ => {
-          this.incomingRequests
-            .filter(profile => profile === candidate)
-            .map(profile => profile.friendshipStatus = FriendshipStatus.FRIENDS);
-        })
-        this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
-      },
-      error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
-      }
-    });
+    if (this.acceptInProgressIds.has(candidate.friendshipId)) {
+      console.warn('Accept request already in progress');
+      return;
+    }
+
+    this.acceptInProgressIds.add(candidate.friendshipId);
+    console.log(this.acceptInProgressIds);
+
+    this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT)
+      .pipe(finalize(() => this.acceptInProgressIds.delete(candidate.friendshipId)))
+      .subscribe({
+        next: () => {
+          this.createPrivateChat(this.userInfo!.id, candidate.id.toString()).then(_ => {
+            this.incomingRequests
+              .filter(profile => profile === candidate)
+              .map(profile => profile.friendshipStatus = FriendshipStatus.FRIENDS);
+          })
+          this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 
   rejectFriendRequest(id: number) {
-    this.socialService.patchFriendship(id, FriendshipAction.REJECT).subscribe({
-      next: () => {
-        console.log(JSON.stringify(this.incomingRequests));
-        this.incomingRequests = this.incomingRequests.filter(request => request.friendshipId !== id);
-        console.log(JSON.stringify(this.incomingRequests));
-        this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
-      },
-      error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'error'}).subscribe();
-      }
+    if (this.rejectInProgressIds.has(id)) {
+      console.warn('Reject request already in progress');
+      return;
+    }
+    this.rejectInProgressIds.add(id);
+
+    this.socialService.patchFriendship(id, FriendshipAction.REJECT)
+      .pipe(finalize(() => this.rejectInProgressIds.delete(id)))
+      .subscribe({
+        next: () => {
+          console.log(JSON.stringify(this.incomingRequests));
+          this.incomingRequests = this.incomingRequests.filter(request => request.friendshipId !== id);
+          console.log(JSON.stringify(this.incomingRequests));
+          this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'error'}).subscribe();
+        }
+      });
+  }
+
+  unblock(friendId: number, friendshipId: number) {
+    if (this.unblockInProgressIds.has(friendshipId)) {
+      console.warn('Unblock request already in progress');
+      return;
+    }
+    this.unblockInProgressIds.add(friendshipId);
+
+    this.chatClient.unBlockUser(friendId.toString()).then(() => {
     });
+    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNBLOCK)
+      .pipe(finalize(() => this.unblockInProgressIds.delete(friendshipId)))
+      .subscribe({
+        next: () => {
+          this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
+          this.drawerUserTiles = this.blockedUsers;
+          this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
+        }
+      });
+  }
+
+  sendFriendRequest(id: number) {
+    if (this.sendRequestInProgressIds.has(id)) {
+      console.warn('Request already in progress');
+      return;
+    }
+
+    this.sendRequestInProgressIds.add(id);
+
+    this.socialService.createFriendshipRequest(id)
+      .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
+      .subscribe({
+        next: (friendship) => {
+          console.log(friendship);
+          this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+          this.requestedIds.push(id);
+
+          setTimeout(() => {
+            this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
+            this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
+          }, 2000);
+        },
+        error: (error) => {
+          console.error(error);
+          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+        }
+      });
   }
 
   unfriend(friendId: number, friendshipId: number) {
@@ -568,42 +653,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       error: (error) => {
         console.error(error);
         this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
-      }
-    });
-  }
-
-  unblock(friendId: number, friendshipId: number) {
-    console.log('Unblocking user:', friendId);
-    console.log('Unblocking friendship:', friendshipId);
-    this.chatClient.unBlockUser(friendId.toString()).then(() => {
-    });
-    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNBLOCK).subscribe({
-      next: () => {
-        this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
-        this.drawerUserTiles = this.blockedUsers;
-        this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
-      },
-      error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
-      }
-    });
-  }
-
-  sendFriendRequest(id: number) {
-    this.socialService.createFriendshipRequest(id).subscribe({
-      next: (friendship) => {
-        console.log(friendship);
-        this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
-        this.requestedIds.push(id);
-        setTimeout(() => {
-          this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
-          this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
-        }, 2000);
-      },
-      error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
       }
     });
   }

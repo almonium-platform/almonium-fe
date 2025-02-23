@@ -210,28 +210,42 @@
               }
 
               @if (drawerMode === 'blocked') {
-                <lucide-icon name="x"
-                             class="friend-action negative primary"
-                             [size]="20"
-                             (click)="unblock(friend.id, friend.friendshipId)"
-                ></lucide-icon>
+                @if (unblockInProgressIds.has(friend.friendshipId)) {
+                  <lucide-icon name="loader-circle"
+                               class="friend-action motion-preset-spin"
+                               [size]="20"
+                  ></lucide-icon>
+                } @else {
+                  <lucide-icon name="x"
+                               class="friend-action negative primary"
+                               [size]="20"
+                               (click)="unblock(friend.id, friend.friendshipId)"
+                  ></lucide-icon>
+                }
               }
 
               @if (drawerMode === 'requests') {
                 @if (requestsIndex === 0) {
-                  @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
-                    <lucide-icon name="user-round-plus"
-                                 class="friend-action positive"
+                  @if (acceptInProgressIds.has(friend.friendshipId) || rejectInProgressIds.has(friend.friendshipId)) {
+                    <lucide-icon name="loader-circle"
+                                 class="friend-action motion-preset-spin"
                                  [size]="20"
-                                 (click)="acceptFriendRequest(friend)"
                     ></lucide-icon>
-                    <lucide-icon name="x"
-                                 class="friend-action negative secondary"
-                                 [size]="20"
-                                 (click)="rejectFriendRequest(friend.friendshipId)"
-                    ></lucide-icon>
-
+                  } @else {
+                    @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
+                      <lucide-icon name="user-round-plus"
+                                   class="friend-action positive"
+                                   [size]="20"
+                                   (click)="acceptFriendRequest(friend)"
+                      ></lucide-icon>
+                      <lucide-icon name="x"
+                                   class="friend-action negative secondary"
+                                   [size]="20"
+                                   (click)="rejectFriendRequest(friend.friendshipId)"
+                      ></lucide-icon>
+                    }
                   }
+
                   @if (friend.friendshipStatus === FriendshipStatus.FRIENDS) {
                     <lucide-icon name="message-circle"
                                  class="friend-action positive"
@@ -241,11 +255,18 @@
                   }
                 }
                 @if (requestsIndex === 1) {
-                  <lucide-icon name="x"
-                               class="friend-action negative"
-                               [size]="20"
-                               (click)="cancelFriendRequest(friend.friendshipId)"
-                  ></lucide-icon>
+                  @if (cancelInProgressIds.has(friend.friendshipId)) {
+                    <lucide-icon name="loader-circle"
+                                 class="friend-action motion-preset-spin"
+                                 [size]="20"
+                    ></lucide-icon>
+                  } @else {
+                    <lucide-icon name="x"
+                                 class="friend-action negative"
+                                 [size]="20"
+                                 (click)="cancelFriendRequest(friend.friendshipId)"
+                    ></lucide-icon>
+                  }
                 }
               }
             </div>
