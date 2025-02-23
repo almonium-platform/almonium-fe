@@ -1,4 +1,4 @@
-import {TuiInputModule, TuiInputNumberModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiInputModule, TuiInputNumberModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -11,9 +11,9 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon, TuiScrollbar} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon} from "@taiga-ui/core";
 import {AsyncPipe} from "@angular/common";
-import {TuiChip, TuiSegmented, TuiSwitch} from "@taiga-ui/kit";
+import {TuiChip, TuiSwitch} from "@taiga-ui/kit";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -47,11 +47,9 @@ import {LucideAngularModule} from "lucide-angular";
     EditButtonComponent,
     TuiChip,
     AsyncPipe,
-    TuiSegmented,
     TuiIcon,
     ConfirmModalComponent,
     TuiAutoColorPipe,
-    TuiScrollbar,
     PremiumBadgedContentComponent,
     RecentAuthGuardComponent,
     LanguageSetupComponent,
@@ -60,7 +58,8 @@ import {LucideAngularModule} from "lucide-angular";
     CefrComponent,
     NgClickOutsideDirective,
     LucideAngularModule,
-    TuiHintDirective
+    TuiHintDirective,
+    TuiSelectModule
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -82,11 +81,11 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   // target languages
   protected targetLanguageNames: string[] = [];
-  protected selectedTargetedLanguageIndex: number = 0;
   protected learners: Learner[] = [];
   protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
   protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
+  protected targetLanguageSelectControl = new FormControl();
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible: boolean = false;
@@ -167,6 +166,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.selectedFluentLanguages = info.fluentLangs;
         this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
         this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
+        this.targetLanguageSelectControl = new FormControl(this.targetLanguageNames[0]);
         this.learners = info.learners;
         this.updateFluentEnabled();
         this.patchCefrControlFromCurrentLearner();
@@ -203,7 +203,14 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   get currentLearner(): Learner {
-    return this.learners[this.selectedTargetedLanguageIndex];
+    const selectedLanguageName = this.targetLanguageSelectControl.value;
+    const selectedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, selectedLanguageName);
+
+    const learner = this.learners.find((learner) => learner.language === selectedLanguageCode);
+    if (!learner) {
+      console.error(`Learner not found for ${selectedLanguageCode}`);
+    }
+    return learner!;
   }
 
   private validateFluentLanguages() {
@@ -283,7 +290,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected getCurrentTargetLanguageName() {
-    return this.targetLanguageNames[this.selectedTargetedLanguageIndex];
+    return this.targetLanguageSelectControl.value;
   }
 
   private prepareTargetLangDeletionModal() {
@@ -299,16 +306,31 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected confirmTargetLangDeletion() {
-    const deletedLanguage = this.currentLearner.language;
-    this.languageApiService.deleteLearner(deletedLanguage).subscribe({
+    const deletedLanguageName = this.targetLanguageSelectControl.value;
+    const deletedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, deletedLanguageName);
+
+    if (!deletedLanguageCode) {
+      console.error(`Language code not found for ${deletedLanguageName}`);
+      return;
+    }
+
+    this.languageApiService.deleteLearner(deletedLanguageCode).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${this.getCurrentTargetLanguageName()} profile has been deleted`, {appearance: 'success'})
+          .open(`Your ${deletedLanguageName} profile has been deleted`, {appearance: 'success'})
           .subscribe();
-        this.targetLanguageNames.splice(this.selectedTargetedLanguageIndex, 1); // remove the deleted language
-        this.selectedTargetedLanguageIndex = 0; // reset to the first language
-        this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguage);
-        this.userInfoService.updateUserInfo({learners: this.userInfo?.learners.filter((learner) => learner.language !== deletedLanguage)});
+
+        // Remove from UI list
+        this.targetLanguageNames = this.targetLanguageNames.filter(lang => lang !== deletedLanguageName);
+
+        // Reset selection to the first available language
+        this.targetLanguageSelectControl.setValue(this.targetLanguageNames.length ? this.targetLanguageNames[0] : null);
+
+        // Remove from service and update user info
+        this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguageCode);
+        this.userInfoService.updateUserInfo({
+          learners: this.userInfo?.learners.filter(learner => learner.language !== deletedLanguageCode)
+        });
       },
       error: (error) => {
         this.alertService

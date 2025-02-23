@@ -56,25 +56,18 @@
       <div class="title">I'm Learning</div>
 
       <div class="row-content">
-        <div class="segmented-block">
-          <tui-scrollbar>
-            <div class="tui-segmented-wrapper">
-              <tui-segmented
-                size="m"
-                [(activeItemIndex)]="selectedTargetedLanguageIndex"
-                (activeItemIndexChange)="onTargetedLanguageIndexChange()"
-              >
-                @for (language of targetLanguageNames; track language) {
-                  <button
-                    type="button"
-                  >
-                    {{ language }}
-                  </button>
-                }
-              </tui-segmented>
-            </div>
-          </tui-scrollbar>
-        </div>
+        <tui-select
+          tuiTextfieldSize="s"
+          class="language-select"
+          [formControl]="targetLanguageSelectControl"
+          [tuiTextfieldLabelOutside]="true"
+        >
+          <tui-data-list-wrapper
+            *tuiDataList
+            [items]="targetLanguageNames"
+          >
+          </tui-data-list-wrapper>
+        </tui-select>
         <div class="edit-element">
           <premium-badged-content
             [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
