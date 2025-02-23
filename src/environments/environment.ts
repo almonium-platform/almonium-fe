@@ -11,6 +11,7 @@ export const environment = {
     storageBucket: "almonium.firebasestorage.app",
     messagingSenderId: "33380019461",
     appId: "1:33380019461:web:6b4381869fdf5ec21ddb6c",
-    measurementId: "G-6XKWX9LS25"
+    measurementId: "G-6XKWX9LS25",
+    vapidKey: "BEcIhy1X9dIzq-gFN6rkvSH_5eLVXbIagp7-xtoWYuNgT9pIv0p45eBa4O0PGIzkk_8wv0Hi5vkbY_4T5DeiOnQ",
   },
 };

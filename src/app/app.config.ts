@@ -12,6 +12,8 @@ import {getStorage, provideStorage} from '@angular/fire/storage';
 import {environment} from '../environments/environment';
 import {TranslateModule} from "@ngx-translate/core";
 import {EN_CODE} from "./sections/social/i18n";
+import {provideMessaging} from "@angular/fire/messaging";
+import {getMessaging} from "firebase/messaging";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -38,6 +40,7 @@ export const appConfig: ApplicationConfig = {
     // Firebase
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideStorage(() => getStorage()),
+    provideMessaging(() => getMessaging()),
 
     // HTTP interceptors
     provideHttpClient(withInterceptorsFromDi()),

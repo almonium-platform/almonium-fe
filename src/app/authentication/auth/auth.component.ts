@@ -27,6 +27,7 @@ import {PopupTemplateStateService} from "../../shared/modals/popup-template/popu
 import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
+import {FirebaseNotificationService} from "../../services/firebase-notification.service";
 
 declare const google: any;
 
@@ -119,6 +120,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private urlService: UrlService,
     private popupTemplateStateService: PopupTemplateStateService,
+    private firebaseNotificationService: FirebaseNotificationService,
   ) {
   }
 
@@ -363,6 +365,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.router.navigate(['/home']).then();
+          this.firebaseNotificationService.requestFCMToken();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
