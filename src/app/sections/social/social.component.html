@@ -129,6 +129,20 @@
                   />
                 </tui-input>
               </div>
+            } @else {
+              <app-button
+                appearance="bw"
+                label="Find friends"
+                gap="1rem"
+                width="fit"
+                [fontSize]=18
+                (click)="setDrawerMode('search')"
+              >
+                <tui-icon
+                  [style.width.px]="18"
+                  [style.height.px]="18"
+                  icon="@tui.user-round-search"/>
+              </app-button>
             }
           }
           @for (friend of drawerUserTiles; track friend) {

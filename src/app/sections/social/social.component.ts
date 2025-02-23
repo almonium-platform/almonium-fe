@@ -21,6 +21,7 @@ import {
   TuiDataList,
   TuiDropdownDirective,
   TuiHintDirective,
+  TuiIcon,
   TuiPopup,
   TuiScrollbar
 } from "@taiga-ui/core";
@@ -57,6 +58,7 @@ import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
+import {ButtonComponent} from "../../shared/button/button.component";
 
 @Component({
   selector: 'app-social',
@@ -90,6 +92,8 @@ import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-m
     NgStyle,
     TuiHintDirective,
     ConfirmModalComponent,
+    ButtonComponent,
+    TuiIcon,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

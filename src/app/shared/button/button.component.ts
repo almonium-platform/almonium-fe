@@ -36,7 +36,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       }
 
       <!-- Anything projected from outside (like <i> icons) goes here -->
-      <div [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
+      <div [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'" class="flex items-center">
         <ng-content></ng-content>
       </div>
 
