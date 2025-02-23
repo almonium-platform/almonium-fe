@@ -114,20 +114,22 @@
             </p>
           }
           @if (drawerMode === 'friends') {
-            <div class="search-container">
-              <tui-input
-                [formControl]="friendFormControl"
-                [tuiTextfieldLabelOutside]="true"
-                class="username-input shadowless-input"
-                tuiTextfieldIconLeft="@tui.user-search"
-              >
-                Type a username
-                <input
-                  tuiTextfieldLegacy
-                  type="text"
-                />
-              </tui-input>
-            </div>
+            @if (drawerUserTiles.length !== 0) {
+              <div class="search-container">
+                <tui-input
+                  [formControl]="friendFormControl"
+                  [tuiTextfieldLabelOutside]="true"
+                  class="username-input shadowless-input"
+                  tuiTextfieldIconLeft="@tui.user-search"
+                >
+                  Type a username
+                  <input
+                    tuiTextfieldLegacy
+                    type="text"
+                  />
+                </tui-input>
+              </div>
+            }
           }
           @for (friend of drawerUserTiles; track friend) {
             <div class="user-tile card">
