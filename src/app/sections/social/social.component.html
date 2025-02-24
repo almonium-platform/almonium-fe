@@ -632,9 +632,10 @@
           <app-chat-header [channel]="channel"></app-chat-header>
         </ng-template>
         <ng-template #customChannelActions>
-          <lucide-icon name="circle-arrow-left"
-                       [size]="20"
+          <lucide-icon name="arrow-left"
+                       [size]="28"
                        (click)="backToChannels()"
+                       [strokeWidth]="1.5"
                        class="mr-2 block back-to-channels"
           ></lucide-icon>
         </ng-template>

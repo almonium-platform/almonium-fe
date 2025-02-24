@@ -380,6 +380,20 @@
 ::ng-deep .str-chat__channel-header {
   background-color: white;
   color: black;
+  gap: 0;
+
+  stream-avatar-placeholder {
+    order: 0;
+    margin-right: 1rem;
+  }
+
+  .str-chat__header-livestream-left .str-chat__channel-header-end {
+    order: 1;
+  }
+
+  .back-to-channels {
+    order: -1;
+  }
 }
 
 ::ng-deep .str-chat__channel-preview {

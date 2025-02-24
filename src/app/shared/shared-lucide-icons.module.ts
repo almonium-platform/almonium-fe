@@ -1,5 +1,6 @@
 import {NgModule} from '@angular/core';
 import {
+  ArrowLeft,
   BadgeDollarSign,
   Ban,
   Bell,
@@ -7,7 +8,6 @@ import {
   CheckCheck,
   ChevronLeft,
   ChevronRight,
-  CircleArrowLeft,
   CircleChevronLeft,
   CircleX,
   Dices,
@@ -51,6 +51,7 @@ import {
 @NgModule({
   imports: [
     LucideAngularModule.pick({
+      ArrowLeft,
       BadgeDollarSign,
       Ban,
       Bell,
@@ -58,7 +59,6 @@ import {
       CheckCheck,
       ChevronLeft,
       ChevronRight,
-      CircleArrowLeft,
       CircleChevronLeft,
       CircleX,
       Dices,
