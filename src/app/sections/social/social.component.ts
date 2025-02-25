@@ -59,6 +59,7 @@ import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
+import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 
 @Component({
   selector: 'app-social',
@@ -94,6 +95,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
     ConfirmModalComponent,
     ButtonComponent,
     TuiIcon,
+    OverlayscrollbarsModule,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

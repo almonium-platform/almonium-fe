@@ -351,283 +351,286 @@
           />
         </tui-input>
       </div>
-      <div class="channel-list scrollable">
-
-        <stream-channel-list>
-          <ng-template #avatarTemplate
-                       let-channel="channel"
-                       let-location="location"
-                       let-imageUrl="imageUrl"
-                       let-user="user"
-                       let-name="name"
-                       let-type="type"
-          >
-            <div class="avatar-wrapper"
-                 (mouseenter)="startAvatarHover(channel)"
-                 (mouseleave)="stopAvatarHover()">
-
-              <app-custom-chat-avatar
-                class="custom-chat-avatar"
-                [type]="type"
-                [channel]="channel"
-                [user]="user"
-                [name]="name"
-                [imageUrl]="imageUrl"
-                [location]="location"
-                [showOnlineIndicator]="true"
-                #avatarDropdown="tuiDropdown"
-                (mouseleave)="avatarDropdown.toggle(false)"
-                tuiDropdownHover
-                [tuiDropdown]="dropdownTemplate"
-                (click)="openUser(location)"
-              >
-                <ng-template #dropdownTemplate>
-                  @if (location === 'channel-preview'
-                  && hoveredChannel !== null
-                  && isPrivateChat(hoveredChannel)) {
-                    ID: {{ getInterlocutorId() }}
-                  }
-                </ng-template>
-              </app-custom-chat-avatar>
-
-            </div>
-          </ng-template>
-
-          <ng-template
-            #channelPreview
-            let-channelDisplayTitle="channelDisplayTitle"
-            let-channel="channel"
-            let-unreadCount="unreadCount"
-            let-latestMessageText="latestMessageText"
-            let-latestMessageStatus="latestMessageStatus"
-            let-latestMessageTime="latestMessageTime"
-          >
-            <div
-              #dropdown="tuiDropdown"
-              class="preview-tile"
-              tuiDropdownContext
-              [tuiDropdown]="contextMenu"
-              (contextmenu)="dropdown.toggle(true)"
-              (click)="dropdown.toggle(false)"
+      <overlay-scrollbars
+        [defer]="true"
+        [options]="{scrollbars:{ autoHide: 'leave', autoHideDelay: 0}}">
+        <div class="channel-list scrollable">
+          <stream-channel-list>
+            <ng-template #avatarTemplate
+                         let-channel="channel"
+                         let-location="location"
+                         let-imageUrl="imageUrl"
+                         let-user="user"
+                         let-name="name"
+                         let-type="type"
             >
-              <ng-template #contextMenu>
+              <div class="avatar-wrapper"
+                   (mouseenter)="startAvatarHover(channel)"
+                   (mouseleave)="stopAvatarHover()">
 
-                <tui-data-list
-                  role="menu"
-                  tuiDataListDropdownManager
-                  class="context-menu">
-
-                  @if (amMember(channel)) {
-                    @if (!isHiddenChannel(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="hideChat(channel, dropdown)"
-                      >
-                        <lucide-icon name="eye-closed"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Hide
-                      </button>
-                    } @else {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="showChat(channel, dropdown)"
-                      >
-                        <lucide-icon name="eye"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Show
-                      </button>
+                <app-custom-chat-avatar
+                  class="custom-chat-avatar"
+                  [type]="type"
+                  [channel]="channel"
+                  [user]="user"
+                  [name]="name"
+                  [imageUrl]="imageUrl"
+                  [location]="location"
+                  [showOnlineIndicator]="true"
+                  #avatarDropdown="tuiDropdown"
+                  (mouseleave)="avatarDropdown.toggle(false)"
+                  tuiDropdownHover
+                  [tuiDropdown]="dropdownTemplate"
+                  (click)="openUser(location)"
+                >
+                  <ng-template #dropdownTemplate>
+                    @if (location === 'channel-preview'
+                    && hoveredChannel !== null
+                    && isPrivateChat(hoveredChannel)) {
+                      ID: {{ getInterlocutorId() }}
                     }
-                  }
+                  </ng-template>
+                </app-custom-chat-avatar>
 
-                  @if (isUnread(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="markAsRead(channel, dropdown)"
-                    >
-                      <lucide-icon name="check-check"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                      Mark as read
-                    </button>
-                  } @else if (isLastMessageFromOtherUser(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button"
-                      (click)="markAsUnread(channel, dropdown)"
-                    >
-                      <lucide-icon name="message-square-dot"
-                                   class="chat-icon"
-                                   [size]="18"
-                      ></lucide-icon>
-                      Mark as unread
-                    </button>
-                  }
+              </div>
+            </ng-template>
 
-                  @if (amMember(channel) && !isSelfChat(channel)) {
-                    @if (isChannelMuted(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="unmuteChat(channel, dropdown)"
-                      >
-                        <lucide-icon name="bell"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Unmute
-                      </button>
-                    } @else {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="muteChat(channel, dropdown)"
-                      >
-                        <lucide-icon name="bell-off"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Mute
-                      </button>
-                    }
-                  }
+            <ng-template
+              #channelPreview
+              let-channelDisplayTitle="channelDisplayTitle"
+              let-channel="channel"
+              let-unreadCount="unreadCount"
+              let-latestMessageText="latestMessageText"
+              let-latestMessageStatus="latestMessageStatus"
+              let-latestMessageTime="latestMessageTime"
+            >
+              <div
+                #dropdown="tuiDropdown"
+                class="preview-tile"
+                tuiDropdownContext
+                [tuiDropdown]="contextMenu"
+                (contextmenu)="dropdown.toggle(true)"
+                (click)="dropdown.toggle(false)"
+              >
+                <ng-template #contextMenu>
 
-                  @if (isPrivateChat(channel) || isSelfChat(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button negative"
-                      (click)="prepareChatTruncationConfirmationModal(channel, dropdown)"
-                    >
-                      <lucide-icon name="circle-x"
-                                   class="chat-icon negative"
-                                   [size]="18"
-                      ></lucide-icon>
-                      Clear
-                    </button>
-                  }
-
-                  @if (isPrivateChat(channel)) {
-                    <button
-                      tuiOption
-                      type="button"
-                      class="context-button negative"
-                      (click)="prepareConfirmModalForChatDeletion(channel, dropdown)"
-                    >
-                      <lucide-icon name="trash"
-                                   class="chat-icon negative"
-                                   [size]="18"
-                      ></lucide-icon>
-                      Delete
-                    </button>
-                  }
-
-                  @if (isPublicChannel(channel)) {
-                    @if (!amMember(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="joinChannel(channel, dropdown)"
-                      >
-                        <lucide-icon name="log-in"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Join
-                      </button>
-                    }
+                  <tui-data-list
+                    role="menu"
+                    tuiDataListDropdownManager
+                    class="context-menu">
 
                     @if (amMember(channel)) {
+                      @if (!isHiddenChannel(channel)) {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button"
+                          (click)="hideChat(channel, dropdown)"
+                        >
+                          <lucide-icon name="eye-closed"
+                                       class="chat-icon"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Hide
+                        </button>
+                      } @else {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button"
+                          (click)="showChat(channel, dropdown)"
+                        >
+                          <lucide-icon name="eye"
+                                       class="chat-icon"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Show
+                        </button>
+                      }
+                    }
+
+                    @if (isUnread(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="markAsRead(channel, dropdown)"
+                      >
+                        <lucide-icon name="check-check"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                        Mark as read
+                      </button>
+                    } @else if (isLastMessageFromOtherUser(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button"
+                        (click)="markAsUnread(channel, dropdown)"
+                      >
+                        <lucide-icon name="message-square-dot"
+                                     class="chat-icon"
+                                     [size]="18"
+                        ></lucide-icon>
+                        Mark as unread
+                      </button>
+                    }
+
+                    @if (amMember(channel) && !isSelfChat(channel)) {
+                      @if (isChannelMuted(channel)) {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button"
+                          (click)="unmuteChat(channel, dropdown)"
+                        >
+                          <lucide-icon name="bell"
+                                       class="chat-icon"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Unmute
+                        </button>
+                      } @else {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button"
+                          (click)="muteChat(channel, dropdown)"
+                        >
+                          <lucide-icon name="bell-off"
+                                       class="chat-icon"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Mute
+                        </button>
+                      }
+                    }
+
+                    @if (isPrivateChat(channel) || isSelfChat(channel)) {
                       <button
                         tuiOption
                         type="button"
                         class="context-button negative"
-                        (click)="prepareLeaveChannelModal(channel, dropdown)"
+                        (click)="prepareChatTruncationConfirmationModal(channel, dropdown)"
                       >
-                        <lucide-icon name="log-out"
+                        <lucide-icon name="circle-x"
                                      class="chat-icon negative"
                                      [size]="18"
                         ></lucide-icon>
-                        Leave
+                        Clear
                       </button>
                     }
-                  }
 
-                </tui-data-list>
-              </ng-template>
+                    @if (isPrivateChat(channel)) {
+                      <button
+                        tuiOption
+                        type="button"
+                        class="context-button negative"
+                        (click)="prepareConfirmModalForChatDeletion(channel, dropdown)"
+                      >
+                        <lucide-icon name="trash"
+                                     class="chat-icon negative"
+                                     [size]="18"
+                        ></lucide-icon>
+                        Delete
+                      </button>
+                    }
 
-              <div class="str-chat__channel-preview-end-first-row">
-                <div class="str-chat__channel-preview-messenger--name">
+                    @if (isPublicChannel(channel)) {
+                      @if (!amMember(channel)) {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button"
+                          (click)="joinChannel(channel, dropdown)"
+                        >
+                          <lucide-icon name="log-in"
+                                       class="chat-icon"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Join
+                        </button>
+                      }
+
+                      @if (amMember(channel)) {
+                        <button
+                          tuiOption
+                          type="button"
+                          class="context-button negative"
+                          (click)="prepareLeaveChannelModal(channel, dropdown)"
+                        >
+                          <lucide-icon name="log-out"
+                                       class="chat-icon negative"
+                                       [size]="18"
+                          ></lucide-icon>
+                          Leave
+                        </button>
+                      }
+                    }
+
+                  </tui-data-list>
+                </ng-template>
+
+                <div class="str-chat__channel-preview-end-first-row">
+                  <div class="str-chat__channel-preview-messenger--name">
                       <span data-testid="channel-preview-title">
                       {{ getChatName(channel, channelDisplayTitle) }}
                       </span>
+                  </div>
+                  <div
+                    *ngIf="unreadCount"
+                    data-testid="unread-badge"
+                    class="str-chat__channel-preview-unread-badge"
+                    [ngClass]="{'single-digit': unreadCount <= 9}">
+                    {{ unreadCount }}
+                  </div>
+                  <lucide-icon name="bell-off"
+                               *ngIf="isChannelMuted(channel)"
+                               class="chat-icon"
+                               [size]="18"
+                  ></lucide-icon>
                 </div>
-                <div
-                  *ngIf="unreadCount"
-                  data-testid="unread-badge"
-                  class="str-chat__channel-preview-unread-badge"
-                  [ngClass]="{'single-digit': unreadCount <= 9}">
-                  {{ unreadCount }}
-                </div>
-                <lucide-icon name="bell-off"
-                             *ngIf="isChannelMuted(channel)"
-                             class="chat-icon"
-                             [size]="18"
-                ></lucide-icon>
-              </div>
 
-              <div class="str-chat__channel-preview-end-second-row">
-                <div
-                  data-testid="latest-message"
-                  class="str-chat__channel-preview-messenger--last-message"
-                >
-                  <ng-container *ngIf="displayAs === 'text'; else asHTML">
-                    {{ latestMessageText | translate }}
-                  </ng-container>
-                  <ng-template #asHTML>
+                <div class="str-chat__channel-preview-end-second-row">
+                  <div
+                    data-testid="latest-message"
+                    class="str-chat__channel-preview-messenger--last-message"
+                  >
+                    <ng-container *ngIf="displayAs === 'text'; else asHTML">
+                      {{ latestMessageText | translate }}
+                    </ng-container>
+                    <ng-template #asHTML>
                 <span
                   data-testid="html-content"
                   [innerHTML]="latestMessageText | translate"
                 ></span>
-                  </ng-template>
-                </div>
-                <div
-                  *ngIf="latestMessageStatus"
-                  data-testid="latest-message-status"
-                  class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
+                    </ng-template>
+                  </div>
+                  <div
+                    *ngIf="latestMessageStatus"
+                    data-testid="latest-message-status"
+                    class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
                     latestMessageStatus
                       }}"
-                >
-                  <stream-icon-placeholder
-                    [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
-                  ></stream-icon-placeholder>
-                </div>
-                <div
-                  *ngIf="latestMessageTime"
-                  data-testid="latest-message-time"
-                  class="str-chat__channel-preview-messenger--time"
-                >
-                  {{ latestMessageTime }}
+                  >
+                    <stream-icon-placeholder
+                      [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
+                    ></stream-icon-placeholder>
+                  </div>
+                  <div
+                    *ngIf="latestMessageTime"
+                    data-testid="latest-message-time"
+                    class="str-chat__channel-preview-messenger--time"
+                  >
+                    {{ latestMessageTime }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </ng-template>
-        </stream-channel-list>
-      </div>
+            </ng-template>
+          </stream-channel-list>
+        </div>
+      </overlay-scrollbars>
     </div>
   </div>
 

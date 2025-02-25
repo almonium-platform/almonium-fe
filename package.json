@@ -55,6 +55,7 @@
     "lucide-angular": "^0.463.0",
     "ng-click-outside2": "^15.0.0",
     "ngx-float-ui": "^19.0.1",
+    "overlayscrollbars-ngx": "^0.5.2",
     "rimraf": "^6.0.1",
     "rxjs": "~7.8.0",
     "stream-chat": "^8.55.0",
