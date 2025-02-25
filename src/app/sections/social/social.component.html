@@ -99,12 +99,20 @@
                               [size]="'m'"
                   ></app-avatar>
                   <p class="username">{{ friend.username }}</p>
-                  <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
-                               class="friend-action positive"
-                               (click)="sendFriendRequest(friend.id)"
-                               [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
-                               [size]="20"
-                  ></lucide-icon>
+
+                  @if (sendRequestInProgressIds.has(friend.id)) {
+                    <lucide-icon name="loader-circle"
+                                 class="friend-action motion-preset-spin"
+                                 [size]="20"
+                    ></lucide-icon>
+                  } @else {
+                    <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
+                                 class="friend-action positive"
+                                 (click)="sendFriendRequest(friend.id)"
+                                 [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
+                                 [size]="20"
+                    ></lucide-icon>
+                  }
                 </div>
               }
             </div>
