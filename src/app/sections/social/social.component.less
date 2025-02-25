@@ -220,6 +220,10 @@
       font-size: 1.5rem;
       height: 4rem;
 
+      &.return {
+        display: none;
+      }
+
       .menu-icon {
         margin: 0 1rem;
       }
@@ -562,6 +566,15 @@
 }
 
 @media (max-width: 640px) {
+  .super-container {
+    padding-top: 0;
+    height: 100vh;
+  }
+
+  .drawer-container .menu-tiles .menu-tile.return {
+    display: flex;
+  }
+
   .drawer {
     min-width: 100vw;
   }

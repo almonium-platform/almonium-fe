@@ -29,7 +29,7 @@ import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, RouterLink} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -96,6 +96,7 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
     ButtonComponent,
     TuiIcon,
     OverlayscrollbarsModule,
+    RouterLink,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

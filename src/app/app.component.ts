@@ -31,6 +31,10 @@ export class AppComponent {
     '/payment/success',
   ];
 
+  private noNavbarOnMobileRoutes: string[] = [
+    '/social',
+  ];
+
   constructor(
     private router: Router,
     private urlService: UrlService,
@@ -47,7 +51,13 @@ export class AppComponent {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         const clearedUrl = this.urlService.getClearedUrl();
-        this.showNavbar = !this.noNavbarRoutes.includes(clearedUrl);
+        const isMobile = window.innerWidth <= 640;
+
+        // Hide navbar if route is in `noNavbarRoutes` OR in `noNavbarOnMobileRoutes` on mobile
+        this.showNavbar = !(
+          this.noNavbarRoutes.includes(clearedUrl) ||
+          (isMobile && this.noNavbarOnMobileRoutes.includes(clearedUrl))
+        );
       }
     });
   }
