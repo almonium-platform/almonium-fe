@@ -12,6 +12,7 @@ import {ButtonComponent} from "../button/button.component";
       [disabled]="disabled"
       [customClass]="'edit-btn ' + (editable ? '' : 'circular-icon')"
       (clickFunction)="this.clickFunction.emit()"
+      width="unset"
     >
       @if (!editable) {
         <i

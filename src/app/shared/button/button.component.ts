@@ -16,7 +16,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       [class]="class + ' ' + customClass"
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
       [style.flex-direction]="reverse ? 'row-reverse' : 'row'"
-      [style.width]="width === 'fit' ? 'fit-content' : '100%'"
+      [style.width]="width === 'fit' ? 'fit-content' : width === 'full' ? '100%' : null"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
       [style.gap]="gap"
@@ -64,7 +64,7 @@ export class ButtonComponent implements OnInit {
   @Input() fontSize?: number;
   @Input() gap?: string = '0';
   @Input() reverse?: boolean = false;
-  @Input() width?: 'fit' | 'full' = 'full';
+  @Input() width?: 'fit' | 'full' | 'unset' = 'unset';
   @Input() title?: string = '';
   @Input() padding?: string = '';
   @Input() type?: 'button' | 'submit' | 'reset' = 'submit';
