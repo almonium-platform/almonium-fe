@@ -13,7 +13,7 @@ import {SocialService} from "./social.service";
 import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, EMPTY, finalize, firstValueFrom, Subject, takeUntil} from "rxjs";
-import {catchError, debounceTime, distinctUntilChanged, startWith, switchMap} from "rxjs/operators";
+import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
 import {FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {
@@ -342,17 +342,21 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         debounceTime(300),
         distinctUntilChanged(),
         takeUntil(this.destroy$),
+        map((username) => {
+          const sanitizedUsername = this.sanitizeUsername(username);
+          this.usernameFormControl.setValue(sanitizedUsername, {emitEvent: false}); // ✅ Update FormControl value
+          return sanitizedUsername;
+        }),
         switchMap((username) => {
-          if ((username?.length ?? 0) < 3) {
-            // Clear the results and reset the "nothing found" flag
+          if (username.length < 3) {
             this.matchedUsers = [];
             this.nothingFound = false;
-            return []; // Emit an empty array
+            return [];
           }
-          return this.socialService.searchAllByUsername(username || '').pipe(
+          return this.socialService.searchAllByUsername(username).pipe(
             catchError(() => {
-              this.nothingFound = true; // Handle errors
-              return []; // Return an empty array in case of errors
+              this.nothingFound = true;
+              return [];
             })
           );
         })
@@ -361,6 +365,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.matchedUsers = friends;
         this.nothingFound = friends.length === 0;
       });
+  }
+
+  private sanitizeUsername(username: string | null): string {
+    if (!username) return "";
+    return username
+      .trim() // ✅ Remove spaces before/after
+      .toLowerCase() // ✅ Convert to lowercase
+      .replace(/\s+/g, "") // ✅ Remove spaces inside
+      .replace(/-/g, "_") // ✅ Replace "-" with "_"
+      .replace(/[^a-z0-9_]/g, ""); // ✅ Remove all other disallowed characters
   }
 
   private listenToChannelSearch() {
