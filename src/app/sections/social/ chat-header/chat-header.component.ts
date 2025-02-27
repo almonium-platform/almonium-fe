@@ -1,16 +1,26 @@
-import {ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, TemplateRef} from '@angular/core';
-import {Channel, StreamChat} from 'stream-chat';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  TemplateRef,
+  ViewChild
+} from '@angular/core';
+import {Channel, StreamChat, UserResponse} from 'stream-chat';
 import {
   ChannelActionsContext,
   ChannelHeaderInfoContext,
   ChannelService,
   CustomTemplatesService,
-  DefaultStreamChatGenerics
+  DefaultStreamChatGenerics,
+  TypingIndicatorContext
 } from 'stream-chat-angular';
-import {fromEventPattern, Subscription} from "rxjs";
+import {fromEventPattern, Observable, of, Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
-import {DatePipe, NgIf, NgStyle} from "@angular/common";
+import {AsyncPipe, DatePipe, NgIf, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
@@ -19,9 +29,11 @@ import {LocalStorageService} from "../../../services/local-storage.service";
   selector: 'app-chat-header',
   standalone: true,
   template: `
+    <ng-template #typingIndicator let-usersTyping$="usersTyping$">
+    </ng-template>
     <p
       data-testid="info"
-      class="str-chat__header-livestream-left--members str-chat__channel-header-info"
+      class="str-chat__header-livestream-left--members str-chat__channel-header-info pb-1"
       [ngStyle]="isPrivateChat && isInterlocutorOnline ? {'color': 'var(--chat-accent-color)'} : {}"
     >
       <ng-container *ngIf="!isSelfChat">
@@ -30,7 +42,12 @@ import {LocalStorageService} from "../../../services/local-storage.service";
         </ng-container>
         <ng-container *ngIf="canReceiveConnectEvents">
           <ng-container *ngIf="isPrivateChat">
-            {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
+            <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
+              <span *ngIf="typingUsers.length > 0">typing...</span>
+              <span *ngIf="typingUsers.length === 0">
+                {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
+              </span>
+            </ng-container>
           </ng-container>
           <ng-container *ngIf="!isPrivateChat">
             {{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }}
@@ -43,7 +60,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     TranslateModule,
     NgStyle,
     NgIf,
-    RelativeTimePipe
+    RelativeTimePipe,
+    AsyncPipe
   ],
   styles: [`
     .str-chat__channel-header-info {
@@ -52,7 +70,9 @@ import {LocalStorageService} from "../../../services/local-storage.service";
   `],
   providers: [DatePipe]
 })
-export class ChatHeaderComponent implements OnChanges, OnDestroy {
+export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit {
+  @ViewChild('typingIndicator') typingIndicator!: TemplateRef<TypingIndicatorContext>;
+
   @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
@@ -60,6 +80,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
   protected canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
   protected isSelfChat: boolean | undefined;
+  protected usersTyping$: Observable<UserResponse[]> = of([]);
 
   private subscriptions: Subscription[] = [];
   private presenceSubscription: Subscription | undefined;
@@ -75,6 +96,8 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
     private cdRef: ChangeDetectorRef,
     private localStorageService: LocalStorageService,
   ) {
+    this.usersTyping$ = this.channelService.usersTypingInChannel$;
+
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((c) => {
         this.activeChannel = c;
@@ -95,6 +118,10 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy {
         }
       })
     );
+  }
+
+  ngAfterViewInit(): void {
+    this.customTemplatesService.typingIndicatorTemplate$.next(this.typingIndicator);
   }
 
   private subscribeToPresenceChanges(): void {
