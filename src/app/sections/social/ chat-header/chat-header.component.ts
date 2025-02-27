@@ -39,19 +39,31 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     >
       <ng-container *ngIf="!isSelfChat">
         <ng-container *ngIf="!isPrivateChat">
-          {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
+          <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
+            @if (typingUsers.length === 0) {
+              {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
+            }
+          </ng-container>
         </ng-container>
         <ng-container *ngIf="canReceiveConnectEvents">
           <ng-container *ngIf="isPrivateChat">
             <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
-              <span *ngIf="typingUsers.length > 0">typing...</span>
+              <span *ngIf="typingUsers.length === 1">typing...</span>
               <span *ngIf="typingUsers.length === 0">
                 {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
               </span>
             </ng-container>
           </ng-container>
           <ng-container *ngIf="!isPrivateChat">
-            {{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }}
+            <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
+              @if (typingUsers.length === 0) {
+                <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
+              } @else if (typingUsers.length === 1) {
+                {{ typingUsers[0].name || typingUsers[0].id }} is typing...
+              } @else {
+                {{ typingUsers.length }} people typing...
+              }
+            </ng-container>
           </ng-container>
         </ng-container>
       </ng-container>
@@ -63,7 +75,7 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     NgIf,
     RelativeTimePipe,
     AsyncPipe,
-    NgClass
+    NgClass,
   ],
   styles: [`
     .str-chat__channel-header-info {
