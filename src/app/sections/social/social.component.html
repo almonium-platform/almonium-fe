@@ -41,10 +41,22 @@
           <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Friends</p>
         </div>
+
         <div class="menu-tile card" (click)="setDrawerMode('requests')">
-          <lucide-icon name="user-round-plus" class="menu-icon" [size]="24"></lucide-icon>
+          <tui-badged-content class="menu-icon">
+            @if (incomingRequestsCount > 0) {
+              <tui-badge-notification
+                size="xs"
+                tuiSlot="top"
+              />
+            }
+            <div class="m-0.5">
+              <lucide-icon name="user-round-plus" color="black" [size]="24"></lucide-icon>
+            </div>
+          </tui-badged-content>
           <p class="menu-text">Requests</p>
         </div>
+
         <div class="menu-tile card" (click)="setDrawerMode('blocked')">
           <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Blocked</p>
@@ -310,18 +322,29 @@
        [ngStyle]="isManuallyResized ? {'width.px': sidebarWidth} : {'flex': '1'}">
 
     <div class="chats-container">
-      <header class="chats-header">
-        <lucide-icon name="menu"
-                     class="cursor-pointer"
-                     (click)="openDrawerAndSetupData()"
-                     tuiHintAppearance="dark"
-                     tuiHintDirection="bottom"
-                     [tuiHint]="menuTooltip"
-        >
-          <ng-template #menuTooltip>
-            <div>Your friends, requests, and more</div>
-          </ng-template>
-        </lucide-icon>
+      <div class="chats-header">
+        <tui-badged-content class="flex items-center flex-row">
+          <div class="m-0.5">
+            <lucide-icon name="menu"
+                         class="cursor-pointer"
+                         (click)="openDrawerAndSetupData()"
+                         tuiHintAppearance="dark"
+                         tuiHintDirection="bottom"
+                         color="black"
+                         [tuiHint]="menuTooltip"
+            >
+              <ng-template #menuTooltip>
+                <div>Your friends, requests, and more</div>
+              </ng-template>
+            </lucide-icon>
+          </div>
+          @if (incomingRequestsCount > 0) {
+            <tui-badge-notification
+              size="xs"
+              tuiSlot="top"
+            />
+          }
+        </tui-badged-content>
 
         <p class="header-text chats">Chats</p>
         <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
@@ -335,7 +358,7 @@
             <div>{{ hiddenChatsTooltip }}</div>
           </ng-template>
         </lucide-icon>
-      </header>
+      </div>
       <div class="search-header"
            (click)="openSearch()">
         <lucide-icon name="search"

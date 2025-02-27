@@ -26,7 +26,14 @@ import {
   TuiScrollbar
 } from "@taiga-ui/core";
 import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
-import {TuiDataListDropdownManager, TuiDrawer, TuiSegmented, TuiSkeleton} from "@taiga-ui/kit";
+import {
+  TuiBadgedContentComponent,
+  TuiBadgeNotification,
+  TuiDataListDropdownManager,
+  TuiDrawer,
+  TuiSegmented,
+  TuiSkeleton
+} from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ActivatedRoute, RouterLink} from "@angular/router";
@@ -97,6 +104,8 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
     TuiIcon,
     OverlayscrollbarsModule,
     RouterLink,
+    TuiBadgeNotification,
+    TuiBadgedContentComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -123,7 +132,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
   protected requestsIndex: number = 0;
-
+  protected incomingRequestsCount = 0;
   // drawer
   protected readonly isDrawerOpened = signal(false);
   protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' | 'menu' = 'menu';
@@ -266,6 +275,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.urlService.clearUrl();
     });
+
+    this.getIncomingRequests();
 
     this.listenToUsernameField();
     this.listenToFriendSearch();
@@ -449,6 +460,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.incomingRequests = incomingRequests;
       this.drawerUserTiles = incomingRequests;
       this.loadingIncomingRequests = false;
+      this.incomingRequestsCount = incomingRequests.length;
     });
   }
 
@@ -536,19 +548,21 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     console.log(this.acceptInProgressIds);
 
     this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT)
-      .pipe(finalize(() => this.acceptInProgressIds.delete(candidate.friendshipId)))
       .subscribe({
         next: () => {
           this.createPrivateChat(this.userInfo!.id, candidate.id.toString()).then(_ => {
+            this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
               .map(profile => profile.friendshipStatus = FriendshipStatus.FRIENDS);
+            this.acceptInProgressIds.delete(candidate.friendshipId);
           })
           this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
         },
         error: (error) => {
           console.error(error);
           this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
+          this.acceptInProgressIds.delete(candidate.friendshipId);
         }
       });
   }

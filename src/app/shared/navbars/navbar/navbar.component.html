@@ -84,15 +84,17 @@
               @if (hasUnreadMessages) {
                 <tui-badge-notification
                   size="xs"
-                  tuiSlot="bottom"
+                  tuiSlot="top"
                 />
               }
-              <lucide-icon name="message-circle"
-                           [size]="24"
-                           [color]="'var(--text-color)'"
-                           [strokeWidth]="1"
-                           routerLink="/social"
-              ></lucide-icon>
+              <div class="m-0.5">
+                <lucide-icon name="message-circle"
+                             [size]="24"
+                             color="var(--text-color)"
+                             [strokeWidth]="1"
+                             routerLink="/social"
+                ></lucide-icon>
+              </div>
             </tui-badged-content>
           </button>
         </div>
