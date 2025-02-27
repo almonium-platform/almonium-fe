@@ -349,6 +349,7 @@
         <p class="header-text chats">Chats</p>
         <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
                      class="hidden-chat-icon"
+                     [strokeWidth]="1.5"
                      (click)="toggleHiddenChats()"
                      tuiHintAppearance="dark"
                      tuiHintDirection="bottom"
