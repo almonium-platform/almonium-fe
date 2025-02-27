@@ -20,7 +20,7 @@ import {
 import {fromEventPattern, Observable, of, Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
-import {AsyncPipe, DatePipe, NgIf, NgStyle} from "@angular/common";
+import {AsyncPipe, DatePipe, NgClass, NgIf, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
@@ -33,7 +33,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     </ng-template>
     <p
       data-testid="info"
-      class="str-chat__header-livestream-left--members str-chat__channel-header-info pb-1"
+      class="str-chat__header-livestream-left--members str-chat__channel-header-info"
+      [ngClass]="!isSelfChat ? 'pb-1' : ''"
       [ngStyle]="isPrivateChat && isInterlocutorOnline ? {'color': 'var(--chat-accent-color)'} : {}"
     >
       <ng-container *ngIf="!isSelfChat">
@@ -61,7 +62,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     NgStyle,
     NgIf,
     RelativeTimePipe,
-    AsyncPipe
+    AsyncPipe,
+    NgClass
   ],
   styles: [`
     .str-chat__channel-header-info {
