@@ -415,6 +415,11 @@
     background-color: var(--chat-accent-color);
     color: white;
 
+    .str-chat__channel-preview-unread-badge {
+      background: white !important;
+      color: var(--chat-accent-color) !important;
+    }
+
     // Ensure hover does not affect active state
     &:hover {
       background-color: var(--chat-accent-color) !important;
@@ -496,7 +501,7 @@
 
 // unread messages indicator
 ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
-  background: var(--chat-accent-color);
+  background: var(--chat-accent-color); // here
 }
 
 // unread messages indicator
