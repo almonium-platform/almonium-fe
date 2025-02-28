@@ -45,7 +45,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {NgClickOutsideDirective} from "ng-click-outside2";
+import {TuiActiveZone} from "@taiga-ui/cdk";
 
 
 @Component({
@@ -79,7 +79,7 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     InfoIconComponent,
     ButtonComponent,
     CefrLevelSelectorComponent,
-    NgClickOutsideDirective,
+    TuiActiveZone,
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -146,7 +146,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     private alertService: TuiAlertService,
     private validationMessagesService: ValidationMessagesService,
     private supportedLanguagesService: SupportedLanguagesService,
-    protected popupTemplateStateService: PopupTemplateStateService,
+    private popupTemplateStateService: PopupTemplateStateService,
     private utilsService: UtilsService,
   ) {
     this.languageForm = this.fb.group({
@@ -485,5 +485,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   protected featuresVisible(): boolean {
     return this.selectedTargetLanguageFeatures.special.length > 0 || this.selectedTargetLanguageFeatures.basic.length > 0;
+  }
+
+  protected onActiveZoneChange($event: boolean) {
+    if ($event) return;
+    this.popupTemplateStateService.close();
   }
 }
