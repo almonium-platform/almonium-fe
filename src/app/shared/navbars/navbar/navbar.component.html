@@ -24,6 +24,14 @@
             Review
           </a>
         }
+        @if (this.uiPreferences.navbar.read) {
+          <a
+            routerLink="/read"
+            class="nav-link ml-8 section"
+            [ngClass]="{'active-link': currentRoute === '/read'}">
+            Read
+          </a>
+        }
         @if (this.uiPreferences.navbar.play) {
           <a
             routerLink="/play"
@@ -153,6 +161,12 @@
           <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
             <span>Review</span>
+          </a>
+        }
+        @if (uiPreferences.navbar.read) {
+          <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+            <lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
+            <span>Read</span>
           </a>
         }
         @if (uiPreferences.navbar.play) {
