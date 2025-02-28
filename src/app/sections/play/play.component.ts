@@ -3,16 +3,16 @@ import {NgClass, NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
 
 @Component({
-  selector: 'app-games',
-  templateUrl: './games.component.html',
+  selector: 'app-play',
+  templateUrl: './play.component.html',
   imports: [
     NgClass,
     RouterLink,
     NgOptimizedImage
   ],
-  styleUrls: ['./games.component.less']
+  styleUrls: ['./play.component.less']
 })
-export class GamesComponent implements OnInit {
+export class PlayComponent implements OnInit {
   filter: string = 'all';
 
   constructor() {
@@ -26,11 +26,11 @@ export class GamesComponent implements OnInit {
   }
 
   isGameVisible(gameType: string): boolean {
-    // Show all games if 'all' is selected
+    // Show all play if 'all' is selected
     if (this.filter === 'all') {
       return true;
     }
-    // Show games based on filter
+    // Show play based on filter
     return this.filter === gameType;
   }
 }

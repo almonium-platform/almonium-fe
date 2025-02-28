@@ -19,9 +19,9 @@
                 <lucide-icon name="telescope" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
                 <span>Discover</span>
               </a>
-              <a routerLink="/games" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+              <a routerLink="/play" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
                 <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>Games</span>
+                <span>Play</span>
               </a>
               <a routerLink="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
                 <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
@@ -45,10 +45,10 @@
           Discover
         </a>
         <a
-          routerLink="/games"
+          routerLink="/play"
           class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/games'}">
-          Games
+          [ngClass]="{'active-link': currentRoute === '/play'}">
+          Play
         </a>
         <a
           routerLink="/pricing"

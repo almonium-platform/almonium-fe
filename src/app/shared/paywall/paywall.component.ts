@@ -43,14 +43,14 @@ export class PaywallComponent implements OnInit, OnDestroy {
     'One target language',
     'One story a day',
     '100 card reviews a day',
-    'Basic games',
+    'Basic play',
   ];
   protected premiumFeatures: string[] = [
     'Unlimited stories',
     'Unlimited translations',
     'Unlimited reviews',
     'Card rephrasing',
-    'All games',
+    'All play',
     'All target languages',
   ];
   selectedMode: number = 0;

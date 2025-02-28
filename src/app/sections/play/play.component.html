@@ -29,7 +29,7 @@
     <!-- Ladder (Solo) -->
     @if (isGameVisible('solo')) {
       <a
-        routerLink="/games/ladder"
+        routerLink="/play/ladder"
         class="game-card ladder-card solo-game">
         <div class="game-img ladder-img">
           <img alt="Ladder image" ngSrc="/assets/img/games/ladder.png" height="1024" width="1024"/>
@@ -46,7 +46,7 @@
     <!-- Crosswords (Solo) -->
     @if (isGameVisible('solo')) {
       <a
-        routerLink="/games/crossword"
+        routerLink="/play/crossword"
         class="game-card crossword-card solo-game">
         <div class="game-img">
           <img alt="Crossword image" ngSrc="/assets/img/games/crossword.png" height="1024" width="1024"/>
@@ -63,7 +63,7 @@
     <!-- Higher or Lower (pvp) -->
     @if (isGameVisible('pvp')) {
       <a
-        routerLink="/games/higher-lower"
+        routerLink="/play/higher-lower"
         class="game-card hilo-card pvp-game">
         <div class="game-img arrows-img">
           <img alt="Arrows image" ngSrc="/assets/img/games/arrows.png" height="639" width="842"/>
@@ -80,7 +80,7 @@
     <!-- Duel (pvp) -->
     @if (isGameVisible('pvp')) {
       <a
-        routerLink="/games/duel"
+        routerLink="/play/duel"
         class="game-card duel-card pvp-game">
         <div class="game-img">
           <img alt="Hands image" ngSrc="/assets/img/games/hands.png" height="1024" width="1024"/>

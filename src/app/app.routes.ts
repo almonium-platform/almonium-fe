@@ -9,7 +9,7 @@ import {TermsOfUseComponent} from "./static/legal/terms-of-use/terms-of-use.comp
 import {LandingComponent} from "./sections/landing/landing.component";
 import {LogoutComponent} from "./authentication/logout/logout.component";
 import {ReviewComponent} from "./sections/review/review.component";
-import {GamesComponent} from "./sections/games/games.component";
+import {PlayComponent} from "./sections/play/play.component";
 import {LadderComponent} from "./games/ladder/ladder.component";
 import {HigherLowerComponent} from "./games/higher-lower/higher-lower.component";
 import {CrosswordComponent} from "./games/crossword/crossword.component";
@@ -52,10 +52,10 @@ export const routes: Routes = [
       },
 
       // Games
-      {path: 'games/ladder', component: LadderComponent},
-      {path: 'games/higher-lower', component: HigherLowerComponent},
-      {path: 'games/crossword', component: CrosswordComponent},
-      {path: 'games/duel', component: DuelComponent},
+      {path: 'play/ladder', component: LadderComponent},
+      {path: 'play/higher-lower', component: HigherLowerComponent},
+      {path: 'play/crossword', component: CrosswordComponent},
+      {path: 'play/duel', component: DuelComponent},
     ]
   },
 
@@ -75,7 +75,7 @@ export const routes: Routes = [
   {path: 'about', component: AboutComponent},
 
   // sections of both auth and unauth
-  {path: 'games', component: GamesComponent},
+  {path: 'play', component: PlayComponent},
   {path: 'discover', component: DiscoverComponent},
 
   // Test route
