@@ -57,7 +57,24 @@
 
       <div class="row-content target-lang-head">
         @if (showTargetLangDropdown) {
-          <div class="target-lang-chip" (click)="(showTargetLangDropdown = false)">
+          <tui-select
+            tuiTextfieldSize="m"
+            class="language-select"
+            [formControl]="targetLanguageSelectControl"
+            [tuiTextfieldLabelOutside]="true"
+            (clickOutside)="(showTargetLangDropdown = false)"
+          >
+            <tui-data-list-wrapper
+              *tuiDataList
+              [items]="targetLanguageNames"
+            >
+            </tui-data-list-wrapper>
+          </tui-select>
+        } @else {
+          <div class="target-lang-chip"
+               (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
+               [ngClass]="targetLanguageNames.length > 1 ? 'cursor-pointer': ''"
+          >
             <tui-chip
               [style.background-color]="getCurrentTargetLanguageName() | tuiAutoColor">{{ getCurrentTargetLanguageName() }}
             </tui-chip>
@@ -66,20 +83,6 @@
               <p class="and-more">+{{ targetLanguageNames.length - 1 }} more</p>
             }
           </div>
-        } @else {
-          <tui-select
-            tuiTextfieldSize="m"
-            class="language-select"
-            [formControl]="targetLanguageSelectControl"
-            [tuiTextfieldLabelOutside]="true"
-            (clickOutside)="(showTargetLangDropdown = true)"
-          >
-            <tui-data-list-wrapper
-              *tuiDataList
-              [items]="targetLanguageNames"
-            >
-            </tui-data-list-wrapper>
-          </tui-select>
         }
         <div class="edit-element">
           <premium-badged-content

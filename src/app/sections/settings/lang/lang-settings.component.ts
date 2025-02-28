@@ -12,7 +12,7 @@ import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon} from "@taiga-ui/core";
-import {AsyncPipe} from "@angular/common";
+import {AsyncPipe, NgClass} from "@angular/common";
 import {TuiChip, TuiSwitch} from "@taiga-ui/kit";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
@@ -59,7 +59,8 @@ import {LucideAngularModule} from "lucide-angular";
     NgClickOutsideDirective,
     LucideAngularModule,
     TuiHintDirective,
-    TuiSelectModule
+    TuiSelectModule,
+    NgClass
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -86,7 +87,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
   protected targetLanguageSelectControl = new FormControl();
-  protected showTargetLangDropdown = true;
+  protected showTargetLangDropdown = false;
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible: boolean = false;
