@@ -54,7 +54,7 @@
             [loading$]="loading$"
             [style.margin-left]="'auto'"
             [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
-            [gap]="(userInfo?.hidden ? '0.3rem' : '.3rem')"
+            [gap]="(userInfo?.hidden ? '0.3rem' : '0')"
             [reverse]="userInfo?.hidden"
             [customClass]="userInfo?.hidden ? '' : ''"
             (clickFunction)="toggleHidden()"
