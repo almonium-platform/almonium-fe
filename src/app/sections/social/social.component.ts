@@ -972,8 +972,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     let newWidth = event.clientX;
 
     // Collapse to avatar mode if width is too small
-    if (newWidth < 76) {
-      this.sidebarWidth = 76;
+    if (newWidth < 68) {
+      this.sidebarWidth = 68;
       this.isCollapsed = true;
     } else if (newWidth > 600) {
       this.sidebarWidth = 600; // Prevent exceeding max width
