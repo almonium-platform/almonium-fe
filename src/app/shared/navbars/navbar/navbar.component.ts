@@ -78,8 +78,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
 
-  // CHATS
+  // icons
   protected hasUnreadMessages = false;
+  protected hasUnreadNotifications = true;
+
+  protected navbarItems = [
+    {name: 'timer', enabled: this.uiPreferences.navbar.timer, icon: 'timer', link: '/social', hasUnread: false},
+    {
+      name: 'social',
+      enabled: this.uiPreferences.navbar.social,
+      icon: 'message-circle',
+      link: '/social',
+      hasUnread: this.hasUnreadMessages,
+    },
+    {
+      name: 'notifications',
+      enabled: this.uiPreferences.navbar.notifications,
+      icon: 'bell',
+      hasUnread: this.hasUnreadNotifications,
+      onClick: () => this.toggleNotificationPopover(),
+      onClickOutside: (event: Event) => this.notificationOnClickOutside(event)
+    }
+  ];
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,

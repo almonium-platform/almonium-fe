@@ -73,51 +73,28 @@
           }
         </div>
       </div>
-
-      @if (uiPreferences.navbar.timer) {
-        <div class="btn-notification relative">
-          <button>
-            <lucide-icon name="timer"
-                         [size]="24"
-                         [strokeWidth]="1"
-            ></lucide-icon>
-          </button>
-        </div>
-      }
-
-      @if (uiPreferences.navbar.social) {
-        <div class="btn-notification relative">
-          <button>
-            <tui-badged-content>
-              @if (hasUnreadMessages) {
-                <tui-badge-notification
-                  size="xs"
-                  tuiSlot="top"
-                />
-              }
-              <div class="m-0.5">
-                <lucide-icon name="message-circle"
-                             [size]="24"
-                             color="var(--text-color)"
-                             [strokeWidth]="1"
-                             routerLink="/social"
-                ></lucide-icon>
-              </div>
-            </tui-badged-content>
-          </button>
-        </div>
-      }
-
-      @if (uiPreferences.navbar.notifications) {
-        <div class="btn-notification relative" (click)="toggleNotificationPopover()"
-             (clickOutside)="notificationOnClickOutside($event)">
-          <button>
-            <lucide-icon name="bell"
-                         [size]="24"
-                         [strokeWidth]="1"
-            ></lucide-icon>
-          </button>
-        </div>
+      @for (item of navbarItems; track item.name) {
+        @if (item.enabled) {
+          <div class="btn-notification relative" (click)="item['onClick']?.()"
+               (clickOutside)="item['onClickOutside']?.($event)">
+            <button>
+              <tui-badged-content>
+                @if (item.hasUnread) {
+                  <tui-badge-notification size="xs" tuiSlot="top"/>
+                }
+                <div class="m-0.5">
+                  <lucide-icon
+                    [name]="item.icon"
+                    [size]="24"
+                    color="var(--text-color)"
+                    [strokeWidth]="1"
+                    [routerLink]="item['link']"
+                  ></lucide-icon>
+                </div>
+              </tui-badged-content>
+            </button>
+          </div>
+        }
       }
 
       <!-- Navbar User Profile Section -->
