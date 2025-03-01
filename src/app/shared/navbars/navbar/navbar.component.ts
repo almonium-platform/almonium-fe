@@ -28,6 +28,8 @@ import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
 import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
+import {NotificationService} from "../../notification/notification.service";
+import {Notification} from "../../notification/notification.model";
 
 @Component({
   selector: 'app-navbar',
@@ -82,6 +84,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected hasUnreadMessages = false;
   protected hasUnreadNotifications = true;
 
+  protected notifications: Notification[] = [];
+
   protected navbarItems = [
     {name: 'timer', enabled: this.uiPreferences.navbar.timer, icon: 'timer', link: '/social', hasUnread: false},
     {
@@ -108,6 +112,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private popupTemplateStateService: PopupTemplateStateService,
               private viewportService: ViewportService,
               private chatUnreadService: ChatUnreadService,
+              private navbarService: NotificationService,
   ) {
   }
 
@@ -147,11 +152,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.userInfoService.userInfo$
       .pipe(takeUntil(this.destroy$))
       .subscribe((info) => {
-        if (info) {
-          this.userInfo = info;
-          this.targetLanguageDropdownService.initializeLanguages(info);
-          this.uiPreferences = {...info.uiPreferences};
-        }
+        if (!info) return;
+        this.userInfo = info;
+        this.targetLanguageDropdownService.initializeLanguages(info);
+        this.uiPreferences = {...info.uiPreferences};
       });
 
     this.viewportService.setCustomWidth(690);
@@ -161,6 +165,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.isMobile = isMobile;
         this.cdr.detectChanges();
       });
+
+    this.navbarService.getNotifications().subscribe((notifications) => {
+      this.notifications = notifications;
+    });
   }
 
   ngOnDestroy(): void {

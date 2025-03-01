@@ -46,6 +46,7 @@ export class AppConstants {
 
   // SOCIAL
   public static FRIENDSHIPS_URL = AppConstants.API_URL + '/friendships';
+  public static NOTIFICATIONS_URL = AppConstants.API_URL + '/notifications';
 
   // UTILS
   public static UTILS_URL = AppConstants.API_URL + '/utils';
