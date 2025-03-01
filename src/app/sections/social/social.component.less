@@ -412,6 +412,10 @@
   }
 }
 
+::ng-deep .str-chat__channel-preview-messenger--time {
+  min-width: fit-content;
+}
+
 ::ng-deep .str-chat__channel-preview-messenger.str-chat__channel-preview {
   padding-right: .6rem;
 }
@@ -508,13 +512,15 @@
 }
 
 // unread messages indicator
-::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
   background: var(--chat-accent-color); // here
 }
 
 // unread messages indicator
-::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-first-row .str-chat__channel-preview-unread-badge {
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
   padding: 0 6px;
+  color: white;
+  font-weight: 550;
 }
 
 // chat window, unread messages notification

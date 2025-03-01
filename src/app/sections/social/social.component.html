@@ -607,17 +607,12 @@
                       </span>
                   </div>
                   <div
-                    *ngIf="unreadCount"
-                    data-testid="unread-badge"
-                    class="str-chat__channel-preview-unread-badge"
-                    [ngClass]="{'single-digit': unreadCount <= 9}">
-                    {{ unreadCount }}
+                    *ngIf="latestMessageTime"
+                    data-testid="latest-message-time"
+                    class="str-chat__channel-preview-messenger--time"
+                  >
+                    {{ latestMessageTime }}
                   </div>
-                  <lucide-icon name="bell-off"
-                               *ngIf="isChannelMuted(channel)"
-                               class="chat-icon"
-                               [size]="18"
-                  ></lucide-icon>
                 </div>
 
                 <div class="str-chat__channel-preview-end-second-row">
@@ -647,12 +642,17 @@
                     ></stream-icon-placeholder>
                   </div>
                   <div
-                    *ngIf="latestMessageTime"
-                    data-testid="latest-message-time"
-                    class="str-chat__channel-preview-messenger--time"
-                  >
-                    {{ latestMessageTime }}
+                    *ngIf="unreadCount"
+                    data-testid="unread-badge"
+                    class="str-chat__channel-preview-unread-badge"
+                    [ngClass]="{'single-digit': unreadCount <= 9}">
+                    {{ unreadCount }}
                   </div>
+                  <lucide-icon name="bell-off"
+                               *ngIf="isChannelMuted(channel)"
+                               class="chat-icon"
+                               [size]="18"
+                  ></lucide-icon>
                 </div>
               </div>
             </ng-template>
