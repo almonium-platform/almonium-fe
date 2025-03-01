@@ -168,7 +168,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     "create-attachment",
     "delete-channel",
     "delete-own-message",
-    "flag-message",
     "join-channel",
     "leave-channel",
     "mute-channel",
