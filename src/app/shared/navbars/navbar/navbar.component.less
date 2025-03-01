@@ -1,6 +1,6 @@
 @import '../navbar-base.less';
 
-.btn-notification {
+.icon-badge {
   background: none;
   border: none;
   cursor: pointer;
@@ -18,7 +18,7 @@
 }
 
 /* Make notification icon and profile circle stay fixed */
-.btn-notification, .profile-circle {
+.icon-badge, .profile-circle {
   flex-shrink: 0; /* Prevent these elements from shrinking */
 }
 
@@ -113,4 +113,14 @@
 
 .username {
   font-size: 1.05rem;
+}
+
+.navbar-icon {
+  padding: .15rem;
+  border-radius: 50%;
+  color: var(--text-color);
+
+  &:hover {
+    color: var(--violet);
+  }
 }

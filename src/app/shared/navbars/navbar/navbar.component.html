@@ -75,18 +75,18 @@
       </div>
       @for (item of navbarItems; track item.name) {
         @if (item.enabled) {
-          <div class="btn-notification relative" (click)="item['onClick']?.()"
+          <div class="icon-badge relative" (click)="item['onClick']?.()"
                (clickOutside)="item['onClickOutside']?.($event)">
             <button>
               <tui-badged-content>
                 @if (item.hasUnread) {
                   <tui-badge-notification size="xs" tuiSlot="top"/>
                 }
-                <div class="m-0.5">
+                <div class="navbar-icon">
                   <lucide-icon
                     [name]="item.icon"
                     [size]="24"
-                    color="var(--text-color)"
+                    class="navbar-lucide-icon"
                     [strokeWidth]="1"
                     [routerLink]="item['link']"
                   ></lucide-icon>
