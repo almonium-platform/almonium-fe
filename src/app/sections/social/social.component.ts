@@ -262,6 +262,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.streamI18nService.setTranslation();
 
     this.activatedRoute.queryParams.subscribe(params => {
+      if (params['tab'] === 'friends') {
+        this.drawerMode = 'friends';
+        this.openDrawerAndSetupData();
+      }
       if (params['requests'] === 'received') {
         this.drawerMode = 'requests';
         this.requestsIndex = 0;
