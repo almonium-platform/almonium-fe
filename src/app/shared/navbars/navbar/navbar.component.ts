@@ -83,7 +83,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
-              private userService: UserInfoService,
+              private userInfoService: UserInfoService,
               private targetLanguageDropdownService: TargetLanguageDropdownService,
               private popupTemplateStateService: PopupTemplateStateService,
               private viewportService: ViewportService,
@@ -124,7 +124,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
 
-    this.userService.userInfo$
+    this.userInfoService.userInfo$
       .pipe(takeUntil(this.destroy$))
       .subscribe((info) => {
         if (info) {
