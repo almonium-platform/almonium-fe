@@ -648,11 +648,12 @@
                     [ngClass]="{'single-digit': unreadCount <= 9}">
                     {{ unreadCount }}
                   </div>
-                  <lucide-icon name="bell-off"
-                               *ngIf="isChannelMuted(channel)"
-                               class="chat-icon"
-                               [size]="18"
-                  ></lucide-icon>
+                  @if (isChannelMuted(channel)) {
+                    <lucide-icon name="bell-off"
+                                 class="chat-icon muted-icon"
+                                 [size]="18"
+                    ></lucide-icon>
+                  }
                 </div>
               </div>
             </ng-template>
