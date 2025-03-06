@@ -15,4 +15,19 @@ export class NotificationService {
     const url = `${AppConstants.NOTIFICATIONS_URL}`;
     return this.http.get<Notification[]>(url, {withCredentials: true});
   }
+
+  markAllAsRead(): Observable<any> {
+    const url = `${AppConstants.NOTIFICATIONS_URL}/read`;
+    return this.http.patch(url, {}, {withCredentials: true});
+  }
+
+  markAsRead(id: string): Observable<any> {
+    const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/read`;
+    return this.http.patch(url, {}, {withCredentials: true});
+  }
+
+  markAsUnread(id: string): Observable<any> {
+    const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/unread`;
+    return this.http.patch(url, {}, {withCredentials: true});
+  }
 }

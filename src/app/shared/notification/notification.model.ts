@@ -1,11 +1,15 @@
 export interface Notification {
   id: string;
-  type: string;
+  type: NotificationType;
   title: string;
-  message: string;
+  message: string | null;
   createdAt: string;
-  readAt: string;
+  readAt: Date | null;
   referenceId: string;
   pictureUrl: string;
-  link: string;
+}
+
+export enum NotificationType {
+  FRIENDSHIP_ACCEPTED = 'FRIENDSHIP_ACCEPTED',
+  FRIENDSHIP_REQUESTED = 'FRIENDSHIP_REQUESTED',
 }
