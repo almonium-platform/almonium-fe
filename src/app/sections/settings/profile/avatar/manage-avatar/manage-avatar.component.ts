@@ -36,7 +36,7 @@ import {AvatarComponent} from "../../../../../shared/avatar/avatar.component";
 export class ManageAvatarComponent implements OnInit, OnDestroy {
   @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<any>;
 
-  private readonly FIREBASE_AVATAR_URL_PATH = 'avatars';
+  private readonly FIREBASE_AVATAR_URL_PATH = 'avatars/users';
   private readonly FIREBASE_DEFAULT_URL_PATH = this.FIREBASE_AVATAR_URL_PATH + '/default';
 
   protected userInfo: UserInfo | null = null;
