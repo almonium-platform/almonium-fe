@@ -19,6 +19,9 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       [style.width]="width === 'fit' ? 'fit-content' : width === 'full' ? '100%' : null"
       [style.padding]="padding"
       [style.font-size.px]="fontSize"
+      [style.font-weight]="fontWeight"
+      [style.color]="color"
+      [style.opacity]="appearance === 'text' && ((loading$ | async) || disabled) ? 0.5 : 1"
       [style.gap]="gap"
       [tuiHint]="hint"
       [tuiHintAppearance]="hintAppearance"
@@ -29,7 +32,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       (focus)="isHovered = true"
       (blur)="isHovered = false"
     >
-      @if (loading$ | async) {
+      @if ((loading$ | async) && appearance !== 'text') {
         <tui-loader
           class="absolute loader"
         ></tui-loader>
@@ -40,7 +43,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
         <ng-content></ng-content>
       </div>
 
-      <span [ngStyle]="{ color: (loading$ | async) ? 'transparent' : 'inherit' }">
+      <span [ngStyle]="{ color: ((loading$ | async) && appearance !== 'text') ? 'transparent' : 'inherit' }">
           {{ isHovered && hoverLabel ? hoverLabel : label }}
       </span>
     </button>
@@ -49,7 +52,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
     AsyncPipe,
     NgStyle,
     TuiLoader,
-    TuiHintDirective
+    TuiHintDirective,
   ],
   styleUrls: ['./button.component.less']
 })
@@ -59,9 +62,11 @@ export class ButtonComponent implements OnInit {
   @Input() label!: string;
   @Input() hoverLabel?: string;
   @Input() disabled: boolean = false;
-  @Input() appearance: 'bw' | 'gradient' | 'underline' = 'gradient';
+  @Input() appearance: 'bw' | 'gradient' | 'underline' | 'text' = 'gradient';
   @Input() customClass: string = '';
   @Input() fontSize?: number;
+  @Input() fontWeight?: number;
+  @Input() color?: string;
   @Input() gap?: string = '0';
   @Input() reverse?: boolean = false;
   @Input() width?: 'fit' | 'full' | 'unset' = 'unset';
@@ -99,7 +104,10 @@ export class ButtonComponent implements OnInit {
     if (this.appearance === 'underline') {
       return 'underline-button';
     }
-    return 'gradient-button';
+    if (this.appearance === 'gradient') {
+      return 'gradient-button';
+    }
+    return '';
   }
 
   get isDisabled(): boolean {
