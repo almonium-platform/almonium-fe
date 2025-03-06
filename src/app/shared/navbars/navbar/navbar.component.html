@@ -75,8 +75,7 @@
       </div>
       @for (item of navbarItems; track item.name) {
         @if (item.enabled) {
-          <div class="icon-badge relative" (click)="item['onClick']?.()"
-               (clickOutside)="item['onClickOutside']?.($event)">
+          <div class="icon-badge relative" (click)="item.action()">
             <button>
               <tui-badged-content>
                 @if (item.hasUnread) {
@@ -88,7 +87,6 @@
                     [size]="24"
                     class="navbar-lucide-icon"
                     [strokeWidth]="1"
-                    [routerLink]="item['link']"
                   ></lucide-icon>
                 </div>
               </tui-badged-content>
@@ -198,10 +196,88 @@
 
 @if (isNotificationOpen) {
   <div
-    class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
-    <div class="menu-section">
-      <hr class="border-gray-200"/>
-      You have no new notifications.
+    class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 notifications"
+    (clickOutside)="notificationOnClickOutside($event)"
+  >
+    <div class="header">
+      <div class="title-group">
+        <p class="popover-title">Notifications</p>
+
+        @if (unreadNotificationsCount > 0) {
+          <span class="circular-icon">{{ unreadNotificationsCount }}</span>
+        }
+      </div>
+      @if (unreadNotificationsCount > 0) {
+        <app-button appearance="text"
+                    label="Mark all as read"
+                    [fontSize]="16"
+                    [fontWeight]="550"
+                    (click)="markAllAsRead()"
+                    [disabled]="unreadNotificationsCount === 0"
+                    [loading$]="loading$"
+                    color="var(--dark-purple)"
+        ></app-button>
+      }
     </div>
+    <overlay-scrollbars
+      [defer]="true"
+      [options]="{scrollbars:{ autoHide: 'leave', autoHideDelay: 0}}">
+      <div class="menu-section">
+        @if (notifications.length === 0) {
+          <div class="empty-state">
+            You have no notifications.
+          </div>
+        } @else {
+          @for (notification of notifications; track notification) {
+            <div class="separator"></div>
+            <tui-badged-content>
+              @if (!notification.readAt) {
+                <tui-badge-notification size="xs" tuiSlot="top"/>
+              }
+              <ng-template #dropdownTemplate>
+
+                <tui-data-list
+                  role="menu"
+                  tuiDataListDropdownManager
+                  (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
+                  class="context-menu">
+
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button"
+                    (click)="toggleRead(notification, dropdown)"
+                  >
+                    <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
+                                 [size]="18"
+                    ></lucide-icon>
+                    Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
+                  </button>
+
+                </tui-data-list>
+              </ng-template>
+
+              <div class="notification-item hover:bg-gray-100 rounded-md p-2"
+                   tuiDropdownContext
+                   #dropdown="tuiDropdown"
+                   [tuiDropdown]="dropdownTemplate"
+              >
+                <app-avatar
+                  [avatarUrl]="notification.pictureUrl"
+                ></app-avatar>
+                <div class="notification-content" (click)="onNotificationClick(notification)">
+                  <div class="notification-title">{{ notification.title }}
+                    <p>
+                      {{ (notification.createdAt | shortRelativeTime) }}
+                    </p>
+                  </div>
+                  <div class="notification-message" [innerHTML]="formatNotificationText(notification.message)"></div>
+                </div>
+              </div>
+            </tui-badged-content>
+          }
+        }
+      </div>
+    </overlay-scrollbars>
   </div>
 }

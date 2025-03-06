@@ -17,7 +17,7 @@ import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/u
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
@@ -26,10 +26,21 @@ import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
 import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
-import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit";
+import {TuiBadgedContentComponent, TuiBadgeNotification, TuiDataListDropdownManager} from "@taiga-ui/kit";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
-import {Notification} from "../../notification/notification.model";
+import {Notification, NotificationType} from "../../notification/notification.model";
+import {
+  TuiAlertService,
+  TuiDataListComponent,
+  TuiDropdownContext,
+  TuiDropdownDirective,
+  TuiOption
+} from "@taiga-ui/core";
+import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
+import {ButtonComponent} from "../../button/button.component";
+import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
+import {TuiActiveZone} from "@taiga-ui/cdk";
 
 @Component({
   selector: 'app-navbar',
@@ -48,6 +59,15 @@ import {Notification} from "../../notification/notification.model";
     SharedLucideIconsModule,
     TuiBadgedContentComponent,
     TuiBadgeNotification,
+    ShortRelativeTimePipe,
+    ButtonComponent,
+    OverlayscrollbarsModule,
+    TuiDropdownDirective,
+    TuiDropdownContext,
+    TuiDataListComponent,
+    TuiDataListDropdownManager,
+    TuiOption,
+    TuiActiveZone,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -82,28 +102,35 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   // icons
   protected hasUnreadMessages = false;
-  protected hasUnreadNotifications = true;
+  protected unreadNotificationsCount = 0;
 
   protected notifications: Notification[] = [];
 
-  protected navbarItems = [
-    {name: 'timer', enabled: this.uiPreferences.navbar.timer, icon: 'timer', link: '/social', hasUnread: false},
-    {
-      name: 'social',
-      enabled: this.uiPreferences.navbar.social,
-      icon: 'message-circle',
-      link: '/social',
-      hasUnread: this.hasUnreadMessages,
-    },
-    {
-      name: 'notifications',
-      enabled: this.uiPreferences.navbar.notifications,
-      icon: 'bell',
-      hasUnread: this.hasUnreadNotifications,
-      onClick: () => this.toggleNotificationPopover(),
-      onClickOutside: (event: Event) => this.notificationOnClickOutside(event)
-    }
-  ];
+  get navbarItems() {
+    return [
+      {
+        name: 'timer',
+        enabled: this.uiPreferences.navbar.timer,
+        icon: 'timer',
+        hasUnread: false,
+        action: () => this.router.navigate(['/timer'])
+      },
+      {
+        name: 'social',
+        enabled: this.uiPreferences.navbar.social,
+        icon: 'message-circle',
+        hasUnread: this.hasUnreadMessages,
+        action: () => this.router.navigate(['/social'])
+      },
+      {
+        name: 'notifications',
+        enabled: this.uiPreferences.navbar.notifications,
+        icon: 'bell',
+        hasUnread: this.unreadNotificationsCount > 0,
+        action: () => this.toggleNotificationPopover()
+      }
+    ];
+  }
 
   constructor(private router: Router,
               private cdr: ChangeDetectorRef,
@@ -112,7 +139,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private popupTemplateStateService: PopupTemplateStateService,
               private viewportService: ViewportService,
               private chatUnreadService: ChatUnreadService,
-              private navbarService: NotificationService,
+              private notificationService: NotificationService,
+              private alertService: TuiAlertService,
   ) {
   }
 
@@ -166,8 +194,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       });
 
-    this.navbarService.getNotifications().subscribe((notifications) => {
+    this.notificationService.getNotifications().subscribe((notifications) => {
       this.notifications = notifications;
+      this.unreadNotificationsCount = notifications.filter(n => !n.readAt).length;
     });
   }
 
@@ -316,7 +345,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   notificationOnClickOutside(_: Event) {
-    this.isNotificationOpen = false;
+    if (!this.notificationDropdownActive) {
+      this.isNotificationOpen = false;
+    }
   }
 
   onLogoClick(): void {
@@ -339,5 +370,98 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   openChangeAvatarPopup() {
     this.popupTemplateStateService.open(this.manageAvatarComponent.content, 'avatar');
+  }
+
+  // NOTIFICATIONS
+  formatNotificationText(text: string | null): string {
+    if (text === null) return '';
+    return text.replace(/(@\w+)/g, (match) => {
+      const username = match.slice(1); // Remove the '@' symbol
+      const url = `/users/${username}`;
+      return `<a href="${url}" target="_blank"><strong>${match}</strong></a>`;
+    });
+  }
+
+  onNotificationClick(notification: Notification) {
+    this.isNotificationOpen = false;
+
+    switch (notification.type) {
+      case NotificationType.FRIENDSHIP_ACCEPTED:
+        this.router.navigate(['/social'], {queryParams: {tab: 'friends'}}).then();
+        break;
+      case NotificationType.FRIENDSHIP_REQUESTED:
+        this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
+        break;
+    }
+    this.markNotificationAsRead(notification);
+  }
+
+  private markNotificationAsRead(notification: Notification) {
+    this.notificationService.markAsRead(notification.id)
+      .subscribe({
+        next: () => {
+          notification.readAt = new Date();
+          this.unreadNotificationsCount = this.notifications.filter(n => !n.readAt).length;
+          this.sortNotifications();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+        },
+      });
+  }
+
+  private sortNotifications() {
+    this.notifications.sort((a, b) => {
+      // 1) Sort by unread first
+      if (!a.readAt && b.readAt) return -1;
+      if (a.readAt && !b.readAt) return 1;
+
+      // 2) If both are either unread or read, sort by createdAt desc
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
+  protected readonly loading$ = this.loadingSubject$.asObservable();
+
+  protected notificationDropdownActive: boolean = false;
+
+  toggleReadDropdownActive($event: boolean) {
+    console.log($event);
+    this.notificationDropdownActive = $event;
+  }
+
+  markAllAsRead() {
+    this.loadingSubject$.next(true);
+
+    this.notificationService.markAllAsRead()
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          this.notifications.map(n => n.readAt = new Date());
+          this.unreadNotificationsCount = 0;
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to mark all as read', {appearance: 'error'}).subscribe();
+        },
+      });
+  }
+
+  toggleRead(notification: Notification, dropdown: TuiDropdownDirective) {
+    if (!notification.readAt) {
+      this.markNotificationAsRead(notification);
+    } else {
+      this.notificationService.markAsUnread(notification.id).subscribe({
+        next: () => {
+          notification.readAt = null;
+          this.unreadNotificationsCount++;
+          dropdown.toggle(false);
+          this.sortNotifications();
+        },
+        error: (error) => {
+          this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'error'}).subscribe();
+        },
+      });
+    }
   }
 }
