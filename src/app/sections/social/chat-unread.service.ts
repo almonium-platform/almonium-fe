@@ -12,7 +12,7 @@ import {SocialService} from "./social.service";
 export class ChatUnreadService {
   private unreadCount$ = new BehaviorSubject<number>(0);
   private chatClient: StreamChat;
-  private friendIds: number[] = [];
+  private friendIds: string[] = [];
 
   constructor(
     private userInfoService: UserInfoService,
@@ -52,7 +52,7 @@ export class ChatUnreadService {
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
     ).subscribe((event: any) => {
-      if (this.friendIds.includes(Number(event.user?.id))) {
+      if (this.friendIds.includes(event.user?.id)) {
         this.localStorageService.saveLastSeen(event.user.id, new Date());
       }
     });

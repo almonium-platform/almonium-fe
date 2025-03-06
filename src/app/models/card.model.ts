@@ -1,5 +1,5 @@
 export interface TranslationDto {
-  id: number;
+  id: string;
   translation: string;
 }
 
@@ -8,15 +8,15 @@ export interface TagDto {
 }
 
 export interface ExampleDto {
-  id: number;
+  id: string;
   example: string;
   translation: string;
 }
 
 export interface CardDto {
-  id?: number;
+  id?: string;
   publicId?: string;
-  userId?: number;
+  userId?: string;
   entry: string;
   language: string;
   translations: TranslationDto[];

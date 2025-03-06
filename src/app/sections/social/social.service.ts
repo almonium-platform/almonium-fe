@@ -32,6 +32,7 @@ export class SocialService {
     );
   }
 
+  // TODO: Remove this method
   searchFriendsByUsername(username: string): Observable<RelatedUserProfile[]> {
     return this.http.get<RelatedUserProfile[]>(
       `${AppConstants.FRIENDSHIPS_URL}/search/friends?username=${username}`,
@@ -39,14 +40,14 @@ export class SocialService {
     );
   }
 
-  createFriendshipRequest(recipientId: number): Observable<Friendship> {
+  createFriendshipRequest(recipientId: string): Observable<Friendship> {
     return this.http.post<Friendship>(
       `${AppConstants.FRIENDSHIPS_URL}`,
       {recipientId},
       {withCredentials: true});
   }
 
-  patchFriendship(id: number, action: string): Observable<UserPublicProfile> {
+  patchFriendship(id: string, action: string): Observable<UserPublicProfile> {
     return this.http.patch<UserPublicProfile>(
       `${AppConstants.FRIENDSHIPS_URL}/${id}`,
       {action},

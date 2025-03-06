@@ -46,7 +46,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
   customAvatars: Avatar[] = [];
   isUpdated: boolean = false;
   isReset: boolean = false;
-  deletedAvatarId: number = -1;
+  deletedAvatarId: string | null = null;
 
   constructor(
     private userInfoService: UserInfoService,
@@ -88,13 +88,13 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected deleteCustomAvatar(id: number) {
+  protected deleteCustomAvatar(id: string) {
     const currentAvatarUrl = this.userInfo?.avatarUrl;
     this.deletedAvatarId = id;
     this.profileSettingsService.deleteCustomAvatar(id).subscribe({
       next: () => {
         const deletedUrl = this.customAvatars.find(avatar => avatar.id === id)?.url
-        setTimeout(() => this.deletedAvatarId = -1, 500);
+        setTimeout(() => this.deletedAvatarId = null, 500);
         if (currentAvatarUrl == deletedUrl) {
           this.playAvatarResetAnimation();
           this.userInfoService.updateUserInfo({avatarUrl: ''});
@@ -119,7 +119,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
     })
   }
 
-  protected chooseAnotherCustomAvatar(id: number) {
+  protected chooseAnotherCustomAvatar(id: string) {
     this.profileSettingsService.chooseExistingCustomAvatar(id).subscribe({
       next: () => {
         this.userInfoService.updateUserInfo({avatarUrl: this.customAvatars.find(avatar => avatar.id === id)?.url});

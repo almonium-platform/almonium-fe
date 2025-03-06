@@ -1,29 +1,29 @@
 export interface UserPublicProfile {
-  id: number;
+  id: string;
   username: string;
   status: FriendStatus;
   avatarUrl: string;
 }
 
 export interface RelatedUserProfile {
-  id: number;
+  id: string;
   username: string;
   avatarUrl: string;
-  friendshipId: number;
+  friendshipId: string;
   friendshipStatus: FriendshipStatus;
 }
 
 export interface Friend {
-  id: number;
+  id: string;
   username: string;
   avatarUrl: string;
-  friendshipId: number;
+  friendshipId: string;
 }
 
 export interface Friendship {
-  id: number;
-  requesterId: number;
-  requesteeId: number;
+  id: string;
+  requesterId: string;
+  requesteeId: string;
   status: FriendshipStatus;
 }
 

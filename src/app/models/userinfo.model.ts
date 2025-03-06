@@ -3,7 +3,7 @@ import {Interest} from "../shared/interests/interest.model";
 
 export class UserInfo {
   constructor(
-    public id: string, // change to number
+    public id: string,
     public username: string,
     public email: string,
     public emailVerified: boolean,
@@ -122,7 +122,7 @@ export const DEFAULT_UI_PREFERENCES: UIPreferences = {
 
 export class Learner {
   constructor(
-    public id: number,
+    public id: string,
     public language: LanguageCode, // Adjust the type if `Language` is an enum or a class
     public selfReportedLevel: CEFRLevel,
     public active: boolean,

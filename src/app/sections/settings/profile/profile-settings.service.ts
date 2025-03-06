@@ -33,7 +33,7 @@ export class ProfileSettingsService {
    * Choose another existing custom avatar as the active one
    * @param avatarId ID of the avatar to be set as active
    */
-  chooseExistingCustomAvatar(avatarId: number): Observable<any> {
+  chooseExistingCustomAvatar(avatarId: string): Observable<any> {
     const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
@@ -51,7 +51,7 @@ export class ProfileSettingsService {
    * Delete an avatar by its ID
    * @param avatarId ID of the avatar to delete
    */
-  deleteCustomAvatar(avatarId: number): Observable<any> {
+  deleteCustomAvatar(avatarId: string): Observable<any> {
     const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
     return this.http.delete(url, {withCredentials: true});
   }

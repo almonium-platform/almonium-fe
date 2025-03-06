@@ -125,7 +125,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
   protected matchedUsers: UserPublicProfile[] = [];
-  protected requestedIds: number[] = [];
+  protected requestedIds: string[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
   protected drawerUserTiles: RelatedUserProfile[] = [];
@@ -499,7 +499,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  openChatWithFriend(friendId: number) {
+  openChatWithFriend(friendId: string) {
     this.closeDrawer();
 
     const cid = 'messaging:private_' + this.userInfo?.id + '_' + friendId;
@@ -527,13 +527,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // to avoid multiple requests
-  protected sendRequestInProgressIds = new Set<number>();
-  protected unblockInProgressIds = new Set<number>();
-  protected acceptInProgressIds = new Set<number>();
-  protected rejectInProgressIds = new Set<number>();
-  protected cancelInProgressIds = new Set<number>();
+  protected sendRequestInProgressIds = new Set<string>();
+  protected unblockInProgressIds = new Set<string>();
+  protected acceptInProgressIds = new Set<string>();
+  protected rejectInProgressIds = new Set<string>();
+  protected cancelInProgressIds = new Set<string>();
 
-  cancelFriendRequest(friendshipId: number) {
+  cancelFriendRequest(friendshipId: string) {
     if (this.cancelInProgressIds.has(friendshipId)) {
       console.warn('Cancel request already in progress');
       return;
@@ -584,7 +584,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  rejectFriendRequest(id: number) {
+  rejectFriendRequest(id: string) {
     if (this.rejectInProgressIds.has(id)) {
       console.warn('Reject request already in progress');
       return;
@@ -607,7 +607,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  unblock(friendId: number, friendshipId: number) {
+  unblock(friendId: string, friendshipId: string) {
     if (this.unblockInProgressIds.has(friendshipId)) {
       console.warn('Unblock request already in progress');
       return;
@@ -631,7 +631,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  sendFriendRequest(id: number) {
+  sendFriendRequest(id: string) {
     if (this.sendRequestInProgressIds.has(id)) {
       console.warn('Request already in progress');
       return;
@@ -659,7 +659,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   }
 
-  unfriend(friendId: number, friendshipId: number) {
+  unfriend(friendId: string, friendshipId: string) {
     this.socialService.patchFriendship(friendshipId, FriendshipAction.UNFRIEND).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
@@ -674,7 +674,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  block(friendId: number, friendshipId: number) {
+  block(friendId: string, friendshipId: string) {
     this.chatClient.blockUser(friendId.toString()).then(() => {
     });
     this.socialService.patchFriendship(friendshipId, FriendshipAction.BLOCK).subscribe({
@@ -918,7 +918,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.openDrawerAndSetupData();
   }
 
-  openFriendDropdown(id: number) {
+  openFriendDropdown(id: string) {
     console.log('Opening dropdown for friend:', id);
   }
 
@@ -1067,7 +1067,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  protected prepareUnfriendModal(friendId: number, friendshipId: number) {
+  protected prepareUnfriendModal(friendId: string, friendshipId: string) {
     this.closeDrawer();
     this.modalTitle = 'Unfriend';
     this.modalMessage = 'Are you sure you want to unfriend this user?';
@@ -1076,7 +1076,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isConfirmModalVisible = true;
   }
 
-  protected prepareBlockModal(friendId: number, friendshipId: number) {
+  protected prepareBlockModal(friendId: string, friendshipId: string) {
     this.closeDrawer();
     this.modalTitle = 'Block User';
     this.modalMessage = 'Are you sure you want to block this user?';
