@@ -1,5 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
+import {RouterLink} from "@angular/router";
 
 
 @Component({
@@ -14,6 +15,8 @@ import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
         [style.color]="'white'"
         tuiAvatarOutline="var(--premium-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
+        [routerLink]="userLink"
+        class="cursor-pointer"
       >
       </tui-avatar>
     } @else {
@@ -24,14 +27,16 @@ import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
         [size]="size"
         tuiAvatarOutline="var(--default-avatar-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
+        [routerLink]="userLink"
+        class="cursor-pointer"
       >
       </tui-avatar>
     }
-
   `,
   imports: [
     TuiAvatar,
-    TuiAvatarOutline
+    TuiAvatarOutline,
+    RouterLink
   ],
 })
 export class AvatarComponent {
@@ -45,5 +50,9 @@ export class AvatarComponent {
     return this.username
       ? this.username.slice(0, 2).toUpperCase()
       : '';
+  }
+
+  get userLink(): string {
+    return '/users/' + this.username;
   }
 }
