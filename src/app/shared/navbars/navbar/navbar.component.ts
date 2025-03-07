@@ -362,6 +362,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   toggleProfilePopover(): void {
     this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
+    if (this.isProfilePopoverOpen) {
+      this.isNotificationOpen = false;
+    }
   }
 
   toggleNotificationPopover(): void {
