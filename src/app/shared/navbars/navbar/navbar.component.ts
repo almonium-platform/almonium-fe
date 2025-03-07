@@ -400,7 +400,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private markNotificationAsRead(notification: Notification) {
+    this.loadingNotificationAction = true;
     this.notificationService.markAsRead(notification.id)
+      .pipe(finalize(() => this.loadingNotificationAction = false))
       .subscribe({
         next: () => {
           notification.readAt = new Date();
@@ -450,11 +452,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
       });
   }
 
+  protected loadingNotificationAction: boolean = false;
+
   toggleRead(notification: Notification, dropdown: TuiDropdownDirective) {
     if (!notification.readAt) {
       this.markNotificationAsRead(notification);
     } else {
-      this.notificationService.markAsUnread(notification.id).subscribe({
+      this.markAsUnread(notification, dropdown);
+    }
+  }
+
+  private markAsUnread(notification: Notification, dropdown: TuiDropdownDirective) {
+    this.loadingNotificationAction = true;
+    this.notificationService.markAsUnread(notification.id)
+      .pipe(finalize(() => this.loadingNotificationAction = false))
+      .subscribe({
         next: () => {
           notification.readAt = null;
           this.unreadNotificationsCount++;
@@ -465,7 +477,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'error'}).subscribe();
         },
       });
-    }
   }
 
   deleteNotification(notification: Notification, dropdown: TuiDropdownDirective) {

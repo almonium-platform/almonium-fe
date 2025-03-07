@@ -248,6 +248,7 @@
                     tuiOption
                     type="button"
                     class="context-button"
+                    [disabled]="loadingNotificationAction"
                     (click)="toggleRead(notification, dropdown)"
                   >
                     <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
@@ -260,6 +261,7 @@
                     tuiOption
                     type="button"
                     class="context-button"
+                    [disabled]="loadingNotificationAction"
                     (click)="deleteNotification(notification, dropdown)"
                   >
                     <lucide-icon name="trash"
