@@ -315,15 +315,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
    * Creates a private 1-on-1 (P2P) chat channel between two users.
    * @param userId The current user's ID (should already be connected).
    * @param recipientId The user ID of the person they want to chat with.
+   * @param friendshipId The ID of the friendship between the two users.
    * @returns A promise that resolves with the created channel.
    */
-  async createPrivateChat(userId: string, recipientId: string) {
+  async createPrivateChat(userId: string, recipientId: string, friendshipId: string) {
     if (!this.chatClient.user) {
       throw new Error('User must be connected before creating a chat.');
     }
 
     // Unique channel ID (e.g., `private_user1_user2`)
-    const channelId = `private_${[userId, recipientId].sort().join('_')}`;
+    const channelId = `private_${friendshipId}`;
 
     const channel = this.chatService.chatClient.channel('messaging', channelId, {
       name: AppConstants.PRIVATE_CHAT_NAME,
@@ -499,13 +500,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  openChatWithFriend(friendId: string) {
+  openChatWithFriend(friend: RelatedUserProfile) {
     this.closeDrawer();
 
-    const cid = 'messaging:private_' + this.userInfo?.id + '_' + friendId;
+    const cid = 'messaging:private_' + friend.friendshipId;
     this.openChatByCid(cid).then((found) => {
       if (!found) {
-        this.createPrivateChat(this.userInfo!.id, friendId.toString()).then(channel => {
+        this.createPrivateChat(this.userInfo!.id, friend.id, friend.friendshipId).then(channel => {
           this.channelService.setAsActiveChannel(channel);
         });
       }
@@ -567,7 +568,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT)
       .subscribe({
         next: () => {
-          this.createPrivateChat(this.userInfo!.id, candidate.id.toString()).then(_ => {
+          this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.friendshipId).then(_ => {
             this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
@@ -892,12 +893,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getInterlocutorId(): string | null {
-    const userId = this.userInfo!.id;
-    const match = this.hoveredChannel!.cid.match(/messaging:private_(\d+)_(\d+)/);
-    if (!match) return null;
+    // Ensure hoveredChannel and members exist
+    if (!this.hoveredChannel?.state?.members) {
+      return null;
+    }
 
-    const [, id1, id2] = match;
-    return id1 === userId ? id2 : id2 === userId ? id1 : null;
+    // Find the first member who is NOT the current user
+    const interlocutor = Object.values(this.hoveredChannel.state.members).find(
+      (member) => member.user?.id !== this.userInfo!.id
+    );
+
+    // Return their ID or null if not found
+    return interlocutor ? interlocutor.user?.id ?? null : null
   }
 
   startAvatarHover(channel: Channel<DefaultStreamChatGenerics>) {

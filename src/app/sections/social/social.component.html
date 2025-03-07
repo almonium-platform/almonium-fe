@@ -196,7 +196,7 @@
                         tuiOption
                         type="button"
                         class="context-button"
-                        (click)="openChatWithFriend(friend.id)"
+                        (click)="openChatWithFriend(friend)"
                       >
                         <lucide-icon name="message-circle"
                                      class="chat-icon"
@@ -274,7 +274,7 @@
                     <lucide-icon name="message-circle"
                                  class="friend-action positive"
                                  [size]="20"
-                                 (click)="openChatWithFriend(friend.id)"
+                                 (click)="openChatWithFriend(friend)"
                     ></lucide-icon>
                   }
                 }
