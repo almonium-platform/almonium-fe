@@ -15,7 +15,7 @@ import {RouterLink} from "@angular/router";
         [style.color]="'white'"
         tuiAvatarOutline="var(--premium-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
-        [routerLink]="userLink"
+        [routerLink]="redirect ? userLink : null"
         class="cursor-pointer"
       >
       </tui-avatar>
@@ -27,7 +27,7 @@ import {RouterLink} from "@angular/router";
         [size]="size"
         tuiAvatarOutline="var(--default-avatar-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
-        [routerLink]="userLink"
+        [routerLink]="redirect ? userLink : null"
         class="cursor-pointer"
       >
       </tui-avatar>
@@ -45,6 +45,7 @@ export class AvatarComponent {
   @Input() outline: boolean = false;
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null; // or calculate dynamically
+  @Input() redirect: boolean = true; // New input with default value
 
   get initials(): string {
     return this.username
