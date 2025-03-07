@@ -632,6 +632,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   sendFriendRequest(id: string) {
+    if (this.requestedIds.includes(id)) {
+      console.warn('Request already sent');
+      return;
+    }
+
     if (this.sendRequestInProgressIds.has(id)) {
       console.warn('Request already in progress');
       return;
