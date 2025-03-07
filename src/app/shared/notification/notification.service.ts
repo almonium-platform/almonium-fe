@@ -30,4 +30,9 @@ export class NotificationService {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/unread`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
+
+  delete(id: string): Observable<any> {
+    const url = `${AppConstants.NOTIFICATIONS_URL}/${id}`;
+    return this.http.delete(url, {withCredentials: true});
+  }
 }

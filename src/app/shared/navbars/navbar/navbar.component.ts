@@ -464,4 +464,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  deleteNotification(notification: Notification, dropdown: TuiDropdownDirective) {
+    this.notificationService.delete(notification.id).subscribe({
+      next: () => {
+        this.notifications = this.notifications.filter(n => n.id !== notification.id);
+        if (!notification.readAt) {
+          this.unreadNotificationsCount--;
+        }
+        dropdown.toggle(false);
+      },
+      error: (error) => {
+        this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'error'}).subscribe();
+      }
+    });
+  }
 }

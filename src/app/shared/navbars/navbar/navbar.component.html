@@ -258,6 +258,18 @@
                     Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
                   </button>
 
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button"
+                    (click)="deleteNotification(notification, dropdown)"
+                  >
+                    <lucide-icon name="trash"
+                                 [size]="18"
+                    ></lucide-icon>
+                    Delete
+                  </button>
+
                 </tui-data-list>
               </ng-template>
 
