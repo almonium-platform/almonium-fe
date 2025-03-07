@@ -182,13 +182,14 @@ export class CustomChatAvatarComponent
   }
 
   private getOtherMemberIfOneToOneChannel() {
-    const otherMembers = Object.values(
-      this.channel?.state?.members || {}
-    ).filter((m) => m.user_id !== this.userId);
-    if (otherMembers.length === 1) {
-      return otherMembers[0].user;
-    } else {
+    if (!this.channel || this.channel.type !== 'messaging') {
       return undefined;
     }
+
+    const otherMembers = Object.values(this.channel.state?.members || {}).filter(
+      (m) => m.user_id !== this.userId
+    );
+
+    return otherMembers.length === 1 ? otherMembers[0].user : undefined;
   }
 }
