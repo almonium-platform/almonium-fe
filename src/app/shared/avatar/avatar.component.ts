@@ -44,8 +44,8 @@ export class AvatarComponent {
   @Input() username: string | null = null;
   @Input() outline: boolean = false;
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
-  @Input() sizeInRem: number | null = null; // or calculate dynamically
-  @Input() redirect: boolean = true; // New input with default value
+  @Input() sizeInRem: number | null = null;
+  @Input() redirect: boolean = false;
 
   get initials(): string {
     return this.username

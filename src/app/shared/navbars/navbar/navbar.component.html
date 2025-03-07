@@ -103,7 +103,6 @@
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
           [outline]="userInfo?.premium ?? false"
-          [redirect]="false"
           size="m"
           [sizeInRem]=3
         >
@@ -166,7 +165,6 @@
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
           [outline]="userInfo?.premium ?? false"
-          [redirect]="false"
           class="mr-3 cursor-pointer"
           size="m"
           (click)="openChangeAvatarPopup()"
@@ -280,6 +278,7 @@
               >
                 <app-avatar
                   [avatarUrl]="notification.pictureUrl"
+                  [redirect]="true"
                 ></app-avatar>
                 <div class="notification-content" (click)="onNotificationClick(notification)">
                   <div class="notification-title">{{ notification.title }}
