@@ -78,6 +78,20 @@ auto-renewal in the customer portal.`;
   protected useCountdown: boolean = false;
   protected tooltipRenewal: string = '';
 
+  // features
+  protected premiumFeatures: string[] = [
+    "Unlimited stories",
+    "Unlimited reviews",
+    "Multiple languages",
+    "Card rephrasing",
+    "All the books",
+    "All the games",
+  ];
+
+  private currentFeatureIndex = Math.floor(Math.random() * this.premiumFeatures.length);
+  protected displayedFeature = this.premiumFeatures[this.currentFeatureIndex];
+  private featureRotationInterval: any;
+
   // interests
   protected interestsEdit: boolean = false;
   protected interests: Interest[] = [];
@@ -112,6 +126,9 @@ auto-renewal in the customer portal.`;
       }
       this.userInfo = info;
       this.premium = info.premium;
+      if (!this.premium) {
+        this.startFeatureRotation();
+      }
       this.interests = info.interests;
       this.setRenewalTooltip(info);
     });
@@ -120,6 +137,14 @@ auto-renewal in the customer portal.`;
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    clearInterval(this.featureRotationInterval);
+  }
+
+  private startFeatureRotation() {
+    this.featureRotationInterval = setInterval(() => {
+      this.currentFeatureIndex = (this.currentFeatureIndex + 1) % this.premiumFeatures.length;
+      this.displayedFeature = this.premiumFeatures[this.currentFeatureIndex];
+    }, 2000);
   }
 
   private setRenewalTooltip(info: UserInfo) {
