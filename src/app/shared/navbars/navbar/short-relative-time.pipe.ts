@@ -9,12 +9,18 @@ export class ShortRelativeTimePipe implements PipeTransform {
     if (!value) return '';
 
     const timeAgo = formatDistanceToNow(new Date(value), {addSuffix: true});
+
+    if (timeAgo.includes('less than a minute')) {
+      return 'just now';
+    }
+
     return timeAgo
-      .replace('about ', '')
       .replace('months', 'mon')
       .replace('hours', 'hrs')
       .replace('minute', 'min')
       .replace('minutes', 'min')
-      .replace('seconds', 'sec');
+      .replace('seconds', 'sec')
+      .replace('about', '')
+      ;
   }
 }
