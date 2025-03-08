@@ -34,9 +34,11 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     <p
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
-      [ngClass]="!isSelfChat ? 'pb-1' : ''"
-      [ngStyle]="isPrivateChat && isInterlocutorOnline ? {'color': 'var(--chat-accent-color)'} : {}"
-    >
+      [ngClass]="!isSelfChat ? 'pb-1 pt-1' : ''"
+      [ngStyle]="{
+        'color': isPrivateChat && isInterlocutorOnline ? 'var(--chat-accent-color)' : '',
+        'row-gap': isSelfChat ? 'unset' : ''
+        }">
       <ng-container *ngIf="!isSelfChat">
         <ng-container *ngIf="!isPrivateChat">
           <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
