@@ -151,10 +151,18 @@ export class PaywallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
     }
+    if (this.loadingSubject$.value) {
+      console.warn('Rapid clicks detected');
+      return;
+    }
+
+    this.loadingSubject$.next(true);
 
     let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
-    this.planService.subscribeToPlan(String(selectedPlanId)).subscribe((url) => {
-      window.location.href = url.sessionUrl;
-    });
+    this.planService.subscribeToPlan(String(selectedPlanId))
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe((url) => {
+        window.location.href = url.sessionUrl;
+      });
   }
 }
