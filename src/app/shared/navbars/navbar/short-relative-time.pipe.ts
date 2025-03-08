@@ -15,12 +15,14 @@ export class ShortRelativeTimePipe implements PipeTransform {
     }
 
     return timeAgo
-      .replace('months', 'mon')
-      .replace('hours', 'hrs')
-      .replace('minute', 'min')
-      .replace('minutes', 'min')
-      .replace('seconds', 'sec')
-      .replace('about', '')
-      ;
+      .replace(/\bmonths\b/gi, 'mon')
+      .replace(/\bmonth\b/gi, 'mon')
+      .replace(/\bhours\b/gi, 'hrs')
+      .replace(/\bhour\b/gi, 'hr')
+      .replace(/\bminutes\b/gi, 'min')
+      .replace(/\bminute\b/gi, 'min')
+      .replace(/\bseconds\b/gi, 'sec')
+      .replace(/\bsecond\b/gi, 'sec')
+      .replace(/\babout\b/gi, '');
   }
 }

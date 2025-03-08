@@ -15,6 +15,6 @@ export class RelativeTimePipe implements PipeTransform {
       return 'just now';
     }
 
-    return timeAgo.replace('about ', '') + ' ago';
+    return timeAgo.replace(/\babout\b/gi, '') + ' ago';
   }
 }
