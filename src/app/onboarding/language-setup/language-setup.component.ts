@@ -21,7 +21,6 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {CommonModule} from '@angular/common';
 import {TUI_VALIDATION_ERRORS, TuiChip, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
 import {TuiAlertService, TuiAutoColorPipe, TuiError} from '@taiga-ui/core';
 import {BehaviorSubject, delay, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
@@ -46,6 +45,7 @@ import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {TuiActiveZone} from "@taiga-ui/cdk";
+import {AsyncPipe} from "@angular/common";
 
 
 @Component({
@@ -64,7 +64,6 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
   ],
   imports: [
     ReactiveFormsModule,
-    CommonModule,
     TuiMultiSelectModule,
     TuiSelectModule,
     TuiTextfieldControllerModule,
@@ -80,6 +79,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
     ButtonComponent,
     CefrLevelSelectorComponent,
     TuiActiveZone,
+    AsyncPipe
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {

@@ -607,17 +607,18 @@
 
                 <div class="str-chat__channel-preview-end-first-row">
                   <div class="str-chat__channel-preview-messenger--name">
-                      <span data-testid="channel-preview-title">
-                      {{ getChatName(channel, channelDisplayTitle) }}
-                      </span>
+                                <span data-testid="channel-preview-title">
+                                  {{ getChatName(channel, channelDisplayTitle) }}
+                                </span>
                   </div>
-                  <div
-                    *ngIf="latestMessageTime"
-                    data-testid="latest-message-time"
-                    class="str-chat__channel-preview-messenger--time"
-                  >
-                    {{ latestMessageTime }}
-                  </div>
+                  @if (latestMessageTime) {
+                    <div
+                      data-testid="latest-message-time"
+                      class="str-chat__channel-preview-messenger--time"
+                    >
+                      {{ latestMessageTime }}
+                    </div>
+                  }
                 </div>
 
                 <div class="str-chat__channel-preview-end-second-row">
@@ -625,34 +626,35 @@
                     data-testid="latest-message"
                     class="str-chat__channel-preview-messenger--last-message"
                   >
-                    <ng-container *ngIf="displayAs === 'text'; else asHTML">
+                    @if (displayAs === 'text') {
                       {{ latestMessageText | translate }}
-                    </ng-container>
-                    <ng-template #asHTML>
-                <span
-                  data-testid="html-content"
-                  [innerHTML]="latestMessageText | translate"
-                ></span>
-                    </ng-template>
+                    } @else {
+                      <span
+                        data-testid="html-content"
+                        [innerHTML]="latestMessageText | translate"
+                      ></span>
+                    }
                   </div>
-                  <div
-                    *ngIf="latestMessageStatus"
-                    data-testid="latest-message-status"
-                    class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
+                  @if (latestMessageStatus) {
+                    <div
+                      data-testid="latest-message-status"
+                      class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
                     latestMessageStatus
                       }}"
-                  >
-                    <stream-icon-placeholder
-                      [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
-                    ></stream-icon-placeholder>
-                  </div>
-                  <div
-                    *ngIf="unreadCount"
-                    data-testid="unread-badge"
-                    class="str-chat__channel-preview-unread-badge"
-                    [ngClass]="{'single-digit': unreadCount <= 9}">
-                    {{ unreadCount }}
-                  </div>
+                    >
+                      <stream-icon-placeholder
+                        [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
+                      ></stream-icon-placeholder>
+                    </div>
+                  }
+                  @if (unreadCount) {
+                    <div
+                      data-testid="unread-badge"
+                      class="str-chat__channel-preview-unread-badge"
+                      [ngClass]="{'single-digit': unreadCount <= 9}">
+                      {{ unreadCount }}
+                    </div>
+                  }
                   @if (isChannelMuted(channel)) {
                     <lucide-icon name="bell-off"
                                  class="chat-icon muted-icon"

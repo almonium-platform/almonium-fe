@@ -4,7 +4,7 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, Subject, take} from "rxjs";
 import {DEFAULT_UI_PREFERENCES, UIPreferences} from "../../../models/userinfo.model";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
-import {NgForOf, TitleCasePipe} from "@angular/common";
+import {TitleCasePipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
 import {TuiAlertService, TuiIcon} from "@taiga-ui/core";
@@ -19,7 +19,6 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
   styleUrls: ['./app-settings.component.less'],
   imports: [
     SettingsTabsComponent,
-    NgForOf,
     TuiSwitch,
     FormsModule,
     TitleCasePipe,

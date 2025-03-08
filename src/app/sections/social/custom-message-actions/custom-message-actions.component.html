@@ -4,11 +4,9 @@
   class="str-chat__message-actions-box str-chat__message-actions-box-angular str-chat__message-actions-box--open"
 >
   <ul class="str-chat__message-actions-list">
-    <ng-container
-      *ngFor="let item of visibleMessageActionItems; trackBy: trackByActionName"
-    >
-      <ng-container [ngSwitch]="item.actionName">
-        <ng-container *ngSwitchCase="'react'">
+    @for (item of visibleMessageActionItems; track trackByActionName($index, item)) {
+      @switch (item.actionName) {
+        @case ('react') {
           <ng-container
             *ngTemplateOutlet="
               (customTemplatesService.messageReactionsSelectorTemplate$
@@ -16,8 +14,8 @@
               context: getReactionSelectorTemplateContext()
             "
           ></ng-container>
-        </ng-container>
-        <ng-container *ngSwitchDefault>
+        }
+        @default {
           <ng-container
             *ngTemplateOutlet="
               (customTemplatesService.messageActionsBoxItemTemplate$ | async) ||
@@ -25,9 +23,9 @@
               context: getMessageActionTemplateContext(item)
             "
           ></ng-container>
-        </ng-container>
-      </ng-container>
-    </ng-container>
+        }
+      }
+    }
   </ul>
 </div>
 

@@ -20,7 +20,7 @@ import {
 import {fromEventPattern, Observable, of, Subscription} from "rxjs";
 import {TranslateModule} from "@ngx-translate/core";
 import {AppConstants} from "../../../app.constants";
-import {AsyncPipe, DatePipe, NgClass, NgIf, NgStyle} from "@angular/common";
+import {AsyncPipe, DatePipe, NgClass, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
@@ -39,25 +39,29 @@ import {LocalStorageService} from "../../../services/local-storage.service";
         'color': isPrivateChat && isInterlocutorOnline ? 'var(--chat-accent-color)' : '',
         'row-gap': isSelfChat ? 'unset' : ''
         }">
-      <ng-container *ngIf="!isSelfChat">
-        <ng-container *ngIf="!isPrivateChat">
-          <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
+      @if (!isSelfChat) {
+        @if (!isPrivateChat) {
+          @if ((usersTyping$ | async); as typingUsers) {
             @if (typingUsers.length === 0) {
               {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
             }
-          </ng-container>
-        </ng-container>
-        <ng-container *ngIf="canReceiveConnectEvents">
-          <ng-container *ngIf="isPrivateChat">
-            <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
-              <span *ngIf="typingUsers.length === 1">typing...</span>
-              <span *ngIf="typingUsers.length === 0">
-                {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
-              </span>
-            </ng-container>
-          </ng-container>
-          <ng-container *ngIf="!isPrivateChat">
-            <ng-container *ngIf="(usersTyping$ | async) as typingUsers">
+          }
+        }
+        @if (canReceiveConnectEvents) {
+          @if (isPrivateChat) {
+            @if ((usersTyping$ | async); as typingUsers) {
+              @if (typingUsers.length === 1) {
+                <span>typing...</span>
+              }
+              @if (typingUsers.length === 0) {
+                <span>
+                  {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
+                </span>
+              }
+            }
+          }
+          @if (!isPrivateChat) {
+            @if ((usersTyping$ | async); as typingUsers) {
               @if (typingUsers.length === 0) {
                 <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
               } @else if (typingUsers.length === 1) {
@@ -65,16 +69,15 @@ import {LocalStorageService} from "../../../services/local-storage.service";
               } @else {
                 {{ typingUsers.length }} people typing...
               }
-            </ng-container>
-          </ng-container>
-        </ng-container>
-      </ng-container>
+            }
+          }
+        }
+      }
     </p>
   `,
   imports: [
     TranslateModule,
     NgStyle,
-    NgIf,
     RelativeTimePipe,
     AsyncPipe,
     NgClass,

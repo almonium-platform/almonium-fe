@@ -7,15 +7,20 @@
       : 'multiple-letters'
   }}"
 >
-  <img
-    *ngIf="(imageUrl || fallbackChannelImage) && !isError; else fallback"
-    class="str-chat__avatar-image"
-    data-testid="avatar-img"
-    fetchpriority="high"
-    src="{{ imageUrl || fallbackChannelImage }}"
-    alt="{{ initials }}"
-    (error)="isError = true"
-  />
+  @if ((imageUrl || fallbackChannelImage) && !isError) {
+    <img
+      class="str-chat__avatar-image"
+      data-testid="avatar-img"
+      fetchpriority="high"
+      src="{{ imageUrl || fallbackChannelImage }}"
+      alt="{{ initials }}"
+      (error)="isError = true"
+    />
+  } @else {
+    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
+      {{ initials }}
+    </div>
+  }
   <ng-template #fallback>
     <div data-testid="fallback-img" class="str-chat__avatar-fallback">
       {{ initials }}

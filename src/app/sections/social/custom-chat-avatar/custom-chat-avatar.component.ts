@@ -13,7 +13,6 @@ import {Subscription} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService, DefaultStreamChatGenerics,} from 'stream-chat-angular';
-import {NgIf} from "@angular/common";
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -22,9 +21,6 @@ import {NgIf} from "@angular/common";
   selector: 'app-custom-chat-avatar',
   templateUrl: './custom-chat-avatar.component.html',
   styleUrl: './custom-chat-avatar.component.less',
-  imports: [
-    NgIf
-  ]
 })
 export class CustomChatAvatarComponent
   implements OnChanges, OnInit, OnChanges, AfterViewInit, OnDestroy {

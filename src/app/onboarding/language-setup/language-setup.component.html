@@ -124,23 +124,23 @@
       <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
         <div class="cefr-form">
           <div formArrayName="languages" class="cefr-rows">
-            <div
-              *ngFor="let i of languages.controls; let idx = index"
-              [formGroupName]="idx"
-              class="cefr-language-row"
-            >
-              <tui-chip
-                class="cefr-lang-chip"
-                [style.background-color]="languages.at(idx).get('language')?.value | tuiAutoColor"
+            @for (i of languages.controls; track i; let idx = $index) {
+              <div
+                [formGroupName]="idx"
+                class="cefr-language-row"
               >
-                {{ languages.at(idx).get('language')?.value }}
-              </tui-chip>
-
-              <app-cefr-level-selector
-                [control]="getCefrLevelControl(idx)"
-                [levels]="cefrLevels"
-              ></app-cefr-level-selector>
-            </div>
+                <tui-chip
+                  class="cefr-lang-chip"
+                  [style.background-color]="languages.at(idx).get('language')?.value | tuiAutoColor"
+                >
+                  {{ languages.at(idx).get('language')?.value }}
+                </tui-chip>
+                <app-cefr-level-selector
+                  [control]="getCefrLevelControl(idx)"
+                  [levels]="cefrLevels"
+                ></app-cefr-level-selector>
+              </div>
+            }
           </div>
         </div>
         <app-button

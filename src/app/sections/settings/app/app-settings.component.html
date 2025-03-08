@@ -6,18 +6,22 @@
     <div class="section-block card">
       <div class="title">Navbar</div>
       <div class="row-container">
-        <div class="column" *ngFor="let column of navbarColumns">
-          <div *ngFor="let item of column" class="line">
-            <span>{{ item | titlecase }}</span>
-            <input
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="uiPreferences.navbar[item]"
-              (ngModelChange)="onPreferenceChange('navbar', item, $event)"
-              [showIcons]="true"
-            />
+        @for (column of navbarColumns; track column) {
+          <div class="column">
+            @for (item of column; track item) {
+              <div class="line">
+                <span>{{ item | titlecase }}</span>
+                <input
+                  tuiSwitch
+                  type="checkbox"
+                  [ngModel]="uiPreferences.navbar[item]"
+                  (ngModelChange)="onPreferenceChange('navbar', item, $event)"
+                  [showIcons]="true"
+                />
+              </div>
+            }
           </div>
-        </div>
+        }
       </div>
     </div>
 

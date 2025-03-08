@@ -25,7 +25,7 @@ import {
   TuiPopup,
   TuiScrollbar
 } from "@taiga-ui/core";
-import {NgClass, NgIf, NgStyle, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
@@ -90,7 +90,6 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
     TranslateModule,
     StreamAutocompleteTextareaModule,
     StreamChatModule,
-    NgIf,
     ChatHeaderComponent,
     TuiDataList,
     TuiDataListDropdownManager,

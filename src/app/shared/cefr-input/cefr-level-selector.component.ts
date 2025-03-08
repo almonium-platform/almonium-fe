@@ -1,6 +1,5 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
 import {TuiSelectModule, TuiTextfieldControllerModule} from '@taiga-ui/legacy';
 import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in older versions
 
@@ -9,7 +8,6 @@ import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in ol
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     TuiSelectModule,
     TuiTextfieldControllerModule,

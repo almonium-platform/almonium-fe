@@ -11,14 +11,17 @@ import {
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {
-  CustomMessageActionItem, CustomTemplatesService,
+  CustomMessageActionItem,
+  CustomTemplatesService,
   MessageActionBoxItemContext,
   MessageActionItem,
   MessageActionsService,
-  MessageReactionActionItem, MessageReactionsSelectorContext, StreamChatModule,
+  MessageReactionActionItem,
+  MessageReactionsSelectorContext,
+  StreamChatModule,
   StreamMessage
 } from "stream-chat-angular";
-import {AsyncPipe, NgForOf, NgSwitch, NgSwitchCase, NgSwitchDefault, NgTemplateOutlet} from "@angular/common";
+import {AsyncPipe, NgTemplateOutlet} from "@angular/common";
 import {TranslateModule} from "@ngx-translate/core";
 
 /**
@@ -30,12 +33,8 @@ import {TranslateModule} from "@ngx-translate/core";
   styles: [],
   imports: [
     StreamChatModule,
-    NgForOf,
     NgTemplateOutlet,
     AsyncPipe,
-    NgSwitch,
-    NgSwitchCase,
-    NgSwitchDefault,
     TranslateModule
   ]
 })
