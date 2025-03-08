@@ -51,7 +51,7 @@
             [label]="userInfo?.hidden ? 'Hidden' : 'Hide'"
             [hoverLabel]="userInfo?.hidden ? 'Unhide' : undefined"
             [appearance]="'underline'"
-            [loading$]="loading$"
+            [loading$]="loadingHideProfile$"
             [style.margin-left]="'auto'"
             [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
             [gap]="(userInfo?.hidden ? '0.3rem' : '0')"

@@ -88,8 +88,8 @@ auto-renewal in the customer portal.`;
   private readonly loadingSubjectCustomerPortal$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingCustomerPortal$ = this.loadingSubjectCustomerPortal$.asObservable();
 
-  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
-  protected readonly loading$ = this.loadingSubject$.asObservable();
+  private readonly loadingSubjectHideProfile$ = new BehaviorSubject<boolean>(false);
+  protected readonly loadingHideProfile$ = this.loadingSubjectHideProfile$.asObservable();
 
   constructor(
     private userInfoService: UserInfoService,
