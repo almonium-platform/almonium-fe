@@ -972,6 +972,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   isManuallyResized = false;
 
   startResizing(event: MouseEvent) {
+    if (window.innerWidth < 640) return;
     this.isResizing = true;
     this.isManuallyResized = true;
     document.addEventListener('mousemove', this.resizeSidebar);
