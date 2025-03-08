@@ -138,7 +138,7 @@
             </p>
           }
           @if (drawerMode === 'friends') {
-            @if (drawerUserTiles.length !== 0) {
+            @if (friends.length !== 0) {
               <div class="search-container">
                 <tui-input
                   [formControl]="friendFormControl"
@@ -152,6 +152,11 @@
                     type="text"
                   />
                 </tui-input>
+                @if (drawerUserTiles.length === 0 && friendFormControl.value !== '') {
+                  <p class="no-results">
+                    No friend matched your search.
+                  </p>
+                }
               </div>
             } @else {
               <app-button
