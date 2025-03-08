@@ -70,8 +70,7 @@ export class AppComponent {
     this.firebaseNotificationService.currentMessage$
       .pipe(filter((message) => !!message?.notification))
       .subscribe((message) => {
-        console.log("Received push notification:", message);
-        this.alertService.open(message?.notification?.body ?? "New Notification", {appearance: "neutral"}).subscribe();
+        this.alertService.open(message?.notification?.body ?? "New Notification", {appearance: "info"}).subscribe();
       });
   }
 }

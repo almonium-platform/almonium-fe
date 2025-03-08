@@ -1,7 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getMessaging, onBackgroundMessage } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-sw.js";
+importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js");
 
-// Initialize Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyCotfh0KzDpP3HniEfxyxoAw9HUFAA8gFs",
   authDomain: "almonium.firebaseapp.com",
@@ -12,10 +11,8 @@ firebase.initializeApp({
   measurementId: "G-6XKWX9LS25",
 });
 
-// Get Messaging instance
 const messaging = firebase.messaging();
 
-// Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log("Received background message:", payload);
   self.registration.showNotification(payload.notification.title, {
