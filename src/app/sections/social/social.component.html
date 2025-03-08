@@ -413,15 +413,11 @@
                   #avatarDropdown="tuiDropdown"
                   (mouseleave)="avatarDropdown.toggle(false)"
                   tuiDropdownHover
-                  [tuiDropdown]="dropdownTemplate"
+                  [tuiDropdown]="shouldShowDropdown(location) ? dropdownTemplate : null"
                   (click)="openUser(location)"
                 >
                   <ng-template #dropdownTemplate>
-                    @if (location === 'channel-preview'
-                    && hoveredChannel !== null
-                    && isPrivateChat(hoveredChannel)) {
-                      ID: {{ getInterlocutorId() }}
-                    }
+                    ID: {{ getInterlocutorId() }}
                   </ng-template>
                 </app-custom-chat-avatar>
 

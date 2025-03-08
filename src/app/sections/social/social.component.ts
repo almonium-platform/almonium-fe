@@ -916,6 +916,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  shouldShowDropdown(location: string): boolean {
+    return location === 'channel-preview'
+      && this.hoveredChannel !== null
+      && this.isPrivateChat(this.hoveredChannel);
+  }
+
   onRequestsIndexChange($event: number) {
     this.requestsIndex = $event;
     this.openDrawerAndSetupData();
