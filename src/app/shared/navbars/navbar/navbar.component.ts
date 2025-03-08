@@ -41,6 +41,7 @@ import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
 import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {TuiActiveZone} from "@taiga-ui/cdk";
+import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
 
 @Component({
   selector: 'app-navbar',
@@ -140,6 +141,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private viewportService: ViewportService,
               private chatUnreadService: ChatUnreadService,
               private notificationService: NotificationService,
+              private firebaseNotificationService: FirebaseNotificationService,
               private alertService: TuiAlertService,
   ) {
   }
@@ -194,6 +196,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       });
 
+    this.getNotifications();
+    this.firebaseNotificationService.currentMessage$.subscribe((message) => {
+      if (message) {
+        this.getNotifications();
+      }
+    })
+  }
+
+  private getNotifications() {
     this.notificationService.getNotifications().subscribe((notifications) => {
       this.notifications = notifications;
       this.unreadNotificationsCount = notifications.filter(n => !n.readAt).length;
