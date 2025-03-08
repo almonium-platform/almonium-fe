@@ -213,8 +213,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngOnInit() {
-    this.chatFormControl.valueChanges.subscribe(value => console.log("🔄 Input Changed:", value));
-
     this.chatFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
@@ -335,8 +333,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     await channel.create(); // Ensure the channel is created
     await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
 
-    console.log('Private chat created and watched:', channelId);
-
     return channel;
   }
 
@@ -445,7 +441,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           let finalFilters: Record<string, any> = {$or: orConditions};
-          console.log('Final filters:', finalFilters);
+
           try {
             this.channelService.reset();
             await this.channelService.init(finalFilters, undefined, undefined, false);
@@ -563,7 +559,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.acceptInProgressIds.add(candidate.friendshipId);
-    console.log(this.acceptInProgressIds);
 
     this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT)
       .subscribe({
@@ -596,9 +591,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.rejectInProgressIds.delete(id)))
       .subscribe({
         next: () => {
-          console.log(JSON.stringify(this.incomingRequests));
           this.incomingRequests = this.incomingRequests.filter(request => request.friendshipId !== id);
-          console.log(JSON.stringify(this.incomingRequests));
           this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
         },
         error: (error) => {
@@ -649,7 +642,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
         next: (friendship) => {
-          console.log(friendship);
           this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
           this.requestedIds.push(id);
 
@@ -921,17 +913,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openUser(location: AvatarLocation) {
     if (location === 'channel-preview' && this.isPrivateChat(this.hoveredChannel!)) {
       const interlocutorId = this.getInterlocutorId();
-      console.log('Opening chat with user:', interlocutorId);
+      console.info('Opening chat with user:', interlocutorId);
     }
   }
 
   onRequestsIndexChange($event: number) {
     this.requestsIndex = $event;
     this.openDrawerAndSetupData();
-  }
-
-  openFriendDropdown(id: string) {
-    console.log('Opening dropdown for friend:', id);
   }
 
   setDrawerMode(mode: string) {

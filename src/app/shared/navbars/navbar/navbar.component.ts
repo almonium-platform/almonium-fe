@@ -443,7 +443,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected notificationDropdownActive: boolean = false;
 
   toggleReadDropdownActive($event: boolean) {
-    console.log($event);
     this.notificationDropdownActive = $event;
   }
 

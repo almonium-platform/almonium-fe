@@ -267,7 +267,6 @@ auto-renewal in the customer portal.`;
     this.profileSettingsService.toggleHidden(toggleValue).subscribe({
       next: () => {
         this.userInfoService.updateUserInfo({hidden: toggleValue}); // Update cache on success
-        console.log('Action executed successfully');
       },
       error: (error) => {
         if (this.userInfo) {

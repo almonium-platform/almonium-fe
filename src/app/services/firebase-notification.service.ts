@@ -49,7 +49,6 @@ export class FirebaseNotificationService {
       });
 
       if (token) {
-        console.log('FCM Token:', token);
         this.sendTokenToBackend(token);
       } else {
         console.warn('No FCM token received.');
@@ -64,7 +63,6 @@ export class FirebaseNotificationService {
       if (!this.messaging) return;
 
       onMessage(this.messaging, (payload) => {
-        console.log('Message received:', payload);
         this.currentMessage.next(payload);
       });
     } catch (error) {
@@ -79,7 +77,8 @@ export class FirebaseNotificationService {
   private sendTokenToBackend(token: string) {
     this.http.post(`${AppConstants.API_URL}/fcm/register`, {token, deviceType: 'web'}, {withCredentials: true})
       .subscribe({
-        next: () => console.log('FCM Token registered successfully'),
+        next: () => {
+        },
         error: (err) => console.error('Failed to register FCM token:', err),
       });
   }

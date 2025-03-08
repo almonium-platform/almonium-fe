@@ -83,8 +83,6 @@ export class MessageActionsBoxComponent
   }
 
   ngOnInit(): void {
-    console.log('MessageActionsBoxComponent ngOnInit');
-    console.log('enabled actions', this.enabledActions);
     this.subscriptions.push(
       this.messageActionsService.customActions$.subscribe((actions) => {
         this.customActions = actions;

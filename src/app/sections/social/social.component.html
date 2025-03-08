@@ -190,7 +190,7 @@
                              tuiDropdown
                              (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
                              [tuiDropdown]="friendDropdownTemplate"
-                             (click)="friendDropdown.toggle(true); openFriendDropdown(friend.id)"
+                             (click)="friendDropdown.toggle(true)"
                 >
                   <ng-template #friendDropdownTemplate>
                     <tui-data-list

@@ -84,7 +84,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({uiPreferences: this.uiPreferences});
-          console.log('Preferences saved successfully');
         },
         error: (error) => {
           console.error('Failed to save preferences:', error);
