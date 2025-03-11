@@ -42,7 +42,7 @@ import {RouterLink} from "@angular/router";
 export class AvatarComponent {
   @Input() avatarUrl: string | null = null;
   @Input() username: string | null = null;
-  @Input() outline: boolean = false;
+  @Input() outline: boolean = false; // todo: rename to premium
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
   @Input() redirect: boolean = false;
