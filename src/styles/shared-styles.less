@@ -61,6 +61,24 @@
   }
 }
 
+tui-data-list button[tuiOption].context-button {
+  display: flex;
+  justify-content: flex-start;
+  gap: .8rem;
+
+  &.negative {
+    color: var(--danger-text-color);
+  }
+}
+
+.chat-icon {
+  color: var(--text-color);
+
+  &.negative {
+    color: var(--danger-text-color);
+  }
+}
+
 // GRADIENT
 .full-gradient-btn {
   --r: 1rem; /* border radius */
