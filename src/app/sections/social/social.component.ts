@@ -12,7 +12,18 @@ import {
 import {SocialService} from "./social.service";
 import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {BehaviorSubject, combineLatest, EMPTY, finalize, firstValueFrom, Subject, takeUntil} from "rxjs";
+import {
+  BehaviorSubject,
+  combineLatest,
+  EMPTY,
+  filter,
+  finalize,
+  firstValueFrom,
+  of,
+  Subject,
+  take,
+  takeUntil
+} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
 import {FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -36,7 +47,7 @@ import {
 } from "@taiga-ui/kit";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
-import {ActivatedRoute, RouterLink} from "@angular/router";
+import {ActivatedRoute, Params, RouterLink} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -67,6 +78,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
+import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
 
 @Component({
   selector: 'app-social',
@@ -105,6 +117,7 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
     RouterLink,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
+    UserPreviewCardComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -161,6 +174,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected showContent = false;
   protected hoverTimeout: any;
   protected isChatOpen: boolean = false;
+  protected redirectId: string | undefined = undefined;
+
   protected filteredActions: string[] = [
     "cast-poll-vote",
     "connect-events",
@@ -212,10 +227,50 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   async ngOnInit() {
+    this.setupChatFormControl();
+
+    combineLatest([
+      this.userInfoService.userInfo$.pipe(filter(info => !!info)),
+      this.activatedRoute.queryParams
+    ]).pipe(
+      take(1), // Take only the first emission
+      takeUntil(this.destroy$)
+    ).subscribe(([userInfo, params]) => {
+      this.userInfo = userInfo;
+      this.initializeChat(userInfo);
+
+      this.handleQueryParams(params);
+      // Initialize chat with user info
+
+      // Now decide whether to open a specific chat or initialize channel service
+      if (this.redirectId) {
+        const cid = this.getCidByFriendshipId(this.redirectId);
+        setTimeout(() => {
+          this.openChatByCid(cid).then((found) => {
+            if (!found) {
+              console.error("Could not find chat with cid:", cid);
+            }
+          });
+        }, 300);
+      } else {
+        this.channelService.init({members: {$in: [this.userInfo!.id]}}, undefined, undefined, false);
+      }
+    });
+
+    this.setupActiveChannelSubscription();
+    this.streamI18nService.setTranslation();
+    this.getIncomingRequests();
+    this.listenToUsernameField();
+    this.listenToFriendSearch();
+    this.listenToChannelSearch();
+  }
+
+  private setupChatFormControl() {
     this.chatFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
-        debounceTime(300)
+        debounceTime(300),
+        takeUntil(this.destroy$)
       )
       .subscribe(value => {
         if (value === null) {
@@ -223,64 +278,65 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         }
         const trimmedValue = value.trim();
         if (value !== trimmedValue) {
-          this.chatFormControl.setValue(trimmedValue, {emitEvent: false}); // Prevent infinite loop
+          this.chatFormControl.setValue(trimmedValue, {emitEvent: false});
         }
       });
+  }
+
+  private setupActiveChannelSubscription() {
     this.channelService.activeChannel$
-      .pipe(distinctUntilChanged(), startWith(await firstValueFrom(this.channelService.activeChannel$)))
+      .pipe(
+        distinctUntilChanged(),
+        startWith(null),
+        switchMap(channel => {
+          if (!channel) {
+            return of(null);
+          }
+          return firstValueFrom(of(channel));
+        }),
+        filter(channel => !!channel),
+        takeUntil(this.destroy$)
+      )
       .subscribe((channel) => {
-        if (channel) {
-          this.setChatTitle(channel);
-          this.openChat();
-        }
+        this.setChatTitle(channel);
+        this.openChat();
         this.chatUnreadService.fetchUnreadCount();
       });
+  }
 
-    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
-      if (!info) {
-        return;
-      }
-      this.userInfo = info;
+  private initializeChat(userInfo: UserInfo) {
+    const userId = userInfo.id;
+    const userToken = userInfo.streamChatToken;
+    const userName = userInfo.username;
+    const user: User = {
+      id: userId,
+      name: userName,
+      image: userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+    };
 
-      const userId = this.userInfo.id;
-      const userToken = this.userInfo.streamChatToken;
-      const userName = this.userInfo.username;
-      const user: User = {
-        id: userId,
-        name: userName,
-        image: this.userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
-      };
+    this.chatService.init(environment.streamChatApiKey, user, userToken);
+  }
 
-      this.chatService.init(environment.streamChatApiKey, user, userToken);
-      this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false).then();
-      this.chatUnreadService.fetchUnreadCount();
-    });
-
-    this.streamI18nService.setTranslation();
-
-    this.activatedRoute.queryParams.subscribe(params => {
-      if (params['tab'] === 'friends') {
-        this.drawerMode = 'friends';
-        this.openDrawerAndSetupData();
-      }
-      if (params['requests'] === 'received') {
-        this.drawerMode = 'requests';
-        this.requestsIndex = 0;
-        this.openDrawerAndSetupData();
-      }
-      if (params['requests'] === 'sent') {
-        this.drawerMode = 'requests';
-        this.requestsIndex = 1;
-        this.openDrawerAndSetupData();
-      }
-      this.urlService.clearUrl();
-    });
-
-    this.getIncomingRequests();
-
-    this.listenToUsernameField();
-    this.listenToFriendSearch();
-    this.listenToChannelSearch();
+  private handleQueryParams(params: Params) {
+    if (params['tab'] === 'friends') {
+      this.drawerMode = 'friends';
+      this.openDrawerAndSetupData();
+    }
+    if (params['requests'] === 'received') {
+      this.drawerMode = 'requests';
+      this.requestsIndex = 0;
+      this.openDrawerAndSetupData();
+    }
+    if (params['requests'] === 'sent') {
+      this.drawerMode = 'requests';
+      this.requestsIndex = 1;
+      this.openDrawerAndSetupData();
+    }
+    if (!!params['chat']) {
+      this.redirectId = params['chat'];
+      console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId!));
+    }
+    this.urlService.clearUrl();
   }
 
   protected listenToFriendSearch() {
@@ -498,7 +554,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openChatWithFriend(friend: RelatedUserProfile) {
     this.closeDrawer();
 
-    const cid = 'messaging:private_' + friend.friendshipId;
+    const cid = this.getCidByFriendshipId(friend.friendshipId);
     this.openChatByCid(cid).then((found) => {
       if (!found) {
         this.createPrivateChat(this.userInfo!.id, friend.id, friend.friendshipId).then(channel => {
@@ -506,6 +562,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
+  }
+
+  private getCidByFriendshipId(friendshipId: string) {
+    return 'messaging:private_' + friendshipId;
   }
 
   async openChatByCid(id: string): Promise<boolean> {
@@ -882,6 +942,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   amMember(channel: Channel<DefaultStreamChatGenerics>): boolean {
     return channel.state.members[this.userInfo!.id] !== undefined
   }
+
+  protected hoveredInterlocutorId = undefined;
 
   getInterlocutorId(): string | null {
     // Ensure hoveredChannel and members exist
