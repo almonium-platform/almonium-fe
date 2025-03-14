@@ -1,7 +1,6 @@
-export interface UserPublicProfile {
+export interface PublicUserProfile {
   id: string;
   username: string;
-  status: FriendStatus;
   avatarUrl: string;
 }
 
@@ -10,7 +9,7 @@ export interface RelatedUserProfile {
   username: string;
   avatarUrl: string;
   friendshipId: string;
-  friendshipStatus: FriendshipStatus;
+  relationshipStatus: RelationshipStatus;
 }
 
 export interface Friend {
@@ -24,26 +23,19 @@ export interface Friendship {
   id: string;
   requesterId: string;
   requesteeId: string;
-  status: FriendshipStatus;
+  status: RelationshipStatus;
 }
 
-export enum FriendshipStatus {
+export enum RelationshipStatus {
   PENDING = 'PENDING',
   REJECTED = 'REJECTED',
   FRIENDS = 'FRIENDS',
   FST_BLOCKED_SND = 'FST_BLOCKED_SND',
   SND_BLOCKED_FST = 'SND_BLOCKED_FST',
-  MUTUALLY_BLOCKED = 'MUTUALLY_BLOCKED',
+  MUTUAL_BLOCK = 'MUTUALLY_BLOCKED',
 }
 
-export enum FriendStatus {
-  FRIENDS = 'FRIENDS',
-  BLOCKED = 'BLOCKED',
-  ASKED_THEM = 'ASKED_THEM',
-  ASKED_ME = 'ASKED_ME',
-}
-
-export enum FriendshipAction {
+export enum RelationshipAction {
   ACCEPT = 'ACCEPT',
   REJECT = 'REJECT',
   CANCEL = 'CANCEL',

@@ -261,7 +261,7 @@
                                  [size]="20"
                     ></lucide-icon>
                   } @else {
-                    @if (friend.friendshipStatus === FriendshipStatus.PENDING) {
+                    @if (friend.relationshipStatus === FriendshipStatus.PENDING) {
                       <lucide-icon name="user-round-plus"
                                    class="friend-action positive"
                                    [size]="20"
@@ -275,7 +275,7 @@
                     }
                   }
 
-                  @if (friend.friendshipStatus === FriendshipStatus.FRIENDS) {
+                  @if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
                     <lucide-icon name="message-circle"
                                  class="friend-action positive"
                                  [size]="20"

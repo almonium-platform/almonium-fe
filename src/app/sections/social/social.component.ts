@@ -25,7 +25,7 @@ import {
   takeUntil
 } from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
-import {FriendshipAction, FriendshipStatus, RelatedUserProfile, UserPublicProfile} from "./social.model";
+import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {
   TuiAlertService,
@@ -78,7 +78,6 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
-import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
 
 @Component({
   selector: 'app-social',
@@ -117,7 +116,6 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     RouterLink,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
-    UserPreviewCardComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -136,7 +134,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected friendFormControl = new FormControl<string>('');
   protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
-  protected matchedUsers: UserPublicProfile[] = [];
+  protected matchedUsers: PublicUserProfile[] = [];
   protected requestedIds: string[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
@@ -156,7 +154,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected noResultMessage: string = 'No results found';
   protected drawerIcon: string = 'menu';
 
-  protected readonly FriendshipStatus = FriendshipStatus;
+  protected readonly FriendshipStatus = RelationshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
 
   // confirm modal settings
@@ -416,7 +414,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           );
         })
       )
-      .subscribe((friends: UserPublicProfile[]) => {
+      .subscribe((friends: PublicUserProfile[]) => {
         this.matchedUsers = friends;
         this.nothingFound = friends.length === 0;
       });
@@ -596,7 +594,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.cancelInProgressIds.add(friendshipId);
 
-    this.socialService.patchFriendship(friendshipId, FriendshipAction.CANCEL)
+    this.socialService.patchFriendship(friendshipId, RelationshipAction.CANCEL)
       .pipe(finalize(() => this.cancelInProgressIds.delete(friendshipId)))
       .subscribe({
         next: () => {
@@ -619,14 +617,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.acceptInProgressIds.add(candidate.friendshipId);
 
-    this.socialService.patchFriendship(candidate.friendshipId, FriendshipAction.ACCEPT)
+    this.socialService.patchFriendship(candidate.friendshipId, RelationshipAction.ACCEPT)
       .subscribe({
         next: () => {
           this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.friendshipId).then(_ => {
             this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
-              .map(profile => profile.friendshipStatus = FriendshipStatus.FRIENDS);
+              .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
             this.acceptInProgressIds.delete(candidate.friendshipId);
           })
           this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
@@ -646,7 +644,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.rejectInProgressIds.add(id);
 
-    this.socialService.patchFriendship(id, FriendshipAction.REJECT)
+    this.socialService.patchFriendship(id, RelationshipAction.REJECT)
       .pipe(finalize(() => this.rejectInProgressIds.delete(id)))
       .subscribe({
         next: () => {
@@ -669,7 +667,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.chatClient.unBlockUser(friendId.toString()).then(() => {
     });
-    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNBLOCK)
+    this.socialService.patchFriendship(friendshipId, RelationshipAction.UNBLOCK)
       .pipe(finalize(() => this.unblockInProgressIds.delete(friendshipId)))
       .subscribe({
         next: () => {
@@ -717,7 +715,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   unfriend(friendId: string, friendshipId: string) {
-    this.socialService.patchFriendship(friendshipId, FriendshipAction.UNFRIEND).subscribe({
+    this.socialService.patchFriendship(friendshipId, RelationshipAction.UNFRIEND).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;
@@ -734,7 +732,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   block(friendId: string, friendshipId: string) {
     this.chatClient.blockUser(friendId.toString()).then(() => {
     });
-    this.socialService.patchFriendship(friendshipId, FriendshipAction.BLOCK).subscribe({
+    this.socialService.patchFriendship(friendshipId, RelationshipAction.BLOCK).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;

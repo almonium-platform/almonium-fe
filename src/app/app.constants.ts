@@ -45,7 +45,7 @@ export class AppConstants {
   public static ONBOARDING_STEP_URL = AppConstants.ONBOARDING_URL + '/step';
 
   // SOCIAL
-  public static FRIENDSHIPS_URL = AppConstants.API_URL + '/friendships';
+  public static RELATIONSHIPS_URL = AppConstants.API_URL + '/relationships';
   public static NOTIFICATIONS_URL = AppConstants.API_URL + '/notifications';
 
   // UTILS
