@@ -172,8 +172,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected displayAs: 'text' | 'html';
   protected hoveredChannel: Channel<DefaultStreamChatGenerics> | null = null;
   protected currentLocation: string = '';
-  protected showContent = false;
-  protected hoverTimeout: any;
   protected isChatOpen: boolean = false;
   protected redirectId: string | undefined = undefined;
 
@@ -964,13 +962,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   startAvatarHover(channel: Channel<DefaultStreamChatGenerics>, location: string) {
     this.hoveredChannel = channel;
     this.currentLocation = location;
-    this.hoverTimeout = setTimeout(() => this.showContent = true, 1000);
   }
 
   stopAvatarHover() {
     this.hoveredChannel = null;
-    clearTimeout(this.hoverTimeout);
-    this.showContent = false;
+    this.currentLocation = '';
   }
 
   openUser(location: AvatarLocation) {
