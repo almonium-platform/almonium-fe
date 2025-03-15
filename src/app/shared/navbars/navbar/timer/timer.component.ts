@@ -4,13 +4,15 @@ import {takeUntil} from 'rxjs/operators';
 import {ButtonComponent} from "../../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
 import {LocalStorageService} from "../../../../services/local-storage.service";
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'app-timer',
   templateUrl: './timer.component.html',
   imports: [
     ButtonComponent,
-    LucideAngularModule
+    LucideAngularModule,
+    NgClass
   ],
   styleUrls: ['./timer.component.less']
 })

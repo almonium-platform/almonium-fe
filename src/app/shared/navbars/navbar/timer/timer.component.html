@@ -6,7 +6,10 @@
       <button class="arrow" (click)="increaseDigit('first')" [disabled]="firstDigit === 9"
               [class.hidden]="hideArrows()">▲
       </button>
-      <div class="digit">{{ firstDigit }}</div>
+      <div class="digit"
+           [ngClass]="state === 'going' ? 'motion-preset-pulse motion-duration-2000' : ''"
+      >{{ firstDigit }}
+      </div>
       <button class="arrow" (click)="decreaseDigit('first')" [disabled]="firstDigit === 0"
               [class.hidden]="hideArrows()">▼
       </button>
@@ -17,7 +20,10 @@
       <button class="arrow" (click)="increaseDigit('second')" [disabled]="secondDigit === 9"
               [class.hidden]="hideArrows()">▲
       </button>
-      <div class="digit">{{ secondDigit }}</div>
+      <div class="digit"
+           [ngClass]="state === 'going' ? 'motion-preset-pulse motion-duration-2000' : ''"
+      >{{ secondDigit }}
+      </div>
       <button class="arrow" (click)="decreaseDigit('second')" [disabled]="secondDigit === 0"
               [class.hidden]="hideArrows()">▼
       </button>
