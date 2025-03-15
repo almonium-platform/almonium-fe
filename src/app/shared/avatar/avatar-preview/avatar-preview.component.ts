@@ -19,6 +19,7 @@ import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
       [tuiDropdown]="dropdownTemplate"
       (mouseenter)="onHover()"
       (mouseleave)="onLeave()"
+      class="flex"
     >
     </app-avatar>
     <ng-template #dropdownTemplate>
