@@ -13,7 +13,7 @@ import {
   TuiDropdownOptionsDirective,
   TuiOption
 } from "@taiga-ui/core";
-import {TuiChip, TuiDataListDropdownManager} from "@taiga-ui/kit";
+import {TuiChip, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
@@ -42,7 +42,8 @@ import {RelationshipAction} from "../../sections/social/social.model";
     TuiOption,
     TuiActiveZone,
     TuiDropdownOptionsDirective,
-    ConfirmModalComponent
+    ConfirmModalComponent,
+    TuiSkeleton
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'

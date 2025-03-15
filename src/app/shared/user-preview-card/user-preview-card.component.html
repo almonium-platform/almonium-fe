@@ -196,5 +196,13 @@
         </app-button>
       }
     </div>
+  } @else {
+    <div class="first-row">
+      <app-avatar size="m" [loading]="true"></app-avatar>
+      <div class="right-hand">
+        <p class="username" [tuiSkeleton]="true">f</p>
+        <p class="member-since" [tuiSkeleton]="true">f</p>
+      </div>
+    </div>
   }
 </div>

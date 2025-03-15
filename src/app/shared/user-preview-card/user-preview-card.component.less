@@ -3,7 +3,6 @@
   flex-direction: column;
   padding: .4rem;
   min-width: 10rem;
-  min-height: 10rem;
   max-width: 15rem;
 
   .target {
@@ -27,15 +26,23 @@
     padding-bottom: 0.4rem;
 
     .right-hand {
+      width: 100%;
+      gap: 0.2rem;
       display: flex;
       flex-direction: column;
 
+      p {
+        border-radius: 20px;
+      }
+
       .username {
         padding-left: 3px;
+        width: 90%;
       }
 
       .member-since {
         font-size: 0.7rem;
+        width: 70%;
         color: var(--disabled-text-color);
       }
     }
