@@ -116,7 +116,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.timer,
         icon: 'timer',
         hasUnread: false,
-        action: () => this.router.navigate(['/timer'])
+        action: () => {}
       },
       {
         name: 'social',
