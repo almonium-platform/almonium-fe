@@ -78,6 +78,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
+import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
 
 @Component({
   selector: 'app-social',
@@ -116,6 +117,7 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
     RouterLink,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
+    UserPreviewCardComponent,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -552,10 +554,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openChatWithFriend(friend: RelatedUserProfile) {
     this.closeDrawer();
 
-    const cid = this.getCidByFriendshipId(friend.friendshipId);
+    const cid = this.getCidByFriendshipId(friend.relationshipId);
     this.openChatByCid(cid).then((found) => {
       if (!found) {
-        this.createPrivateChat(this.userInfo!.id, friend.id, friend.friendshipId).then(channel => {
+        this.createPrivateChat(this.userInfo!.id, friend.id, friend.relationshipId).then(channel => {
           this.channelService.setAsActiveChannel(channel);
         });
       }
@@ -598,7 +600,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.cancelInProgressIds.delete(friendshipId)))
       .subscribe({
         next: () => {
-          this.outgoingRequests = this.outgoingRequests.filter(request => request.friendshipId !== friendshipId);
+          this.outgoingRequests = this.outgoingRequests.filter(request => request.relationshipId !== friendshipId);
           this.drawerUserTiles = this.outgoingRequests;
           this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
         },
@@ -610,29 +612,29 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   acceptFriendRequest(candidate: RelatedUserProfile) {
-    if (this.acceptInProgressIds.has(candidate.friendshipId)) {
+    if (this.acceptInProgressIds.has(candidate.relationshipId)) {
       console.warn('Accept request already in progress');
       return;
     }
 
-    this.acceptInProgressIds.add(candidate.friendshipId);
+    this.acceptInProgressIds.add(candidate.relationshipId);
 
-    this.socialService.patchFriendship(candidate.friendshipId, RelationshipAction.ACCEPT)
+    this.socialService.patchFriendship(candidate.relationshipId, RelationshipAction.ACCEPT)
       .subscribe({
         next: () => {
-          this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.friendshipId).then(_ => {
+          this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.relationshipId).then(_ => {
             this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
               .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
-            this.acceptInProgressIds.delete(candidate.friendshipId);
+            this.acceptInProgressIds.delete(candidate.relationshipId);
           })
           this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
         },
         error: (error) => {
           console.error(error);
           this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
-          this.acceptInProgressIds.delete(candidate.friendshipId);
+          this.acceptInProgressIds.delete(candidate.relationshipId);
         }
       });
   }
@@ -648,7 +650,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.rejectInProgressIds.delete(id)))
       .subscribe({
         next: () => {
-          this.incomingRequests = this.incomingRequests.filter(request => request.friendshipId !== id);
+          this.incomingRequests = this.incomingRequests.filter(request => request.relationshipId !== id);
           this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
         },
         error: (error) => {

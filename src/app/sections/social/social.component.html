@@ -213,7 +213,7 @@
                         tuiOption
                         type="button"
                         class="context-button negative"
-                        (click)="prepareUnfriendModal(friend.id, friend.friendshipId)"
+                        (click)="prepareUnfriendModal(friend.id, friend.relationshipId)"
                       >
                         <lucide-icon name="user-round-x"
                                      class="chat-icon negative"
@@ -225,7 +225,7 @@
                         tuiOption
                         type="button"
                         class="context-button negative"
-                        (click)="prepareBlockModal(friend.id, friend.friendshipId)"
+                        (click)="prepareBlockModal(friend.id, friend.relationshipId)"
                       >
                         <lucide-icon name="ban"
                                      class="chat-icon negative"
@@ -239,7 +239,7 @@
               }
 
               @if (drawerMode === 'blocked') {
-                @if (unblockInProgressIds.has(friend.friendshipId)) {
+                @if (unblockInProgressIds.has(friend.relationshipId)) {
                   <lucide-icon name="loader-circle"
                                class="friend-action motion-preset-spin"
                                [size]="20"
@@ -248,14 +248,14 @@
                   <lucide-icon name="x"
                                class="friend-action negative primary"
                                [size]="20"
-                               (click)="unblock(friend.id, friend.friendshipId)"
+                               (click)="unblock(friend.id, friend.relationshipId)"
                   ></lucide-icon>
                 }
               }
 
               @if (drawerMode === 'requests') {
                 @if (requestsIndex === 0) {
-                  @if (acceptInProgressIds.has(friend.friendshipId) || rejectInProgressIds.has(friend.friendshipId)) {
+                  @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
                     <lucide-icon name="loader-circle"
                                  class="friend-action motion-preset-spin"
                                  [size]="20"
@@ -270,7 +270,7 @@
                       <lucide-icon name="x"
                                    class="friend-action negative secondary"
                                    [size]="20"
-                                   (click)="rejectFriendRequest(friend.friendshipId)"
+                                   (click)="rejectFriendRequest(friend.relationshipId)"
                       ></lucide-icon>
                     }
                   }
@@ -284,7 +284,7 @@
                   }
                 }
                 @if (requestsIndex === 1) {
-                  @if (cancelInProgressIds.has(friend.friendshipId)) {
+                  @if (cancelInProgressIds.has(friend.relationshipId)) {
                     <lucide-icon name="loader-circle"
                                  class="friend-action motion-preset-spin"
                                  [size]="20"
@@ -293,7 +293,7 @@
                     <lucide-icon name="x"
                                  class="friend-action negative"
                                  [size]="20"
-                                 (click)="cancelFriendRequest(friend.friendshipId)"
+                                 (click)="cancelFriendRequest(friend.relationshipId)"
                     ></lucide-icon>
                   }
                 }
@@ -417,7 +417,10 @@
                   (click)="openUser(location)"
                 >
                   <ng-template #dropdownTemplate>
-                    ID: {{ getInterlocutorId() }}
+                     @let interlocutorId = getInterlocutorId();
+                    @if (interlocutorId !== null) {
+                      <app-user-preview-card [userId]="interlocutorId"></app-user-preview-card>
+                    }
                   </ng-template>
                 </app-custom-chat-avatar>
 

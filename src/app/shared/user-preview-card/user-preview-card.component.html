@@ -1,0 +1,160 @@
+<app-confirm-modal
+        [isVisible]="isConfirmModalVisible"
+        [title]="modalTitle"
+        [message]="modalMessage"
+        [confirmText]="modalConfirmText"
+        (close)="closeConfirmModal()"
+        (confirm)="confirmModalAction()"
+        [useCountdown]="false">
+</app-confirm-modal>
+
+@if (userProfileInfo) {
+    <div class="preview-card">
+        <div class="first-row">
+            <app-avatar [username]="userProfileInfo.username"
+                        [avatarUrl]="userProfileInfo.avatarUrl"
+                        [outline]="userProfileInfo.isPremium"
+                        size="m"
+            ></app-avatar>
+            <div class="right-hand">
+                <p class="username">{{ userProfileInfo.username }}</p>
+                <p class="member-since">🐣 {{ formatDate(userProfileInfo.registeredAt) }}</p>
+            </div>
+            <lucide-icon name="ellipsis-vertical"
+                         class="ml-auto cursor-pointer"
+                         [size]="20"
+                         #friendDropdown="tuiDropdown"
+                         tuiDropdown
+                         (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
+                         [tuiDropdown]="friendDropdownTemplate"
+                         tuiDropdownAlign="right"
+                         (click)="friendDropdown.toggle(true)"
+            >
+                <ng-template #friendDropdownTemplate>
+                    <tui-data-list
+                            role="menu"
+                            tuiDataListDropdownManager
+                            class="context-menu">
+                        @if (userProfileInfo.relationshipStatus === 'FRIENDS') {
+                            <button
+                                    tuiOption
+                                    type="button"
+                                    class="context-button negative"
+                                    (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
+                            >
+                                <lucide-icon name="user-round-x"
+                                             class="chat-icon negative"
+                                             [size]="18"
+                                ></lucide-icon>
+                                Unfriend
+                            </button>
+                        }
+                        @if (userProfileInfo.relationshipStatus === 'BLOCKED') {
+                            <button
+                                    tuiOption
+                                    type="button"
+                                    class="context-button negative"
+                                    (click)="unblock(); friendDropdown.toggle(false)"
+                            >
+                                <lucide-icon name="handshake"
+                                             class="chat-icon negative"
+                                             [size]="18"
+                                ></lucide-icon>
+                                Unblock
+                            </button>
+                        } @else {
+                            <button
+                                    tuiOption
+                                    type="button"
+                                    class="context-button negative"
+                                    (click)="prepareBlockModal(); friendDropdown.toggle(false)"
+                            >
+                                <lucide-icon name="ban"
+                                             class="chat-icon negative"
+                                             [size]="18"
+                                ></lucide-icon>
+                                Block
+                            </button>
+                        }
+                    </tui-data-list>
+                </ng-template>
+            </lucide-icon>
+
+        </div>
+
+        @if (!userProfileInfo.hidden) {
+            <div class="separator"></div>
+
+            <div class="sections">
+                <section class="fluent">
+                    Fluent in
+                    @for (fluent of userProfileInfo.fluentLangs; track fluent) {
+                        <label
+                                tuiChip
+                                size="xs"
+                                appearance="neutral"
+                                [style.background-color]="fluent | tuiAutoColor"
+                        >
+                            <input
+                                    hidden
+                                    type="checkbox"
+                            />
+                            {{ fluent }}
+                        </label>
+                    }
+                </section>
+                <section class="target">
+                    Learning
+                    @for (target of userProfileInfo.targetLangs; track target) {
+                        <label
+                                tuiChip
+                                size="xs"
+                                appearance="neutral"
+                                [style.background-color]="target.language | tuiAutoColor"
+                        >
+                            <input
+                                    hidden
+                                    type="checkbox"
+                            />
+                            {{ target.language }}
+                            <p class="language-level">{{ target.cefrLevel }}</p>
+                        </label>
+                    }
+                </section>
+                <div class="separator"></div>
+                <section>
+                    Likes
+                    @for (interest of userProfileInfo.interests; track interest) {
+                        <label
+                                tuiChip
+                                size="xxs"
+                                appearance="neutral"
+                                [style.background-color]="interest | tuiAutoColor"
+                        >
+                            <input
+                                    hidden
+                                    type="checkbox"
+                            />
+                            {{ interest }}
+                        </label>
+                    }
+                </section>
+            </div>
+        }
+
+        @if (buttonConfig.label) {
+            <app-button
+                    [label]="buttonConfig.label"
+                    appearance="bw"
+                    gap=".4rem"
+                    [loading$]="loading$"
+                    (clickFunction)="buttonConfig.action()"
+            >
+                <lucide-icon
+                        [name]="buttonConfig.icon"
+                        size="14"
+                ></lucide-icon>
+            </app-button>
+        }
+    </div>
+}

@@ -8,15 +8,8 @@ export interface RelatedUserProfile {
   id: string;
   username: string;
   avatarUrl: string;
-  friendshipId: string;
+  relationshipId: string;
   relationshipStatus: RelationshipStatus;
-}
-
-export interface Friend {
-  id: string;
-  username: string;
-  avatarUrl: string;
-  friendshipId: string;
 }
 
 export interface Friendship {

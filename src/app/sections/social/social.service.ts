@@ -1,8 +1,9 @@
 import {Injectable} from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
-import {Friendship, PublicUserProfile, RelatedUserProfile} from "./social.model";
+import {PublicUserProfile, RelatedUserProfile} from "./social.model";
 import {AppConstants} from "../../app.constants";
+import {UserProfileInfo} from "../../shared/user-preview-card/user-profile.model";
 
 @Injectable({
   providedIn: 'root',
@@ -40,15 +41,19 @@ export class SocialService {
     );
   }
 
-  createFriendshipRequest(recipientId: string): Observable<Friendship> {
-    return this.http.post<Friendship>(
+  block(id: string): Observable<UserProfileInfo> {
+    return this.http.post<UserProfileInfo>(`${AppConstants.RELATIONSHIPS_URL}/block/${id}`, {}, {withCredentials: true});
+  }
+
+  createFriendshipRequest(recipientId: string): Observable<UserProfileInfo> {
+    return this.http.post<UserProfileInfo>(
       `${AppConstants.RELATIONSHIPS_URL}`,
       {recipientId},
       {withCredentials: true});
   }
 
-  patchFriendship(id: string, action: string): Observable<PublicUserProfile> {
-    return this.http.patch<PublicUserProfile>(
+  patchFriendship(id: string, action: string): Observable<UserProfileInfo> {
+    return this.http.patch<UserProfileInfo>(
       `${AppConstants.RELATIONSHIPS_URL}/${id}`,
       {action},
       {withCredentials: true});

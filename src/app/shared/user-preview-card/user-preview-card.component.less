@@ -1,0 +1,84 @@
+.preview-card {
+  display: flex;
+  flex-direction: column;
+  padding: .4rem;
+
+  .target {
+    [tuiChip][data-size=xxs] {
+      --t-padding: 0.25rem 0rem 0.25rem 0.25rem;
+    }
+
+    [tuiChip][data-size=xs] {
+      --t-padding: 0.25rem 0.25rem 0.25rem 0.25rem;
+    }
+  }
+
+  .first-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: .5rem;
+    font-size: 1.0rem;
+    color: var(--text-color);
+    font-weight: 550;
+    padding-bottom: 0.4rem;
+
+    .right-hand {
+      display: flex;
+      flex-direction: column;
+
+      .username {
+        padding-left: 3px;
+      }
+
+      .member-since {
+        font-size: 0.7rem;
+        color: var(--disabled-text-color);
+      }
+    }
+  }
+
+  .sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    justify-content: center;
+    align-items: flex-start;
+    padding: .4rem .2rem;
+  }
+
+  section {
+    display: flex;
+    flex-wrap: wrap;
+    //padding: 0 .2rem;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .interest {
+
+  }
+
+  .separator {
+    width: 100%;
+    padding-top: 1px;
+    background: #eaeaea;
+    margin: .2rem 0;
+  }
+
+  app-button {
+    padding-top: .6rem;
+  }
+}
+
+.language-level {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  border: 1px solid #000;
+  color: #000;
+  font-weight: 550;
+  font-size: 0.55rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
