@@ -4,22 +4,22 @@
     <!-- First Digit -->
     <div class="digit-control">
       <button class="arrow" (click)="increaseDigit('first')" [disabled]="firstDigit === 9"
-              [class.hidden]="showArrows()">▲
+              [class.hidden]="hideArrows()">▲
       </button>
       <div class="digit">{{ firstDigit }}</div>
       <button class="arrow" (click)="decreaseDigit('first')" [disabled]="firstDigit === 0"
-              [class.hidden]="showArrows()">▼
+              [class.hidden]="hideArrows()">▼
       </button>
     </div>
 
     <!-- Second Digit -->
     <div class="digit-control">
       <button class="arrow" (click)="increaseDigit('second')" [disabled]="secondDigit === 9"
-              [class.hidden]="showArrows()">▲
+              [class.hidden]="hideArrows()">▲
       </button>
       <div class="digit">{{ secondDigit }}</div>
       <button class="arrow" (click)="decreaseDigit('second')" [disabled]="secondDigit === 0"
-              [class.hidden]="showArrows()">▼
+              [class.hidden]="hideArrows()">▼
       </button>
     </div>
   </div>

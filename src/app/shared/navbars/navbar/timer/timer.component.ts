@@ -1,8 +1,11 @@
-import {Component, OnDestroy} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {interval, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {ButtonComponent} from "../../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
+import {LocalStorageService} from "../../../../services/local-storage.service";
+
+const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
 
 @Component({
   selector: 'app-timer',
@@ -13,7 +16,7 @@ import {LucideAngularModule} from "lucide-angular";
   ],
   styleUrls: ['./timer.component.less']
 })
-export class TimerComponent implements OnDestroy {
+export class TimerComponent implements OnInit, OnDestroy {
   private readonly DEFAULT_FIRST_DIGIT = 1;
   private readonly DEFAULT_SECOND_DIGIT = 0;
 
@@ -22,6 +25,32 @@ export class TimerComponent implements OnDestroy {
   protected state: 'ready' | 'going' | 'paused' = 'ready';
 
   private stopTimer$ = new Subject<void>(); // Used for cleanup when stopping timer
+
+  constructor(private localStorageService: LocalStorageService) {
+  }
+
+  ngOnInit() {
+    this.checkAndResumeTimer();
+  }
+
+  /**
+   * Checks localStorage for an active timer and resumes it if needed.
+   */
+  private checkAndResumeTimer() {
+    const savedEndTime = this.localStorageService.getItem<number>(TIMER_END_TIMESTAMP_KEY);
+    if (savedEndTime) {
+      const now = Date.now();
+      const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 1000));
+
+      if (remainingTime > 0) {
+        this.firstDigit = Math.floor(remainingTime / 10);
+        this.secondDigit = remainingTime % 10;
+        this.startTimer(true); // Resume timer
+      } else {
+        this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Cleanup expired timer
+      }
+    }
+  }
 
   increaseDigit(position: 'first' | 'second') {
     if (position === 'first' && this.firstDigit < 9) {
@@ -45,11 +74,22 @@ export class TimerComponent implements OnDestroy {
     return this.firstDigit * 10 + this.secondDigit;
   }
 
-  startTimer() {
-    if (this.state !== 'ready') return; // Prevent restarting while running
+  /**
+   * Starts the countdown timer.
+   * @param resuming Whether the timer is resuming from storage.
+   */
+  startTimer(resuming = false) {
+    if (!resuming && this.state !== 'ready') return; // Prevent restarting
+
     this.state = 'going';
 
-    interval(1000) // Emit value every second
+    // Save timer end timestamp to localStorage
+    if (!resuming) {
+      const endTime = Date.now() + this.getTotalTime() * 1000;
+      this.localStorageService.saveItem(TIMER_END_TIMESTAMP_KEY, endTime);
+    }
+
+    interval(1000) // Emit every second
       .pipe(takeUntil(this.stopTimer$)) // Stop when `stopTimer$` emits
       .subscribe(() => {
         this.decrementTime();
@@ -75,17 +115,15 @@ export class TimerComponent implements OnDestroy {
 
   private onTimerEnd() {
     alert("Time's up!");
+    this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Clear stored timer
   }
 
   stopTimer() {
     this.stopTimer$.next(); // Stop RxJS interval
+    this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Remove saved timestamp
     this.firstDigit = this.DEFAULT_FIRST_DIGIT;
     this.secondDigit = this.DEFAULT_SECOND_DIGIT;
     this.state = 'ready';
-  }
-
-  showArrows() {
-    return this.state !== 'ready';
   }
 
   togglePauseTimer() {
@@ -106,5 +144,9 @@ export class TimerComponent implements OnDestroy {
   ngOnDestroy() {
     this.stopTimer$.next(); // Cleanup on destroy
     this.stopTimer$.complete();
+  }
+
+  hideArrows() {
+    return this.state !== 'ready';
   }
 }
