@@ -58,7 +58,8 @@ export class TimerComponent implements OnDestroy {
 
   decrementTime() {
     if (this.firstDigit === 0 && this.secondDigit === 0) {
-      this.stopTimer(); // Stop when reaching 00
+      this.onTimerEnd(); // Custom logic when timer reaches 0.0
+      this.stopTimer(); // Stops the timer
       return;
     }
 
@@ -70,6 +71,10 @@ export class TimerComponent implements OnDestroy {
     } else {
       this.secondDigit--;
     }
+  }
+
+  private onTimerEnd() {
+    alert("Time's up!");
   }
 
   stopTimer() {
