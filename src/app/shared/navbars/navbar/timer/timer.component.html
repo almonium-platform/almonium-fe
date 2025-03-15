@@ -1,18 +1,65 @@
-<div class="flex space-x-4">
-  <!-- First Digit -->
-  <div class="digit-control">
-    <button class="arrow" (click)="increaseDigit('first')" [disabled]="firstDigit === 9">▲</button>
-    <div class="digit">{{ firstDigit }}</div>
-    <button class="arrow" (click)="decreaseDigit('first')" [disabled]="firstDigit === 0">▼</button>
+<div class="timer">
+  <div class="flex space-x-4 justify-center">
+
+    <!-- First Digit -->
+    <div class="digit-control">
+      <button class="arrow" (click)="increaseDigit('first')" [disabled]="firstDigit === 9"
+              [class.hidden]="showArrows()">▲
+      </button>
+      <div class="digit">{{ firstDigit }}</div>
+      <button class="arrow" (click)="decreaseDigit('first')" [disabled]="firstDigit === 0"
+              [class.hidden]="showArrows()">▼
+      </button>
+    </div>
+
+    <!-- Second Digit -->
+    <div class="digit-control">
+      <button class="arrow" (click)="increaseDigit('second')" [disabled]="secondDigit === 9"
+              [class.hidden]="showArrows()">▲
+      </button>
+      <div class="digit">{{ secondDigit }}</div>
+      <button class="arrow" (click)="decreaseDigit('second')" [disabled]="secondDigit === 0"
+              [class.hidden]="showArrows()">▼
+      </button>
+    </div>
   </div>
 
-  <!-- Second Digit -->
-  <div class="digit-control">
-    <button class="arrow" (click)="increaseDigit('second')" [disabled]="secondDigit === 9">▲</button>
-    <div class="digit">{{ secondDigit }}</div>
-    <button class="arrow" (click)="decreaseDigit('second')" [disabled]="secondDigit === 0">▼</button>
-  </div>
+  @if (state === 'ready') {
+    <app-button
+      appearance="bw"
+      label="Start"
+      width="full"
+      [disabled]="getTotalTime() === 0"
+      (clickFunction)="startTimer()"
+    >
+    </app-button>
+  } @else {
+    <div class="flex flex-row gap-2">
+      <app-button
+        appearance="bw"
+        label=""
+        customClass="circular-icon"
+        (clickFunction)="togglePauseTimer()"
+      >
+        <lucide-icon
+          [name]="state === 'paused' ? 'play' : 'pause'"
+          [strokeWidth]="1.25"
+          size="22"
+        ></lucide-icon>
+      </app-button>
+
+      <app-button
+        appearance="bw"
+        label=""
+        customClass="circular-icon"
+        (clickFunction)="stopTimer()"
+      >
+        <lucide-icon
+          name="square"
+          [strokeWidth]="1.25"
+          size="18"
+        ></lucide-icon>
+      </app-button>
+    </div>
+  }
 </div>
-
-<!-- Start Button -->
-<button class="start-btn mt-4" (click)="startTimer()">Start</button>
