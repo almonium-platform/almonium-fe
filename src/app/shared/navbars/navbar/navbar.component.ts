@@ -44,6 +44,7 @@ import {TuiActiveZone} from "@taiga-ui/cdk";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
 import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
 import {TimerComponent} from "./timer/timer.component";
+import {LocalStorageService} from "../../../services/local-storage.service";
 
 @Component({
   selector: 'app-navbar',
@@ -118,21 +119,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
         name: 'timer',
         enabled: this.uiPreferences.navbar.timer,
         icon: 'timer',
-        hasUnread: false,
+        hasUpdate: this.isTimerRunning(),
         action: () => this.toggleTimerPopover()
       },
       {
         name: 'social',
         enabled: this.uiPreferences.navbar.social,
         icon: 'message-circle',
-        hasUnread: this.hasUnreadMessages,
+        hasUpdate: this.hasUnreadMessages,
         action: () => this.router.navigate(['/social'])
       },
       {
         name: 'notifications',
         enabled: this.uiPreferences.navbar.notifications,
         icon: 'bell',
-        hasUnread: this.unreadNotificationsCount > 0,
+        hasUpdate: this.unreadNotificationsCount > 0,
         action: () => this.toggleNotificationPopover()
       }
     ];
@@ -148,6 +149,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private notificationService: NotificationService,
               private firebaseNotificationService: FirebaseNotificationService,
               private alertService: TuiAlertService,
+              private localStorageService: LocalStorageService,
   ) {
   }
 
@@ -520,5 +522,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'error'}).subscribe();
       }
     });
+  }
+
+  isTimerRunning(): boolean {
+    const savedEndTime = this.localStorageService.getTimerEndTimestamp()
+    if (!savedEndTime) return false;
+
+    const now = Date.now();
+    if (now < savedEndTime) {
+      return true;
+    } else {
+      this.localStorageService.clearTimer();
+      return false;
+    }
   }
 }

@@ -78,7 +78,7 @@
           <div class="icon-badge relative" (click)="item.action()">
             <button>
               <tui-badged-content>
-                @if (item.hasUnread) {
+                @if (item.hasUpdate) {
                   <tui-badge-notification size="xs" tuiSlot="top"/>
                 }
                 <div class="navbar-icon">
