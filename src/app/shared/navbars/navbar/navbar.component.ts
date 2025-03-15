@@ -17,7 +17,7 @@ import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/u
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, interval, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
@@ -204,6 +204,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
       });
 
     this.getNotifications();
+
+    // Check notifications every 5 minutes (300000 ms)
+    interval(300000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.getNotifications();
+      });
+
     this.firebaseNotificationService.currentMessage$.subscribe((message) => {
       if (message) {
         this.getNotifications();
