@@ -7,7 +7,7 @@
   (confirm)="confirmModalAction()"
   [useCountdown]="false">
 </app-confirm-modal>
-<div class="preview-card">
+<div class="preview-card" (mouseleave)="onMouseLeave()">
   @if (userProfileInfo) {
     <div>
       <div class="first-row">
@@ -25,7 +25,7 @@
                      [size]="20"
                      #friendDropdown="tuiDropdown"
                      tuiDropdown
-                     (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
+                     (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
                      [tuiDropdown]="friendDropdownTemplate"
                      tuiDropdownAlign="right"
                      (click)="friendDropdown.toggle(true)"
