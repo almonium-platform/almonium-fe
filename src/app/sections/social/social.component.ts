@@ -232,7 +232,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.userInfoService.userInfo$.pipe(filter(info => !!info)),
       this.activatedRoute.queryParams
     ]).pipe(
-      take(1), // Take only the first emission
       takeUntil(this.destroy$)
     ).subscribe(([userInfo, params]) => {
       this.userInfo = userInfo;
