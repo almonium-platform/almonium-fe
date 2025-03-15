@@ -3,13 +3,11 @@ import {interval, Subscription} from 'rxjs';
 import {TuiAlertService} from '@taiga-ui/core';
 import {LocalStorageService} from "../../../../services/local-storage.service";
 
-const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
-
 @Injectable({
   providedIn: 'root'
 })
 export class TimerMonitorService {
-  private checkInterval = 1000; // Check every second
+  private checkInterval = 60000;
   private subscription: Subscription | null = null;
 
   constructor(
@@ -41,13 +39,13 @@ export class TimerMonitorService {
    * Checks if the stored timer has expired and triggers an alert.
    */
   private checkTimerExpiration() {
-    const savedEndTime = this.localStorageService.getItem<number>(TIMER_END_TIMESTAMP_KEY);
-    if (savedEndTime) {
-      const now = Date.now();
-      if (now >= savedEndTime) {
-        this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Cleanup expired timer
-        this.triggerTimerEndAlert();
-      }
+    const savedEndTime = this.localStorageService.getTimerEndTimestamp();
+    if (!savedEndTime) return;
+
+    const now = Date.now();
+    if (now >= savedEndTime) {
+      this.localStorageService.clearTimer();
+      this.triggerTimerEndAlert();
     }
   }
 
