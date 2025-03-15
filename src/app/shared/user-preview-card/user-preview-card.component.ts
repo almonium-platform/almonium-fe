@@ -26,6 +26,7 @@ import {UserInfo} from "../../models/userinfo.model";
 import {ChatClientService} from "stream-chat-angular";
 import {Router} from "@angular/router";
 import {RelationshipAction} from "../../sections/social/social.model";
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'app-user-preview-card',
@@ -43,13 +44,16 @@ import {RelationshipAction} from "../../sections/social/social.model";
     TuiActiveZone,
     TuiDropdownOptionsDirective,
     ConfirmModalComponent,
-    TuiSkeleton
+    TuiSkeleton,
+    NgClass
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'
 })
 export class UserPreviewCardComponent implements OnInit, OnDestroy {
   @Input() userId!: string;
+  @Input() publicProfile: UserProfileInfo | null = null;
+
   @Output() close = new EventEmitter<void>();
   // constant to store how many interests to display
   protected readonly MAX_INTERESTS = 4;
@@ -122,6 +126,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   }
 
   private populateUserProfileInfo() {
+    if (this.publicProfile) {
+      this.userProfileInfo = this.publicProfile;
+      this.setButtonConfig();
+      return;
+    }
+
     this.userService.getUserProfile(this.userId).subscribe(user => {
       if (!user) return;
       this.userProfileInfo = user;

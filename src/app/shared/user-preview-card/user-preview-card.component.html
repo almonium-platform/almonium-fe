@@ -8,7 +8,7 @@
   [useCountdown]="false">
 </app-confirm-modal>
 
-<div class="preview-card" (mouseleave)="onMouseLeave()">
+<div class="preview-card" (mouseleave)="onMouseLeave()" [ngClass]="publicProfile ? 'card' : ''">
   @if (userProfileInfo) {
     <div>
       <div class="first-row">
@@ -21,65 +21,67 @@
           <p class="username">{{ userProfileInfo.username }}</p>
           <p class="member-since">🐣 {{ formatDate(userProfileInfo.registeredAt) }}</p>
         </div>
-        <lucide-icon name="ellipsis-vertical"
-                     class="ml-auto cursor-pointer"
-                     [size]="20"
-                     #friendDropdown="tuiDropdown"
-                     tuiDropdown
-                     (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
-                     [tuiDropdown]="friendDropdownTemplate"
-                     tuiDropdownAlign="right"
-                     (click)="friendDropdown.toggle(true)"
-        >
-          <ng-template #friendDropdownTemplate>
-            <tui-data-list
-              role="menu"
-              tuiDataListDropdownManager
-              class="context-menu">
-              @if (userProfileInfo.relationshipStatus === 'FRIENDS') {
-                <button
-                  tuiOption
-                  type="button"
-                  class="context-button negative"
-                  (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
-                >
-                  <lucide-icon name="user-round-x"
-                               class="chat-icon negative"
-                               [size]="18"
-                  ></lucide-icon>
-                  Unfriend
-                </button>
-              }
-              @if (userProfileInfo.relationshipStatus === 'BLOCKED') {
-                <button
-                  tuiOption
-                  type="button"
-                  class="context-button negative"
-                  (click)="unblock(); friendDropdown.toggle(false)"
-                >
-                  <lucide-icon name="handshake"
-                               class="chat-icon negative"
-                               [size]="18"
-                  ></lucide-icon>
-                  Unblock
-                </button>
-              } @else {
-                <button
-                  tuiOption
-                  type="button"
-                  class="context-button negative"
-                  (click)="prepareBlockModal(); friendDropdown.toggle(false)"
-                >
-                  <lucide-icon name="ban"
-                               class="chat-icon negative"
-                               [size]="18"
-                  ></lucide-icon>
-                  Block
-                </button>
-              }
-            </tui-data-list>
-          </ng-template>
-        </lucide-icon>
+        @if (!publicProfile) {
+          <lucide-icon name="ellipsis-vertical"
+                       class="ml-auto cursor-pointer"
+                       [size]="20"
+                       #friendDropdown="tuiDropdown"
+                       tuiDropdown
+                       (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
+                       [tuiDropdown]="friendDropdownTemplate"
+                       tuiDropdownAlign="right"
+                       (click)="friendDropdown.toggle(true)"
+          >
+            <ng-template #friendDropdownTemplate>
+              <tui-data-list
+                role="menu"
+                tuiDataListDropdownManager
+                class="context-menu">
+                @if (userProfileInfo.relationshipStatus === 'FRIENDS') {
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button negative"
+                    (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
+                  >
+                    <lucide-icon name="user-round-x"
+                                 class="chat-icon negative"
+                                 [size]="18"
+                    ></lucide-icon>
+                    Unfriend
+                  </button>
+                }
+                @if (userProfileInfo.relationshipStatus === 'BLOCKED') {
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button negative"
+                    (click)="unblock(); friendDropdown.toggle(false)"
+                  >
+                    <lucide-icon name="handshake"
+                                 class="chat-icon negative"
+                                 [size]="18"
+                    ></lucide-icon>
+                    Unblock
+                  </button>
+                } @else {
+                  <button
+                    tuiOption
+                    type="button"
+                    class="context-button negative"
+                    (click)="prepareBlockModal(); friendDropdown.toggle(false)"
+                  >
+                    <lucide-icon name="ban"
+                                 class="chat-icon negative"
+                                 [size]="18"
+                    ></lucide-icon>
+                    Block
+                  </button>
+                }
+              </tui-data-list>
+            </ng-template>
+          </lucide-icon>
+        }
 
       </div>
 
@@ -182,7 +184,7 @@
         </div>
       }
 
-      @if (buttonConfig.label) {
+      @if (!publicProfile && buttonConfig.label) {
         <app-button
           [label]="buttonConfig.label"
           appearance="bw"

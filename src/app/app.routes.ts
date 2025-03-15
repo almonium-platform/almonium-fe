@@ -24,6 +24,7 @@ import {OnboardingComponent} from "./onboarding/onboarding.component";
 import {LoginComponent} from "./authentication/login/login.component";
 import {SocialComponent} from "./sections/social/social.component";
 import {ReadComponent} from "./sections/read/read.component";
+import {UserCardComponent} from "./shared/user-card/user-card.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -64,6 +65,8 @@ export const routes: Routes = [
   {path: 'logout', component: LogoutComponent},
   {path: 'change-email', component: EmailVerificationComponent}, // same component, determine purpose by route
   {path: 'verify-email', component: EmailVerificationComponent},
+
+  {path: 'users/:username', component: UserCardComponent},
 
   // Static pages
   {path: 'terms-of-use', component: TermsOfUseComponent},

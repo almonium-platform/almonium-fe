@@ -29,6 +29,7 @@ export class AppComponent {
     '/verify-email',
     '/change-email',
     '/payment/success',
+    '/users'
   ];
 
   private noNavbarOnMobileRoutes: string[] = [
@@ -53,9 +54,9 @@ export class AppComponent {
         const clearedUrl = this.urlService.getClearedUrl();
         const isMobile = window.innerWidth <= 640;
 
-        // Hide navbar if route is in `noNavbarRoutes` OR in `noNavbarOnMobileRoutes` on mobile
+        // Hide navbar if route matches or starts with excluded paths
         this.showNavbar = !(
-          this.noNavbarRoutes.includes(clearedUrl) ||
+          this.noNavbarRoutes.some(route => clearedUrl.startsWith(route)) ||
           (isMobile && this.noNavbarOnMobileRoutes.includes(clearedUrl))
         );
       }

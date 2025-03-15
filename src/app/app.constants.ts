@@ -29,6 +29,7 @@ export class AppConstants {
   public static AVATARS_URL = AppConstants.API_URL + '/profiles/me/avatars';
   public static ME_URL = AppConstants.USERS_URL + '/me';
   public static PROFILE_URL = AppConstants.API_URL + '/profile';
+  public static PUBLIC_PROFILE_URL = AppConstants.PUBLIC_URL + '/profiles';
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
