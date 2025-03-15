@@ -399,7 +399,8 @@
             >
               <div class="avatar-wrapper"
                    (mouseenter)="startAvatarHover(channel, location)"
-                   (mouseleave)="stopAvatarHover()">
+                   (mouseleave)="stopAvatarHover()"
+              >
 
                 <app-custom-chat-avatar
                   class="custom-chat-avatar"
@@ -417,7 +418,10 @@
                   <ng-template #dropdownTemplate>
                     @let interlocutorId = getInterlocutorId();
                     @if (interlocutorId !== null) {
-                      <app-user-preview-card [userId]="interlocutorId"
+                      <app-user-preview-card
+                        [userId]="interlocutorId"
+                        (mouseenter)="previewCardOnHover()"
+                        (mouseleave)="previewCardOnLeave()"
                       ></app-user-preview-card>
                     }
                   </ng-template>

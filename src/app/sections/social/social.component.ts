@@ -964,9 +964,21 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.currentLocation = location;
   }
 
+  private timeout: any;
+
   stopAvatarHover() {
-    this.hoveredChannel = null;
-    this.currentLocation = '';
+    this.timeout = setTimeout(() => {
+      this.hoveredChannel = null;
+      this.currentLocation = '';
+    }, 200);
+  }
+
+  protected previewCardOnLeave() {
+    this.stopAvatarHover()
+  }
+
+  previewCardOnHover() {
+    clearTimeout(this.timeout);
   }
 
   openUser(location: AvatarLocation) {
