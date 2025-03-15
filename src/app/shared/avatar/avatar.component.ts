@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {TuiAvatar, TuiAvatarOutline} from "@taiga-ui/kit";
+import {TuiAvatar, TuiAvatarOutline, TuiSkeleton} from "@taiga-ui/kit";
 import {RouterLink} from "@angular/router";
 
 
@@ -11,6 +11,7 @@ import {RouterLink} from "@angular/router";
       <tui-avatar
         [src]="avatarUrl || initials"
         [size]="size"
+        [tuiSkeleton]="loading"
         [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
         [style.color]="'white'"
         tuiAvatarOutline="var(--premium-gradient)"
@@ -25,6 +26,7 @@ import {RouterLink} from "@angular/router";
         [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
         [style.color]="'white'"
         [size]="size"
+        [tuiSkeleton]="loading"
         tuiAvatarOutline="var(--default-avatar-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
         [routerLink]="redirect ? userLink : null"
@@ -36,7 +38,8 @@ import {RouterLink} from "@angular/router";
   imports: [
     TuiAvatar,
     TuiAvatarOutline,
-    RouterLink
+    RouterLink,
+    TuiSkeleton
   ],
 })
 export class AvatarComponent {
@@ -46,6 +49,7 @@ export class AvatarComponent {
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
   @Input() redirect: boolean = false;
+  @Input() loading: boolean = false;
 
   get initials(): string {
     return this.username
