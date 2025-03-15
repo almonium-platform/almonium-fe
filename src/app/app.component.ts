@@ -9,6 +9,7 @@ import {StreamI18nService} from "stream-chat-angular";
 import {EN_CODE, STREAM_CHAT_TRANSLATIONS} from "./sections/social/i18n";
 import {FirebaseNotificationService} from "./services/firebase-notification.service";
 import {filter} from "rxjs";
+import {TimerMonitorService} from "./shared/navbars/navbar/timer/timer-monitor.service";
 
 @Component({
   selector: 'app-root',
@@ -41,11 +42,13 @@ export class AppComponent {
     private urlService: UrlService,
     private streamI18nService: StreamI18nService,
     private firebaseNotificationService: FirebaseNotificationService,
-    private alertService: TuiAlertService
+    private alertService: TuiAlertService,
+    private timerMonitorService: TimerMonitorService,
   ) {
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
+    this.timerMonitorService.startMonitoring();
   }
 
   private listenToRouter() {
