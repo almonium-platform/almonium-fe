@@ -417,7 +417,7 @@
                   (click)="openUser(location)"
                 >
                   <ng-template #dropdownTemplate>
-                     @let interlocutorId = getInterlocutorId();
+                    @let interlocutorId = getInterlocutorId();
                     @if (interlocutorId !== null) {
                       <app-user-preview-card [userId]="interlocutorId"></app-user-preview-card>
                     }
