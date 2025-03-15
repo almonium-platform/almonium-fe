@@ -1,6 +1,5 @@
 import {Component, Input} from '@angular/core';
 import {TuiAvatar, TuiAvatarOutline, TuiSkeleton} from "@taiga-ui/kit";
-import {RouterLink} from "@angular/router";
 
 
 @Component({
@@ -16,7 +15,6 @@ import {RouterLink} from "@angular/router";
         [style.color]="'white'"
         tuiAvatarOutline="var(--premium-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
-        [routerLink]="redirect ? userLink : null"
         class="cursor-pointer"
       >
       </tui-avatar>
@@ -29,7 +27,6 @@ import {RouterLink} from "@angular/router";
         [tuiSkeleton]="loading"
         tuiAvatarOutline="var(--default-avatar-gradient)"
         [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
-        [routerLink]="redirect ? userLink : null"
         class="cursor-pointer"
       >
       </tui-avatar>
@@ -38,7 +35,6 @@ import {RouterLink} from "@angular/router";
   imports: [
     TuiAvatar,
     TuiAvatarOutline,
-    RouterLink,
     TuiSkeleton
   ],
 })
@@ -48,16 +44,11 @@ export class AvatarComponent {
   @Input() outline: boolean = false; // todo: rename to premium
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
-  @Input() redirect: boolean = false;
   @Input() loading: boolean = false;
 
   get initials(): string {
     return this.username
       ? this.username.slice(0, 2).toUpperCase()
       : '';
-  }
-
-  get userLink(): string {
-    return '/users/' + this.username;
   }
 }

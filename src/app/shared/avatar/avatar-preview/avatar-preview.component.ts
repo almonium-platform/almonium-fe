@@ -16,7 +16,6 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
       [outline]="outline"
       [size]="size"
       [sizeInRem]="sizeInRem"
-      [redirect]="redirect"
       [loading]="loading"
       [tuiDropdownManual]="showDropdown()"
       [tuiDropdown]="dropdownTemplate"
@@ -59,7 +58,6 @@ export class AvatarPreviewComponent {
   @Input() outline: boolean = false; // todo: rename to premium
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
-  @Input() redirect: boolean = false;
   @Input() loading: boolean = false;
   @Input() userId: string | null = null;
   protected previewOpened: boolean = false;
