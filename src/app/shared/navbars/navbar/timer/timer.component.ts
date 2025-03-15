@@ -1,4 +1,6 @@
-import {Component} from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
+import {interval, Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 import {ButtonComponent} from "../../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
 
@@ -11,16 +13,16 @@ import {LucideAngularModule} from "lucide-angular";
   ],
   styleUrls: ['./timer.component.less']
 })
-export class TimerComponent {
+export class TimerComponent implements OnDestroy {
   private readonly DEFAULT_FIRST_DIGIT = 1;
   private readonly DEFAULT_SECOND_DIGIT = 0;
 
   protected firstDigit = this.DEFAULT_FIRST_DIGIT;
-  protected secondDigit = this.DEFAULT_SECOND_DIGIT
-
+  protected secondDigit = this.DEFAULT_SECOND_DIGIT;
   protected state: 'ready' | 'going' | 'paused' = 'ready';
 
-  // Increases the digit but keeps it within 0-9
+  private stopTimer$ = new Subject<void>(); // Used for cleanup when stopping timer
+
   increaseDigit(position: 'first' | 'second') {
     if (position === 'first' && this.firstDigit < 9) {
       this.firstDigit++;
@@ -39,17 +41,41 @@ export class TimerComponent {
     }
   }
 
-  startTimer() {
-    this.state = 'going';
-  }
-
   protected getTotalTime() {
     return this.firstDigit * 10 + this.secondDigit;
   }
 
+  startTimer() {
+    if (this.state !== 'ready') return; // Prevent restarting while running
+    this.state = 'going';
+
+    interval(1000) // Emit value every second
+      .pipe(takeUntil(this.stopTimer$)) // Stop when `stopTimer$` emits
+      .subscribe(() => {
+        this.decrementTime();
+      });
+  }
+
+  decrementTime() {
+    if (this.firstDigit === 0 && this.secondDigit === 0) {
+      this.stopTimer(); // Stop when reaching 00
+      return;
+    }
+
+    if (this.secondDigit === 0) {
+      if (this.firstDigit > 0) {
+        this.firstDigit--;
+        this.secondDigit = 9;
+      }
+    } else {
+      this.secondDigit--;
+    }
+  }
+
   stopTimer() {
+    this.stopTimer$.next(); // Stop RxJS interval
     this.firstDigit = this.DEFAULT_FIRST_DIGIT;
-    this.secondDigit = this.DEFAULT_SECOND_DIGIT
+    this.secondDigit = this.DEFAULT_SECOND_DIGIT;
     this.state = 'ready';
   }
 
@@ -58,12 +84,22 @@ export class TimerComponent {
   }
 
   togglePauseTimer() {
-    if (this.state === 'paused') {
-      this.state = 'going';
-    } else if (this.state === 'going') {
+    if (this.state === 'going') {
       this.state = 'paused';
-    } else {
-      console.error('Invalid state');
+      this.stopTimer$.next(); // Stop interval updates
+    } else if (this.state === 'paused') {
+      this.state = 'going';
+
+      interval(1000)
+        .pipe(takeUntil(this.stopTimer$))
+        .subscribe(() => {
+          this.decrementTime();
+        });
     }
+  }
+
+  ngOnDestroy() {
+    this.stopTimer$.next(); // Cleanup on destroy
+    this.stopTimer$.complete();
   }
 }
