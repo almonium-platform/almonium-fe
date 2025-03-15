@@ -20,7 +20,7 @@ import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.compo
 import {StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {AppConstants} from "../../app.constants";
-import {BehaviorSubject, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
 import {ChatClientService} from "stream-chat-angular";
@@ -227,19 +227,23 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
         this.chatClient.blockUser(userId).then(() => {
         });
-        this.socialService.block(userId).subscribe({
-            next: (profileInfo) => {
-                this.userProfileInfo = profileInfo;
-                this.setButtonConfig();
 
-                this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
-                this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
-            },
-            error: (error) => {
-                console.error(error);
-                this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
-            }
-        });
+        this.loadingSubject$.next(true);
+        this.socialService.block(userId)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
+            .subscribe({
+                next: (profileInfo) => {
+                    this.userProfileInfo = profileInfo;
+                    this.setButtonConfig();
+
+                    this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
+                    this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
+                },
+                error: (error) => {
+                    console.error(error);
+                    this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
+                }
+            });
     }
 
     unblock() {
@@ -253,7 +257,10 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
         this.chatClient.unBlockUser(friendId).then(() => {
         });
+
+        this.loadingSubject$.next(true);
         this.socialService.patchFriendship(relationshipId, RelationshipAction.UNBLOCK)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
             .subscribe({
                 next: (userProfileInfo) => {
                     this.userProfileInfo = userProfileInfo;
@@ -275,18 +282,21 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.socialService.patchFriendship(relationshipId, RelationshipAction.UNFRIEND).subscribe({
-            next: (userProfileInfo) => {
-                this.userProfileInfo = userProfileInfo;
-                this.setButtonConfig();
+        this.loadingSubject$.next(true);
+        this.socialService.patchFriendship(relationshipId, RelationshipAction.UNFRIEND)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
+            .subscribe({
+                next: (userProfileInfo) => {
+                    this.userProfileInfo = userProfileInfo;
+                    this.setButtonConfig();
 
-                this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
-            },
-            error: (error) => {
-                console.error(error);
-                this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
-            }
-        });
+                    this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
+                },
+                error: (error) => {
+                    console.error(error);
+                    this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
+                }
+            });
     }
 
     openChat() {
@@ -308,7 +318,9 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
             return;
         }
 
+        this.loadingSubject$.next(true);
         this.socialService.patchFriendship(relationshipId, RelationshipAction.CANCEL)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
             .subscribe({
                 next: (userProfileInfo) => {
                     this.userProfileInfo = userProfileInfo;
@@ -335,8 +347,9 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.socialService
-            .patchFriendship(userProfileInfo.relationshipId, RelationshipAction.ACCEPT)
+        this.loadingSubject$.next(true);
+        this.socialService.patchFriendship(userProfileInfo.relationshipId, RelationshipAction.ACCEPT)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
             .subscribe({
                 next: (userProfileInfo) => {
                     this.createPrivateChat(userInfo.id, userProfileInfo.id, relationshipId)
@@ -378,17 +391,20 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
             return;
         }
 
-        this.socialService.createFriendshipRequest(userProfileId).subscribe({
-            next: (userProfileInfo) => {
-                this.userProfileInfo = userProfileInfo;
-                this.setButtonConfig();
+        this.loadingSubject$.next(true);
+        this.socialService.createFriendshipRequest(userProfileId)
+            .pipe(finalize(() => this.loadingSubject$.next(false)))
+            .subscribe({
+                next: (userProfileInfo) => {
+                    this.userProfileInfo = userProfileInfo;
+                    this.setButtonConfig();
 
-                this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
-            },
-            error: (error) => {
-                console.error(error);
-                this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
-            }
-        });
+                    this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+                },
+                error: (error) => {
+                    console.error(error);
+                    this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+                }
+            });
     }
 }
