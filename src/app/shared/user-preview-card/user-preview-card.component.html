@@ -88,7 +88,7 @@
         <div class="sections">
           <section class="fluent">
             Fluent in
-            @for (fluent of userProfileInfo.fluentLangs; track fluent) {
+            @for (fluent of userProfileInfo.fluentLangs.slice(0, MAX_FLUENT_LANGS); track fluent) {
               <label
                 tuiChip
                 size="xs"
@@ -102,10 +102,23 @@
                 {{ fluent }}
               </label>
             }
+            @if (userProfileInfo.fluentLangs.length > MAX_FLUENT_LANGS) {
+              <label
+                tuiChip
+                size="xxs"
+                appearance="neutral"
+              >
+                <input
+                  hidden
+                  type="checkbox"
+                />
+                +{{ userProfileInfo.fluentLangs.length - MAX_FLUENT_LANGS }} more
+              </label>
+            }
           </section>
           <section class="target">
             Learning
-            @for (target of userProfileInfo.targetLangs; track target) {
+            @for (target of userProfileInfo.targetLangs.slice(0, MAX_TARGET_LANGS); track target) {
               <label
                 tuiChip
                 size="xs"
@@ -120,11 +133,24 @@
                 <p class="language-level">{{ target.cefrLevel }}</p>
               </label>
             }
+            @if (userProfileInfo.targetLangs.length > MAX_TARGET_LANGS) {
+              <label
+                tuiChip
+                size="xs"
+                appearance="neutral"
+              >
+                <input
+                  hidden
+                  type="checkbox"
+                />
+                +{{ userProfileInfo.targetLangs.length - MAX_TARGET_LANGS }} more
+              </label>
+            }
           </section>
           <div class="separator"></div>
-          <section>
+          <section class="likes">
             Likes
-            @for (interest of userProfileInfo.interests; track interest) {
+            @for (interest of userProfileInfo.interests.slice(0, MAX_INTERESTS); track interest) {
               <label
                 tuiChip
                 size="xxs"
@@ -136,6 +162,19 @@
                   type="checkbox"
                 />
                 {{ interest }}
+              </label>
+            }
+            @if (userProfileInfo.interests.length > MAX_INTERESTS) {
+              <label
+                tuiChip
+                size="xxs"
+                appearance="neutral"
+              >
+                <input
+                  hidden
+                  type="checkbox"
+                />
+                +{{ userProfileInfo.interests.length - MAX_INTERESTS }} more
               </label>
             }
           </section>

@@ -50,7 +50,10 @@ import {RelationshipAction} from "../../sections/social/social.model";
 export class UserPreviewCardComponent implements OnInit, OnDestroy {
   @Input() userId!: string;
   @Output() close = new EventEmitter<void>();
-
+  // constant to store how many interests to display
+  protected readonly MAX_INTERESTS = 4;
+  protected readonly MAX_TARGET_LANGS = 4;
+  protected readonly MAX_FLUENT_LANGS = 4;
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
 
