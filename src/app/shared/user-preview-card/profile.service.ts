@@ -16,8 +16,13 @@ export class ProfileService {
     return this.http.get<UserProfileInfo>(url, {withCredentials: true});
   }
 
-  getUserPublicProfile(username: string): Observable<UserProfileInfo> {
-    const url = `${AppConstants.PUBLIC_PROFILE_URL}/${username}`;
+  getUserPublicProfileById(id: string): Observable<UserProfileInfo> {
+    const url = `${AppConstants.PUBLIC_PROFILE_URL}/${id}`;
+    return this.http.get<UserProfileInfo>(url);
+  }
+
+  getUserPublicProfileByUsername(username: string): Observable<UserProfileInfo> {
+    const url = `${AppConstants.PUBLIC_PROFILE_URL}/username/${username}`;
     return this.http.get<UserProfileInfo>(url);
   }
 }

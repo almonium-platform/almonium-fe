@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
-import {UserInfoService} from "../../services/user-info.service";
 import {ProfileService} from "../user-preview-card/profile.service";
 import {ActivatedRoute} from "@angular/router";
 import {TuiAlertService} from "@taiga-ui/core";
@@ -28,7 +27,6 @@ export class UserCardComponent implements OnInit {
   publicProfile: UserProfileInfo | null = null;
 
   constructor(
-    private userInfoService: UserInfoService,
     private profileService: ProfileService,
     private route: ActivatedRoute,
     private alertService: TuiAlertService,
@@ -37,13 +35,14 @@ export class UserCardComponent implements OnInit {
 
   ngOnInit(): void {
     this.username = this.route.snapshot.paramMap.get('username');
+
     if (!this.username) {
       this.alertService.open('No userId provided', {appearance: 'error'}).subscribe();
       return;
     }
 
-    this.profileService.getUserPublicProfile(this.username)
-      .subscribe({
+    if (this.isUUID(this.username)) {
+      this.profileService.getUserPublicProfileById(this.username).subscribe({
         next: (profileInfo) => {
           this.publicProfile = profileInfo;
         },
@@ -51,13 +50,23 @@ export class UserCardComponent implements OnInit {
           this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'error'}).subscribe();
         },
       });
+    } else {
+      this.profileService.getUserPublicProfileByUsername(this.username).subscribe({
+        next: (profileInfo) => {
+          this.publicProfile = profileInfo;
+        },
+        error: (error) => {
+          this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'error'}).subscribe();
+        },
+      });
+    }
+  }
 
-    //
-    // this.userInfoService.userInfo$.subscribe(userInfo => {
-    //   if (!userInfo) {
-    //     // call public
-    //   } else {
-    //   }
-    // });
+  /**
+   * Helper function to check if a string is a valid UUID (v4 or v7)
+   */
+  private isUUID(input: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-7][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(input);
   }
 }
