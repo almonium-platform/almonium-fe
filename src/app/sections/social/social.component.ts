@@ -171,6 +171,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
   protected hoveredChannel: Channel<DefaultStreamChatGenerics> | null = null;
+  protected currentLocation: string = '';
   protected showContent = false;
   protected hoverTimeout: any;
   protected isChatOpen: boolean = false;
@@ -960,8 +961,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return interlocutor ? interlocutor.user?.id ?? null : null
   }
 
-  startAvatarHover(channel: Channel<DefaultStreamChatGenerics>) {
+  startAvatarHover(channel: Channel<DefaultStreamChatGenerics>, location: string) {
     this.hoveredChannel = channel;
+    this.currentLocation = location;
     this.hoverTimeout = setTimeout(() => this.showContent = true, 1000);
   }
 
@@ -978,10 +980,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  shouldShowDropdown(location: string): boolean {
-    return location === 'channel-preview'
+  shouldShowDropdown(channel: Channel<DefaultStreamChatGenerics>, location: string): boolean {
+    const firstCheck = (location === this.currentLocation) && (this.currentLocation === 'channel-preview')
       && this.hoveredChannel !== null
       && this.isPrivateChat(this.hoveredChannel);
+
+    return firstCheck && channel.cid === this.hoveredChannel?.cid;
   }
 
   onRequestsIndexChange($event: number) {

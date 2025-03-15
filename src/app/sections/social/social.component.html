@@ -398,7 +398,7 @@
                          let-type="type"
             >
               <div class="avatar-wrapper"
-                   (mouseenter)="startAvatarHover(channel)"
+                   (mouseenter)="startAvatarHover(channel, location)"
                    (mouseleave)="stopAvatarHover()">
 
                 <app-custom-chat-avatar
@@ -409,17 +409,16 @@
                   [name]="name"
                   [imageUrl]="imageUrl"
                   [location]="location"
+                  [tuiDropdownManual]="shouldShowDropdown(channel, location)"
                   [showOnlineIndicator]="true"
-                  #avatarDropdown="tuiDropdown"
-                  (mouseleave)="avatarDropdown.toggle(false)"
-                  tuiDropdownHover
-                  [tuiDropdown]="shouldShowDropdown(location) ? dropdownTemplate : null"
+                  [tuiDropdown]="dropdownTemplate"
                   (click)="openUser(location)"
                 >
                   <ng-template #dropdownTemplate>
                     @let interlocutorId = getInterlocutorId();
                     @if (interlocutorId !== null) {
-                      <app-user-preview-card [userId]="interlocutorId"></app-user-preview-card>
+                      <app-user-preview-card [userId]="interlocutorId"
+                      ></app-user-preview-card>
                     }
                   </ng-template>
                 </app-custom-chat-avatar>
