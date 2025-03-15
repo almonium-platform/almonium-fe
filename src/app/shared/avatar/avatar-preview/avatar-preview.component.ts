@@ -48,31 +48,31 @@ export class AvatarPreviewComponent {
   @Input() redirect: boolean = false;
   @Input() loading: boolean = false;
   @Input() userId: string | null = null;
-  protected open: boolean = false;
-  protected innerOpen: boolean = false;
+  protected previewOpened: boolean = false;
+  protected cardHovered: boolean = false;
 
   onHover() {
-    this.open = true;
+    this.previewOpened = true;
   }
 
   timeout: any;
 
   onLeave() {
     this.timeout = setTimeout(() => {
-      if (!this.innerOpen) {
-        this.open = false;
+      if (!this.cardHovered) {
+        this.previewOpened = false;
       }
     }, 200);
   }
 
   showDropdown() {
-    return !!this.userId && this.open;
+    return !!this.userId && this.previewOpened;
   }
 
   dropdownOnHover() {
     if (this.timeout) {
       clearTimeout(this.timeout);
     }
-    this.innerOpen = true;
+    this.cardHovered = true;
   }
 }
