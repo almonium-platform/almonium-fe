@@ -5,8 +5,6 @@ import {ButtonComponent} from "../../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
 import {LocalStorageService} from "../../../../services/local-storage.service";
 
-const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
-
 @Component({
   selector: 'app-timer',
   templateUrl: './timer.component.html',
@@ -37,7 +35,7 @@ export class TimerComponent implements OnInit, OnDestroy {
    * Checks localStorage for an active timer and resumes it if needed.
    */
   private checkAndResumeTimer() {
-    const savedEndTime = this.localStorageService.getItem<number>(TIMER_END_TIMESTAMP_KEY);
+    const savedEndTime = this.localStorageService.getTimerEndTimestamp();
     if (savedEndTime) {
       const now = Date.now();
       const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 1000));
@@ -47,7 +45,7 @@ export class TimerComponent implements OnInit, OnDestroy {
         this.secondDigit = remainingTime % 10;
         this.startTimer(true); // Resume timer
       } else {
-        this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Cleanup expired timer
+        this.localStorageService.clearTimer();
       }
     }
   }
@@ -86,7 +84,7 @@ export class TimerComponent implements OnInit, OnDestroy {
     // Save timer end timestamp to localStorage
     if (!resuming) {
       const endTime = Date.now() + this.getTotalTime() * 1000;
-      this.localStorageService.saveItem(TIMER_END_TIMESTAMP_KEY, endTime);
+      this.localStorageService.saveTimerEndTimestamp(endTime);
     }
 
     interval(1000) // Emit every second
@@ -115,12 +113,12 @@ export class TimerComponent implements OnInit, OnDestroy {
 
   private onTimerEnd() {
     alert("Time's up!");
-    this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Clear stored timer
+    this.localStorageService.clearTimer();
   }
 
   stopTimer() {
     this.stopTimer$.next(); // Stop RxJS interval
-    this.localStorageService.removeItem(TIMER_END_TIMESTAMP_KEY); // Remove saved timestamp
+    this.localStorageService.clearTimer();
     this.firstDigit = this.DEFAULT_FIRST_DIGIT;
     this.secondDigit = this.DEFAULT_SECOND_DIGIT;
     this.state = 'ready';

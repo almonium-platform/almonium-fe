@@ -9,6 +9,7 @@ const LANG_COLOR_KEY = 'langColors';
 const AUTH_METHODS_KEY = 'auth_methods';
 const SUPPORTED_LANGUAGES_KEY = 'supported_languages';
 const LAST_SEEN_KEY = 'last_seen_users';
+const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
 
 @Injectable({
   providedIn: 'root'
@@ -116,6 +117,18 @@ export class LocalStorageService {
     this.removeItem(LAST_SEEN_KEY);
   }
 
+  saveTimerEndTimestamp(endTime: number): void {
+    this.saveItem(TIMER_END_TIMESTAMP_KEY, endTime);
+  }
+
+  getTimerEndTimestamp(): number | null {
+    return this.getItem<number>(TIMER_END_TIMESTAMP_KEY);
+  }
+
+  clearTimer(): void {
+    this.removeItem(TIMER_END_TIMESTAMP_KEY);
+  }
+
   public clearUserRelatedData(): void {
     this.clearUserInfo();
     this.removeCurrentLanguage();
@@ -127,5 +140,6 @@ export class LocalStorageService {
     this.removeSupportedLanguages();
     this.removeLastSeen();
     this.clearLangColors();
+    this.clearTimer();
   }
 }
