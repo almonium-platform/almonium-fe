@@ -86,6 +86,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected isDiscoverMenuOpen: boolean = false;
   protected isLanguageDropdownOpen: boolean = false;
   protected isNotificationOpen: boolean = false;
+  protected isTimerOpen: boolean = false;
   protected isMobile: boolean = false;
 
   // User info
@@ -116,7 +117,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.timer,
         icon: 'timer',
         hasUnread: false,
-        action: () => {}
+        action: () => this.toggleTimerPopover()
       },
       {
         name: 'social',
@@ -363,6 +364,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  timerOnClickOutside(_: Event) {
+    this.isTimerOpen = false;
+  }
+
   onLogoClick(): void {
     this.replayGifSubject.next();
 
@@ -382,6 +387,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   toggleNotificationPopover(): void {
     this.isNotificationOpen = !this.isNotificationOpen;
+  }
+
+  toggleTimerPopover(): void {
+    this.isTimerOpen = !this.isTimerOpen;
   }
 
   openChangeAvatarPopup() {
