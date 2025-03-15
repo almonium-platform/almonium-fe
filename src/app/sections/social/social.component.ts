@@ -987,9 +987,15 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  shouldShowDropdown(channel: Channel<DefaultStreamChatGenerics>, location: string): boolean {
-    const firstCheck = (location === this.currentLocation) && (this.currentLocation === 'channel-preview')
-      && this.hoveredChannel !== null
+  private excludedLocations: AvatarLocation[] = ['channel-preview', 'channel-header'];
+
+  shouldShowDropdown(channel: Channel<DefaultStreamChatGenerics>, location: AvatarLocation): boolean {
+    if (!this.excludedLocations.includes(location)) {
+      return false;
+    }
+
+    const firstCheck = (this.currentLocation === location)
+      && (this.hoveredChannel !== null)
       && this.isPrivateChat(this.hoveredChannel);
 
     return firstCheck && channel.cid === this.hoveredChannel?.cid;
