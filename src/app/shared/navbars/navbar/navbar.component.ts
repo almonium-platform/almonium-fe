@@ -43,6 +43,7 @@ import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
 import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
+import {TimerComponent} from "./timer/timer.component";
 
 @Component({
   selector: 'app-navbar',
@@ -71,6 +72,7 @@ import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview
     TuiOption,
     TuiActiveZone,
     AvatarPreviewComponent,
+    TimerComponent,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {

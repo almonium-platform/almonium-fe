@@ -1,0 +1,18 @@
+<div class="flex space-x-4">
+  <!-- First Digit -->
+  <div class="digit-control">
+    <button class="arrow" (click)="increaseDigit('first')" [disabled]="firstDigit === 9">▲</button>
+    <div class="digit">{{ firstDigit }}</div>
+    <button class="arrow" (click)="decreaseDigit('first')" [disabled]="firstDigit === 0">▼</button>
+  </div>
+
+  <!-- Second Digit -->
+  <div class="digit-control">
+    <button class="arrow" (click)="increaseDigit('second')" [disabled]="secondDigit === 9">▲</button>
+    <div class="digit">{{ secondDigit }}</div>
+    <button class="arrow" (click)="decreaseDigit('second')" [disabled]="secondDigit === 0">▼</button>
+  </div>
+</div>
+
+<!-- Start Button -->
+<button class="start-btn mt-4" (click)="startTimer()">Start</button>
