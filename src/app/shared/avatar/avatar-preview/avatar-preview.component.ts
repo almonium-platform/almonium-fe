@@ -2,6 +2,7 @@ import {Component, Input} from '@angular/core';
 import {AvatarComponent} from "../avatar.component";
 import {UserPreviewCardComponent} from "../../user-preview-card/user-preview-card.component";
 import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
+import {LucideAngularModule} from "lucide-angular";
 
 
 @Component({
@@ -27,6 +28,7 @@ import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
         <app-user-preview-card
           [userId]="userId"
           (mouseenter)="dropdownOnHover()"
+          (mouseleave)="cardHovered = false"
           (close)="onLeave()"
         ></app-user-preview-card>
       }
@@ -36,7 +38,8 @@ import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
     AvatarComponent,
     UserPreviewCardComponent,
     TuiDropdownDirective,
-    TuiDropdownManual
+    TuiDropdownManual,
+    LucideAngularModule
   ],
 })
 export class AvatarPreviewComponent {
