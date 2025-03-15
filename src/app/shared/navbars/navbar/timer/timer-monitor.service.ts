@@ -7,7 +7,7 @@ import {LocalStorageService} from "../../../../services/local-storage.service";
   providedIn: 'root'
 })
 export class TimerMonitorService {
-  private checkInterval = 60000;
+  private checkInterval = 1000;
   private subscription: Subscription | null = null;
 
   constructor(

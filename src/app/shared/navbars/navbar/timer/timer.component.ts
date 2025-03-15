@@ -38,11 +38,11 @@ export class TimerComponent implements OnInit, OnDestroy {
     const savedEndTime = this.localStorageService.getTimerEndTimestamp();
     if (savedEndTime) {
       const now = Date.now();
-      const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 1000)); // Convert ms → seconds
+      const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 60000)); // Convert ms → seconds
 
       if (remainingTime > 0) {
-        this.firstDigit = Math.floor(remainingTime / 600); // 600s = 10 min
-        this.secondDigit = Math.floor((remainingTime % 600) / 60); // Get remaining minutes
+        this.firstDigit = Math.floor(remainingTime / 10); // Get tens of minutes
+        this.secondDigit = remainingTime % 10; // Get remaining single minutes
         this.startTimer(true); // Resume timer
       } else {
         this.localStorageService.clearTimer();
