@@ -38,11 +38,11 @@ export class TimerComponent implements OnInit, OnDestroy {
     const savedEndTime = this.localStorageService.getTimerEndTimestamp();
     if (savedEndTime) {
       const now = Date.now();
-      const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 1000));
+      const remainingTime = Math.max(0, Math.floor((savedEndTime - now) / 1000)); // Convert ms → seconds
 
       if (remainingTime > 0) {
-        this.firstDigit = Math.floor(remainingTime / 10);
-        this.secondDigit = remainingTime % 10;
+        this.firstDigit = Math.floor(remainingTime / 600); // 600s = 10 min
+        this.secondDigit = Math.floor((remainingTime % 600) / 60); // Get remaining minutes
         this.startTimer(true); // Resume timer
       } else {
         this.localStorageService.clearTimer();
@@ -69,7 +69,7 @@ export class TimerComponent implements OnInit, OnDestroy {
   }
 
   protected getTotalTime() {
-    return this.firstDigit * 10 + this.secondDigit;
+    return (this.firstDigit * 10 + this.secondDigit) * 60; // Convert minutes to seconds
   }
 
   /**
@@ -81,14 +81,13 @@ export class TimerComponent implements OnInit, OnDestroy {
 
     this.state = 'going';
 
-    // Save timer end timestamp to localStorage
     if (!resuming) {
-      const endTime = Date.now() + this.getTotalTime() * 1000;
+      const endTime = Date.now() + this.getTotalTime() * 1000; // Minutes to milliseconds
       this.localStorageService.saveTimerEndTimestamp(endTime);
     }
 
-    interval(1000) // Emit every second
-      .pipe(takeUntil(this.stopTimer$)) // Stop when `stopTimer$` emits
+    interval(60000) // Emit every minute
+      .pipe(takeUntil(this.stopTimer$))
       .subscribe(() => {
         this.decrementTime();
       });
@@ -131,7 +130,7 @@ export class TimerComponent implements OnInit, OnDestroy {
     } else if (this.state === 'paused') {
       this.state = 'going';
 
-      interval(1000)
+      interval(60000)
         .pipe(takeUntil(this.stopTimer$))
         .subscribe(() => {
           this.decrementTime();
