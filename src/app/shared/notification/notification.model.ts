@@ -7,6 +7,7 @@ export interface Notification {
   readAt: Date | null;
   referenceId: string;
   pictureUrl: string;
+  senderId: string;
 }
 
 export enum NotificationType {

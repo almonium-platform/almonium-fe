@@ -278,10 +278,13 @@
                    #dropdown="tuiDropdown"
                    [tuiDropdown]="dropdownTemplate"
               >
-                <app-avatar
+                <app-avatar-preview
                   [avatarUrl]="notification.pictureUrl"
                   [redirect]="true"
-                ></app-avatar>
+                  (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
+                  [userId]="notification.senderId"
+                ></app-avatar-preview>
+
                 <div class="notification-content" (click)="onNotificationClick(notification)">
                   <div class="notification-title">{{ notification.title }}
                     <p>

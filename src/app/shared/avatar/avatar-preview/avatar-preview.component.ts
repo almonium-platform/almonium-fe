@@ -1,0 +1,77 @@
+import {Component, Input} from '@angular/core';
+import {AvatarComponent} from "../avatar.component";
+import {UserPreviewCardComponent} from "../../user-preview-card/user-preview-card.component";
+import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
+
+
+@Component({
+  selector: 'app-avatar-preview',
+  template: `
+    <app-avatar
+      [avatarUrl]="avatarUrl"
+      [username]="username"
+      [outline]="outline"
+      [size]="size"
+      [sizeInRem]="sizeInRem"
+      [redirect]="redirect"
+      [loading]="loading"
+      [tuiDropdownManual]="showDropdown()"
+      [tuiDropdown]="dropdownTemplate"
+      (mouseenter)="onHover()"
+      (mouseleave)="onLeave()"
+    >
+    </app-avatar>
+    <ng-template #dropdownTemplate>
+      @if (userId) {
+        <app-user-preview-card
+          [userId]="userId"
+          (mouseenter)="dropdownOnHover()"
+          (close)="onLeave()"
+        ></app-user-preview-card>
+      }
+    </ng-template>
+  `,
+  imports: [
+    AvatarComponent,
+    UserPreviewCardComponent,
+    TuiDropdownDirective,
+    TuiDropdownManual
+  ],
+})
+export class AvatarPreviewComponent {
+  @Input() avatarUrl: string | null = null;
+  @Input() username: string | null = null;
+  @Input() outline: boolean = false; // todo: rename to premium
+  @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
+  @Input() sizeInRem: number | null = null;
+  @Input() redirect: boolean = false;
+  @Input() loading: boolean = false;
+  @Input() userId: string | null = null;
+  protected open: boolean = false;
+  protected innerOpen: boolean = false;
+
+  onHover() {
+    this.open = true;
+  }
+
+  timeout: any;
+
+  onLeave() {
+    this.timeout = setTimeout(() => {
+      if (!this.innerOpen) {
+        this.open = false;
+      }
+    }, 200);
+  }
+
+  showDropdown() {
+    return !!this.userId && this.open;
+  }
+
+  dropdownOnHover() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+    this.innerOpen = true;
+  }
+}

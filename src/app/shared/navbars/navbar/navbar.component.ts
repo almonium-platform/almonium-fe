@@ -42,6 +42,7 @@ import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
+import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
 
 @Component({
   selector: 'app-navbar',
@@ -69,6 +70,7 @@ import {FirebaseNotificationService} from "../../../services/firebase-notificati
     TuiDataListDropdownManager,
     TuiOption,
     TuiActiveZone,
+    AvatarPreviewComponent,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -356,7 +358,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   notificationOnClickOutside(_: Event) {
-    if (!this.notificationDropdownActive) {
+    if (!this.notificationDropdownActive && !this.userPreviewDropdownActive) {
       this.isNotificationOpen = false;
     }
   }
@@ -441,6 +443,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   protected notificationDropdownActive: boolean = false;
+  protected userPreviewDropdownActive: boolean = false;
+
+  togglePreviewDropdownActive($event: boolean) {
+    this.userPreviewDropdownActive = $event;
+  }
 
   toggleReadDropdownActive($event: boolean) {
     this.notificationDropdownActive = $event;
