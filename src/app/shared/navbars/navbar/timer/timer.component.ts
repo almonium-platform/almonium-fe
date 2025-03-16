@@ -18,7 +18,7 @@ import {NgClass} from "@angular/common";
 })
 export class TimerComponent implements OnInit, OnDestroy {
   private readonly DEFAULT_FIRST_DIGIT = 1;
-  private readonly DEFAULT_SECOND_DIGIT = 0;
+  private readonly DEFAULT_SECOND_DIGIT = 5;
 
   protected firstDigit = this.DEFAULT_FIRST_DIGIT;
   protected secondDigit = this.DEFAULT_SECOND_DIGIT;
