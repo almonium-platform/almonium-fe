@@ -1,0 +1,166 @@
+.read-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}
+
+.filter-container {
+  --tui-radius-m: 2rem;
+  --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
+
+  border-radius: 18px;
+  gap: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: .5rem 2rem;
+  width: 100%;
+
+  .row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 1rem;
+  }
+
+  .search-input {
+    width: 15rem;
+  }
+}
+
+.books-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, max-content));
+  grid-gap: 6px;
+  padding: 10px;
+  width: 100%;
+}
+
+.game-card {
+  position: relative;
+  margin: 20px;
+  width: 18rem;
+  height: 26rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 5px 1px rgba(0, 0, 0, .15);
+  text-decoration: none;
+  color: #282626;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-img {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.game-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.description-section {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.5); /* Half-transparent */
+  backdrop-filter: blur(6px); /* Optional: Frosted glass effect */
+  padding: 10px;
+  gap: 5px;
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+
+  .rating {
+    font-size: .85rem;
+    font-weight: 550;
+    display: flex;
+
+    & .star {
+      margin-right: 0.1rem;
+    }
+  }
+
+  .title {
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .description {
+    font-size: .85rem;
+    display: flex;
+
+    .year {
+      display: inline;
+    }
+  }
+}
+
+
+.level-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--orange);
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.progress {
+  --tui-thickness: 0.2rem;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: var(--orange);
+  backdrop-filter: blur(6px);
+  border-radius: 20px;
+
+  .percent {
+    font-size: .85rem;
+    font-weight: 550;
+  }
+}
+
+tui-select {
+  width: 6rem;
+}
+
+.unit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+
+  .shadowless-input {
+    margin-left: 1rem;
+    margin-right: .5rem;
+  }
+}
+
+.no-found {
+  font-size: 1.2rem;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .filter-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 1rem;
+    padding-left: 0;
+  }
+}

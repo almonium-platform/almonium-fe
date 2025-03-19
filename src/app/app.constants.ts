@@ -31,6 +31,10 @@ export class AppConstants {
   public static PROFILE_URL = AppConstants.API_URL + '/profile';
   public static PUBLIC_PROFILE_URL = AppConstants.PUBLIC_URL + '/profiles';
 
+  // BOOKS
+  public static PUBLIC_BOOKS_URL = AppConstants.PUBLIC_URL + '/books';
+  public static BOOKS_URL = AppConstants.API_URL + '/books';
+
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';
   public static SUBSCRIPTION_URL = AppConstants.API_URL + '/subscriptions';

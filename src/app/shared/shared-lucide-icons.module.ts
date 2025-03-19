@@ -1,6 +1,8 @@
 import {NgModule} from '@angular/core';
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   BadgeDollarSign,
   Ban,
   Bell,
@@ -45,7 +47,7 @@ import {
   StepBack,
   Telescope,
   Timer,
-  Trash,
+  Trash, UndoDot,
   UserCheck,
   UserRoundPlus,
   UserRoundSearch,
@@ -58,7 +60,9 @@ import {
 @NgModule({
   imports: [
     LucideAngularModule.pick({
+      ArrowDown,
       ArrowLeft,
+      ArrowUp,
       BadgeDollarSign,
       Ban,
       Bell,
@@ -103,6 +107,7 @@ import {
       Telescope,
       Timer,
       Trash,
+      UndoDot,
       UserCheck,
       UserRoundPlus,
       UserRoundSearch,

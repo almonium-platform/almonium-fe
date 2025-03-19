@@ -35,8 +35,8 @@ import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in ol
   `],
 })
 export class CefrLevelSelectorComponent {
-  @Input() control!: FormControl<CEFRLevel | null>;
-  @Input() levels: CEFRLevel[] = Object.values(CEFRLevel);
+  @Input() control!: FormControl<string | null>;
+  @Input() levels: string[] = Object.values(CEFRLevel);
   @Input() openOnInit = false;
 
   // TODO deprecated tuiDropdownOpen

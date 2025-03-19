@@ -1,1 +1,127 @@
-<app-not-ready></app-not-ready>
+<ng-template #dropdownTemplate>
+  <tui-data-list
+    role="menu"
+    tuiDataListDropdownManager
+    class="context-menu">
+
+    @if (selectedBook?.progressPercentage) {
+      <button
+        tuiOption
+        type="button"
+        class="context-button"
+        (click)="undoProgress()"
+      >
+        <lucide-icon
+          name="undo-dot"
+        ></lucide-icon>
+        Reset progress
+      </button>
+    }
+
+  </tui-data-list>
+</ng-template>
+
+
+<div class="base-container read-container">
+  <div class="filter-container">
+    <tui-input
+      [formControl]="titleFormControl"
+      [tuiTextfieldLabelOutside]="true"
+      class="search-input shadowless-input"
+      tuiTextfieldIconLeft="@tui.search"
+      tuiTextfieldSize="m"
+    >
+      Search
+      <input
+        tuiTextfieldLegacy
+        type="text"
+      />
+    </tui-input>
+    <div class="unit">
+      Filter By Level
+      <app-cefr-level-selector
+        [levels]="cefrLevels"
+        [control]="cefrLevelControl"
+        class="shadowless-input"
+      ></app-cefr-level-selector>
+    </div>
+
+    <div class="unit">
+      Sort By
+      <tui-select
+        tuiTextfieldSize="m"
+        class="shadowless-input"
+        [formControl]="sortControl"
+        [tuiTextfieldLabelOutside]="true"
+      >
+        <tui-data-list-wrapper
+          *tuiDataList
+          [items]="sortParameters"
+        >
+        </tui-data-list-wrapper>
+      </tui-select>
+
+      <lucide-icon
+        (click)="toggleSortOrder()"
+        [name]="sortIconName()"
+        size="20"
+        class="cursor-pointer"
+      ></lucide-icon>
+    </div>
+  </div>
+
+  <div class="books-container">
+    @for (book of filteredBooks; track book) {
+      <div class="book"
+           tuiDropdownContext
+           #dropdown="tuiDropdown"
+           [tuiDropdown]="dropdownTemplate"
+           (contextmenu)="onRightClick($event, book)"
+      >
+        <a
+          routerLink="/read/{{ book.id }}"
+          class="game-card ladder-card solo-game">
+          <div class="game-img ladder-img">
+            @if (book.progressPercentage) {
+              <label
+                tuiProgressLabel
+                class="progress"
+              >
+                <span class="percent">{{ book.progressPercentage }}%</span>
+
+                <tui-progress-circle
+                  size="xs"
+                  [max]="100"
+                  [value]="book.progressPercentage"
+                  [style.color]="'#ff7f00'"
+                />
+              </label>
+            }
+            <img alt="book cover image" [src]="book.coverImageUrl"/>
+            <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>
+            <div class="year-badge">{{ book.publicationYear }}</div>
+          </div>
+          <div class="description-section">
+            <div class="flex flex-row justify-between">
+              <div class="title">{{ book.title }}</div>
+              <p class="rating"
+                 tuiHintAppearance="dark"
+                 tuiHintDirection="bottom"
+                 [tuiHint]="tooltip"
+              ><span class="star">⭐</span>{{ book.rating }}</p>
+              <ng-template #tooltip>
+                <div>out of 5 (Goodreads)</div>
+              </ng-template>
+            </div>
+            <div class="description">
+              {{ book.author }}, {{ book.publicationYear }}
+            </div>
+          </div>
+        </a>
+      </div>
+    }
+    @if (filteredBooks.length === 0) {
+      <div class="no-found">No books found 🥲</div>
+    }
+  </div>
+</div>
