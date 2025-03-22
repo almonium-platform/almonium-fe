@@ -140,10 +140,14 @@ tui-select {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  gap: .5rem;
+
+  input[tuiCheckbox] {
+    --t-radius: 1rem;
+  }
 
   .shadowless-input {
     margin-left: 1rem;
-    margin-right: .5rem;
   }
 }
 
@@ -156,6 +160,7 @@ tui-select {
   .filter-container {
     flex-direction: column;
     gap: 0.5rem;
+    align-items: flex-start;
   }
 
   .filters {

@@ -4,8 +4,9 @@ import {Book} from "./book.model";
 import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {TuiInputModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {FormControl, ReactiveFormsModule} from "@angular/forms";
+import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
+  TuiCheckbox,
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
@@ -18,6 +19,7 @@ import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-sel
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
+import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 
 @Component({
   selector: 'app-read',
@@ -34,6 +36,9 @@ import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
     SharedLucideIconsModule,
     TuiDataListDropdownManager,
     TuiHintDirective,
+    FormsModule,
+    TuiCheckbox,
+    InfoIconComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -54,6 +59,11 @@ export class ReadComponent implements OnInit, OnDestroy {
   // add to Object.values value Any
   cefrLevels: (CEFRLevel | 'All')[] = [...Object.values(CEFRLevel), 'All'];
   cefrLevelControl = new FormControl<(CEFRLevel | 'All')>(CEFRLevel.A1);
+
+  selectedBook: Book | null = null;
+  filterByCefrToggle: boolean = false;
+  sortToggle: boolean = false;
+  includeTranslationsToggle: boolean = false;
 
   constructor(
     private readService: ReadService,
@@ -203,8 +213,6 @@ export class ReadComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectedBook: Book | null = null;
-
   onRightClick(event: MouseEvent, book: Book): void {
     event.preventDefault(); // Prevent the default context menu from showing
     this.selectedBook = book; // Set the selected book's ID
@@ -226,5 +234,29 @@ export class ReadComponent implements OnInit, OnDestroy {
           }
         });
     });
+  }
+
+  onSortChange($event: boolean) {
+    if ($event) {
+      this.sortBooks();
+    } else {
+
+    }
+  }
+
+  onFilterByCefrChange($event: boolean) {
+    if ($event) {
+      this.filterBooksByCefrLevel(this.currentCefrLevel);
+    } else {
+
+    }
+  }
+
+  onIncludeTranslationsChange($event: boolean) {
+    if ($event) {
+
+    } else {
+      this.filteredBooks = this.allBooks;
+    }
   }
 }

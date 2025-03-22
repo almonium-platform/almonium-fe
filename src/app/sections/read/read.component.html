@@ -38,6 +38,14 @@
       />
     </tui-input>
     <div class="unit">
+      <input
+        tuiCheckbox
+        type="checkbox"
+        [ngModel]="filterByCefrToggle"
+        (ngModelChange)="onFilterByCefrChange($event)"
+        size="m"
+      />
+
       Filter By Level
       <app-cefr-level-selector
         [levels]="cefrLevels"
@@ -45,8 +53,31 @@
         class="shadowless-input"
       ></app-cefr-level-selector>
     </div>
+    <div class="unit">
+      <input
+        tuiCheckbox
+        type="checkbox"
+        [ngModel]="includeTranslationsToggle"
+        (ngModelChange)="onIncludeTranslationsChange($event)"
+        size="m"
+      />
+
+      Include Translated
+      <app-info-icon
+        [tooltipText]="'You will read books that have been translated into the selected language, although their original language is different.'"
+        [size]="20"
+      ></app-info-icon>
+    </div>
 
     <div class="unit">
+      <input
+        tuiCheckbox
+        type="checkbox"
+        [ngModel]="sortToggle"
+        (ngModelChange)="onSortChange($event)"
+        size="m"
+      />
+
       Sort By
       <tui-select
         tuiTextfieldSize="m"
