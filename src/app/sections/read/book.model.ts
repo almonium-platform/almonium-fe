@@ -13,6 +13,9 @@ export interface Book {
   levelFrom: CEFRLevel;
   levelTo: CEFRLevel;
   progressPercentage: number | null;
+  isTranslation: boolean;
+  hasParallelTranslation: boolean;
+  hasTranslation: boolean;
 }
 
 export interface BookshelfView {
