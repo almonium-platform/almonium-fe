@@ -56,7 +56,6 @@ export class ReadComponent implements OnInit, OnDestroy {
   sortParameters: string[] = ['Year', 'Rating', 'Level'];
   sortControl = new FormControl<string>('Year');
 
-  // add to Object.values value Any
   cefrLevels: (CEFRLevel | 'All')[] = [...Object.values(CEFRLevel), 'All'];
   cefrLevelControl = new FormControl<(CEFRLevel | 'All')>(CEFRLevel.A1);
 
@@ -73,11 +72,6 @@ export class ReadComponent implements OnInit, OnDestroy {
   ) {
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   ngOnInit() {
     this.fetchBooks();
     this.listenToBookSearch();
@@ -86,44 +80,46 @@ export class ReadComponent implements OnInit, OnDestroy {
     this.listenToCefrLevelChanges();
   }
 
-  private listenToCefrLevelChanges() {
-    this.cefrLevelControl.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(selectedLevel => {
-        if (!selectedLevel) return;
-        if (selectedLevel === "All") {
-          this.filteredBooks = this.allBooks;
-          return;
-        }
-        // not triggered-  how to emit initally?
-        this.filterBooksByCefrLevel(selectedLevel);
-      });
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private filterBooksByCefrLevel(selectedLevel: CEFRLevel) {
-    if (!this.allBooks.length) return;
+  // Re-run the filter/sort logic every time a toggle changes
+  private applyFiltersAndSort() {
+    let books = this.allBooks;
 
-    this.filteredBooks = this.allBooks.filter(book => {
-      const bookLevelFrom = this.cefrLevelToNumber(book.levelFrom);
-      const bookLevelTo = this.cefrLevelToNumber(book.levelTo);
-      const selectedLevelNum = this.cefrLevelToNumber(selectedLevel);
+    // Apply title filter if active
+    if (this.titleFormControl.value) {
+      const searchTerm = this.titleFormControl.value.trim().toLowerCase();
+      books = books.filter(book => book.title.toLowerCase().includes(searchTerm));
+    }
 
-      return selectedLevelNum >= bookLevelFrom && selectedLevelNum <= bookLevelTo;
-    });
+    // Apply CEFR filter if active
+    if (this.filterByCefrToggle && this.cefrLevelControl.value !== 'All') {
+      books = books.filter(book => {
+        const bookLevelFrom = this.cefrLevelToNumber(book.levelFrom);
+        const bookLevelTo = this.cefrLevelToNumber(book.levelTo);
+        const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value || CEFRLevel.B1);  // Handling null values
 
-    console.log(`Filtered books by CEFR Level ${selectedLevel}:`, this.filteredBooks);
+        return selectedLevelNum >= bookLevelFrom && selectedLevelNum <= bookLevelTo;
+      });
+    }
+
+    // Apply sorting
+    if (this.sortToggle) {
+      this.sortBooks(books);
+    }
+
+    // Apply the filtered books to the component
+    this.filteredBooks = books;
   }
 
   private listenToSortChanges() {
     this.sortControl.valueChanges.pipe(
       distinctUntilChanged(),
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.sortBooks();
-    });
+    ).subscribe(() => this.applyFiltersAndSort());
   }
 
   sortIconName(): string {
@@ -132,16 +128,42 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   toggleSortOrder() {
     this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    this.sortBooks();
+    this.applyFiltersAndSort();
   }
 
-  private sortBooks() {
-    if (!this.filteredBooks.length) return;
+  private listenToCefrLevelChanges() {
+    this.cefrLevelControl.valueChanges.pipe(
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.applyFiltersAndSort());
+  }
 
+  private listenToBookSearch(): void {
+    this.titleFormControl.valueChanges
+      .pipe(
+        filter(value => value !== null),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => this.applyFiltersAndSort());
+  }
+
+  private fetchBooks() {
+    this.targetLanguageDropdownService.currentLanguage$.subscribe(language => {
+      this.readService.getBooksForLang(language).subscribe(books => {
+        this.allBooks = books;
+        this.filteredBooks = books;
+        this.applyFiltersAndSort(); // Apply filters/sort after fetching books
+      });
+    });
+  }
+
+  private sortBooks(books: Book[]) {
     const sortBy = this.sortControl.value;
     const factor = this.sortOrder === 'asc' ? 1 : -1;
 
-    this.filteredBooks.sort((a, b) => {
+    books.sort((a, b) => {
       if (sortBy === 'Year') {
         return factor * (a.publicationYear - b.publicationYear);
       }
@@ -160,6 +182,7 @@ export class ReadComponent implements OnInit, OnDestroy {
     return cefrMap[level] || 0;
   }
 
+  // Synchronize CEFR level from user data
   private syncCefrLevel() {
     this.userInfoService.userInfo$
       .pipe(
@@ -175,42 +198,9 @@ export class ReadComponent implements OnInit, OnDestroy {
       .subscribe((level: CEFRLevel) => {
         this.currentCefrLevel = level;
         this.cefrLevelControl.setValue(level); // Sync CEFR Level Control
-        this.filterBooksByCefrLevel(level); // Trigger filter immediately
+        this.applyFiltersAndSort(); // Trigger filter immediately
         console.log('Set default sorting by CEFR Level:', level);
       });
-  }
-
-  private listenToBookSearch(): void {
-    this.titleFormControl.valueChanges
-      .pipe(
-        filter(value => value !== null),
-        debounceTime(300),
-        distinctUntilChanged(),
-        map((value: string) => value.trim().toLowerCase()),
-        filter(value => value.length >= 2 || value.length === 0),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchTerm => {
-        this.filteredBooks = this.allBooks.filter(book =>
-          book.title.toLowerCase().includes(searchTerm)
-        );
-      });
-  }
-
-  private fetchBooks() {
-    this.targetLanguageDropdownService.currentLanguage$.subscribe(language => {
-      this.readService.getBooksForLang(language).subscribe(books => {
-        this.allBooks = books;
-        this.filteredBooks = books;
-        console.log('Books fetched:', books);
-
-        // Apply CEFR filter after books are loaded
-        const currentLevel = this.cefrLevelControl.value;
-        if (currentLevel && currentLevel !== 'All') {
-          this.filterBooksByCefrLevel(currentLevel);
-        }
-      });
-    });
   }
 
   onRightClick(event: MouseEvent, book: Book): void {
@@ -237,26 +227,17 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   onSortChange($event: boolean) {
-    if ($event) {
-      this.sortBooks();
-    } else {
-
-    }
+    this.sortToggle = $event;
+    this.applyFiltersAndSort();
   }
 
   onFilterByCefrChange($event: boolean) {
-    if ($event) {
-      this.filterBooksByCefrLevel(this.currentCefrLevel);
-    } else {
-
-    }
+    this.filterByCefrToggle = $event;
+    this.applyFiltersAndSort();
   }
 
   onIncludeTranslationsChange($event: boolean) {
-    if ($event) {
-
-    } else {
-      this.filteredBooks = this.allBooks;
-    }
+    this.includeTranslationsToggle = $event;
+    this.applyFiltersAndSort();
   }
 }
