@@ -99,6 +99,16 @@
         class="cursor-pointer"
       ></lucide-icon>
     </div>
+    <div class="unit">
+      <input
+        tuiCheckbox
+        type="checkbox"
+        [ngModel]="parallelTranslationToggle"
+        (ngModelChange)="onParallelTranslationChange($event)"
+        size="m"
+      />
+      Parallel Translation
+    </div>
   </div>
 
   <div class="books-container">
@@ -113,6 +123,21 @@
           routerLink="/read/{{ book.id }}"
           class="game-card ladder-card solo-game">
           <div class="game-img ladder-img">
+            @if (book.hasParallelTranslation && !book.progressPercentage) {
+              <div class="parallel">
+                <img
+                  src="../../../assets/img/icons/parallel.svg"
+                  alt="parallel translation icon"
+                  tuiHintAppearance="dark"
+                  tuiHintDirection="bottom"
+                  [tuiHint]="tooltip"
+                />
+                <ng-template #tooltip>
+                  <div>Parallel mode in a language you understand</div>
+                </ng-template>
+              </div>
+
+            }
             @if (book.progressPercentage) {
               <label
                 tuiProgressLabel

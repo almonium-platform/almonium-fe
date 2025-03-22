@@ -60,6 +60,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   selectedBook: Book | null = null;
   filterByCefrToggle: boolean = false;
+  parallelTranslationToggle: boolean = false;
   sortToggle: boolean = false;
   includeTranslationsToggle: boolean = false;
 
@@ -103,6 +104,10 @@ export class ReadComponent implements OnInit, OnDestroy {
 
         return selectedLevelNum >= bookLevelFrom && selectedLevelNum <= bookLevelTo;
       });
+    }
+
+    if (this.parallelTranslationToggle) {
+      books = books.filter(book => book.hasParallelTranslation);
     }
 
     // Apply sorting
@@ -238,5 +243,10 @@ export class ReadComponent implements OnInit, OnDestroy {
   onIncludeTranslationsChange($event: boolean) {
     this.includeTranslationsToggle = $event;
     this.fetchBooks();
+  }
+
+  onParallelTranslationChange($event: boolean) {
+    this.parallelTranslationToggle = $event;
+    this.applyFiltersAndSort();
   }
 }
