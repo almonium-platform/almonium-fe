@@ -120,7 +120,7 @@
            (contextmenu)="onRightClick($event, book)"
       >
         <a
-          routerLink="/read/{{ book.id }}"
+          routerLink="/book/{{ book.id }}"
           class="game-card ladder-card solo-game">
           <div class="game-img ladder-img">
             @if (book.hasParallelTranslation && !book.progressPercentage) {

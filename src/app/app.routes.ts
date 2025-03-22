@@ -25,6 +25,7 @@ import {LoginComponent} from "./authentication/login/login.component";
 import {SocialComponent} from "./sections/social/social.component";
 import {ReadComponent} from "./sections/read/read.component";
 import {UserCardComponent} from "./shared/user-card/user-card.component";
+import {BookComponent} from "./sections/read/book/book.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -45,6 +46,7 @@ export const routes: Routes = [
       {path: 'onboarding', component: OnboardingComponent},
       {path: 'home', component: HomeComponent},
       {path: 'review', component: ReviewComponent},
+      {path: 'book/:id', component: BookComponent},
       {path: 'read', component: ReadComponent},
       {path: 'social', component: SocialComponent},
       {
