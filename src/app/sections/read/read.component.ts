@@ -52,8 +52,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected continueReading: Book[] = [];
 
   titleFormControl = new FormControl<string>('');
-  sortParameters: string[] = ['Year', 'Rating', 'Level'];
-  sortControl = new FormControl<string>('Year');
+  sortParameters: string[] = ['Level', 'Rating', 'Year'];
+  sortControl = new FormControl<string>('Level');
 
   cefrLevels: (CEFRLevel | 'All')[] = [...Object.values(CEFRLevel), 'All'];
   cefrLevelControl = new FormControl<(CEFRLevel | 'All')>(CEFRLevel.A1);
