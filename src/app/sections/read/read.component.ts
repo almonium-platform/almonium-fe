@@ -51,6 +51,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   filteredBooks: Book[] = [];
   protected allBooks: Book[] = [];
+  protected continueReading: Book[] = [];
 
   titleFormControl = new FormControl<string>('');
   sortParameters: string[] = ['Year', 'Rating', 'Level'];
@@ -151,9 +152,10 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   private fetchBooks() {
     this.targetLanguageDropdownService.currentLanguage$.subscribe(language => {
-      this.readService.getBooksForLang(language).subscribe(books => {
-        this.allBooks = books;
-        this.filteredBooks = books;
+      this.readService.getBooksForLang(language, this.includeTranslationsToggle).subscribe(view => {
+        this.allBooks = view.recommended;
+        this.filteredBooks = view.recommended;
+        this.continueReading = view.continueReading;
         this.applyFiltersAndSort(); // Apply filters/sort after fetching books
       });
     });
@@ -238,6 +240,6 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   onIncludeTranslationsChange($event: boolean) {
     this.includeTranslationsToggle = $event;
-    this.applyFiltersAndSort();
+    this.fetchBooks();
   }
 }

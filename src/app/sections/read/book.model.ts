@@ -14,3 +14,8 @@ export interface Book {
   levelTo: CEFRLevel;
   progressPercentage: number | null;
 }
+
+export interface BookshelfView {
+  continueReading: Book[];
+  recommended: Book[];
+}

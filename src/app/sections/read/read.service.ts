@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpParams} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
-import {Book} from "./book.model";
+import {Book, BookshelfView} from "./book.model";
 import {Observable} from "rxjs";
 import {LanguageCode} from "../../models/language.enum";
 
@@ -17,9 +17,10 @@ export class ReadService {
     return this.http.get<Book[]>(url, {withCredentials: true});
   }
 
-  getBooksForLang(language: string): Observable<Book[]> {
+  getBooksForLang(language: string, includeTranslations: boolean): Observable<BookshelfView> {
     const url = `${AppConstants.BOOKS_URL}/language/${language}`;
-    return this.http.get<Book[]>(url, {withCredentials: true});
+    const params = new HttpParams().set('includeTranslations', includeTranslations.toString());
+    return this.http.get<BookshelfView>(url, {params, withCredentials: true});
   }
 
   deleteProgress(id: string, lang: LanguageCode): Observable<any> {
