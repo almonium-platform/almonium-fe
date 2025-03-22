@@ -45,8 +45,6 @@ import {InfoIconComponent} from "../../shared/info-button/info-button.component"
 })
 export class ReadComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  private userInfo: UserInfo | null = null;
-  private currentCefrLevel: CEFRLevel = CEFRLevel.B1;
   sortOrder: 'asc' | 'desc' = 'desc';
 
   filteredBooks: Book[] = [];
@@ -198,7 +196,6 @@ export class ReadComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((level: CEFRLevel) => {
-        this.currentCefrLevel = level;
         this.cefrLevelControl.setValue(level); // Sync CEFR Level Control
         this.applyFiltersAndSort(); // Trigger filter immediately
         console.log('Set default sorting by CEFR Level:', level);
