@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
-import {NgOptimizedImage} from "@angular/common";
 import {ButtonComponent} from "../button/button.component";
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
@@ -9,7 +8,6 @@ import {UserInfoService} from "../../services/user-info.service";
 @Component({
   selector: 'app-upgrade',
   imports: [
-    NgOptimizedImage,
     ButtonComponent
   ],
   templateUrl: './upgrade.component.html',

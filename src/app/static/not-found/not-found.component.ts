@@ -1,6 +1,5 @@
 import {Component, OnInit} from '@angular/core';
 import {LocalStorageService} from '../../services/local-storage.service';
-import {NgOptimizedImage} from "@angular/common";
 import {RouterLink} from "@angular/router";
 
 @Component({
@@ -8,8 +7,7 @@ import {RouterLink} from "@angular/router";
   templateUrl: './not-found.component.html',
   styleUrls: ['./not-found.component.less'],
   imports: [
-    RouterLink,
-    NgOptimizedImage
+    RouterLink
   ]
 })
 export class NotFoundComponent implements OnInit {

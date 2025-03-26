@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {NgClass, NgOptimizedImage} from "@angular/common";
+import {NgClass} from "@angular/common";
 import {RouterLink} from "@angular/router";
 
 @Component({
@@ -8,7 +8,6 @@ import {RouterLink} from "@angular/router";
   imports: [
     NgClass,
     RouterLink,
-    NgOptimizedImage
   ],
   styleUrls: ['./play.component.less']
 })

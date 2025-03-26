@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormsModule} from "@angular/forms";
-import {NgClass, NgOptimizedImage} from "@angular/common";
+import {NgClass} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {ButtonComponent} from "../../button/button.component";
@@ -12,7 +12,6 @@ import {LucideAngularModule} from "lucide-angular";
   styleUrls: ['./navbar-public.component.less'],
   imports: [
     FormsModule,
-    NgOptimizedImage,
     NgClass,
     NgClickOutsideDirective,
     RouterLink,

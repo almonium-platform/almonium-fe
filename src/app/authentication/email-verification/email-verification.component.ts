@@ -5,7 +5,7 @@ import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
 import {catchError, switchMap, tap} from 'rxjs/operators';
 import {NgxParticlesModule} from "@tsparticles/angular";
-import {NgClass, NgOptimizedImage} from "@angular/common";
+import {NgClass} from "@angular/common";
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 
@@ -16,7 +16,6 @@ import {ButtonComponent} from "../../shared/button/button.component";
   imports: [
     NgxParticlesModule,
     NgClass,
-    NgOptimizedImage,
     ParticlesComponent,
     ButtonComponent
   ]

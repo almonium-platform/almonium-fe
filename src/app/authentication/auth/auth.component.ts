@@ -12,7 +12,7 @@ import {
   TuiTextfieldComponent,
   TuiTextfieldOptionsDirective
 } from '@taiga-ui/core';
-import {AsyncPipe, NgClass, NgOptimizedImage} from '@angular/common';
+import {AsyncPipe, NgClass} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -40,7 +40,6 @@ declare const google: any;
     AsyncPipe,
     TuiLink,
     TuiTextfieldControllerModule,
-    NgOptimizedImage,
     NgxParticlesModule,
     NgClass,
     RouterLink,

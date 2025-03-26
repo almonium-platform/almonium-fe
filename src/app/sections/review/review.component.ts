@@ -4,7 +4,6 @@ import {CardDto} from '../../models/card.model';
 import {LanguageCode} from '../../models/language.enum';
 import {Subject, takeUntil} from 'rxjs';
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {NgOptimizedImage} from "@angular/common";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
 
@@ -13,8 +12,7 @@ import {RouterLink} from "@angular/router";
   templateUrl: './review.component.html',
   styleUrls: ['./review.component.less'],
   imports: [
-    RouterLink,
-    NgOptimizedImage
+    RouterLink
   ]
 })
 export class ReviewComponent implements OnInit, OnDestroy {
