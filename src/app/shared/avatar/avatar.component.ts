@@ -32,6 +32,13 @@ import {TuiAvatar, TuiAvatarOutline, TuiSkeleton} from "@taiga-ui/kit";
       </tui-avatar>
     }
   `,
+  styles: [`
+    tui-avatar {
+      ::ng-deep img {
+        padding: 4px;
+      }
+    }
+  `],
   imports: [
     TuiAvatar,
     TuiAvatarOutline,

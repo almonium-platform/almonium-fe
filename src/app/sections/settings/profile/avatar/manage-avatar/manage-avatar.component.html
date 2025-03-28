@@ -66,23 +66,23 @@
               class="hover:opacity-80 cursor-pointer"
               (click)="deleteCustomAvatar(avatar.id)"
             ></tui-icon>
-            <tui-avatar
-              [src]="avatar.url"
+            <app-avatar
+              [avatarUrl]="avatar.url"
+              [outline]="false"
               size="xl"
-              tuiAvatarOutline="var(--default-avatar-gradient)"
               (click)="chooseAnotherCustomAvatar(avatar.id)"
-            ></tui-avatar>
+            ></app-avatar>
           </tui-badged-content>
         }
         <!-- Default Avatars -->
         @for (avatarUrl of defaultAvatars; track avatarUrl) {
-          <tui-avatar
-            [src]="avatarUrl"
+          <app-avatar
+            [avatarUrl]="avatarUrl"
+            [outline]="false"
             size="xl"
             class="avatar"
-            tuiAvatarOutline="var(--default-avatar-gradient)"
             (click)="chooseDefaultAvatar(avatarUrl)"
-          ></tui-avatar>
+          ></app-avatar>
         }
       </div>
     </div>
