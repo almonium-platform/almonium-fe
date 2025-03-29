@@ -55,8 +55,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   sortParameters: string[] = ['Level', 'Rating', 'Year'];
   sortControl = new FormControl<string>('Level');
 
-  cefrLevels: (CEFRLevel | 'All')[] = [...Object.values(CEFRLevel), 'All'];
-  cefrLevelControl = new FormControl<(CEFRLevel | 'All')>(CEFRLevel.A1);
+  cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
+  cefrLevelControl = new FormControl<CEFRLevel>(CEFRLevel.A1);
 
   selectedBook: Book | null = null;
   filterByCefrToggle: boolean = false;
@@ -96,7 +96,7 @@ export class ReadComponent implements OnInit, OnDestroy {
     }
 
     // Apply CEFR filter if active
-    if (this.filterByCefrToggle && this.cefrLevelControl.value !== 'All') {
+    if (this.filterByCefrToggle) {
       books = books.filter(book => {
         const bookLevelFrom = this.cefrLevelToNumber(book.levelFrom);
         const bookLevelTo = this.cefrLevelToNumber(book.levelTo);
