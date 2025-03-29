@@ -9,7 +9,6 @@ import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
 import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
-import {LucideAngularModule} from "lucide-angular";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {ActivatedRoute} from "@angular/router";
@@ -25,6 +24,7 @@ import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {ShareLinkComponent} from "../../../shared/share-link/share-link.component";
+import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 
 @Component({
   selector: 'app-profile-settings',
@@ -32,7 +32,6 @@ import {ShareLinkComponent} from "../../../shared/share-link/share-link.componen
     SettingsTabsComponent,
     InteractiveCtaButtonComponent,
     PaywallComponent,
-    LucideAngularModule,
     ConfirmModalComponent,
     TuiHintDirective,
     NgStyle,
@@ -47,6 +46,7 @@ import {ShareLinkComponent} from "../../../shared/share-link/share-link.componen
     ButtonComponent,
     ShareLinkComponent,
     FormsModule,
+    SharedLucideIconsModule,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
