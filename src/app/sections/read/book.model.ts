@@ -1,24 +1,29 @@
-import {Language} from "../../models/language.model";
 import {CEFRLevel} from "../../models/userinfo.model";
+import {LanguageCode} from "../../models/language.enum";
 
 export interface Book {
-  id: string;
+  id: number;
   title: string;
   author: string;
   publicationYear: number;
   coverImageUrl: string;
   wordCount: number;
   rating: number;
-  language: Language;
+  language: LanguageCode;
   levelFrom: CEFRLevel;
   levelTo: CEFRLevel;
   progressPercentage: number | null;
   isTranslation: boolean;
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
+  description: string;
+  availableLanguages: LanguageCode[];
+  favorite: boolean;
+  orderLanguage?: LanguageCode;
 }
 
 export interface BookshelfView {
   continueReading: Book[];
-  recommended: Book[];
+  available: Book[];
+  favorites: Book[];
 }

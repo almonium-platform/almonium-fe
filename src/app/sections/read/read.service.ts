@@ -23,7 +23,32 @@ export class ReadService {
     return this.http.get<BookshelfView>(url, {params, withCredentials: true});
   }
 
-  deleteProgress(id: string, lang: LanguageCode): Observable<any> {
+  getBooksById(id: number, language: string): Observable<Book> {
+    const url = `${AppConstants.BOOKS_URL}/language/${language}/${id}`;
+    return this.http.get<Book>(url, {withCredentials: true});
+  }
+
+  orderTranslation(bookId: number, language: string): Observable<any> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  cancelTranslationOrder(bookId: number, language: string): Observable<any> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  favoriteBook(bookId: number, language: string): Observable<any> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  unfavoriteBook(bookId: number, language: string): Observable<any> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  deleteProgress(id: number, lang: LanguageCode): Observable<any> {
     const url = `${AppConstants.BOOKS_URL}/language/${lang}/${id}/progress`;
     return this.http.delete(url, {withCredentials: true});
   }

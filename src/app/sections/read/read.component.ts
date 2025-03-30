@@ -156,8 +156,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   private fetchBooks() {
     this.targetLanguageDropdownService.currentLanguage$.subscribe(language => {
       this.readService.getBooksForLang(language, this.includeTranslationsToggle).subscribe(view => {
-        this.allBooks = view.recommended;
-        this.filteredBooks = view.recommended;
+        this.allBooks = [...view.available, ...view.favorites, ...view.continueReading];
+        this.filteredBooks = this.allBooks;
         this.continueReading = view.continueReading;
         this.applyFiltersAndSort(); // Apply filters/sort after fetching books
       });
