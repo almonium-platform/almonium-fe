@@ -31,6 +31,10 @@ export class LanguageNameService {
     return name || code.toUpperCase();
   }
 
+  getLanguageNames(codes: string[]): string[] {
+    return codes.map((code) => this.getLanguageName(code));
+  }
+
   public mapLanguageCodesToNames(languages: Language[], languageCodes: string[]) {
     return languageCodes
       .map((code) => {
@@ -49,5 +53,39 @@ export class LanguageNameService {
   public mapLanguageNameToCode(languages: Language[], name: string): LanguageCode | null {
     const lang = languages.find((l) => l.name === name);
     return lang ? (lang.code.toUpperCase() as LanguageCode) : null;
+  }
+
+  /**
+   * Converts a language name (e.g., 'English') into its LanguageCode enum value.
+   * @param name Language name to transform.
+   * @returns LanguageCode enum value or null if not found or invalid.
+   */
+  getLanguageCode(name: string): LanguageCode | null {
+    let code: string | null = null;
+
+    // First, try to find a 2-letter code using iso6391
+    const code2 = iso6391.getCode(name);
+    if (code2) {
+      code = code2.toUpperCase();
+    } else {
+      // If not found, try to find a 3-letter code using iso6393
+      const language = iso6393.find((lang) => lang.name.toLowerCase() === name.toLowerCase());
+      if (language) {
+        code = language.iso6393.toUpperCase();
+      }
+    }
+
+    // If a code was found, attempt to cast it to the LanguageCode enum
+    if (code) {
+      if (Object.values(LanguageCode).includes(code as LanguageCode)) {
+        return code as LanguageCode; // Safe cast
+      } else {
+        console.warn(`Language code "${code}" is not a valid LanguageCode enum value.`);
+        return null; // Code is not a valid enum value
+      }
+    }
+
+    // If not found in either library or not a valid enum value, return null
+    return null;
   }
 }
