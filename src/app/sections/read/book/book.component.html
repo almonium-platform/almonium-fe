@@ -1,0 +1,153 @@
+<div class="base-container">
+  @if (book) {
+    <div class="left-section">
+      <a
+        class="game-card ladder-card solo-game">
+        <div class="game-img ladder-img">
+          <img alt="book cover image" [src]="book.coverImageUrl"/>
+        </div>
+      </a>
+      <app-button
+        [label]="actionBtnLabel"
+        width="full"
+        class="action-btn"
+      ></app-button>
+    </div>
+    <div class="right-section">
+      <div class="description-section">
+        <h1 class="title">{{ book.title }}</h1>
+        <p class="author">{{ book.author }}</p>
+
+        <div class="rating">
+          <app-star-rating
+            class="star"
+            [rating]="book.rating"
+            tuiHintAppearance="dark"
+            tuiHintDirection="bottom"
+            [tuiHint]="ratingTooltip"
+          >
+            <ng-template #ratingTooltip>
+              <div>Goodreads rating</div>
+            </ng-template>
+          </app-star-rating>
+          <div class="number">{{ book.rating }}</div>
+          <lucide-icon
+            [name]="bookmarkIcon"
+            class="bookmark"
+            (click)="onBookmarkClick()"
+            [ngStyle]="{'color': getBookmarkColor() }"
+            [strokeWidth]="1.2"
+          ></lucide-icon>
+        </div>
+
+        <div class="block">
+          <p class="label">Original</p>
+          <div class="original">
+            <label
+              tuiChip
+              size="s"
+              class="chip"
+              appearance="neutral"
+              [style.background-color]="originalLanguage | tuiAutoColor"
+            >
+              <input
+                hidden
+                type="checkbox"
+              />
+              {{ originalLanguage }}
+              <p class="inner-text">{{ book.levelFrom }} – {{ book.levelTo }}</p>
+            </label>
+            <!--          <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>-->
+            •
+            <p class="pages">{{ pages }} pages</p>
+            •
+            <p class="pages">First published in {{ book.publicationYear }}</p>
+          </div>
+        </div>
+        <div class="block">
+          <p class="label">Parallel translations</p>
+          <div class="translation">
+            <div class="parallel">
+              <img
+                src="../../../../assets/img/icons/parallel.svg"
+                alt="parallel translation icon"
+                tuiHintAppearance="dark"
+                tuiHintDirection="bottom"
+                [tuiHint]="tooltip"
+              />
+              <ng-template #tooltip>
+                <div>Parallel mode in a language you understand</div>
+              </ng-template>
+            </div>
+
+            @for (language of availableLanguages; track language) {
+              <tui-chip
+                class="chip"
+                [style.background-color]="language | tuiAutoColor"
+                (click)="onTranslatedLanguageClick(language)"
+              >{{ language }}
+              </tui-chip>
+            }
+            @if (book.orderLanguage) {
+              <tui-chip
+                class="edit-chip edit-chip--no-hover"
+                appearance="outline"
+                (click)="openLanguageDropdown()"
+                tuiHintAppearance="dark"
+                tuiHintDirection="bottom"
+                [tuiHint]="orderTooltip"
+                [tuiSkeleton]="orderLoading"
+              >
+                <ng-template #orderTooltip>
+                  <div>
+                    We will notify you when the translation is available.
+                    Translation orders are prioritized based on demand.
+                  </div>
+                </ng-template>
+                {{ orderLanguage }}
+                <p class="inner-text">ORDERED</p>
+                <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder()"></lucide-icon>
+
+              </tui-chip>
+            } @else {
+              @if (showLangDropdown) {
+                <tui-select
+                  tuiTextfieldSize="s"
+                  class="language-select"
+                  [formControl]="languageSelectControl"
+                  [tuiTextfieldLabelOutside]="true"
+                  (clickOutside)="(showLangDropdown = false)"
+                >
+                  <tui-data-list-wrapper
+                    *tuiDataList
+                    [items]="languagesAvailableForOrder"
+                  >
+                  </tui-data-list-wrapper>
+                </tui-select>
+              } @else {
+                <tui-chip
+                  class="edit-chip"
+                  appearance="outline"
+                  (click)="openLanguageDropdown()"
+                  [tuiSkeleton]="orderLoading"
+                >
+                  <lucide-icon name="plus"
+                               [size]="15"
+                               [strokeWidth]="1.7"
+                  >
+                  </lucide-icon>
+                  Order
+                </tui-chip>
+              }
+            }
+          </div>
+        </div>
+        <div class="description">
+          <p>{{ book.description }}</p>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <p>Loading...</p>
+  }
+</div>

@@ -1,24 +1,74 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
-import {Subject, takeUntil} from "rxjs";
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
+import {finalize, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute} from "@angular/router";
-import {TuiAlertService} from "@taiga-ui/core";
+import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
+import {ReadService} from "../read.service";
+import {Book} from "../book.model";
+import {ButtonComponent} from "../../../shared/button/button.component";
+import {StarRatingComponent} from "../star-rating.component";
+import {TuiChip, TuiDataListWrapperComponent, TuiSkeleton} from "@taiga-ui/kit";
+import {LanguageNameService} from "../../../services/language-name.service";
+import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
+import {NgStyle} from "@angular/common";
+import {SupportedLanguagesService} from "../../../services/supported-langs.service";
+import {Language} from "../../../models/language.model";
+import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {FormControl, ReactiveFormsModule} from "@angular/forms";
+import {distinctUntilChanged} from "rxjs/operators";
+import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
   selector: 'app-book',
-  imports: [],
+  imports: [
+    ButtonComponent,
+    StarRatingComponent,
+    TuiAutoColorPipe,
+    TuiChip,
+    TuiHintDirective,
+    SharedLucideIconsModule,
+    NgStyle,
+    TuiDataListWrapperComponent,
+    TuiSelectModule,
+    TuiTextfieldControllerModule,
+    ReactiveFormsModule,
+    NgClickOutsideDirective,
+    TuiSkeleton,
+
+  ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
 })
 export class BookComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
-  bookId: number | null = null;
+  protected bookId: number | null = null;
+  protected book: Book | null = null;
+  protected availableLanguages: string[] = [];
+  protected originalLanguage: string = '';
+  private supportedLanguages: Language[] = [];
+  protected showLangDropdown: boolean = false;
+  protected languageSelectControl = new FormControl("Select Language");
 
   constructor(private activatedRoute: ActivatedRoute,
-              private alertService: TuiAlertService) {
-
+              private alertService: TuiAlertService,
+              private languageNameService: LanguageNameService,
+              private readService: ReadService,
+              private supportedLanguagesService: SupportedLanguagesService,
+              private cdr: ChangeDetectorRef,
+  ) {
   }
 
   ngOnInit() {
+    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+      if (languages) {
+        this.supportedLanguages = languages;
+      }
+    });
+    this.languageSelectControl.setValue("Select Language");
+    this.languageSelectControl.valueChanges.pipe(
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.orderTranslation());
+
     // Extract the 'id' parameter from the route (Path variable)
     this.activatedRoute.paramMap
       .pipe(takeUntil(this.destroy$))
@@ -27,15 +77,162 @@ export class BookComponent implements OnInit, OnDestroy {
         if (id) {
           this.bookId = +id; // Only set if id is not null
         } else {
-          this.bookId = null; // Handle the case where the id is not found
+          this.bookId = null;
+          return;
         }
-        console.log('Book ID:', this.bookId); // Use the ID as needed
-        // You can now fetch book data based on this ID
+        this.readService.getBooksById(this.bookId, 'EN')
+          .subscribe(book => {
+            this.book = book;
+            this.originalLanguage = this.languageNameService.getLanguageName(book.language);
+            this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages).filter(lang => lang !== this.originalLanguage);
+          });
       });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  get actionBtnLabel() {
+    return this.book?.progressPercentage ? "Continue Reading" : "Start Reading";
+  }
+
+  get orderLanguage() {
+    if (!this.book || !this.book.orderLanguage) {
+      return '';
+    }
+    return this.languageNameService.getLanguageName(this.book?.orderLanguage);
+  }
+
+  get pages() {
+    if (this.book && this.book.wordCount) {
+      const pages = Math.ceil(this.book.wordCount / 250);
+      return pages > 0 ? pages : 1;
+    }
+    return 0;
+  }
+
+  get languagesAvailableForOrder(): string[] {
+    return this.supportedLanguages
+      .filter(lang => !this.book?.availableLanguages.includes(lang.code))
+      .map(lang => lang.name);
+  }
+
+  onTranslatedLanguageClick(language: string) {
+    console.log(`Language clicked: ${language}`);
+  }
+
+  openLanguageDropdown() {
+    const bookId = this.bookId;
+    if (!bookId) {
+      console.error("Book was not found");
+      return;
+    }
+
+    if (this.book?.orderLanguage) {
+      console.info("Order is already placed");
+      return;
+    }
+
+    this.showLangDropdown = true;
+  }
+
+  protected orderLoading: boolean = false;
+
+  orderTranslation() {
+    const language = this.languageNameService.getLanguageCode(this.languageSelectControl.value!);
+    if (!this.bookId || !language) {
+      return;
+    }
+    this.showLangDropdown = false;
+    this.orderLoading = true;
+    this.readService.orderTranslation(this.bookId, language)
+      .pipe(finalize(() => {
+        this.orderLoading = false;
+        this.languageSelectControl.setValue("Select Language");
+      }))
+      .subscribe({
+        next: () => {
+          this.book!.orderLanguage = language;
+          this.alertService.open('Translation ordered successfully', {appearance: 'success'}).subscribe();
+        },
+        error: (error) => {
+          console.error('Failed to order translation:', error);
+          this.alertService.open(error.error.message || 'Couldn\'t order translation', {appearance: 'error'}).subscribe();
+        }
+      });
+  }
+
+  private favoriteBlocked = false;
+
+  onBookmarkClick() {
+    if (!this.book || this.favoriteBlocked || !this.bookId) {
+      return;
+    }
+
+    let message: string;
+    this.favoriteBlocked = true;
+    if (!this.book?.favorite) {
+      message = 'Added to favorites';
+      this.readService.favoriteBook(this.bookId, this.book?.language)
+        .pipe(finalize(() => this.favoriteBlocked = false))
+        .subscribe({
+          next: () => {
+            this.alertService.open(message, {appearance: 'success'}).subscribe();
+            this.book!.favorite = true;
+            this.cdr.detectChanges();
+          }, error: (error) => {
+            console.error('Failed to add to favorites:', error);
+            this.alertService.open(error.error.message || 'Couldn\'t add to favorites', {appearance: 'error'}).subscribe();
+          }
+        });
+    } else {
+      message = 'Removed from favorites'
+      this.readService.unfavoriteBook(this.bookId, this.book?.language)
+        .pipe(finalize(() => this.favoriteBlocked = false))
+        .subscribe({
+          next: () => {
+            this.alertService.open(message, {appearance: 'success'}).subscribe();
+            this.book!.favorite = false;
+            this.cdr.detectChanges();
+          }, error: (error) => {
+            console.error('Failed to add to favorites:', error);
+            this.alertService.open(error.error.message || 'Couldn\'t remove favorites', {appearance: 'error'}).subscribe();
+          }
+        });
+    }
+  }
+
+  get bookmarkIcon() {
+    if (this.book?.favorite) {
+      return 'bookmark-check';
+    }
+    return 'bookmark';
+  }
+
+  cancelOrder() {
+    const language = this.book?.orderLanguage;
+    if (!this.book || !language || !this.bookId) {
+      return;
+    }
+    this.orderLoading = true;
+    this.readService.cancelTranslationOrder(this.bookId, language)
+      .pipe(finalize(() => {
+        this.orderLoading = false;
+      }))
+      .subscribe({
+        next: () => {
+          this.book!.orderLanguage = undefined;
+          this.alertService.open('Translation order cancelled successfully', {appearance: 'success'}).subscribe();
+        }, error: (error) => {
+          console.error('Failed to cancel translation order:', error);
+          this.alertService.open(error.error.message || 'Couldn\'t cancel translation order', {appearance: 'error'}).subscribe();
+        }
+      });
+  }
+
+  getBookmarkColor(): string {
+    return this.book && this.book.favorite ? 'orange' : 'grey';
   }
 }
