@@ -9,7 +9,7 @@ import {StarRatingComponent} from "../star-rating.component";
 import {TuiChip, TuiDataListWrapperComponent, TuiSkeleton} from "@taiga-ui/kit";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
-import {NgStyle} from "@angular/common";
+import {NgStyle, NgTemplateOutlet} from "@angular/common";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {Language} from "../../../models/language.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
@@ -33,6 +33,7 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     ReactiveFormsModule,
     NgClickOutsideDirective,
     TuiSkeleton,
+    NgTemplateOutlet,
 
   ],
   templateUrl: './book.component.html',
@@ -42,7 +43,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   protected bookId: number | null = null;
   protected book: Book | null = null;
-  protected availableLanguages: string[] = [];
+  protected availableTranslations: string[] = [];
   protected bookLanguage: string = "";
   protected originalLanguage: string | undefined = undefined;
   private supportedLanguages: Language[] = [];
@@ -104,8 +105,8 @@ export class BookComponent implements OnInit, OnDestroy {
           this.originalLanguage = book.originalLanguage
             ? this.languageNameService.getLanguageName(book.originalLanguage)
             : undefined; // Explicitly set to undefined if no original language
-          this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages.map(t => t.language))
-            .filter(lang => lang !== this.bookLanguage);
+          this.availableTranslations = this.languageNameService.getLanguageNames(book.availableLanguages.map(t => t.language))
+            .filter(lang => lang !== this.bookLanguage && lang !== this.originalLanguage);
           console.log(`Successfully loaded book: ${book.title}`);
           this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
         }
