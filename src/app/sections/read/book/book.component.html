@@ -41,20 +41,19 @@
         </div>
 
         <div class="block">
-          <p class="label">Original</p>
           <div class="original">
             <label
               tuiChip
               size="s"
               class="chip"
               appearance="neutral"
-              [style.background-color]="originalLanguage | tuiAutoColor"
+              [style.background-color]="bookLanguage | tuiAutoColor"
             >
               <input
                 hidden
                 type="checkbox"
               />
-              {{ originalLanguage }}
+              {{ bookLanguage }}
               <p class="inner-text">{{ book.levelFrom }} – {{ book.levelTo }}</p>
             </label>
             <!--          <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>-->
@@ -62,10 +61,24 @@
             <p class="pages">{{ pages }} pages</p>
             •
             <p class="pages">First published in {{ book.publicationYear }}</p>
+            @if (book.isTranslation && originalLanguage) {
+              •
+              <p class="pages">
+                Translated from
+                <tui-chip
+                  class="chip"
+                  appearance="neutral"
+                  [style.background-color]="originalLanguage | tuiAutoColor"
+                  (click)="onOriginalLanguageClick()"
+                >
+                  {{ originalLanguage }}
+                </tui-chip>
+              </p>
+            }
           </div>
         </div>
         <div class="block">
-          <p class="label">Parallel translations</p>
+          <p class="label">Also available in</p>
           <div class="translation">
             <div class="parallel">
               <img
@@ -76,7 +89,7 @@
                 [tuiHint]="tooltip"
               />
               <ng-template #tooltip>
-                <div>Parallel mode in a language you understand</div>
+                <div>You can read this book in parallel mode.</div>
               </ng-template>
             </div>
 

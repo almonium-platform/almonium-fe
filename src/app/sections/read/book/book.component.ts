@@ -1,6 +1,6 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
-import {finalize, Subject, takeUntil} from "rxjs";
-import {ActivatedRoute} from "@angular/router";
+import {filter, finalize, of, Subject, takeUntil} from "rxjs";
+import {ActivatedRoute, Router} from "@angular/router";
 import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
@@ -14,7 +14,7 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
 import {Language} from "../../../models/language.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {distinctUntilChanged} from "rxjs/operators";
+import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
@@ -43,7 +43,8 @@ export class BookComponent implements OnInit, OnDestroy {
   protected bookId: number | null = null;
   protected book: Book | null = null;
   protected availableLanguages: string[] = [];
-  protected originalLanguage: string = '';
+  protected bookLanguage: string = "";
+  protected originalLanguage: string | undefined = undefined;
   private supportedLanguages: Language[] = [];
   protected showLangDropdown: boolean = false;
   protected languageSelectControl = new FormControl("Select Language");
@@ -53,6 +54,7 @@ export class BookComponent implements OnInit, OnDestroy {
               private languageNameService: LanguageNameService,
               private readService: ReadService,
               private supportedLanguagesService: SupportedLanguagesService,
+              private router: Router,
               private cdr: ChangeDetectorRef,
   ) {
   }
@@ -71,21 +73,42 @@ export class BookComponent implements OnInit, OnDestroy {
 
     // Extract the 'id' parameter from the route (Path variable)
     this.activatedRoute.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const id = params.get('id');
-        if (id) {
-          this.bookId = +id; // Only set if id is not null
-        } else {
-          this.bookId = null;
-          return;
+      .pipe(
+        map(params => params.get('id')),
+        filter((id): id is string => id !== null),
+        map(id => +id),                          // Convert id string to number
+        distinctUntilChanged(),                  // Only proceed if the ID truly changed
+        switchMap(id => {                        // Switch to the data fetching observable
+          console.log(`Route changed or initial load. Fetching book ID: ${id}`);
+          this.bookId = id; // Update the component's bookId property
+          // Optional: Add loading state indication here
+          return this.readService.getBooksById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
+            catchError(error => {
+              console.error(`Failed to fetch book data for ID ${id}:`, error);
+              this.alertService.open('Failed to load book details.', {appearance: 'error'}).subscribe();
+              this.book = null; // Clear book data on error
+              this.cdr.detectChanges(); // Update view
+              // Optional: Hide loading state indication here
+              return of(null); // Return an observable of null to keep the stream alive
+            })
+          );
+        }),
+        takeUntil(this.destroy$) // Unsubscribe when component is destroyed
+      )
+      .subscribe(book => {
+        // Optional: Hide loading state indication here
+        if (book) {
+          this.book = book;
+          this.bookLanguage = this.languageNameService.getLanguageName(book.language);
+          // Reset original language info before setting new value
+          this.originalLanguage = book.originalLanguage
+            ? this.languageNameService.getLanguageName(book.originalLanguage)
+            : undefined; // Explicitly set to undefined if no original language
+          this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages)
+            .filter(lang => lang !== this.bookLanguage);
+          console.log(`Successfully loaded book: ${book.title}`);
+          this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
         }
-        this.readService.getBooksById(this.bookId, 'EN')
-          .subscribe(book => {
-            this.book = book;
-            this.originalLanguage = this.languageNameService.getLanguageName(book.language);
-            this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages).filter(lang => lang !== this.originalLanguage);
-          });
       });
   }
 
@@ -234,5 +257,18 @@ export class BookComponent implements OnInit, OnDestroy {
 
   getBookmarkColor(): string {
     return this.book && this.book.favorite ? 'orange' : 'grey';
+  }
+
+  onOriginalLanguageClick() {
+    if (!this.book || !this.book.originalId) {
+      console.warn("Original book ID is missing, cannot navigate.");
+      return;
+    }
+    // ONLY navigate. The ngOnInit paramMap subscription will detect the change and fetch data.
+    this.router.navigate([`/book/${this.book.originalId}`]).then(success => {
+      if (!success) {
+        console.error("Navigation failed!");
+      }
+    });
   }
 }

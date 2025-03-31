@@ -20,6 +20,8 @@ export interface Book {
   availableLanguages: LanguageCode[];
   favorite: boolean;
   orderLanguage?: LanguageCode;
+  originalLanguage?: LanguageCode;
+  originalId?: number;
 }
 
 export interface BookshelfView {

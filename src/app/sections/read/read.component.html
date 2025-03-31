@@ -123,7 +123,7 @@
           routerLink="/book/{{ book.id }}"
           class="game-card ladder-card solo-game">
           <div class="game-img ladder-img">
-            @if (book.hasParallelTranslation && !book.progressPercentage) {
+            @if (book.hasTranslation && !book.progressPercentage) {
               <div class="parallel">
                 <img
                   src="../../../assets/img/icons/parallel.svg"
