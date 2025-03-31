@@ -247,7 +247,8 @@ export class BookComponent implements OnInit, OnDestroy {
       return;
     }
     this.orderLoading = true;
-    this.readService.cancelTranslationOrder(this.bookId, language)
+    const id = this.book?.originalId ? this.book?.originalId : this.bookId;
+    this.readService.cancelTranslationOrder(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
       }))
