@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {HttpClient, HttpParams} from "@angular/common/http";
+import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
 import {Book, BookshelfView} from "./book.model";
 import {Observable} from "rxjs";
@@ -53,8 +53,12 @@ export class ReadService {
     return this.http.delete(url, {withCredentials: true});
   }
 
-  loadBook(number: number) {
+  loadBook(number: number): Observable<HttpResponse<ArrayBuffer>> {
     const url = `${AppConstants.BOOKS_URL}/${number}`;
-    return this.http.get<string>(url, {withCredentials: true});
+    return this.http.get(url, {
+      withCredentials: true,
+      responseType: 'arraybuffer',
+      observe: 'response'
+    });
   }
 }

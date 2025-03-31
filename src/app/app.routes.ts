@@ -26,6 +26,7 @@ import {SocialComponent} from "./sections/social/social.component";
 import {ReadComponent} from "./sections/read/read.component";
 import {UserCardComponent} from "./shared/user-card/user-card.component";
 import {BookComponent} from "./sections/read/book/book.component";
+import {ReaderComponent} from "./sections/read/reader/reader.component";
 
 export const routes: Routes = [
   {path: '', component: LandingComponent},
@@ -48,6 +49,7 @@ export const routes: Routes = [
       {path: 'review', component: ReviewComponent},
       {path: 'book/:id', component: BookComponent},
       {path: 'read', component: ReadComponent},
+      {path: 'reader', component: ReaderComponent},
       {path: 'social', component: SocialComponent},
       {
         path: 'settings',

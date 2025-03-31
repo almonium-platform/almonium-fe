@@ -284,4 +284,8 @@ export class BookComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  goToReader() {
+    this.router.navigate([`/reader`]).then();
+  }
 }
