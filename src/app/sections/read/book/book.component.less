@@ -1,179 +1,244 @@
 .base-container {
   align-items: flex-start;
+  gap: 2rem;
 }
 
+/* Left Section (Image and Button) */
 .left-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 25%;
-  height: 100%;
-
-  .action-btn {
-    margin: auto;
-    width: 14rem;
-  }
+  /* Suggest a width, but allow flexibility. Don't let it shrink below basis. */
+  flex: 0 0 250px; /* flex-grow: 0, flex-shrink: 0, flex-basis: 250px */
+  max-width: 100%; /* Prevent overflow before media query */
+  gap: 1.5rem; /* Space between image card and button */
 }
-
-.right-section {
-  width: 75%;
-
-  .description-section {
-    bottom: 0;
-    width: 100%;
-    padding: 10px;
-    gap: .2rem;
-    display: flex;
-    flex-direction: column;
-
-    .block {
-      margin: .5rem 0;
-    }
-
-    .original {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      gap: .5rem;
-
-      //todo extract
-
-      .pages {
-        font-size: 1rem;
-      }
-    }
-
-    .label {
-      font-size: 1rem;
-      margin: .5rem 0;
-      font-weight: 500;
-    }
-
-    .translation {
-      display: flex;
-      gap: .5rem;
-
-      .parallel {
-        position: relative;
-        width: 2.8rem;
-        background: var(--dark-raspberry);
-        border-radius: .5rem;
-        padding: .2rem;
-      }
-
-      .language-select {
-        width: 9rem;
-      }
-
-      .chip {
-        &:hover {
-          cursor: pointer;
-          scale: 1.02;
-        }
-      }
-
-      .edit-chip {
-        --tui-text-action: var(--text-color);
-        --tui-border-normal: var(--text-color);
-        border: 1px dashed var(--text-color);
-        box-shadow: unset;
-
-        &:hover {
-          .inner-text {
-            color: white;
-            border-color: white;
-          }
-        }
-      }
-
-      .edit-chip:hover {
-        background-color: var(--text-color);
-        color: white;
-        cursor: pointer;
-      }
-
-      .edit-chip--no-hover:hover {
-        background-color: transparent; /* Or the original background color */
-        color: inherit; /* Or the original text color */
-        cursor: default; /* Or the original cursor style */
-
-        .inner-text {
-          color: black;
-          border-color: black;
-        }
-      }
-    }
-
-    .rating {
-      margin: .5rem 0;
-      gap: .5rem;
-
-      .bookmark {
-        cursor: pointer;
-      }
-
-      .number {
-        line-height: 1.5;
-      }
-
-      font-size: 1rem;
-      font-weight: 550;
-      display: flex;
-      align-items: center;
-    }
-
-    .title {
-      font-size: 2rem;
-      font-weight: 550;
-      line-height: 1.5;
-    }
-
-    .author {
-      font-size: 1.4rem;
-      line-height: 1.5;
-    }
-
-    .description {
-      margin-top: .5rem;
-      font-size: 1.0rem;
-      line-height: 1.5;
-      display: flex;
-
-      .year {
-        display: inline;
-      }
-    }
-  }
-}
-
 
 .game-card {
   position: relative;
-  margin: 20px;
-  width: 14rem;
-  height: 22rem;
+  width: 100%; /* Fill the width allowed by left-section's flex-basis */
+  max-width: 14rem; /* Limit the maximum size */
+  /* --- Aspect Ratio --- */
+  /* Choose an aspect ratio common for book covers (e.g., 2:3, 6:9) */
+  /* This replaces the fixed height and maintains proportions */
+  aspect-ratio: 2 / 3;
   border-radius: 1.5rem;
   box-shadow: 0 2px 5px 1px rgba(0, 0, 0, .15);
   text-decoration: none;
   color: #282626;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden; /* Keep this to clip the image */
+  display: block; /* Use block instead of flex if it just contains the img div */
 }
 
 .game-img {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  display: block; /* Can simplify if it only holds the img */
 }
 
 .game-img img {
+  display: block; /* Remove potential extra space */
   width: 100%;
   height: 100%;
+  /* Cover ensures the image fills the aspect-ratio container, cropping if necessary */
   object-fit: cover;
+}
+
+.action-btn {
+  /* Button takes full width of its container up to a max */
+  width: 100%;
+  max-width: 14rem; /* Match the image card's max-width */
+  /* margin: auto; /* No longer needed due to align-items: center on parent */
+}
+
+/* Right Section (Details) */
+.right-section {
+  flex: 1; /* Takes remaining horizontal space */
+  min-width: 0; /* Prevents content overflow issues in flex items */
+  display: flex; /* Use flex for description section alignment if needed */
+  flex-direction: column; /* Ensure content stacks vertically */
+}
+
+.description-section {
+  /* Removed fixed positioning/width */
+  /* padding: 10px; /* Keep padding if desired, or handle via parent */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Consistent vertical spacing between elements */
+  width: 100%; /* Ensure it fills the right section */
+}
+
+.original {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+  justify-content: flex-start;
+  align-items: center;
+  gap: .5rem;
+}
+
+.pages {
+  font-size: 1rem;
+  white-space: nowrap; /* Prevent page/year text from wrapping */
+}
+
+.label {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: .25rem; /* Small space before the content */
+}
+
+.translation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+
+.parallel {
+  width: 2.8rem; /* Keep fixed size */
+  height: 2rem; /* Make it square if the icon is */
+  background: var(--dark-raspberry);
+  border-radius: .5rem;
+  padding: .2rem;
+  display: flex; /* Center icon */
+  align-items: center; /* Center icon */
+  justify-content: center; /* Center icon */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.parallel img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.language-select {
+  width: 9rem; /* Keep specific width */
+}
+
+.chip {
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* Specific chip styles */
+.edit-chip {
+  --tui-text-action: var(--text-color);
+  --tui-border-normal: var(--text-color);
+  border: 1px dashed var(--text-color);
+  box-shadow: unset;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+
+  &:hover:not(.edit-chip--no-hover) { /* Target only hoverable ones */
+    background-color: var(--text-color);
+    color: white !important; /* Use important if needed to override tui */
+    border-color: var(--text-color);
+    cursor: pointer;
+
+    /* Target potential inner text elements if needed */
+
+    .inner-text {
+      color: white !important;
+    }
+
+    lucide-icon {
+      stroke: white !important; /* Assuming lucide uses stroke */
+    }
+  }
+}
+
+/* Style for the non-hoverable ORDERED chip */
+.edit-chip--no-hover {
+  cursor: default;
+  /* Override hover styles if necessary */
+}
+
+/* Rating section */
+.rating {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap; /* Allow wrapping if needed */
+}
+
+.bookmark {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.number {
+  line-height: 1.5;
+  font-size: 1rem;
+  font-weight: 550;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 550;
+  line-height: 1.3;
+}
+
+.author {
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: #555; /* Slightly muted author color */
+}
+
+.description {
+  font-size: 1.0rem;
+  line-height: 1.6; /* More line height for readability */
+}
+
+.description p {
+  margin: 0; /* Remove default paragraph margin if description-section handles spacing */
 }
 
 .inner-text {
   font-size: 0.7rem;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .base-container {
+    flex-direction: column; /* Stack sections vertically */
+    align-items: center; /* Center items horizontally */
+    padding: 15px; /* Adjust padding for mobile */
+    gap: 1.5rem; /* Adjust gap for vertical stacking */
+  }
+
+  .left-section {
+    flex-basis: auto; /* Reset flex basis */
+    width: 100%; /* Take full width */
+    /* max-width: 280px; /* Optional: constrain max width on mobile */
+    order: 1; /* Keep image/button first */
+  }
+
+  .right-section {
+    flex-basis: auto; /* Reset flex basis */
+    width: 100%; /* Take full width */
+    order: 2; /* Details second */
+  }
+
+  .description-section {
+    gap: 0.8rem; /* Slightly reduce gap */
+    padding: 0; /* Remove padding if base-container handles it */
+  }
+
+  .title {
+    font-size: 1.7rem; /* Adjust title size */
+  }
+
+  .author {
+    font-size: 1.2rem; /* Adjust author size */
+  }
+
+  .game-card,
+  .action-btn {
+    max-width: 12rem;
+  }
 }
