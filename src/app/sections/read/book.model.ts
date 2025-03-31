@@ -22,6 +22,7 @@ export interface Book {
   orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
   originalId?: number;
+  translator?: string;
 }
 
 export interface BookshelfView {
