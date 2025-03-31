@@ -23,8 +23,8 @@ export class ReadService {
     return this.http.get<BookshelfView>(url, {params, withCredentials: true});
   }
 
-  getBooksById(id: number, language: string): Observable<Book> {
-    const url = `${AppConstants.BOOKS_URL}/language/${language}/${id}`;
+  getBooksById(bookId: number, language: string): Observable<Book> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
     return this.http.get<Book>(url, {withCredentials: true});
   }
 
@@ -51,5 +51,10 @@ export class ReadService {
   deleteProgress(id: number, lang: LanguageCode): Observable<any> {
     const url = `${AppConstants.BOOKS_URL}/language/${lang}/${id}/progress`;
     return this.http.delete(url, {withCredentials: true});
+  }
+
+  loadBook(number: number) {
+    const url = `${AppConstants.BOOKS_URL}/${number}`;
+    return this.http.get<string>(url, {withCredentials: true});
   }
 }
