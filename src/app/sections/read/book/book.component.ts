@@ -170,7 +170,8 @@ export class BookComponent implements OnInit, OnDestroy {
     }
     this.showLangDropdown = false;
     this.orderLoading = true;
-    this.readService.orderTranslation(this.bookId, language)
+    const id = this.book?.originalId ? this.book?.originalId : this.bookId;
+    this.readService.orderTranslation(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
         this.languageSelectControl.setValue("Select Language");
