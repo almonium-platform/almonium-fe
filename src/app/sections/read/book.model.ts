@@ -17,12 +17,17 @@ export interface Book {
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
   description: string;
-  availableLanguages: LanguageCode[];
+  availableLanguages: BookMini[];
   favorite: boolean;
   orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
   originalId?: number;
   translator?: string;
+}
+
+export interface BookMini {
+  id: number;
+  language: string;
 }
 
 export interface BookshelfView {

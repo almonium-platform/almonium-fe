@@ -104,7 +104,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.originalLanguage = book.originalLanguage
             ? this.languageNameService.getLanguageName(book.originalLanguage)
             : undefined; // Explicitly set to undefined if no original language
-          this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages)
+          this.availableLanguages = this.languageNameService.getLanguageNames(book.availableLanguages.map(t => t.language))
             .filter(lang => lang !== this.bookLanguage);
           console.log(`Successfully loaded book: ${book.title}`);
           this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
@@ -138,12 +138,18 @@ export class BookComponent implements OnInit, OnDestroy {
 
   get languagesAvailableForOrder(): string[] {
     return this.supportedLanguages
-      .filter(lang => !this.book?.availableLanguages.includes(lang.code))
+      .filter(lang => !this.book?.availableLanguages.map(t => t.language).includes(lang.code))
       .map(lang => lang.name);
   }
 
   onTranslatedLanguageClick(language: string) {
-    console.log(`Language clicked: ${language}`);
+    const lang = this.languageNameService.getLanguageCode(language)
+    const bookIdInThisLanguage = this.book?.availableLanguages.find(t => t.language === lang)?.id;
+    if (!bookIdInThisLanguage) {
+      console.error("Book ID in this language not found");
+      return;
+    }
+    this.navigateToId(bookIdInThisLanguage)
   }
 
   openLanguageDropdown() {
@@ -265,8 +271,12 @@ export class BookComponent implements OnInit, OnDestroy {
       console.warn("Original book ID is missing, cannot navigate.");
       return;
     }
-    // ONLY navigate. The ngOnInit paramMap subscription will detect the change and fetch data.
-    this.router.navigate([`/book/${this.book.originalId}`]).then(success => {
+
+    this.navigateToId(this.book.originalId);
+  }
+
+  private navigateToId(id: number) {
+    this.router.navigate([`/book/${id}`]).then(success => {
       if (!success) {
         console.error("Navigation failed!");
       }
