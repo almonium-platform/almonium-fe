@@ -18,6 +18,7 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiSliderComponent} from "@taiga-ui/kit";
 import {ActivatedRoute, Router} from "@angular/router";
+import {BookMini} from "../book.model";
 
 @Component({
   selector: 'app-reader',
@@ -69,6 +70,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private singleLineHeightEstimate: number = 20; // Estimated height of a single line (will be updated)
   private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
 
+  private parallelVersions: BookMini[] = [];
+
   constructor(
     private cdRef: ChangeDetectorRef,
     private readService: ReadService,
@@ -82,9 +85,21 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupResizeListener();
     this.setupSliderListener();
     this.route.params.subscribe(params => {
-      this.bookId = params['id'];
-      if (params['id']) {
-        this.loadBook(params['id']);
+      const bookId = params['id'];
+      this.bookId = bookId;
+      if (bookId) {
+        this.loadBook(bookId);
+        this.readService.getBookById(bookId, 'EN').subscribe({
+          next: (book) => {
+            if (book) {
+              console.log(JSON.stringify(book));
+              this.parallelVersions = book.availableLanguages;
+            }
+          },
+          error: (error) => {
+            console.error('Error fetching book details:', error);
+          }
+        });
       }
     });
   }

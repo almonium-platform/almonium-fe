@@ -83,7 +83,7 @@ export class BookComponent implements OnInit, OnDestroy {
           console.log(`Route changed or initial load. Fetching book ID: ${id}`);
           this.bookId = id; // Update the component's bookId property
           // Optional: Add loading state indication here
-          return this.readService.getBooksById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
+          return this.readService.getBookById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
             catchError(error => {
               console.error(`Failed to fetch book data for ID ${id}:`, error);
               this.alertService.open('Failed to load book details.', {appearance: 'error'}).subscribe();

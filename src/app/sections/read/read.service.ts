@@ -23,7 +23,7 @@ export class ReadService {
     return this.http.get<BookshelfView>(url, {params, withCredentials: true});
   }
 
-  getBooksById(bookId: number, language: string): Observable<Book> {
+  getBookById(bookId: number, language: string): Observable<Book> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
     return this.http.get<Book>(url, {withCredentials: true});
   }
