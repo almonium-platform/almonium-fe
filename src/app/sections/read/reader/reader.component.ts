@@ -536,12 +536,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       // Apply markdown-like styling *after* escaping
       .replace(/_(.*?)_/gs, '<em>$1</em>')        // Italic
       .replace(/\*(.*?)\*/gs, '<strong>$1</strong>') // Bold (use * instead of **)
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')     // H3
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')     // H2
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')      // H1
-      .replace(/^---$/gm, '<hr>')                   // Horizontal Rule (ensure it's alone on line)
-      .replace(/—/g, '—')                   // Em dash
-      .replace(/[“”]/g, '"');                     // Smart quotes to standard
+      .replace(/—/g, ' — ')                   // Em dash
     // No need to handle \n here, CSS `white-space: pre-line` does that.
   }
 
