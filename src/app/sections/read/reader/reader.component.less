@@ -119,12 +119,12 @@
 .pagination-controls {
   flex-shrink: 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 10px 0;
   border-top: 1px solid #eee;
   user-select: none;
   margin-top: 10px;
+  justify-content: center;
 
   .pagination-button {
     background-color: var(--button-bg);
@@ -153,7 +153,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-grow: 1; // Allow center area to take up space
     margin: 0 10px; // Spacing around center area
     min-width: 150px; // Ensure it doesn't collapse too much
   }
@@ -168,45 +167,7 @@
   }
 
   .page-slider {
-    width: 100%; // Fill available space in center area
-    max-width: 300px; // Max width for slider
-    height: 8px;
-    cursor: pointer;
-    appearance: none;
-    background: var(--slider-track-bg);
-    border-radius: 4px;
-    outline: none;
-    opacity: 0.9;
-    transition: opacity 0.2s;
-
-    &:hover:not(:disabled) {
-      opacity: 1;
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.4;
-    }
-
-    // --- Slider Thumb Styles ---
-    &::-webkit-slider-thumb {
-      appearance: none;
-      width: 16px;
-      height: 16px;
-      background: var(--slider-thumb-bg);
-      border-radius: 50%;
-      border: none; // Removed border for potentially smoother look
-      box-shadow: 0 0 2px rgba(0, 0, 0, 0.5); // Optional subtle shadow
-    }
-
-    &::-moz-range-thumb {
-      width: 16px;
-      height: 16px;
-      background: var(--slider-thumb-bg);
-      border-radius: 50%;
-      border: none;
-      box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-    }
+    flex-grow: 1;
   }
 }
 

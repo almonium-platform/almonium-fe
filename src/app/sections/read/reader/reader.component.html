@@ -32,26 +32,26 @@
     </app-button>
 
     <div class="pagination-center-area">
-      <span class="pagination-info">
-          <!-- Show page number consistently -->
-          Page {{ currentPage }} of {{ totalPages }}
-        <!-- Optionally show line index in scroll mode for debugging -->
-        <!-- <span *ngIf="scrollingMode"> (Line: {{ topVisibleLineIndex }})</span> -->
-      </span>
-      <!-- Slider reflects currentPage, which is calculated differently in each mode -->
-      <input type="range" class="page-slider"
-             [min]="1"
-             [max]="totalPages"
-             [ngModel]="currentPage"
-             (input)="onSliderInput($event)"
-             (change)="onSliderChange($event)"
-             [disabled]="totalPages <= 1"
-             aria-label="Page Slider"/>
+
+      <div>
+        <input type="range"
+               class="page-slider"
+               tuiSlider
+               [min]="1"
+               [max]="totalPages"
+               [ngModel]="currentPage"
+               (input)="onSliderInput($event)"
+               (change)="onSliderChange($event)"
+               [disabled]="totalPages <= 1"
+               aria-label="Page Slider"/>
+        <span class="pagination-info">
+            Page {{ currentPage }} of {{ totalPages }}</span>
+      </div>
     </div>
 
-    <button type="button" (click)="toggleScrollMode()" class="pagination-button next-button">
-      {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}
-    </button>
+    <!--    <button type="button" (click)="toggleScrollMode()" class="pagination-button next-button">-->
+    <!--      {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}-->
+    <!--    </button>-->
 
     <app-button
       appearance="text"

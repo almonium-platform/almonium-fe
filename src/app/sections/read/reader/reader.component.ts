@@ -17,11 +17,12 @@ import {Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
+import {TuiSliderComponent} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-reader',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedLucideIconsModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, SharedLucideIconsModule, ButtonComponent, TuiSliderComponent],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
 })
