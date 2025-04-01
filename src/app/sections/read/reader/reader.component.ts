@@ -15,11 +15,13 @@ import {FormsModule} from '@angular/forms';
 import {TuiAlertService} from '@taiga-ui/core';
 import {Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
+import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
+import {ButtonComponent} from "../../../shared/button/button.component";
 
 @Component({
   selector: 'app-reader',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, SharedLucideIconsModule, ButtonComponent],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
 })
