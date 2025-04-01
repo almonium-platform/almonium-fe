@@ -73,7 +73,6 @@
   flex-grow: 1; // Allow wrapper to fill space between button and controls
   overflow: hidden; // CRITICAL: Disable native scrollbar always now
   position: relative; // Needed? Maybe not.
-  //margin-bottom: 15px; // Space before controls
 }
 
 // --- Reader Content ---
@@ -82,6 +81,7 @@
   line-height: 1.6; // Base line height
   white-space: pre-line; // Keep this if you rely on \n for line breaks in source
   padding: 5px; // Internal padding for text
+  width: fit-content;
   // No height manipulation here, let content flow naturally within its slice
 
   // Ensure headers/hr have appropriate spacing when using transformMarkdown
