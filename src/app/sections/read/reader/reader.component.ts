@@ -1,21 +1,21 @@
 import {
-  Component,
-  OnInit,
-  ElementRef,
-  ViewChild,
-  HostListener,
   AfterViewInit,
   ChangeDetectorRef,
-  OnDestroy,
+  Component,
+  ElementRef,
+  HostListener,
   inject,
-  Renderer2 // Import Renderer2 for listening to scroll events
+  OnDestroy,
+  OnInit,
+  Renderer2,
+  ViewChild
 } from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TuiAlertService} from '@taiga-ui/core';
-import {Subject, Subscription, fromEvent} from 'rxjs'; // Import fromEvent
-import {debounceTime, takeUntil, distinctUntilChanged, filter, tap} from 'rxjs/operators';
+import {fromEvent, Subject, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged, filter, takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-reader',
@@ -29,13 +29,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readService = inject(ReadService);
   private alertService = inject(TuiAlertService);
   private cdRef = inject(ChangeDetectorRef);
-  private renderer = inject(Renderer2); // Inject Renderer2
+  private renderer = inject(Renderer2);
 
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>; // Assume it's always there now
+  @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
 
   // --- State Properties ---
   protected text: string = '';
@@ -45,29 +45,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected errorMessage: string | null = null;
 
   protected currentPage: number = 1;
-  protected totalPages: number = 1; // Total pages in PAGED mode
+  protected totalPages: number = 1;
   private linesPerPage: number = 10;
-  private calculationNeeded: boolean = true; // For paged mode calculations
+  private calculationNeeded: boolean = true;
   protected scrollingMode: boolean = false;
-  private pageHeightEstimate: number = 0; // Estimated height of a page for scroll tracking
-  private isUpdatingSliderFromScroll = false; // Flag to prevent feedback loop
-  private isUpdatingScrollFromPageChange = false; // Flag to prevent feedback loop
-
+  private pageHeightEstimate: number = 0;
+  private isUpdatingSliderFromScroll = false;
+  private isUpdatingScrollFromPageChange = false; // Also used for slider interaction in scroll mode
 
   // --- RxJS Subjects and Subscriptions ---
   private resizeSubject = new Subject<void>();
   private sliderValueSubject = new Subject<number>();
   private scrollSubscription?: Subscription;
+  private sliderSubscription?: Subscription; // Changed name for clarity
   private destroy$ = new Subject<void>();
 
   // --- Constants ---
   private readonly RESIZE_DEBOUNCE_TIME = 250;
   private readonly SLIDER_DEBOUNCE_TIME = 150;
-  private readonly SCROLL_DEBOUNCE_TIME = 100; // Debounce scroll events
-
+  private readonly SCROLL_DEBOUNCE_TIME = 100;
 
   // --- Lifecycle Hooks ---
-
   ngOnInit(): void {
     this.loadBook();
     this.setupResizeListener();
@@ -75,92 +73,100 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Delay initial calculation slightly
     setTimeout(() => {
       if (!this.isLoading && this.lines.length > 0) {
-        console.log("ngAfterViewInit: Triggering initial calculation/display.");
-        this.updateDisplay(this.scrollingMode ? 1 : this.currentPage); // Recalc/display based on mode
-        this.setupScrollListener(); // Setup scroll listener AFTER view init
+        console.log("ngAfterViewInit: Triggering initial display.");
+        // Pass initial page correctly, respect existing mode if component re-inits
+        this.updateDisplay(this.currentPage);
+        this.setupScrollListener();
       } else {
         console.log("ngAfterViewInit: Waiting for book load or no lines.");
       }
-    }, 50); // Slightly longer delay might help ensure layout stability
+    }, 50);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.scrollSubscription?.unsubscribe(); // Clean up scroll listener
+    this.scrollSubscription?.unsubscribe();
+    this.sliderSubscription?.unsubscribe();
   }
 
   // --- Event Listeners ---
-
   @HostListener('window:resize')
   onWindowResize(): void {
     this.resizeSubject.next();
   }
 
   // --- Core Logic ---
-
   private setupResizeListener(): void {
-    this.resizeSubject
-      .pipe(
-        debounceTime(this.RESIZE_DEBOUNCE_TIME),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(() => {
-        console.log('Window resized...');
-        // Always mark calculation as needed on resize, will only apply to paged mode
-        this.calculationNeeded = true;
-        this.updateDisplay(this.currentPage); // Update display, recalculates if needed
-        // No need for manual cdRef.detectChanges() here typically
-      });
-  }
-
-  private setupSliderListener(): void {
-    this.sliderValueSubject.pipe(
-      debounceTime(this.SLIDER_DEBOUNCE_TIME),
-      distinctUntilChanged(),
-      filter(() => !this.scrollingMode), // Only process slider input if NOT scrolling
+    this.resizeSubject.pipe(
+      debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
-    ).subscribe(page => {
-      console.log(`Slider debounced value: ${page}`);
-      this.goToPage(page);
+    ).subscribe(() => {
+      console.log('Window resized...');
+      this.calculationNeeded = true; // Recalculate needed for paged mode
+      this.updateDisplay(this.currentPage); // Update display, recalculates paged if needed
     });
   }
 
+  // --- Slider Setup --- (Fix Bug 1)
+  private setupSliderListener(): void {
+    if (this.sliderSubscription) {
+      this.sliderSubscription.unsubscribe();
+    } // Cleanup previous if any
+
+    this.sliderSubscription = this.sliderValueSubject.pipe(
+      debounceTime(this.SLIDER_DEBOUNCE_TIME),
+      distinctUntilChanged(),
+      // filter(() => !this.isUpdatingSliderFromScroll), // Prevent feedback from scroll updating slider (we might need this flag)
+      takeUntil(this.destroy$)
+    ).subscribe(page => {
+      console.log(`Slider debounced value: ${page}`);
+      // Decide action based on mode
+      if (this.scrollingMode) {
+        // Avoid fighting scroll listener if it just updated the slider
+        if (!this.isUpdatingSliderFromScroll) {
+          console.log(`Slider action: Scrolling to approx page ${page}`);
+          this.scrollToApproximatePage(page);
+        } else {
+          console.log("Slider action skipped: update likely came from scroll event");
+        }
+      } else {
+        console.log(`Slider action: Going to paged page ${page}`);
+        this.goToPage(page); // Navigate paged mode
+      }
+    });
+  }
+
+  // --- Scroll Setup ---
   private setupScrollListener(): void {
     if (this.scrollSubscription) {
-      this.scrollSubscription.unsubscribe(); // Unsubscribe previous listener if any
+      this.scrollSubscription.unsubscribe();
     }
     if (this.readerContentWrapperRef) {
       console.log("Setting up scroll listener on wrapper.");
-      this.scrollSubscription = fromEvent(this.readerContentWrapperRef.nativeElement, 'scroll')
-        .pipe(
-          debounceTime(this.SCROLL_DEBOUNCE_TIME),
-          filter(() => this.scrollingMode && !this.isUpdatingScrollFromPageChange), // Only process if scrolling and not triggered by code
-          takeUntil(this.destroy$)
-        )
-        .subscribe(() => {
-          this.updatePageFromScroll();
-        });
+      this.scrollSubscription = fromEvent(this.readerContentWrapperRef.nativeElement, 'scroll').pipe(
+        debounceTime(this.SCROLL_DEBOUNCE_TIME),
+        filter(() => this.scrollingMode && !this.isUpdatingScrollFromPageChange),
+        takeUntil(this.destroy$)
+      ).subscribe(() => {
+        this.updatePageFromScroll();
+      });
     } else {
       console.warn("Cannot set up scroll listener: readerContentWrapperRef not ready.");
-      // Retry after a short delay?
       setTimeout(() => this.setupScrollListener(), 200);
     }
   }
 
+  // --- Slider Input --- (Fix Bug 1)
   protected onSliderInput(event: Event): void {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (!this.scrollingMode) { // Only push if not scrolling
-      this.sliderValueSubject.next(value);
-    }
+    // Always push to subject, listener decides action based on mode
+    this.sliderValueSubject.next(value);
   }
 
-  protected onSliderChange(event: Event): void {
-    // This could be used for analytics or specific actions on release if needed
-    // Currently handled by the debounced input event.
+  protected onSliderChange(event: Event): void { /* Optional final action */
   }
 
   private loadBook(): void {
@@ -181,7 +187,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.isLoading = false;
           this.calculationNeeded = true; // Mark for calc on first display
 
-          // Use setTimeout to ensure this runs after the current stack, allowing ngAfterViewInit potentially
           setTimeout(() => {
             this.updateDisplay(1); // Update display, which will calculate if needed
             if (!this.scrollSubscription && this.readerContentWrapperRef) {
@@ -212,12 +217,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdRef.detectChanges();
   }
 
-  // --- Main Display Logic (Handles Both Modes) ---
-
+  // --- Main Display Logic ---
   private updateDisplay(targetPage: number): void {
     if (this.isLoading || !this.lines.length || !this.readerContainerRef || !this.readerContentRef || !this.paginationControlsRef) {
       console.warn("updateDisplay skipped: Component not ready or no content/refs.");
-      // Retry might be needed if refs aren't ready
       if (!this.isLoading && this.lines.length > 0 && (!this.readerContainerRef || !this.paginationControlsRef)) {
         console.log("Retrying updateDisplay shortly...");
         setTimeout(() => this.updateDisplay(targetPage), 100);
@@ -225,106 +228,134 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    console.log(`updateDisplay called for targetPage: ${targetPage}, scrollingMode: ${this.scrollingMode}`);
+
     if (this.scrollingMode) {
-      this.displayScrollingContent();
+      this.displayScrollingContent(targetPage);
     } else {
       this.displayPagedContent(targetPage);
     }
-    // Ensure view updates after potential changes
     this.cdRef.detectChanges();
   }
-
-  private displayScrollingContent(): void {
+  // --- Scrolling Content --- (Fix Bug 2)
+  private displayScrollingContent(scrollToPage: number): void {
     console.log("Displaying in Scrolling Mode");
-    this.text = this.transformMarkdown(this.lines.join('\n'));
-    // Keep totalPages from paged mode for estimates, but currentPage is dynamic
-    this.calculationNeeded = false; // Calculation is irrelevant here
+    const fullRenderedText = this.transformMarkdown(this.lines.join('\n'));
+    // Only update innerHTML if it actually changed
+    if (this.text !== fullRenderedText) {
+      this.text = fullRenderedText;
+      // We MUST wait until Angular renders this full text before scrolling
+      setTimeout(() => {
+        this.estimatePageHeightIfNeeded(); // Ensure estimate exists
+        this.scrollToApproximatePage(scrollToPage); // Scroll to the target page
+        // Update current page based on final scroll position after programmatic scroll
+        setTimeout(() => this.updatePageFromScroll(), 350); // Allow smooth scroll time
+      }, 0); // Execute after render cycle
+    } else {
+      // Text didn't change, just ensure scroll position is right
+      this.estimatePageHeightIfNeeded();
+      this.scrollToApproximatePage(scrollToPage);
+      setTimeout(() => this.updatePageFromScroll(), 350);
+    }
+    this.calculationNeeded = false;
+  }
 
-    // Estimate page height if needed (perhaps based on last paged calculation)
+  // Helper to consolidate estimation logic
+  private estimatePageHeightIfNeeded(): void {
     if (this.pageHeightEstimate <= 0 && this.linesPerPage > 0 && this.readerContentWrapperRef) {
-      // Rough estimate: Use wrapper height (minus buffer) or previous linesPerPage logic
       const wrapperHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
       if (wrapperHeight > 0) {
-        this.pageHeightEstimate = wrapperHeight * 0.95; // Use 95% as a buffer
+        // Use the wrapper height as the estimate (basis for paged mode calc)
+        this.pageHeightEstimate = wrapperHeight;
         console.log(`Estimated page height for scroll: ${this.pageHeightEstimate}`);
       }
+    } else if (this.pageHeightEstimate <= 0) {
+      console.warn("Cannot estimate page height - using fallback.");
+      this.pageHeightEstimate = 500; // Arbitrary fallback
     }
-    // Update page based on current scroll position after content renders
-    setTimeout(() => this.updatePageFromScroll(), 0);
   }
 
+  // --- Paged Content --- (Fix Bug 3)
   private displayPagedContent(targetPage: number): void {
     console.log(`Displaying Paged Content - Target: ${targetPage}`);
-    // Ensure controls are rendered to get height BEFORE calculating available height
-    this.cdRef.detectChanges();
-
-    // Recalculate linesPerPage if needed
+    // Let potential DOM updates from mode switch settle before measuring
+    // setTimeout(() => { // Potential fix: Delay calculation slightly
     if (this.calculationNeeded) {
-      console.log("Recalculating Lines Per Page for Paged Mode...");
-      const containerHeight = this.readerContainerRef.nativeElement.clientHeight;
-      const controlsHeight = this.paginationControlsRef.nativeElement.offsetHeight;
-      const availableHeight = Math.max(20, containerHeight - controlsHeight - 10); // Subtract small buffer for margin/padding
-      console.log(`Paged Calc - ContainerH: ${containerHeight}, ControlsH: ${controlsHeight}, AvailableH: ${availableHeight}`);
-
-
-      if (availableHeight <= 20) {
-        console.warn("Paged calculation skipped: Available height is too small.");
-        this.linesPerPage = 20; // Fallback
-        this.totalPages = Math.max(1, Math.ceil(this.lines.length / this.linesPerPage));
-        // Avoid setting calculationNeeded=false, let resize trigger recalc if layout improves
-      } else {
-        this.linesPerPage = this.determineLinesPerPage(availableHeight);
-        if (this.linesPerPage > 0) {
-          this.totalPages = Math.max(1, Math.ceil(this.lines.length / this.linesPerPage));
-          // Estimate page height based on this calculation for scrolling mode later
-          this.pageHeightEstimate = availableHeight; // Use the calculated available height
-        } else {
-          console.error("determineLinesPerPage returned 0.");
-          this.linesPerPage = this.lines.length || 1;
-          this.totalPages = 1;
-          this.pageHeightEstimate = availableHeight; // Still estimate
-        }
-        this.calculationNeeded = false;
-        console.log(`Paged Calculation complete: linesPerPage=${this.linesPerPage}, totalPages=${this.totalPages}, pageHeightEstimate: ${this.pageHeightEstimate}`);
-      }
+      this.recalculatePagedLayout(); // Perform calculation
     }
 
-    // Set and display the target page
+    if (this.totalPages === 0) { // Guard against calculation failure
+      console.error("Cannot display paged content: totalPages is 0.");
+      return;
+    }
+
     const newPage = Math.max(1, Math.min(targetPage, this.totalPages));
-    if (newPage !== this.currentPage || this.text === '') { // Avoid re-rendering same page unless text is empty
-      this.currentPage = newPage;
-      const startIndex = (this.currentPage - 1) * this.linesPerPage;
-      const endIndex = Math.min(startIndex + this.linesPerPage, this.lines.length);
-      const pageLines = this.lines.slice(startIndex, endIndex);
-      this.text = this.transformMarkdown(pageLines.join('\n'));
-      console.log(`Displaying Page ${this.currentPage} of ${this.totalPages}`);
+    const startIndex = (newPage - 1) * this.linesPerPage;
+    const endIndex = Math.min(startIndex + this.linesPerPage, this.lines.length);
+    const pageLines = this.lines.slice(startIndex, endIndex);
+    const newText = this.transformMarkdown(pageLines.join('\n'));
 
-      // Scroll content wrapper to top when changing pages in paged mode
-      if (this.readerContentWrapperRef) {
-        this.readerContentWrapperRef.nativeElement.scrollTop = 0;
-      }
+    console.log(`Target Page: ${targetPage}, New Page: ${newPage}, Current Page: ${this.currentPage}, New Text Empty: ${!newText}`);
 
-    } else {
-      console.log(`Already on page ${this.currentPage}. No content update needed.`);
+    // Update text and current page *before* detectChanges
+    this.currentPage = newPage;
+    this.text = newText;
+
+    // Scroll wrapper to top
+    if (this.readerContentWrapperRef) {
+      this.readerContentWrapperRef.nativeElement.scrollTop = 0;
     }
 
-    // Ensure slider reflects the current page in paged mode
-    // This might need adjustment if using ngModel directly causes issues
-    // setTimeout(() => { if (!this.scrollingMode) { /* update slider if needed */ } }, 0);
+    // Explicitly trigger change detection *after* text update (Fix Bug 3)
+    this.cdRef.detectChanges();
+    // Sometimes an extra tick helps after major DOM change like mode switch
+    // setTimeout(() => this.cdRef.detectChanges(), 0);
 
+
+    // }, 0); // End of potential setTimeout wrapper
   }
 
-  // Binary search to find lines that fit in availableHeight
+  // Extracted calculation logic for clarity
+  private recalculatePagedLayout(): void {
+    console.log("Recalculating Lines Per Page for Paged Mode...");
+    if (!this.readerContainerRef || !this.paginationControlsRef) {
+      console.error("Cannot calculate layout - missing container or controls ref.");
+      this.totalPages = 1; // Prevent errors, but layout is broken
+      return;
+    }
+    const containerHeight = this.readerContainerRef.nativeElement.clientHeight;
+    let controlsHeight = this.paginationControlsRef.nativeElement.offsetHeight;
+    // Ensure controlsHeight is reasonable
+    if (controlsHeight <= 0 || controlsHeight > containerHeight / 2) {
+      console.warn(`Unusual controls height: ${controlsHeight}, estimating.`);
+      // Estimate based on font size or use a fixed fallback
+      controlsHeight = 40; // Adjust this fallback as needed
+    }
+    const availableHeight = Math.max(20, containerHeight - controlsHeight - 10);
+    console.log(`Paged Calc - ContainerH: ${containerHeight}, ControlsH: ${controlsHeight}, AvailableH: ${availableHeight}`);
+
+    if (availableHeight <= 20) {
+      console.warn("Paged calculation skipped: Available height is too small.");
+      this.linesPerPage = 20;
+      this.totalPages = Math.max(1, Math.ceil(this.lines.length / this.linesPerPage));
+    } else {
+      this.linesPerPage = this.determineLinesPerPage(availableHeight);
+      console.log(`Paged Calc - Lines Per Page: ${this.linesPerPage}`);
+      this.pageHeightEstimate = availableHeight; // Update estimate based on paged calc
+      this.totalPages = Math.max(1, Math.ceil(this.lines.length / (this.linesPerPage || 1))); // Avoid division by zero
+    }
+    this.calculationNeeded = false;
+    console.log(`Paged Calculation complete: linesPerPage=${this.linesPerPage}, totalPages=${this.totalPages}, pageHeightEstimate: ${this.pageHeightEstimate}`);
+  }
+
+
+  // Binary search (remains the same)
   private determineLinesPerPage(availableHeight: number): number {
-    // ... (Binary search implementation remains the same as previous version)
     const contentElement = this.readerContentRef.nativeElement;
     if (!this.lines.length || availableHeight <= 0) return 1;
-
     let low = 1, high = this.lines.length, bestFit = 1;
-
-    contentElement.innerHTML = ''; // Clear
-    contentElement.offsetHeight; // Reflow
-
+    contentElement.innerHTML = '';
+    contentElement.offsetHeight; // Clear & reflow
     // Check if all fit
     contentElement.innerHTML = this.transformMarkdown(this.lines.join('\n'));
     contentElement.offsetHeight;
@@ -332,17 +363,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       contentElement.innerHTML = '';
       return this.lines.length || 1;
     }
-
     // Binary search
     while (low <= high) {
       const mid = Math.floor(low + (high - low) / 2);
       if (mid === 0) break;
-
       const testLines = this.lines.slice(0, mid);
       contentElement.innerHTML = this.transformMarkdown(testLines.join('\n'));
       contentElement.offsetHeight;
       const measuredHeight = contentElement.scrollHeight;
-
       if (measuredHeight <= availableHeight) {
         bestFit = mid;
         low = mid + 1;
@@ -354,63 +382,62 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(1, bestFit);
   }
 
-
   // --- Scroll Position Handling ---
-
   private updatePageFromScroll(): void {
-    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) {
-      return; // Only relevant in scrolling mode with valid refs/estimate
-    }
+    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) return;
 
     const wrapper = this.readerContentWrapperRef.nativeElement;
     const scrollTop = wrapper.scrollTop;
-    const scrollHeight = wrapper.scrollHeight; // Use wrapper's scrollHeight
     const clientHeight = wrapper.clientHeight;
+    // Use scrollHeight of the *content* for total size, not wrapper (unless they are same)
+    // const scrollHeight = this.readerContentRef.nativeElement.scrollHeight;
+    const scrollHeight = wrapper.scrollHeight; // Stick with wrapper scrollHeight for consistency with estimate
+    console.log(`Scroll detected - ScrollTop: ${scrollTop}, ClientHeight: ${clientHeight}, ScrollHeight: ${scrollHeight}`);
 
-    // Calculate current page based on scroll position relative to estimated page height
-    // Add half a clientHeight to center the "current page" logic slightly
+    // Avoid calculation if scrollHeight is invalid
+    if (scrollHeight <= clientHeight) {
+      this.currentPage = 1; // Assume page 1 if content doesn't fill wrapper
+      this.cdRef.detectChanges();
+      return;
+    }
+
+    // Estimate page based on center of viewport
     let calculatedPage = Math.floor((scrollTop + clientHeight / 2) / this.pageHeightEstimate) + 1;
-
-    // Clamp page number within valid range (1 to totalPages calculated in paged mode)
-    calculatedPage = Math.max(1, Math.min(calculatedPage, this.totalPages));
-
+    calculatedPage = Math.max(1, Math.min(calculatedPage, this.totalPages)); // Clamp using paged totalPages
 
     if (calculatedPage !== this.currentPage) {
       console.log(`Scroll detected page change: ${this.currentPage} -> ${calculatedPage} (ScrollTop: ${scrollTop.toFixed(0)})`);
-      this.isUpdatingSliderFromScroll = true; // Prevent slider feedback loop
+      this.isUpdatingSliderFromScroll = true; // Set flag
       this.currentPage = calculatedPage;
-      this.cdRef.detectChanges(); // Update the displayed page number
-      // Reset flag after timeout
-      setTimeout(() => this.isUpdatingSliderFromScroll = false, 0);
+      this.cdRef.detectChanges(); // Update UI (slider + page number)
+      // Reset flag slightly later so slider listener can ignore this update
+      setTimeout(() => this.isUpdatingSliderFromScroll = false, 50); // Shorter timeout okay here
     }
   }
 
   private scrollToApproximatePage(pageNumber: number): void {
-    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) {
-      return;
-    }
+    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) return;
     console.log(`Scrolling to approximate page: ${pageNumber}`);
-    const targetScrollTop = (pageNumber - 1) * this.pageHeightEstimate;
+    // Ensure page number is valid
+    const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages));
+    const targetScrollTop = (targetPage - 1) * this.pageHeightEstimate;
     const wrapper = this.readerContentWrapperRef.nativeElement;
 
-    this.isUpdatingScrollFromPageChange = true; // Set flag before scrolling
-    wrapper.scrollTo({
-      top: targetScrollTop,
-      behavior: 'smooth' // Or 'auto' for instant jump
-    });
-
-    // Reset the flag after scrolling likely initiated
-    // A more robust solution might involve listening for scroll end, but this is simpler
-    setTimeout(() => this.isUpdatingScrollFromPageChange = false, 300); // Adjust timeout based on smooth scroll duration
+    this.isUpdatingScrollFromPageChange = true;
+    wrapper.scrollTo({top: targetScrollTop, behavior: 'smooth'});
+    // Update currentPage immediately for visual feedback, scroll listener will refine if needed
+    if (targetPage !== this.currentPage) {
+      this.currentPage = targetPage;
+      this.cdRef.detectChanges(); // Update slider/text immediately
+    }
+    setTimeout(() => this.isUpdatingScrollFromPageChange = false, 400); // Allow generous time for smooth scroll
   }
 
-  // --- Navigation and Mode Toggling ---
-
+  // --- Navigation ---
   protected nextPage(): void {
     if (this.scrollingMode) {
       const nextPage = Math.min(this.totalPages, this.currentPage + 1);
       this.scrollToApproximatePage(nextPage);
-      // updatePageFromScroll will update currentPage after scroll if needed
     } else if (this.currentPage < this.totalPages) {
       this.goToPage(this.currentPage + 1);
     }
@@ -420,66 +447,56 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.scrollingMode) {
       const prevPage = Math.max(1, this.currentPage - 1);
       this.scrollToApproximatePage(prevPage);
-      // updatePageFromScroll will update currentPage after scroll if needed
     } else if (this.currentPage > 1) {
       this.goToPage(this.currentPage - 1);
     }
   }
 
-  // Only used directly in PAGED mode now
+  // Paged mode navigation only
   protected goToPage(pageNumber: number): void {
-    if (this.scrollingMode) return; // Should not be called in scroll mode
+    if (this.scrollingMode) {
+      console.warn("goToPage called directly in scrolling mode - should use scrollToApproximatePage");
+      this.scrollToApproximatePage(pageNumber); // Attempt to handle it
+      return;
+    }
 
-    const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages));
+    const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages || 1));
     console.log(`goToPage (Paged): ${targetPage}`);
     this.updateDisplay(targetPage);
   }
 
-
+  // --- Mode Toggle --- (Fix Bug 2 & 3)
   protected toggleScrollMode(): void {
+    const pageBeforeToggle = this.currentPage; // Remember page before switching
     this.scrollingMode = !this.scrollingMode;
-    console.log(`Toggled Scrolling Mode: ${this.scrollingMode}`);
-    this.calculationNeeded = !this.scrollingMode; // Need calculation if switching TO paged mode
+    console.log(`Toggled Scrolling Mode: ${this.scrollingMode}. Was on page ${pageBeforeToggle}`);
+    this.calculationNeeded = !this.scrollingMode; // Need calculation if switching TO paged
 
-    // Reset scroll position when switching modes
-    if (this.readerContentWrapperRef) {
-      this.readerContentWrapperRef.nativeElement.scrollTop = 0;
-    }
+    // Don't reset scroll explicitly here - let updateDisplay handle it
+    // if (this.readerContentWrapperRef) { this.readerContentWrapperRef.nativeElement.scrollTop = 0; }
 
-    // Update the display based on the new mode
-    // If switching TO scrolling, go to page 1 conceptually (top)
-    // If switching TO paged, stay on the currentPage we were tracking
-    this.updateDisplay(this.scrollingMode ? 1 : this.currentPage);
+    // Update display, passing the page we want to be on *after* the switch
+    this.updateDisplay(pageBeforeToggle);
 
-    // Re-setup listener if needed (might have failed before if ref wasn't ready)
     if (!this.scrollSubscription) {
       this.setupScrollListener();
     }
   }
 
-  // --- Utility ---
-  private transformMarkdown(text: string): string {
-    // ... (markdown transformations remain the same) ...
-    return text
-      .replace(/_(.*?)_/gs, '<em>$1</em>')
-      .replace(/\*(.*?)\*/gs, '<strong>$1</strong>')
-      .replace(/---/g, '<hr>') // Example: Horizontal rule
-      .replace(/#{1,6}\s+(.*)/g, (match, p1) => { // Example: Basic Headers
-        const level = match.indexOf(' ');
-        return `<h${level}>${p1}</h${level}>`;
-      })
-      .replace(/—/g, ' — ')
-      .replace(/[“”]/g, '"'); // Replace both quote types
+  // --- Utilities ---
+  private transformMarkdown(text: string): string { /* ... remains the same ... */
+    return text.replace(/_(.*?)_/gs, '<em>$1</em>').replace(/\*(.*?)\*/gs, '<strong>$1</strong>').replace(/---/g, '<hr>').replace(/#{1,6}\s+(.*)/g, (match, p1) => {
+      const level = match.indexOf(' ');
+      return `<h${level}>${p1}</h${level}>`
+    }).replace(/—/g, ' — ').replace(/[“”]/g, '"');
   }
 
-  private arrayBufferToString(buffer: ArrayBuffer): string {
-    // ... (decoding remains the same) ...
+  private arrayBufferToString(buffer: ArrayBuffer): string { /* ... remains the same ... */
     try {
-      const decoder = new TextDecoder('utf-8', {fatal: true}); // Be strict about encoding
+      const decoder = new TextDecoder('utf-8', {fatal: true});
       return decoder.decode(buffer);
     } catch (e) {
-      console.error("Failed to decode UTF-8, trying fallback.", e);
-      // Fallback, might garble some characters if not UTF-8
+      console.error("Failed UTF-8 decode", e);
       const decoder = new TextDecoder('windows-1252');
       return decoder.decode(buffer);
     }

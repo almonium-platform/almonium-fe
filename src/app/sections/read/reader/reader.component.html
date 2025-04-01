@@ -1,60 +1,36 @@
-<!-- Add #readerContainer -->
 <div #readerContainer class="reader-container">
 
-  <!-- Scroll Toggle Button (position adjusted in CSS) -->
   <button type="button" (click)="toggleScrollMode()" class="scroll-toggle-button">
     {{ scrollingMode ? 'Switch to Pages' : 'Enable Scrolling' }}
   </button>
 
-  <!-- Loading/Error Indicators -->
   <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
   <div *ngIf="errorMessage && !isLoading" class="error-message">{{ errorMessage }}</div>
 
-  <!-- Content Wrapper: Always present, overflow changes with mode -->
-  <div #readerContentWrapper
-       class="reader-content-wrapper"
-       [class.scrolling-mode-active]="scrollingMode">
+  <div #readerContentWrapper class="reader-content-wrapper" [class.scrolling-mode-active]="scrollingMode">
     <div #readerContent class="reader-content" [innerHTML]="text"></div>
   </div>
 
-  <!-- Pagination Controls: Always present -->
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
 
-    <!-- Prev Button -->
-    <button
-      type="button"
-      (click)="prevPage()"
-      [disabled]="currentPage <= 1 && !scrollingMode"  class="pagination-button prev-button"
-      aria-label="Previous Page">
+    <button type="button" (click)="prevPage()" [disabled]="currentPage <= 1 && !scrollingMode"
+            class="pagination-button prev-button" aria-label="Previous Page">
       < Prev
     </button>
 
-    <!-- Center Area: Text + Slider -->
     <div class="pagination-center-area">
-          <span class="pagination-info">
-              <!-- Show total pages from Paged calculation even in scroll mode for context -->
-              Page {{ currentPage }} of {{ totalPages }}
-          </span>
-      <input
-        type="range"
-        class="page-slider"
-        [min]="1"
-        [max]="totalPages"
-        [ngModel]="currentPage"
-        (input)="onSliderInput($event)"
-        (change)="onSliderChange($event)"
-        [disabled]="scrollingMode || totalPages <= 1"  aria-label="Page Slider"
-      />
+            <span class="pagination-info">
+                Page {{ currentPage }} of {{ totalPages }}
+            </span>
+      <input type="range" class="page-slider" [min]="1" [max]="totalPages" [ngModel]="currentPage"
+             (input)="onSliderInput($event)" (change)="onSliderChange($event)"
+             [disabled]="totalPages <= 1"
+             aria-label="Page Slider"/>
     </div>
 
-    <!-- Next Button -->
-    <button
-      type="button"
-      (click)="nextPage()"
-      [disabled]="currentPage >= totalPages && !scrollingMode" class="pagination-button next-button"
-      aria-label="Next Page">
+    <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages && !scrollingMode"
+            class="pagination-button next-button" aria-label="Next Page">
       Next >
     </button>
-
   </div>
 </div>
