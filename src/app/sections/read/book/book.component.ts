@@ -9,13 +9,14 @@ import {StarRatingComponent} from "../star-rating.component";
 import {TuiChip, TuiDataListWrapperComponent, TuiSkeleton} from "@taiga-ui/kit";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
-import {NgStyle, NgTemplateOutlet} from "@angular/common";
+import {NgStyle} from "@angular/common";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {Language} from "../../../models/language.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
+import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 
 @Component({
   selector: 'app-book',
@@ -33,8 +34,7 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     ReactiveFormsModule,
     NgClickOutsideDirective,
     TuiSkeleton,
-    NgTemplateOutlet,
-
+    ParallelTranslationComponent,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'

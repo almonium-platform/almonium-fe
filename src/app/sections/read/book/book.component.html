@@ -1,17 +1,3 @@
-<ng-template #parallelTranslation>
-  <div class="parallel">
-    <img
-      src="../../../../assets/img/icons/parallel.svg"
-      alt="parallel translation icon"
-      tuiHintAppearance="dark"
-      tuiHintDirection="bottom"
-      [tuiHint]="tooltip"
-    />
-    <ng-template #tooltip>
-      <div>You can read this book in parallel mode.</div>
-    </ng-template>
-  </div>
-</ng-template>
 <div class="base-container">
   @if (book) {
     <div class="left-section">
@@ -92,7 +78,7 @@
 
             </p>
             <div class="translation">
-              <ng-container *ngTemplateOutlet="parallelTranslation"></ng-container>
+              <app-parallel-translation></app-parallel-translation>
               <tui-chip
                 class="chip"
                 appearance="neutral"
@@ -115,7 +101,7 @@
           </p>
           <div class="translation">
             @if (!book.isTranslation) {
-              <ng-container *ngTemplateOutlet="parallelTranslation"></ng-container>
+              <app-parallel-translation></app-parallel-translation>
             }
             @for (language of availableTranslations; track language) {
               <tui-chip
