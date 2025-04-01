@@ -1,5 +1,6 @@
+// --- Variables ---
 :host {
-  --font-family: 'Georgia', serif; // Example serif font
+  --font-family: 'Georgia', serif;
   --text-color: #333;
   --background-color: #f9f9f9;
   --button-bg: #eee;
@@ -7,38 +8,49 @@
   --button-disabled-bg: #f5f5f5;
   --button-disabled-color: #aaa;
   --error-color: #d9534f;
+  --slider-track-bg: #ddd;
+  --slider-thumb-bg: #888;
+  --header-height: 60px;
+  --main-bg-color: #fff;
 
-  height: 100%; // Crucial: Make the component fill its parent height
-  overflow: hidden; // Prevent the *host* from showing scrollbars if content overflows briefly during calc
   display: flex;
-  flex-direction: column; // Stack content and controls vertically
+  flex-direction: column;
+  min-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--main-bg-color);
+  overflow: hidden;
 }
 
+// --- Base Container ---
 .base-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%; // Ensures the container takes the full width of the viewport
-  box-sizing: border-box; // Includes padding in the width calculation
-  background-color: var(--main-bg-color); // Uses the main background color
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--main-bg-color);
   min-height: calc(100vh - 94px);
   padding: 0;
   margin: 0;
 }
 
+// --- Reader Container ---
 .reader-container {
   font-family: var(--font-family);
   color: var(--text-color);
   background-color: var(--background-color);
-  padding: 20px;
-  flex-grow: 1; // Allow container to fill space
+  padding: 15px;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevents container scrollbars, content div handles measurement
-  height: 100%; // Fill the host
+  overflow: hidden;
   box-sizing: border-box;
+  position: relative;
 }
 
+// --- Loading & Error ---
 .loading-indicator,
 .error-message {
   text-align: center;
@@ -51,32 +63,72 @@
   font-weight: bold;
 }
 
-// Wrapper helps isolate the content area for measurement
-.reader-content-wrapper {
-  flex-grow: 1; // Takes up available space above pagination
-  overflow: hidden; // Important: Prevents scrollbars here, we measure its content
-  margin-bottom: 15px; // Space before pagination controls
-  position: relative; // Needed if absolute positioning children later
-  // The height of this wrapper dictates the available space for .reader-content
-  // Its height is determined by flexbox layout within .reader-container
+// --- Scroll Toggle Button ---
+.scroll-toggle-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  z-index: 10;
+  padding: 5px 10px;
+  font-size: 12px;
+  background-color: var(--button-bg);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--button-hover-bg);
+  }
 }
 
-// The actual content area being measured and populated
+// --- Reader Content Wrapper ---
+.reader-content-wrapper {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 15px;
+
+  &.scrolling-mode-active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--slider-thumb-bg) var(--slider-track-bg);
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--slider-track-bg);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--slider-thumb-bg);
+      border-radius: 4px;
+      border: 2px solid var(--slider-track-bg);
+    }
+  }
+}
+
+// --- Reader Content ---
 .reader-content {
   font-size: 20px;
-  line-height: 1.6; // Increased line-height for readability
-  white-space: pre-line; /* Respect newlines and spaces from the source text */
-  // max-width: 800px; // Optional: Limit line width for readability
-  // margin: 0 auto; // Center if max-width is set
-  // DO NOT set height or overflow here. Its scrollHeight is measured.
+  line-height: 1.6;
+  white-space: pre-line;
+  padding: 5px;
 }
 
+// --- Pagination Controls ---
 .pagination-controls {
-  flex-shrink: 0; // Prevent controls from shrinking
-  text-align: center;
-  padding-top: 10px;
-  border-top: 1px solid #eee; // Separator line
-  user-select: none; // Prevent text selection on controls
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+  user-select: none;
+  margin-top: 10px;
 
   .pagination-button {
     background-color: var(--button-bg);
@@ -87,6 +139,7 @@
     border-radius: 4px;
     font-size: 14px;
     transition: background-color 0.2s ease;
+    flex-shrink: 0;
 
     &:hover:not(:disabled) {
       background-color: var(--button-hover-bg);
@@ -106,16 +159,52 @@
     color: #666;
     vertical-align: middle;
   }
+
+  .page-slider {
+    width: 80%;
+    max-width: 300px;
+    height: 8px;
+    cursor: pointer;
+    appearance: none;
+    background: var(--slider-track-bg);
+    border-radius: 4px;
+    outline: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+
+    &:hover:not(:disabled) {
+      opacity: 1;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--slider-thumb-bg);
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    &::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--slider-thumb-bg);
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+  }
 }
 
-// Example: Make emphasis slightly more distinct
+// --- Markdown-like Elements ---
 em {
   font-style: italic;
-  // color: #555; // Optional: slightly different color
 }
 
-// Example: Make strong more distinct
 strong {
   font-weight: bold;
-  // color: #222; // Optional: slightly darker color
 }
