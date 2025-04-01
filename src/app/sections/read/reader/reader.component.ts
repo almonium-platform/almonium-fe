@@ -23,16 +23,26 @@ export class ReaderComponent implements OnInit {
     this.readService.loadBook(bookId).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
-          this.text = this.arrayBufferToString(response.body);
+          const decodedText = this.arrayBufferToString(response.body);
+          this.text = this.transformMarkdown(decodedText);
         } else {
           console.error('Unexpected response:', response.status);
-          this.alertService.open('Failed to load a book ', {appearance: 'error'}).subscribe();
+          this.alertService.open('Failed to load a book', {appearance: 'error'}).subscribe();
         }
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to load a book ', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to load a book', {appearance: 'error'}).subscribe();
       }
     });
+  }
+
+  private transformMarkdown(text: string): string {
+    // The 's' flag makes . match newlines
+    return text
+      .replace(/_(.*?)_/gs, '<em>$1</em>')
+      .replace(/—/g, ' — ')
+      .replace(/”/g, '"')
+      .replace(/“/g, '"');
   }
 
   private arrayBufferToString(buffer: ArrayBuffer): string {
