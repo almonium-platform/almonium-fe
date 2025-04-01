@@ -64,6 +64,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly SLIDER_DEBOUNCE_TIME = 50;
   private readonly RENDER_DELAY_MS = 0;
 
+  // --- Touch Scrolling State ---
+  private touchStartY: number | null = null; // Y position where touch started
+  private touchDeltaYAccumulator: number = 0; // Accumulated vertical movement since last line scroll trigger
+  private singleLineHeightEstimate: number = 20; // Estimated height of a single line (will be updated)
+  private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
+
   // --- Lifecycle Hooks ---
   ngOnInit(): void {
     this.loadBook();
@@ -291,51 +297,52 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log(`Layout Calculation complete: linesPerPage=${this.linesPerPage}, totalPages=${this.totalPages}, viewportLineCapacity=${this.viewportLineCapacity}`);
   }
 
+  // Modify determineLinesFittingHeight to store the estimate
   private determineLinesFittingHeight(availableHeight: number): number {
     const contentElement = this.readerContentRef.nativeElement;
-    // Use a representative line (or first non-empty) for single line height estimate
-    const sampleLine = this.lines.find(line => line.trim() !== '') || 'A'; // Find first non-empty or use 'A'
+    const sampleLine = this.lines.find(line => line.trim() !== '') || 'A';
     if (!this.lines.length || availableHeight <= 0) return 1;
 
     contentElement.innerHTML = '';
-    contentElement.offsetHeight; // Reflow
+    contentElement.offsetHeight;
 
-    // Measure a single line (even an empty one needs *some* height due to line-height)
-    // Render ' ' for empty lines during measurement to ensure they take vertical space.
     contentElement.innerHTML = this.transformMarkdown(sampleLine || ' ');
     contentElement.offsetHeight;
-    const singleLineHeight = contentElement.scrollHeight;
+    const measuredSingleLineHeight = contentElement.scrollHeight;
 
-    if (singleLineHeight <= 0) {
-      console.warn("Single line height measured as 0. Estimating based on font size/line-height.");
-      // Estimate based on font-size and line-height from CSS (adjust values if needed)
-      const fontSize = 20; // From CSS
-      const lineHeight = 1.6; // From CSS
-      const estimatedLineHeight = fontSize * lineHeight;
-      return Math.max(1, Math.floor(availableHeight / estimatedLineHeight));
+    // *** STORE the estimate ***
+    if (measuredSingleLineHeight > 0) {
+      this.singleLineHeightEstimate = measuredSingleLineHeight;
+      console.log(`  Single line height estimated: ${this.singleLineHeightEstimate.toFixed(1)}px`);
+    } else {
+      // Fallback estimate if measurement fails
+      const fontSize = 20;
+      const lineHeight = 1.6;
+      this.singleLineHeightEstimate = fontSize * lineHeight;
+      console.warn(`Single line height measured as 0. Using fallback estimate: ${this.singleLineHeightEstimate}px`);
     }
+    // *** END Store ***
 
-    if (singleLineHeight > availableHeight) {
-      console.warn(`Single line height (${singleLineHeight}px) exceeds available height (${availableHeight}px). Returning 1 line.`);
+
+    if (this.singleLineHeightEstimate > availableHeight) {
+      console.warn(`Single line height (${this.singleLineHeightEstimate}px) exceeds available height (${availableHeight}px). Returning 1 line.`);
       contentElement.innerHTML = '';
       return 1;
     }
 
     // Optimization: Check if all lines fit
-    // Join with '\n', transformMarkdown relies on this + pre-line CSS
-    // Use   for empty lines during measurement only
     const testAllText = this.lines.map(l => l || ' ').join('\n');
     contentElement.innerHTML = this.transformMarkdown(testAllText);
-    contentElement.offsetHeight; // Reflow
+    contentElement.offsetHeight;
     if (contentElement.scrollHeight <= availableHeight) {
-      // console.log(`All ${this.lines.length} lines fit within available height.`);
       contentElement.innerHTML = '';
       return this.lines.length || 1;
     }
 
-    // Estimate a reasonable upper bound for binary search
+    // Estimate upper bound
     let low = 1;
-    let high = Math.min(this.lines.length, Math.ceil(availableHeight / singleLineHeight) + 5); // Add buffer
+    // Use the stored estimate for the upper bound calculation
+    let high = Math.min(this.lines.length, Math.ceil(availableHeight / this.singleLineHeightEstimate) + 5);
     let bestFit = 1;
 
     // Binary search
@@ -344,10 +351,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       if (mid === 0) break;
 
       const testLines = this.lines.slice(0, mid);
-      // Use   for empty lines during measurement
       const testText = testLines.map(l => l || ' ').join('\n');
       contentElement.innerHTML = this.transformMarkdown(testText);
-      contentElement.offsetHeight; // Reflow
+      contentElement.offsetHeight;
       const measuredHeight = contentElement.scrollHeight;
 
       if (measuredHeight <= availableHeight) {
@@ -358,8 +364,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
 
-    contentElement.innerHTML = ''; // Clean up
-    // console.log(`Determined best fit: ${bestFit} lines for height ${availableHeight}px`);
+    contentElement.innerHTML = '';
     return Math.max(1, bestFit);
   }
 
@@ -550,5 +555,85 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const decoder = new TextDecoder('windows-1252');
       return decoder.decode(buffer);
     }
+  }
+
+  protected onTouchStart(event: TouchEvent): void {
+    if (!this.scrollingMode || this.isLoading || event.touches.length !== 1) {
+      // Only handle single touches in scrolling mode
+      this.touchStartY = null; // Reset if conditions not met
+      return;
+    }
+    // event.preventDefault(); // Prevent default only on move if scrolling happens
+    this.touchStartY = event.touches[0].clientY;
+    this.touchDeltaYAccumulator = 0; // Reset accumulator on new touch
+    // console.log('Touch Start Y:', this.touchStartY);
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (!this.scrollingMode || this.isLoading || this.touchStartY === null || event.touches.length !== 1) {
+      return; // Not scrolling, not started, or multi-touch
+    }
+
+    const currentY = event.touches[0].clientY;
+    const deltaSinceStart = currentY - this.touchStartY; // Positive = swipe down, Negative = swipe up
+
+    // Calculate movement since the *last* accumulator check or start
+    // This represents the raw pixel movement to consider for triggering scrolls
+    const movement = -deltaSinceStart; // Invert: positive = scroll down (content up), negative = scroll up (content down)
+
+    // Add this movement fraction to the accumulator
+    this.touchDeltaYAccumulator = movement; // Simpler: just track total movement since start
+
+    const scrollThreshold = this.singleLineHeightEstimate * this.TOUCH_SCROLL_THRESHOLD_FACTOR;
+
+    if (scrollThreshold <= 0) {
+      console.warn("Scroll threshold is zero or negative, cannot process touch move.");
+      return; // Avoid division by zero or infinite loops
+    }
+
+    // How many lines worth of movement have we accumulated?
+    const linesToScroll = Math.trunc(this.touchDeltaYAccumulator / scrollThreshold);
+
+    if (linesToScroll !== 0) {
+      // We have crossed a threshold, trigger scroll
+      event.preventDefault(); // Prevent browser scrolling *only when we actually scroll*
+
+      const linesMoved = linesToScroll * this.SCROLL_LINE_STEP; // Apply step multiplier if needed
+      const newTopIndex = this.topVisibleLineIndex + linesMoved;
+
+      // Clamp the index
+      const maxTopIndex = Math.max(0, this.lines.length - 1); // Can scroll until the last line is at the top
+      const clampedTopIndex = Math.max(0, Math.min(newTopIndex, maxTopIndex));
+
+      if (clampedTopIndex !== this.topVisibleLineIndex) {
+        // console.log(`Touch Scroll: Acc ${this.touchDeltaYAccumulator.toFixed(0)}, Threshold ${scrollThreshold.toFixed(0)}, Lines ${linesToScroll}, New Index ${clampedTopIndex}`);
+        this.topVisibleLineIndex = clampedTopIndex;
+        this.updatePageNumberFromTopIndex();
+        this.renderVisibleLines();
+        this.cdRef.detectChanges(); // Update slider and page number display
+      }
+
+      // --- CRITICAL: Adjust accumulator and start point ---
+      // Subtract the scrolled amount (in pixels) from the accumulator
+      this.touchDeltaYAccumulator -= linesToScroll * scrollThreshold;
+      // Update the "effective" start Y for the next delta calculation
+      // This prevents runaway scrolling if the finger pauses after crossing a threshold.
+      this.touchStartY = currentY - (this.touchDeltaYAccumulator / -1); // Re-calculate start based on remaining accumulator
+    }
+    // No else needed, if threshold isn't met, accumulator keeps building
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    if (!this.scrollingMode) return;
+    // Reset tracking state when touch ends
+    this.touchStartY = null;
+    this.touchDeltaYAccumulator = 0;
+    // console.log('Touch End');
+  }
+
+  protected onTouchCancel(event: TouchEvent): void {
+    // Same as touch end - reset state
+    this.onTouchEnd(event);
+    // console.log('Touch Cancel');
   }
 }
