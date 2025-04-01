@@ -34,6 +34,7 @@
   box-sizing: border-box;
   position: relative; // For scroll toggle button positioning
   height: 100%; // Fill the :host container
+  width: fit-content;
 }
 
 // --- Loading & Error ---
@@ -73,7 +74,7 @@
   flex-grow: 1; // Allow wrapper to fill space between button and controls
   overflow: hidden; // CRITICAL: Disable native scrollbar always now
   position: relative; // Needed? Maybe not.
-  margin-bottom: 15px; // Space before controls
+  //margin-bottom: 15px; // Space before controls
 }
 
 // --- Reader Content ---
@@ -122,7 +123,6 @@
   padding: 10px 0;
   border-top: 1px solid #eee;
   user-select: none;
-  margin-top: 10px;
   justify-content: center;
 
   .pagination-button {
