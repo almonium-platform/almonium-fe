@@ -4,7 +4,6 @@ import {
   Component,
   ElementRef,
   HostListener,
-  inject,
   OnDestroy,
   OnInit,
   ViewChild
@@ -18,6 +17,7 @@ import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiSliderComponent} from "@taiga-ui/kit";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-reader',
@@ -27,10 +27,14 @@ import {TuiSliderComponent} from "@taiga-ui/kit";
   styleUrls: ['./reader.component.less'],
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
-  // --- Injected Services ---
-  private readService = inject(ReadService);
-  private alertService = inject(TuiAlertService);
-  private cdRef = inject(ChangeDetectorRef);
+
+  constructor(
+    private cdRef: ChangeDetectorRef,
+    private readService: ReadService,
+    private alertService: TuiAlertService,
+    private router: Router
+  ) {
+  }
 
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
@@ -638,5 +642,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Same as touch end - reset state
     this.onTouchEnd(event);
     // console.log('Touch Cancel');
+  }
+
+  goBack() {
+    // change - go back to the book details, not the list
+    this.router.navigate(['/read']).then(() => {
+    }).catch((error) => {
+      console.error('Navigation error:', error);
+      this.alertService.open('Error navigating back.', {label: 'Error', appearance: 'error',}).subscribe();
+    });
   }
 }

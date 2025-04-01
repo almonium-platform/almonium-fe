@@ -18,20 +18,27 @@
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
 
     <!-- Buttons are always enabled in scroll mode unless at absolute start/end -->
-    <app-button
-      appearance="text"
-      [disabled]="!scrollingMode && currentPage <= 1 || scrollingMode && topVisibleLineIndex <= 0"
-      (clickFunction)="prevPage()"
-    >
-      <lucide-icon
-        name="circle-chevron-left"
-        class="prev-button"
-        size="28"
-        strokeWidth="1.5"
-      ></lucide-icon>
-    </app-button>
+    <lucide-icon
+      name="circle-arrow-out-up-left"
+      class="absolute left-2 bottom-4 cursor-pointer"
+      size="28"
+      strokeWidth="1.5"
+      (click)="goBack()"
+    ></lucide-icon>
 
     <div class="pagination-center-area">
+      <app-button
+        appearance="text"
+        [disabled]="!scrollingMode && currentPage <= 1 || scrollingMode && topVisibleLineIndex <= 0"
+        (clickFunction)="prevPage()"
+      >
+        <lucide-icon
+          name="circle-chevron-left"
+          class="prev-button"
+          size="28"
+          strokeWidth="1.5"
+        ></lucide-icon>
+      </app-button>
 
       <div>
         <input type="range"
@@ -47,23 +54,22 @@
         <span class="pagination-info">
             Page {{ currentPage }} of {{ totalPages }}</span>
       </div>
+      <app-button
+        appearance="text"
+        [disabled]="!scrollingMode && currentPage >= totalPages || scrollingMode && topVisibleLineIndex >= (lines.length - 1)"
+        (clickFunction)="nextPage()"
+      >
+        <lucide-icon
+          name="circle-chevron-right"
+          class="next-button"
+          size="28"
+          strokeWidth="1.5"
+        ></lucide-icon>
+      </app-button>
     </div>
 
     <!--    <button type="button" (click)="toggleScrollMode()" class="pagination-button next-button">-->
     <!--      {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}-->
     <!--    </button>-->
-
-    <app-button
-      appearance="text"
-      [disabled]="!scrollingMode && currentPage >= totalPages || scrollingMode && topVisibleLineIndex >= (lines.length - 1)"
-      (clickFunction)="nextPage()"
-    >
-      <lucide-icon
-        name="circle-chevron-right"
-        class="next-button"
-        size="28"
-        strokeWidth="1.5"
-      ></lucide-icon>
-    </app-button>
   </div>
 </div>
