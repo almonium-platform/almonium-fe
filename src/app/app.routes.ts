@@ -48,7 +48,7 @@ export const routes: Routes = [
       {path: 'home', component: HomeComponent},
       {path: 'review', component: ReviewComponent},
       {path: 'book/:id', component: BookComponent},
-      {path: 'read/:id', component: ReaderComponent},
+      {path: 'reader/:id', component: ReaderComponent},
       {path: 'read', component: ReadComponent},
       {path: 'social', component: SocialComponent},
       {

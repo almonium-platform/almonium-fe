@@ -31,7 +31,7 @@ export class AppComponent {
     '/change-email',
     '/payment/success',
     '/users',
-    '/read'
+    '/reader'
   ];
 
   private noNavbarOnMobileRoutes: string[] = [

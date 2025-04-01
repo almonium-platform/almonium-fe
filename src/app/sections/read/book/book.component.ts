@@ -286,6 +286,6 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   goToReader() {
-    this.router.navigate([`/reader`]).then();
+    this.router.navigate([`/reader/${this.bookId}`]).then();
   }
 }

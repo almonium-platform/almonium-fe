@@ -76,6 +76,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl("Select Language");
   protected parallelInactive: boolean = true;
+  protected parallelTranslations: Map<string, string> | null = null; // To store parsed parallel data
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -683,22 +684,109 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   protected toggleParallel() {
     this.parallelInactive = !this.parallelInactive;
+
     if (this.parallelInactive) {
+      // --- Switched OFF Parallel Mode ---
       this.languageSelectControl.setValue("Select Language");
+      this.parallelTranslations = null; // Clear the parsed data
+      // TODO: Force a re-render of the original text if needed
+      // Assuming updateDisplay will render based on this.lines which holds original
+      console.log("Parallel mode OFF. Clearing translations.");
+      // You might need to trigger a re-render explicitly if the view doesn't update
+      // this.updateDisplay(this.currentPage); // Or just re-render current view
+      // Or maybe just trigger change detection if only the display logic changes
+      // this.cdRef.detectChanges();
+
+
     } else {
-      this.readService.getParallelText(this.bookId!, this.languageSelectControl.value!).subscribe({
+      // --- Switched ON Parallel Mode ---
+      this.isLoading = true; // Indicate loading parallel text
+      this.errorMessage = null; // Clear previous errors
+      const selectedLang = this.languageSelectControl.value;
+
+      if (!selectedLang || selectedLang === "Select Language") {
+        this.handleError("Please select a language for parallel text.");
+        this.parallelInactive = true; // Revert state
+        this.isLoading = false;
+        return;
+      }
+
+      this.readService.getParallelText(this.bookId!, selectedLang).subscribe({
         next: (response) => {
-          this.handleByteResponse(response);
+          // Handle the parallel text response specifically
+          if (response.status === 200 && response.body) {
+            const parallelFullText = this.arrayBufferToString(response.body);
+            // Parse and store the result
+            this.parallelTranslations = this.parseParallelText(parallelFullText);
+            console.log('Parallel translations parsed and stored.');
+
+            // --- IMPORTANT: Decide on DISPLAY ---
+            // This only *parses* the data. It doesn't change how text is rendered yet.
+            // You now need to modify `renderVisibleLines` and/or `displayPagedContent`
+            // to LOOK UP translations in `this.parallelTranslations` for the original
+            // lines being displayed and format them accordingly (e.g., interleaved HTML).
+            // For now, just log it. Display logic is the next step.
+            // Example: You might need to force a re-render which now uses the map.
+            // this.updateDisplay(this.currentPage);
+
+
+            this.isLoading = false; // Done loading parallel text
+          } else {
+            this.handleError(`Failed to load parallel text. Status: ${response.status}`);
+            this.parallelTranslations = null; // Clear on failure
+            this.parallelInactive = true; // Revert state
+            this.languageSelectControl.setValue("Select Language");
+            this.isLoading = false;
+          }
         },
         error: (error) => {
-          const message = error?.error?.message || 'An unknown error occurred.';
+          const message = error?.error?.message || 'An unknown error occurred fetching parallel text.';
           this.handleError(message);
+          this.parallelTranslations = null; // Clear on failure
+          this.parallelInactive = true; // Revert state on error
+          this.languageSelectControl.setValue("Select Language");
+          this.isLoading = false;
         }
       });
     }
+    // Trigger change detection if you modified component state that affects the view
+    this.cdRef.detectChanges();
   }
 
   get langs() {
     return this.parallelVersions.map(t => t.language);
+  }
+
+  private parseParallelText(parallelFullText: string): Map<string, string> {
+    const parallelMap = new Map<string, string>();
+    if (!parallelFullText) {
+      return parallelMap; // Return empty map if input is empty
+    }
+
+    const lines = parallelFullText.split('\n');
+
+    for (const line of lines) {
+      // Skip empty lines
+      if (!line.trim()) {
+        continue;
+      }
+
+      const segments = line.split('|');
+
+      // Process segments in pairs
+      for (let i = 0; i < segments.length - 1; i += 2) {
+        // Use optional chaining just in case split results in odd segments
+        const original = segments[i]?.trim();
+        const translation = segments[i + 1]?.trim();
+
+        // Add to map only if both parts are non-empty after trimming
+        if (original && translation) {
+          // Decide on handling duplicates: overwrite (current) or ignore/append?
+          parallelMap.set(original, translation);
+        }
+      }
+    }
+    console.log(`Parsed ${parallelMap.size} parallel entries.`);
+    return parallelMap;
   }
 }
