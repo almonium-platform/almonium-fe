@@ -48,8 +48,8 @@ export const routes: Routes = [
       {path: 'home', component: HomeComponent},
       {path: 'review', component: ReviewComponent},
       {path: 'book/:id', component: BookComponent},
+      {path: 'read/:id', component: ReaderComponent},
       {path: 'read', component: ReadComponent},
-      {path: 'reader', component: ReaderComponent},
       {path: 'social', component: SocialComponent},
       {
         path: 'settings',

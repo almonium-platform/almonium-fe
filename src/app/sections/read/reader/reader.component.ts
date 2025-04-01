@@ -17,7 +17,7 @@ import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiSliderComponent} from "@taiga-ui/kit";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'app-reader',
@@ -27,15 +27,6 @@ import {Router} from "@angular/router";
   styleUrls: ['./reader.component.less'],
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
-
-  constructor(
-    private cdRef: ChangeDetectorRef,
-    private readService: ReadService,
-    private alertService: TuiAlertService,
-    private router: Router
-  ) {
-  }
-
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
@@ -48,6 +39,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected lines: string[] = []; // All lines of the book, including empty strings ''
   protected isLoading: boolean = true;
   protected errorMessage: string | null = null;
+  protected bookId: number | null = null;
 
   // --- Pagination & Scrolling State ---
   protected currentPage: number = 1;
@@ -77,11 +69,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private singleLineHeightEstimate: number = 20; // Estimated height of a single line (will be updated)
   private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
 
-  // --- Lifecycle Hooks ---
+  constructor(
+    private cdRef: ChangeDetectorRef,
+    private readService: ReadService,
+    private alertService: TuiAlertService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {
+  }
+
   ngOnInit(): void {
-    this.loadBook();
     this.setupResizeListener();
     this.setupSliderListener();
+    this.route.params.subscribe(params => {
+      this.bookId = params['id'];
+      if (params['id']) {
+        this.loadBook(params['id']);
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -162,8 +167,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected onSliderChange(event: Event): void { /* Optional final action */
   }
 
-  private loadBook(): void {
-    const bookId = 1;
+  private loadBook(bookId: number): void {
     this.isLoading = true;
     this.errorMessage = null;
     this.text = '';
