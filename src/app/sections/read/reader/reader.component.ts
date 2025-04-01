@@ -47,7 +47,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected totalPages: number = 1;
   private linesPerPage: number = 10; // Lines per logical page (recalculated)
   private calculationNeeded: boolean = true;
-  protected scrollingMode: boolean = false;
+  protected scrollingMode: boolean = true;
 
   // --- Line-Based Scrolling State ---
   protected topVisibleLineIndex: number = 0;

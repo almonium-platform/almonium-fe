@@ -1,7 +1,7 @@
 <div #readerContainer class="reader-container">
 
   <button type="button" (click)="toggleScrollMode()" class="scroll-toggle-button">
-    {{ scrollingMode ? 'Switch to Pages' : 'Enable Scrolling' }}
+    {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}
   </button>
 
   <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
