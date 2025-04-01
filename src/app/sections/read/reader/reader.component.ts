@@ -7,15 +7,14 @@ import {
   inject,
   OnDestroy,
   OnInit,
-  Renderer2,
   ViewChild
 } from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {TuiAlertService} from '@taiga-ui/core';
-import {fromEvent, Subject, Subscription} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, takeUntil} from 'rxjs/operators';
+import {Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
 
 @Component({
   selector: 'app-reader',
@@ -29,7 +28,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readService = inject(ReadService);
   private alertService = inject(TuiAlertService);
   private cdRef = inject(ChangeDetectorRef);
-  private renderer = inject(Renderer2);
 
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
@@ -38,32 +36,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
 
   // --- State Properties ---
-  protected text: string = '';
+  protected text: string = ''; // Holds the *currently rendered* HTML text
   private fullText: string = '';
-  protected lines: string[] = [];
+  protected lines: string[] = []; // All lines of the book, including empty strings ''
   protected isLoading: boolean = true;
   protected errorMessage: string | null = null;
 
+  // --- Pagination & Scrolling State ---
   protected currentPage: number = 1;
   protected totalPages: number = 1;
-  private linesPerPage: number = 10;
+  private linesPerPage: number = 10; // Lines per logical page (recalculated)
   private calculationNeeded: boolean = true;
   protected scrollingMode: boolean = false;
-  private pageHeightEstimate: number = 0;
-  private isUpdatingSliderFromScroll = false;
-  private isUpdatingScrollFromPageChange = false; // Also used for slider interaction in scroll mode
+
+  // --- Line-Based Scrolling State ---
+  protected topVisibleLineIndex: number = 0;
+  private viewportLineCapacity: number = 20; // How many lines fit visually (recalculated)
+  private readonly SCROLL_LINE_STEP = 1; // Scroll one text line at a time
 
   // --- RxJS Subjects and Subscriptions ---
   private resizeSubject = new Subject<void>();
   private sliderValueSubject = new Subject<number>();
-  private scrollSubscription?: Subscription;
-  private sliderSubscription?: Subscription; // Changed name for clarity
   private destroy$ = new Subject<void>();
 
   // --- Constants ---
   private readonly RESIZE_DEBOUNCE_TIME = 250;
-  private readonly SLIDER_DEBOUNCE_TIME = 150;
-  private readonly SCROLL_DEBOUNCE_TIME = 100;
+  private readonly SLIDER_DEBOUNCE_TIME = 50;
+  private readonly RENDER_DELAY_MS = 0;
 
   // --- Lifecycle Hooks ---
   ngOnInit(): void {
@@ -75,10 +74,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     setTimeout(() => {
       if (!this.isLoading && this.lines.length > 0) {
-        console.log("ngAfterViewInit: Triggering initial display.");
-        // Pass initial page correctly, respect existing mode if component re-inits
-        this.updateDisplay(this.currentPage);
-        this.setupScrollListener();
+        console.log("ngAfterViewInit: Triggering initial display calculation.");
+        this.calculationNeeded = true;
+        this.updateDisplay(1);
       } else {
         console.log("ngAfterViewInit: Waiting for book load or no lines.");
       }
@@ -88,14 +86,30 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.scrollSubscription?.unsubscribe();
-    this.sliderSubscription?.unsubscribe();
   }
 
   // --- Event Listeners ---
   @HostListener('window:resize')
   onWindowResize(): void {
     this.resizeSubject.next();
+  }
+
+  onWheelScroll(event: WheelEvent): void {
+    if (!this.scrollingMode || this.isLoading || !this.lines.length) {
+      return;
+    }
+    event.preventDefault();
+    const delta = Math.sign(event.deltaY);
+    const newTopIndex = this.topVisibleLineIndex + (delta * this.SCROLL_LINE_STEP);
+    const maxTopIndex = Math.max(0, this.lines.length - 1);
+    const clampedTopIndex = Math.max(0, Math.min(newTopIndex, maxTopIndex));
+
+    if (clampedTopIndex !== this.topVisibleLineIndex) {
+      this.topVisibleLineIndex = clampedTopIndex;
+      this.updatePageNumberFromTopIndex();
+      this.renderVisibleLines();
+      this.cdRef.detectChanges(); // Update slider/page number display
+    }
   }
 
   // --- Core Logic ---
@@ -105,64 +119,30 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(() => {
       console.log('Window resized...');
-      this.calculationNeeded = true; // Recalculate needed for paged mode
-      this.updateDisplay(this.currentPage); // Update display, recalculates paged if needed
+      this.calculationNeeded = true;
+      this.updateDisplay(this.currentPage); // Use current page as target
     });
   }
 
-  // --- Slider Setup --- (Fix Bug 1)
   private setupSliderListener(): void {
-    if (this.sliderSubscription) {
-      this.sliderSubscription.unsubscribe();
-    } // Cleanup previous if any
-
-    this.sliderSubscription = this.sliderValueSubject.pipe(
+    this.sliderValueSubject.pipe(
       debounceTime(this.SLIDER_DEBOUNCE_TIME),
       distinctUntilChanged(),
-      // filter(() => !this.isUpdatingSliderFromScroll), // Prevent feedback from scroll updating slider (we might need this flag)
       takeUntil(this.destroy$)
     ).subscribe(page => {
       console.log(`Slider debounced value: ${page}`);
-      // Decide action based on mode
       if (this.scrollingMode) {
-        // Avoid fighting scroll listener if it just updated the slider
-        if (!this.isUpdatingSliderFromScroll) {
-          console.log(`Slider action: Scrolling to approx page ${page}`);
-          this.scrollToApproximatePage(page);
-        } else {
-          console.log("Slider action skipped: update likely came from scroll event");
-        }
+        this.topVisibleLineIndex = this.getTopIndexForPage(page);
+        this.currentPage = page;
+        this.renderVisibleLines();
       } else {
-        console.log(`Slider action: Going to paged page ${page}`);
-        this.goToPage(page); // Navigate paged mode
+        this.goToPage(page);
       }
     });
   }
 
-  // --- Scroll Setup ---
-  private setupScrollListener(): void {
-    if (this.scrollSubscription) {
-      this.scrollSubscription.unsubscribe();
-    }
-    if (this.readerContentWrapperRef) {
-      console.log("Setting up scroll listener on wrapper.");
-      this.scrollSubscription = fromEvent(this.readerContentWrapperRef.nativeElement, 'scroll').pipe(
-        debounceTime(this.SCROLL_DEBOUNCE_TIME),
-        filter(() => this.scrollingMode && !this.isUpdatingScrollFromPageChange),
-        takeUntil(this.destroy$)
-      ).subscribe(() => {
-        this.updatePageFromScroll();
-      });
-    } else {
-      console.warn("Cannot set up scroll listener: readerContentWrapperRef not ready.");
-      setTimeout(() => this.setupScrollListener(), 200);
-    }
-  }
-
-  // --- Slider Input --- (Fix Bug 1)
   protected onSliderInput(event: Event): void {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    // Always push to subject, listener decides action based on mode
     this.sliderValueSubject.next(value);
   }
 
@@ -177,22 +157,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lines = [];
     this.currentPage = 1;
     this.totalPages = 1;
+    this.topVisibleLineIndex = 0;
     this.calculationNeeded = true;
+    this.cdRef.detectChanges();
 
     this.readService.loadBook(bookId).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
           this.fullText = this.arrayBufferToString(response.body);
+          // *** FIX: Keep empty strings by removing .map() ***
           this.lines = this.fullText.split('\n');
+          // console.log('Lines loaded:', this.lines.slice(0, 20)); // Debug: Check if '' are present
           this.isLoading = false;
-          this.calculationNeeded = true; // Mark for calc on first display
+          this.calculationNeeded = true;
+          this.errorMessage = null;
 
           setTimeout(() => {
-            this.updateDisplay(1); // Update display, which will calculate if needed
-            if (!this.scrollSubscription && this.readerContentWrapperRef) {
-              this.setupScrollListener(); // Setup listener if not already done
-            }
-          }, 0);
+            this.updateDisplay(1);
+          }, this.RENDER_DELAY_MS);
 
         } else {
           this.handleError(`Failed to load book. Status: ${response.status}`);
@@ -201,7 +183,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (error) => {
         const message = error?.error?.message || 'An unknown error occurred.';
         this.handleError(message);
-        this.alertService.open(message, {appearance: 'error'}).subscribe();
       },
     });
   }
@@ -214,163 +195,161 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lines = [];
     this.currentPage = 1;
     this.totalPages = 1;
+    this.topVisibleLineIndex = 0;
     this.cdRef.detectChanges();
   }
 
   // --- Main Display Logic ---
-  private updateDisplay(targetPage: number): void {
-    if (this.isLoading || !this.lines.length || !this.readerContainerRef || !this.readerContentRef || !this.paginationControlsRef) {
-      console.warn("updateDisplay skipped: Component not ready or no content/refs.");
-      if (!this.isLoading && this.lines.length > 0 && (!this.readerContainerRef || !this.paginationControlsRef)) {
-        console.log("Retrying updateDisplay shortly...");
-        setTimeout(() => this.updateDisplay(targetPage), 100);
-      }
+  private updateDisplay(targetPageOrCurrentPage: number): void {
+    if (this.isLoading || !this.lines.length) {
+      console.warn("updateDisplay skipped: Component not ready or no content.");
+      return;
+    }
+    if (!this.readerContainerRef || !this.readerContentRef || !this.paginationControlsRef) {
+      console.warn("updateDisplay skipped: Essential refs not available. Retrying...");
+      setTimeout(() => this.updateDisplay(targetPageOrCurrentPage), 100);
       return;
     }
 
-    console.log(`updateDisplay called for targetPage: ${targetPage}, scrollingMode: ${this.scrollingMode}`);
+    console.log(`updateDisplay called. Mode: ${this.scrollingMode ? 'Scroll' : 'Paged'}. Target/Current Page: ${targetPageOrCurrentPage}`);
+
+    if (this.calculationNeeded) {
+      this.recalculateLayout();
+      if (this.totalPages === 0) {
+        console.error("Layout calculation failed, cannot proceed.");
+        this.handleError("Failed to calculate reader layout.");
+        return;
+      }
+    }
 
     if (this.scrollingMode) {
-      this.displayScrollingContent(targetPage);
+      // Ensure target page is valid *before* getting top index
+      const safeTargetPage = Math.max(1, Math.min(targetPageOrCurrentPage, this.totalPages));
+      this.topVisibleLineIndex = this.getTopIndexForPage(safeTargetPage);
+      this.currentPage = safeTargetPage; // Sync page number
+      console.log(`  Scroll Mode: Rendering from line index ${this.topVisibleLineIndex} (Page ${this.currentPage})`);
+      this.renderVisibleLines();
     } else {
-      this.displayPagedContent(targetPage);
-    }
-    this.cdRef.detectChanges();
-  }
-  // --- Scrolling Content --- (Fix Bug 2)
-  private displayScrollingContent(scrollToPage: number): void {
-    console.log("Displaying in Scrolling Mode");
-    const fullRenderedText = this.transformMarkdown(this.lines.join('\n'));
-    // Only update innerHTML if it actually changed
-    if (this.text !== fullRenderedText) {
-      this.text = fullRenderedText;
-      // We MUST wait until Angular renders this full text before scrolling
-      setTimeout(() => {
-        this.estimatePageHeightIfNeeded(); // Ensure estimate exists
-        this.scrollToApproximatePage(scrollToPage); // Scroll to the target page
-        // Update current page based on final scroll position after programmatic scroll
-        setTimeout(() => this.updatePageFromScroll(), 350); // Allow smooth scroll time
-      }, 0); // Execute after render cycle
-    } else {
-      // Text didn't change, just ensure scroll position is right
-      this.estimatePageHeightIfNeeded();
-      this.scrollToApproximatePage(scrollToPage);
-      setTimeout(() => this.updatePageFromScroll(), 350);
-    }
-    this.calculationNeeded = false;
-  }
-
-  // Helper to consolidate estimation logic
-  private estimatePageHeightIfNeeded(): void {
-    if (this.pageHeightEstimate <= 0 && this.linesPerPage > 0 && this.readerContentWrapperRef) {
-      const wrapperHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
-      if (wrapperHeight > 0) {
-        // Use the wrapper height as the estimate (basis for paged mode calc)
-        this.pageHeightEstimate = wrapperHeight;
-        console.log(`Estimated page height for scroll: ${this.pageHeightEstimate}`);
-      }
-    } else if (this.pageHeightEstimate <= 0) {
-      console.warn("Cannot estimate page height - using fallback.");
-      this.pageHeightEstimate = 500; // Arbitrary fallback
+      const safeTargetPage = Math.max(1, Math.min(targetPageOrCurrentPage, this.totalPages));
+      console.log(`  Paged Mode: Rendering page ${safeTargetPage}`);
+      this.displayPagedContent(safeTargetPage);
     }
   }
 
-  // --- Paged Content --- (Fix Bug 3)
-  private displayPagedContent(targetPage: number): void {
-    console.log(`Displaying Paged Content - Target: ${targetPage}`);
-    // Let potential DOM updates from mode switch settle before measuring
-    // setTimeout(() => { // Potential fix: Delay calculation slightly
-    if (this.calculationNeeded) {
-      this.recalculatePagedLayout(); // Perform calculation
-    }
-
-    if (this.totalPages === 0) { // Guard against calculation failure
-      console.error("Cannot display paged content: totalPages is 0.");
+  // --- Unified Layout Calculation ---
+  private recalculateLayout(): void {
+    console.log("Recalculating Layout (Paged & Scroll)...");
+    if (!this.readerContainerRef || !this.paginationControlsRef || !this.readerContentRef || !this.readerContentWrapperRef || !this.lines.length) {
+      console.error("Cannot calculate layout - missing refs or no lines.");
+      this.totalPages = 1;
+      this.linesPerPage = 10;
+      this.viewportLineCapacity = 10;
+      this.calculationNeeded = false;
       return;
     }
 
-    const newPage = Math.max(1, Math.min(targetPage, this.totalPages));
-    const startIndex = (newPage - 1) * this.linesPerPage;
-    const endIndex = Math.min(startIndex + this.linesPerPage, this.lines.length);
-    const pageLines = this.lines.slice(startIndex, endIndex);
-    const newText = this.transformMarkdown(pageLines.join('\n'));
-
-    console.log(`Target Page: ${targetPage}, New Page: ${newPage}, Current Page: ${this.currentPage}, New Text Empty: ${!newText}`);
-
-    // Update text and current page *before* detectChanges
-    this.currentPage = newPage;
-    this.text = newText;
-
-    // Scroll wrapper to top
-    if (this.readerContentWrapperRef) {
-      this.readerContentWrapperRef.nativeElement.scrollTop = 0;
-    }
-
-    // Explicitly trigger change detection *after* text update (Fix Bug 3)
-    this.cdRef.detectChanges();
-    // Sometimes an extra tick helps after major DOM change like mode switch
-    // setTimeout(() => this.cdRef.detectChanges(), 0);
-
-
-    // }, 0); // End of potential setTimeout wrapper
-  }
-
-  // Extracted calculation logic for clarity
-  private recalculatePagedLayout(): void {
-    console.log("Recalculating Lines Per Page for Paged Mode...");
-    if (!this.readerContainerRef || !this.paginationControlsRef) {
-      console.error("Cannot calculate layout - missing container or controls ref.");
-      this.totalPages = 1; // Prevent errors, but layout is broken
-      return;
-    }
     const containerHeight = this.readerContainerRef.nativeElement.clientHeight;
     let controlsHeight = this.paginationControlsRef.nativeElement.offsetHeight;
-    // Ensure controlsHeight is reasonable
-    if (controlsHeight <= 0 || controlsHeight > containerHeight / 2) {
-      console.warn(`Unusual controls height: ${controlsHeight}, estimating.`);
-      // Estimate based on font size or use a fixed fallback
-      controlsHeight = 40; // Adjust this fallback as needed
-    }
-    const availableHeight = Math.max(20, containerHeight - controlsHeight - 10);
-    console.log(`Paged Calc - ContainerH: ${containerHeight}, ControlsH: ${controlsHeight}, AvailableH: ${availableHeight}`);
+    if (controlsHeight <= 0) controlsHeight = 40; // Estimate if needed
+
+    // Adjust available height calculation based on actual container padding/margins
+    const readerContainerPaddingTop = parseFloat(getComputedStyle(this.readerContainerRef.nativeElement).paddingTop) || 0;
+    const readerContainerPaddingBottom = parseFloat(getComputedStyle(this.readerContainerRef.nativeElement).paddingBottom) || 0;
+    const wrapperMarginBottom = parseFloat(getComputedStyle(this.readerContentWrapperRef.nativeElement).marginBottom) || 0;
+    const contentPaddingTop = parseFloat(getComputedStyle(this.readerContentRef.nativeElement).paddingTop) || 0;
+    const contentPaddingBottom = parseFloat(getComputedStyle(this.readerContentRef.nativeElement).paddingBottom) || 0;
+
+    // Height available specifically for the text lines within the content div
+    const availableHeight = Math.max(20, containerHeight
+      - controlsHeight
+      - readerContainerPaddingTop
+      - readerContainerPaddingBottom
+      - wrapperMarginBottom
+      - contentPaddingTop
+      - contentPaddingBottom);
+
+
+    console.log(`Layout Calc - ContainerH: ${containerHeight}, ControlsH: ${controlsHeight}, AvailableH (for text): ${availableHeight.toFixed(1)}`);
 
     if (availableHeight <= 20) {
-      console.warn("Paged calculation skipped: Available height is too small.");
-      this.linesPerPage = 20;
-      this.totalPages = Math.max(1, Math.ceil(this.lines.length / this.linesPerPage));
+      console.warn("Layout calculation warning: Available height is very small.");
+      this.linesPerPage = 5; // Small fallback
+      this.viewportLineCapacity = 5;
     } else {
-      this.linesPerPage = this.determineLinesPerPage(availableHeight);
-      console.log(`Paged Calc - Lines Per Page: ${this.linesPerPage}`);
-      this.pageHeightEstimate = availableHeight; // Update estimate based on paged calc
-      this.totalPages = Math.max(1, Math.ceil(this.lines.length / (this.linesPerPage || 1))); // Avoid division by zero
+      // Calculate lines per logical page
+      this.linesPerPage = this.determineLinesFittingHeight(availableHeight);
+      // Assume viewport capacity is the same for simplicity in line-based scroll.
+      // If visual discrepancies appear (e.g., scroll jumps too far/short),
+      // this might need a separate calculation based on average line height.
+      this.viewportLineCapacity = this.linesPerPage;
+      console.log(`Layout Calc - Lines Per Page: ${this.linesPerPage}, Viewport Capacity: ${this.viewportLineCapacity}`);
     }
+
+    this.totalPages = Math.max(1, Math.ceil(this.lines.length / (this.linesPerPage || 1)));
     this.calculationNeeded = false;
-    console.log(`Paged Calculation complete: linesPerPage=${this.linesPerPage}, totalPages=${this.totalPages}, pageHeightEstimate: ${this.pageHeightEstimate}`);
+
+    console.log(`Layout Calculation complete: linesPerPage=${this.linesPerPage}, totalPages=${this.totalPages}, viewportLineCapacity=${this.viewportLineCapacity}`);
   }
 
-
-  // Binary search (remains the same)
-  private determineLinesPerPage(availableHeight: number): number {
+  private determineLinesFittingHeight(availableHeight: number): number {
     const contentElement = this.readerContentRef.nativeElement;
+    // Use a representative line (or first non-empty) for single line height estimate
+    const sampleLine = this.lines.find(line => line.trim() !== '') || 'A'; // Find first non-empty or use 'A'
     if (!this.lines.length || availableHeight <= 0) return 1;
-    let low = 1, high = this.lines.length, bestFit = 1;
+
     contentElement.innerHTML = '';
-    contentElement.offsetHeight; // Clear & reflow
-    // Check if all fit
-    contentElement.innerHTML = this.transformMarkdown(this.lines.join('\n'));
+    contentElement.offsetHeight; // Reflow
+
+    // Measure a single line (even an empty one needs *some* height due to line-height)
+    // Render ' ' for empty lines during measurement to ensure they take vertical space.
+    contentElement.innerHTML = this.transformMarkdown(sampleLine || ' ');
     contentElement.offsetHeight;
+    const singleLineHeight = contentElement.scrollHeight;
+
+    if (singleLineHeight <= 0) {
+      console.warn("Single line height measured as 0. Estimating based on font size/line-height.");
+      // Estimate based on font-size and line-height from CSS (adjust values if needed)
+      const fontSize = 20; // From CSS
+      const lineHeight = 1.6; // From CSS
+      const estimatedLineHeight = fontSize * lineHeight;
+      return Math.max(1, Math.floor(availableHeight / estimatedLineHeight));
+    }
+
+    if (singleLineHeight > availableHeight) {
+      console.warn(`Single line height (${singleLineHeight}px) exceeds available height (${availableHeight}px). Returning 1 line.`);
+      contentElement.innerHTML = '';
+      return 1;
+    }
+
+    // Optimization: Check if all lines fit
+    // Join with '\n', transformMarkdown relies on this + pre-line CSS
+    // Use   for empty lines during measurement only
+    const testAllText = this.lines.map(l => l || ' ').join('\n');
+    contentElement.innerHTML = this.transformMarkdown(testAllText);
+    contentElement.offsetHeight; // Reflow
     if (contentElement.scrollHeight <= availableHeight) {
+      // console.log(`All ${this.lines.length} lines fit within available height.`);
       contentElement.innerHTML = '';
       return this.lines.length || 1;
     }
+
+    // Estimate a reasonable upper bound for binary search
+    let low = 1;
+    let high = Math.min(this.lines.length, Math.ceil(availableHeight / singleLineHeight) + 5); // Add buffer
+    let bestFit = 1;
+
     // Binary search
     while (low <= high) {
       const mid = Math.floor(low + (high - low) / 2);
       if (mid === 0) break;
+
       const testLines = this.lines.slice(0, mid);
-      contentElement.innerHTML = this.transformMarkdown(testLines.join('\n'));
-      contentElement.offsetHeight;
+      // Use   for empty lines during measurement
+      const testText = testLines.map(l => l || ' ').join('\n');
+      contentElement.innerHTML = this.transformMarkdown(testText);
+      contentElement.offsetHeight; // Reflow
       const measuredHeight = contentElement.scrollHeight;
+
       if (measuredHeight <= availableHeight) {
         bestFit = mid;
         low = mid + 1;
@@ -378,125 +357,201 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         high = mid - 1;
       }
     }
-    contentElement.innerHTML = '';
+
+    contentElement.innerHTML = ''; // Clean up
+    // console.log(`Determined best fit: ${bestFit} lines for height ${availableHeight}px`);
     return Math.max(1, bestFit);
   }
 
-  // --- Scroll Position Handling ---
-  private updatePageFromScroll(): void {
-    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) return;
-
-    const wrapper = this.readerContentWrapperRef.nativeElement;
-    const scrollTop = wrapper.scrollTop;
-    const clientHeight = wrapper.clientHeight;
-    // Use scrollHeight of the *content* for total size, not wrapper (unless they are same)
-    // const scrollHeight = this.readerContentRef.nativeElement.scrollHeight;
-    const scrollHeight = wrapper.scrollHeight; // Stick with wrapper scrollHeight for consistency with estimate
-    console.log(`Scroll detected - ScrollTop: ${scrollTop}, ClientHeight: ${clientHeight}, ScrollHeight: ${scrollHeight}`);
-
-    // Avoid calculation if scrollHeight is invalid
-    if (scrollHeight <= clientHeight) {
-      this.currentPage = 1; // Assume page 1 if content doesn't fill wrapper
-      this.cdRef.detectChanges();
-      return;
+  // --- Paged Content Rendering ---
+  private displayPagedContent(targetPage: number): void {
+    if (this.calculationNeeded) {
+      console.warn("displayPagedContent called while calculationNeeded is true. Recalculating...");
+      this.recalculateLayout();
     }
 
-    // Estimate page based on center of viewport
-    let calculatedPage = Math.floor((scrollTop + clientHeight / 2) / this.pageHeightEstimate) + 1;
-    calculatedPage = Math.max(1, Math.min(calculatedPage, this.totalPages)); // Clamp using paged totalPages
+    const newPage = Math.max(1, Math.min(targetPage, this.totalPages));
+    const startIndex = (newPage - 1) * this.linesPerPage;
+    const endIndex = Math.min(startIndex + this.linesPerPage, this.lines.length);
+    const pageLines = this.lines.slice(startIndex, endIndex);
+    // Join lines with '\n', transformMarkdown will handle basics, CSS handles rendering
+    const rawText = pageLines.join('\n');
+    const newHtml = this.transformMarkdown(rawText);
 
-    if (calculatedPage !== this.currentPage) {
-      console.log(`Scroll detected page change: ${this.currentPage} -> ${calculatedPage} (ScrollTop: ${scrollTop.toFixed(0)})`);
-      this.isUpdatingSliderFromScroll = true; // Set flag
-      this.currentPage = calculatedPage;
-      this.cdRef.detectChanges(); // Update UI (slider + page number)
-      // Reset flag slightly later so slider listener can ignore this update
-      setTimeout(() => this.isUpdatingSliderFromScroll = false, 50); // Shorter timeout okay here
+    console.log(`Paged Render - Page: ${newPage}, Lines: ${startIndex}-${endIndex - 1}`);
+
+    this.currentPage = newPage;
+    this.text = newHtml; // Update text to be rendered (HTML)
+
+    if (this.readerContentWrapperRef) {
+      this.readerContentWrapperRef.nativeElement.scrollTop = 0;
     }
+    this.cdRef.detectChanges();
   }
 
-  private scrollToApproximatePage(pageNumber: number): void {
-    if (!this.scrollingMode || !this.readerContentWrapperRef || this.pageHeightEstimate <= 0) return;
-    console.log(`Scrolling to approximate page: ${pageNumber}`);
-    // Ensure page number is valid
-    const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages));
-    const targetScrollTop = (targetPage - 1) * this.pageHeightEstimate;
-    const wrapper = this.readerContentWrapperRef.nativeElement;
-
-    this.isUpdatingScrollFromPageChange = true;
-    wrapper.scrollTo({top: targetScrollTop, behavior: 'smooth'});
-    // Update currentPage immediately for visual feedback, scroll listener will refine if needed
-    if (targetPage !== this.currentPage) {
-      this.currentPage = targetPage;
-      this.cdRef.detectChanges(); // Update slider/text immediately
+  // --- Scrolling Content Rendering ---
+  private renderVisibleLines(): void {
+    if (this.calculationNeeded) {
+      console.warn("renderVisibleLines called while calculationNeeded is true. Recalculating...");
+      this.recalculateLayout();
     }
-    setTimeout(() => this.isUpdatingScrollFromPageChange = false, 400); // Allow generous time for smooth scroll
+
+    const startIndex = Math.max(0, this.topVisibleLineIndex);
+    // Render enough lines to fill the viewport + buffer
+    const renderCount = this.viewportLineCapacity + 10; // Increased buffer slightly
+    const endIndex = Math.min(startIndex + renderCount, this.lines.length);
+    const visibleLines = this.lines.slice(startIndex, endIndex);
+    const rawText = visibleLines.join('\n');
+    const newHtml = this.transformMarkdown(rawText);
+
+    // console.log(`Scroll Render - TopIdx: ${startIndex}, Count: ${renderCount}, Lines: ${startIndex}-${endIndex - 1}`);
+
+    this.text = newHtml; // Update text to be rendered (HTML)
+    this.cdRef.detectChanges();
   }
+
 
   // --- Navigation ---
   protected nextPage(): void {
+    if (this.isLoading) return;
     if (this.scrollingMode) {
-      const nextPage = Math.min(this.totalPages, this.currentPage + 1);
-      this.scrollToApproximatePage(nextPage);
-    } else if (this.currentPage < this.totalPages) {
-      this.goToPage(this.currentPage + 1);
+      const newTopIndex = this.topVisibleLineIndex + this.linesPerPage;
+      // Ensure scrolling doesn't go *past* the point where the *last line* is visible
+      // A stricter limit might be needed if viewportLineCapacity < linesPerPage
+      const maxTopIndex = Math.max(0, this.lines.length - this.viewportLineCapacity); // Stop when last viewport full of lines is shown
+      // Or simply: const maxTopIndex = Math.max(0, this.lines.length - 1); // Allow scrolling until last line is at the top
+      this.topVisibleLineIndex = Math.min(newTopIndex, maxTopIndex);
+      this.updatePageNumberFromTopIndex();
+      this.renderVisibleLines();
+      this.cdRef.detectChanges();
+    } else {
+      if (this.currentPage < this.totalPages) {
+        this.goToPage(this.currentPage + 1);
+      }
     }
   }
 
   protected prevPage(): void {
+    if (this.isLoading) return;
     if (this.scrollingMode) {
-      const prevPage = Math.max(1, this.currentPage - 1);
-      this.scrollToApproximatePage(prevPage);
-    } else if (this.currentPage > 1) {
-      this.goToPage(this.currentPage - 1);
+      const newTopIndex = this.topVisibleLineIndex - this.linesPerPage;
+      this.topVisibleLineIndex = Math.max(0, newTopIndex);
+      this.updatePageNumberFromTopIndex();
+      this.renderVisibleLines();
+      this.cdRef.detectChanges();
+    } else {
+      if (this.currentPage > 1) {
+        this.goToPage(this.currentPage - 1);
+      }
     }
   }
 
-  // Paged mode navigation only
+  private updatePageNumberFromTopIndex(): void {
+    if (this.linesPerPage > 0) {
+      const calculatedPage = Math.floor(this.topVisibleLineIndex / this.linesPerPage) + 1;
+      this.currentPage = Math.max(1, Math.min(calculatedPage, this.totalPages));
+    } else {
+      this.currentPage = 1;
+    }
+  }
+
+  private getTopIndexForPage(pageNumber: number): number {
+    const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages));
+    const index = (targetPage - 1) * this.linesPerPage;
+    // Allow index to reach the very end if needed
+    return Math.max(0, Math.min(index, this.lines.length > 0 ? this.lines.length - 1 : 0));
+  }
+
+
   protected goToPage(pageNumber: number): void {
     if (this.scrollingMode) {
-      console.warn("goToPage called directly in scrolling mode - should use scrollToApproximatePage");
-      this.scrollToApproximatePage(pageNumber); // Attempt to handle it
+      console.warn("goToPage called directly in scrolling mode - using slider logic.");
+      this.sliderValueSubject.next(pageNumber);
       return;
     }
-
+    if (this.isLoading || this.calculationNeeded) {
+      console.warn("goToPage skipped: loading or calculation needed.");
+      return;
+    }
     const targetPage = Math.max(1, Math.min(pageNumber, this.totalPages || 1));
-    console.log(`goToPage (Paged): ${targetPage}`);
-    this.updateDisplay(targetPage);
-  }
-
-  // --- Mode Toggle --- (Fix Bug 2 & 3)
-  protected toggleScrollMode(): void {
-    const pageBeforeToggle = this.currentPage; // Remember page before switching
-    this.scrollingMode = !this.scrollingMode;
-    console.log(`Toggled Scrolling Mode: ${this.scrollingMode}. Was on page ${pageBeforeToggle}`);
-    this.calculationNeeded = !this.scrollingMode; // Need calculation if switching TO paged
-
-    // Don't reset scroll explicitly here - let updateDisplay handle it
-    // if (this.readerContentWrapperRef) { this.readerContentWrapperRef.nativeElement.scrollTop = 0; }
-
-    // Update display, passing the page we want to be on *after* the switch
-    this.updateDisplay(pageBeforeToggle);
-
-    if (!this.scrollSubscription) {
-      this.setupScrollListener();
+    if (targetPage !== this.currentPage) {
+      this.displayPagedContent(targetPage);
     }
   }
 
-  // --- Utilities ---
-  private transformMarkdown(text: string): string { /* ... remains the same ... */
-    return text.replace(/_(.*?)_/gs, '<em>$1</em>').replace(/\*(.*?)\*/gs, '<strong>$1</strong>').replace(/---/g, '<hr>').replace(/#{1,6}\s+(.*)/g, (match, p1) => {
-      const level = match.indexOf(' ');
-      return `<h${level}>${p1}</h${level}>`
-    }).replace(/—/g, ' — ').replace(/[“”]/g, '"');
+  // --- Mode Toggle ---
+  protected toggleScrollMode(): void {
+    if (this.isLoading) return;
+
+    const pageBeforeToggle = this.currentPage;
+    const topIndexBeforeToggle = this.topVisibleLineIndex;
+
+    this.scrollingMode = !this.scrollingMode;
+    console.log(`Toggled Scrolling Mode: ${this.scrollingMode}.`);
+
+    this.calculationNeeded = true; // Recalculate layout needed
+
+    // Use setTimeout to ensure DOM updates (like class changes) apply
+    // before recalculation and rendering for the new mode.
+    setTimeout(() => {
+      if (this.scrollingMode) {
+        // --- Switched Paged -> Scroll ---
+        this.recalculateLayout(); // Recalc with new mode active
+        this.topVisibleLineIndex = this.getTopIndexForPage(pageBeforeToggle);
+        this.updatePageNumberFromTopIndex(); // Ensure currentPage is correct
+        console.log(`  Switching P->S: Was on P ${pageBeforeToggle}, setting top index to ${this.topVisibleLineIndex}, calculated page ${this.currentPage}`);
+        this.renderVisibleLines();
+      } else {
+        // --- Switched Scroll -> Paged ---
+        let targetPage: number;
+        if (this.linesPerPage > 0) { // Use linesPerPage from *before* recalc potentially
+          targetPage = Math.floor(topIndexBeforeToggle / this.linesPerPage) + 1;
+        } else {
+          targetPage = 1;
+        }
+
+        this.recalculateLayout(); // Recalc with new mode active
+        targetPage = Math.max(1, Math.min(targetPage, this.totalPages)); // Clamp with new totalPages
+
+        console.log(`  Switching S->P: Was at top index ${topIndexBeforeToggle}, targeting page ${targetPage}`);
+        this.displayPagedContent(targetPage);
+      }
+    }, 0); // Execute after current cycle
   }
 
-  private arrayBufferToString(buffer: ArrayBuffer): string { /* ... remains the same ... */
+
+  // --- Utilities ---
+  // *** FIX: Use simpler markdown transform relying on \n and white-space: pre-line ***
+  private transformMarkdown(text: string): string {
+    if (!text && text !== '') return ''; // Handle null/undefined but allow empty string
+
+    // Basic transformations - operates on the joined string block.
+    // IMPORTANT: This relies on the CSS rule `white-space: pre-line;` on the
+    // `.reader-content` element to correctly handle the `\n` characters
+    // for line breaks (including preserving blank lines).
+    return text
+      // Escape HTML to prevent potential XSS from input text before applying markdown
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      // Apply markdown-like styling *after* escaping
+      .replace(/_(.*?)_/gs, '<em>$1</em>')        // Italic
+      .replace(/\*(.*?)\*/gs, '<strong>$1</strong>') // Bold (use * instead of **)
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')     // H3
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')     // H2
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')      // H1
+      .replace(/^---$/gm, '<hr>')                   // Horizontal Rule (ensure it's alone on line)
+      .replace(/—/g, '—')                   // Em dash
+      .replace(/[“”]/g, '"');                     // Smart quotes to standard
+    // No need to handle \n here, CSS `white-space: pre-line` does that.
+  }
+
+
+  private arrayBufferToString(buffer: ArrayBuffer): string {
     try {
       const decoder = new TextDecoder('utf-8', {fatal: true});
       return decoder.decode(buffer);
     } catch (e) {
-      console.error("Failed UTF-8 decode", e);
+      console.warn("UTF-8 decoding failed, trying windows-1252.", e);
       const decoder = new TextDecoder('windows-1252');
       return decoder.decode(buffer);
     }

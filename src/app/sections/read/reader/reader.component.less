@@ -15,25 +15,12 @@
 
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-height));
-  height: calc(100vh - var(--header-height));
+  // Let the container define the overall height constraints
+  height: calc(100vh - var(--header-height)); // Example: Fill viewport below header
   width: 100%;
   box-sizing: border-box;
   background-color: var(--main-bg-color);
-  overflow: hidden;
-}
-
-// --- Base Container ---
-.base-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-  background-color: var(--main-bg-color);
-  min-height: calc(100vh - 94px);
-  padding: 0;
-  margin: 0;
+  overflow: hidden; // Host should not scroll typically
 }
 
 // --- Reader Container ---
@@ -42,12 +29,14 @@
   color: var(--text-color);
   background-color: var(--background-color);
   padding: 15px;
-  flex-grow: 1;
+  padding-top: 45px; // Make space for absolute positioned button
+  flex-grow: 1; // Takes up remaining space in :host
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; // Prevent reader container itself from scrolling
   box-sizing: border-box;
-  position: relative;
+  position: relative; // For scroll toggle button positioning
+  height: 100%; // Fill the :host container
 }
 
 // --- Loading & Error ---
@@ -56,6 +45,7 @@
   text-align: center;
   padding: 40px;
   font-style: italic;
+  margin: auto; // Center vertically and horizontally if alone
 }
 
 .error-message {
@@ -83,40 +73,49 @@
 
 // --- Reader Content Wrapper ---
 .reader-content-wrapper {
-  flex-grow: 1;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 15px;
-
-  &.scrolling-mode-active {
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--slider-thumb-bg) var(--slider-track-bg);
-
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: var(--slider-track-bg);
-      border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: var(--slider-thumb-bg);
-      border-radius: 4px;
-      border: 2px solid var(--slider-track-bg);
-    }
-  }
+  flex-grow: 1; // Allow wrapper to fill space between button and controls
+  overflow: hidden; // CRITICAL: Disable native scrollbar always now
+  position: relative; // Needed? Maybe not.
+  margin-bottom: 15px; // Space before controls
+  border: 1px solid #eee; // Optional: Visualize the boundary
 }
 
 // --- Reader Content ---
 .reader-content {
-  font-size: 20px;
-  line-height: 1.6;
-  white-space: pre-line;
-  padding: 5px;
+  font-size: 20px; // Base size
+  line-height: 1.6; // Base line height
+  white-space: pre-line; // Keep this if you rely on \n for line breaks in source
+  padding: 5px; // Internal padding for text
+  // No height manipulation here, let content flow naturally within its slice
+
+  // Ensure headers/hr have appropriate spacing when using transformMarkdown
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: 1.3; // Adjust header line height
+  }
+
+  hr {
+    margin: 1.5em 0;
+    border: 0;
+    border-top: 1px solid #ccc;
+  }
+
+  p { // Add spacing if using <p> tags in transformMarkdown
+    margin-bottom: 0.5em;
+  }
+
+  p:last-child {
+    margin-bottom: 0; // Avoid extra space at the end of the block
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  strong {
+    font-weight: bold;
+  }
 }
 
 // --- Pagination Controls ---
@@ -134,12 +133,12 @@
     background-color: var(--button-bg);
     border: 1px solid #ccc;
     padding: 8px 15px;
-    margin: 0 10px;
+    margin: 0 5px; // Reduced margin slightly
     cursor: pointer;
     border-radius: 4px;
     font-size: 14px;
     transition: background-color 0.2s ease;
-    flex-shrink: 0;
+    flex-shrink: 0; // Prevent buttons shrinking
 
     &:hover:not(:disabled) {
       background-color: var(--button-hover-bg);
@@ -149,20 +148,31 @@
       background-color: var(--button-disabled-bg);
       color: var(--button-disabled-color);
       cursor: not-allowed;
+      opacity: 0.6;
     }
   }
 
+  .pagination-center-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; // Allow center area to take up space
+    margin: 0 10px; // Spacing around center area
+    min-width: 150px; // Ensure it doesn't collapse too much
+  }
+
   .pagination-info {
-    display: inline-block;
-    margin: 0 15px;
+    // display: inline-block; // Not needed with flex
+    margin-right: 15px; // Space between text and slider
     font-size: 14px;
     color: #666;
-    vertical-align: middle;
+    white-space: nowrap; // Prevent page number wrapping
+    // vertical-align: middle; // Not needed with flex align-items
   }
 
   .page-slider {
-    width: 80%;
-    max-width: 300px;
+    width: 100%; // Fill available space in center area
+    max-width: 300px; // Max width for slider
     height: 8px;
     cursor: pointer;
     appearance: none;
@@ -181,13 +191,15 @@
       opacity: 0.4;
     }
 
+    // --- Slider Thumb Styles ---
     &::-webkit-slider-thumb {
       appearance: none;
       width: 16px;
       height: 16px;
       background: var(--slider-thumb-bg);
       border-radius: 50%;
-      border: 2px solid white;
+      border: none; // Removed border for potentially smoother look
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.5); // Optional subtle shadow
     }
 
     &::-moz-range-thumb {
@@ -195,7 +207,8 @@
       height: 16px;
       background: var(--slider-thumb-bg);
       border-radius: 50%;
-      border: 2px solid white;
+      border: none;
+      box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
     }
   }
 }

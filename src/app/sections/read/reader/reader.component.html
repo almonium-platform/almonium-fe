@@ -7,28 +7,42 @@
   <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
   <div *ngIf="errorMessage && !isLoading" class="error-message">{{ errorMessage }}</div>
 
-  <div #readerContentWrapper class="reader-content-wrapper" [class.scrolling-mode-active]="scrollingMode">
+  <div #readerContentWrapper
+       class="reader-content-wrapper"
+       [class.scrolling-mode-active]="scrollingMode"
+       (wheel)="onWheelScroll($event)">
     <div #readerContent class="reader-content" [innerHTML]="text"></div>
   </div>
 
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
 
-    <button type="button" (click)="prevPage()" [disabled]="currentPage <= 1 && !scrollingMode"
+    <!-- Buttons are always enabled in scroll mode unless at absolute start/end -->
+    <button type="button" (click)="prevPage()"
+            [disabled]="!scrollingMode && currentPage <= 1 || scrollingMode && topVisibleLineIndex <= 0"
             class="pagination-button prev-button" aria-label="Previous Page">
-      < Prev
+      < Prev <!-- Use < for '<' -->
     </button>
 
     <div class="pagination-center-area">
-            <span class="pagination-info">
-                Page {{ currentPage }} of {{ totalPages }}
-            </span>
-      <input type="range" class="page-slider" [min]="1" [max]="totalPages" [ngModel]="currentPage"
-             (input)="onSliderInput($event)" (change)="onSliderChange($event)"
+      <span class="pagination-info">
+          <!-- Show page number consistently -->
+          Page {{ currentPage }} of {{ totalPages }}
+        <!-- Optionally show line index in scroll mode for debugging -->
+        <!-- <span *ngIf="scrollingMode"> (Line: {{ topVisibleLineIndex }})</span> -->
+      </span>
+      <!-- Slider reflects currentPage, which is calculated differently in each mode -->
+      <input type="range" class="page-slider"
+             [min]="1"
+             [max]="totalPages"
+             [ngModel]="currentPage"
+             (input)="onSliderInput($event)"
+             (change)="onSliderChange($event)"
              [disabled]="totalPages <= 1"
              aria-label="Page Slider"/>
     </div>
 
-    <button type="button" (click)="nextPage()" [disabled]="currentPage >= totalPages && !scrollingMode"
+    <button type="button" (click)="nextPage()"
+            [disabled]="!scrollingMode && currentPage >= totalPages || scrollingMode && topVisibleLineIndex >= (lines.length - 1)"
             class="pagination-button next-button" aria-label="Next Page">
       Next >
     </button>
