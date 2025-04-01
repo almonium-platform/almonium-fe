@@ -1,9 +1,121 @@
-.reader-content {
+:host {
+  --font-family: 'Georgia', serif; // Example serif font
+  --text-color: #333;
+  --background-color: #f9f9f9;
+  --button-bg: #eee;
+  --button-hover-bg: #ddd;
+  --button-disabled-bg: #f5f5f5;
+  --button-disabled-color: #aaa;
+  --error-color: #d9534f;
+
+  height: 100%; // Crucial: Make the component fill its parent height
+  overflow: hidden; // Prevent the *host* from showing scrollbars if content overflows briefly during calc
+  display: flex;
+  flex-direction: column; // Stack content and controls vertically
+}
+
+.base-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%; // Ensures the container takes the full width of the viewport
+  box-sizing: border-box; // Includes padding in the width calculation
+  background-color: var(--main-bg-color); // Uses the main background color
+  min-height: calc(100vh - 94px);
+  padding: 0;
+  margin: 0;
+}
+
+.reader-container {
   font-family: var(--font-family);
   color: var(--text-color);
+  background-color: var(--background-color);
+  padding: 20px;
+  flex-grow: 1; // Allow container to fill space
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Prevents container scrollbars, content div handles measurement
+  height: 100%; // Fill the host
+  box-sizing: border-box;
+}
+
+.loading-indicator,
+.error-message {
+  text-align: center;
+  padding: 40px;
+  font-style: italic;
+}
+
+.error-message {
+  color: var(--error-color);
+  font-weight: bold;
+}
+
+// Wrapper helps isolate the content area for measurement
+.reader-content-wrapper {
+  flex-grow: 1; // Takes up available space above pagination
+  overflow: hidden; // Important: Prevents scrollbars here, we measure its content
+  margin-bottom: 15px; // Space before pagination controls
+  position: relative; // Needed if absolute positioning children later
+  // The height of this wrapper dictates the available space for .reader-content
+  // Its height is determined by flexbox layout within .reader-container
+}
+
+// The actual content area being measured and populated
+.reader-content {
   font-size: 20px;
-  line-height: 1.5;
-  white-space: pre-line; /* Respect newlines and spaces */
-  max-width: fit-content;
-  margin: 0 auto;
+  line-height: 1.6; // Increased line-height for readability
+  white-space: pre-line; /* Respect newlines and spaces from the source text */
+  // max-width: 800px; // Optional: Limit line width for readability
+  // margin: 0 auto; // Center if max-width is set
+  // DO NOT set height or overflow here. Its scrollHeight is measured.
+}
+
+.pagination-controls {
+  flex-shrink: 0; // Prevent controls from shrinking
+  text-align: center;
+  padding-top: 10px;
+  border-top: 1px solid #eee; // Separator line
+  user-select: none; // Prevent text selection on controls
+
+  .pagination-button {
+    background-color: var(--button-bg);
+    border: 1px solid #ccc;
+    padding: 8px 15px;
+    margin: 0 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background-color: var(--button-hover-bg);
+    }
+
+    &:disabled {
+      background-color: var(--button-disabled-bg);
+      color: var(--button-disabled-color);
+      cursor: not-allowed;
+    }
+  }
+
+  .pagination-info {
+    display: inline-block;
+    margin: 0 15px;
+    font-size: 14px;
+    color: #666;
+    vertical-align: middle;
+  }
+}
+
+// Example: Make emphasis slightly more distinct
+em {
+  font-style: italic;
+  // color: #555; // Optional: slightly different color
+}
+
+// Example: Make strong more distinct
+strong {
+  font-weight: bold;
+  // color: #222; // Optional: slightly darker color
 }

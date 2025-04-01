@@ -1,3 +1,54 @@
 <div class="base-container">
-  <div class="reader-content" [innerHTML]="text"></div>
+  <div class="reader-container">
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="loading-indicator">
+      Loading book...
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage && !isLoading" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Reader Content (use a wrapper for potential future styling/scrollbars if needed) -->
+    <div class="reader-content-wrapper">
+      <!--
+        The #readerContent element is crucial for height measurement.
+        It should ideally have no padding/margin itself if containerElement is the host,
+        or adjust calculation based on its box model vs containerElement's clientHeight.
+        Using pre-line is important for respecting newlines from the source text.
+      -->
+      <div #readerContent class="reader-content" [innerHTML]="text"></div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="!isLoading && !errorMessage && totalPages > 1" class="pagination-controls">
+      <button
+        type="button"
+        (click)="prevPage()"
+        [disabled]="currentPage <= 1"
+        class="pagination-button prev-button"
+        aria-label="Previous Page">
+        < Prev
+      </button>
+
+      <span class="pagination-info">
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+
+      <button
+        type="button"
+        (click)="nextPage()"
+        [disabled]="currentPage >= totalPages"
+        class="pagination-button next-button"
+        aria-label="Next Page">
+        Next >
+      </button>
+    </div>
+
+    <!-- Optional: Show message if content fits on one page -->
+    <div *ngIf="!isLoading && !errorMessage && totalPages === 1 && lines.length > 0" class="pagination-controls">
+      <span>Content fits on a single page.</span>
+    </div>
+  </div>
 </div>
