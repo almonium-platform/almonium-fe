@@ -23,6 +23,15 @@ export class ReadService {
     return this.http.get<BookshelfView>(url, {params, withCredentials: true});
   }
 
+  getParallelText(id1: number, language: string): Observable<any> {
+    const url = `${AppConstants.BOOKS_URL}/${id1}/parallel/${language}`;
+    return this.http.get(url, {
+      withCredentials: true,
+      responseType: 'arraybuffer',
+      observe: 'response'
+    });
+  }
+
   getBookById(bookId: number, language: string): Observable<Book> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
     return this.http.get<Book>(url, {withCredentials: true});

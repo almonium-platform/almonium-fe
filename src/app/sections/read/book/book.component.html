@@ -64,9 +64,7 @@
             <p class="pages">First published in {{ book.publicationYear }}</p>
             @if (book.isTranslation && originalLanguage) {
               •
-              <p class="pages">
-                Translated by <em>{{ book.translator }}</em>
-              </p>
+              <p class="pages">Translated by <em>{{ book.translator }}</em></p>
             }
           </div>
         </div>

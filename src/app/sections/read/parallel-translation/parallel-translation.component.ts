@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {TuiHintDirective} from "@taiga-ui/core";
 
 @Component({
@@ -10,4 +10,5 @@ import {TuiHintDirective} from "@taiga-ui/core";
   styleUrls: ['./parallel-translation.component.less']
 })
 export class ParallelTranslationComponent {
+  @Input() inactive: boolean = false;
 }

@@ -10,20 +10,23 @@ import {
 } from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TuiAlertService} from '@taiga-ui/core';
 import {Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, takeUntil} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiSliderComponent} from "@taiga-ui/kit";
+import {TuiDataListWrapperComponent, TuiSliderComponent} from "@taiga-ui/kit";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BookMini} from "../book.model";
+import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
+import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {HttpResponse} from "@angular/common/http";
 
 @Component({
   selector: 'app-reader',
   standalone: true,
-  imports: [CommonModule, FormsModule, SharedLucideIconsModule, ButtonComponent, TuiSliderComponent],
+  imports: [CommonModule, FormsModule, SharedLucideIconsModule, ButtonComponent, TuiSliderComponent, ParallelTranslationComponent, TuiDataListWrapperComponent, TuiSelectModule, TuiTextfieldControllerModule, ReactiveFormsModule],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
 })
@@ -70,7 +73,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private singleLineHeightEstimate: number = 20; // Estimated height of a single line (will be updated)
   private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
 
-  private parallelVersions: BookMini[] = [];
+  protected parallelVersions: BookMini[] = [];
+  protected languageSelectControl = new FormControl("Select Language");
+  protected parallelInactive: boolean = true;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -93,7 +98,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           next: (book) => {
             if (book) {
               console.log(JSON.stringify(book));
-              this.parallelVersions = book.availableLanguages;
+              this.parallelVersions = book.availableLanguages.filter(t => t.language !== book.language);
             }
           },
           error: (error) => {
@@ -195,28 +200,32 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.readService.loadBook(bookId).subscribe({
       next: (response) => {
-        if (response.status === 200 && response.body) {
-          this.fullText = this.arrayBufferToString(response.body);
-          // *** FIX: Keep empty strings by removing .map() ***
-          this.lines = this.fullText.split('\n');
-          // console.log('Lines loaded:', this.lines.slice(0, 20)); // Debug: Check if '' are present
-          this.isLoading = false;
-          this.calculationNeeded = true;
-          this.errorMessage = null;
-
-          setTimeout(() => {
-            this.updateDisplay(1);
-          }, this.RENDER_DELAY_MS);
-
-        } else {
-          this.handleError(`Failed to load book. Status: ${response.status}`);
-        }
+        this.handleByteResponse(response);
       },
       error: (error) => {
         const message = error?.error?.message || 'An unknown error occurred.';
         this.handleError(message);
       },
     });
+  }
+
+  private handleByteResponse(response: HttpResponse<ArrayBuffer>) {
+    if (response.status === 200 && response.body) {
+      this.fullText = this.arrayBufferToString(response.body);
+      // *** FIX: Keep empty strings by removing .map() ***
+      this.lines = this.fullText.split('\n');
+      // console.log('Lines loaded:', this.lines.slice(0, 20)); // Debug: Check if '' are present
+      this.isLoading = false;
+      this.calculationNeeded = true;
+      this.errorMessage = null;
+
+      setTimeout(() => {
+        this.updateDisplay(1);
+      }, this.RENDER_DELAY_MS);
+
+    } else {
+      this.handleError(`Failed to load book. Status: ${response.status}`);
+    }
   }
 
   private handleError(message: string): void {
@@ -670,5 +679,26 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       console.error('Navigation error:', error);
       this.alertService.open('Error navigating back.', {label: 'Error', appearance: 'error',}).subscribe();
     });
+  }
+
+  protected toggleParallel() {
+    this.parallelInactive = !this.parallelInactive;
+    if (this.parallelInactive) {
+      this.languageSelectControl.setValue("Select Language");
+    } else {
+      this.readService.getParallelText(this.bookId!, this.languageSelectControl.value!).subscribe({
+        next: (response) => {
+          this.handleByteResponse(response);
+        },
+        error: (error) => {
+          const message = error?.error?.message || 'An unknown error occurred.';
+          this.handleError(message);
+        }
+      });
+    }
+  }
+
+  get langs() {
+    return this.parallelVersions.map(t => t.language);
   }
 }
