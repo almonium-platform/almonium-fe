@@ -17,14 +17,13 @@
 
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
 
-    <!-- Buttons are always enabled in scroll mode unless at absolute start/end -->
-    <lucide-icon
-      name="circle-arrow-out-up-left"
-      class="absolute left-2 bottom-2 cursor-pointer"
-      size="28"
-      strokeWidth="1.5"
-      (click)="goBack()"
-    ></lucide-icon>
+    <!--    <lucide-icon-->
+    <!--      name="circle-arrow-out-up-left"-->
+    <!--      class="absolute left-2 bottom-2 cursor-pointer"-->
+    <!--      size="28"-->
+    <!--      strokeWidth="1.5"-->
+    <!--      (click)="goBack()"-->
+    <!--    ></lucide-icon>-->
 
     <div class="pagination-center-area">
       <app-button
