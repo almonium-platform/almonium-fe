@@ -74,7 +74,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
 
   protected parallelVersions: BookMini[] = [];
-  protected languageSelectControl = new FormControl("Select Language");
+  protected languageSelectControl = new FormControl("👆");
   protected parallelInactive: boolean = true;
   protected parallelTranslations: Map<string, string> | null = null; // To store parsed parallel data
 
@@ -687,7 +687,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.parallelInactive) {
       // --- Switched OFF Parallel Mode ---
-      this.languageSelectControl.setValue("Select Language");
+      this.languageSelectControl.setValue("👆");
       this.parallelTranslations = null; // Clear the parsed data
       // TODO: Force a re-render of the original text if needed
       // Assuming updateDisplay will render based on this.lines which holds original
@@ -704,7 +704,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.errorMessage = null; // Clear previous errors
       const selectedLang = this.languageSelectControl.value;
 
-      if (!selectedLang || selectedLang === "Select Language") {
+      if (!selectedLang || selectedLang === "👆") {
         this.handleError("Please select a language for parallel text.");
         this.parallelInactive = true; // Revert state
         this.isLoading = false;
@@ -735,7 +735,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
             this.handleError(`Failed to load parallel text. Status: ${response.status}`);
             this.parallelTranslations = null; // Clear on failure
             this.parallelInactive = true; // Revert state
-            this.languageSelectControl.setValue("Select Language");
+            this.languageSelectControl.setValue("👆");
             this.isLoading = false;
           }
         },
@@ -744,7 +744,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.handleError(message);
           this.parallelTranslations = null; // Clear on failure
           this.parallelInactive = true; // Revert state on error
-          this.languageSelectControl.setValue("Select Language");
+          this.languageSelectControl.setValue("👆");
           this.isLoading = false;
         }
       });
