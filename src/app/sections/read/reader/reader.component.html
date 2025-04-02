@@ -66,21 +66,23 @@
         ></lucide-icon>
       </app-button>
 
-      <div class="parallel">
-        <app-parallel-translation [inactive]="parallelInactive" (click)="toggleParallel()"></app-parallel-translation>
-        <tui-select
-          tuiTextfieldSize="s"
-          class="language-select"
-          [formControl]="languageSelectControl"
-          [tuiTextfieldLabelOutside]="true"
-        >
-          <tui-data-list-wrapper
-            *tuiDataList
-            [items]="langs"
+      @if (parallelVersions.length > 0) {
+        <div class="parallel">
+          <app-parallel-translation [inactive]="parallelInactive" (click)="toggleParallel()"></app-parallel-translation>
+          <tui-select
+            tuiTextfieldSize="s"
+            class="language-select"
+            [formControl]="languageSelectControl"
+            [tuiTextfieldLabelOutside]="true"
           >
-          </tui-data-list-wrapper>
-        </tui-select>
-      </div>
+            <tui-data-list-wrapper
+              *tuiDataList
+              [items]="langs"
+            >
+            </tui-data-list-wrapper>
+          </tui-select>
+        </div>
+      }
     </div>
     <!--    <button type="button" (click)="toggleScrollMode()" class="pagination-button next-button">-->
     <!--      {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}-->
