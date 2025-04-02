@@ -294,7 +294,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account linked successfully', {appearance: 'success'}).subscribe();
+          this.alertService.open('Local account linked', {appearance: 'success'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {

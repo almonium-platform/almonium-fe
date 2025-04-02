@@ -256,7 +256,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }).pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Fluent languages saved successfully', {appearance: 'success'}).subscribe();
+          this.alertService.open('Fluent languages saved', {appearance: 'success'}).subscribe();
           this.localStorageService.clearUserInfo();
           this.fluentEditable = false;
           this.currentFluentLanguages = this.selectedFluentLanguages;

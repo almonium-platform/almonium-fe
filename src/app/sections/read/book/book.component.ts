@@ -186,7 +186,7 @@ export class BookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.book!.orderLanguage = language;
-          this.alertService.open('Translation ordered successfully', {appearance: 'success'}).subscribe();
+          this.alertService.open('Translation ordered', {appearance: 'success'}).subscribe();
         },
         error: (error) => {
           console.error('Failed to order translation:', error);
@@ -256,7 +256,7 @@ export class BookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.book!.orderLanguage = undefined;
-          this.alertService.open('Translation order cancelled successfully', {appearance: 'success'}).subscribe();
+          this.alertService.open('Translation order cancelled', {appearance: 'success'}).subscribe();
         }, error: (error) => {
           console.error('Failed to cancel translation order:', error);
           this.alertService.open(error.error.message || 'Couldn\'t cancel translation order', {appearance: 'error'}).subscribe();

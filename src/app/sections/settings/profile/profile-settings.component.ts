@@ -241,7 +241,7 @@ auto-renewal in the customer portal.`;
       this.interestsEdit = false;
       this.userInfoService.updateUserInfo({interests: this.interests});
       this.alertService
-        .open('Interests updated successfully', {appearance: 'success'})
+        .open('Interests updated', {appearance: 'success'})
         .subscribe();
     } catch (error) {
       this.alertService
