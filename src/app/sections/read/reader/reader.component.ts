@@ -557,6 +557,49 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.cdRef.detectChanges();
   }
 
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // 1. Ignore key presses if the component is loading
+    if (this.isLoading) {
+      return;
+    }
+
+    // 2. Ignore key presses if the event originates from an input, select, or textarea
+    const target = event.target as HTMLElement;
+    const targetTagName = target?.tagName?.toUpperCase();
+    if (targetTagName === 'INPUT' || targetTagName === 'SELECT' || targetTagName === 'TEXTAREA') {
+      // User is likely typing in a form control, don't interfere
+      return;
+    }
+
+    // 3. Handle specific keys
+    switch (event.key) { // 'key' is generally preferred over keyCode
+      case 'ArrowLeft':
+        event.preventDefault(); // Prevent default browser behavior (like scrolling the page)
+        console.log("Arrow Left detected - Triggering Previous Action");
+        this.prevPage(); // Call the existing prevPage logic
+        break;
+
+      case 'ArrowRight':
+        event.preventDefault(); // Prevent default browser behavior
+        console.log("Arrow Right detected - Triggering Next Action");
+        this.nextPage(); // Call the existing nextPage logic
+        break;
+
+      case 'ArrowUp':
+        if (this.scrollingMode) {
+          event.preventDefault();
+          this.performScrollStep('prev'); // Use the fine-grained scroll step
+        }
+        break;
+      case 'ArrowDown':
+        if (this.scrollingMode) {
+          event.preventDefault();
+          this.performScrollStep('next'); // Use the fine-grained scroll step
+        }
+        break;
+    }
+  }
 
   // --- Navigation ---
   protected nextPage(): void {
