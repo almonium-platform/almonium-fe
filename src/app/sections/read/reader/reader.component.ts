@@ -789,4 +789,35 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log(`Parsed ${parallelMap.size} parallel entries.`);
     return parallelMap;
   }
+
+  protected onWrapperClick(event: MouseEvent): void {
+    const contentEl = this.readerContentRef.nativeElement;
+    const wrapperEl = this.readerContainerRef.nativeElement;
+    const control = this.paginationControlsRef.nativeElement;
+    const clickedOnControls = control.contains(event.target as Node);
+
+    if (clickedOnControls) {
+      return;
+    }
+
+    const clickedInsideContent = contentEl.contains(event.target as Node);
+
+    if (!clickedInsideContent || event.target === wrapperEl) {
+      const contentRect = contentEl.getBoundingClientRect();
+      const clickX = event.clientX;
+
+      const toTheRight = clickX > contentRect.left;
+
+      this.handleWhiteSpaceClick(toTheRight);
+    }
+  }
+
+  private handleWhiteSpaceClick(toTheRight: boolean): void {
+    console.log('Clicked on white space! ' + toTheRight);
+    if (toTheRight) {
+      this.nextPage();
+    } else {
+      this.prevPage();
+    }
+  }
 }
