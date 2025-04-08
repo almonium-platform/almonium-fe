@@ -31,7 +31,14 @@
       <app-button
         appearance="text"
         [disabled]="!scrollingMode && currentPage <= 1 || scrollingMode && topVisibleLineIndex <= 0"
-        (clickFunction)="prevPage()"
+        (mousedown)="startScrollHold('prev')"
+        (touchstart)="startScrollHold('prev'); $event.preventDefault()"
+        (mouseup)="stopScrollHold('prev')"
+        (touchend)="stopScrollHold('prev')"
+        (mouseleave)="clearScrollHoldTimers()"
+        (touchcancel)="clearScrollHoldTimers()"
+        title="Previous Page (Click) / Scroll Up (Hold)"
+        aria-label="Previous Page (Click) / Scroll Up (Hold)"
       >
         <lucide-icon
           name="circle-chevron-left"
@@ -58,7 +65,14 @@
       <app-button
         appearance="text"
         [disabled]="!scrollingMode && currentPage >= totalPages || scrollingMode && topVisibleLineIndex >= (lines.length - 1)"
-        (clickFunction)="nextPage()"
+        (mousedown)="startScrollHold('next')"
+        (touchstart)="startScrollHold('next'); $event.preventDefault()"
+        (mouseup)="stopScrollHold('next')"
+        (touchend)="stopScrollHold('next')"
+        (mouseleave)="clearScrollHoldTimers()"
+        (touchcancel)="clearScrollHoldTimers()"
+        title="Next Page (Click) / Scroll Down (Hold)"
+        aria-label="Next Page (Click) / Scroll Down (Hold)"
       >
         <lucide-icon
           name="circle-chevron-right"

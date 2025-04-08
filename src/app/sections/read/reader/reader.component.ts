@@ -73,6 +73,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private singleLineHeightEstimate: number = 20; // Estimated height of a single line (will be updated)
   private readonly TOUCH_SCROLL_THRESHOLD_FACTOR = 0.8; // How much of a line height triggers a scroll (adjust sensitivity)
 
+  // --- Press and Hold Scrolling State ---
+  private scrollIntervalId: ReturnType<typeof setInterval> | null = null;
+  private scrollHoldTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private isHoldingForScroll: boolean = false; // Flag to differentiate click from hold end
+  private readonly SCROLL_HOLD_DELAY = 350; // ms: Time to hold before continuous scroll starts
+  private readonly SCROLL_INTERVAL_DELAY = 50; // ms: Speed of continuous scroll steps
+
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl("👆");
   protected parallelInactive: boolean = true;
@@ -125,6 +132,105 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearScrollHoldTimers();
+  }
+
+  protected clearScrollHoldTimers(): void {
+    if (this.scrollHoldTimeoutId) {
+      clearTimeout(this.scrollHoldTimeoutId);
+      this.scrollHoldTimeoutId = null;
+    }
+    if (this.scrollIntervalId) {
+      clearInterval(this.scrollIntervalId);
+      this.scrollIntervalId = null;
+    }
+    this.isHoldingForScroll = false;
+  }
+
+  protected startScrollHold(direction: 'prev' | 'next'): void {
+    if (!this.scrollingMode) {
+      // If not in scrolling mode, treat as a normal click (handled by click event)
+      return;
+    }
+
+    // Prevent multiple timeouts if events fire rapidly
+    this.clearScrollHoldTimers();
+    this.isHoldingForScroll = false; // Reset flag
+
+    this.scrollHoldTimeoutId = setTimeout(() => {
+      this.isHoldingForScroll = true; // Mark that hold delay passed
+      this.scrollIntervalId = setInterval(() => {
+        this.performScrollStep(direction);
+      }, this.SCROLL_INTERVAL_DELAY);
+      // Optional: Immediately perform one step when interval starts
+      // this.performScrollStep(direction);
+    }, this.SCROLL_HOLD_DELAY);
+  }
+
+  protected stopScrollHold(triggerAction: 'prev' | 'next'): void {
+    // If a hold scroll wasn't active (timeout didn't finish OR interval wasn't set)
+    // AND we are *not* currently flagged as having held, perform the standard page turn action.
+    const wasHoldScrollActive = this.isHoldingForScroll;
+
+    this.clearScrollHoldTimers(); // Always clear timers/intervals on release
+
+    if (!wasHoldScrollActive && this.scrollingMode) {
+      // It was a click, not a hold that initiated scrolling
+      console.log("Hold released before scroll started - performing single page action.");
+      if (triggerAction === 'prev') {
+        this.prevPage(); // Call original single-page jump logic
+      } else {
+        this.nextPage(); // Call original single-page jump logic
+      }
+    } else if (!wasHoldScrollActive && !this.scrollingMode) {
+      // Handle click in paged mode (standard behaviour)
+      if (triggerAction === 'prev') {
+        this.prevPage();
+      } else {
+        this.nextPage();
+      }
+    } else {
+      // Hold scroll was active, just stop.
+      console.log("Hold scroll stopped.");
+    }
+  }
+
+  private performScrollStep(direction: 'prev' | 'next'): void {
+    if (!this.scrollingMode || this.isLoading || !this.lines.length) {
+      this.clearScrollHoldTimers(); // Stop if mode changes or loading starts
+      return;
+    }
+
+    const currentTopIndex = this.topVisibleLineIndex;
+    let newTopIndex: number;
+
+    if (direction === 'prev') {
+      newTopIndex = currentTopIndex - this.SCROLL_LINE_STEP;
+    } else { // direction === 'next'
+      newTopIndex = currentTopIndex + this.SCROLL_LINE_STEP;
+    }
+
+    // Clamp the index
+    const maxTopIndex = Math.max(0, this.lines.length - 1); // Allow scrolling until last line is at the top
+    const clampedTopIndex = Math.max(0, Math.min(newTopIndex, maxTopIndex));
+
+    if (clampedTopIndex !== this.topVisibleLineIndex) {
+      this.topVisibleLineIndex = clampedTopIndex;
+      this.updatePageNumberFromTopIndex();
+      this.renderVisibleLines();
+      this.cdRef.detectChanges(); // Update slider and page number display
+
+      // Optional: Stop automatically if boundary reached
+      // if ((direction === 'prev' && clampedTopIndex === 0) ||
+      //     (direction === 'next' && clampedTopIndex === maxTopIndex)) {
+      //   this.clearScrollHoldTimers();
+      // }
+
+    } else {
+      // Reached the beginning or end, stop the interval
+      this.clearScrollHoldTimers();
+      console.log("Scroll boundary reached, stopping hold scroll.");
+    }
   }
 
   // --- Event Listeners ---
@@ -454,13 +560,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Navigation ---
   protected nextPage(): void {
+    // This logic is now primarily for PAGED mode or a quick CLICK in SCROLL mode
     if (this.isLoading) return;
     if (this.scrollingMode) {
-      const newTopIndex = this.topVisibleLineIndex + this.linesPerPage;
-      // Ensure scrolling doesn't go *past* the point where the *last line* is visible
-      // A stricter limit might be needed if viewportLineCapacity < linesPerPage
-      const maxTopIndex = Math.max(0, this.lines.length - this.viewportLineCapacity); // Stop when last viewport full of lines is shown
-      // Or simply: const maxTopIndex = Math.max(0, this.lines.length - 1); // Allow scrolling until last line is at the top
+      // Perform a *viewport* jump on a quick click
+      const scrollStep = this.viewportLineCapacity > 0 ? this.viewportLineCapacity : 1;
+      const newTopIndex = this.topVisibleLineIndex + scrollStep;
+      const maxTopIndex = Math.max(0, this.lines.length - this.viewportLineCapacity);
       this.topVisibleLineIndex = Math.min(newTopIndex, maxTopIndex);
       this.updatePageNumberFromTopIndex();
       this.renderVisibleLines();
@@ -473,9 +579,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   protected prevPage(): void {
+    // This logic is now primarily for PAGED mode or a quick CLICK in SCROLL mode
     if (this.isLoading) return;
     if (this.scrollingMode) {
-      const newTopIndex = this.topVisibleLineIndex - this.linesPerPage;
+      // Perform a *viewport* jump on a quick click
+      const scrollStep = this.viewportLineCapacity > 0 ? this.viewportLineCapacity : 1;
+      const newTopIndex = this.topVisibleLineIndex - scrollStep;
       this.topVisibleLineIndex = Math.max(0, newTopIndex);
       this.updatePageNumberFromTopIndex();
       this.renderVisibleLines();
@@ -813,7 +922,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private handleWhiteSpaceClick(toTheRight: boolean): void {
-    console.log('Clicked on white space! ' + toTheRight);
+    console.log('Whitespace click. Triggering page jump.');
     if (toTheRight) {
       this.nextPage();
     } else {
