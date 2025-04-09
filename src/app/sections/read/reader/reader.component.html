@@ -28,7 +28,37 @@
   <!-- Pagination/Navigation Controls -->
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
     <div class="pagination-center-area">
+      <div class="chapter-nav-container" *ngIf="chapterNav.length > 0">
+        <lucide-icon
+          #tocDropdown="tuiDropdown"
+          (click)="tocDropdown.toggle(true)"
+          (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
+          [tuiDropdown]="tocDropdownContent"
+          name="table-of-contents"
+          size="26"
+          strokeWidth="1.75"
+          title="Table of Contents"
+          tuiDropdown
+        >
+        </lucide-icon>
 
+        <!-- Dropdown Content Template -->
+        <ng-template #tocDropdownContent>
+          <!-- Use tuiDataList for standard Taiga dropdown items -->
+          <tui-data-list role="menu">
+            <button
+              (click)="jumpToChapter(chapter.offsetTop)"
+              *ngFor="let chapter of chapterNav"
+              role="menuitem"
+              tuiOption
+            >
+              <!-- Display title -->
+              {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
+            </button>
+          </tui-data-list>
+        </ng-template>
+
+      </div>
       <!-- Previous Button -->
       <app-button
         appearance="text"
@@ -55,20 +85,6 @@
                aria-label="Scroll Position Slider"/>
         <!-- Percentage Display -->
         <span class="pagination-info">{{ currentScrollPercentage }}%</span>
-
-        <!-- Chapter Jump Dropdown -->
-        <select class="chapter-select" *ngIf="chapterNav.length > 0" (change)="onChapterSelect($event)"
-                title="Jump to Chapter">
-          <!-- Placeholder Option -->
-          <option value="" disabled selected>Chapters</option>
-          <!-- Chapter Options -->
-          <ng-container *ngFor="let chapter of chapterNav">
-            <option [value]="chapter.offsetTop">
-              <!-- Use slice pipe for potentially long titles -->
-              {{ chapter.title | slice:0:30 }}{{ chapter.title.length > 30 ? '...' : '' }}
-            </option>
-          </ng-container>
-        </select>
       </div>
 
       <!-- Next Button -->

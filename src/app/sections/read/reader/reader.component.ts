@@ -10,19 +10,20 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import { ReadService } from '../read.service';
-import { CommonModule, SlicePipe } from '@angular/common'; // Import SlicePipe
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TuiAlertService } from '@taiga-ui/core';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil, throttleTime } from 'rxjs/operators'; // Add throttleTime
-import { SharedLucideIconsModule } from "../../../shared/shared-lucide-icons.module";
-import { ButtonComponent } from "../../../shared/button/button.component";
-import { TuiDataListWrapperComponent, TuiSliderComponent } from "@taiga-ui/kit";
-import { ActivatedRoute, Router } from "@angular/router";
-import { BookMini } from "../book.model";
-import { TuiSelectModule, TuiTextfieldControllerModule } from "@taiga-ui/legacy";
-import { HttpResponse } from "@angular/common/http";
+import {ReadService} from '../read.service';
+import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {TuiAlertService} from '@taiga-ui/core';
+import {Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, takeUntil, throttleTime} from 'rxjs/operators'; // Add throttleTime
+import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
+import {ButtonComponent} from "../../../shared/button/button.component";
+import {TuiDataListWrapperComponent, TuiSliderComponent} from "@taiga-ui/kit";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BookMini} from "../book.model";
+import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {HttpResponse} from "@angular/common/http";
+import {TuiActiveZone} from "@taiga-ui/cdk";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -53,7 +54,8 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     TuiDataListWrapperComponent,
     TuiSelectModule,
     TuiTextfieldControllerModule,
-    SlicePipe // Import SlicePipe module
+    SlicePipe,
+    TuiActiveZone,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -112,7 +114,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private ngZone: NgZone // Inject NgZone for performance optimization
-  ) {}
+  ) {
+  }
 
   // --- Lifecycle Hooks ---
 
@@ -207,7 +210,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         type = 'paragraph';
         content = trimmedChunk;
       }
-      this.blocks.push({ type, content, originalIndex: index });
+      this.blocks.push({type, content, originalIndex: index});
     });
     console.log("Final number of parsed blocks:", this.blocks.length);
   }
@@ -312,7 +315,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // Handles native scroll events to update the slider/percentage display
   private setupScrollListener(): void {
     this.scrollEvent$.pipe(
-      throttleTime(this.SCROLL_UPDATE_THROTTLE_TIME, undefined, { leading: true, trailing: true }),
+      throttleTime(this.SCROLL_UPDATE_THROTTLE_TIME, undefined, {leading: true, trailing: true}),
       takeUntil(this.destroy$)
     ).subscribe(() => {
       // Only update state if scroll wasn't triggered programmatically by slider/buttons
@@ -450,9 +453,17 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isTouching = true;
     this.clearScrollHoldTimers(); // Prevent hold scroll if touch interaction starts
   }
-  protected onTouchMove(event: TouchEvent): void { /* Browser handles native scroll */ }
-  protected onTouchEnd(event: TouchEvent): void { this.isTouching = false; }
-  protected onTouchCancel(event: TouchEvent): void { this.isTouching = false; }
+
+  protected onTouchMove(event: TouchEvent): void { /* Browser handles native scroll */
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    this.isTouching = false;
+  }
+
+  protected onTouchCancel(event: TouchEvent): void {
+    this.isTouching = false;
+  }
 
   // Clears timers for hold-scrolling
   protected clearScrollHoldTimers(): void {
@@ -512,16 +523,29 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     let handled = false;
     switch (event.key) {
-      case 'ArrowLeft': case 'PageUp':
-        this.prevPage(); handled = true; break;
-      case 'ArrowRight': case 'PageDown': case ' ': // Space bar
-        this.nextPage(); handled = true; break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        this.prevPage();
+        handled = true;
+        break;
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ': // Space bar
+        this.nextPage();
+        handled = true;
+        break;
       case 'ArrowUp':
-        this.performScrollStep('prev'); handled = true; break;
+        this.performScrollStep('prev');
+        handled = true;
+        break;
       case 'ArrowDown':
-        this.performScrollStep('next'); handled = true; break;
+        this.performScrollStep('next');
+        handled = true;
+        break;
       case 'Home':
-        this.setScrollTop(0); handled = true; break;
+        this.setScrollTop(0);
+        handled = true;
+        break;
       case 'End':
         if (this.readerContentWrapperRef) {
           const element = this.readerContentWrapperRef.nativeElement;
@@ -594,7 +618,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // Decodes ArrayBuffer response to string
   private arrayBufferToString(buffer: ArrayBuffer): string {
     try {
-      const decoder = new TextDecoder('utf-8', { fatal: true });
+      const decoder = new TextDecoder('utf-8', {fatal: true});
       return decoder.decode(buffer);
     } catch (e) {
       console.warn("UTF-8 decoding failed, trying fallback.", e);
