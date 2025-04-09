@@ -1,8 +1,10 @@
 // --- Variables ---
 :host {
+  // Keep your existing CSS variables
   --font-family: 'Georgia', serif;
   --text-color: #333;
-  --background-color: #f9f9f9;
+  --background-color: #f9f9f9; // Reader background
+  --main-bg-color: #fff; // App background
   --button-bg: #eee;
   --button-hover-bg: #ddd;
   --button-disabled-bg: #f5f5f5;
@@ -10,16 +12,14 @@
   --error-color: #d9534f;
   --slider-track-bg: #ddd;
   --slider-thumb-bg: #888;
-  --header-height: 60px;
-  --main-bg-color: #fff;
 
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100vh; // Full viewport height
   width: 100%;
   box-sizing: border-box;
   background-color: var(--main-bg-color);
-  overflow: hidden; // Host should not scroll typically
+  overflow: hidden; // Host should not scroll
 }
 
 // --- Reader Container ---
@@ -27,165 +27,163 @@
   font-family: var(--font-family);
   color: var(--text-color);
   background-color: var(--background-color);
-  flex-grow: 1; // Takes up remaining space in :host
+  flex-grow: 1; // Take remaining vertical space
   display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevent reader container itself from scrolling
+  overflow: hidden; // Prevent this container from scrolling
   box-sizing: border-box;
-  position: relative; // For scroll toggle button positioning
-  height: 100%; // Fill the :host container
+  position: relative; // For potential absolute positioning inside
+  height: 100%; // Ensure it fills parent if parent has height
 }
 
 // --- Loading & Error ---
 .loading-indicator,
 .error-message {
   text-align: center;
-  padding: 40px;
+  padding: 40px 20px;
   font-style: italic;
-  margin: auto; // Center vertically and horizontally if alone
+  margin: auto; // Center vertically and horizontally
 }
-
 .error-message {
   color: var(--error-color);
   font-weight: bold;
 }
 
-// --- Scroll Toggle Button ---
-.scroll-toggle-button {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  z-index: 10;
-  padding: 5px 10px;
-  font-size: 12px;
-  background-color: var(--button-bg);
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: var(--button-hover-bg);
-  }
-}
-
-// --- Reader Content Wrapper ---
+// --- Reader Content Wrapper (Native Scroll Container) ---
 .reader-content-wrapper {
-  flex-grow: 1; // Allow wrapper to fill space between button and controls
-  overflow: hidden; // CRITICAL: Disable native scrollbar always now
-  position: relative; // Needed? Maybe not.
-  margin: 0 auto;
+  flex-grow: 1; // Take remaining space between header(if any) and controls
+  overflow-y: auto; // Enable native vertical scrolling
+  position: relative; // Good practice for scroll containers
+  margin: 0 auto; // Center content horizontally if desired
+  padding: 1rem 0; // Vertical padding inside the scroll area
+  -webkit-overflow-scrolling: touch; // Enable momentum scrolling on iOS
+
+  // Optional: Hide scrollbar visually
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar { /* Chrome, Safari, Opera */
+    display: none;
+  }
 }
 
-// --- Reader Content ---
+// --- Reader Content (Holds the Text Blocks) ---
 .reader-content {
-  font-size: 20px; // Base size
-  line-height: 1.6; // Base line height
-  white-space: pre-line; // Keep this if you rely on \n for line breaks in source
-  width: fit-content;
-  margin: 0 1rem;
-  // No height manipulation here, let content flow naturally within its slice
+  // Base text styles
+  font-size: 20px; // Adjust as needed
+  line-height: 1.6; // Adjust as needed
+  // Horizontal padding for text spacing from edges
+  padding: 0 2rem; // Adjust horizontal padding
+  // Control max-width for readability on wide screens
+  max-width: 800px; // Example: Adjust max-width as desired
+  margin: 0 auto; // Center the content block within the wrapper
 
-  // Ensure headers/hr have appropriate spacing when using transformMarkdown
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-    line-height: 1.3; // Adjust header line height
+  // Styles for rendered block elements
+  & > p {
+    margin-bottom: 0.8em;
+    text-indent: 1.5em; // Optional paragraph indent
+    &:first-child {
+      text-indent: 0;
+    }
   }
 
-  hr {
-    margin: 1.5em 0;
-    border: 0;
-    border-top: 1px solid #ccc;
-  }
-
-  p { // Add spacing if using <p> tags in transformMarkdown
-    margin-bottom: 0.5em;
-  }
-
-  p:last-child {
-    margin-bottom: 0; // Avoid extra space at the end of the block
-  }
-
-  em {
-    font-style: italic;
-  }
-
-  strong {
+  & > h2 { // Chapter heading style
+    margin-top: 2em;
+    margin-bottom: 1.2em;
+    font-size: 1.5em; // Larger font size for chapters
     font-weight: bold;
+    text-align: center;
+    line-height: 1.3;
   }
+
+  & > .verse { // Verse block style
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding-left: 2em; // Indentation
+    white-space: pre-wrap; // Preserve whitespace and allow wrapping
+    font-family: 'Courier New', Courier, monospace; // Optional different font
+    line-height: 1.4;
+  }
+
+  // Remove bottom margin from the very last block in the content
+  & > *:last-child {
+    margin-bottom: 0;
+  }
+
+  // Inline styles
+  em { font-style: italic; }
+  strong { font-weight: bold; }
 }
 
-// --- Pagination Controls ---
+// --- Pagination/Navigation Controls ---
 .pagination-controls {
-  flex-shrink: 0;
+  flex-shrink: 0; // Prevent shrinking
   display: flex;
   align-items: center;
-  padding: 10px 0;
+  justify-content: center; // Center the middle area
+  padding: 10px 15px; // Padding around controls
   border-top: 1px solid #eee;
-  user-select: none;
-  justify-content: center;
-
-  .pagination-button {
-    background-color: var(--button-bg);
-    border: 1px solid #ccc;
-    padding: 8px 15px;
-    margin: 0 5px; // Reduced margin slightly
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    transition: background-color 0.2s ease;
-    flex-shrink: 0; // Prevent buttons shrinking
-
-    &:hover:not(:disabled) {
-      background-color: var(--button-hover-bg);
-    }
-
-    &:disabled {
-      background-color: var(--button-disabled-bg);
-      color: var(--button-disabled-color);
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-  }
-
-  .pagination-center-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 150px; // Ensure it doesn't collapse too much
-    gap: 1rem;
-    margin: 0 auto;
-  }
-
-  .pagination-info {
-    // display: inline-block; // Not needed with flex
-    margin-right: 15px; // Space between text and slider
-    font-size: 14px;
-    color: #666;
-    white-space: nowrap; // Prevent page number wrapping
-    // vertical-align: middle; // Not needed with flex align-items
-  }
-
-  .page-slider {
-    flex-grow: 1;
-  }
+  background-color: var(--background-color); // Match reader background
+  user-select: none; // Prevent text selection on controls
 }
 
+.pagination-center-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem; // Spacing between elements
+  flex-grow: 1; // Allow center area to take space
+  min-width: 200px; // Ensure it doesn't collapse too much
+}
+
+.slider-chapter-area {
+  display: flex;
+  align-items: center;
+  gap: 10px; // Space between slider, percentage, and chapter select
+  flex-grow: 1; // Allow this area to expand
+  justify-content: center; // Center items within this area
+  min-width: 0; // Allow shrinking if needed
+}
+
+.page-slider {
+  flex-grow: 1; // Allow slider to take available space
+  max-width: 300px; // Limit slider width if desired
+  min-width: 100px; // Ensure minimum width
+  cursor: pointer;
+}
+
+.pagination-info { // Percentage display
+  font-size: 14px;
+  color: #666;
+  white-space: nowrap; // Prevent wrapping
+  min-width: 45px; // Reserve space
+  text-align: right;
+}
+
+.chapter-select {
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: var(--button-bg);
+  max-width: 150px; // Limit dropdown width
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Style for app-button component (assuming it exists)
+// Or style generic buttons if not using a component
+// .pagination-button { ... }
+
+// --- Parallel Text Controls Placeholder ---
 .parallel {
   display: flex;
-  flex-direction: row;
+  align-items: center;
   gap: .5rem;
+  margin-left: 1rem; // Space from main controls
 
-  tui-select {
-    width: 5rem;
+  tui-select { // Example styling for Taiga UI select
+    width: 6rem;
   }
-}
-
-// --- Markdown-like Elements ---
-em {
-  font-style: italic;
-}
-
-strong {
-  font-weight: bold;
 }

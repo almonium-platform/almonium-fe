@@ -1,107 +1,101 @@
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
-     [class.scrolling-mode-active]="scrollingMode"
-     (wheel)="onWheelScroll($event)"
      (touchstart)="onTouchStart($event)"
      (touchmove)="onTouchMove($event)"
      (touchend)="onTouchEnd($event)"
-     (touchcancel)="onTouchCancel($event)"
->
+     (touchcancel)="onTouchCancel($event)">
 
+  <!-- Loading and Error States -->
   <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
   <div *ngIf="errorMessage && !isLoading" class="error-message">{{ errorMessage }}</div>
 
+  <!-- Scroll Wrapper: Handles Native Scrolling -->
   <div #readerContentWrapper
-       class="reader-content-wrapper">
-    <!-- Content is dynamically set based on mode -->
-    <div #readerContent class="reader-content" [innerHTML]="text"></div>
+       class="reader-content-wrapper"
+       (scroll)="onWrapperScroll($event)"
+       *ngIf="!isLoading && !errorMessage">
+    <!-- Content Area: Renders blocks sequentially -->
+    <div #readerContent class="reader-content">
+      <ng-container *ngFor="let block of blocks; trackBy: trackBlock">
+        <!-- Render different elements based on block type -->
+        <h2 *ngIf="block.type === 'chapter'" [id]="getChapterId(block)" [innerHTML]="block.content"></h2>
+        <p *ngIf="block.type === 'paragraph'" [innerHTML]="block.content"></p>
+        <div *ngIf="block.type === 'verse'" class="verse" [innerHTML]="block.content"></div>
+      </ng-container>
+    </div>
   </div>
 
+  <!-- Pagination/Navigation Controls -->
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
-
-    <!--    <lucide-icon-->
-    <!--      name="circle-arrow-out-up-left"-->
-    <!--      class="absolute left-2 bottom-2 cursor-pointer"-->
-    <!--      size="28"-->
-    <!--      strokeWidth="1.5"-->
-    <!--      (click)="goBack()"-->
-    <!--    ></lucide-icon>-->
-
     <div class="pagination-center-area">
+
+      <!-- Previous Button -->
       <app-button
         appearance="text"
-        [disabled]="!scrollingMode && currentPage <= 1 || scrollingMode && topVisibleLineIndex <= 0"
         (mousedown)="startScrollHold('prev')"
         (touchstart)="startScrollHold('prev'); $event.preventDefault()"
         (mouseup)="stopScrollHold('prev')"
         (touchend)="stopScrollHold('prev')"
         (mouseleave)="clearScrollHoldTimers()"
         (touchcancel)="clearScrollHoldTimers()"
-        title="Previous Page (Click) / Scroll Up (Hold)"
-        aria-label="Previous Page (Click) / Scroll Up (Hold)"
-      >
-        <lucide-icon
-          name="circle-chevron-left"
-          class="prev-button"
-          size="28"
-          strokeWidth="1.5"
-        ></lucide-icon>
+        title="Previous Page (Click) / Scroll Up (Hold)">
+        <lucide-icon name="circle-chevron-left" size="28" strokeWidth="1.5"></lucide-icon>
       </app-button>
 
-      <div>
+      <!-- Slider (Percentage) & Chapter Select -->
+      <div class="slider-chapter-area">
+        <!-- Percentage Slider -->
         <input type="range"
                class="page-slider"
                tuiSlider
-               [min]="1"
-               [max]="totalPages"
-               [ngModel]="currentPage"
+               [min]="0"
+               [max]="100"
+               [ngModel]="currentScrollPercentage"
                (input)="onSliderInput($event)"
-               (change)="onSliderChange($event)"
-               [disabled]="totalPages <= 1"
-               aria-label="Page Slider"/>
-        <span class="pagination-info">
-            Page {{ currentPage }} of {{ totalPages }}</span>
+               aria-label="Scroll Position Slider"/>
+        <!-- Percentage Display -->
+        <span class="pagination-info">{{ currentScrollPercentage }}%</span>
+
+        <!-- Chapter Jump Dropdown -->
+        <select class="chapter-select" *ngIf="chapterNav.length > 0" (change)="onChapterSelect($event)"
+                title="Jump to Chapter">
+          <!-- Placeholder Option -->
+          <option value="" disabled selected>Chapters</option>
+          <!-- Chapter Options -->
+          <ng-container *ngFor="let chapter of chapterNav">
+            <option [value]="chapter.offsetTop">
+              <!-- Use slice pipe for potentially long titles -->
+              {{ chapter.title | slice:0:30 }}{{ chapter.title.length > 30 ? '...' : '' }}
+            </option>
+          </ng-container>
+        </select>
       </div>
+
+      <!-- Next Button -->
       <app-button
         appearance="text"
-        [disabled]="!scrollingMode && currentPage >= totalPages || scrollingMode && topVisibleLineIndex >= (lines.length - 1)"
         (mousedown)="startScrollHold('next')"
         (touchstart)="startScrollHold('next'); $event.preventDefault()"
         (mouseup)="stopScrollHold('next')"
         (touchend)="stopScrollHold('next')"
         (mouseleave)="clearScrollHoldTimers()"
         (touchcancel)="clearScrollHoldTimers()"
-        title="Next Page (Click) / Scroll Down (Hold)"
-        aria-label="Next Page (Click) / Scroll Down (Hold)"
-      >
-        <lucide-icon
-          name="circle-chevron-right"
-          class="next-button"
-          size="28"
-          strokeWidth="1.5"
-        ></lucide-icon>
+        title="Next Page (Click) / Scroll Down (Hold)">
+        <lucide-icon name="circle-chevron-right" size="28" strokeWidth="1.5"></lucide-icon>
       </app-button>
 
-      @if (parallelVersions.length > 0) {
-        <div class="parallel">
-          <app-parallel-translation [inactive]="parallelInactive"></app-parallel-translation>
-          <tui-select
-            tuiTextfieldSize="s"
-            class="language-select"
-            [formControl]="languageSelectControl"
-            [tuiTextfieldLabelOutside]="true"
-          >
-            <tui-data-list-wrapper
-              *tuiDataList
-              [items]="langs"
-            >
-            </tui-data-list-wrapper>
-          </tui-select>
-        </div>
-      }
-    </div>
-    <!--    <button type="button" (click)="toggleScrollMode()" class="pagination-button next-button">-->
-    <!--      {{ scrollingMode ? 'Disable Scrolling' : 'Enable Scrolling' }}-->
-    <!--    </button>-->
-  </div>
-</div>
+      <!-- Parallel Text Controls (Placeholder) -->
+      <div *ngIf="parallelVersions.length > 0" class="parallel">
+        Parallel:
+        <tui-select
+          tuiTextfieldSize="s"
+          class="language-select"
+          [formControl]="languageSelectControl"
+          [tuiTextfieldLabelOutside]="true">
+          <tui-data-list-wrapper *tuiDataList [items]="langs"></tui-data-list-wrapper>
+        </tui-select>
+      </div>
+
+    </div> <!-- End pagination-center-area -->
+  </div> <!-- End pagination-controls -->
+</div> <!-- End readerContainer -->
