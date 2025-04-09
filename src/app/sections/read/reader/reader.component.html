@@ -111,13 +111,6 @@
         </tui-select>
       </div>
 
-      <!-- Display Mode Controls -->
-      <div class="display-mode-controls" *ngIf="isParallelViewActive">
-        <button (click)="setDisplayMode('eng')" [class.active]="displayMode === 'eng'">Eng</button>
-        <button (click)="setDisplayMode('ukr')" [class.active]="displayMode === 'ukr'">Укр</button>
-        <button (click)="setDisplayMode('eng-ukr')" [class.active]="displayMode === 'eng-ukr'">Eng(Укр)</button>
-      </div>
-
       <!-- Loading Indicator for Parallel Text -->
       <div *ngIf="isLoadingParallel" class="parallel-loading">Loading translation...</div>
 
