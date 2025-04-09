@@ -191,3 +191,54 @@
 .icon {
   cursor: pointer;
 }
+
+.reader-content {
+  // ... (Keep base styles: font-size, line-height, max-width, margin) ...
+  // ... (Keep styles for p, h2, i, em, pre etc. applied via ::ng-deep or global) ...
+
+  // --- Styles for Segment Spans ---
+
+  // Style the English span to indicate interactivity (optional)
+  ::ng-deep span.eng {
+    cursor: help; // Indicate something happens on click/hover
+    // border-bottom: 1px dotted #999; // Subtle underline
+  }
+
+  // Style for the Ukrainian span
+  ::ng-deep span.ukr {
+    color: #444; // Slightly different color
+    font-size: 0.95em; // Slightly smaller
+    margin-left: 0.3em; // Space before parenthesis
+    // font-style: italic; // Optional style
+
+    // --- Visibility Control ---
+    // Option 1: Using a class on parent (requires JS to toggle class on seg-pair)
+    // display: none; // Hide by default
+    // & { // Selects the .ukr span itself
+    //    .seg-pair.show-translation & { // Show when parent has class
+    //        display: inline; // Or inline-block
+    //    }
+    // }
+
+    // Option 2: Using the [hidden] attribute (easier with current JS)
+    // CSS already hides elements with the 'hidden' attribute by default.
+    // We just need to make sure it displays correctly when hidden=false.
+    &[hidden] {
+      display: none !important; // Ensure it's hidden
+    }
+
+    display: inline; // Or inline-block if preferred layout
+  }
+
+  // Add parentheses visually using pseudo-elements
+  // This avoids adding them to the actual translation text
+  ::ng-deep span.ukr:not([hidden])::before {
+    content: "(";
+    margin-right: 0.1em;
+  }
+
+  ::ng-deep span.ukr:not([hidden])::after {
+    content: ")";
+    margin-left: 0.1em;
+  }
+}

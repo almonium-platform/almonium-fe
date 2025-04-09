@@ -36,6 +36,19 @@ interface BlockData {
   originalIndex: number; // Use for unique IDs
 }
 
+interface TextSegment {
+  type: 'segment';
+  eng: string;
+  ukr: string;
+}
+
+interface HtmlElementNode {
+  type: 'element';
+  tagName: string;
+  attributes: { [key: string]: string };
+  children: Array<HtmlElementNode | TextSegment | string>; // Allow mixed content
+}
+
 // Simplified Chapter Info for navigation
 interface ChapterNavInfo {
   title: string;
@@ -128,8 +141,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
-  protected isParallelViewActive: boolean = false; // Are we showing parallel content?
+  protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
   protected displayMode: 'eng-ukr' | 'eng' | 'ukr' = 'eng'; // Display format for the pipe
+  private currentlyOpenUkrSpan: HTMLElement | null = null;
 
   protected isAtScrollTop: boolean = true; // ADDED: True initially
   protected isAtScrollBottom: boolean = false; // ADDED: False initially
@@ -163,6 +177,34 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.handleError("Invalid Book ID.");
       }
     });
+  }
+
+  protected onContentClick(event: MouseEvent): void {
+    if (!this.isParallelViewActive) return; // Only handle clicks in parallel mode
+
+    const target = event.target as HTMLElement;
+
+    // Check if the clicked element is, or is inside, an English segment span
+    const engSpan = target.closest('span.eng');
+
+    if (engSpan) {
+      // Find the parent seg-pair container
+      const segPair = engSpan.closest('span.seg-pair');
+      if (segPair) {
+        // Find the corresponding Ukrainian span within the same pair
+        const ukrSpan = segPair.querySelector('span.ukr') as HTMLElement | null;
+        if (ukrSpan) {
+          // --- Toggle Visibility ---
+          // Option 1: Toggle a class on the parent
+          // segPair.classList.toggle('show-translation');
+
+          // Option 2: Toggle the 'hidden' attribute directly
+          ukrSpan.hidden = !ukrSpan.hidden;
+
+          console.log(`Toggled translation for: ${engSpan.textContent?.trim()}`);
+        }
+      }
+    }
   }
 
 // --- Language Selection Listener ---
@@ -298,29 +340,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
     });
-  }
-
-  private handleHtmlResponse(response: HttpResponse<ArrayBuffer>): void {
-    if (response.status === 200 && response.body) {
-      try {
-        // Directly store the HTML string
-        this.bookHtmlContent = this.arrayBufferToString(response.body);
-        this.isLoading = false;
-        this.errorMessage = null;
-        console.log(`Loaded book HTML content (length: ${this.bookHtmlContent.length}).`);
-
-        // Trigger change detection to render the HTML via [innerHTML]
-        this.cdRef.markForCheck();
-
-        // Schedule measurement AFTER the view has been updated with the new HTML
-        this.scheduleChapterOffsetMeasurement();
-
-      } catch (e) {
-        this.handleError(`Failed to decode book HTML: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    } else {
-      this.handleError(`Failed to load book HTML. Status: ${response.status}`);
-    }
   }
 
   // Reverts the view to the base language content
