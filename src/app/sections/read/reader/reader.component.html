@@ -64,6 +64,7 @@
         (touchend)="stopScrollHold('prev')"
         (mouseleave)="clearScrollHoldTimers()"
         (touchcancel)="clearScrollHoldTimers()"
+        [disabled]="isAtScrollTop"
         title="Previous Page (Click) / Scroll Up (Hold)">
         <lucide-icon name="circle-chevron-left" size="28" strokeWidth="1.5"></lucide-icon>
       </app-button>
@@ -92,6 +93,7 @@
         (touchend)="stopScrollHold('next')"
         (mouseleave)="clearScrollHoldTimers()"
         (touchcancel)="clearScrollHoldTimers()"
+        [disabled]="isAtScrollBottom"
         title="Next Page (Click) / Scroll Down (Hold)">
         <lucide-icon name="circle-chevron-right" size="28" strokeWidth="1.5"></lucide-icon>
       </app-button>

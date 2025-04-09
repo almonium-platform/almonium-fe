@@ -124,6 +124,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
 
+  protected isAtScrollTop: boolean = true; // ADDED: True initially
+  protected isAtScrollBottom: boolean = false; // ADDED: False initially
+
   constructor(
     private cdRef: ChangeDetectorRef,
     private readService: ReadService,
@@ -155,6 +158,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     // Content rendering happens via *ngFor. We measure chapter offsets after rendering.
     this.scheduleChapterOffsetMeasurement();
+    // Also ensure initial scroll state is calculated
+    requestAnimationFrame(() => {
+      this.updateScrollState();
+      this.cdRef.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {
@@ -354,7 +362,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Use requestAnimationFrame to wait for browser layout/paint
     requestAnimationFrame(() => {
       this.measureChapterOffsets();
-      this.updateScrollPercentage(); // Set initial percentage
+      this.updateScrollState(); // Set initial percentage
       this.cdRef.markForCheck(); // Update chapter dropdown if needed
     });
   }
@@ -367,11 +375,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      console.log('Window resized, remeasuring chapter offsets...');
-      // Rerun measurement on resize as offsets will change
+      console.log('Window resized...');
       this.measureChapterOffsets();
-      // Update percentage display based on current scroll position in new layout
-      this.updateScrollPercentage();
+      this.updateScrollState();
       this.cdRef.markForCheck();
     });
   }
@@ -394,11 +400,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       throttleTime(this.SCROLL_UPDATE_THROTTLE_TIME, undefined, {leading: true, trailing: true}),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      // Only update state if scroll wasn't triggered programmatically by slider/buttons
       if (!this.isScrollingProgrammatically) {
-        this.ngZone.run(() => { // Run state update back inside Angular zone
-          this.updateScrollPercentage();
-          this.cdRef.markForCheck(); // Update slider display
+        this.ngZone.run(() => {
+          this.updateScrollState();
+          this.cdRef.markForCheck();
         });
       }
     });
@@ -416,19 +421,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Calculates and updates the current scroll percentage state
-  private updateScrollPercentage(): void {
+  private updateScrollState(): void {
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
     const scrollTop = element.scrollTop;
     const scrollHeight = element.scrollHeight;
     const clientHeight = element.clientHeight;
+    const scrollThreshold = 2; // Small pixel threshold to account for rounding/subpixels
 
     if (scrollHeight <= clientHeight) {
       this.currentScrollPercentage = 0;
+      this.isAtScrollTop = true;
+      this.isAtScrollBottom = true;
     } else {
-      // Ensure percentage is capped between 0 and 100
       const percentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
       this.currentScrollPercentage = Math.max(0, Math.min(100, Math.round(percentage)));
+
+      this.isAtScrollTop = scrollTop <= scrollThreshold;
+      this.isAtScrollBottom = scrollTop >= (scrollHeight - clientHeight - scrollThreshold);
     }
   }
 
@@ -466,7 +476,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Update percentage immediately after programmatic scroll
     // Run this inside NgZone if update needs to trigger immediate UI update
     this.ngZone.run(() => {
-      this.updateScrollPercentage();
+      this.updateScrollState(); // Call updated function
       this.cdRef.markForCheck();
     });
 
@@ -667,7 +677,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       element.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
       setTimeout(() => {
-        this.updateScrollPercentage();
+        this.updateScrollState();
         this.cdRef.markForCheck();
       }, 350);
     } else {
