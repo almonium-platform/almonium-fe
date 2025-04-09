@@ -9,19 +9,15 @@
   <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
   <div *ngIf="errorMessage && !isLoading" class="error-message">{{ errorMessage }}</div>
 
-  <!-- Scroll Wrapper: Handles Native Scrolling -->
+  <!-- Wrapper for Native Scroll -->
   <div #readerContentWrapper
        class="reader-content-wrapper"
        (scroll)="onWrapperScroll($event)"
        *ngIf="!isLoading && !errorMessage">
-    <!-- Content Area: Renders blocks sequentially -->
-    <div #readerContent class="reader-content">
-      <ng-container *ngFor="let block of blocks; trackBy: trackBlock">
-        <!-- Render different elements based on block type -->
-        <h2 *ngIf="block.type === 'chapter'" [id]="getChapterId(block)" [innerHTML]="block.content"></h2>
-        <p *ngIf="block.type === 'paragraph'" [innerHTML]="block.content"></p>
-        <div *ngIf="block.type === 'verse'" class="verse" [innerHTML]="block.content"></div>
-      </ng-container>
+
+    <div #readerContent
+         class="reader-content"
+         [innerHTML]="bookHtmlContent | safeHtml">
     </div>
   </div>
 
@@ -47,7 +43,7 @@
           <!-- Use tuiDataList for standard Taiga dropdown items -->
           <tui-data-list role="menu">
             <button
-              (click)="jumpToChapter(chapter.offsetTop)"
+              (click)="jumpToChapter(chapter.elementId)"
               *ngFor="let chapter of chapterNav"
               role="menuitem"
               tuiOption

@@ -8,6 +8,8 @@ import {
   NgZone,
   OnDestroy,
   OnInit,
+  Pipe,
+  PipeTransform,
   ViewChild
 } from '@angular/core';
 import {ReadService} from '../read.service';
@@ -24,6 +26,7 @@ import {BookMini} from "../book.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {HttpResponse} from "@angular/common/http";
 import {TuiActiveZone} from "@taiga-ui/cdk";
+import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -37,6 +40,18 @@ interface ChapterNavInfo {
   title: string;
   offsetTop: number; // Store the measured pixel offset
   elementId: string; // Store the ID for potential requery / debugging
+}
+
+@Pipe({name: 'safeHtml', standalone: true})
+export class SafeHtmlPipe implements PipeTransform {
+  constructor(private sanitizer: DomSanitizer) {
+  }
+
+  transform(value: string | null | undefined): SafeHtml | null {
+    if (value === null || value === undefined) return null;
+    // Trust the HTML source from Gutenberg (assuming it's safe)
+    return this.sanitizer.bypassSecurityTrustHtml(value);
+  }
 }
 
 const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
@@ -56,6 +71,7 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     TuiTextfieldControllerModule,
     SlicePipe,
     TuiActiveZone,
+    SafeHtmlPipe,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -72,6 +88,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private processedContent: string = '';    // Raw text from backend
   protected blocks: BlockData[] = [];       // Parsed blocks for rendering
   protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
+  protected bookHtmlContent: string = ''; // Store the raw HTML from backend
 
   protected isLoading: boolean = true;
   protected errorMessage: string | null = null;
@@ -127,7 +144,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const bookId = params['id'];
       this.bookId = bookId ? +bookId : null;
       if (this.bookId) {
-        this.loadBook(this.bookId);
+        this.loadBookHtml(this.bookId); // Call new loading function
         this.fetchParallelLanguages(this.bookId);
       } else {
         this.handleError("Invalid Book ID.");
@@ -144,6 +161,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearScrollHoldTimers();
+  }
+
+  private loadBookHtml(bookId: number): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.bookHtmlContent = ''; // Reset HTML content
+    this.chapterNav = [];
+    this.currentScrollPercentage = 0;
+    this.cdRef.markForCheck();
+
+    // Assuming readService.loadBook fetches the content (adapt if method name/return type differs)
+    this.readService.loadBook(bookId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => this.handleHtmlResponse(response),
+      error: (error) => this.handleError(error?.error?.message || 'Error loading book HTML.'),
+    })
+  }
+
+  private handleHtmlResponse(response: HttpResponse<ArrayBuffer>): void {
+    if (response.status === 200 && response.body) {
+      try {
+        // Directly store the HTML string
+        this.bookHtmlContent = this.arrayBufferToString(response.body);
+        this.isLoading = false;
+        this.errorMessage = null;
+        console.log(`Loaded book HTML content (length: ${this.bookHtmlContent.length}).`);
+
+        // Trigger change detection to render the HTML via [innerHTML]
+        this.cdRef.markForCheck();
+
+        // Schedule measurement AFTER the view has been updated with the new HTML
+        this.scheduleChapterOffsetMeasurement();
+
+      } catch (e) {
+        this.handleError(`Failed to decode book HTML: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    } else {
+      this.handleError(`Failed to load book HTML. Status: ${response.status}`);
+    }
   }
 
   // --- Book Loading & Parsing ---
@@ -242,34 +297,55 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Chapter Offset Measurement ---
   // Measures the top offset of rendered chapter elements relative to the scroll container
+  // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): void {
-    if (!this.readerContentRef || !this.readerContentWrapperRef || this.isLoading) return;
-    console.log("Measuring chapter offsets in DOM...");
+    // Ensure content div exists and we are not loading
+    // Use optional chaining for safety
+    const contentElement = this.readerContentRef?.nativeElement;
+    if (!contentElement || this.isLoading) {
+      // Add a log if the element isn't ready yet
+      if (!contentElement) console.warn("measureChapterOffsets: readerContentRef.nativeElement is not available yet.");
+      return; // Exit if element isn't ready
+    }
+
+
+    console.log("Measuring chapter offsets from rendered HTML...");
     this.chapterNav = [];
-    const contentElement = this.readerContentRef.nativeElement;
-    const wrapperElement = this.readerContentWrapperRef.nativeElement;
 
-    this.blocks.forEach(block => {
-      if (block.type === 'chapter') {
-        const elementId = this.getChapterId(block); // Use helper to get ID
-        if (!elementId) return;
+    // --- CORRECTED SELECTOR ---
+    // Query for anchor tags whose ID starts with "chap" (adjust prefix if needed)
+    // Ensure they are within the reader content to avoid selecting other anchors
+    const chapterAnchors = contentElement.querySelectorAll('a[id^="chap"]');
 
-        const element = contentElement.querySelector(`#${elementId}`) as HTMLElement;
-        if (element) {
-          // Calculate offset relative to the scroll container's content edge
-          const offsetTopRelativeToWrapper = element.offsetTop;
-          this.chapterNav.push({
-            title: block.content,
-            offsetTop: offsetTopRelativeToWrapper,
-            elementId: elementId
-          });
-        } else {
-          console.warn(`Could not find chapter element with ID: ${elementId}`);
-        }
+    console.log(`Found ${chapterAnchors.length} potential chapter anchors.`); // Add log
+
+    chapterAnchors.forEach((anchor: Element) => {
+      const elementId = anchor.id;
+      // Find the parent H2 element to get the title and the correct offsetTop target
+      const headingElement = anchor.closest('h2') as HTMLElement | null; // Find nearest parent h2
+
+      if (headingElement && elementId) {
+        // Get the offsetTop of the HEADING element, not the empty anchor
+        const offsetTopRelativeToWrapper = headingElement.offsetTop;
+        // Get a cleaner title from the heading's textContent
+        const title = headingElement.textContent?.replace(/\s+/g, ' ').trim() || `Chapter (ID: ${elementId})`;
+
+        this.chapterNav.push({
+          title: title,
+          offsetTop: offsetTopRelativeToWrapper,
+          elementId: elementId // Store the ANCHOR's ID for selection/jumping
+        });
+
+      } else {
+        if (!headingElement) console.warn(`Could not find parent H2 for anchor with ID: ${elementId}`);
+        else console.warn("Found chapter anchor without ID:", anchor);
       }
     });
-    this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop); // Ensure sorted by position
-    console.log(`Found and measured ${this.chapterNav.length} chapters.`);
+
+    // Sort by position remains important
+    this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
+    console.log(`Found and measured ${this.chapterNav.length} valid chapters.`);
+    // console.log(this.chapterNav); // Log details if needed
   }
 
   // Schedules chapter measurement reliably after view updates
@@ -580,24 +656,35 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Chapter Navigation ---
   // Scrolls to the measured offsetTop of a selected chapter
-  protected jumpToChapter(offsetTop: number): void {
-    if (this.isLoading) return;
-    console.log(`Jumping to chapter at offsetTop: ${offsetTop}`);
-    // Provide a small negative offset to show context above the chapter heading
-    this.setScrollTop(offsetTop - 20);
+  protected jumpToChapter(elementId: string): void {
+    if (this.isLoading || !this.readerContentWrapperRef) return;
+    const contentElement = this.readerContentRef?.nativeElement;
+    if (!contentElement) return;
+    const element = contentElement.querySelector(`#${elementId}`) as HTMLElement; // Find within content
+
+    if (element) {
+      console.log(`Jumping to chapter element ID: ${elementId}`);
+      element.scrollIntoView({behavior: 'smooth', block: 'start'});
+      // Update percentage after scroll finishes
+      setTimeout(() => {
+        this.updateScrollPercentage();
+        this.cdRef.markForCheck();
+      }, 350);
+    } else {
+      console.warn(`Cannot jump: Chapter element with ID ${elementId} not found.`);
+    }
   }
 
   // Handles selection change in the chapter dropdown
-  protected onChapterSelect(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const offsetTop = parseInt(selectElement.value, 10); // Value is offsetTop
-    if (!isNaN(offsetTop)) {
-      this.jumpToChapter(offsetTop);
+  protected selectChapter(elementId: string): void {
+    console.log("Chapter selected:", elementId);
+    if (elementId) {
+      this.jumpToChapter(elementId);
     } else {
-      console.log("Placeholder chapter option selected.");
-      // No action needed, or could reset selection visually if desired
+      console.warn("Invalid elementId received from chapter selection:", elementId);
     }
   }
+
 
   // --- Utility / Other ---
   // Navigates back to the main reading list/library view
