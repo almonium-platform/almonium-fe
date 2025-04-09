@@ -183,26 +183,48 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isParallelViewActive) return; // Only handle clicks in parallel mode
 
     const target = event.target as HTMLElement;
-
-    // Check if the clicked element is, or is inside, an English segment span
-    const engSpan = target.closest('span.eng');
+    const engSpan = target.closest('span.eng'); // Find the clicked English span
 
     if (engSpan) {
-      // Find the parent seg-pair container
-      const segPair = engSpan.closest('span.seg-pair');
+      const segPair = engSpan.closest('span.seg-pair'); // Find its parent pair container
       if (segPair) {
-        // Find the corresponding Ukrainian span within the same pair
-        const ukrSpan = segPair.querySelector('span.ukr') as HTMLElement | null;
+        const ukrSpan = segPair.querySelector('span.ukr') as HTMLElement | null; // Find the corresponding Ukrainian span
+
         if (ukrSpan) {
-          // --- Toggle Visibility ---
-          // Option 1: Toggle a class on the parent
-          // segPair.classList.toggle('show-translation');
+          // --- Logic to close previously open span ---
+          // Check if the clicked span is DIFFERENT from the currently open one
+          if (this.currentlyOpenUkrSpan && this.currentlyOpenUkrSpan !== ukrSpan) {
+            console.log("Closing previously open translation.");
+            this.currentlyOpenUkrSpan.hidden = true; // Hide the previous one
+            // If using class toggling: this.currentlyOpenUkrSpan.closest('span.seg-pair')?.classList.remove('show-translation');
+            this.currentlyOpenUkrSpan = null; // Reset the reference
+          }
 
-          // Option 2: Toggle the 'hidden' attribute directly
-          ukrSpan.hidden = !ukrSpan.hidden;
+          // --- Toggle the clicked span ---
+          const isNowHidden = !ukrSpan.hidden; // State *after* toggling
+          ukrSpan.hidden = isNowHidden;
+          // If using class toggling: segPair.classList.toggle('show-translation', !isNowHidden);
 
-          console.log(`Toggled translation for: ${engSpan.textContent?.trim()}`);
+          // --- Update the reference ---
+          if (!isNowHidden) {
+            // If it was just made visible, store its reference
+            this.currentlyOpenUkrSpan = ukrSpan;
+            console.log(`Opened translation for: ${engSpan.textContent?.trim()}`);
+          } else {
+            // If it was just hidden (by clicking itself again), clear the reference
+            this.currentlyOpenUkrSpan = null;
+            console.log(`Closed translation for: ${engSpan.textContent?.trim()}`);
+          }
         }
+      }
+    } else {
+      // --- Clicked *outside* any engSpan ---
+      // Close the currently open span, if any
+      if (this.currentlyOpenUkrSpan) {
+        console.log("Clicked outside, closing open translation.");
+        this.currentlyOpenUkrSpan.hidden = true;
+        // If using class toggling: this.currentlyOpenUkrSpan.closest('span.seg-pair')?.classList.remove('show-translation');
+        this.currentlyOpenUkrSpan = null;
       }
     }
   }
@@ -213,14 +235,25 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         distinctUntilChanged(), // Compare previous selection if needed
-        tap(langCode => console.log("Language selected:", langCode)),
+        tap(langCode => {
+            console.log("Language selected:", langCode);
+            // Fetch the parallel content
+            if (this.currentlyOpenUkrSpan) {
+              this.currentlyOpenUkrSpan.hidden = true;
+              this.currentlyOpenUkrSpan = null;
+            }
+            this.isParallelViewActive = false; // Tentatively set false
+            if (langCode) this.isLoadingParallel = true; // Show loader only if selecting a lang
+            this.cdRef.markForCheck();
+          }
+        ),
         // Use switchMap to automatically cancel previous load request if user selects quickly
         switchMap(langCode => {
           if (langCode && this.bookId) {
             this.isLoadingParallel = true; // Show parallel loading indicator
             this.isParallelViewActive = false; // Tentatively set false until loaded
             this.cdRef.markForCheck();
-            // Fetch the parallel content
+
             return this.readService.getParallelText(this.bookId, langCode).pipe(
               catchError(error => {
                 // Handle error within the stream
@@ -328,6 +361,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
             this.isLoadingParallel = false;
             this.errorMessage = null;
             console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
+            this.currentlyOpenUkrSpan = null; // Reset any open translations
             this.cdRef.markForCheck();
             this.scheduleChapterOffsetMeasurement(); // Remeasure after new content render
             this.scrollToPercentage(0); // Scroll to top after load
@@ -349,6 +383,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bookHtmlContent = this.baseBookHtmlContent;
       this.isParallelViewActive = false;
       this.displayMode = 'eng';
+      this.currentlyOpenUkrSpan = null;
       this.languageSelectControl.setValue(null, {emitEvent: false}); // Reset dropdown without triggering change listener
       this.isLoadingParallel = false; // Ensure parallel loader is off
       this.cdRef.markForCheck();
