@@ -16,8 +16,8 @@ import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TuiAlertService} from '@taiga-ui/core';
-import {Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, takeUntil, throttleTime} from 'rxjs/operators'; // Add throttleTime
+import {EMPTY, Subject} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators'; // Add throttleTime
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListWrapperComponent, TuiSliderComponent} from "@taiga-ui/kit";
@@ -27,6 +27,7 @@ import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {HttpResponse} from "@angular/common/http";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
+import {ParallelFormatPipe} from "./parallel-format.pipe";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -72,6 +73,7 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     SlicePipe,
     TuiActiveZone,
     SafeHtmlPipe,
+    ParallelFormatPipe,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -89,10 +91,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected blocks: BlockData[] = [];       // Parsed blocks for rendering
   protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
   protected bookHtmlContent: string = ''; // Store the raw HTML from backend
+  protected baseBookHtmlContent: string = ''; // Store the raw HTML from backend
 
-  protected isLoading: boolean = true;
+  protected isLoading: boolean = true;          // General loading state
+  protected isLoadingParallel: boolean = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
   protected bookId: number | null = null;
+  protected currentBaseLanguage: string = 'EN'; // Assume base is EN, adjust if needed
 
   // --- Native Scroll State ---
   protected currentScrollPercentage: number = 0; // Current scroll position (0-100)
@@ -123,6 +128,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
+  protected isParallelViewActive: boolean = false; // Are we showing parallel content?
+  protected displayMode: 'eng-ukr' | 'eng' | 'ukr' = 'eng'; // Display format for the pipe
 
   protected isAtScrollTop: boolean = true; // ADDED: True initially
   protected isAtScrollBottom: boolean = false; // ADDED: False initially
@@ -147,12 +154,80 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const bookId = params['id'];
       this.bookId = bookId ? +bookId : null;
       if (this.bookId) {
-        this.loadBookHtml(this.bookId); // Call new loading function
+        this.loadBookHtml(this.bookId, true);
+        // Fetch the list of available languages for the dropdown
         this.fetchParallelLanguages(this.bookId);
+        // Setup listener for language selection changes AFTER initial load might start
+        this.setupLanguageSelectionListener();
       } else {
         this.handleError("Invalid Book ID.");
       }
     });
+  }
+
+// --- Language Selection Listener ---
+  private setupLanguageSelectionListener(): void {
+    this.languageSelectControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged(), // Compare previous selection if needed
+        tap(langCode => console.log("Language selected:", langCode)),
+        // Use switchMap to automatically cancel previous load request if user selects quickly
+        switchMap(langCode => {
+          if (langCode && this.bookId) {
+            this.isLoadingParallel = true; // Show parallel loading indicator
+            this.isParallelViewActive = false; // Tentatively set false until loaded
+            this.cdRef.markForCheck();
+            // Fetch the parallel content
+            return this.readService.getParallelText(this.bookId, langCode).pipe(
+              catchError(error => {
+                // Handle error within the stream
+                this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
+                return EMPTY; // Prevent observable from completing on error
+              })
+            );
+          } else {
+            // Language deselected (or null initially), revert to base
+            this.revertToBaseContent();
+            return EMPTY; // Don't proceed with network call
+          }
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          // Handle successful response from getParallelText
+          if (response.status === 200 && response.body) {
+            try {
+              const fetchedHtml = this.arrayBufferToString(response.body);
+              this.bookHtmlContent = fetchedHtml; // Store in current display
+              this.isParallelViewActive = true;   // Now parallel view is active
+              this.displayMode = 'eng-ukr';     // Default to side-by-side view
+              this.isLoadingParallel = false;
+              this.errorMessage = null;         // Clear previous errors
+              console.log(`Loaded parallel HTML content for ${this.languageSelectControl.value}.`);
+              this.cdRef.markForCheck();
+              this.scheduleChapterOffsetMeasurement(); // Remeasure layout
+              this.scrollToPercentage(0); // Scroll to top
+            } catch (e) {
+              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
+            }
+          } else {
+            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
+          }
+        }
+      });
+  }
+
+  // Specific handler for load errors
+  private handleLoadError(loadType: 'base' | 'parallel', message: string): void {
+    this.handleError(`Error loading ${loadType} content: ${message}`); // Show error
+    this.isLoading = false;
+    this.isLoadingParallel = false;
+    // Option: Revert to base content if parallel load failed?
+    if (loadType === 'parallel') {
+      this.revertToBaseContent();
+    }
+    this.cdRef.markForCheck();
   }
 
   ngAfterViewInit(): void {
@@ -171,19 +246,58 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearScrollHoldTimers();
   }
 
-  private loadBookHtml(bookId: number): void {
-    this.isLoading = true;
+  // Loads HTML content, stores in baseBookHtmlContent if isBase=true
+  private loadBookHtml(bookId: number, isBase: boolean = false): void {
+    if (isBase) {
+      this.isLoading = true; // Use main loader for base content
+      this.isParallelViewActive = false; // Reset flag
+      this.displayMode = 'eng'; // Default to eng when loading base
+    } else {
+      this.isLoadingParallel = true; // Use specific loader for parallel
+    }
     this.errorMessage = null;
-    this.bookHtmlContent = ''; // Reset HTML content
+    // Reset content relevant to the current load type
+    if (isBase) this.baseBookHtmlContent = '';
+    this.bookHtmlContent = ''; // Always clear current display content on load
     this.chapterNav = [];
-    this.currentScrollPercentage = 0;
+    this.currentScrollPercentage = 0; // Reset scroll
     this.cdRef.markForCheck();
 
-    // Assuming readService.loadBook fetches the content (adapt if method name/return type differs)
-    this.readService.loadBook(bookId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => this.handleHtmlResponse(response),
-      error: (error) => this.handleError(error?.error?.message || 'Error loading book HTML.'),
-    })
+    // Use the correct service method
+    const stream$ = isBase
+      ? this.readService.loadBook(bookId)
+      : this.readService.getParallelText(bookId, this.languageSelectControl.value!); // Assumes value is set
+
+    stream$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        if (response.status === 200 && response.body) {
+          try {
+            const fetchedHtml = this.arrayBufferToString(response.body);
+            this.bookHtmlContent = fetchedHtml; // Store in current display
+            if (isBase) {
+              this.baseBookHtmlContent = fetchedHtml; // Also store in base copy
+              this.isParallelViewActive = false;
+              this.displayMode = 'eng';
+            } else {
+              this.isParallelViewActive = true;
+              this.displayMode = 'eng-ukr'; // Default parallel view
+            }
+            this.isLoading = false;
+            this.isLoadingParallel = false;
+            this.errorMessage = null;
+            console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
+            this.cdRef.markForCheck();
+            this.scheduleChapterOffsetMeasurement(); // Remeasure after new content render
+            this.scrollToPercentage(0); // Scroll to top after load
+          } catch (e) {
+            this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
+          }
+        } else {
+          this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to load content. Status: ${response.status}`);
+        }
+      },
+      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
+    });
   }
 
   private handleHtmlResponse(response: HttpResponse<ArrayBuffer>): void {
@@ -209,78 +323,37 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // --- Book Loading & Parsing ---
-
-  private loadBook(bookId: number): void {
-    this.isLoading = true;
-    this.errorMessage = null;
-    this.processedContent = '';
-    this.blocks = [];
-    this.chapterNav = [];
-    this.currentScrollPercentage = 0;
-    this.cdRef.markForCheck();
-
-    this.readService.loadBook(bookId).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => this.handleTextResponse(response),
-      error: (error) => this.handleError(error?.error?.message || 'Error loading book.'),
-    });
-  }
-
-  private handleTextResponse(response: HttpResponse<ArrayBuffer>): void {
-    if (response.status === 200 && response.body) {
-      try {
-        this.processedContent = this.arrayBufferToString(response.body);
-        this.parseProcessedContent(); // Parse into blocks for rendering
-        this.isLoading = false;
-        this.errorMessage = null;
-        console.log(`Parsed ${this.blocks.length} blocks. Ready for rendering.`);
-
-        // Trigger change detection to render the blocks via *ngFor
-        this.cdRef.markForCheck();
-
-        // Schedule measurement of chapters AFTER the view has been updated
-        this.scheduleChapterOffsetMeasurement();
-
-      } catch (e) {
-        this.handleError(`Failed to decode/parse book content: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    } else {
-      this.handleError(`Failed to load book content. Status: ${response.status}`);
+  // Reverts the view to the base language content
+  private revertToBaseContent(): void {
+    console.log("Reverting to base content.");
+    if (this.bookHtmlContent !== this.baseBookHtmlContent) { // Only update if different
+      this.bookHtmlContent = this.baseBookHtmlContent;
+      this.isParallelViewActive = false;
+      this.displayMode = 'eng';
+      this.languageSelectControl.setValue(null, {emitEvent: false}); // Reset dropdown without triggering change listener
+      this.isLoadingParallel = false; // Ensure parallel loader is off
+      this.cdRef.markForCheck();
+      this.scheduleChapterOffsetMeasurement(); // Remeasure layout
+      this.updateScrollState(); // Update scroll state based on base content
     }
   }
 
-  // Parses the raw text into structured blocks
-  private parseProcessedContent(): void {
-    this.blocks = [];
-    if (!this.processedContent) return;
-    const blockSeparatorRegex = /\r?\n\s*\r?\n/; // Handles Windows/Unix newlines
-    const rawChunks = this.processedContent.split(blockSeparatorRegex);
-
-    rawChunks.forEach((chunk, index) => {
-      const trimmedChunk = chunk.trim();
-      if (!trimmedChunk) return; // Skip empty chunks
-
-      let type: BlockData['type'] = 'paragraph';
-      let content = trimmedChunk;
-
-      if (trimmedChunk.startsWith(CHAPTER_MARKER)) {
-        type = 'chapter';
-        content = trimmedChunk.substring(CHAPTER_MARKER.length).trim();
-      } else if (chunk.includes('\n')) { // Use original chunk to detect internal newlines for verse
-        type = 'verse';
-        content = chunk; // Keep original spacing for verse
-      } else {
-        type = 'paragraph';
-        content = trimmedChunk;
-      }
-      this.blocks.push({type, content, originalIndex: index});
-    });
-    console.log("Final number of parsed blocks:", this.blocks.length);
+  setDisplayMode(mode: 'eng-ukr' | 'eng' | 'ukr'): void {
+    if (this.isParallelViewActive && this.displayMode !== mode) {
+      console.log("Setting display mode to:", mode);
+      this.displayMode = mode;
+      // No need to reload content, just trigger redraw via pipe
+      // Content height *might* change slightly if hiding one language affects wrapping
+      this.scheduleChapterOffsetMeasurement(); // Remeasure is safer
+      this.cdRef.markForCheck();
+    } else if (!this.isParallelViewActive) {
+      console.warn("Cannot change display mode when not in parallel view.");
+    }
   }
 
   // Placeholder fetch for parallel languages options
   private fetchParallelLanguages(bookId: number): void {
-    this.readService.getBookById(bookId, 'EN').pipe(takeUntil(this.destroy$)).subscribe({
+    this.readService.getBookById(bookId, this.currentBaseLanguage).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
           this.parallelVersions = book.availableLanguages.filter(t => t.language !== book.language);
@@ -315,7 +388,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!contentElement) console.warn("measureChapterOffsets: readerContentRef.nativeElement is not available yet.");
       return; // Exit if element isn't ready
     }
-
 
     console.log("Measuring chapter offsets from rendered HTML...");
     this.chapterNav = [];
@@ -353,7 +425,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Sort by position remains important
     this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
     console.log(`Found and measured ${this.chapterNav.length} valid chapters.`);
-    // console.log(this.chapterNav); // Log details if needed
   }
 
   // Schedules chapter measurement reliably after view updates
@@ -412,6 +483,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // --- Scrolling Logic (Native) ---
 
+
   // Called by the (scroll) event binding on the wrapper
   protected onWrapperScroll(event: Event): void {
     // Use NgZone.runOutsideAngular to prevent excessive change detection cycles during rapid scroll events
@@ -469,7 +541,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-
     this.isScrollingProgrammatically = true;
     element.scrollTop = clampedValue;
 
@@ -499,7 +570,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   // --- Navigation ---
-
   // Scrolls down by approximately one viewport height
   protected nextPage(): void {
     if (!this.readerContentWrapperRef) return;
@@ -531,9 +601,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setScrollTop(newScrollTop); // setScrollTop handles clamping
   }
 
-
   // --- Touch & Hold Scroll ---
-
   // Flag start/end of touch interaction
   protected onTouchStart(event: TouchEvent): void {
     this.isTouching = true;

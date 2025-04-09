@@ -17,13 +17,15 @@
 
     <div #readerContent
          class="reader-content"
-         [innerHTML]="bookHtmlContent | safeHtml">
+         [innerHTML]="bookHtmlContent | parallelFormat:displayMode | safeHtml">
     </div>
   </div>
 
   <!-- Pagination/Navigation Controls -->
   <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
     <div class="pagination-center-area">
+
+      <!-- Table of Contents Dropdown -->
       <div class="chapter-nav-container" *ngIf="chapterNav.length > 0">
         <lucide-icon
           #tocDropdown="tuiDropdown"
@@ -41,7 +43,6 @@
 
         <!-- Dropdown Content Template -->
         <ng-template #tocDropdownContent>
-          <!-- Use tuiDataList for standard Taiga dropdown items -->
           <tui-data-list role="menu">
             <button
               (click)="jumpToChapter(chapter.elementId)"
@@ -49,13 +50,12 @@
               role="menuitem"
               tuiOption
             >
-              <!-- Display title -->
               {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
             </button>
           </tui-data-list>
         </ng-template>
-
       </div>
+
       <!-- Previous Button -->
       <app-button
         appearance="text"
@@ -72,7 +72,6 @@
 
       <!-- Slider (Percentage) & Chapter Select -->
       <div class="slider-chapter-area">
-        <!-- Percentage Slider -->
         <input type="range"
                class="page-slider"
                tuiSlider
@@ -81,7 +80,6 @@
                [ngModel]="currentScrollPercentage"
                (input)="onSliderInput($event)"
                aria-label="Scroll Position Slider"/>
-        <!-- Percentage Display -->
         <span class="pagination-info">{{ currentScrollPercentage }}%</span>
       </div>
 
@@ -99,7 +97,7 @@
         <lucide-icon name="circle-chevron-right" size="28" strokeWidth="1.5"></lucide-icon>
       </app-button>
 
-      <!-- Parallel Text Controls (Placeholder) -->
+      <!-- Parallel Text Controls -->
       <div *ngIf="parallelVersions.length > 0" class="parallel">
         Parallel:
         <tui-select
@@ -110,6 +108,16 @@
           <tui-data-list-wrapper *tuiDataList [items]="langs"></tui-data-list-wrapper>
         </tui-select>
       </div>
+
+      <!-- Display Mode Controls -->
+      <div class="display-mode-controls" *ngIf="isParallelViewActive">
+        <button (click)="setDisplayMode('eng')" [class.active]="displayMode === 'eng'">Eng</button>
+        <button (click)="setDisplayMode('ukr')" [class.active]="displayMode === 'ukr'">Укр</button>
+        <button (click)="setDisplayMode('eng-ukr')" [class.active]="displayMode === 'eng-ukr'">Eng(Укр)</button>
+      </div>
+
+      <!-- Loading Indicator for Parallel Text -->
+      <div *ngIf="isLoadingParallel" class="parallel-loading">Loading translation...</div>
 
     </div> <!-- End pagination-center-area -->
   </div> <!-- End pagination-controls -->
