@@ -123,7 +123,10 @@
   }
 
   ::ng-deep span.ukr {
-    color: #444;
+    color: white;
+    background: #621567;
+    border-radius: 12px;
+    padding: .2rem .5rem;
     font-size: 0.95em;
     margin-left: 0.3em;
 
@@ -134,12 +137,12 @@
     display: inline;
 
     &:not([hidden])::before {
-      content: "(";
+      //content: "(";
       margin-right: 0.1em;
     }
 
     &:not([hidden])::after {
-      content: ")";
+      //content: ")";
       margin-left: 0.1em;
     }
   }
