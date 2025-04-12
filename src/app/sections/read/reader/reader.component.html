@@ -143,6 +143,42 @@
                     </tui-data-list>
                   </ng-template>
                 </button>
+                <button
+                  iconEnd="@tui.chevron-right"
+                  tuiDropdownAlign="right"
+                  tuiDropdownManual
+                  tuiDropdownSided
+                  tuiOption
+                  type="button"
+                  [tuiDropdown]="modeTmp"
+                >
+                  Mode
+                  <ng-template #modeTmp>
+                    <tui-data-list tuiDataListDropdownManager>
+                      <button
+                        tuiOption
+                        type="button"
+                        (click)="setMode('side')"
+                      >
+                        Side by Side
+                      </button>
+                      <button
+                        tuiOption
+                        type="button"
+                        (click)="setMode('overlay')"
+                      >
+                        Overlay
+                      </button>
+                      <button
+                        tuiOption
+                        type="button"
+                        (click)="setMode('inline')"
+                      >
+                        Inline
+                      </button>
+                    </tui-data-list>
+                  </ng-template>
+                </button>
               </tui-data-list>
             </ng-template>
           </app-parallel-translation>

@@ -960,4 +960,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
   }
+
+  protected mode: 'side' | 'overlay' | 'inline' = 'inline'; // Default to side-by-side
+
+  setMode(mode: 'side' | 'overlay' | 'inline') {
+    this.mode = mode;
+  }
 }
