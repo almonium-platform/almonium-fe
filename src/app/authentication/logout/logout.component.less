@@ -1,44 +1,13 @@
 .headless-container {
-  background-color: var(--main-bg-color);
-}
-
-.message {
-  text-align: center;
-  flex-grow: 1;
-  font-weight: 600;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  font-size: 1.3rem;
+  background-color: var(--main-bg-color); // Keep background color
 }
 
 .tui-col_8 {
-  width: 100%;
   padding: 20px;
-  min-width: 360px;
+  min-width: 300px; // Adjust min-width as needed
+  max-width: 400px; // Example max-width
   box-sizing: border-box;
-}
-
-.tui-form__row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.logo-container {
-  display: flex;
+  display: flex; // Ensure content inside centers if needed
   justify-content: center;
   align-items: center;
-  margin-bottom: 1.5rem;
-  width: 4rem;
-  height: 4rem;
-}
-
-@keyframes rotate-logo {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }

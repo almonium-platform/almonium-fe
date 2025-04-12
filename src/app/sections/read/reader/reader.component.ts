@@ -28,6 +28,7 @@ import {HttpResponse} from "@angular/common/http";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
+import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -87,6 +88,7 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     TuiActiveZone,
     SafeHtmlPipe,
     ParallelFormatPipe,
+    LoadingIndicatorComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],

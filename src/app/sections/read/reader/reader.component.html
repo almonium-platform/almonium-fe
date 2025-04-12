@@ -6,8 +6,13 @@
      (touchcancel)="onTouchCancel($event)">
 
   <!-- Loading and Error States -->
-  <div *ngIf="isLoading" class="loading-indicator">Loading book...</div>
-  <div *ngIf="errorMessage && !isLoading" class="error-message">{{ errorMessage }}</div>
+  @if (isLoading) {
+    <app-loading-indicator baseText="Loading book"></app-loading-indicator>
+  }
+
+  @if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
+  }
 
   <!-- Wrapper for Native Scroll -->
   <div #readerContentWrapper

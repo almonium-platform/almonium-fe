@@ -1,15 +1,5 @@
 <div class="headless-container">
   <div class="tui-col_8">
-    <div class="tui-form__row">
-      <app-gif-player
-        class="logo-container"
-        [replayTrigger]="replayGifTrigger"
-        [looped]="true"
-      ></app-gif-player>
-
-      <div class="message">
-        <p>{{ loggingOutMessage }}</p>
-      </div>
-    </div>
+    <app-loading-indicator [baseText]="'Logging out'"></app-loading-indicator>
   </div>
 </div>
