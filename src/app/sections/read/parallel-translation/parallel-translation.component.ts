@@ -11,4 +11,5 @@ import {TuiHintDirective} from "@taiga-ui/core";
 })
 export class ParallelTranslationComponent {
   @Input() inactive: boolean = false;
+  @Input() showHint: boolean = true;
 }
