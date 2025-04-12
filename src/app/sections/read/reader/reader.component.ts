@@ -15,20 +15,20 @@ import {
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {TuiAlertService} from '@taiga-ui/core';
-import {EMPTY, Subject} from 'rxjs';
+import {TuiAlertService, TuiDropdownDirective} from '@taiga-ui/core';
+import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators'; // Add throttleTime
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiDataListWrapperComponent, TuiSliderComponent} from "@taiga-ui/kit";
+import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
 import {ActivatedRoute, Router} from "@angular/router";
 import {BookMini} from "../book.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {HttpResponse} from "@angular/common/http";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
+import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -81,7 +81,6 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     SharedLucideIconsModule,
     ButtonComponent,
     TuiSliderComponent,
-    TuiDataListWrapperComponent,
     TuiSelectModule,
     TuiTextfieldControllerModule,
     SlicePipe,
@@ -89,6 +88,8 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     SafeHtmlPipe,
     ParallelFormatPipe,
     LoadingIndicatorComponent,
+    ParallelTranslationComponent,
+    TuiDataListDropdownManager,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -275,8 +276,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           // Handle successful response from getParallelText
           if (response.status === 200 && response.body) {
             try {
-              const fetchedHtml = this.arrayBufferToString(response.body);
-              this.bookHtmlContent = fetchedHtml; // Store in current display
+              this.bookHtmlContent = this.arrayBufferToString(response.body); // Store in current display
               this.isParallelViewActive = true;   // Now parallel view is active
               this.displayMode = 'eng-ukr';     // Default to side-by-side view
               this.isLoadingParallel = false;
@@ -321,6 +321,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearScrollHoldTimers();
+    this.parallelLoadSubscription?.unsubscribe();
   }
 
   // Loads HTML content, stores in baseBookHtmlContent if isBase=true
@@ -378,19 +379,26 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  private selectedLangCode: string | null = null;
+
   // Reverts the view to the base language content
   private revertToBaseContent(): void {
     console.log("Reverting to base content.");
-    if (this.bookHtmlContent !== this.baseBookHtmlContent) { // Only update if different
+
+    // Check if content or state actually needs reverting
+    if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.selectedLangCode !== null) {
       this.bookHtmlContent = this.baseBookHtmlContent;
       this.isParallelViewActive = false;
-      this.displayMode = 'eng';
-      this.currentlyOpenUkrSpan = null;
-      this.languageSelectControl.setValue(null, {emitEvent: false}); // Reset dropdown without triggering change listener
+      this.displayMode = 'eng'; // Or 'eng-only', whatever your base mode is called
+      this.currentlyOpenUkrSpan = null; // Reset specific UI state if needed
+      this.selectedLangCode = null;
+
       this.isLoadingParallel = false; // Ensure parallel loader is off
-      this.cdRef.markForCheck();
+      this.cdRef.markForCheck();      // Trigger change detection
       this.scheduleChapterOffsetMeasurement(); // Remeasure layout
-      this.updateScrollState(); // Update scroll state based on base content
+      this.updateScrollState();        // Update scroll state based on base content (if method exists)
+    } else {
+      console.log("Already in base content state.");
     }
   }
 
@@ -852,5 +860,104 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // Getter for parallel language options used in template
   get langs() {
     return this.parallelVersions.map(t => t.language);
+  }
+
+  protected closeActionsDropdown($event: boolean, friendDropdown: TuiDropdownDirective) {
+    if (!$event) {
+      friendDropdown.toggle(false);
+    }
+  }
+
+  private parallelLoadSubscription: Subscription | null = null;
+
+  selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
+    console.log("Language selected:", langCode);
+
+    if (langCode !== null && langCode === this.selectedLangCode) {
+      console.log(`Language ${langCode} is already selected.`);
+      // Optionally close the dropdown here if needed, depending on your template structure
+      return; // Exit early
+    }
+
+    // --- 1. Cancel Previous Request ---
+    this.parallelLoadSubscription?.unsubscribe();
+
+    this.selectedLangCode = langCode;
+
+    // --- 2. Handle Selection ---
+    if (langCode && this.bookId) {
+      // --- 2a. Start Loading Process ---
+
+      // Perform pre-fetch UI updates (from original 'tap')
+      if (this.currentlyOpenUkrSpan) {
+        this.currentlyOpenUkrSpan.hidden = true;
+        this.currentlyOpenUkrSpan = null;
+      }
+      this.isParallelViewActive = false; // Tentatively set false
+      this.isLoadingParallel = true;    // Show loader
+      this.errorMessage = null;         // Clear previous errors
+      this.cdRef.markForCheck();        // Update UI
+
+      // Initiate the network call (from original 'switchMap')
+      this.parallelLoadSubscription = this.readService.getParallelText(this.bookId, langCode).pipe(
+        takeUntil(this.destroy$), // Auto-unsubscribe on component destroy
+        finalize(() => {
+          // Runs on completion, error, or unsubscribe
+          this.isLoadingParallel = false; // ALWAYS hide loader eventually
+          this.cdRef.markForCheck();
+        }),
+        catchError(error => {
+          // Handle error within the stream (from original 'catchError')
+          this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
+          this.revertToBaseContent(); // Revert UI on error
+          return EMPTY; // Prevent observable from completing incorrectly
+        })
+      ).subscribe({
+        next: (response) => {
+          // Handle successful response (from original 'subscribe.next')
+          if (response.status === 200 && response.body) {
+            try {
+              // Decode and update content
+              this.bookHtmlContent = this.arrayBufferToString(response.body);
+              this.isParallelViewActive = true;   // Now parallel view is active
+              this.displayMode = 'eng-ukr';     // Set display mode
+              this.errorMessage = null;         // Clear previous errors
+              console.log(`Loaded parallel HTML content for ${langCode}.`);
+              // Trigger layout updates and scrolling
+              this.scheduleChapterOffsetMeasurement();
+              this.scrollToPercentage(0);
+            } catch (e) {
+              // Handle decoding error
+              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
+              this.revertToBaseContent(); // Revert UI on decoding error
+            }
+          } else {
+            // Handle non-200 success status
+            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
+            this.revertToBaseContent(); // Revert UI on load failure
+          }
+          // isLoadingParallel is handled by finalize
+          this.cdRef.markForCheck(); // Ensure UI reflects changes
+        },
+        // Error handler in subscribe is less likely due to catchError, but good practice
+        error: (err) => {
+          console.error("Unexpected error in parallel load subscription:", err);
+          this.handleLoadError('parallel', 'An unexpected error occurred during parallel load.');
+          this.revertToBaseContent(); // Revert UI on unexpected error
+          // isLoadingParallel is handled by finalize
+          this.cdRef.markForCheck();
+        }
+      });
+
+    } else {
+      // --- 2b. Language Deselected or Missing bookId: Revert to Base ---
+      console.log("Reverting to base content (no valid language selected or missing bookId).");
+      this.revertToBaseContent();
+      // Ensure loader is off if we bail out early
+      if (this.isLoadingParallel) {
+        this.isLoadingParallel = false;
+        this.cdRef.markForCheck();
+      }
+    }
   }
 }

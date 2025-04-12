@@ -105,16 +105,62 @@
       </app-button>
 
       <!-- Parallel Text Controls -->
-      <div *ngIf="parallelVersions.length > 0" class="parallel">
-        Parallel:
-        <tui-select
-          tuiTextfieldSize="s"
-          class="language-select"
-          [formControl]="languageSelectControl"
-          [tuiTextfieldLabelOutside]="true">
-          <tui-data-list-wrapper *tuiDataList [items]="langs"></tui-data-list-wrapper>
-        </tui-select>
-      </div>
+      @if (parallelVersions.length > 0) {
+        <div class="parallel">
+          <app-parallel-translation
+            #tocDropdown="tuiDropdown"
+            (click)="tocDropdown.toggle(true)"
+            (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
+            [tuiDropdown]="parallelTemplate"
+            [showHint]="false"
+          >
+            <ng-template #parallelTemplate>
+              <tui-data-list
+                role="menu"
+                tuiDataListDropdownManager
+                class="context-menu">
+                <button
+                  iconEnd="@tui.chevron-right"
+                  tuiDropdownAlign="right"
+                  tuiDropdownManual
+                  tuiDropdownSided
+                  tuiOption
+                  type="button"
+                  [tuiDropdown]="burgersTmp"
+                >
+                  Language
+                  <ng-template #burgersTmp>
+                    <tui-data-list tuiDataListDropdownManager>
+                      @for (lang of langs; track lang) {
+                        <button
+                          tuiOption
+                          type="button"
+                          (click)="selectOption(lang)"
+                        >
+                          {{ lang }}
+                        </button>
+                      }
+                    </tui-data-list>
+                  </ng-template>
+                </button>
+              </tui-data-list>
+            </ng-template>
+          </app-parallel-translation>
+        </div>
+      }
+      <lucide-icon name="ellipsis-vertical"
+                   class="ml-auto cursor-pointer"
+                   [size]="20"
+                   #friendDropdown="tuiDropdown"
+                   tuiDropdown
+                   (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
+                   [tuiDropdown]="settingsTemplate"
+                   (click)="friendDropdown.toggle(true)"
+      >
+        <ng-template #settingsTemplate>
+          HELLO BROS
+        </ng-template>
+      </lucide-icon>
 
       <!-- Loading Indicator for Parallel Text -->
       <div *ngIf="isLoadingParallel" class="parallel-loading">Loading translation...</div>
