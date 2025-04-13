@@ -19,14 +19,15 @@
   <!-- Wrapper for Native Scroll -->
   <div #readerContentWrapper
        class="reader-content-wrapper"
+       [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
        (scroll)="onWrapperScroll($event)"
        *ngIf="!isLoading && !errorMessage">
 
+    <!-- Content Area - PASS MODE TO PIPE -->
     <div #readerContent
          class="reader-content"
-         [innerHTML]="bookHtmlContent | parallelFormat:'eng-ukr' | safeHtml"
-         (click)="onContentClick($event)"
-    >
+         [innerHTML]="bookHtmlContent | parallelFormat:currentParallelMode | safeHtml"
+         (click)="onContentClick($event)">
     </div>
   </div>
 
@@ -110,80 +111,35 @@
       @if (parallelVersions.length > 0) {
         <div class="parallel">
           <app-parallel-translation
-            #tocDropdown="tuiDropdown"
-            (click)="openParallelSettings()"
-            (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
-            [tuiDropdown]="parallelTemplate"
+            #langDropdown="tuiDropdown"
+            (click)="langDropdown.toggle(true); $event.stopPropagation()"
+            (tuiActiveZoneChange)="!$event && langDropdown.toggle(false)"
+            [tuiDropdown]="parallelLangMenu"
             [showHint]="false"
           >
-            <ng-template #parallelTemplate>
-              <tui-data-list
-                role="menu"
-                tuiDataListDropdownManager
-                class="context-menu">
-                <button
-                  iconEnd="@tui.chevron-right"
-                  tuiDropdownAlign="right"
-                  tuiDropdownManual
-                  tuiDropdownSided
-                  tuiOption
-                  type="button"
-                  [tuiDropdown]="burgersTmp"
-                >
-                  Language
-                  <ng-template #burgersTmp>
-                    <tui-data-list tuiDataListDropdownManager>
-                      @for (lang of langs; track lang) {
-                        <button
-                          tuiOption
-                          type="button"
-                          (click)="selectOption(lang)"
-                        >
-                          {{ lang }}
-                        </button>
-                      }
-                    </tui-data-list>
-                  </ng-template>
-                </button>
-                <button
-                  iconEnd="@tui.chevron-right"
-                  tuiDropdownAlign="right"
-                  tuiDropdownManual
-                  tuiDropdownSided
-                  tuiOption
-                  type="button"
-                  [tuiDropdown]="modeTmp"
-                >
-                  Mode
-                  <ng-template #modeTmp>
-                    <tui-data-list tuiDataListDropdownManager>
-                      <button
-                        tuiOption
-                        type="button"
-                        (click)="setMode('side')"
-                      >
-                        Side by Side
-                      </button>
-                      <button
-                        tuiOption
-                        type="button"
-                        (click)="setMode('overlay')"
-                      >
-                        Overlay
-                      </button>
-                      <button
-                        tuiOption
-                        type="button"
-                        (click)="setMode('inline')"
-                      >
-                        Inline
-                      </button>
-                    </tui-data-list>
-                  </ng-template>
-                </button>
-              </tui-data-list>
-            </ng-template>
           </app-parallel-translation>
+          <ng-template #parallelLangMenu>
+            <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
+              <!-- Revert Option -->
+              <button *ngIf="selectedLangCode" tuiOption type="button"
+                      (click)="selectOption(null); langDropdown.toggle(false)">
+                Show Original
+              </button>
+              <hr *ngIf="selectedLangCode" tuiDivider/>
+              <!-- Language Options -->
+              <button *ngFor="let lang of langs" tuiOption type="button"
+                      (click)="selectOption(lang); langDropdown.toggle(false)">
+                {{ lang }}
+              </button>
+            </tui-data-list>
+          </ng-template>
+
+          <!-- Settings Button -->
+          <button
+            tuiIconButton appearance="flat" iconStart="@tui.settings" type="button"
+            title="Parallel Settings"
+            (click)="openParallelSettings(); $event.stopPropagation()">
+          </button>
         </div>
       }
       <lucide-icon name="ellipsis-vertical"

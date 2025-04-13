@@ -15,7 +15,7 @@ import {
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {TuiAlertService, TuiDropdownDirective} from '@taiga-ui/core';
+import {TuiAlertService, TuiButton, TuiDropdownDirective} from '@taiga-ui/core';
 import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators'; // Add throttleTime
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
@@ -95,6 +95,10 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     ParallelTranslationComponent,
     TuiDataListDropdownManager,
     ParallelSettingsComponent,
+    TuiButton,
+    ParallelFormatPipe,
+    ParallelFormatPipe,
+    ParallelFormatPipe,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -156,6 +160,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected isAtScrollBottom: boolean = false; // ADDED: False initially
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
+  protected selectedLangCode: string | null = null;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -181,14 +186,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.currentParallelMode !== mode) {
           console.log('Reader received new parallel mode:', mode);
           this.currentParallelMode = mode;
-          // --- !!! IMPORTANT: Add logic based on mode change !!! ---
-          // Example: Maybe you need to adjust layout or re-render?
-          // If mode affects how content is displayed (e.g., different CSS classes needed):
+          // Mode change now primarily affects the pipe's input.
+          // Trigger CD to re-render the content with the updated pipe argument.
           this.cdRef.markForCheck();
-          // If mode change affects overall layout significantly:
-          // this.scheduleChapterOffsetMeasurement();
-          // Apply mode-specific logic:
-          this.applyModeSpecificBehavior(mode);
+          // Re-measure offsets if mode change affects layout (especially for 'side')
+          if (mode === 'side') { // Or always re-measure if unsure
+            this.scheduleChapterOffsetMeasurement();
+          }
+          // Reset overlay state when switching away from overlay
+          if (mode !== 'overlay' && this.currentlyOpenUkrSpan) {
+            this.currentlyOpenUkrSpan.hidden = true;
+            this.currentlyOpenUkrSpan = null;
+          }
         }
       });
 
@@ -208,29 +217,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // --- Example method to handle mode-specific logic ---
-  private applyModeSpecificBehavior(mode: ParallelMode): void {
-    console.log(`Applying behavior for mode: ${mode}`);
-    // Reset things that might be mode-specific
-    if (this.currentlyOpenUkrSpan) {
-      this.currentlyOpenUkrSpan.hidden = true;
-      this.currentlyOpenUkrSpan = null;
-    }
-
-    // Add specific setup/teardown based on the mode
-    switch (mode) {
-      case 'side':
-        // Ensure side-by-side CSS classes are active, maybe trigger layout recalc
-        break;
-      case 'overlay':
-        // Ensure overlay click listeners are active, hide all translations initially
-        break;
-      case 'inline':
-        // Ensure inline display classes are active, potentially hide overlay elements
-        break;
-    }
-    // Trigger CD after applying changes
-    this.cdRef.markForCheck();
-  }
 
   protected onContentClick(event: MouseEvent): void {
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) return;
@@ -424,8 +410,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
     });
   }
-
-  private selectedLangCode: string | null = null;
 
   // Reverts the view to the base language content
   private revertToBaseContent(): void {
@@ -956,7 +940,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
               console.log(`Loaded parallel HTML content for ${langCode}.`);
               // Trigger layout updates and scrolling
               this.scheduleChapterOffsetMeasurement();
-              this.applyModeSpecificBehavior(this.currentParallelMode);
               this.scrollToPercentage(0);
             } catch (e) {
               // Handle decoding error
