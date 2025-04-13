@@ -227,7 +227,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Use setTimeout to queue it after the current rendering cycle
     setTimeout(() => {
       this.synchronizeColumnHeights();
-    }, 0);
+    }, 10);
   }
 
   // Performs PARAGRAPH-BY-PARAGRAPH height measurement and adjustment
