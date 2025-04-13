@@ -1,5 +1,8 @@
-import {Component, TemplateRef, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {TuiSegmented} from "@taiga-ui/kit";
+import {ParallelMode} from '../sections/read/parallel-mode.type';
+import {Subject, takeUntil} from "rxjs";
+import {ParallelModeService} from "../sections/read/parallel-mode.service";
 
 interface ModeConfig {
   imageSrc: string;
@@ -15,7 +18,7 @@ interface ModeConfig {
   templateUrl: './parallel-settings.component.html',
   styleUrl: './parallel-settings.component.less'
 })
-export class ParallelSettingsComponent {
+export class ParallelSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('parallelSettings', {static: true}) content!: TemplateRef<any>;
 
   modeSelectedIndex: number = 0;
@@ -39,6 +42,45 @@ export class ParallelSettingsComponent {
     }
   ];
 
+  private readonly modeIndexMap: Record<ParallelMode, number> = {
+    'side': 0,
+    'overlay': 1,
+    'inline': 2
+  };
+
+  private readonly indexModeMap: Record<number, ParallelMode> = {
+    0: 'side',
+    1: 'overlay',
+    2: 'inline'
+  };
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private parallelModeService: ParallelModeService,
+    private cdRef: ChangeDetectorRef
+  ) {
+  }
+
+  ngOnInit(): void {
+    // Subscribe to mode changes from the service to update the segmented control
+    this.parallelModeService.mode$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(mode => {
+        const newIndex = this.modeIndexMap[mode];
+        if (this.modeSelectedIndex !== newIndex) {
+          this.modeSelectedIndex = newIndex;
+          this.cdRef.markForCheck(); // Update view if needed
+          console.log('Settings component updated index from service:', newIndex);
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   // --- Getter to easily access the config for the selected mode ---
   get currentModeConfig(): ModeConfig {
     // Provide a default or handle out-of-bounds index if necessary
@@ -46,8 +88,14 @@ export class ParallelSettingsComponent {
   }
 
   onModeIndexChange(newIndex: number): void {
-    console.log('Selected index:', newIndex);
-    // The [(activeItemIndex)] binding handles updating modeSelectedIndex automatically
-    // You can add other logic here if needed when the mode changes
+    // Convert index back to mode string ('side', 'overlay', 'inline')
+    const newMode = this.indexModeMap[newIndex];
+    if (newMode) {
+      console.log('Settings component sending mode to service:', newMode);
+      // Set the mode via the service (this will also save to localStorage)
+      this.parallelModeService.setMode(newMode);
+    } else {
+      console.warn('Invalid index received from segmented control:', newIndex);
+    }
   }
 }

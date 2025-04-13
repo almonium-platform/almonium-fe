@@ -24,7 +24,7 @@
 
     <div #readerContent
          class="reader-content"
-         [innerHTML]="bookHtmlContent | parallelFormat:displayMode | safeHtml"
+         [innerHTML]="bookHtmlContent | parallelFormat:'eng-ukr' | safeHtml"
          (click)="onContentClick($event)"
     >
     </div>

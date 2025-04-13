@@ -31,6 +31,8 @@ import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loadi
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
+import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
+import {ParallelModeService} from "../parallel-mode.service";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -148,11 +150,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected parallelVersions: BookMini[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
   protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
-  protected displayMode: 'eng-ukr' | 'eng' | 'ukr' = 'eng'; // Display format for the pipe
   private currentlyOpenUkrSpan: HTMLElement | null = null;
 
   protected isAtScrollTop: boolean = true; // ADDED: True initially
   protected isAtScrollBottom: boolean = false; // ADDED: False initially
+
+  protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -161,6 +164,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private ngZone: NgZone,
+    private parallelModeService: ParallelModeService,
     private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
@@ -171,6 +175,23 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
+    this.parallelModeService.mode$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(mode => {
+        if (this.currentParallelMode !== mode) {
+          console.log('Reader received new parallel mode:', mode);
+          this.currentParallelMode = mode;
+          // --- !!! IMPORTANT: Add logic based on mode change !!! ---
+          // Example: Maybe you need to adjust layout or re-render?
+          // If mode affects how content is displayed (e.g., different CSS classes needed):
+          this.cdRef.markForCheck();
+          // If mode change affects overall layout significantly:
+          // this.scheduleChapterOffsetMeasurement();
+          // Apply mode-specific logic:
+          this.applyModeSpecificBehavior(mode);
+        }
+      });
+
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const bookId = params['id'];
       this.bookId = bookId ? +bookId : null;
@@ -186,8 +207,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  // --- Example method to handle mode-specific logic ---
+  private applyModeSpecificBehavior(mode: ParallelMode): void {
+    console.log(`Applying behavior for mode: ${mode}`);
+    // Reset things that might be mode-specific
+    if (this.currentlyOpenUkrSpan) {
+      this.currentlyOpenUkrSpan.hidden = true;
+      this.currentlyOpenUkrSpan = null;
+    }
+
+    // Add specific setup/teardown based on the mode
+    switch (mode) {
+      case 'side':
+        // Ensure side-by-side CSS classes are active, maybe trigger layout recalc
+        break;
+      case 'overlay':
+        // Ensure overlay click listeners are active, hide all translations initially
+        break;
+      case 'inline':
+        // Ensure inline display classes are active, potentially hide overlay elements
+        break;
+    }
+    // Trigger CD after applying changes
+    this.cdRef.markForCheck();
+  }
+
   protected onContentClick(event: MouseEvent): void {
-    if (!this.isParallelViewActive) return; // Only handle clicks in parallel mode
+    if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) return;
 
     const target = event.target as HTMLElement;
     const engSpan = target.closest('span.eng'); // Find the clicked English span
@@ -282,7 +328,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
             try {
               this.bookHtmlContent = this.arrayBufferToString(response.body); // Store in current display
               this.isParallelViewActive = true;   // Now parallel view is active
-              this.displayMode = 'eng-ukr';     // Default to side-by-side view
               this.isLoadingParallel = false;
               this.errorMessage = null;         // Clear previous errors
               console.log(`Loaded parallel HTML content for ${this.languageSelectControl.value}.`);
@@ -333,7 +378,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isBase) {
       this.isLoading = true; // Use main loader for base content
       this.isParallelViewActive = false; // Reset flag
-      this.displayMode = 'eng'; // Default to eng when loading base
     } else {
       this.isLoadingParallel = true; // Use specific loader for parallel
     }
@@ -359,10 +403,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
             if (isBase) {
               this.baseBookHtmlContent = fetchedHtml; // Also store in base copy
               this.isParallelViewActive = false;
-              this.displayMode = 'eng';
             } else {
               this.isParallelViewActive = true;
-              this.displayMode = 'eng-ukr'; // Default parallel view
             }
             this.isLoading = false;
             this.isLoadingParallel = false;
@@ -393,7 +435,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.selectedLangCode !== null) {
       this.bookHtmlContent = this.baseBookHtmlContent;
       this.isParallelViewActive = false;
-      this.displayMode = 'eng'; // Or 'eng-only', whatever your base mode is called
       this.currentlyOpenUkrSpan = null; // Reset specific UI state if needed
       this.selectedLangCode = null;
 
@@ -403,19 +444,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateScrollState();        // Update scroll state based on base content (if method exists)
     } else {
       console.log("Already in base content state.");
-    }
-  }
-
-  setDisplayMode(mode: 'eng-ukr' | 'eng' | 'ukr'): void {
-    if (this.isParallelViewActive && this.displayMode !== mode) {
-      console.log("Setting display mode to:", mode);
-      this.displayMode = mode;
-      // No need to reload content, just trigger redraw via pipe
-      // Content height *might* change slightly if hiding one language affects wrapping
-      this.scheduleChapterOffsetMeasurement(); // Remeasure is safer
-      this.cdRef.markForCheck();
-    } else if (!this.isParallelViewActive) {
-      console.warn("Cannot change display mode when not in parallel view.");
     }
   }
 
@@ -924,11 +952,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
               // Decode and update content
               this.bookHtmlContent = this.arrayBufferToString(response.body);
               this.isParallelViewActive = true;   // Now parallel view is active
-              this.displayMode = 'eng-ukr';     // Set display mode
               this.errorMessage = null;         // Clear previous errors
               console.log(`Loaded parallel HTML content for ${langCode}.`);
               // Trigger layout updates and scrolling
               this.scheduleChapterOffsetMeasurement();
+              this.applyModeSpecificBehavior(this.currentParallelMode);
               this.scrollToPercentage(0);
             } catch (e) {
               // Handle decoding error

@@ -10,6 +10,7 @@
           size="m"
           class="requests-toggle"
           [(activeItemIndex)]="modeSelectedIndex"
+          (activeItemIndexChange)="onModeIndexChange($event)"
         >
           <button type="button" class="btn-text">Side By Side</button>
           <button type="button" class="btn-text">Overlay</button>

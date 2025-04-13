@@ -2,7 +2,9 @@ import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
 import {AuthMethod} from "../authentication/auth/auth.types";
 import {Language} from "../models/language.model";
+import {DEFAULT_PARALLEL_MODE, ParallelMode} from "../sections/read/parallel-mode.type";
 
+const PARALLEL_MODE_KEY = 'parallel_mode';
 const USER_INFO_KEY = 'user_info';
 const CURRENT_LANGUAGE_KEY = 'current_language';
 const LANG_COLOR_KEY = 'langColors';
@@ -129,10 +131,27 @@ export class LocalStorageService {
     this.removeItem(TIMER_END_TIMESTAMP_KEY);
   }
 
+  saveParallelMode(mode: ParallelMode): void {
+    this.saveItem(PARALLEL_MODE_KEY, mode);
+  }
+
+  getParallelMode(): ParallelMode {
+    const storedMode = this.getItem<string>(PARALLEL_MODE_KEY);
+    if (storedMode === 'side' || storedMode === 'overlay' || storedMode === 'inline') {
+      return storedMode as ParallelMode;
+    }
+    return DEFAULT_PARALLEL_MODE;
+  }
+
+  clearParallelMode(): void {
+    this.removeItem(PARALLEL_MODE_KEY);
+  }
+
   public clearUserRelatedData(): void {
     this.clearUserInfo();
     this.removeCurrentLanguage();
     this.clearAuthMethods();
+    this.clearParallelMode();
   }
 
   public clearAllData(): void {
