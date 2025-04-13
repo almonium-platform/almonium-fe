@@ -29,6 +29,8 @@ import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
+import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
+import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 
 // Data structure for parsed blocks
 interface BlockData {
@@ -90,6 +92,7 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     LoadingIndicatorComponent,
     ParallelTranslationComponent,
     TuiDataListDropdownManager,
+    ParallelSettingsComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -157,7 +160,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     private alertService: TuiAlertService,
     private router: Router,
     private route: ActivatedRoute,
-    private ngZone: NgZone // Inject NgZone for performance optimization
+    private ngZone: NgZone,
+    private popupTemplateStateService: PopupTemplateStateService,
   ) {
   }
 
@@ -965,5 +969,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   setMode(mode: 'side' | 'overlay' | 'inline') {
     this.mode = mode;
+  }
+
+  @ViewChild(ParallelSettingsComponent, {static: true}) parallelSettingsComponent!: ParallelSettingsComponent;
+
+  openParallelSettings() {
+    this.popupTemplateStateService.open(this.parallelSettingsComponent.content, 'avatar');
   }
 }

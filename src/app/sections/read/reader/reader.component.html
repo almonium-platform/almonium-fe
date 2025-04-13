@@ -1,3 +1,5 @@
+<app-parallel-settings></app-parallel-settings>
+
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
      (touchstart)="onTouchStart($event)"
@@ -109,7 +111,7 @@
         <div class="parallel">
           <app-parallel-translation
             #tocDropdown="tuiDropdown"
-            (click)="tocDropdown.toggle(true)"
+            (click)="openParallelSettings()"
             (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
             [tuiDropdown]="parallelTemplate"
             [showHint]="false"

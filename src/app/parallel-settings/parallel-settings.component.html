@@ -1,0 +1,27 @@
+<ng-template #parallelSettings>
+  <div class="popup-container">
+    <div class="popup-header">
+      <h1>Parallel Settings</h1>
+    </div>
+
+    <div class="content">
+      <div class="mode-container">
+        <tui-segmented
+          size="m"
+          class="requests-toggle"
+          [(activeItemIndex)]="modeSelectedIndex"
+        >
+          <button type="button" class="btn-text">Side By Side</button>
+          <button type="button" class="btn-text">Overlay</button>
+          <button type="button" class="btn-text">Inline</button>
+        </tui-segmented>
+
+        <!-- Show image and text based on the selected mode config -->
+        <div class="explain-container">
+          <img [src]="currentModeConfig.imageSrc" [alt]="currentModeConfig.altText"/>
+          <div class="text-container">{{ currentModeConfig.explanation }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
