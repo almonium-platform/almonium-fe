@@ -112,14 +112,17 @@
   }
 
   // --- Segment Spans ---
-  ::ng-deep span.eng {
-    cursor: help;
-    transition: background-color 0.2s ease-out;
-    border-radius: 4px;
+  &.mode-overlay { // Target .reader-content when it has .mode-overlay
+    ::ng-deep span.eng {
+      cursor: help; // Apply cursor only in overlay mode
+      transition: background-color 0.2s ease-out; // Apply transition only in overlay mode
+      border-radius: 4px;
 
-    &:hover {
-      background-color: #e7f3ff; // Highlight color on hover
-      text-underline: #8b5cf6;
+      &:hover {
+        background-color: #e7f3ff; // Highlight color on hover only in overlay
+        text-decoration: underline;
+        text-decoration-color: var(--info-dark-blue); // Optional: color the underline
+      }
     }
   }
 
