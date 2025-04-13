@@ -34,9 +34,16 @@ export class ParallelFormatPipe implements PipeTransform {
   private blockElementRegex = /<(p|h2|div)\b([^>]*)>(.*?)<\/\1>/gis;
 
 
-  transform(value: string | null | undefined, mode: ParallelMode = DEFAULT_PARALLEL_MODE): string | null {
+  // Accept ParallelMode OR null for the mode argument
+  transform(value: string | null | undefined, mode: ParallelMode | null = DEFAULT_PARALLEL_MODE): string | null {
     if (value === null || value === undefined) {
       return null;
+    }
+
+    // --- Handle NULL mode (no parallel view active) ---
+    if (mode === null) {
+      console.log("--- Pipe Running --- Mode: null (Passing through original HTML)");
+      return value; // Return the original HTML unmodified
     }
 
     // --- Handle Side-by-Side Mode Separately ---

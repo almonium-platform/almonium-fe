@@ -26,8 +26,8 @@
     <!-- Content Area - PASS MODE TO PIPE -->
     <div #readerContent
          class="reader-content"
-         [class]="isParallelViewActive && 'mode-' + currentParallelMode"
-         [innerHTML]="bookHtmlContent | parallelFormat:currentParallelMode | safeHtml"
+         [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+         [innerHTML]="bookHtmlContent | parallelFormat:(isParallelViewActive ? currentParallelMode : null) | safeHtml"
          (click)="onContentClick($event)">
     </div>
   </div>
