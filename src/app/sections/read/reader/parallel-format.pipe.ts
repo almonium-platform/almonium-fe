@@ -1,8 +1,7 @@
 import {Pipe, PipeTransform} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {ParallelMode, DEFAULT_PARALLEL_MODE} from '../parallel-mode.type'; // Adjust path
+import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type'; // Adjust path
 
-// Define colors for cycling - add more if needed
 const SIDE_BY_SIDE_COLORS = ['#f0f8ff', '#fff0f5', '#f5fffa', '#fafad2']; // AliceBlue, LavenderBlush, MintCream, LemonChiffon
 
 @Pipe({
@@ -14,11 +13,11 @@ export class ParallelFormatPipe implements PipeTransform {
   // Regex to find segment pairs (validated)
   private segmentPairRegex = /<span\s+class="seg-pair"[^>]*>\s*<span\s+class="eng"[^>]*>.*?<\/span>\s*<span\s+class="ukr"[^>]*>.*?<\/span>\s*<\/span>/gis;
 
-  // Regex to find the content within the ENG span
-  private engContentRegex = /<span\s+class="eng"[^>]*>(.*?)<\/span>/is; // Added 's' flag
+  // Regex to find the *inner* content within the ENG span
+  private engContentRegex = /<span\s+class="eng"[^>]*>(.*?)<\/span>/is; // 's' flag for multiline
 
-  // Regex to find the content within the UKR span
-  private ukrContentRegex = /<span\s+class="ukr"[^>]*>(.*?)<\/span>/is; // Added 's' flag
+  // Regex to find the *inner* content within the UKR span
+  private ukrContentRegex = /<span\s+class="ukr"[^>]*>(.*?)<\/span>/is; // 's' flag for multiline
 
   // Regex for the boolean hidden attribute
   private simpleHiddenAttributeRegex = /\s+hidden(?:=""|='')?/i;
@@ -29,82 +28,84 @@ export class ParallelFormatPipe implements PipeTransform {
   // Regex to target the eng span for adding 'clickable' class
   private engSpanClassRegex = /(<span\s+[^>]*class\s*=\s*"eng")/gi;
 
-  // *** Regex to find top-level block elements (p, h2, div.poem) ***
-  // This captures the opening tag ($1), attributes ($2), content ($3), and tag name ($4)
+  // Regex to find top-level block elements (p, h2, div maybe with class poem)
+  // Captures: $1=tagname (p, h2, div), $2=attributes, $3=inner content
+  // Making inner content capture non-greedy and including potential line breaks
   private blockElementRegex = /<(p|h2|div)\b([^>]*)>(.*?)<\/\1>/gis;
 
 
-  // Accept ParallelMode OR null for the mode argument
   transform(value: string | null | undefined, mode: ParallelMode | null = DEFAULT_PARALLEL_MODE): string | null {
-    if (value === null || value === undefined) {
-      return null;
-    }
+    if (value === null || value === undefined) return null;
+    if (mode === null) return value; // Pass through if no parallel mode
 
-    // --- Handle NULL mode (no parallel view active) ---
-    if (mode === null) {
-      console.log("--- Pipe Running --- Mode: null (Passing through original HTML)");
-      return value; // Return the original HTML unmodified
-    }
-
-    // --- Handle Side-by-Side Mode Separately ---
+    // --- Handle Side-by-Side Mode with LOGGING ---
     if (mode === 'side') {
-      console.log("--- Pipe Running --- Mode: side (Transforming HTML Structure)");
+      console.clear(); // Clear console for cleaner logs each time pipe runs
+
       let blockIndex = 0;
+      return value.replace(this.blockElementRegex,
+        (blockMatch, tagName, tagAttributes, originalBlockContent) => {
+          blockIndex++;
 
-      // Process block by block
-      return value.replace(this.blockElementRegex, (blockMatch, tagName, tagAttributes, blockContent) => {
-        blockIndex++;
-        console.log(`[Side Mode] Processing Block #${blockIndex} (<${tagName}>)`);
+          let engColumnContent = '';
+          let ukrColumnContent = '';
+          let segmentIndex = 0;
+          let lastIndexProcessed = 0; // Track position in originalBlockContent
 
-        let engColumnContent = '';
-        let ukrColumnContent = '';
-        let segmentIndex = 0;
+          // Iterate over seg-pairs within the originalBlockContent
+          originalBlockContent.replace(this.segmentPairRegex,
+            (pairMatch: string, offset: number) => { // Get offset of the match
+              segmentIndex++;
 
-        // Find segment pairs *within this block's content*
-        blockContent.replace(this.segmentPairRegex, (pairMatch: string) => {
-          const engMatch = pairMatch.match(this.engContentRegex);
-          const ukrMatch = pairMatch.match(this.ukrContentRegex);
-          const engSegmentHtml = engMatch ? engMatch[1] : ''; // Keep HTML tags within segment
-          const ukrSegmentHtml = ukrMatch ? ukrMatch[1] : ''; // Keep HTML tags within segment
+              // Log any content BETWEEN the last segment and this one (or from start)
+              const precedingContent = originalBlockContent.substring(lastIndexProcessed, offset);
+              if (precedingContent.trim()) {
+                // Decide how to handle preceding content - add to eng column?
+                engColumnContent += precedingContent;
+                ukrColumnContent += precedingContent; // Or just whitespace? Add spacer? For now, duplicate.
+              }
 
-          // Assign color class based on segment index within the block
-          const colorClass = `sbs-color-${(segmentIndex % SIDE_BY_SIDE_COLORS.length) + 1}`;
+              const engMatch = pairMatch.match(this.engContentRegex);
+              const ukrMatch = pairMatch.match(this.ukrContentRegex);
+              const engSegmentHtml = engMatch ? engMatch[1] : '[ENG CONTENT NOT FOUND]';
+              const ukrSegmentHtml = ukrMatch ? ukrMatch[1] : '[UKR CONTENT NOT FOUND]';
+              const colorClass = `sbs-color-${(segmentIndex % SIDE_BY_SIDE_COLORS.length) + 1}`;
 
-          // Wrap each segment for individual styling/coloring
-          engColumnContent += `<span class="sbs-segment ${colorClass}">${engSegmentHtml}</span>`;
-          ukrColumnContent += `<span class="sbs-segment ${colorClass}">${ukrSegmentHtml}</span>`;
+              engColumnContent += `<span class="sbs-segment ${colorClass}">${engSegmentHtml}</span>`;
+              ukrColumnContent += `<span class="sbs-segment ${colorClass}">${ukrSegmentHtml}</span>`;
 
-          segmentIndex++;
-          return ''; // Necessary for .replace() loop, we build manually
+              lastIndexProcessed = offset + pairMatch.length; // Update position
+              return ''; // Return value not used
+            }); // End segment iteration
+
+          // Check for any trailing content after the last segment
+          const trailingContent = originalBlockContent.substring(lastIndexProcessed);
+          if (trailingContent.trim()) {
+            // Decide how to handle trailing content - add to eng column?
+            engColumnContent += trailingContent;
+            ukrColumnContent += trailingContent; // Duplicate for now
+          }
+
+          // --- Determine the NEW inner content for the block ---
+          let newInnerContent: string;
+          if (segmentIndex > 0) {
+            // If segments were found, create the column structure
+            newInnerContent = `<!-- SBS Content Start (Block ${blockIndex}) -->
+              <div class="sbs-block-container" data-block-index="${blockIndex}">
+                <div class="sbs-column sbs-eng-column">${engColumnContent}</div>
+                <div class="sbs-column sbs-ukr-column">${ukrColumnContent}</div>
+              </div><!-- SBS Content End (Block ${blockIndex}) -->`;
+          } else {
+            // If NO segments were found, keep the original inner content of the block UNCHANGED.
+            newInnerContent = originalBlockContent;
+          }
+
+          // --- Reconstruct the block ---
+          return `<${tagName}${tagAttributes}>${newInnerContent}</${tagName}>`; // Replace the original blockMatch with this
         });
 
-        if (segmentIndex === 0) {
-          // Handle blocks with no segments (e.g., maybe just <p><br></p>?)
-          // If the original blockContent was just whitespace or empty, keep it simple.
-          // If it had non-segment content, decide how to handle it.
-          // For now, let's assume such blocks might not need the side-by-side structure
-          // or we output empty columns. Let's try empty columns for alignment.
-          console.log(`[Side Mode] Block #${blockIndex} has no segments. Content: ${blockContent.trim().substring(0, 50)}`);
-          engColumnContent = blockContent.trim(); // Put original content in left? Or leave empty?
-          ukrColumnContent = ''; // Empty right column
-          // Or maybe return the original blockMatch if no segments? Needs testing.
-          // Let's stick with column structure for potential alignment needs.
-        }
-
-        // Construct the new block HTML with side-by-side structure
-        const newBlockHtml = `<${tagName}${tagAttributes}> <!-- Original Tag: ${tagName} -->
-            <div class="sbs-block-container" data-block-index="${blockIndex}"> <!-- Container for grid & height sync -->
-              <div class="sbs-column sbs-eng-column">${engColumnContent}</div>
-              <div class="sbs-column sbs-ukr-column">${ukrColumnContent}</div>
-            </div>
-          </${tagName}>`;
-
-        console.log(`[Side Mode] Finished Block #${blockIndex}. Segments found: ${segmentIndex}`);
-        return newBlockHtml;
-      });
-
-    } else { // --- Handle Inline and Overlay Modes (existing logic) ---
-      console.log(`--- Pipe Running --- Mode: ${mode}`);
+    } else { // --- Handle Inline and Overlay Modes ---
+      console.log(`--- Pipe Running --- Mode: ${mode} (Inline/Overlay)`);
       // Process each segment pair found using the CORRECTED regex
       return value.replace(
         this.segmentPairRegex,
