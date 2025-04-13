@@ -561,40 +561,65 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): void {
-    // Ensure content div exists and we are not loading
-    // Use optional chaining for safety
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement || this.isLoading) {
-      // Add a log if the element isn't ready yet
       if (!contentElement) console.warn("measureChapterOffsets: readerContentRef.nativeElement is not available yet.");
-      return; // Exit if element isn't ready
+      return;
     }
 
     console.log("Measuring chapter offsets from rendered HTML...");
-    this.chapterNav = [];
+    this.chapterNav = []; // Clear existing nav items
 
-    // --- CORRECTED SELECTOR ---
-    // Query for anchor tags whose ID starts with "chap" (adjust prefix if needed)
-    // Ensure they are within the reader content to avoid selecting other anchors
     const chapterAnchors = contentElement.querySelectorAll('a[id^="chap"]');
-
-    console.log(`Found ${chapterAnchors.length} potential chapter anchors.`); // Add log
+    console.log(`Found ${chapterAnchors.length} potential chapter anchors.`);
 
     chapterAnchors.forEach((anchor: Element) => {
       const elementId = anchor.id;
-      // Find the parent H2 element to get the title and the correct offsetTop target
-      const headingElement = anchor.closest('h2') as HTMLElement | null; // Find nearest parent h2
+      // Find the closest H2 ancestor of the anchor
+      const headingElement = anchor.closest('h2') as HTMLElement | null;
 
       if (headingElement && elementId) {
-        // Get the offsetTop of the HEADING element, not the empty anchor
+
+        // *** FILTERING LOGIC ***
+        // Check if this specific H2 element is located inside a Ukrainian column.
+        // .closest() searches ancestors. If it finds '.sbs-ukr-column', skip this H2.
+        const isInsideUkrColumn = headingElement.closest('.sbs-ukr-column');
+
+        if (isInsideUkrColumn) {
+          // console.log(`Skipping H2 with anchor ${elementId} because it's inside .sbs-ukr-column.`);
+          return; // Skip to the next anchor
+        }
+        // *********************
+
+        // If we reach here, the H2 is NOT inside a Ukrainian column (it's the English one)
         const offsetTopRelativeToWrapper = headingElement.offsetTop;
-        // Get a cleaner title from the heading's textContent
-        const title = headingElement.textContent?.replace(/\s+/g, ' ').trim() || `Chapter (ID: ${elementId})`;
+
+        // Now, get the title ONLY from the English column within THIS heading, if possible
+        let title = `Chapter (ID: ${elementId})`; // Default fallback
+        let titleSourceElement: HTMLElement | null = null;
+
+        // In side mode, try to find the English column *within this specific H2*
+        if (this.currentParallelMode === 'side') {
+          titleSourceElement = headingElement.querySelector<HTMLElement>('.sbs-eng-column');
+          // console.log(`Side mode check for H2 (${elementId}): Found eng column? ${!!titleSourceElement}`);
+        }
+
+        // If we didn't find an English column inside (e.g., not side mode, or structure differs),
+        // or if we explicitly want the heading text regardless of column structure for non-side mode:
+        if (!titleSourceElement || this.currentParallelMode !== 'side') {
+          titleSourceElement = headingElement; // Fallback to the H2 itself
+        }
+
+        // Extract text from the determined source
+        if (titleSourceElement) {
+          // Use innerText as it might be better at getting visible text
+          title = titleSourceElement.innerText?.replace(/\s+/g, ' ').trim() || title;
+        }
 
         this.chapterNav.push({
           title: title,
           offsetTop: offsetTopRelativeToWrapper,
-          elementId: elementId // Store the ANCHOR's ID for selection/jumping
+          elementId: elementId
         });
 
       } else {
@@ -603,9 +628,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Sort by position remains important
+    // Sort by position
     this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
-    console.log(`Found and measured ${this.chapterNav.length} valid chapters.`);
+    console.log(`Found and measured ${this.chapterNav.length} valid chapters (filtered).`);
   }
 
   // Schedules chapter measurement reliably after view updates
