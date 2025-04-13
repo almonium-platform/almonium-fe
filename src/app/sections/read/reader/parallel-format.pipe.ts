@@ -8,39 +8,39 @@ import {ParallelMode, DEFAULT_PARALLEL_MODE} from '../parallel-mode.type'; // Ad
 })
 export class ParallelFormatPipe implements PipeTransform {
 
-  // Regex to find each segment pair
-  private segmentPairRegex = /<span class="seg-pair"[^>]*>.*?<\/span>/gis;
+  // *** CORRECTED Regex to find each segment pair, assuming ENG then UKR structure inside ***
+  private segmentPairRegex = /<span\s+class="seg-pair"[^>]*>\s*<span\s+class="eng"[^>]*>.*?<\/span>\s*<span\s+class="ukr"[^>]*>.*?<\/span>\s*<\/span>/gis;
 
-  // *** SIMPLIFIED Regex for the boolean hidden attribute ***
-  // Matches ' hidden' OR ' hidden=""' OR ' hidden='''
+  // Regex for the boolean hidden attribute (' hidden', ' hidden=""', ' hidden=''')
   private simpleHiddenAttributeRegex = /\s+hidden(?:=""|='')?/i;
 
   // Regex to find just the opening ukr tag
   private ukrTagRegex = /(<span\s+[^>]*class\s*=\s*"ukr"[^>]*>)/i;
 
-  // Regex to target the eng span for adding 'clickable' class (made slightly more robust)
+  // Regex to target the eng span for adding 'clickable' class
   private engSpanClassRegex = /(<span\s+[^>]*class\s*=\s*"eng")/gi;
 
+
   transform(value: string | null | undefined, mode: ParallelMode = DEFAULT_PARALLEL_MODE): string | null {
-    // console.log(`--- Pipe Running --- Mode: ${mode}`); // Uncomment for debugging
+    // console.log(`--- Pipe Running FINAL --- Mode: ${mode}`); // Optional: Keep for final check
     if (value === null || value === undefined) {
       return null;
     }
 
-    // Process each segment pair found
-    return value.replace(
+    // Process each segment pair found using the CORRECTED regex
+    const transformedHtml = value.replace(
       this.segmentPairRegex,
       (pairMatch) => {
+        // console.log(`Processing Pair: ${pairMatch.substring(0,100)}...`); // Optional debug
         switch (mode) {
           case 'inline':
-          case 'side': { // 'inline' and 'side' modes: REMOVE hidden attribute
+          case 'side': { // 'inline' and 'side' modes: REMOVE hidden attribute from UKR tag
             const modifiedPair = pairMatch.replace(
               this.ukrTagRegex, // Find the opening ukr tag within the pair
               (ukrTagMatch) => {
                 // Remove the simple hidden attribute FROM the matched tag string
                 const cleanedTag = ukrTagMatch.replace(this.simpleHiddenAttributeRegex, '');
-                // console.log(`Original UKR Tag (${mode}): ${ukrTagMatch}`); // Debug log
-                // console.log(`Cleaned UKR Tag (${mode}) : ${cleanedTag}`);    // Debug log
+                // console.log(`Cleaned UKR Tag (${mode}): ${cleanedTag}`); // Optional debug
                 return cleanedTag;
               }
             );
@@ -64,11 +64,10 @@ export class ParallelFormatPipe implements PipeTransform {
                 // Check if ' hidden', ' hidden=""', or ' hidden=''' already exists
                 if (!this.simpleHiddenAttributeRegex.test(ukrTagMatch)) {
                   // If NOT found, add ' hidden' just before the closing '>'
-                  // console.log(`Overlay: Adding hidden to: ${ukrTagMatch}`); // Debug log
+                  // console.log(`Overlay: Adding hidden to: ${ukrTagMatch}`); // Optional Debug
                   return ukrTagMatch.replace(/>$/, ' hidden>'); // Replace trailing > with ' hidden>'
                 }
                 // If it already exists, return the tag unchanged
-                // console.log(`Overlay: Hidden already present in: ${ukrTagMatch}`); // Debug log
                 return ukrTagMatch;
               }
             );
@@ -81,6 +80,9 @@ export class ParallelFormatPipe implements PipeTransform {
         }
       }
     );
+
+    // Return the fully processed HTML
+    return transformedHtml;
   }
 }
 
