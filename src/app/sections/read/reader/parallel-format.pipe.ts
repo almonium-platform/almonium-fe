@@ -1,6 +1,9 @@
 import {Pipe, PipeTransform} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {ParallelMode, DEFAULT_PARALLEL_MODE} from '../parallel-mode.type'; // Adjust path as needed
+import {ParallelMode, DEFAULT_PARALLEL_MODE} from '../parallel-mode.type'; // Adjust path
+
+// Define colors for cycling - add more if needed
+const SIDE_BY_SIDE_COLORS = ['#f0f8ff', '#fff0f5', '#f5fffa', '#fafad2']; // AliceBlue, LavenderBlush, MintCream, LemonChiffon
 
 @Pipe({
   name: 'parallelFormat',
@@ -8,10 +11,16 @@ import {ParallelMode, DEFAULT_PARALLEL_MODE} from '../parallel-mode.type'; // Ad
 })
 export class ParallelFormatPipe implements PipeTransform {
 
-  // *** CORRECTED Regex to find each segment pair, assuming ENG then UKR structure inside ***
+  // Regex to find segment pairs (validated)
   private segmentPairRegex = /<span\s+class="seg-pair"[^>]*>\s*<span\s+class="eng"[^>]*>.*?<\/span>\s*<span\s+class="ukr"[^>]*>.*?<\/span>\s*<\/span>/gis;
 
-  // Regex for the boolean hidden attribute (' hidden', ' hidden=""', ' hidden=''')
+  // Regex to find the content within the ENG span
+  private engContentRegex = /<span\s+class="eng"[^>]*>(.*?)<\/span>/is; // Added 's' flag
+
+  // Regex to find the content within the UKR span
+  private ukrContentRegex = /<span\s+class="ukr"[^>]*>(.*?)<\/span>/is; // Added 's' flag
+
+  // Regex for the boolean hidden attribute
   private simpleHiddenAttributeRegex = /\s+hidden(?:=""|='')?/i;
 
   // Regex to find just the opening ukr tag
@@ -20,70 +29,104 @@ export class ParallelFormatPipe implements PipeTransform {
   // Regex to target the eng span for adding 'clickable' class
   private engSpanClassRegex = /(<span\s+[^>]*class\s*=\s*"eng")/gi;
 
+  // *** Regex to find top-level block elements (p, h2, div.poem) ***
+  // This captures the opening tag ($1), attributes ($2), content ($3), and tag name ($4)
+  private blockElementRegex = /<(p|h2|div)\b([^>]*)>(.*?)<\/\1>/gis;
+
 
   transform(value: string | null | undefined, mode: ParallelMode = DEFAULT_PARALLEL_MODE): string | null {
-    // console.log(`--- Pipe Running FINAL --- Mode: ${mode}`); // Optional: Keep for final check
     if (value === null || value === undefined) {
       return null;
     }
 
-    // Process each segment pair found using the CORRECTED regex
-    const transformedHtml = value.replace(
-      this.segmentPairRegex,
-      (pairMatch) => {
-        // console.log(`Processing Pair: ${pairMatch.substring(0,100)}...`); // Optional debug
-        switch (mode) {
-          case 'inline':
-          case 'side': { // 'inline' and 'side' modes: REMOVE hidden attribute from UKR tag
-            const modifiedPair = pairMatch.replace(
-              this.ukrTagRegex, // Find the opening ukr tag within the pair
-              (ukrTagMatch) => {
-                // Remove the simple hidden attribute FROM the matched tag string
-                const cleanedTag = ukrTagMatch.replace(this.simpleHiddenAttributeRegex, '');
-                // console.log(`Cleaned UKR Tag (${mode}): ${cleanedTag}`); // Optional debug
-                return cleanedTag;
-              }
-            );
-            // Optional: Check if removal actually happened (for debugging)
-            // if (modifiedPair === pairMatch && this.simpleHiddenAttributeRegex.test(pairMatch)) {
-            //    console.warn(`${mode} mode: Failed to remove hidden attribute from pair: ${pairMatch.substring(0, 100)}...`);
-            // }
-            return modifiedPair;
-          } // End 'inline' / 'side' case
+    // --- Handle Side-by-Side Mode Separately ---
+    if (mode === 'side') {
+      console.log("--- Pipe Running --- Mode: side (Transforming HTML Structure)");
+      let blockIndex = 0;
 
-          case 'overlay': { // 'overlay' mode: ADD hidden attribute if missing, add clickable to eng
-            let modifiedPair = pairMatch;
+      // Process block by block
+      return value.replace(this.blockElementRegex, (blockMatch, tagName, tagAttributes, blockContent) => {
+        blockIndex++;
+        console.log(`[Side Mode] Processing Block #${blockIndex} (<${tagName}>)`);
 
-            // Add 'clickable' class to the 'eng' span
-            modifiedPair = modifiedPair.replace(this.engSpanClassRegex, '$1 clickable');
+        let engColumnContent = '';
+        let ukrColumnContent = '';
+        let segmentIndex = 0;
 
-            // Ensure the 'ukr' span HAS the hidden attribute
-            modifiedPair = modifiedPair.replace(
-              this.ukrTagRegex, // Find the opening ukr tag
-              (ukrTagMatch) => {
-                // Check if ' hidden', ' hidden=""', or ' hidden=''' already exists
-                if (!this.simpleHiddenAttributeRegex.test(ukrTagMatch)) {
-                  // If NOT found, add ' hidden' just before the closing '>'
-                  // console.log(`Overlay: Adding hidden to: ${ukrTagMatch}`); // Optional Debug
-                  return ukrTagMatch.replace(/>$/, ' hidden>'); // Replace trailing > with ' hidden>'
-                }
-                // If it already exists, return the tag unchanged
-                return ukrTagMatch;
-              }
-            );
-            return modifiedPair;
-          } // End 'overlay' case
+        // Find segment pairs *within this block's content*
+        blockContent.replace(this.segmentPairRegex, (pairMatch: string) => {
+          const engMatch = pairMatch.match(this.engContentRegex);
+          const ukrMatch = pairMatch.match(this.ukrContentRegex);
+          const engSegmentHtml = engMatch ? engMatch[1] : ''; // Keep HTML tags within segment
+          const ukrSegmentHtml = ukrMatch ? ukrMatch[1] : ''; // Keep HTML tags within segment
 
-          default: // Should not happen with defined modes, but acts as fallback
-            console.warn(`ParallelFormatPipe: Unknown mode '${mode}', returning original pair.`);
-            return pairMatch;
+          // Assign color class based on segment index within the block
+          const colorClass = `sbs-color-${(segmentIndex % SIDE_BY_SIDE_COLORS.length) + 1}`;
+
+          // Wrap each segment for individual styling/coloring
+          engColumnContent += `<span class="sbs-segment ${colorClass}">${engSegmentHtml}</span>`;
+          ukrColumnContent += `<span class="sbs-segment ${colorClass}">${ukrSegmentHtml}</span>`;
+
+          segmentIndex++;
+          return ''; // Necessary for .replace() loop, we build manually
+        });
+
+        if (segmentIndex === 0) {
+          // Handle blocks with no segments (e.g., maybe just <p><br></p>?)
+          // If the original blockContent was just whitespace or empty, keep it simple.
+          // If it had non-segment content, decide how to handle it.
+          // For now, let's assume such blocks might not need the side-by-side structure
+          // or we output empty columns. Let's try empty columns for alignment.
+          console.log(`[Side Mode] Block #${blockIndex} has no segments. Content: ${blockContent.trim().substring(0, 50)}`);
+          engColumnContent = blockContent.trim(); // Put original content in left? Or leave empty?
+          ukrColumnContent = ''; // Empty right column
+          // Or maybe return the original blockMatch if no segments? Needs testing.
+          // Let's stick with column structure for potential alignment needs.
         }
-      }
-    );
 
-    // Return the fully processed HTML
-    return transformedHtml;
-  }
+        // Construct the new block HTML with side-by-side structure
+        const newBlockHtml = `<${tagName}${tagAttributes}> <!-- Original Tag: ${tagName} -->
+            <div class="sbs-block-container" data-block-index="${blockIndex}"> <!-- Container for grid & height sync -->
+              <div class="sbs-column sbs-eng-column">${engColumnContent}</div>
+              <div class="sbs-column sbs-ukr-column">${ukrColumnContent}</div>
+            </div>
+          </${tagName}>`;
+
+        console.log(`[Side Mode] Finished Block #${blockIndex}. Segments found: ${segmentIndex}`);
+        return newBlockHtml;
+      });
+
+    } else { // --- Handle Inline and Overlay Modes (existing logic) ---
+      console.log(`--- Pipe Running --- Mode: ${mode}`);
+      // Process each segment pair found using the CORRECTED regex
+      return value.replace(
+        this.segmentPairRegex,
+        (pairMatch) => {
+          switch (mode) {
+            case 'inline': { // REMOVE hidden attribute from UKR tag
+              return pairMatch.replace(
+                this.ukrTagRegex,
+                (ukrTagMatch) => ukrTagMatch.replace(this.simpleHiddenAttributeRegex, '')
+              );
+            }
+
+            case 'overlay': { // ADD hidden attribute if missing, add clickable to eng
+              let modifiedPair = pairMatch.replace(this.engSpanClassRegex, '$1 clickable');
+              modifiedPair = modifiedPair.replace(
+                this.ukrTagRegex,
+                (ukrTagMatch) => this.simpleHiddenAttributeRegex.test(ukrTagMatch) ? ukrTagMatch : ukrTagMatch.replace(/>$/, ' hidden>')
+              );
+              return modifiedPair;
+            }
+
+            default:
+              console.warn(`ParallelFormatPipe: Unknown mode '${mode}' in non-side block, returning original pair.`);
+              return pairMatch;
+          }
+        }
+      );
+    } // End else (inline/overlay modes)
+  } // End transform
 }
 
 // Keep SafeHtmlPipe

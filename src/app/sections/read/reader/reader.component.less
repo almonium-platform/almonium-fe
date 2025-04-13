@@ -70,17 +70,16 @@
 
 // --- Reader Content (Holds the Text Blocks) ---
 .reader-content {
-  // Base text styles
-  font-size: 20px; // Adjust as needed
-  line-height: 1.6; // Adjust as needed
-  padding: 0 2rem; // Adjust horizontal padding
-  max-width: 800px; // Adjust max-width for readability on wide screens
-  margin: 0 auto; // Center the content block within the wrapper
+  font-size: 20px;
+  line-height: 1.6;
+  padding: 0 2rem;
+  max-width: 800px;
+  margin: 0 auto;
 
-  // Styles for rendered block elements
   ::ng-deep p {
     margin-bottom: 0.8em;
-    text-indent: 1.5em; // Optional paragraph indent
+    text-indent: 1.5em;
+
     &:first-child {
       text-indent: 0;
     }
@@ -92,8 +91,8 @@
     font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
     line-height: 1.4;
     white-space: pre-wrap;
-    overflow-x: auto; // Add horizontal scrollbar if content overflows
-    text-indent: 0; // No indent for verse blocks
+    overflow-x: auto;
+    text-indent: 0;
     margin-left: 10%;
     font-size: 90%;
 
@@ -105,23 +104,23 @@
   ::ng-deep h2 {
     margin-top: 2em;
     margin-bottom: 1.2em;
-    font-size: 1.5em; // Larger font size for chapters
+    font-size: 1.5em;
     font-weight: bold;
     text-align: center;
     line-height: 1.3;
   }
 
-  // --- Segment Spans ---
-  &.mode-overlay { // Target .reader-content when it has .mode-overlay
+  // Overlay mode
+  &.mode-overlay {
     ::ng-deep span.eng {
-      cursor: help; // Apply cursor only in overlay mode
-      transition: background-color 0.2s ease-out; // Apply transition only in overlay mode
+      cursor: help;
+      transition: background-color 0.2s ease-out;
       border-radius: 4px;
 
       &:hover {
-        background-color: #e7f3ff; // Highlight color on hover only in overlay
+        background-color: #e7f3ff;
         text-decoration: underline;
-        text-decoration-color: var(--info-dark-blue); // Optional: color the underline
+        text-decoration-color: var(--info-dark-blue);
       }
     }
   }
@@ -130,25 +129,93 @@
     color: white;
     background: #621567;
     border-radius: 12px;
-    padding: .2rem .5rem;
+    padding: 0.2rem 0.5rem;
     font-size: 0.95em;
-    margin-left: 0.3em;
-    margin-right: 0.3em;
+    margin: 0 0.3em;
+    display: inline;
 
     &[hidden] {
       display: none !important;
     }
 
-    display: inline;
-
     &:not([hidden])::before {
-      //content: "(";
       margin-right: 0.1em;
     }
 
     &:not([hidden])::after {
-      //content: ")";
       margin-left: 0.1em;
+    }
+  }
+
+  // Side-by-side mode
+  &.mode-side {
+    max-width: unset;
+
+    ::ng-deep {
+      .sbs-block-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        align-items: start;
+        width: 100%;
+      }
+
+      .sbs-column {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        min-height: 1em;
+      }
+
+      .sbs-eng-column {
+        grid-column: 1;
+      }
+
+      .sbs-ukr-column {
+        grid-column: 2;
+      }
+
+      .sbs-segment {
+        display: inline;
+        margin-right: 0.2em;
+        line-height: inherit;
+        border-radius: 3px;
+        padding: 1px 3px;
+      }
+
+      .sbs-segment.sbs-color-1 {
+        background-color: #f0f8ff;
+      }
+
+      .sbs-segment.sbs-color-2 {
+        background-color: #fff0f5;
+      }
+
+      .sbs-segment.sbs-color-3 {
+        background-color: #f5fffa;
+      }
+
+      .sbs-segment.sbs-color-4 {
+        background-color: #fafad2;
+      }
+
+      p,
+      h2,
+      div.poem {
+        margin-bottom: 1em;
+      }
+
+      h2 .sbs-block-container {
+        text-align: center;
+
+        .sbs-column {
+          text-align: center;
+        }
+      }
+
+      span.eng,
+      span.ukr {
+        display: none !important;
+      }
     }
   }
 }

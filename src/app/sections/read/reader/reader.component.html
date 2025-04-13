@@ -26,7 +26,7 @@
     <!-- Content Area - PASS MODE TO PIPE -->
     <div #readerContent
          class="reader-content"
-         [class]="'mode-' + currentParallelMode"
+         [class]="isParallelViewActive && 'mode-' + currentParallelMode"
          [innerHTML]="bookHtmlContent | parallelFormat:currentParallelMode | safeHtml"
          (click)="onContentClick($event)">
     </div>
