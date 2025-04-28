@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, Subject, take} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
 import {DEFAULT_UI_PREFERENCES, UIPreferences} from "../../../models/userinfo.model";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {TitleCasePipe} from "@angular/common";
@@ -12,6 +12,7 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
+import {catchError} from "rxjs/operators";
 
 @Component({
   selector: 'app-app-settings',
@@ -96,27 +97,61 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected clearLocalStorage() {
-    this.loadingSubject$.next(true);
+    this.loadingSubject$.next(true); // Show loading indicator
 
+    // Clear everything first
     this.userInfoService.clearUserInfo();
     this.supportedLanguagesService.clearSupportedLanguages();
     this.targetLanguageDropdownService.clearTargetAndCurrentLanguages();
     this.localStorageService.clearAllData();
 
-    this.userInfoService.fetchUserInfoFromServer()
-      .pipe(finalize(() => this.loadingSubject$.next(false)))
-      .subscribe({
-        next: (userInfo) => {
-          if (!userInfo) return;
+    // Create observables for fetching BOTH user info and supported languages
+    const userInfoFetch$ = this.userInfoService.fetchUserInfoFromServer().pipe(
+      catchError(err => {
+        console.error("Failed to fetch user info:", err);
+        return of(null); // Return null on error to allow forkJoin to complete
+      })
+    );
 
-          this.uiPreferences = {...userInfo.uiPreferences};
-          this.targetLanguageDropdownService.loadLangColors();
-          this.targetLanguageDropdownService.initializeLanguages(userInfo);
-          this.alertService.open('Data has been reloaded', {appearance: 'success'}).subscribe();
+    const supportedLangsFetch$ = this.supportedLanguagesService.getAllSupportedLanguages().pipe(
+      catchError(err => {
+        console.error("Failed to fetch supported languages:", err);
+        return of(null); // Return null on error
+      })
+    );
+
+    forkJoin([
+      userInfoFetch$,
+      supportedLangsFetch$
+    ])
+      .pipe(
+        finalize(() => this.loadingSubject$.next(false)) // Hide loading indicator
+      )
+      .subscribe({
+        // Destructure the results array in the order they were passed to forkJoin
+        next: ([userInfo, supportedLangs]) => { // <-- Destructure array result
+          // Check if BOTH fetches were successful (not null)
+          if (userInfo && supportedLangs) {
+            // Both succeeded, UserInfoService & SupportedLanguagesService have updated.
+            // Re-initialize dependent services
+            this.targetLanguageDropdownService.loadLangColors();
+            this.targetLanguageDropdownService.initializeLanguages(userInfo); // Pass the fetched userInfo
+
+            // Update local state if needed (e.g., this.uiPreferences)
+            this.uiPreferences = {...userInfo.uiPreferences};
+
+            this.alertService.open('Data has been reloaded', {appearance: 'success'}).subscribe();
+          } else {
+            // Handle cases where one or both fetches failed
+            this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'error'}).subscribe();
+            console.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
+          }
         },
         error: (error) => {
-          console.error('Failed to update user info:', error);
+          // Handle errors from forkJoin itself (less likely with catchError on sources)
+          console.error('Critical failure during data reload:', error);
+          this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'error'}).subscribe();
         },
-      })
+      });
   }
 }
