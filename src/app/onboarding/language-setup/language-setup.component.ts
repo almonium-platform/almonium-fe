@@ -409,10 +409,23 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   protected submitSecondStepForm(): void {
+    if (this.loadingSubject$.getValue()) {
+      console.warn('Submission already in progress. Skipping.');
+      return;
+    }
+
     if (this.cefrForm.invalid) {
       console.error('Form is invalid. Please fill in all fields.');
       return;
     }
+
+    if (!this.isDataChanged) {
+      console.info('No changes detected. Skipping request.');
+      this.continue.emit(getNextStep(this.step));
+      return;
+    }
+
+    this.loadingSubject$.next(true);
 
     if (this.embeddedMode) {
       this.handleAddNewTargetLangMode();
@@ -426,13 +439,6 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       targetLangsData: this.prepareTargetLanguagesData(),
     };
 
-    if (!this.isDataChanged) {
-      console.info('No changes detected. Skipping request.');
-      this.continue.emit(getNextStep(this.step));
-      return;
-    }
-
-    this.loadingSubject$.next(true);
     // Send data to the backend
     this.onboardingService.setupLanguages(submittedData)
       .pipe(finalize(() => this.loadingSubject$.next(false)))
