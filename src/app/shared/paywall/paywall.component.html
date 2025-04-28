@@ -54,8 +54,10 @@
             <span class="price-value">${{ currentPriceValue }}</span>
             <span class="price-period">{{ currentPricePeriod }}</span>
           </div>
-          <app-interactive-cta-button [text]="planChosen ? 'Upgrade' : 'Go Premium'" class="cta"
-                                      (buttonClick)="subscribeToPlan()"
+          <app-interactive-cta-button (buttonClick)="subscribeToPlan()"
+                                      [text]="planChosen ? 'Upgrade' : 'Go Premium'"
+                                      [loading$]="premiumLoading$"
+                                      class="cta"
           ></app-interactive-cta-button>
         </footer>
       </div>
@@ -90,7 +92,7 @@
 
           <app-button
             [label]="planChosen ? 'Current Plan' : 'Start for Free'"
-            [loading$]="loading$"
+            [loading$]="freeLoading$"
             [disabled]="planChosen"
             [fontSize]="16"
             [padding]="'.88rem 0'"

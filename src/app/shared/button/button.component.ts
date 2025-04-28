@@ -54,7 +54,6 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
     TuiLoader,
     TuiHintDirective,
   ],
-  styleUrls: ['./button.component.less']
 })
 export class ButtonComponent implements OnInit {
   private readonly destroy$ = new Subject<void>();

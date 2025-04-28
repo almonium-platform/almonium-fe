@@ -61,8 +61,11 @@ export class PaywallComponent implements OnInit, OnDestroy {
   premiumMonthlyId: string = '';
   premiumYearlyId: string = '';
 
-  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
-  protected readonly loading$ = this.loadingSubject$.asObservable();
+  private freeLoadingSubject$ = new BehaviorSubject(false);
+  private premiumLoadingSubject$ = new BehaviorSubject(false);
+
+  readonly freeLoading$ = this.freeLoadingSubject$.asObservable();
+  readonly premiumLoading$ = this.premiumLoadingSubject$.asObservable();
 
   constructor(
     private planService: PlanService,
@@ -131,10 +134,10 @@ export class PaywallComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loadingSubject$.next(true);
+    this.freeLoadingSubject$.next(true);
 
     this.onboardingService.completeStep(this.step)
-      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .pipe(finalize(() => this.freeLoadingSubject$.next(false)))
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
@@ -151,16 +154,16 @@ export class PaywallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
     }
-    if (this.loadingSubject$.value) {
+    if (this.premiumLoadingSubject$.value) {
       console.warn('Rapid clicks detected');
       return;
     }
 
-    this.loadingSubject$.next(true);
+    this.premiumLoadingSubject$.next(true);
 
     let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
     this.planService.subscribeToPlan(String(selectedPlanId))
-      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
       .subscribe((url) => {
         window.location.href = url.sessionUrl;
       });
