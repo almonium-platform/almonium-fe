@@ -227,3 +227,55 @@
     max-width: 12rem;
   }
 }
+
+/* Container for skeleton layout if specific adjustments needed */
+.skeleton-container {
+  //padding-top: 10px
+}
+
+/* Base style for all skeleton placeholder blocks */
+.skeleton-placeholder {
+  display: block; /* Ensure divs are block-level */
+  border-radius: 12px; /* <<<< YOUR DESIRED ROUNDNESS >>>> */
+  margin-bottom: 10px; /* Space between blocks - Adjust as needed */
+}
+
+/* Specific dimensions for different placeholder types */
+.skeleton-title {
+  height: 40px; /* Adjust height */
+  width: 60%; /* Adjust width */
+}
+
+.skeleton-author {
+  height: 30px; /* Adjust height */
+  width: 40%; /* Adjust width */
+  margin-bottom: 2px;
+}
+
+.skeleton-rating {
+  height: 24px; /* Adjust height */
+  width: 15%; /* Adjust width */
+  margin-bottom: 24px; /* More space after rating */
+}
+
+/* Placeholder for the blocks that contain chips/inline info */
+.skeleton-info-chips {
+  height: 50px; /* Adjust height to simulate chip area */
+  width: 50%;
+}
+
+/* Grouping for description lines */
+.description-skeleton-group {
+  //margin-top: 24px; /* Space before description */
+}
+
+.skeleton-description-line {
+  height: 16px; /* Height of a line of text */
+  width: 100%;
+  margin-bottom: 10px; /* Space between lines */
+}
+
+/* Optional: Make the last line shorter */
+.skeleton-description-line--short {
+  width: 85%;
+}

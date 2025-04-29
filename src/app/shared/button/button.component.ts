@@ -4,6 +4,7 @@ import {AsyncPipe, NgStyle} from "@angular/common";
 import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 import {Router} from "@angular/router";
 import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
+import {TuiSkeleton} from "@taiga-ui/kit";
 
 @Component({
   selector: 'app-button',
@@ -12,6 +13,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
       (click)="onClick()"
       [disabled]="isDisabled"
       [type]="type"
+      [tuiSkeleton]="!!skeleton"
       class="relative flex items-center justify-center w-full base"
       [class]="class + ' ' + customClass"
       [style.--tui-background-accent-1]="appearance === 'bw' ? 'var(--text-color)' : 'white'"
@@ -53,6 +55,7 @@ import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
     NgStyle,
     TuiLoader,
     TuiHintDirective,
+    TuiSkeleton,
   ],
 })
 export class ButtonComponent implements OnInit {
@@ -82,6 +85,7 @@ export class ButtonComponent implements OnInit {
 
   private loadingState: boolean = false;
   protected isHovered = false;
+  @Input() skeleton?: boolean;
 
   constructor(private router: Router) {
   }

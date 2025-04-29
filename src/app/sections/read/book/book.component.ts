@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from "@angular/core";
+import {ChangeDetectorRef, Component, OnDestroy, OnInit, signal} from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
@@ -49,6 +49,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private supportedLanguages: Language[] = [];
   protected showLangDropdown: boolean = false;
   protected languageSelectControl = new FormControl("Select Language");
+  protected bookLoading = true;
 
   constructor(private activatedRoute: ActivatedRoute,
               private alertService: TuiAlertService,
@@ -97,7 +98,7 @@ export class BookComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$) // Unsubscribe when component is destroyed
       )
       .subscribe(book => {
-        // Optional: Hide loading state indication here
+        this.bookLoading = false;
         if (book) {
           this.book = book;
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
@@ -287,5 +288,22 @@ export class BookComponent implements OnInit, OnDestroy {
 
   goToReader() {
     this.router.navigate([`/reader/${this.bookId}`]).then();
+  }
+
+  protected readonly signal = signal;
+
+  onClickOutsideLanguageDropdown($event: Event) {
+    this.showLangDropdown = false;
+  }
+
+  get orderLanguageName(): string | undefined {
+    // Don't try to calculate if loading, book is null, or no order language code exists
+    if (this.bookLoading || !this.book || !this.book.orderLanguage) {
+      return undefined; // Return undefined (or null) so the @if correctly evaluates to false
+    }
+    // We have a book and an orderLanguage code, get the display name
+    return this.languageNameService.getLanguageName(this.book.orderLanguage);
+    // Note: Ensure your languageNameService.getLanguageName handles cases
+    // where the code might not be found (e.g., returns the code itself or undefined)
   }
 }

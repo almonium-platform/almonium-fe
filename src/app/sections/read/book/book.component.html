@@ -1,20 +1,29 @@
 <div class="base-container">
-  @if (book) {
-    <div class="left-section">
-      <a
-        class="game-card ladder-card solo-game">
-        <div class="game-img ladder-img">
+  <div class="left-section">
+    <a
+      class="game-card ladder-card solo-game">
+      <div class="game-img ladder-img">
+        @if (book) {
           <img alt="book cover image" [src]="book.coverImageUrl"/>
-        </div>
-      </a>
-      <app-button
-        [label]="actionBtnLabel"
-        width="full"
-        class="action-btn"
-        (click)="goToReader()"
-      ></app-button>
-    </div>
-    <div class="right-section">
+        } @else {
+          <img [tuiSkeleton]="true" alt="book cover image" src=""/>
+        }
+      </div>
+    </a>
+    <app-button
+      [label]="actionBtnLabel"
+      width="full"
+      [skeleton]="bookLoading"
+      class="action-btn"
+      (click)="goToReader()"
+    ></app-button>
+
+  </div>
+
+  <!-- Right Section: Show actual content OR skeleton placeholders -->
+  <div class="right-section">
+    @if (book) {
+      <!-- === START: Actual Book Content (Your existing code) === -->
       <div class="description-section">
         <h1 class="title">{{ book.title }}</h1>
         <p class="author">{{ book.author }}</p>
@@ -57,7 +66,6 @@
               {{ bookLanguage }}
               <p class="inner-text">{{ book.levelFrom }} – {{ book.levelTo }}</p>
             </label>
-            <!--          <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>-->
             •
             <p class="pages">{{ pages }} pages</p>
             •
@@ -109,7 +117,8 @@
               >{{ language }}
               </tui-chip>
             }
-            @if (book.orderLanguage) {
+            @if (orderLanguageName) {
+              <!-- Use the getter name -->
               <tui-chip
                 class="edit-chip edit-chip--no-hover"
                 appearance="outline"
@@ -125,10 +134,9 @@
                     Translation orders are prioritized based on demand.
                   </div>
                 </ng-template>
-                {{ orderLanguage }}
+                {{ orderLanguageName }}
                 <p class="inner-text">ORDERED</p>
                 <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder()"></lucide-icon>
-
               </tui-chip>
             } @else {
               @if (showLangDropdown) {
@@ -137,13 +145,12 @@
                   class="language-select"
                   [formControl]="languageSelectControl"
                   [tuiTextfieldLabelOutside]="true"
-                  (clickOutside)="(showLangDropdown = false)"
-                >
+                  (clickOutside)="onClickOutsideLanguageDropdown($event)"
+                > Select Language
                   <tui-data-list-wrapper
                     *tuiDataList
                     [items]="languagesAvailableForOrder"
-                  >
-                  </tui-data-list-wrapper>
+                  ></tui-data-list-wrapper>
                 </tui-select>
               } @else {
                 <tui-chip
@@ -167,8 +174,35 @@
           <p>{{ book.description }}</p>
         </div>
       </div>
-    </div>
-  } @else {
-    <p>Loading...</p>
-  }
-</div>
+      <!-- === END: Actual Book Content === -->
+
+    } @else {
+      <!-- === START: Skeleton Placeholder Structure === -->
+        <!-- === START: Skeleton Placeholder Structure with tuiSkeleton === -->
+      <div class="description-section skeleton-container"> <!-- Add a class for targeting -->
+
+        <!-- Title Placeholder Block -->
+        <div class="skeleton-placeholder skeleton-title" [tuiSkeleton]="true"></div>
+
+        <!-- Author Placeholder Block -->
+        <div class="skeleton-placeholder skeleton-author" [tuiSkeleton]="true"></div>
+
+        <!-- Rating Placeholder Block -->
+        <div class="skeleton-placeholder skeleton-rating" [tuiSkeleton]="true"></div>
+
+        <!-- Info Block 1 Placeholder Block -->
+        <div class="skeleton-placeholder skeleton-info-chips" [tuiSkeleton]="true"></div>
+
+        <!-- Description Placeholder Blocks -->
+        <div class="description-skeleton-group"> <!-- Group description lines -->
+          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
+          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
+          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
+          <div class="skeleton-placeholder skeleton-description-line skeleton-description-line--short"
+               [tuiSkeleton]="true"></div>
+        </div>
+
+      </div>
+    }
+  </div> <!-- /.right-section -->
+</div> <!-- /.base-container -->
