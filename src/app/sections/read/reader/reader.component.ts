@@ -230,82 +230,109 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Performs PARAGRAPH-BY-PARAGRAPH height measurement and adjustment
+  // Performs PARAGRAPH-BY-PARAGRAPH height measurement and adjustment
+  // WITHIN each logical section (e.g., chapter) that contains its own columns.
   private synchronizeColumnHeights(): void {
     if (this.isSyncingHeights || this.currentParallelMode !== 'side' || !this.readerContentRef?.nativeElement) {
       return;
     }
 
     this.isSyncingHeights = true;
-    console.log("Synchronizing PARAGRAPH heights within columns...");
+    console.log("Synchronizing PARAGRAPH heights within columns, section by section...");
     const contentElement = this.readerContentRef.nativeElement;
 
-    // Find the main columns (assuming there's only one pair based on screenshot)
-    const engCol = contentElement.querySelector<HTMLDivElement>('.sbs-eng-column');
-    const ukrCol = contentElement.querySelector<HTMLDivElement>('.sbs-ukr-column');
+    // --- Step 1: Identify the wrapper elements that contain ONE pair of columns ---
+    // Assuming your pipe wraps each chapter in a <div class="chapter"> (or similar)
+    // Adjust '.chapter' selector if your pipe uses a different wrapper class/tag.
+    const sectionWrappers = contentElement.querySelectorAll<HTMLElement>('.chapter'); // <-- ADJUST SELECTOR if needed
 
-    if (!engCol || !ukrCol) {
-      console.warn("Height Sync: Could not find main ENG or UKR columns.");
+    if (!sectionWrappers || sectionWrappers.length === 0) {
+      console.warn("Height Sync: Could not find any section wrappers (e.g., '.chapter'). Falling back to old method (might be incorrect).");
+      // Optional: Add fallback to old logic here if needed, but it's likely flawed.
+      // this.synchronizeSingleColumnPair(contentElement); // Example fallback
       this.isSyncingHeights = false;
       return;
     }
 
-    // Find all PARAGRAPHS within each column
-    // Note: This includes H2 as well if we use a general selector, adjust if needed
-    const engBlocks = engCol.querySelectorAll<HTMLElement>('p, h2'); // Select p AND h2 for alignment
-    const ukrBlocks = ukrCol.querySelectorAll<HTMLElement>('p, h2');
+    let overallChangesMade = false;
+    console.log(`Found ${sectionWrappers.length} potential sections to synchronize.`);
 
+    // --- Step 2: Iterate through each section wrapper ---
+    sectionWrappers.forEach((wrapper, index) => {
+      // console.log(`Processing section ${index + 1}...`);
 
-    // Check if counts match (they should if the pipe generated them correctly)
-    if (engBlocks.length !== ukrBlocks.length) {
-      console.warn(`Height Sync: Mismatch in number of blocks between columns (${engBlocks.length} vs ${ukrBlocks.length}). Alignment might be incorrect.`);
-      // Decide how to proceed - maybe only align up to the minimum count?
-    }
+      // --- Step 3: Find the columns WITHIN THIS SPECIFIC wrapper ---
+      const engCol = wrapper.querySelector<HTMLDivElement>('.sbs-eng-column');
+      const ukrCol = wrapper.querySelector<HTMLDivElement>('.sbs-ukr-column');
 
-    let changesMade = false;
-    const numBlocksToAlign = Math.min(engBlocks.length, ukrBlocks.length);
-
-    for (let i = 0; i < numBlocksToAlign; i++) {
-      const engP = engBlocks[i];
-      const ukrP = ukrBlocks[i];
-
-      // Reset heights first to get natural height
-      engP.style.minHeight = ''; // Reset using empty string
-      ukrP.style.minHeight = '';
-      // Also reset potential margins if they interfere (or adjust CSS)
-      // engP.style.marginBottom = '';
-      // ukrP.style.marginBottom = '';
-
-      // Force reflow for this pair
-      const engHeight = engP.offsetHeight; // Use offsetHeight for visible block height
-      const ukrHeight = ukrP.offsetHeight;
-      const maxHeight = Math.max(engHeight, ukrHeight);
-
-      // console.log(`  Block Pair ${i + 1} (<${engP.tagName}>): EngH=${engHeight}, UkrH=${ukrHeight}, MaxH=${maxHeight}`);
-
-      // Apply the max height as min-height to BOTH blocks if needed
-      if (Math.abs(engHeight - maxHeight) > 1) { // Threshold of 1px
-        engP.style.minHeight = `${maxHeight}px`;
-        changesMade = true;
+      if (!engCol || !ukrCol) {
+        // console.warn(`  Section ${index + 1}: Could not find both ENG and UKR columns. Skipping this section.`);
+        return; // Skip this section wrapper
       }
-      if (Math.abs(ukrHeight - maxHeight) > 1) { // Threshold of 1px
-        ukrP.style.minHeight = `${maxHeight}px`;
-        changesMade = true;
-      }
-      // Ensure consistent bottom margin (adjust value as needed or handle in CSS)
-      // engP.style.marginBottom = '1em';
-      // ukrP.style.marginBottom = '1em';
-    }
 
-    console.log(`Paragraph height synchronization complete. Changes applied: ${changesMade}`);
+      // --- Step 4: Find blocks (p, h2) WITHIN THESE SPECIFIC columns ---
+      const engBlocks = Array.from(engCol.querySelectorAll<HTMLElement>('p, h2')); // Select p AND h2
+      const ukrBlocks = Array.from(ukrCol.querySelectorAll<HTMLElement>('p, h2'));
+
+      // Check if counts match for THIS section
+      if (engBlocks.length !== ukrBlocks.length) {
+        console.warn(`  Section ${index + 1}: Mismatch in block count (${engBlocks.length} vs ${ukrBlocks.length}). Alignment might be incorrect for this section.`);
+      }
+
+      let sectionChangesMade = false;
+      const numBlocksToAlign = Math.min(engBlocks.length, ukrBlocks.length);
+      // console.log(`  Section ${index + 1}: Aligning ${numBlocksToAlign} block pairs.`);
+
+      // --- Step 5: Synchronize heights for blocks in THIS section ---
+      for (let i = 0; i < numBlocksToAlign; i++) {
+        const engP = engBlocks[i];
+        const ukrP = ukrBlocks[i];
+
+        // Reset heights first
+        engP.style.minHeight = '';
+        ukrP.style.minHeight = '';
+        // Consider resetting margin if it interferes
+        // engP.style.marginBottom = '';
+        // ukrP.style.marginBottom = '';
+
+        // Force reflow (offsetHeight does this implicitly)
+        const engHeight = engP.offsetHeight;
+        const ukrHeight = ukrP.offsetHeight;
+        const maxHeight = Math.max(engHeight, ukrHeight);
+
+        // console.log(`    Block Pair ${i + 1} (<${engP.tagName}>): EngH=${engHeight}, UkrH=${ukrHeight}, MaxH=${maxHeight}`);
+
+        // Apply the max height if different (use a small tolerance)
+        const tolerance = 1; // pixels
+        if (Math.abs(engHeight - maxHeight) > tolerance) {
+          engP.style.minHeight = `${maxHeight}px`;
+          sectionChangesMade = true;
+        }
+        if (Math.abs(ukrHeight - maxHeight) > tolerance) {
+          ukrP.style.minHeight = `${maxHeight}px`;
+          sectionChangesMade = true;
+        }
+        // Optional: Ensure consistent bottom margin if needed
+        // engP.style.marginBottom = '1em'; // Example
+        // ukrP.style.marginBottom = '1em'; // Example
+      }
+
+      if (sectionChangesMade) {
+        overallChangesMade = true;
+      }
+    }); // End loop through sectionWrappers
+
+    console.log(`Section-by-section height synchronization complete. Overall changes applied: ${overallChangesMade}`);
     this.isSyncingHeights = false;
 
     // Trigger Angular updates if needed
-    if (changesMade) {
-      this.ngZone.run(() => {
-        this.updateScrollState();
-        this.scheduleChapterOffsetMeasurement(); // Recalculate chapter offsets
-        this.cdRef.markForCheck();
-      });
+    if (overallChangesMade) {
+      // Use ngZone run if updates happen outside Angular's direct knowledge often
+      // this.ngZone.run(() => {
+      this.updateScrollState(); // Essential after height changes
+      this.scheduleChapterOffsetMeasurement(); // Recalculate chapter offsets
+      this.cdRef.markForCheck(); // Let Angular know things changed
+      // });
     }
   }
 
