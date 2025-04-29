@@ -1013,6 +1013,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  get availableLangs(): string[] {
+    console.log('Recalculating availableLangs'); // Add this to see how often it runs
+    return this.langs.filter(l => l !== this.selectedLangCode);
+  }
+
   private parallelLoadSubscription: Subscription | null = null;
 
   selectOption(langCode: string | null): void { // Allow null if you add a way to deselect

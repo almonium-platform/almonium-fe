@@ -124,34 +124,53 @@
             (click)="langDropdown.toggle(true); $event.stopPropagation()"
             (tuiActiveZoneChange)="!$event && langDropdown.toggle(false)"
             [tuiDropdown]="parallelLangMenu"
+            [loading]="isLoadingParallel"
             [showHint]="false"
           >
           </app-parallel-translation>
           <ng-template #parallelLangMenu>
-            <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
-              <tui-opt-group>
-                <button *ngFor="let lang of langs" tuiOption type="button"
-                        (click)="selectOption(lang); langDropdown.toggle(false)">
-                  {{ lang }}
+            <tui-data-list
+              role="menu"
+              tuiDataListDropdownManager
+              class="context-menu"
+            >
+              <tui-opt-group label="Languages">
+                @for (lang of availableLangs; track lang) {
+                  <button
+                    tuiOption
+                    type="button"
+                    (click)="selectOption(lang); langDropdown.toggle(false)"
+                  >
+                    {{ lang }}
+                  </button>
+                }
+              </tui-opt-group>
+
+              <tui-opt-group label="">
+                <button
+                  *ngIf="selectedLangCode"
+                  tuiOption
+                  type="button"
+                  (click)="selectOption(null); langDropdown.toggle(false)"
+                >
+                  Show Original
                 </button>
               </tui-opt-group>
-              <button *ngIf="selectedLangCode" tuiOption type="button"
-                      (click)="selectOption(null); langDropdown.toggle(false)">
-                Show Original
-              </button>
-              <button
-                tuiOption
-                type="button"
-                (click)="openParallelSettings(); langDropdown.toggle(false)">
-                Settings
-              </button>
+
+              <!-- Група налаштувань із підписом -->
+              <tui-opt-group label="">
+                <button
+                  tuiOption
+                  type="button"
+                  (click)="openParallelSettings(); langDropdown.toggle(false)"
+                >
+                  Settings
+                </button>
+              </tui-opt-group>
             </tui-data-list>
           </ng-template>
         </div>
       }
-
-      <!-- Loading Indicator for Parallel Text -->
-      <div *ngIf="isLoadingParallel" class="parallel-loading">Loading translation...</div>
     </div>
   </div>
 </div>
