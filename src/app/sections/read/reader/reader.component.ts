@@ -15,7 +15,7 @@ import {
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {TuiAlertService, TuiButton, TuiDropdownDirective} from '@taiga-ui/core';
+import {TuiAlertService, TuiDropdownDirective} from '@taiga-ui/core';
 import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators'; // Add throttleTime
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
@@ -95,7 +95,6 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
     ParallelTranslationComponent,
     TuiDataListDropdownManager,
     ParallelSettingsComponent,
-    TuiButton,
     ParallelFormatPipe,
     ParallelFormatPipe,
     ParallelFormatPipe,

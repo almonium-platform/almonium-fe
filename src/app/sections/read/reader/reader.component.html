@@ -78,7 +78,11 @@
         (touchcancel)="clearScrollHoldTimers()"
         [disabled]="isAtScrollTop"
         title="Previous Page (Click) / Scroll Up (Hold)">
-        <lucide-icon name="circle-chevron-left" size="28" strokeWidth="1.5"></lucide-icon>
+        <lucide-icon name="circle-chevron-left"
+                     size="28"
+                     [strokeWidth]=1
+                     [absoluteStrokeWidth]="true"
+        ></lucide-icon>
       </app-button>
 
       <!-- Slider (Percentage) & Chapter Select -->
@@ -105,7 +109,11 @@
         (touchcancel)="clearScrollHoldTimers()"
         [disabled]="isAtScrollBottom"
         title="Next Page (Click) / Scroll Down (Hold)">
-        <lucide-icon name="circle-chevron-right" size="28" strokeWidth="1.5"></lucide-icon>
+        <lucide-icon name="circle-chevron-right" size="28"
+                     strokeWidth="1.5"
+                     [absoluteStrokeWidth]="true"
+        >
+        </lucide-icon>
       </app-button>
 
       <!-- Parallel Text Controls -->
@@ -121,45 +129,29 @@
           </app-parallel-translation>
           <ng-template #parallelLangMenu>
             <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
-              <!-- Revert Option -->
+              <tui-opt-group>
+                <button *ngFor="let lang of langs" tuiOption type="button"
+                        (click)="selectOption(lang); langDropdown.toggle(false)">
+                  {{ lang }}
+                </button>
+              </tui-opt-group>
               <button *ngIf="selectedLangCode" tuiOption type="button"
                       (click)="selectOption(null); langDropdown.toggle(false)">
                 Show Original
               </button>
-              <hr *ngIf="selectedLangCode" tuiDivider/>
-              <!-- Language Options -->
-              <button *ngFor="let lang of langs" tuiOption type="button"
-                      (click)="selectOption(lang); langDropdown.toggle(false)">
-                {{ lang }}
+              <button
+                tuiOption
+                type="button"
+                (click)="openParallelSettings(); langDropdown.toggle(false)">
+                Settings
               </button>
             </tui-data-list>
           </ng-template>
-
-          <!-- Settings Button -->
-          <button
-            tuiIconButton appearance="flat" iconStart="@tui.settings" type="button"
-            title="Parallel Settings"
-            (click)="openParallelSettings(); $event.stopPropagation()">
-          </button>
         </div>
       }
-      <lucide-icon name="ellipsis-vertical"
-                   class="ml-auto cursor-pointer"
-                   [size]="20"
-                   #friendDropdown="tuiDropdown"
-                   tuiDropdown
-                   (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
-                   [tuiDropdown]="settingsTemplate"
-                   (click)="friendDropdown.toggle(true)"
-      >
-        <ng-template #settingsTemplate>
-          HELLO BROS
-        </ng-template>
-      </lucide-icon>
 
       <!-- Loading Indicator for Parallel Text -->
       <div *ngIf="isLoadingParallel" class="parallel-loading">Loading translation...</div>
-
-    </div> <!-- End pagination-center-area -->
-  </div> <!-- End pagination-controls -->
-</div> <!-- End readerContainer -->
+    </div>
+  </div>
+</div>
