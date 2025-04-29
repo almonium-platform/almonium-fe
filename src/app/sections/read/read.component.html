@@ -176,7 +176,11 @@
         </a>
       </div>
     }
-    @if (filteredBooks.length === 0) {
+    @if (loading$ | async) {
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
+    } @else if (filteredBooks.length === 0) {
       <div class="no-found">No books found 🥲</div>
     }
   </div>

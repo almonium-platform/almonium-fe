@@ -10,16 +10,17 @@ import {
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
-  TuiProgressLabel
+  TuiProgressLabel, TuiSkeleton
 } from "@taiga-ui/kit";
-import {combineLatestWith, debounceTime, Subject} from "rxjs";
-import {distinctUntilChanged, filter, map, takeUntil} from "rxjs/operators";
+import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
+import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
 import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
+import {AsyncPipe} from "@angular/common";
 
 @Component({
   selector: 'app-read',
@@ -39,6 +40,8 @@ import {InfoIconComponent} from "../../shared/info-button/info-button.component"
     FormsModule,
     TuiCheckbox,
     InfoIconComponent,
+    AsyncPipe,
+    TuiSkeleton,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -64,6 +67,9 @@ export class ReadComponent implements OnInit, OnDestroy {
   sortToggle: boolean = false;
   includeTranslationsToggle: boolean = false;
 
+  loadingSubject$ = new BehaviorSubject<boolean>(false);
+  loading$ = this.loadingSubject$.asObservable();
+
   constructor(
     private readService: ReadService,
     private targetLanguageDropdownService: TargetLanguageDropdownService,
@@ -73,7 +79,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.fetchBooks();
+    this.fetchBooksOnLanguageChange();
     this.listenToBookSearch();
     this.syncCefrLevel();
     this.listenToSortChanges();
@@ -153,15 +159,34 @@ export class ReadComponent implements OnInit, OnDestroy {
       .subscribe(() => this.applyFiltersAndSort());
   }
 
-  private fetchBooks() {
-    this.targetLanguageDropdownService.currentLanguage$.subscribe(language => {
-      this.readService.getBooksForLang(language, this.includeTranslationsToggle).subscribe(view => {
+  private fetchBooksOnLanguageChange() {
+    this.targetLanguageDropdownService.currentLanguage$
+      .pipe(
+        tap(() => this.loadingSubject$.next(true)), // Set loading true when language changes *before* fetching
+        switchMap(language => {
+          return this.readService.getBooksForLang(language, this.includeTranslationsToggle)
+            .pipe(
+              catchError(error => {
+                console.error("Error fetching books:", error);
+                return of({
+                  available: [],
+                  favorites: [],
+                  continueReading: [],
+                });
+              }),
+              finalize(() => this.loadingSubject$.next(false))
+            );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(view => {
+        // This subscribe now only handles the *result* of the fetch operation
         this.allBooks = [...view.available, ...view.favorites, ...view.continueReading];
         this.filteredBooks = this.allBooks;
         this.continueReading = view.continueReading;
-        this.applyFiltersAndSort(); // Apply filters/sort after fetching books
+        this.applyFiltersAndSort();
+        // Maybe trigger change detection if needed: this.cdr.detectChanges();
       });
-    });
   }
 
   private sortBooks(books: Book[]) {
@@ -220,7 +245,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       this.readService.deleteProgress(bookId, lang)
         .subscribe({
           next: () => {
-            this.fetchBooks();
+            this.fetchBooksOnLanguageChange();
           },
           error: (error) => {
             console.error('Error deleting progress:', error);
@@ -242,7 +267,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   onIncludeTranslationsChange($event: boolean) {
     this.includeTranslationsToggle = $event;
-    this.fetchBooks();
+    this.fetchBooksOnLanguageChange();
   }
 
   onParallelTranslationChange($event: boolean) {
