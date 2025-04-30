@@ -106,7 +106,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.originalLanguage = book.originalLanguage
             ? this.languageNameService.getLanguageName(book.originalLanguage)
             : undefined; // Explicitly set to undefined if no original language
-          this.availableTranslations = this.languageNameService.getLanguageNames(book.languagesVariants.map(t => t.language))
+          this.availableTranslations = this.languageNameService.getLanguageNames(book.languageVariants.map(t => t.language))
             .filter(lang => lang !== this.bookLanguage && lang !== this.originalLanguage);
           console.log(`Successfully loaded book: ${book.title}`);
           this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
@@ -140,13 +140,13 @@ export class BookComponent implements OnInit, OnDestroy {
 
   get languagesAvailableForOrder(): string[] {
     return this.supportedLanguages
-      .filter(lang => !this.book?.languagesVariants.map(t => t.language).includes(lang.code))
+      .filter(lang => !this.book?.languageVariants.map(t => t.language).includes(lang.code))
       .map(lang => lang.name);
   }
 
   onTranslatedLanguageClick(language: string) {
     const lang = this.languageNameService.getLanguageCode(language)
-    const bookIdInThisLanguage = this.book?.languagesVariants.find(t => t.language === lang)?.id;
+    const bookIdInThisLanguage = this.book?.languageVariants.find(t => t.language === lang)?.id;
     if (!bookIdInThisLanguage) {
       console.error("Book ID in this language not found");
       return;

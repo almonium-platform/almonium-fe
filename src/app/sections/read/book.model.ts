@@ -17,7 +17,7 @@ export interface Book {
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
   description: string;
-  languagesVariants: BookLanguageVariant[];
+  languageVariants: BookLanguageVariant[];
   favorite: boolean;
   orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
