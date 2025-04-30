@@ -181,7 +181,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       )
       .subscribe(view => {
         // This subscribe now only handles the *result* of the fetch operation
-        this.allBooks = [...view.available, ...view.favorites, ...view.continueReading];
+        this.allBooks = [...view.continueReading, ...view.available, ...view.favorites];
         this.filteredBooks = this.allBooks;
         this.continueReading = view.continueReading;
         this.applyFiltersAndSort();
