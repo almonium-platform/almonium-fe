@@ -68,21 +68,24 @@
   }
 }
 
-// --- Reader Content (Holds the Text Blocks) ---
 .reader-content {
   font-size: 20px;
   line-height: 1.6;
   padding: 0 2rem;
   max-width: 800px;
   margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
 
   ::ng-deep {
+    // Preserve and wrap preformatted text
     pre {
-      white-space: pre-wrap; // Preserves whitespace BUT allows wrapping
-      overflow-wrap: break-word; // Ensures long words within pre also wrap
-      word-wrap: break-word; // Fallback for overflow-wrap
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
     }
 
+    // Paragraphs
     p {
       margin-bottom: 0.8em;
       text-indent: 1.5em;
@@ -92,9 +95,9 @@
       }
     }
 
+    // Poems
     .poem {
-      margin-top: 1em;
-      margin-bottom: 1em;
+      margin: 1em 0;
       font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
       line-height: 1.4;
       white-space: pre-wrap;
@@ -108,9 +111,9 @@
       }
     }
 
+    // Headings
     h2 {
-      margin-top: 2em;
-      margin-bottom: 1.2em;
+      margin: 2em 0 1.2em;
       font-size: 1.5em;
       font-weight: bold;
       text-align: center;
@@ -118,7 +121,7 @@
     }
   }
 
-  // Overlay mode
+  // Overlay mode: inline glosses on hover
   &.mode-overlay {
     ::ng-deep span.eng {
       cursor: help;
@@ -133,6 +136,7 @@
     }
   }
 
+  // Inline Ukrainian spans
   ::ng-deep span.ukr {
     color: white;
     background: #621567;
@@ -146,34 +150,51 @@
       display: none !important;
     }
 
-    &:not([hidden])::before {
-      margin-right: 0.1em;
-    }
+    &:not([hidden]) {
+      &::before {
+        margin-right: 0.1em;
+      }
 
-    &:not([hidden])::after {
-      margin-left: 0.1em;
+      &::after {
+        margin-left: 0.1em;
+      }
     }
   }
 
   // Side-by-side mode
   &.mode-side {
-    max-width: unset;
+    max-width: none;
+    padding: 0 1rem;
 
     ::ng-deep {
+      // Chapter BFC fix
+      .chapter {
+        width: 100%;
+        box-sizing: border-box;
+        display: flow-root;
+      }
+
+      // Two-column grid
       .sbs-block-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 25px;
+        gap: 25px; // unified default gap
         align-items: start;
         width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 1em;
       }
 
       .sbs-column {
         word-wrap: break-word;
         overflow-wrap: break-word;
         min-height: 1em;
+        min-width: 0; // CRITICAL
+        box-sizing: border-box;
+        padding: 0;
       }
 
+      // Optional explicit column placement
       .sbs-eng-column {
         grid-column: 1;
       }
@@ -182,6 +203,12 @@
         grid-column: 2;
       }
 
+      // Original-heading tweak
+      .sbs-original-h2 .sbs-column {
+        text-align: center;
+      }
+
+      // Inline segment styling
       .sbs-segment {
         display: inline;
         margin-right: 0.2em;
@@ -190,6 +217,7 @@
         padding: 1px 3px;
       }
 
+      // Segment color variants
       .sbs-segment.sbs-color-1 {
         background-color: #f0f8ff;
       }
@@ -206,12 +234,12 @@
         background-color: #fafad2;
       }
 
-      p,
-      h2,
-      div.poem {
+      // Ensure consistent spacing under blocks
+      p, h2, div.poem {
         margin-bottom: 1em;
       }
 
+      // Center nested grids inside headings
       h2 .sbs-block-container {
         text-align: center;
 
@@ -220,9 +248,24 @@
         }
       }
 
-      span.eng,
-      span.ukr {
+      // Hide inline spans in SxS mode
+      span.eng, span.ukr {
         display: none !important;
+      }
+    }
+
+    // Narrow-screen tweaks
+    @media (max-width: 650px) {
+      padding: 0 5px;
+      font-size: 14px;
+      line-height: 1.4;
+
+      ::ng-deep {
+        .sbs-block-container {
+          gap: 10px;
+        }
+
+        // You can also tweak .sbs-segment padding/margins here if desired
       }
     }
   }
