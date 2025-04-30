@@ -715,8 +715,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private measureChapterOffsets(): boolean {
     // This function should now ONLY run successfully ONCE for BASE content
     if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
-      // console.log("Skipping measurement: Already measured, in parallel view, or no base content.");
-      return this.hasMeasuredChapters; // Return true if already done, false otherwise
+      return this.hasMeasuredChapters;
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
@@ -724,10 +723,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     if (!contentElement || !wrapperElement || this.isLoading) {
       console.warn("measureChapterOffsets (Base): Prerequisites not met.");
-      return false; // Indicate failure/not ready
+      return false;
     }
 
-    console.log("Measuring BASE chapter offsets from rendered HTML...");
+    console.log("Measuring BASE chapter offsets from rendered HTML (using H2 IDs)..."); // Updated log
     const newChapterNav: ChapterNavInfo[] = [];
 
     // Find original H2s in BASE content
@@ -739,43 +738,45 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       let elementId = '';
       let offsetTop = headingElement.offsetTop ?? 0;
 
-      // ID: Find the original anchor ID within the H2
-      const anchor = headingElement.querySelector<HTMLAnchorElement>('a[id^="chap"]');
-      if (anchor && anchor.id) {
-        elementId = anchor.id;
-      } else {
-        // If no anchor, maybe skip? Or generate fallback? For now, log and skip.
-        console.warn(`Chapter measurement (Base): Couldn't find anchor inside H2 at index ${index}. Skipping this chapter.`);
+      // ********* ID: Get the ID directly from the H2 element *********
+      elementId = headingElement.id; // <<<< CHANGE IS HERE
+
+      // Check if the H2 actually has an ID and optionally if it matches the pattern
+      if (!elementId /* || !elementId.startsWith('chap') */) { // <<<< ADDED CHECK
+        // If no ID (or pattern doesn't match), skip this chapter.
+        console.warn(`Chapter measurement (Base): H2 at index ${index} lacks an ID (or required pattern 'chap*'). Skipping this chapter.`);
+        console.log('Problematic H2:', headingElement); // Log the element for easier debugging
         return; // Skip this iteration
       }
+      // ***************************************************************
 
-      // Title: ALWAYS use English title from base H2 structure
-      // Try finding the eng span first for cleaner title, fallback to H2 text
+
+      // Title: ALWAYS use English title from base H2 structure (No change needed here)
       const engSpan = headingElement.querySelector<HTMLElement>('span.eng');
       if (engSpan) {
         title = engSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
       } else {
-        // Fallback to H2 text (might include ukr text if original HTML had it visible)
         title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-        console.warn(`Chapter measurement (Base): Couldn't find span.eng in H2 at index ${index}. Used full H2 text.`);
+        // console.warn(`Chapter measurement (Base): Couldn't find span.eng in H2 at index ${index}. Used full H2 text.`);
       }
 
       // Store chapter info with its index
-      console.log(`Storing Base Chapter: ${title} (ID: ${elementId}, Index: ${index}) at offset ${offsetTop}px`);
+      // console.log(`Storing Base Chapter: ${title} (ID: ${elementId}, Index: ${index}) at offset ${offsetTop}px`);
       newChapterNav.push({
         title: title,         // English title
         offsetTop: offsetTop, // Initial offset
-        elementId: elementId, // Original ID
+        elementId: elementId, // Original ID from H2
         index: index          // Store the index
       });
 
     }); // End forEach loop
 
     this.chapterNav = newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop); // Store sorted list
-    console.log(`Stored ${this.chapterNav.length} base chapters.`);
+    console.log(`Stored ${this.chapterNav.length} base chapters using H2 IDs.`); // Updated log
 
     return this.chapterNav.length > 0; // Return true if we found any chapters
   }
+
 
   // Schedules chapter measurement reliably after view updates
   private scheduleChapterOffsetMeasurement(): void {
