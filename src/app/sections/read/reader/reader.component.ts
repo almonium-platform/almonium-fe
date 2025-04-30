@@ -213,7 +213,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.bookId) {
         this.loadBookHtml(this.bookId, true);
         // Fetch the list of available languages for the dropdown
-        this.fetchParallelLanguages(this.bookId);
+        this.fetchBookData(this.bookId);
         // Setup listener for language selection changes AFTER initial load might start
         this.setupLanguageSelectionListener();
       } else {
@@ -629,11 +629,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Placeholder fetch for parallel languages options
-  private fetchParallelLanguages(bookId: number): void {
+  private fetchBookData(bookId: number): void {
     this.readService.getBookById(bookId, this.currentBaseLanguage).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
           this.parallelVersions = book.availableLanguages.filter(t => t.language !== book.language);
+          if (book.progressPercentage) {
+            this.scrollToPercentage(book.progressPercentage);
+          }
           this.cdRef.markForCheck();
         }
       },
