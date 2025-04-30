@@ -177,7 +177,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Lifecycle Hooks ---
 
   ngOnInit(): void {
-    this.checkInitialParallelMode();
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
@@ -334,47 +333,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.scheduleChapterOffsetMeasurement(); // Recalculate chapter offsets
       this.cdRef.markForCheck(); // Let Angular know things changed
       // });
-    }
-  }
-
-  private readonly NARROW_SCREEN_THRESHOLD = 650; // Keep consistent with service
-
-  private checkInitialParallelMode(): void {
-    const initialMode = this.parallelModeService.getCurrentMode(); // Get mode loaded from storage
-    const currentWidth = window.innerWidth;
-
-    console.log(`Initial check: Mode='${initialMode}', Width=${currentWidth}`);
-
-    if (initialMode === 'side' && currentWidth < this.NARROW_SCREEN_THRESHOLD) {
-      console.warn(`Initial mode 'side' is invalid for narrow screen (${currentWidth}px < ${this.NARROW_SCREEN_THRESHOLD}px). Switching to 'inline'.`);
-
-      // Option 1: Silently switch (preferred for less noise)
-      // Use setTimeout to avoid potential change-after-checked errors during init
-      setTimeout(() => {
-        this.parallelModeService.setMode('inline'); // Set to a default valid mode
-      }, 0);
-
-
-      // --- Option 2: Switch and Notify ---
-      /*
-      // Use setTimeout to avoid potential change-after-checked errors during init
-      setTimeout(() => {
-        this.parallelModeService.setMode('inline'); // Set to a default valid mode
-
-        // Show a *different* notification than the one in the service perhaps
-        this.alertService.open(
-          "Side-by-side view isn't suitable for this screen size. Switched to Inline mode.",
-          {
-            label: 'Mode Adjusted',
-            status: TuiNotification.Info, // Use Info status
-            autoClose: 5000
-          }
-        ).subscribe();
-      }, 0);
-      */
-      // --- End Option 2 ---
-
-
     }
   }
 
