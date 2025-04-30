@@ -56,8 +56,8 @@
         <ng-template #tocDropdownContent>
           <tui-data-list role="menu">
             <button
-              (click)="jumpToChapter(chapter.elementId)"
-              *ngFor="let chapter of chapterNav"
+              (click)="selectChapter(i)"
+              *ngFor="let chapter of chapterNav; let i = index"
               role="menuitem"
               tuiOption
             >

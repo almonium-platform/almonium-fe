@@ -55,11 +55,11 @@ interface HtmlElementNode {
   children: Array<HtmlElementNode | TextSegment | string>; // Allow mixed content
 }
 
-// Simplified Chapter Info for navigation
 interface ChapterNavInfo {
-  title: string;
-  offsetTop: number; // Store the measured pixel offset
-  elementId: string; // Store the ID for potential requery / debugging
+  title: string;     // Always English Title
+  offsetTop: number; // Initial offset from base content (might become slightly inaccurate after height sync)
+  elementId: string; // Original anchor ID (chapX) - keep for reference if needed
+  index: number;     // The 0-based index of this chapter in the list
 }
 
 @Pipe({name: 'safeHtml', standalone: true})
@@ -73,8 +73,6 @@ export class SafeHtmlPipe implements PipeTransform {
     return this.sanitizer.bypassSecurityTrustHtml(value);
   }
 }
-
-const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
 
 @Component({
   selector: 'app-reader',
@@ -115,6 +113,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private processedContent: string = '';    // Raw text from backend
   protected blocks: BlockData[] = [];       // Parsed blocks for rendering
   protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
+  private hasMeasuredChapters: boolean = false; // Flag to ensure we measure only once
+
   protected bookHtmlContent: string = ''; // Store the raw HTML from backend
   protected baseBookHtmlContent: string = ''; // Store the raw HTML from backend
 
@@ -223,6 +223,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.lastSavedPercentage = -1;    // Reset last saved progress
         this.initialScrollApplied = false; // Reset flag for initial scroll
         this.isLoading = true; // Ensure loading starts true
+        this.chapterNav = [];
+        this.hasMeasuredChapters = false;
         this.cdRef.markForCheck(); // Update view for loader
 
         // Fetch metadata FIRST (or parallel is fine, just store the value)
@@ -531,32 +533,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   ngAfterViewChecked(): void {
-    // Check if measurement is pending
-    if (this.needsMeasurement) {
-      console.log("ngAfterViewChecked: Attempting scheduled measurement...");
-      // Attempt measurement. measureChapterOffsets should return true on success.
-      const measured = this.measureChapterOffsets();
+    // Try to measure chapters ONLY ONCE after base load
+    if (!this.hasMeasuredChapters && !this.isLoading && this.baseBookHtmlContent && !this.isParallelViewActive) {
+      console.log("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
+      const measured = this.measureChapterOffsets(); // Try measuring base content
       if (measured) {
-        this.needsMeasurement = false; // Reset flag only on successful measurement
-        console.log("ngAfterViewChecked: Measurement successful.");
-        // Optionally update scroll state immediately after measurement if needed
-        // this.updateScrollState(); // updateScrollState is complex, maybe avoid calling it here unless necessary
-        this.cdRef.markForCheck(); // Ensure dropdown updates if nav changed
+        this.hasMeasuredChapters = true; // Mark as done
+        console.log("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
+        this.cdRef.markForCheck(); // Update ToC dropdown
       } else {
-        console.warn("ngAfterViewChecked: Measurement attempt failed (refs might still not be ready). Will retry on next check.");
+        console.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
       }
     }
 
     // Check if height sync is pending (only for side mode)
     if (this.needsHeightSync && this.currentParallelMode === 'side') {
-      console.log("ngAfterViewChecked: Attempting scheduled height sync...");
-      // Attempt height sync (assuming it doesn't need to return success)
+      // ... (existing height sync logic) ...
       this.synchronizeColumnHeights();
-      this.needsHeightSync = false; // Reset flag after attempting
-      console.log("ngAfterViewChecked: Height sync attempted.");
+      this.needsHeightSync = false;
     }
 
-    // Always attempt initial scroll (as per your requirement)
+    // Always attempt initial scroll
     this.attemptInitialScroll();
   }
 
@@ -603,6 +600,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (isBase) {
       this.isLoading = true;
       this.isParallelViewActive = false;
+      this.hasMeasuredChapters = false; // Allow re-measurement if base is reloaded
+      this.chapterNav = []; // Clear nav if base is reloaded
     } else {
       this.isLoadingParallel = true;
     }
@@ -611,6 +610,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.bookHtmlContent = '';
     this.chapterNav = [];
     this.cdRef.markForCheck();
+    this.needsHeightSync = false
 
     const stream$ = isBase
       ? this.readService.loadBook(bookId)
@@ -693,8 +693,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.isLoadingParallel = false;
       this.cdRef.markForCheck();
 
-      // **SET THE MEASUREMENT FLAG WHEN REVERTING TO BASE**
-      this.needsMeasurement = true; // Now measurement is required
       this.initialScrollApplied = false; // Re-apply the scroll when content changes
       console.log("Reverted to base, flags set for ngAfterViewChecked.");
     } else {
@@ -733,103 +731,68 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): boolean {
+    // This function should now ONLY run successfully ONCE for BASE content
+    if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
+      // console.log("Skipping measurement: Already measured, in parallel view, or no base content.");
+      return this.hasMeasuredChapters; // Return true if already done, false otherwise
+    }
+
     const contentElement = this.readerContentRef?.nativeElement;
     const wrapperElement = this.readerContentWrapperRef?.nativeElement;
 
-    // Strengthened Guard: Check refs, loading state, and actual HTML content
-    if (!contentElement || !wrapperElement || this.isLoading || !this.bookHtmlContent) {
-      console.warn("measureChapterOffsets: Measurement prerequisites not met.", { /* ... */});
-      return false;
+    if (!contentElement || !wrapperElement || this.isLoading) {
+      console.warn("measureChapterOffsets (Base): Prerequisites not met.");
+      return false; // Indicate failure/not ready
     }
 
-    console.log("Measuring chapter offsets from rendered HTML...");
-    const newChapterNav: ChapterNavInfo[] = []; // Build a new list
+    console.log("Measuring BASE chapter offsets from rendered HTML...");
+    const newChapterNav: ChapterNavInfo[] = [];
 
-    let headingElements: NodeListOf<HTMLElement>;
-    const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
-
-    if (isParallelSideMode) {
-      headingElements = contentElement.querySelectorAll('div.sbs-original-h2');
-      // console.log(`Parallel Side Mode: Found ${headingElements.length} potential chapter heading divs.`);
-    } else {
-      headingElements = contentElement.querySelectorAll('h2');
-      // console.log(`Base/Other Mode: Found ${headingElements.length} potential chapter heading H2s.`);
-    }
+    // Find original H2s in BASE content
+    const headingElements = contentElement.querySelectorAll('h2');
+    console.log(`Base Mode Measurement: Found ${headingElements.length} potential chapter heading H2s.`);
 
     headingElements.forEach((headingElement: HTMLElement, index: number) => {
-      let title = `Chapter ${index + 1}`; // Default title
+      let title = `Chapter ${index + 1}`;
       let elementId = '';
       let offsetTop = headingElement.offsetTop ?? 0;
 
-      if (isParallelSideMode) {
-        // --- Parallel Side Mode Logic ---
-        elementId = `measured-chap-${index}`;
-        const engCol = headingElement.querySelector<HTMLElement>('.sbs-eng-column');
-        const ukrCol = headingElement.querySelector<HTMLElement>('.sbs-ukr-column');
-
-        // **Prioritize UKR title if parallel language selected**
-        if (engCol && this.selectedLangCode) {
-          title = engCol.innerText?.replace(/\s+/g, ' ').trim() || title;
-        } else if (ukrCol) { // Fallback to ENG
-          title = ukrCol.innerText?.replace(/\s+/g, ' ').trim() || title;
-        } else { /* ... fallback warning ... */
-        }
-
+      // ID: Find the original anchor ID within the H2
+      const anchor = headingElement.querySelector<HTMLAnchorElement>('a[id^="chap"]');
+      if (anchor && anchor.id) {
+        elementId = anchor.id;
       } else {
-        // --- Base / Non-Side (Inline/Overlay) Mode Logic ---
-        const anchor = headingElement.querySelector<HTMLAnchorElement>('a[id^="chap"]');
-        if (anchor && anchor.id) {
-          elementId = anchor.id;
-        } else {
-          elementId = `measured-chap-${index}`;
-          // console.warn(`Chapter measurement (Base): Couldn't find anchor inside H2 at index ${index}. Generated ID: ${elementId}`);
-        }
-
-        // ** REVISED Title Extraction for Inline/Overlay **
-        let titleSourceElement: HTMLElement | null = null;
-
-        if (this.isParallelViewActive && this.selectedLangCode) {
-          // If parallel view is active, prioritize the UKR span INSIDE the H2
-          titleSourceElement = headingElement.querySelector<HTMLElement>('span.eng');
-          // console.log(`  Inline/Overlay (Parallel): Found ukr span? ${!!titleSourceElement}`);
-        }
-
-        // If not parallel OR ukr span wasn't found, try the ENG span
-        if (!titleSourceElement) {
-          titleSourceElement = headingElement.querySelector<HTMLElement>('span.ukr');
-          // console.log(`  Inline/Overlay (Base or fallback): Found eng span? ${!!titleSourceElement}`);
-        }
-
-        // If we found a specific span (ukr or eng) use its text
-        if (titleSourceElement) {
-          title = titleSourceElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-        } else {
-          // Final fallback: Use the whole H2's text (might happen if spans aren't structured as expected)
-          title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-          console.warn(`Chapter measurement (Inline/Overlay): Couldn't find specific ukr/eng span in H2 at index ${index}. Used full H2 text.`);
-        }
-      } // End of else (Base / Non-Side Mode Logic)
-
-      // Add to nav list if we have a valid element ID
-      if (elementId) {
-        newChapterNav.push({
-          title: title,
-          offsetTop: offsetTop,
-          elementId: elementId
-        });
-      } else { /* ... warning ... */
+        // If no anchor, maybe skip? Or generate fallback? For now, log and skip.
+        console.warn(`Chapter measurement (Base): Couldn't find anchor inside H2 at index ${index}. Skipping this chapter.`);
+        return; // Skip this iteration
       }
+
+      // Title: ALWAYS use English title from base H2 structure
+      // Try finding the eng span first for cleaner title, fallback to H2 text
+      const engSpan = headingElement.querySelector<HTMLElement>('span.eng');
+      if (engSpan) {
+        title = engSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
+      } else {
+        // Fallback to H2 text (might include ukr text if original HTML had it visible)
+        title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
+        console.warn(`Chapter measurement (Base): Couldn't find span.eng in H2 at index ${index}. Used full H2 text.`);
+      }
+
+      // Store chapter info with its index
+      console.log(`Storing Base Chapter: ${title} (ID: ${elementId}, Index: ${index}) at offset ${offsetTop}px`);
+      newChapterNav.push({
+        title: title,         // English title
+        offsetTop: offsetTop, // Initial offset
+        elementId: elementId, // Original ID
+        index: index          // Store the index
+      });
 
     }); // End forEach loop
 
-    newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
-    this.chapterNav = newChapterNav;
-    console.log(`Found and measured ${this.chapterNav.length} chapters.`);
-    if (this.chapterNav.length === 0 && headingElements.length > 0) { /* ... warning ... */
-    } else if (this.chapterNav.length === 0 && headingElements.length === 0) { /* ... warning ... */
-    }
+    this.chapterNav = newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop); // Store sorted list
+    console.log(`Stored ${this.chapterNav.length} base chapters.`);
 
-    return true;
+    return this.chapterNav.length > 0; // Return true if we found any chapters
   }
 
   // Schedules chapter measurement reliably after view updates
@@ -1171,61 +1134,56 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Chapter Navigation ---
   // Scrolls to the measured offsetTop of a selected chapter
-  protected jumpToChapter(elementId: string): void {
-    if (this.isLoading || !this.readerContentWrapperRef) return;
+  protected jumpToChapter(chapterIndex: number): void { // Parameter is now index
+    if (this.isLoading || !this.readerContentWrapperRef || chapterIndex < 0 || chapterIndex >= this.chapterNav.length) {
+      console.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
+      return;
+    }
+
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement) return;
 
+    const targetChapterInfo = this.chapterNav[chapterIndex]; // Get stored info
+    console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title})`);
+
     let elementToScrollTo: HTMLElement | null = null;
 
-    // Check if it's an original anchor ID or a generated one
-    if (elementId.startsWith('chap')) {
-      // Original ID - find the anchor (might be inside H2 or the pipe structure)
-      elementToScrollTo = contentElement.querySelector(`#${elementId}`);
-      // If found anchor, scroll its parent heading into view
-      if (elementToScrollTo) {
-        elementToScrollTo = elementToScrollTo.closest('h2, div.sbs-original-h2');
-      }
-    } else if (elementId.startsWith('measured-chap-')) {
-      // Generated ID - find the element by index
-      const index = parseInt(elementId.split('-').pop() || '-1', 10);
-      if (index >= 0) {
-        // Select based on the mode during measurement
-        const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
-        const selector = isParallelSideMode ? 'div.sbs-original-h2' : 'h2';
-        const headings = contentElement.querySelectorAll<HTMLElement>(selector);
-        if (headings && index < headings.length) {
-          elementToScrollTo = headings[index];
-        }
-      }
+    // Determine the correct selector based on the CURRENT mode
+    const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
+    const selector = isParallelSideMode ? 'div.sbs-original-h2' : 'h2';
+
+    // Find the Nth element matching the selector
+    const headings = contentElement.querySelectorAll<HTMLElement>(selector);
+    if (headings && chapterIndex < headings.length) {
+      elementToScrollTo = headings[chapterIndex];
+    } else {
+      console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th element matching selector '${selector}'. Found ${headings?.length || 0}.`);
+      // Fallback: Maybe try scrolling to the original offsetTop? Might be inaccurate.
+      // console.log(`Fallback: Scrolling to stored offsetTop: ${targetChapterInfo.offsetTop}`);
+      // this.setScrollTop(targetChapterInfo.offsetTop);
+      // return; // Exit after attempting fallback scroll
+      return; // Exit if element not found
     }
 
     // Perform the scroll if element found
     if (elementToScrollTo) {
-      console.log(`Jumping to chapter element ID: ${elementId} -> Scrolling element:`, elementToScrollTo);
-      // Use scrollIntoView for simplicity, adjust offset manually if needed
+      console.log(`Scrolling element for index ${chapterIndex}:`, elementToScrollTo);
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
-      // Or calculate exact scroll position:
-      // const targetOffset = elementToScrollTo.offsetTop;
-      // this.setScrollTop(targetOffset); // Use your existing scroll method
-
-      // Update percentage after scroll finishes (keep timeout)
+      // Update percentage after scroll finishes
       setTimeout(() => {
         this.updateScrollState();
         this.cdRef.markForCheck();
-      }, 350); // Adjust timeout if scroll behavior is 'instant'
-    } else {
-      console.warn(`Cannot jump: Chapter element corresponding to ID ${elementId} not found.`);
+      }, 350);
     }
   }
 
-  // Handles selection change in the chapter dropdown
-  protected selectChapter(elementId: string): void {
-    console.log("Chapter selected:", elementId);
-    if (elementId) {
-      this.jumpToChapter(elementId);
+// Modify selectChapter to pass the INDEX
+  protected selectChapter(chapterIndex: number): void { // Parameter is now index
+    console.log("Chapter selected by index:", chapterIndex);
+    if (chapterIndex !== null && chapterIndex >= 0) {
+      this.jumpToChapter(chapterIndex);
     } else {
-      console.warn("Invalid elementId received from chapter selection:", elementId);
+      console.warn("Invalid index received from chapter selection:", chapterIndex);
     }
   }
 
