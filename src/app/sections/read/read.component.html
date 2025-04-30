@@ -123,20 +123,16 @@
           routerLink="/book/{{ book.id }}"
           class="game-card ladder-card solo-game">
           <div class="game-img ladder-img">
-            @if (book.hasTranslation && !book.progressPercentage) {
-              <div class="parallel">
-                <img
-                  src="../../../assets/img/icons/parallel.svg"
-                  alt="parallel translation icon"
-                  tuiHintAppearance="dark"
-                  tuiHintDirection="bottom"
-                  [tuiHint]="tooltip"
-                />
-                <ng-template #tooltip>
-                  <div>Parallel mode in a language you understand</div>
-                </ng-template>
-              </div>
-
+            @if (book.hasParallelTranslation && !book.progressPercentage) {
+              <app-parallel-translation
+                tuiHintAppearance="dark"
+                tuiHintDirection="bottom"
+                [tuiHint]="tooltip"
+                class="parallel"
+              ></app-parallel-translation>
+              <ng-template #tooltip>
+                <div>Parallel mode in a language you understand</div>
+              </ng-template>
             }
             @if (book.progressPercentage) {
               <label

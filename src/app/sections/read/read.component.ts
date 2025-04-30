@@ -21,6 +21,7 @@ import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
+import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
 
 @Component({
   selector: 'app-read',
@@ -42,6 +43,7 @@ import {AsyncPipe} from "@angular/common";
     InfoIconComponent,
     AsyncPipe,
     TuiSkeleton,
+    ParallelTranslationComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
