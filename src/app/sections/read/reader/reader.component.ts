@@ -1,4 +1,5 @@
 import {
+  AfterViewChecked,
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -103,7 +104,7 @@ const CHAPTER_MARKER = "CHAPTER:::"; // Must match Python
   styleUrls: ['./reader.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
@@ -166,6 +167,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastSavedPercentage: number = -1; // Track last saved value
   private readonly SAVE_DEBOUNCE_TIME = 750; // Wait ms after scrolling stops
   private readonly SAVE_THROTTLE_TIME = 10000; // Save at most every 30s
+  private initialScrollPercentage: number | null = null;
+  private initialScrollApplied: boolean = false;
+  private isDestroyed = false;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -211,9 +215,19 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const bookId = params['id'];
       this.bookId = bookId ? +bookId : null;
       if (this.bookId) {
-        this.loadBookHtml(this.bookId, true);
-        // Fetch the list of available languages for the dropdown
+        // Reset state for new book load
+        this.initialScrollPercentage = null; // Reset scroll target
+        this.lastSavedPercentage = -1;    // Reset last saved progress
+        this.initialScrollApplied = false; // Reset flag for initial scroll
+        this.isLoading = true; // Ensure loading starts true
+        this.cdRef.markForCheck(); // Update view for loader
+
+        // Fetch metadata FIRST (or parallel is fine, just store the value)
         this.fetchBookData(this.bookId);
+
+        // Load the actual book content
+        this.loadBookHtml(this.bookId, true);
+
         // Setup listener for language selection changes AFTER initial load might start
         this.setupLanguageSelectionListener();
       } else {
@@ -509,13 +523,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.scheduleHeightSync();
     }
     // Also ensure initial scroll state is calculated
-    requestAnimationFrame(() => {
-      this.updateScrollState();
-      this.cdRef.markForCheck();
-    });
+    this.updateScrollState();
+    this.cdRef.markForCheck();
+  }
+
+  ngAfterViewChecked(): void {
+    this.attemptInitialScroll();
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
     this.clearScrollHoldTimers();
     this.parallelLoadSubscription?.unsubscribe();
     this.saveProgressOnExit(false); // Attempt regular save
@@ -553,50 +570,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Loads HTML content, stores in baseBookHtmlContent if isBase=true
+// Modify loadBookHtml to trigger the scroll AFTER load
   private loadBookHtml(bookId: number, isBase: boolean = false): void {
     if (isBase) {
-      this.isLoading = true; // Use main loader for base content
-      this.isParallelViewActive = false; // Reset flag
+      this.isLoading = true;
+      this.isParallelViewActive = false;
     } else {
-      this.isLoadingParallel = true; // Use specific loader for parallel
+      this.isLoadingParallel = true;
     }
     this.errorMessage = null;
-    // Reset content relevant to the current load type
     if (isBase) this.baseBookHtmlContent = '';
-    this.bookHtmlContent = ''; // Always clear current display content on load
+    this.bookHtmlContent = '';
     this.chapterNav = [];
-    this.currentScrollPercentage = 0; // Reset scroll
     this.cdRef.markForCheck();
 
-    // Use the correct service method
     const stream$ = isBase
       ? this.readService.loadBook(bookId)
-      : this.readService.getParallelText(bookId, this.languageSelectControl.value!); // Assumes value is set
+      : this.readService.getParallelText(bookId, this.selectedLangCode!); // Use selectedLangCode here
 
     stream$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
           try {
             const fetchedHtml = this.arrayBufferToString(response.body);
-            this.bookHtmlContent = fetchedHtml; // Store in current display
+            this.bookHtmlContent = fetchedHtml;
             if (isBase) {
-              this.baseBookHtmlContent = fetchedHtml; // Also store in base copy
+              this.baseBookHtmlContent = fetchedHtml;
               this.isParallelViewActive = false;
             } else {
               this.isParallelViewActive = true;
             }
+
             this.isLoading = false;
             this.isLoadingParallel = false;
             this.errorMessage = null;
             console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
-            this.currentlyOpenUkrSpan = null; // Reset any open translations
-            this.cdRef.markForCheck();
-            this.scheduleChapterOffsetMeasurement(); // Remeasure after new content render
-            this.scrollToPercentage(0); // Scroll to top after load
-            if (this.currentParallelMode === 'side') {
-              this.scheduleHeightSync();
-            }
+            this.currentlyOpenUkrSpan = null;
+            this.cdRef.markForCheck(); // Ensure view updates with content
+
           } catch (e) {
             this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
           }
@@ -607,6 +618,34 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
     });
   }
+
+  // attemptInitialScroll checks everything and scrolls if needed
+  private attemptInitialScroll(): void {
+    // Added check: Don't attempt if component destroyed
+    if (this.isDestroyed) {
+      return;
+    }
+
+    // Conditions: Not loading, target known, not applied yet, wrapper exists
+    if (!this.isLoading && !this.isLoadingParallel && this.initialScrollPercentage !== null && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
+      const target = this.initialScrollPercentage;
+      // Add extra check for scrollHeight to ensure layout is likely ready
+      const scrollHeight = this.readerContentWrapperRef.nativeElement.scrollHeight;
+      const clientHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
+
+      if (scrollHeight > 0 && (scrollHeight > clientHeight || target === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
+        console.log(`Attempting initial scroll to target: ${target}% (scrollHeight: ${scrollHeight})`);
+        this.scrollToPercentage(target);
+        this.initialScrollApplied = true; // Mark as applied
+      } else {
+        console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): scrollHeight not ready or not scrollable. scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${target}`);
+      }
+    } else if (!this.initialScrollApplied && this.initialScrollPercentage !== null) {
+      // Log only if we expected to scroll but didn't yet
+      // console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
+    }
+  }
+
 
   // Reverts the view to the base language content
   private revertToBaseContent(): void {
@@ -634,9 +673,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (book) => {
         if (book) {
           this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
-          if (book.progressPercentage) {
-            this.scrollToPercentage(book.progressPercentage);
-          }
+          this.initialScrollPercentage = book.progressPercentage ?? 0;
+          console.log(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
           this.cdRef.markForCheck();
         }
       },
@@ -659,11 +697,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // --- Chapter Offset Measurement ---
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
-  private measureChapterOffsets(): void {
+  private measureChapterOffsets(): boolean { // Return boolean indicating success/readiness
     const contentElement = this.readerContentRef?.nativeElement;
-    if (!contentElement || this.isLoading) {
-      if (!contentElement) console.warn("measureChapterOffsets: readerContentRef.nativeElement is not available yet.");
-      return;
+    // Add wrapper check here too
+    if (!contentElement || !this.readerContentWrapperRef?.nativeElement || this.isLoading) {
+      if (!contentElement || !this.readerContentWrapperRef?.nativeElement)
+        console.warn("measureChapterOffsets: readerContentRef or readerContentWrapperRef nativeElement is not available yet.");
+      return false; // Indicate refs not ready
     }
 
     console.log("Measuring chapter offsets from rendered HTML...");
@@ -730,19 +770,25 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Sort by position
     this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
     console.log(`Found and measured ${this.chapterNav.length} valid chapters (filtered).`);
+    return true; // Indicate success
   }
 
   // Schedules chapter measurement reliably after view updates
   private scheduleChapterOffsetMeasurement(): void {
-    // Use NgZone.runOutsideAngular if measurement becomes complex/slow
-    // Use requestAnimationFrame to wait for browser layout/paint
     requestAnimationFrame(() => {
-      this.measureChapterOffsets();
-      this.updateScrollState(); // Set initial percentage
-      this.cdRef.markForCheck(); // Update chapter dropdown if needed
+      if (this.isDestroyed) {
+        console.log("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
+        return;
+      }
+      const measurementSuccess = this.measureChapterOffsets();
+      if (measurementSuccess) {
+        this.updateScrollState(); // Update scroll state based on new measurements
+        this.cdRef.markForCheck(); // Update dropdown
+      } else {
+        console.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
+      }
     });
   }
-
 
   // --- Event Listeners Setup ---
   // Handles window resize to remeasure chapter offsets
@@ -833,17 +879,30 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Scrolls the wrapper to a position corresponding to the given percentage
+// Keep the guards in scrollToPercentage
   private scrollToPercentage(percentage: number): void {
-    if (!this.readerContentWrapperRef) return;
+    console.log(`Executing scrollToPercentage: ${percentage}%`);
+    if (!this.readerContentWrapperRef?.nativeElement) {
+      console.warn(`scrollToPercentage (${percentage}%): Wrapper ref not available.`);
+      return;
+    }
+
     const element = this.readerContentWrapperRef.nativeElement;
     const scrollHeight = element.scrollHeight;
     const clientHeight = element.clientHeight;
 
-    if (scrollHeight <= clientHeight) return; // Cannot scroll
+    if (scrollHeight <= 0 || clientHeight <= 0) {
+      console.warn(`scrollToPercentage (${percentage}%): Invalid dimensions (scrollHeight=${scrollHeight}, clientHeight=${clientHeight}). Cannot scroll.`);
+      return;
+    }
+    if (scrollHeight <= clientHeight) {
+      console.log(`scrollToPercentage (${percentage}%): Content not scrollable (scrollHeight <= clientHeight).`);
+      return;
+    }
 
     const targetScrollTop = (percentage / 100) * (scrollHeight - clientHeight);
-    this.setScrollTop(Math.round(targetScrollTop)); // Use Math.round for integer pixels
+    console.log(`scrollToPercentage (${percentage}%): Calculated targetScrollTop=${Math.round(targetScrollTop)} from scrollHeight=${scrollHeight}, clientHeight=${clientHeight}`);
+    this.setScrollTop(Math.round(targetScrollTop));
   }
 
   // Centralized method to set scrollTop and manage the programmatic scroll flag
@@ -1189,7 +1248,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.scheduleHeightSync();
               }
               this.scheduleChapterOffsetMeasurement();
-              this.scrollToPercentage(0);
             } catch (e) {
               // Handle decoding error
               this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
