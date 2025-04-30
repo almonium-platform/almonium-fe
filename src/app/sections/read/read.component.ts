@@ -242,7 +242,7 @@ export class ReadComponent implements OnInit, OnDestroy {
     const bookId = this.selectedBook?.id;
     if (!bookId) return;
     this.targetLanguageDropdownService.currentLanguage$.subscribe(lang => {
-      this.readService.deleteProgress(bookId, lang)
+      this.readService.deleteProgress(bookId)
         .subscribe({
           next: () => {
             this.fetchBooksOnLanguageChange();

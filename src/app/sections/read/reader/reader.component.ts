@@ -13,11 +13,11 @@ import {
   ViewChild
 } from '@angular/core';
 import {ReadService} from '../read.service';
-import {CommonModule, SlicePipe} from '@angular/common'; // Import SlicePipe
+import {CommonModule, SlicePipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {TuiAlertService, TuiDropdownDirective} from '@taiga-ui/core';
-import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators'; // Add throttleTime
+import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
+import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
@@ -162,6 +162,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   protected selectedLangCode: string | null = null;
   private isSyncingHeights = false;
 
+  private progressUpdate$ = new Subject<number>();
+  private lastSavedPercentage: number = -1; // Track last saved value
+  private readonly SAVE_DEBOUNCE_TIME = 750; // Wait ms after scrolling stops
+  private readonly SAVE_THROTTLE_TIME = 10000; // Save at most every 30s
+
   constructor(
     private cdRef: ChangeDetectorRef,
     private readService: ReadService,
@@ -180,6 +185,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
+    this.setupProgressSaving();
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
@@ -214,6 +220,39 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.handleError("Invalid Book ID.");
       }
     });
+  }
+
+  private setupProgressSaving(): void {
+    this.progressUpdate$.pipe(
+      // 1. Debounce: Only react when scrolling might have paused
+      debounceTime(this.SAVE_DEBOUNCE_TIME),
+      // 2. Distinct: Only save if the rounded percentage actually changed since last emission
+      distinctUntilChanged(),
+      // 3. Filter: Don't save if essential info is missing
+      filter(() => !!this.bookId),
+      // 4. Throttle: Limit saves during periods of frequent stopping/starting
+      //    leading: false - don't save immediately on first event after throttle window opens
+      //    trailing: true - ensure the *last* debounced value in a burst gets saved after throttle time
+      throttleTime(this.SAVE_THROTTLE_TIME, undefined, {leading: false, trailing: true}),
+      takeUntil(this.destroy$) // Unsubscribe on component destroy
+    ).subscribe(percentage => {
+      // Check if it's different from the very last *saved* value
+      if (percentage !== this.lastSavedPercentage) {
+        console.log(`Throttled save triggered for percentage: ${percentage}`);
+        // Use switchMap if you want to cancel previous pending saves, though less critical with throttling
+        this.readService.saveProgress(this.bookId!, percentage)
+          .subscribe(() => {
+            this.lastSavedPercentage = percentage; // Update last saved value on success
+          });
+      } else {
+        console.log(`Skipping throttled save, percentage ${percentage} hasn't changed since last save.`);
+      }
+    });
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: BeforeUnloadEvent): void {
+    this.saveProgressOnExit(true); // Attempt beacon save
   }
 
   // Schedules the height sync after Angular has rendered changes
@@ -477,10 +516,41 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
     this.clearScrollHoldTimers();
     this.parallelLoadSubscription?.unsubscribe();
+    this.saveProgressOnExit(false); // Attempt regular save
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private saveProgressOnExit(useBeacon: boolean): void {
+    console.log(`Attempting save on exit (useBeacon: ${useBeacon})`);
+    if (this.bookId && this.selectedLangCode && this.currentScrollPercentage !== this.lastSavedPercentage) {
+      const lang = this.selectedLangCode;
+      const book = this.bookId;
+      const percentage = this.currentScrollPercentage;
+
+      if (useBeacon) {
+        // Try Beacon API first for ungraceful exit
+        const success = this.readService.sendProgressBeacon(book, percentage);
+        if (success) {
+          this.lastSavedPercentage = percentage; // Assume success if beacon sends
+        } else {
+          // Beacon failed or not supported - maybe a quick sync localStorage save as fallback?
+          console.warn("Beacon save failed/unsupported during unload.");
+          // localStorage.setItem(`reading_progress_${book}`, percentage.toString());
+        }
+      } else {
+        // Regular HTTP call for graceful exit (ngOnDestroy)
+        this.readService.saveProgress(book, percentage)
+          .subscribe(() => {
+            this.lastSavedPercentage = percentage;
+            console.log("Saved progress during ngOnDestroy");
+          });
+      }
+    } else {
+      console.log("Skipping save on exit: required data missing or percentage unchanged.");
+    }
   }
 
   // Loads HTML content, stores in baseBookHtmlContent if isBase=true
@@ -736,17 +806,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const scrollHeight = element.scrollHeight;
     const clientHeight = element.clientHeight;
     const scrollThreshold = 2; // Small pixel threshold to account for rounding/subpixels
+    let newPercentage: number; // Calculate the new percentage
 
     if (scrollHeight <= clientHeight) {
-      this.currentScrollPercentage = 0;
+      // Content doesn't scroll or is exactly fitting
+      newPercentage = scrollTop <= scrollThreshold ? 0 : 100; // Consider it 0 if at top, 100 if scrolled down somehow
       this.isAtScrollTop = true;
       this.isAtScrollBottom = true;
     } else {
-      const percentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      this.currentScrollPercentage = Math.max(0, Math.min(100, Math.round(percentage)));
+      // Standard percentage calculation
+      const calculatedPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+      newPercentage = Math.max(0, Math.min(100, Math.round(calculatedPercentage))); // Round to nearest integer
 
       this.isAtScrollTop = scrollTop <= scrollThreshold;
       this.isAtScrollBottom = scrollTop >= (scrollHeight - clientHeight - scrollThreshold);
+    }
+
+    // Only update the property and emit if the rounded percentage has changed
+    if (newPercentage !== this.currentScrollPercentage) {
+      console.log(`Scroll state updated: New percentage = ${newPercentage}%`); // Optional log
+      this.currentScrollPercentage = newPercentage; // Update the component property
+      this.progressUpdate$.next(newPercentage);   // Emit the change for saving logic
     }
   }
 
