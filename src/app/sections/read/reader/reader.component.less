@@ -76,38 +76,46 @@
   max-width: 800px;
   margin: 0 auto;
 
-  ::ng-deep p {
-    margin-bottom: 0.8em;
-    text-indent: 1.5em;
+  ::ng-deep {
+    pre {
+      white-space: pre-wrap; // Preserves whitespace BUT allows wrapping
+      overflow-wrap: break-word; // Ensures long words within pre also wrap
+      word-wrap: break-word; // Fallback for overflow-wrap
+    }
 
-    &:first-child {
+    p {
+      margin-bottom: 0.8em;
+      text-indent: 1.5em;
+
+      &:first-child {
+        text-indent: 0;
+      }
+    }
+
+    .poem {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      overflow-x: auto;
       text-indent: 0;
+      margin-left: 10%;
+      font-size: 90%;
+
+      br {
+        display: none;
+      }
     }
-  }
 
-  ::ng-deep .poem {
-    margin-top: 1em;
-    margin-bottom: 1em;
-    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
-    line-height: 1.4;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    text-indent: 0;
-    margin-left: 10%;
-    font-size: 90%;
-
-    br {
-      display: none;
+    h2 {
+      margin-top: 2em;
+      margin-bottom: 1.2em;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.3;
     }
-  }
-
-  ::ng-deep h2 {
-    margin-top: 2em;
-    margin-bottom: 1.2em;
-    font-size: 1.5em;
-    font-weight: bold;
-    text-align: center;
-    line-height: 1.3;
   }
 
   // Overlay mode
