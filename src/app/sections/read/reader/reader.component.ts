@@ -1129,40 +1129,34 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       return;
     }
 
-    const targetChapterInfo = this.chapterNav[chapterIndex]; // Get stored info (title, index)
-    console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title})`);
+    // 1. Get the stored info, including the unique elementId ('chapX')
+    const targetChapterInfo = this.chapterNav[chapterIndex];
+    if (!targetChapterInfo || !targetChapterInfo.elementId) {
+      console.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
+      return;
+    }
+
+    console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
 
     let elementToScrollTo: HTMLElement | null = null;
 
     try {
-      // 1. Get ALL H2 elements
-      const allH2Elements = Array.from(contentElement.querySelectorAll<HTMLElement>('h2'));
+      // 2. Find the element DIRECTLY BY ITS ID - REMOVE THE FILTERING
+      elementToScrollTo = contentElement.querySelector<HTMLElement>(`#${targetChapterInfo.elementId}`);
 
-      // 2. Filter using the CORRECT condition provided by the user
-      console.log("Jump target identification: Filtering H2s based on parent (.chapter or .sbs-eng-column)");
-      const chapterHeadingElements = allH2Elements.filter(h2 =>
-        h2.parentElement?.classList.contains('sbs-eng-column') || // Matches H2 inside Eng column (Side Mode)
-        h2.parentElement?.classList.contains('chapter')          // Matches H2 inside Chapter div (Other Modes)
-      );
-
-      console.log(`Found ${allH2Elements.length} total H2s, filtered down to ${chapterHeadingElements.length} potential chapter headings.`);
-
-      // 3. Find the target element by index within the FILTERED list
-      if (chapterIndex < chapterHeadingElements.length) {
-        elementToScrollTo = chapterHeadingElements[chapterIndex];
-      } else {
-        console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th chapter heading element after filtering. Filtered count: ${chapterHeadingElements.length}.`);
-        return; // Exit if element not found in filtered list
+      if (!elementToScrollTo) {
+        console.warn(`Cannot jump: Could not find element with ID '${targetChapterInfo.elementId}' within contentElement.`);
+        return; // Exit if element not found by ID
       }
 
     } catch (error) {
-      console.error("Error during DOM query/filter in jumpToChapter:", error);
+      console.error("Error during DOM query in jumpToChapter:", error);
       return; // Exit on error
     }
 
     // Perform the scroll if element found
     if (elementToScrollTo) {
-      console.log(`Scrolling element for index ${chapterIndex}:`, elementToScrollTo);
+      console.log(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
       setTimeout(() => {
@@ -1170,7 +1164,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.updateScrollState();
           this.cdRef.markForCheck();
         }
-      }, 350);
+      }, 350); // Increased timeout slightly just in case
+    } else {
+      console.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
     }
   }
 
