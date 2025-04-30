@@ -16,12 +16,13 @@ import {
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {TuiAlertService, TuiDropdownDirective} from '@taiga-ui/core';
 import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {TuiActiveZone} from "@taiga-ui/cdk";
@@ -34,10 +35,24 @@ import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-set
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
 
+// Data structure for parsed blocks
 interface BlockData {
   type: 'paragraph' | 'verse' | 'chapter';
   content: string; // The text content, potentially with <em>/<strong>
   originalIndex: number; // Use for unique IDs
+}
+
+interface TextSegment {
+  type: 'segment';
+  eng: string;
+  ukr: string;
+}
+
+interface HtmlElementNode {
+  type: 'element';
+  tagName: string;
+  attributes: { [key: string]: string };
+  children: Array<HtmlElementNode | TextSegment | string>; // Allow mixed content
 }
 
 interface ChapterNavInfo {
@@ -156,12 +171,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private initialScrollApplied: boolean = false;
   private isDestroyed = false;
 
+  private needsMeasurement: boolean = false;
   private needsHeightSync: boolean = false;
-  protected mode: 'side' | 'overlay' | 'inline' = 'inline'; // Default to side-by-side
 
   constructor(
     private cdRef: ChangeDetectorRef,
     private readService: ReadService,
+    private alertService: TuiAlertService,
+    private router: Router,
     private route: ActivatedRoute,
     private ngZone: NgZone,
     private parallelModeService: ParallelModeService,
@@ -619,6 +636,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.currentlyOpenUkrSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
 
+            this.needsMeasurement = true;
             if (this.currentParallelMode === 'side') {
               this.needsHeightSync = true;
             }
@@ -1177,6 +1195,23 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
+
+  // --- Utility / Other ---
+  // Navigates back to the main reading list/library view
+  goBack() {
+    this.router.navigate(['/read']); // Adjust path if needed
+  }
+
+  // TrackBy function for *ngFor rendering blocks
+  protected trackBlock(index: number, block: BlockData): number {
+    return block.originalIndex; // Use original index for stability
+  }
+
+  // Generates a unique ID for chapter elements for querying
+  protected getChapterId(block: BlockData): string | null {
+    return block.type === 'chapter' ? `ch-${block.originalIndex}` : null; // Keep prefix simple
+  }
+
   // Decodes ArrayBuffer response to string
   private arrayBufferToString(buffer: ArrayBuffer): string {
     try {
@@ -1193,6 +1228,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Getter for parallel language options used in template
   get langs() {
     return this.parallelVersions.map(t => t.language);
+  }
+
+  protected closeActionsDropdown($event: boolean, friendDropdown: TuiDropdownDirective) {
+    if (!$event) {
+      friendDropdown.toggle(false);
+    }
   }
 
   get availableLangs(): string[] {
@@ -1257,6 +1298,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()
+              this.needsMeasurement = true;
               if (this.currentParallelMode === 'side') {
                 this.needsHeightSync = true;
               }
@@ -1297,6 +1339,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.cdRef.markForCheck();
       }
     }
+  }
+
+  protected mode: 'side' | 'overlay' | 'inline' = 'inline'; // Default to side-by-side
+
+  setMode(mode: 'side' | 'overlay' | 'inline') {
+    this.mode = mode;
   }
 
   @ViewChild(ParallelSettingsComponent, {static: true}) parallelSettingsComponent!: ParallelSettingsComponent;
