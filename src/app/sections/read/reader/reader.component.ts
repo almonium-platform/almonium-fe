@@ -1138,7 +1138,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     //    Adjust '.chapter' selector if your structure differs.
     const chapterHeadingElements = allH2Elements
       .filter(h2 =>
-          h2.parentElement?.classList.contains('sbs-eng-column')
+          h2.parentElement?.classList.contains('sbs-eng-column') || h2.parentElement?.classList.contains('chapter')
         // Alternative if not direct child: h2.closest('.chapter')?.contains(h2) // More complex check
       );
 
