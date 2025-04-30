@@ -688,13 +688,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.selectedLangCode !== null) {
       this.bookHtmlContent = this.baseBookHtmlContent;
       this.isParallelViewActive = false;
-      this.currentlyOpenUkrSpan = null; // Reset specific UI state if needed
+      this.currentlyOpenUkrSpan = null;
       this.selectedLangCode = null;
 
-      this.isLoadingParallel = false; // Ensure parallel loader is off
-      this.cdRef.markForCheck();      // Trigger change detection
-      this.scheduleChapterOffsetMeasurement(); // Remeasure layout
-      this.updateScrollState();        // Update scroll state based on base content (if method exists)
+      this.isLoadingParallel = false;
+      this.cdRef.markForCheck();
+
+      // **SET THE MEASUREMENT FLAG WHEN REVERTING TO BASE**
+      this.needsMeasurement = true; // Now measurement is required
+      this.initialScrollApplied = false; // Re-apply the scroll when content changes
+      console.log("Reverted to base, flags set for ngAfterViewChecked.");
     } else {
       console.log("Already in base content state.");
     }
