@@ -116,7 +116,7 @@
       <div class="book"
            tuiDropdownContext
            #dropdown="tuiDropdown"
-           [tuiDropdown]="dropdownTemplate"
+           [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null"
            (contextmenu)="onRightClick($event, book)"
       >
         <a
