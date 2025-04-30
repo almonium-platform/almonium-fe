@@ -571,8 +571,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   private saveProgressOnExit(useBeacon: boolean): void {
     console.log(`Attempting save on exit (useBeacon: ${useBeacon})`);
-    if (this.bookId && this.selectedLangCode && this.currentScrollPercentage !== this.lastSavedPercentage) {
-      const lang = this.selectedLangCode;
+    if (this.bookId && this.currentScrollPercentage !== this.lastSavedPercentage) {
       const book = this.bookId;
       const percentage = this.currentScrollPercentage;
 
