@@ -171,6 +171,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private initialScrollApplied: boolean = false;
   private isDestroyed = false;
 
+  private needsMeasurement: boolean = false;
+  private needsHeightSync: boolean = false;
+
   constructor(
     private cdRef: ChangeDetectorRef,
     private readService: ReadService,
@@ -528,6 +531,32 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   ngAfterViewChecked(): void {
+    // Check if measurement is pending
+    if (this.needsMeasurement) {
+      console.log("ngAfterViewChecked: Attempting scheduled measurement...");
+      // Attempt measurement. measureChapterOffsets should return true on success.
+      const measured = this.measureChapterOffsets();
+      if (measured) {
+        this.needsMeasurement = false; // Reset flag only on successful measurement
+        console.log("ngAfterViewChecked: Measurement successful.");
+        // Optionally update scroll state immediately after measurement if needed
+        // this.updateScrollState(); // updateScrollState is complex, maybe avoid calling it here unless necessary
+        this.cdRef.markForCheck(); // Ensure dropdown updates if nav changed
+      } else {
+        console.warn("ngAfterViewChecked: Measurement attempt failed (refs might still not be ready). Will retry on next check.");
+      }
+    }
+
+    // Check if height sync is pending (only for side mode)
+    if (this.needsHeightSync && this.currentParallelMode === 'side') {
+      console.log("ngAfterViewChecked: Attempting scheduled height sync...");
+      // Attempt height sync (assuming it doesn't need to return success)
+      this.synchronizeColumnHeights();
+      this.needsHeightSync = false; // Reset flag after attempting
+      console.log("ngAfterViewChecked: Height sync attempted.");
+    }
+
+    // Always attempt initial scroll (as per your requirement)
     this.attemptInitialScroll();
   }
 
@@ -608,18 +637,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.currentlyOpenUkrSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
 
-            setTimeout(() => {
-              if (this.isDestroyed) return; // Check if component was destroyed in the meantime
-              console.log("Post-load timeout: Scheduling measurements and scroll...");
-              this.scheduleChapterOffsetMeasurement(); // Measure offsets now
-              if (isBase) {
-                this.attemptInitialScroll(); // Apply initial scroll AFTER base load and render attempt
-              }
-              if (this.currentParallelMode === 'side') {
-                this.scheduleHeightSync(); // Sync heights if needed
-              }
-            }, 0); // Timeout 0 usually pushes execution after current sync tasks/render
-
+            this.needsMeasurement = true;
+            if (this.currentParallelMode === 'side') {
+              this.needsHeightSync = true;
+            }
           } catch (e) {
             this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
           }
@@ -1257,17 +1278,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()
+              this.needsMeasurement = true;
               if (this.currentParallelMode === 'side') {
-                this.scheduleHeightSync();
+                this.needsHeightSync = true;
               }
-              setTimeout(() => {
-                if (this.isDestroyed) return;
-                console.log("Post-parallel-load timeout: Scheduling measurements and scroll...");
-                this.scheduleChapterOffsetMeasurement();
-                if (this.currentParallelMode === 'side') {
-                  this.scheduleHeightSync();
-                }
-              }, 0);
+              console.log("Parallel content loaded, flags set for ngAfterViewChecked.");
+              // We also want to reset scroll to top when changing language
+              this.initialScrollPercentage = 0; // Target 0%
+              this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
             } catch (e) {
               // Handle decoding error
               this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
