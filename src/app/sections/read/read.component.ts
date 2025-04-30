@@ -162,6 +162,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   private fetchBooksOnLanguageChange() {
+    this.filteredBooks = [];
     this.targetLanguageDropdownService.currentLanguage$
       .pipe(
         tap(() => this.loadingSubject$.next(true)), // Set loading true when language changes *before* fetching
