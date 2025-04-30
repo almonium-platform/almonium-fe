@@ -608,6 +608,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.currentlyOpenUkrSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
 
+            setTimeout(() => {
+              if (this.isDestroyed) return; // Check if component was destroyed in the meantime
+              console.log("Post-load timeout: Scheduling measurements and scroll...");
+              this.scheduleChapterOffsetMeasurement(); // Measure offsets now
+              if (isBase) {
+                this.attemptInitialScroll(); // Apply initial scroll AFTER base load and render attempt
+              }
+              if (this.currentParallelMode === 'side') {
+                this.scheduleHeightSync(); // Sync heights if needed
+              }
+            }, 0); // Timeout 0 usually pushes execution after current sync tasks/render
+
           } catch (e) {
             this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
           }
@@ -755,6 +767,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           title = titleSourceElement.innerText?.replace(/\s+/g, ' ').trim() || title;
         }
 
+        console.log(`Chapter anchor found: ${title} (ID: ${elementId}) at offset ${offsetTopRelativeToWrapper}px`);
         this.chapterNav.push({
           title: title,
           offsetTop: offsetTopRelativeToWrapper,
@@ -1247,7 +1260,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               if (this.currentParallelMode === 'side') {
                 this.scheduleHeightSync();
               }
-              this.scheduleChapterOffsetMeasurement();
+              setTimeout(() => {
+                if (this.isDestroyed) return;
+                console.log("Post-parallel-load timeout: Scheduling measurements and scroll...");
+                this.scheduleChapterOffsetMeasurement();
+                if (this.currentParallelMode === 'side') {
+                  this.scheduleHeightSync();
+                }
+              }, 0);
             } catch (e) {
               // Handle decoding error
               this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
