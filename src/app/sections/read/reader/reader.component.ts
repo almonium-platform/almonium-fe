@@ -1134,7 +1134,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Chapter Navigation ---
   // Scrolls to the measured offsetTop of a selected chapter
-  protected jumpToChapter(chapterIndex: number): void { // Parameter is now index
+  protected jumpToChapter(chapterIndex: number): void { // Parameter is index
     if (this.isLoading || !this.readerContentWrapperRef || chapterIndex < 0 || chapterIndex >= this.chapterNav.length) {
       console.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
       return;
@@ -1143,26 +1143,32 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement) return;
 
-    const targetChapterInfo = this.chapterNav[chapterIndex]; // Get stored info
+    const targetChapterInfo = this.chapterNav[chapterIndex]; // Get stored info (title, index)
     console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title})`);
 
     let elementToScrollTo: HTMLElement | null = null;
 
-    // Determine the correct selector based on the CURRENT mode
-    const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
-    const selector = isParallelSideMode ? 'div.sbs-original-h2' : 'h2';
+    // 1. Get ALL H2 elements within the content area
+    const allH2Elements = Array.from(contentElement.querySelectorAll<HTMLElement>('h2'));
 
-    // Find the Nth element matching the selector
-    const headings = contentElement.querySelectorAll<HTMLElement>(selector);
-    if (headings && chapterIndex < headings.length) {
-      elementToScrollTo = headings[chapterIndex];
+    // 2. Filter them: Keep only H2s that are likely chapter headings
+    //    Assumption: Chapter headings are direct children of a '.chapter' div
+    //    Adjust '.chapter' selector if your structure differs.
+    const chapterHeadingElements = allH2Elements
+      .filter(h2 =>
+          h2.parentElement?.classList.contains('sbs-eng-column')
+        // Alternative if not direct child: h2.closest('.chapter')?.contains(h2) // More complex check
+      );
+
+    console.log(`Found ${allH2Elements.length} total H2s, filtered down to ${chapterHeadingElements.length} potential chapter headings.`);
+
+    // 3. Find the target element by index within the FILTERED list
+    if (chapterIndex < chapterHeadingElements.length) {
+      elementToScrollTo = chapterHeadingElements[chapterIndex];
     } else {
-      console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th element matching selector '${selector}'. Found ${headings?.length || 0}.`);
-      // Fallback: Maybe try scrolling to the original offsetTop? Might be inaccurate.
-      // console.log(`Fallback: Scrolling to stored offsetTop: ${targetChapterInfo.offsetTop}`);
-      // this.setScrollTop(targetChapterInfo.offsetTop);
-      // return; // Exit after attempting fallback scroll
-      return; // Exit if element not found
+      console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th chapter heading element after filtering. Filtered count: ${chapterHeadingElements.length}.`);
+      // Maybe log the allH2Elements and chapterHeadingElements here for debugging if needed
+      return; // Exit if element not found in filtered list
     }
 
     // Perform the scroll if element found
@@ -1171,8 +1177,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
       setTimeout(() => {
-        this.updateScrollState();
-        this.cdRef.markForCheck();
+        if (!this.isDestroyed) {
+          this.updateScrollState();
+          this.cdRef.markForCheck();
+        }
       }, 350);
     }
   }
