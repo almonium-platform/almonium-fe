@@ -25,6 +25,12 @@ export interface Book {
   translator?: string;
 }
 
+export interface BookMiniDetails {
+  progressPercentage: number;
+  languageVariants: BookLanguageVariant[];
+  language: LanguageCode;
+}
+
 export interface BookLanguageVariant {
   id: number;
   language: string;

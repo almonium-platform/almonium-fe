@@ -630,10 +630,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Placeholder fetch for parallel languages options
   private fetchBookData(bookId: number): void {
-    this.readService.getBookById(bookId, this.currentBaseLanguage).pipe(takeUntil(this.destroy$)).subscribe({
+    this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
-          this.parallelVersions = book.languagesVariants.filter(t => t.language !== book.language);
+          this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
           if (book.progressPercentage) {
             this.scrollToPercentage(book.progressPercentage);
           }

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
-import {Book, BookshelfView} from "./book.model";
+import {Book, BookMiniDetails, BookshelfView} from "./book.model";
 import {EMPTY, Observable} from "rxjs";
 import {catchError, tap} from 'rxjs/operators';
 
@@ -38,6 +38,11 @@ export class ReadService {
     return this.http.get<Book>(url, {withCredentials: true});
   }
 
+  getMiniBookDetailsById(bookId: number): Observable<BookMiniDetails> {
+    const url = `${AppConstants.BOOKS_URL}/${bookId}`;
+    return this.http.get<BookMiniDetails>(url, {withCredentials: true});
+  }
+
   // TODO fix Observable<any> to a more specific type everywhere
   orderTranslation(bookId: number, language: string): Observable<any> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
@@ -60,7 +65,7 @@ export class ReadService {
   }
 
   loadBook(bookId: number): Observable<HttpResponse<ArrayBuffer>> {
-    const url = `${AppConstants.BOOKS_URL}/${bookId}`;
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/text`;
     return this.http.get(url, {
       withCredentials: true,
       responseType: 'arraybuffer',
