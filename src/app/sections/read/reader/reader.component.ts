@@ -1123,34 +1123,40 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
-    if (!contentElement) return;
+    if (!contentElement) {
+      console.warn(`Cannot jump: contentElement not available.`);
+      return;
+    }
 
     const targetChapterInfo = this.chapterNav[chapterIndex]; // Get stored info (title, index)
     console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title})`);
 
     let elementToScrollTo: HTMLElement | null = null;
 
-    // 1. Get ALL H2 elements within the content area
-    const allH2Elements = Array.from(contentElement.querySelectorAll<HTMLElement>('h2'));
+    try {
+      // 1. Get ALL H2 elements
+      const allH2Elements = Array.from(contentElement.querySelectorAll<HTMLElement>('h2'));
 
-    // 2. Filter them: Keep only H2s that are likely chapter headings
-    //    Assumption: Chapter headings are direct children of a '.chapter' div
-    //    Adjust '.chapter' selector if your structure differs.
-    const chapterHeadingElements = allH2Elements
-      .filter(h2 =>
-          h2.parentElement?.classList.contains('sbs-eng-column') || h2.parentElement?.classList.contains('chapter')
-        // Alternative if not direct child: h2.closest('.chapter')?.contains(h2) // More complex check
+      // 2. Filter using the CORRECT condition provided by the user
+      console.log("Jump target identification: Filtering H2s based on parent (.chapter or .sbs-eng-column)");
+      const chapterHeadingElements = allH2Elements.filter(h2 =>
+        h2.parentElement?.classList.contains('sbs-eng-column') || // Matches H2 inside Eng column (Side Mode)
+        h2.parentElement?.classList.contains('chapter')          // Matches H2 inside Chapter div (Other Modes)
       );
 
-    console.log(`Found ${allH2Elements.length} total H2s, filtered down to ${chapterHeadingElements.length} potential chapter headings.`);
+      console.log(`Found ${allH2Elements.length} total H2s, filtered down to ${chapterHeadingElements.length} potential chapter headings.`);
 
-    // 3. Find the target element by index within the FILTERED list
-    if (chapterIndex < chapterHeadingElements.length) {
-      elementToScrollTo = chapterHeadingElements[chapterIndex];
-    } else {
-      console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th chapter heading element after filtering. Filtered count: ${chapterHeadingElements.length}.`);
-      // Maybe log the allH2Elements and chapterHeadingElements here for debugging if needed
-      return; // Exit if element not found in filtered list
+      // 3. Find the target element by index within the FILTERED list
+      if (chapterIndex < chapterHeadingElements.length) {
+        elementToScrollTo = chapterHeadingElements[chapterIndex];
+      } else {
+        console.warn(`Cannot jump: Could not find the ${chapterIndex + 1}th chapter heading element after filtering. Filtered count: ${chapterHeadingElements.length}.`);
+        return; // Exit if element not found in filtered list
+      }
+
+    } catch (error) {
+      console.error("Error during DOM query/filter in jumpToChapter:", error);
+      return; // Exit on error
     }
 
     // Perform the scroll if element found
