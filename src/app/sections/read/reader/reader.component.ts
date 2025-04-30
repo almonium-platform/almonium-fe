@@ -730,81 +730,104 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // --- Chapter Offset Measurement ---
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
-  private measureChapterOffsets(): boolean { // Return boolean indicating success/readiness
+  private measureChapterOffsets(): boolean {
     const contentElement = this.readerContentRef?.nativeElement;
-    // Add wrapper check here too
-    if (!contentElement || !this.readerContentWrapperRef?.nativeElement || this.isLoading) {
-      if (!contentElement || !this.readerContentWrapperRef?.nativeElement)
-        console.warn("measureChapterOffsets: readerContentRef or readerContentWrapperRef nativeElement is not available yet.");
-      return false; // Indicate refs not ready
+    const wrapperElement = this.readerContentWrapperRef?.nativeElement;
+
+    // Strengthened Guard: Check refs, loading state, and actual HTML content
+    if (!contentElement || !wrapperElement || this.isLoading || !this.bookHtmlContent) {
+      console.warn("measureChapterOffsets: Measurement prerequisites not met.", { /* ... */});
+      return false;
     }
 
     console.log("Measuring chapter offsets from rendered HTML...");
-    this.chapterNav = []; // Clear existing nav items
+    const newChapterNav: ChapterNavInfo[] = []; // Build a new list
 
-    const chapterAnchors = contentElement.querySelectorAll('a[id^="chap"]');
-    console.log(`Found ${chapterAnchors.length} potential chapter anchors.`);
+    let headingElements: NodeListOf<HTMLElement>;
+    const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
 
-    chapterAnchors.forEach((anchor: Element) => {
-      const elementId = anchor.id;
-      // Find the closest H2 ancestor of the anchor
-      const headingElement = anchor.closest('h2') as HTMLElement | null;
+    if (isParallelSideMode) {
+      headingElements = contentElement.querySelectorAll('div.sbs-original-h2');
+      // console.log(`Parallel Side Mode: Found ${headingElements.length} potential chapter heading divs.`);
+    } else {
+      headingElements = contentElement.querySelectorAll('h2');
+      // console.log(`Base/Other Mode: Found ${headingElements.length} potential chapter heading H2s.`);
+    }
 
-      if (headingElement && elementId) {
+    headingElements.forEach((headingElement: HTMLElement, index: number) => {
+      let title = `Chapter ${index + 1}`; // Default title
+      let elementId = '';
+      let offsetTop = headingElement.offsetTop ?? 0;
 
-        // *** FILTERING LOGIC ***
-        // Check if this specific H2 element is located inside a Ukrainian column.
-        // .closest() searches ancestors. If it finds '.sbs-ukr-column', skip this H2.
-        const isInsideUkrColumn = headingElement.closest('.sbs-ukr-column');
+      if (isParallelSideMode) {
+        // --- Parallel Side Mode Logic ---
+        elementId = `measured-chap-${index}`;
+        const engCol = headingElement.querySelector<HTMLElement>('.sbs-eng-column');
+        const ukrCol = headingElement.querySelector<HTMLElement>('.sbs-ukr-column');
 
-        if (isInsideUkrColumn) {
-          // console.log(`Skipping H2 with anchor ${elementId} because it's inside .sbs-ukr-column.`);
-          return; // Skip to the next anchor
+        // **Prioritize UKR title if parallel language selected**
+        if (engCol && this.selectedLangCode) {
+          title = engCol.innerText?.replace(/\s+/g, ' ').trim() || title;
+        } else if (ukrCol) { // Fallback to ENG
+          title = ukrCol.innerText?.replace(/\s+/g, ' ').trim() || title;
+        } else { /* ... fallback warning ... */
         }
-        // *********************
-
-        // If we reach here, the H2 is NOT inside a Ukrainian column (it's the English one)
-        const offsetTopRelativeToWrapper = headingElement.offsetTop;
-
-        // Now, get the title ONLY from the English column within THIS heading, if possible
-        let title = `Chapter (ID: ${elementId})`; // Default fallback
-        let titleSourceElement: HTMLElement | null = null;
-
-        // In side mode, try to find the English column *within this specific H2*
-        if (this.currentParallelMode === 'side') {
-          titleSourceElement = headingElement.querySelector<HTMLElement>('.sbs-eng-column');
-          // console.log(`Side mode check for H2 (${elementId}): Found eng column? ${!!titleSourceElement}`);
-        }
-
-        // If we didn't find an English column inside (e.g., not side mode, or structure differs),
-        // or if we explicitly want the heading text regardless of column structure for non-side mode:
-        if (!titleSourceElement || this.currentParallelMode !== 'side') {
-          titleSourceElement = headingElement; // Fallback to the H2 itself
-        }
-
-        // Extract text from the determined source
-        if (titleSourceElement) {
-          // Use innerText as it might be better at getting visible text
-          title = titleSourceElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-        }
-
-        console.log(`Chapter anchor found: ${title} (ID: ${elementId}) at offset ${offsetTopRelativeToWrapper}px`);
-        this.chapterNav.push({
-          title: title,
-          offsetTop: offsetTopRelativeToWrapper,
-          elementId: elementId
-        });
 
       } else {
-        if (!headingElement) console.warn(`Could not find parent H2 for anchor with ID: ${elementId}`);
-        else console.warn("Found chapter anchor without ID:", anchor);
-      }
-    });
+        // --- Base / Non-Side (Inline/Overlay) Mode Logic ---
+        const anchor = headingElement.querySelector<HTMLAnchorElement>('a[id^="chap"]');
+        if (anchor && anchor.id) {
+          elementId = anchor.id;
+        } else {
+          elementId = `measured-chap-${index}`;
+          // console.warn(`Chapter measurement (Base): Couldn't find anchor inside H2 at index ${index}. Generated ID: ${elementId}`);
+        }
 
-    // Sort by position
-    this.chapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
-    console.log(`Found and measured ${this.chapterNav.length} valid chapters (filtered).`);
-    return true; // Indicate success
+        // ** REVISED Title Extraction for Inline/Overlay **
+        let titleSourceElement: HTMLElement | null = null;
+
+        if (this.isParallelViewActive && this.selectedLangCode) {
+          // If parallel view is active, prioritize the UKR span INSIDE the H2
+          titleSourceElement = headingElement.querySelector<HTMLElement>('span.eng');
+          // console.log(`  Inline/Overlay (Parallel): Found ukr span? ${!!titleSourceElement}`);
+        }
+
+        // If not parallel OR ukr span wasn't found, try the ENG span
+        if (!titleSourceElement) {
+          titleSourceElement = headingElement.querySelector<HTMLElement>('span.ukr');
+          // console.log(`  Inline/Overlay (Base or fallback): Found eng span? ${!!titleSourceElement}`);
+        }
+
+        // If we found a specific span (ukr or eng) use its text
+        if (titleSourceElement) {
+          title = titleSourceElement.innerText?.replace(/\s+/g, ' ').trim() || title;
+        } else {
+          // Final fallback: Use the whole H2's text (might happen if spans aren't structured as expected)
+          title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
+          console.warn(`Chapter measurement (Inline/Overlay): Couldn't find specific ukr/eng span in H2 at index ${index}. Used full H2 text.`);
+        }
+      } // End of else (Base / Non-Side Mode Logic)
+
+      // Add to nav list if we have a valid element ID
+      if (elementId) {
+        newChapterNav.push({
+          title: title,
+          offsetTop: offsetTop,
+          elementId: elementId
+        });
+      } else { /* ... warning ... */
+      }
+
+    }); // End forEach loop
+
+    newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop);
+    this.chapterNav = newChapterNav;
+    console.log(`Found and measured ${this.chapterNav.length} chapters.`);
+    if (this.chapterNav.length === 0 && headingElements.length > 0) { /* ... warning ... */
+    } else if (this.chapterNav.length === 0 && headingElements.length === 0) { /* ... warning ... */
+    }
+
+    return true;
   }
 
   // Schedules chapter measurement reliably after view updates
@@ -1150,18 +1173,47 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (this.isLoading || !this.readerContentWrapperRef) return;
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement) return;
-    const element = contentElement.querySelector(`#${elementId}`) as HTMLElement; // Find within content
 
-    if (element) {
-      console.log(`Jumping to chapter element ID: ${elementId}`);
-      element.scrollIntoView({behavior: 'smooth', block: 'start'});
-      // Update percentage after scroll finishes
+    let elementToScrollTo: HTMLElement | null = null;
+
+    // Check if it's an original anchor ID or a generated one
+    if (elementId.startsWith('chap')) {
+      // Original ID - find the anchor (might be inside H2 or the pipe structure)
+      elementToScrollTo = contentElement.querySelector(`#${elementId}`);
+      // If found anchor, scroll its parent heading into view
+      if (elementToScrollTo) {
+        elementToScrollTo = elementToScrollTo.closest('h2, div.sbs-original-h2');
+      }
+    } else if (elementId.startsWith('measured-chap-')) {
+      // Generated ID - find the element by index
+      const index = parseInt(elementId.split('-').pop() || '-1', 10);
+      if (index >= 0) {
+        // Select based on the mode during measurement
+        const isParallelSideMode = this.currentParallelMode === 'side' && this.isParallelViewActive;
+        const selector = isParallelSideMode ? 'div.sbs-original-h2' : 'h2';
+        const headings = contentElement.querySelectorAll<HTMLElement>(selector);
+        if (headings && index < headings.length) {
+          elementToScrollTo = headings[index];
+        }
+      }
+    }
+
+    // Perform the scroll if element found
+    if (elementToScrollTo) {
+      console.log(`Jumping to chapter element ID: ${elementId} -> Scrolling element:`, elementToScrollTo);
+      // Use scrollIntoView for simplicity, adjust offset manually if needed
+      elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
+      // Or calculate exact scroll position:
+      // const targetOffset = elementToScrollTo.offsetTop;
+      // this.setScrollTop(targetOffset); // Use your existing scroll method
+
+      // Update percentage after scroll finishes (keep timeout)
       setTimeout(() => {
         this.updateScrollState();
         this.cdRef.markForCheck();
-      }, 350);
+      }, 350); // Adjust timeout if scroll behavior is 'instant'
     } else {
-      console.warn(`Cannot jump: Chapter element with ID ${elementId} not found.`);
+      console.warn(`Cannot jump: Chapter element corresponding to ID ${elementId} not found.`);
     }
   }
 
