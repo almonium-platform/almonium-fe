@@ -17,7 +17,7 @@ export interface Book {
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
   description: string;
-  availableLanguages: BookMini[];
+  languagesVariants: BookLanguageVariant[];
   favorite: boolean;
   orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
@@ -25,7 +25,7 @@ export interface Book {
   translator?: string;
 }
 
-export interface BookMini {
+export interface BookLanguageVariant {
   id: number;
   language: string;
 }

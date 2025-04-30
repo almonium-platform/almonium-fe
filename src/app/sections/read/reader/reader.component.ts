@@ -22,7 +22,7 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
 import {ActivatedRoute, Router} from "@angular/router";
-import {BookMini} from "../book.model";
+import {BookLanguageVariant} from "../book.model";
 import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
@@ -150,7 +150,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly SCROLL_INTERVAL_DELAY = 50;
 
   // --- Parallel Text (Placeholder State) ---
-  protected parallelVersions: BookMini[] = [];
+  protected parallelVersions: BookLanguageVariant[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
   protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
   private currentlyOpenUkrSpan: HTMLElement | null = null;
@@ -633,7 +633,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.readService.getBookById(bookId, this.currentBaseLanguage).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
-          this.parallelVersions = book.availableLanguages.filter(t => t.language !== book.language);
+          this.parallelVersions = book.languagesVariants.filter(t => t.language !== book.language);
           if (book.progressPercentage) {
             this.scrollToPercentage(book.progressPercentage);
           }
