@@ -1,4 +1,4 @@
-import {ApplicationConfig, importProvidersFrom, provideZoneChangeDetection} from '@angular/core';
+import {ApplicationConfig, importProvidersFrom, isDevMode, provideZoneChangeDetection} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {provideAnimations} from '@angular/platform-browser/animations';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
@@ -14,6 +14,7 @@ import {TranslateModule} from "@ngx-translate/core";
 import {EN_CODE} from "./sections/social/i18n";
 import {provideMessaging} from "@angular/fire/messaging";
 import {getMessaging} from "firebase/messaging";
+import {provideServiceWorker} from '@angular/service-worker';
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -53,6 +54,9 @@ export const appConfig: ApplicationConfig = {
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: MY_CUSTOM_ERRORS,
-    },
+    }, provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    }),
   ],
 };
