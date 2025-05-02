@@ -5,6 +5,13 @@ on:
     branches:
       - master
 
+# Use Environment Variables at the Job Level for cleaner access
+# Alternatively, access directly using vars.VAR_NAME
+env:
+  DEPLOY_HOST: ${{ vars.CLOUD_HOST }}
+  DEPLOY_USER: ${{ vars.CLOUD_USERNAME }}
+  DEPLOY_PATH: ${{ vars.FE_DEPLOY_PATH }}
+
 jobs:
   build-and-deploy:
     name: Build and Deploy Frontend to VM
@@ -29,19 +36,19 @@ jobs:
       - name: Setup SSH Agent
         uses: webfactory/ssh-agent@v0.9.1
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.CLOUD_KEY }}
 
       - name: Create Target Directory on VM (if it doesn't exist)
         run: |
-          ssh -o StrictHostKeyChecking=no kuzanoleg@104.154.227.193 "mkdir -p /var/www/almonium-fe"
+          ssh -o StrictHostKeyChecking=no ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}"
 
       - name: Deploy Built Files using rsync
         run: |
-          ssh-keyscan -H 104.154.227.193 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
           rsync -avz --delete \
             ./dist/almonium-fe/browser/ \
-            kuzanoleg@104.154.227.193:/var/www/almonium-fe/
+            ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/
 
       - name: Deployment Summary
-        run: echo "Successfully deployed frontend to VM path /var/www/almonium-fe/"
+        run: echo "Successfully deployed frontend to ${{ env.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/"
