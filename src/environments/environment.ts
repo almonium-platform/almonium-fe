@@ -4,6 +4,7 @@ export const environment = {
   feUrl: 'http://localhost:9999',
   googleClientId: '33380019461-l4hq3eto00vvvgprtadahm5o2tqj65ti.apps.googleusercontent.com',
   streamChatApiKey: "zjh3fpuaexy2",
+  googleAnalyticsId: 'G-726SZFQZWB',
   firebaseConfig: {
     apiKey: "AIzaSyCotfh0KzDpP3HniEfxyxoAw9HUFAA8gFs",
     authDomain: "almonium.firebaseapp.com",
