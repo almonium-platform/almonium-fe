@@ -7,11 +7,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="assets/img/logo/logo.svg">
   <script src="https://accounts.google.com/gsi/client" defer="" async=""></script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-726SZFQZWB"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-726SZFQZWB');
+  </script>
+
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#693651">
 </head>
 <body>
 <app-root></app-root>
-  <noscript>Please enable JavaScript to continue using this application.</noscript>
+<noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 </html>
