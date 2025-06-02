@@ -1,4 +1,4 @@
-name: Build and Deploy Angular Frontend to VM
+name: Build and Deploy (Prod)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-prod:
     name: Build and Deploy Frontend to VM
     runs-on: ubuntu-latest
     environment: prod

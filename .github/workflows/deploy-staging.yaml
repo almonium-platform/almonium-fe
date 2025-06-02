@@ -1,4 +1,4 @@
-name: Build and Deploy Angular Frontend to VM (Staging)
+name: Build and Deploy (Staging)
 
 on:
   push:
