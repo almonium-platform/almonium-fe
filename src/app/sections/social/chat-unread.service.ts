@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, fromEventPattern} from 'rxjs';
-import {StreamChat} from "stream-chat";
+import {OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -62,8 +62,13 @@ export class ChatUnreadService {
     return this.unreadCount$.asObservable();
   }
 
+  public isOwnUser(u: UserResponse | OwnUserResponse | undefined): u is OwnUserResponse {
+    return !!u && 'total_unread_count' in u;
+  }
+
   public async fetchUnreadCount() {
-    const unreadCount = Number(this.chatClient.user?.total_unread_count ?? 0);
+    const u = this.chatClient.user;
+    const unreadCount = this.isOwnUser(u) ? Number(u.total_unread_count ?? 0) : 0;
     this.updateUnreadCount(unreadCount);
   }
 

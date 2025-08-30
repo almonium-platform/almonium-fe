@@ -12,7 +12,7 @@ import {
 import {Subscription} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {Channel, User} from 'stream-chat';
-import {AvatarLocation, AvatarType, ChatClientService, DefaultStreamChatGenerics,} from 'stream-chat-angular';
+import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -39,11 +39,11 @@ export class CustomChatAvatarComponent
   /**
    * The channel the avatar belongs to (if avatar of a channel is displayed)
    */
-  @Input() channel?: Channel<DefaultStreamChatGenerics>;
+  @Input() channel?: Channel;
   /**
    * The user the avatar belongs to (if avatar of a user is displayed)
    */
-  @Input() user?: User<DefaultStreamChatGenerics>;
+  @Input() user?: User;
   /**
    * The type of the avatar: channel if channel avatar is displayed, user if user avatar is displayed
    */

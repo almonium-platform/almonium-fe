@@ -14,7 +14,6 @@ import {
   ChannelHeaderInfoContext,
   ChannelService,
   CustomTemplatesService,
-  DefaultStreamChatGenerics,
   TypingIndicatorContext
 } from 'stream-chat-angular';
 import {fromEventPattern, Observable, of, Subscription} from "rxjs";
@@ -92,10 +91,10 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit {
   @ViewChild('typingIndicator') typingIndicator!: TemplateRef<TypingIndicatorContext>;
 
-  @Input() channel: Channel<DefaultStreamChatGenerics> | undefined;
+  @Input() channel: Channel | undefined;
   channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
   channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
-  private activeChannel: Channel<DefaultStreamChatGenerics> | undefined;
+  private activeChannel: Channel | undefined;
   protected canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
   protected isSelfChat: boolean | undefined;

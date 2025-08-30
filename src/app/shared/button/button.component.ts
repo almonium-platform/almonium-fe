@@ -1,9 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgStyle} from "@angular/common";
-import {TuiHintDirection} from "@taiga-ui/core/directives/hint/hint-options.directive";
 import {Router} from "@angular/router";
-import {TuiHintDirective, TuiLoader} from "@taiga-ui/core";
+import {TuiHintDirection, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
 import {TuiSkeleton} from "@taiga-ui/kit";
 
 @Component({

@@ -12,18 +12,7 @@ import {
 import {SocialService} from "./social.service";
 import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {
-  BehaviorSubject,
-  combineLatest,
-  EMPTY,
-  filter,
-  finalize,
-  firstValueFrom,
-  of,
-  Subject,
-  take,
-  takeUntil
-} from "rxjs";
+import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
 import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
@@ -59,7 +48,6 @@ import {
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
-  DefaultStreamChatGenerics,
   MessageActionsBoxContext,
   MessageService,
   StreamAutocompleteTextareaModule,
@@ -170,7 +158,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   // CHATS
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
-  protected hoveredChannel: Channel<DefaultStreamChatGenerics> | null = null;
+  protected hoveredChannel: Channel | null = null;
   protected currentLocation: string = '';
   protected isChatOpen: boolean = false;
   protected redirectId: string | undefined = undefined;
@@ -352,7 +340,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
   }
 
-  private setChatTitle(channel: Channel<DefaultStreamChatGenerics>) {
+  private setChatTitle(channel: Channel) {
     setTimeout(() => {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
@@ -805,7 +793,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isDrawerOpened.set(false);
   }
 
-  protected getChatName(channel: Channel<DefaultStreamChatGenerics>, defaultName: string): string {
+  protected getChatName(channel: Channel, defaultName: string): string {
     if (defaultName !== AppConstants.PRIVATE_CHAT_NAME) {
       return defaultName;
     }
@@ -820,7 +808,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return otherMember?.user?.name || AppConstants.PRIVATE_CHAT_NAME;
   }
 
-  hideChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -829,7 +817,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  showChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  showChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -839,7 +827,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  muteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  muteChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -848,16 +836,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  isUnread(channel: Channel<DefaultStreamChatGenerics>) {
+  isUnread(channel: Channel) {
     return channel.countUnread() > 0;
   }
 
-  isLastMessageFromOtherUser(channel: Channel<DefaultStreamChatGenerics>): boolean {
+  isLastMessageFromOtherUser(channel: Channel): boolean {
     const lastMessage = channel.state.messages[channel.state.messages.length - 1];
     return (lastMessage && lastMessage.user?.id !== this.chatService.chatClient.userID);
   }
 
-  markAsRead(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  markAsRead(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -866,7 +854,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  markAsUnread(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  markAsUnread(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -882,7 +870,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  unmuteChat(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  unmuteChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -891,23 +879,23 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  isChannelMuted(channel: Channel<DefaultStreamChatGenerics>): boolean {
+  isChannelMuted(channel: Channel): boolean {
     return channel.muteStatus().muted;
   }
 
-  isPrivateChat(channel: Channel<DefaultStreamChatGenerics>) {
+  isPrivateChat(channel: Channel) {
     return channel.data?.name === AppConstants.PRIVATE_CHAT_NAME;
   }
 
-  isSelfChat(channel: Channel<DefaultStreamChatGenerics>) {
+  isSelfChat(channel: Channel) {
     return channel.data?.name === AppConstants.SELF_CHAT_NAME;
   }
 
-  isPublicChannel(channel: Channel<DefaultStreamChatGenerics>) {
+  isPublicChannel(channel: Channel) {
     return !this.isPrivateChat(channel) && !this.isSelfChat(channel);
   }
 
-  isHiddenChannel(channel: Channel<DefaultStreamChatGenerics>) {
+  isHiddenChannel(channel: Channel) {
     return channel.data?.hidden;
   }
 
@@ -924,7 +912,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  joinChannel(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
@@ -937,7 +925,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 30);
   }
 
-  amMember(channel: Channel<DefaultStreamChatGenerics>): boolean {
+  amMember(channel: Channel): boolean {
     return channel.state.members[this.userInfo!.id] !== undefined
   }
 
@@ -958,7 +946,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return interlocutor ? interlocutor.user?.id ?? null : null
   }
 
-  startAvatarHover(channel: Channel<DefaultStreamChatGenerics>, location: string) {
+  startAvatarHover(channel: Channel, location: string) {
     this.hoveredChannel = channel;
     this.currentLocation = location;
   }
@@ -989,7 +977,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private excludedLocations: AvatarLocation[] = ['channel-preview', 'channel-header'];
 
-  shouldShowDropdown(channel: Channel<DefaultStreamChatGenerics>, location: AvatarLocation): boolean {
+  shouldShowDropdown(channel: Channel, location: AvatarLocation): boolean {
     if (!this.excludedLocations.includes(location)) {
       return false;
     }
@@ -1080,9 +1068,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   // confirm modal chats
-  protected targetChannel: Channel<DefaultStreamChatGenerics> | null = null;
+  protected targetChannel: Channel | null = null;
 
-  protected prepareConfirmModalForChatDeletion(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
     this.targetChannel = channel;
 
@@ -1105,7 +1093,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  protected prepareChatTruncationConfirmationModal(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
     this.targetChannel = channel;
 
@@ -1128,7 +1116,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  protected prepareLeaveChannelModal(channel: Channel<DefaultStreamChatGenerics>, dropdown: TuiDropdownDirective) {
+  protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
     this.targetChannel = channel;
 
