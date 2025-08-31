@@ -57,19 +57,23 @@
 
       <div class="row-content target-lang-head">
         @if (showTargetLangDropdown) {
-          <tui-select
-            tuiTextfieldSize="m"
+          <tui-textfield
+            tuiTextfieldSize="s"
             class="language-select"
-            [formControl]="targetLanguageSelectControl"
-            [tuiTextfieldLabelOutside]="true"
             (clickOutside)="(showTargetLangDropdown = false)"
           >
+            <input
+              tuiSelect
+              [formControl]="targetLanguageSelectControl"
+            />
+
             <tui-data-list-wrapper
-              *tuiDataList
+              new
+              *tuiTextfieldDropdown
               [items]="targetLanguageNames"
             >
             </tui-data-list-wrapper>
-          </tui-select>
+          </tui-textfield>
         } @else {
           <div class="target-lang-chip"
                (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"

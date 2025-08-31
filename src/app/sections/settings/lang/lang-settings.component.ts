@@ -1,4 +1,4 @@
-import {TuiInputModule, TuiInputNumberModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -11,9 +11,12 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon} from "@taiga-ui/core";
+import {
+  TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon, TuiTextfieldComponent,
+  TuiTextfieldDropdownDirective, TuiTextfieldOptionsDirective
+} from "@taiga-ui/core";
 import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiChip, TuiSwitch} from "@taiga-ui/kit";
+import {TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch} from "@taiga-ui/kit";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -39,9 +42,6 @@ import {LucideAngularModule} from "lucide-angular";
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    TuiInputModule,
-    TuiInputNumberModule,
-    TuiTextfieldControllerModule,
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
     EditButtonComponent,
@@ -59,8 +59,12 @@ import {LucideAngularModule} from "lucide-angular";
     NgClickOutsideDirective,
     LucideAngularModule,
     TuiHintDirective,
-    TuiSelectModule,
-    NgClass
+    NgClass,
+    TuiTextfieldComponent,
+    TuiSelectDirective,
+    TuiDataListWrapperComponent,
+    TuiTextfieldDropdownDirective,
+    TuiTextfieldOptionsDirective
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
