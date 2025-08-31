@@ -23,7 +23,6 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
-import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
@@ -33,6 +32,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
+import {TuiDataList, TuiDropdownDirective, TuiOptGroup} from "@taiga-ui/core";
 
 interface BlockData {
   type: 'paragraph' | 'verse' | 'chapter';
@@ -69,8 +69,6 @@ export class SafeHtmlPipe implements PipeTransform {
     SharedLucideIconsModule,
     ButtonComponent,
     TuiSliderComponent,
-    TuiSelectModule,
-    TuiTextfieldControllerModule,
     SlicePipe,
     TuiActiveZone,
     SafeHtmlPipe,
@@ -82,6 +80,9 @@ export class SafeHtmlPipe implements PipeTransform {
     ParallelFormatPipe,
     ParallelFormatPipe,
     ParallelFormatPipe,
+    TuiDropdownDirective,
+    TuiOptGroup,
+    TuiDataList,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
