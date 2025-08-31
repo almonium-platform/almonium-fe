@@ -1,77 +1,64 @@
-import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Subject, Subscription} from 'rxjs';
-
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-gif-player',
   template: `
-    @if (visible) {
-      <img
-        #gifElement
-        [src]="currentSrc"
-        alt="logo"
-        class="logo"
-        loading="eager"
-        decoding="sync"
-        fetchpriority="high"
-      />
-    }
+    <video
+      #vid
+      class="logo"
+      playsinline
+      muted
+      preload="auto"
+      [autoplay]="playOnLoad"
+      [loop]="looped"
+    >
+      <source src="assets/gif/folding.webm" type="video/webm" />
+    </video>
   `,
-  styles: `
-    /* Keep the GIF on its own layer */
-    .logo {
-      will-change: transform; /* hint compositing */
-      transform: translateZ(0); /* force layer in Chrome */
-      backface-visibility: hidden; /* avoid repaint quirks */
-      contain: paint; /* isolate painting */
-    }
-  `
 })
 export class GifPlayerComponent implements OnInit, OnDestroy {
-  private foldingOnce = 'assets/gif/folding-once.gif';
-  private foldingLooped = 'assets/gif/folding-looped.gif';
-
   @Input() replayTrigger?: Subject<void>;
-  @Input() looped = false;
+  @Input() looped = false;        // one asset; loop is controlled here
   @Input() playOnLoad = true;
 
-  @ViewChild('gifElement') gifElement!: ElementRef<HTMLImageElement>;
-  visible = true;
-  private subscription?: Subscription;
-  private lastReplayAt = 0;
+  @ViewChild('vid', { static: true }) vid!: ElementRef<HTMLVideoElement>;
+  private sub?: Subscription;
 
-  // This is what the template binds to (Angular controls it, not direct DOM writes)
-  currentSrc = '';
-
-  ngOnInit(): void {
-    // Initialize src
-    this.currentSrc = this.playOnLoad ? this.withBust(this.gifSrc) : this.gifSrc;
+  ngOnInit() {
+    // freeze on last frame when not looped
+    this.vid.nativeElement.addEventListener('ended', () => {
+      if (!this.looped) this.freezeLastFrame();
+    });
 
     if (this.replayTrigger) {
-      this.subscription = this.replayTrigger.subscribe(() => this.replayGif());
+      this.sub = this.replayTrigger.subscribe(() => this.replay());
+    }
+
+    // if autoplay + not looped and you want it to rest on last frame on first load
+    if (this.playOnLoad && !this.looped) {
+      this.vid.nativeElement.addEventListener('loadedmetadata', () => {
+        this.vid.nativeElement.play().catch(() => {});
+      });
     }
   }
 
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+  ngOnDestroy() { this.sub?.unsubscribe(); }
+
+  replay() {
+    const v = this.vid.nativeElement;
+    v.pause();
+    // if previously frozen at end, jump to start
+    v.currentTime = 0;
+    v.play().catch(() => {});
   }
 
-  replayGif(): void {
-    const now = Date.now();
-    if (now - this.lastReplayAt < 900) {  // ignore follow-ups within ~1s
-      return;
-    }
-    this.lastReplayAt = now;
-    this.currentSrc = this.withBust(this.gifSrc);
-    console.debug('[gif] replay', this.currentSrc);
-  }
-
-  get gifSrc(): string {
-    return this.looped ? this.foldingLooped : this.foldingOnce;
-  }
-
-  private withBust(src: string) {
-    const base = src.split('?')[0];
-    return `${base}?t=${Date.now()}`;
+  private freezeLastFrame() {
+    const v = this.vid.nativeElement;
+    // pause just before the end so the last frame stays visible
+    // (HTMLVideo shows poster/first frame after 'ended')
+    const t = Math.max(0, v.duration - 0.05);
+    v.currentTime = t;
+    v.pause();
   }
 }
