@@ -1,12 +1,11 @@
-import {Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {Subject, interval, Subscription} from 'rxjs';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+
+import {interval, Subject, Subscription} from 'rxjs';
 import {GifPlayerComponent} from '../gif-player/gif-player.component'; // Adjust path if needed
 
 @Component({
   selector: 'app-loading-indicator',
   imports: [
-    CommonModule,
     GifPlayerComponent
   ],
   templateUrl: './loading-indicator.component.html',

@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 
 @Component({
   selector: 'app-star-rating',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="star-rating">
       @for (i of getRange(5); track i; let index = $index) {
@@ -27,12 +25,13 @@ export class StarRatingComponent {
   set rating(value: number) {
     this._rating = Math.max(0, Math.min(5, value || 0));
   }
+
   get rating(): number {
     return this._rating;
   }
 
   getRange(count: number): number[] {
-    return Array.from({ length: count }, (_, i) => i);
+    return Array.from({length: count}, (_, i) => i);
   }
 
   /**
