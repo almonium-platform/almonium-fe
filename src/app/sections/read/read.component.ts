@@ -3,14 +3,16 @@ import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {TuiInputModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
   TuiCheckbox,
+  TuiChevron,
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
   TuiProgressLabel,
+  TuiSelect,
   TuiSkeleton
 } from "@taiga-ui/kit";
 import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
@@ -21,9 +23,12 @@ import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {
   TuiAlertService,
+  TuiDropdownContext,
+  TuiDropdownDirective,
   TuiHintDirective,
   TuiTextfieldComponent,
   TuiTextfieldDirective,
+  TuiTextfieldDropdownDirective,
   TuiTextfieldOptionsDirective
 } from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
@@ -34,13 +39,11 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
   selector: 'app-read',
   imports: [
     RouterLink,
-    TuiInputModule,
     TuiTextfieldControllerModule,
     ReactiveFormsModule,
     TuiProgressLabel,
     TuiProgressCircle,
     TuiDataListWrapperComponent,
-    TuiSelectModule,
     CefrLevelSelectorComponent,
     SharedLucideIconsModule,
     TuiDataListDropdownManager,
@@ -54,6 +57,11 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     TuiTextfieldComponent,
     TuiTextfieldDirective,
     TuiTextfieldOptionsDirective,
+    TuiChevron,
+    TuiTextfieldDropdownDirective,
+    TuiSelect,
+    TuiDropdownContext,
+    TuiDropdownDirective,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'

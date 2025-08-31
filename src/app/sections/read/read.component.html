@@ -78,19 +78,24 @@
       />
 
       Sort By
-      <tui-select
+      <tui-textfield
+        tuiChevron
+        class="shadowless-input sort-by"
         tuiTextfieldSize="m"
-        class="shadowless-input"
-        [formControl]="sortControl"
-        [tuiTextfieldLabelOutside]="true"
+        [tuiTextfieldCleaner]="false"
       >
-        <tui-data-list-wrapper
-          *tuiDataList
-          [items]="sortParameters"
-        >
-        </tui-data-list-wrapper>
-      </tui-select>
+        <input
+          tuiSelect
+          [formControl]="sortControl"
+          placeholder="Sort by"
+        />
 
+        <tui-data-list-wrapper
+          new
+          *tuiTextfieldDropdown
+          [items]="sortParameters"
+        />
+      </tui-textfield>
       <lucide-icon
         (click)="toggleSortOrder()"
         [name]="sortIconName()"
