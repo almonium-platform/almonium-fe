@@ -121,9 +121,11 @@
 }
 
 .custom-transition {
-@apply transform transition-transform ease-in-out duration-700;
+  transform: translate(0);
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+  transition-duration: 700ms;
 }
-
 
 .shining-effect {
   position: absolute;
@@ -184,10 +186,6 @@
   animation: shine-in-out 3s infinite;
 }
 
-.discount-badge:hover {
-@apply motion-preset-seesaw;
-}
-
 /* Optional shiny effect */
 @keyframes shine-in-out {
   0% {
@@ -227,10 +225,6 @@
   position: absolute;
   top: 1.5rem;
   right: 1.5rem;
-}
-
-.premium-star-badge :hover {
-@apply motion-preset-shake;
 }
 
 .premium-star-badge img {
