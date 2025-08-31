@@ -1,7 +1,9 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
-import {TuiSelectModule, TuiTextfieldControllerModule} from '@taiga-ui/legacy';
-import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in older versions
+import {CEFRLevel} from '../../models/userinfo.model';
+
+import {TuiTextfield} from '@taiga-ui/core';
+import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
 
 @Component({
   selector: 'app-cefr-level-selector',
@@ -9,27 +11,34 @@ import {CEFRLevel} from "../../models/userinfo.model"; // or @taiga-ui/cdk in ol
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    TuiSelectModule,
-    TuiTextfieldControllerModule,
+    TuiTextfield,
+    TuiSelect,
+    TuiChevron,
+    TuiDataListWrapper,
   ],
   template: `
-    <tui-select
+    <tui-textfield
+      tuiChevron
       tuiTextfieldSize="m"
+      [tuiTextfieldCleaner]="false"
       class="cefr-select"
-      [formControl]="control"
-      [(tuiDropdownOpen)]="openOnInit"
-      [tuiTextfieldLabelOutside]="true"
     >
+      <input
+        tuiSelect
+        [formControl]="control"
+        placeholder="Select level"
+      />
+
       <tui-data-list-wrapper
-        *tuiDataList
+        new
+        *tuiTextfieldDropdown
         [items]="levels"
-      >
-      </tui-data-list-wrapper>
-    </tui-select>
+      />
+    </tui-textfield>
   `,
   styles: [`
-    tui-select {
-      --tui-font-text-s: normal 1.2rem/1.25rem var(--tui-font-text);
+    .cefr-select {
+      font: normal 1.2rem/1.25rem var(--tui-font-text);
       width: 5rem;
     }
   `],
@@ -38,6 +47,4 @@ export class CefrLevelSelectorComponent {
   @Input() control!: FormControl<string | null>;
   @Input() levels: string[] = Object.values(CEFRLevel);
   @Input() openOnInit = false;
-
-  // TODO deprecated tuiDropdownOpen
 }
