@@ -7,13 +7,15 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="star-rating">
-      <div class="star-container" *ngFor="let i of getRange(5); let index = index">
-        <div class="star-background"></div>
-        <div
-          class="star-foreground"
-          [style.width.%]="getStarFillPercentage(index)"
-        ></div>
-      </div>
+      @for (i of getRange(5); track i; let index = $index) {
+        <div class="star-container">
+          <div class="star-background"></div>
+          <div
+            class="star-foreground"
+            [style.width.%]="getStarFillPercentage(index)"
+          ></div>
+        </div>
+      }
     </div>
   `,
   styleUrls: ['./star-rating.component.less'], // Keep the LESS from the previous working version
