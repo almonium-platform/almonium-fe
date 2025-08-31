@@ -4,7 +4,6 @@ import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@ang
 import {TokenInterceptor} from './authentication/auth/token-interceptor';
 
 import {TUI_VALIDATION_ERRORS} from '@taiga-ui/kit';
-import {NG_EVENT_PLUGINS} from '@taiga-ui/event-plugins';
 import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {getStorage, provideStorage} from '@angular/fire/storage';
@@ -14,6 +13,7 @@ import {EN_CODE} from "./sections/social/i18n";
 import {provideMessaging} from "@angular/fire/messaging";
 import {getMessaging} from "firebase/messaging";
 import {provideServiceWorker} from '@angular/service-worker';
+import {provideEventPlugins} from "@taiga-ui/event-plugins";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -48,7 +48,7 @@ export const appConfig: ApplicationConfig = {
       useClass: TokenInterceptor,
       multi: true,
     },
-    NG_EVENT_PLUGINS,
+    provideEventPlugins(),
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: MY_CUSTOM_ERRORS,
