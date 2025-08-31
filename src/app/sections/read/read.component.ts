@@ -3,7 +3,6 @@ import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
   TuiCheckbox,
@@ -39,7 +38,6 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
   selector: 'app-read',
   imports: [
     RouterLink,
-    TuiTextfieldControllerModule,
     ReactiveFormsModule,
     TuiProgressLabel,
     TuiProgressCircle,

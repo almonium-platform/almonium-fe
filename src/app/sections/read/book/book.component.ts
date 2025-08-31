@@ -18,7 +18,6 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
 import {NgStyle} from "@angular/common";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {Language} from "../../../models/language.model";
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
@@ -35,7 +34,6 @@ import {ParallelTranslationComponent} from "../parallel-translation/parallel-tra
     SharedLucideIconsModule,
     NgStyle,
     TuiDataListWrapperComponent,
-    TuiTextfieldControllerModule,
     ReactiveFormsModule,
     NgClickOutsideDirective,
     TuiSkeleton,

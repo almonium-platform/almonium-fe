@@ -15,7 +15,6 @@ import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-settings.component";
 import {InterestsComponent} from "../../../shared/interests/interests.component";
@@ -37,7 +36,6 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
     NgStyle,
     RecentAuthGuardComponent,
     ReactiveFormsModule,
-    TuiTextfieldControllerModule,
     UsernameComponent,
     AvatarSettingsComponent,
     InterestsComponent,

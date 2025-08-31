@@ -43,7 +43,6 @@
             placeholder="Start typing..."
             [autoColor]="true"
             [tuiTextfieldCleaner]="true"
-            [tuiTextfieldLabelOutside]="true"
             (searchChange)="targetSearch$.next($event ?? '')"
           >
             Languages you want to master

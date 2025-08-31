@@ -17,7 +17,6 @@ import {UserInfo} from "../../models/userinfo.model";
 import {AppConstants} from "../../app.constants";
 import {ProfileSettingsService} from "../../sections/settings/profile/profile-settings.service";
 import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {LucideAngularModule} from "lucide-angular";
 import {EditButtonComponent} from "../edit-button/edit-button.component";
@@ -31,13 +30,12 @@ import {EditButtonComponent} from "../edit-button/edit-button.component";
     NgClass,
     ReactiveFormsModule,
     TuiTextfield,
-    TuiTextfieldControllerModule,
     TuiError,
     AsyncPipe,
     TuiFieldErrorPipe,
     LucideAngularModule,
     TuiHintDirective,
-    EditButtonComponent
+    EditButtonComponent,
   ]
 })
 export class UsernameComponent implements OnInit, OnDestroy {

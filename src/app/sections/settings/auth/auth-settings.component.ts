@@ -1,4 +1,3 @@
-import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {AsyncPipe, NgClass, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -36,8 +35,6 @@ import {ButtonComponent} from "../../../shared/button/button.component";
     ReactiveFormsModule,
     TuiError,
     TuiFieldErrorPipe,
-    TuiInputModule,
-    TuiTextfieldControllerModule,
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,

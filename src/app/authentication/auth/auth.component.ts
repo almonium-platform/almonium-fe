@@ -1,4 +1,3 @@
-import {TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -33,13 +32,11 @@ declare const google: any;
 @Component({
   selector: 'app-auth',
   imports: [
-    TuiInputModule,
     TuiError,
     ReactiveFormsModule,
     TuiFieldErrorPipe,
     AsyncPipe,
     TuiLink,
-    TuiTextfieldControllerModule,
     NgxParticlesModule,
     NgClass,
     RouterLink,
