@@ -23,7 +23,9 @@ import {
   TuiHintDirective,
   TuiIcon,
   TuiPopup,
-  TuiScrollbar
+  TuiScrollbar,
+  TuiTextfieldComponent,
+  TuiTextfieldDirective
 } from "@taiga-ui/core";
 import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
@@ -106,6 +108,8 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     UserPreviewCardComponent,
+    TuiTextfieldComponent,
+    TuiTextfieldDirective,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

@@ -89,18 +89,15 @@
         } @else {
           @if (drawerMode === 'search') {
             <div class="search-container">
-              <tui-input
-                [formControl]="usernameFormControl"
-                [tuiTextfieldLabelOutside]="true"
+              <tui-textfield
                 class="username-input shadowless-input"
-                tuiTextfieldIconLeft="@tui.user-search"
+                iconStart="@tui.user-search"
               >
-                Type at least 3 characters
                 <input
-                  tuiTextfieldLegacy
-                  type="text"
-                />
-              </tui-input>
+                  [formControl]="usernameFormControl"
+                  tuiTextfield type="text"
+                  placeholder="Type at least 3 characters"/>
+              </tui-textfield>
               @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
                 <p class="no-results">
                   No one matched your search.
@@ -140,18 +137,17 @@
           @if (drawerMode === 'friends') {
             @if (friends.length !== 0) {
               <div class="search-container">
-                <tui-input
-                  [formControl]="friendFormControl"
-                  [tuiTextfieldLabelOutside]="true"
+                <tui-textfield
                   class="username-input shadowless-input"
-                  tuiTextfieldIconLeft="@tui.user-search"
+                  iconStart="@tui.user-search"
                 >
-                  Type a username
                   <input
-                    tuiTextfieldLegacy
+                    [formControl]="friendFormControl"
+                    tuiTextfield
                     type="text"
+                    placeholder="Type a username"
                   />
-                </tui-input>
+                </tui-textfield>
                 @if (drawerUserTiles.length === 0 && friendFormControl.value !== '') {
                   <p class="no-results">
                     No friend matched your search.
@@ -371,18 +367,17 @@
                      class="search-icon"
         ></lucide-icon>
 
-        <tui-input
+        <tui-textfield
           #chatSearch
-          [formControl]="chatFormControl"
-          [tuiTextfieldLabelOutside]="true"
           class="chat-input shadowless-input"
         >
-          Search
           <input
-            tuiTextfieldLegacy
+            [formControl]="chatFormControl"
+            tuiTextfield
             type="text"
+            placeholder="Search"
           />
-        </tui-input>
+        </tui-textfield>
       </div>
       <overlay-scrollbars
         [defer]="true"

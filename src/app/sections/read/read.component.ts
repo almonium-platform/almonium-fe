@@ -10,7 +10,8 @@ import {
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
-  TuiProgressLabel, TuiSkeleton
+  TuiProgressLabel,
+  TuiSkeleton
 } from "@taiga-ui/kit";
 import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
 import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
@@ -18,7 +19,13 @@ import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
+import {
+  TuiAlertService,
+  TuiHintDirective,
+  TuiTextfieldComponent,
+  TuiTextfieldDirective,
+  TuiTextfieldOptionsDirective
+} from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
@@ -44,6 +51,9 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     AsyncPipe,
     TuiSkeleton,
     ParallelTranslationComponent,
+    TuiTextfieldComponent,
+    TuiTextfieldDirective,
+    TuiTextfieldOptionsDirective,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'

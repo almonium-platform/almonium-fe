@@ -24,19 +24,18 @@
 
 <div class="base-container read-container">
   <div class="filter-container">
-    <tui-input
-      [formControl]="titleFormControl"
-      [tuiTextfieldLabelOutside]="true"
+    <tui-textfield
       class="search-input shadowless-input"
-      tuiTextfieldIconLeft="@tui.search"
+      iconStart="@tui.search"
       tuiTextfieldSize="m"
     >
-      Search
       <input
-        tuiTextfieldLegacy
+        tuiTextfield
+        [formControl]="titleFormControl"
         type="text"
+        placeholder="Search"
       />
-    </tui-input>
+    </tui-textfield>
     <div class="unit">
       <input
         tuiCheckbox
