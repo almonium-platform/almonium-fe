@@ -1,18 +1,24 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, signal} from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
-import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
+import {
+  TuiAlertService,
+  TuiAutoColorPipe,
+  TuiHintDirective,
+  TuiTextfield,
+  TuiTextfieldComponent,
+} from "@taiga-ui/core";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {StarRatingComponent} from "../star-rating.component";
-import {TuiChip, TuiDataListWrapperComponent, TuiSkeleton} from "@taiga-ui/kit";
+import {TuiChevron, TuiChip, TuiDataListWrapperComponent, TuiSelect, TuiSkeleton} from "@taiga-ui/kit";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {NgStyle} from "@angular/common";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {Language} from "../../../models/language.model";
-import {TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
@@ -29,12 +35,15 @@ import {ParallelTranslationComponent} from "../parallel-translation/parallel-tra
     SharedLucideIconsModule,
     NgStyle,
     TuiDataListWrapperComponent,
-    TuiSelectModule,
     TuiTextfieldControllerModule,
     ReactiveFormsModule,
     NgClickOutsideDirective,
     TuiSkeleton,
     ParallelTranslationComponent,
+    TuiTextfieldComponent,
+    TuiChevron,
+    TuiSelect,
+    TuiTextfield,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
@@ -48,7 +57,7 @@ export class BookComponent implements OnInit, OnDestroy {
   protected originalLanguage: string | undefined = undefined;
   private supportedLanguages: Language[] = [];
   protected showLangDropdown: boolean = false;
-  protected languageSelectControl = new FormControl("Select Language");
+  protected languageSelectControl = new FormControl("Language");
   protected bookLoading = true;
 
   constructor(private activatedRoute: ActivatedRoute,
@@ -67,7 +76,7 @@ export class BookComponent implements OnInit, OnDestroy {
         this.supportedLanguages = languages;
       }
     });
-    this.languageSelectControl.setValue("Select Language");
+    this.languageSelectControl.setValue("Language");
     this.languageSelectControl.valueChanges.pipe(
       distinctUntilChanged(),
       takeUntil(this.destroy$)
@@ -182,7 +191,7 @@ export class BookComponent implements OnInit, OnDestroy {
     this.readService.orderTranslation(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
-        this.languageSelectControl.setValue("Select Language");
+        this.languageSelectControl.setValue("Language");
       }))
       .subscribe({
         next: () => {
