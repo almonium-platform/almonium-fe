@@ -8,35 +8,34 @@ import {Subject, Subscription} from 'rxjs';
     @if (visible) {
       <img
         #gifElement
-        [src]="gifSrc"
+        [src]="currentSrc"
         alt="logo"
         class="logo"
       />
     }
   `,
-  imports: [],
 })
 export class GifPlayerComponent implements OnInit, OnDestroy {
-  private foldingOnce: string = '../../../assets/gif/folding-once.gif';
-  private foldingLooped: string = '../../../assets/gif/folding-looped.gif';
+  private foldingOnce = 'assets/gif/folding-once.gif';
+  private foldingLooped = 'assets/gif/folding-looped.gif';
+
   @Input() replayTrigger?: Subject<void>;
-  @Input() looped: boolean = false;
-  @Input() playOnLoad: boolean = true;
+  @Input() looped = false;
+  @Input() playOnLoad = true;
 
   @ViewChild('gifElement') gifElement!: ElementRef<HTMLImageElement>;
-  visible: boolean = true;
+  visible = true;
   private subscription?: Subscription;
 
-  ngOnInit(): void {
-    if (this.replayTrigger) {
-      this.subscription = this.replayTrigger.subscribe(() => {
-        this.replayGif();
-      });
-    }
+  // This is what the template binds to (Angular controls it, not direct DOM writes)
+  currentSrc = '';
 
-    // rn it plays anyway
-    if (this.playOnLoad) {
-      this.replayGif();
+  ngOnInit(): void {
+    // Initialize src
+    this.currentSrc = this.playOnLoad ? this.withBust(this.gifSrc) : this.gifSrc;
+
+    if (this.replayTrigger) {
+      this.subscription = this.replayTrigger.subscribe(() => this.replayGif());
     }
   }
 
@@ -44,16 +43,17 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
+  // Drive reload by changing the bound property
   replayGif(): void {
-    const gif = this.gifElement?.nativeElement;
-    if (gif) {
-      const originalSrc = this.gifSrc.split('?')[0]; // Strip any existing query parameters
-      const timestamp = new Date().getTime();
-      gif.src = `${originalSrc}?t=${timestamp}`; // Append the timestamp to force reload
-    }
+    this.currentSrc = this.withBust(this.gifSrc);
   }
 
   get gifSrc(): string {
     return this.looped ? this.foldingLooped : this.foldingOnce;
+  }
+
+  private withBust(src: string) {
+    const base = src.split('?')[0];
+    return `${base}?t=${Date.now()}`;
   }
 }
