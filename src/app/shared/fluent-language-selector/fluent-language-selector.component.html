@@ -1,22 +1,31 @@
 <div class="">
-  <tui-multi-select
-    placeholder="Start typing..."
-    [tuiTextfieldSize]="size"
-    [formControl]="fluentLanguageControl"
-    [autoColor]="true"
-    [tuiTextfieldCleaner]="true"
-    [tuiTextfieldLabelOutside]="true"
-    (searchChange)="fluentSearch$.next($event ?? '')"
+  <tui-textfield
+    multi
+    tuiChevron
+    class="cefr-select"
+    tuiTextfieldSize="m"
   >
-    Languages you know well
+    <input
+      tuiInputChip
+      [formControl]="fluentLanguageControl"
+      [placeholder]="(fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...'"
+    />
 
-    <tui-data-list-wrapper
-      *tuiDataList
-      [items]="filteredFluentLanguages$ | async"
-    ></tui-data-list-wrapper>
-  </tui-multi-select>
+    <!-- default chip view (remove if you use a custom chip component) -->
+    <tui-input-chip *tuiItem/>
+
+    @if (filteredFluentLanguages$ | async; as items) {
+      <tui-data-list-wrapper
+        *tuiTextfieldDropdown
+        new
+        tuiMultiSelectGroup
+        [items]="items"
+      />
+    }
+  </tui-textfield>
+
   <tui-error
     [formControl]="fluentLanguageControl"
     [error]="[] | tuiFieldError | async"
-  ></tui-error>
+  />
 </div>
