@@ -11,9 +11,21 @@ import {Subject, Subscription} from 'rxjs';
         [src]="currentSrc"
         alt="logo"
         class="logo"
+        loading="eager"
+        decoding="sync"
+        fetchpriority="high"
       />
     }
   `,
+  styles: `
+    /* Keep the GIF on its own layer */
+    .logo {
+      will-change: transform; /* hint compositing */
+      transform: translateZ(0); /* force layer in Chrome */
+      backface-visibility: hidden; /* avoid repaint quirks */
+      contain: paint; /* isolate painting */
+    }
+  `
 })
 export class GifPlayerComponent implements OnInit, OnDestroy {
   private foldingOnce = 'assets/gif/folding-once.gif';
@@ -26,6 +38,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
   @ViewChild('gifElement') gifElement!: ElementRef<HTMLImageElement>;
   visible = true;
   private subscription?: Subscription;
+  private lastReplayAt = 0;
 
   // This is what the template binds to (Angular controls it, not direct DOM writes)
   currentSrc = '';
@@ -43,9 +56,14 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  // Drive reload by changing the bound property
   replayGif(): void {
+    const now = Date.now();
+    if (now - this.lastReplayAt < 900) {  // ignore follow-ups within ~1s
+      return;
+    }
+    this.lastReplayAt = now;
     this.currentSrc = this.withBust(this.gifSrc);
+    console.debug('[gif] replay', this.currentSrc);
   }
 
   get gifSrc(): string {
