@@ -23,6 +23,7 @@ import {Subject, takeUntil} from "rxjs";
           [ngClass]="{
           'w-screen h-screen': fullscreen,
           'embedded': !fullscreen,
+          'motion-preset-slide-up': !fullscreen,
           'slide-down': drawerState.closing
         }"
           (clickOutside)="onClickOutside()"
@@ -43,7 +44,9 @@ import {Subject, takeUntil} from "rxjs";
   styles: [
     `
       .embedded {
-      @apply rounded-2xl w-fit shadow-lg motion-preset-slide-up;
+        border-radius: 1rem;
+        width: fit-content;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
         max-width: min(48rem, 95%);
       }
 
