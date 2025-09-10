@@ -2,7 +2,7 @@ import {inject, PLATFORM_ID} from '@angular/core';
 import {isPlatformBrowser} from '@angular/common';
 import {lastValueFrom, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
-import {UserInfoService} from "./src/app/services/user-info.service";
+import {UserInfoService} from "../services/user-info.service";
 
 export async function initializeUser(): Promise<void> {
   const platformId = inject(PLATFORM_ID);

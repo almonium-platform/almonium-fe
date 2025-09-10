@@ -21,8 +21,8 @@ import {getMessaging} from 'firebase/messaging';
 import {provideServiceWorker} from '@angular/service-worker';
 import {provideEventPlugins} from '@taiga-ui/event-plugins';
 import {XsrfInterceptor} from './authentication/auth/xsrf-interceptor';
-import {csrfInitializer} from "../../csrf-app-initializer";
-import {initializeUser} from "../../user-app-initializer";
+import {csrfInitializer} from "./initializers/csrf-app-initializer";
+import {initializeUser} from "./initializers/user-app-initializer";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
