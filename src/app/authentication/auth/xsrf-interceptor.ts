@@ -1,29 +1,76 @@
 // xsrf-interceptor.ts
-import { Injectable } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {Inject, Injectable, PLATFORM_ID} from '@angular/core';
+import {DOCUMENT, isPlatformBrowser} from '@angular/common';
+import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
+import {Observable} from 'rxjs';
+import {environment} from "../../../environments/environment";
 
-const API_HOSTS = new Set(['localhost:9998', 'api.almonium.com']);
-const MUTATING = new Set(['POST','PUT','PATCH','DELETE']);
+const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-function readCookie(name: string): string | null {
-  return document.cookie.split('; ').find(c => c.startsWith(name + '='))?.split('=')[1] ?? null;
+function getAllowedHosts(): Set<string> {
+  const hosts = new Set<string>();
+  try {
+    hosts.add(new URL(environment.apiUrl).host);
+  } catch {
+    // ignore if apiUrl is relative or malformed
+  }
+  // Keep localhost for local dev
+  if (!environment.production) hosts.add('localhost:9998');
+  return hosts;
 }
 
 @Injectable()
 export class XsrfInterceptor implements HttpInterceptor {
+  private readonly isBrowser: boolean;
+  private readonly allowedHosts = getAllowedHosts();
+
+  constructor(
+    @Inject(PLATFORM_ID) platformId: Object,
+    @Inject(DOCUMENT) private doc: Document
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
+
+  private readCookie(name: string): string | null {
+    if (!this.isBrowser) return null;
+    const cookie = this.doc?.cookie ?? '';
+    return cookie
+      .split('; ')
+      .find(c => c.startsWith(name + '='))
+      ?.split('=')[1] ?? null;
+  }
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Normalize URL, handle absolute/relative/ protocol-relative
-    let isApi = false;
-    try { isApi = API_HOSTS.has(new URL(req.url, location.origin).host); }
-    catch { isApi = req.url.startsWith('/api'); }
+    // Only consider mutating requests
+    if (!MUTATING.has(req.method)) {
+      return next.handle(req);
+    }
 
-    if (!isApi) return next.handle(req);
+    // Work out the host the request will hit (handles absolute/relative URLs)
+    let host = '';
+    try {
+      host = new URL(req.url, this.isBrowser ? this.doc.location.origin : 'http://localhost').host;
+    } catch {
+      // If URL parsing fails, skip
+      return next.handle(req);
+    }
 
-    const withCreds = req.withCredentials ? req : req.clone({ withCredentials: true });
-    if (!MUTATING.has(req.method.toUpperCase())) return next.handle(withCreds);
+    // Only add XSRF for our API hosts
+    if (!this.allowedHosts.has(host)) {
+      return next.handle(req);
+    }
 
-    const token = readCookie('XSRF-TOKEN');
-    return next.handle(token ? withCreds.clone({ setHeaders: { 'X-XSRF-TOKEN': token } }) : withCreds);
+    const token = this.readCookie('XSRF-TOKEN'); // or whatever cookie name your backend sets
+    if (!token) {
+      return next.handle(req);
+    }
+
+    const cloned = req.clone({
+      setHeaders: {'X-XSRF-TOKEN': token},
+      // withCredentials is often required for cookie-based CSRF; keep if you rely on cookies
+      withCredentials: true,
+    });
+
+    return next.handle(cloned);
   }
 }
