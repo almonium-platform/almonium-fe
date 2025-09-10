@@ -1,4 +1,10 @@
-import {ApplicationConfig, importProvidersFrom, isDevMode, provideZoneChangeDetection} from '@angular/core';
+import {
+  APP_INITIALIZER,
+  ApplicationConfig,
+  importProvidersFrom,
+  isDevMode,
+  provideZoneChangeDetection
+} from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {TokenInterceptor} from './authentication/auth/token-interceptor';
@@ -14,6 +20,9 @@ import {provideMessaging} from "@angular/fire/messaging";
 import {getMessaging} from "firebase/messaging";
 import {provideServiceWorker} from '@angular/service-worker';
 import {provideEventPlugins} from "@taiga-ui/event-plugins";
+import {XsrfInterceptor} from "./authentication/auth/xsrf-interceptor";
+import {csrfInitFactory} from "../../csrf-app-initializer";
+import {UserInfoService} from "./services/user-info.service";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -25,6 +34,24 @@ const MY_CUSTOM_ERRORS = {
   serverError: 'Server error',
   unchanged: 'No changes',
 };
+
+export function initializeUserFactory(userInfoService: UserInfoService): () => Promise<any> {
+  const hasSessionCookie = document.cookie.includes('accessToken=');
+
+  if (hasSessionCookie) {
+    // Return a function that returns a Promise
+    return () => new Promise(resolve => {
+      userInfoService.fetchUserInfoFromServer().subscribe({
+        complete: () => resolve(true), // Resolve regardless of success/fail
+        error: () => resolve(true)
+      });
+    });
+  } else {
+    // No session, resolve immediately.
+    return () => Promise.resolve();
+  }
+}
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -43,11 +70,19 @@ export const appConfig: ApplicationConfig = {
 
     // HTTP interceptors
     provideHttpClient(withInterceptorsFromDi()),
+    {provide: APP_INITIALIZER, useFactory: csrfInitFactory, multi: true},
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
       multi: true,
     },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeUserFactory,
+      deps: [UserInfoService],
+      multi: true,
+    },
+    {provide: HTTP_INTERCEPTORS, useClass: XsrfInterceptor, multi: true},
     provideEventPlugins(),
     {
       provide: TUI_VALIDATION_ERRORS,

@@ -1,6 +1,6 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiAlertService, TuiRoot} from "@taiga-ui/core";
-import {Component} from '@angular/core'; // Import OnInit if not already there
+import {Component, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
@@ -11,6 +11,8 @@ import {FirebaseNotificationService} from "./services/firebase-notification.serv
 import {filter} from "rxjs";
 import {TimerMonitorService} from "./shared/navbars/navbar/timer/timer-monitor.service";
 import {environment} from '../environments/environment'
+import {distinctUntilChanged} from "rxjs/operators";
+import {UserInfoService} from "./services/user-info.service";
 
 // Declare gtag function to make TypeScript aware of it globally
 declare var gtag: Function;
@@ -22,7 +24,7 @@ declare var gtag: Function;
   styleUrl: './app.component.less',
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'almonium-fe';
   protected showNavbar: boolean = false;
   private noNavbarRoutes: string[] = [
@@ -51,11 +53,22 @@ export class AppComponent {
     private firebaseNotificationService: FirebaseNotificationService,
     private alertService: TuiAlertService,
     private timerMonitorService: TimerMonitorService,
+    private userInfoService: UserInfoService,
   ) {
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
     this.timerMonitorService.startMonitoring();
+  }
+
+  ngOnInit(): void {
+    this.userInfoService.userInfo$.pipe(
+      distinctUntilChanged((prev, curr) => !!prev === !!curr)
+    ).subscribe(user => {
+      if (user) {
+        this.firebaseNotificationService.initFCM().then();
+      }
+    });
   }
 
   private listenToRouter() {

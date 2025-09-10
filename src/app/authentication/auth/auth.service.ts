@@ -5,13 +5,15 @@ import {AppConstants} from '../../app.constants';
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
+import {switchMap, tap} from "rxjs/operators";
+import {UserInfo} from "../../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   constructor(private http: HttpClient,
-              private userService: UserInfoService,
+              private userInfoService: UserInfoService,
               private localStorageService: LocalStorageService,
               private popupTemplateStateService: PopupTemplateStateService,
   ) {
@@ -27,9 +29,12 @@ export class AuthService {
     return this.http.post(url, {password}, {withCredentials: true});
   }
 
-  login(email: string, password: string): Observable<any> {
+  public login(email: string, password: string): Observable<UserInfo | null> {
     const url = `${AppConstants.PUBLIC_AUTH_URL}/login`;
-    return this.http.post(url, {email, password}, {withCredentials: true}); // withCredentials is needed to receive cookies
+    return this.http.post<void>(url, {email, password}, {withCredentials: true})
+      .pipe(
+        switchMap(() => this.userInfoService.fetchUserInfoFromServer())
+      );
   }
 
   reauth(password: string): Observable<any> {
@@ -74,11 +79,15 @@ export class AuthService {
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  logout(): Observable<void> {
-    this.userService.clearUserInfo();
-    this.popupTemplateStateService.close();
-    this.localStorageService.clearUserRelatedData();
-    return this.http.post<void>(`${AppConstants.AUTH_URL}/logout`, {}, {withCredentials: true});
+  public logout(): Observable<any> {
+    const url = `${AppConstants.AUTH_URL}/logout`;
+    return this.http.post(url, {}, {withCredentials: true}).pipe(
+      tap(() => {
+        this.popupTemplateStateService.close(); // whatever is opened, on logout it should disappear
+        this.localStorageService.clearUserRelatedData();
+        this.userInfoService.clearUserInfo();
+      })
+    );
   }
 
   logoutPublic(): Observable<void> {

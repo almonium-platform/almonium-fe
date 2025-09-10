@@ -1,14 +1,12 @@
 import {Component, OnInit} from '@angular/core';
-import {Router} from "@angular/router";
 import {AuthService} from "../auth/auth.service";
-import {NgxParticlesModule} from "@tsparticles/angular";
-import {finalize, forkJoin, timer} from "rxjs";
+import {forkJoin, timer} from "rxjs";
+import {finalize} from "rxjs/operators";
 import {LoadingIndicatorComponent} from "../../shared/loading-indicator/loading-indicator.component";
 
 @Component({
   selector: 'app-logout',
   imports: [
-    NgxParticlesModule,
     LoadingIndicatorComponent
   ],
   templateUrl: './logout.component.html',
@@ -16,10 +14,7 @@ import {LoadingIndicatorComponent} from "../../shared/loading-indicator/loading-
 })
 export class LogoutComponent implements OnInit {
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {
+  constructor(private authService: AuthService) {
   }
 
   ngOnInit(): void {
@@ -28,14 +23,13 @@ export class LogoutComponent implements OnInit {
 
     forkJoin([logout$, minDisplayTime$]).pipe(
       finalize(() => {
-        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then(() => {
-        }).catch(err => {
-          console.error("Navigation failed after logout:", err);
-        });
+        // Perform a hard redirect to the login page.
+        // This will force a full application reload and a fresh CSRF token handshake.
+        window.location.href = '/auth#sign-in';
       })
     ).subscribe({
       error: (err) => {
-        console.error('Logout API call failed, redirecting to login.', err);
+        console.error('Logout API call failed, but still redirecting.', err);
       }
     });
   }

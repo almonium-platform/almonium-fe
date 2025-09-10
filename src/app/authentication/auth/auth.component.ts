@@ -354,12 +354,16 @@ export class AuthComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.authService.login(emailValue, passwordValue)
+    this.authService.login(emailValue, passwordValue) // This now fetches user info on success
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
-        next: () => {
-          this.router.navigate(['/home']).then();
-          this.popupTemplateStateService.close();
+        next: (userInfo) => {
+          if (userInfo) {
+            this.router.navigate(['/home']).then();
+            this.popupTemplateStateService.close();
+          } else {
+            this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'error'}).subscribe();
+          }
         },
         error: (error) => {
           this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
