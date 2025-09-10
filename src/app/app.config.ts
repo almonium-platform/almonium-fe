@@ -1,8 +1,9 @@
 import {
-  APP_INITIALIZER,
   ApplicationConfig,
   importProvidersFrom,
+  inject,
   isDevMode,
+  provideAppInitializer,
   provideZoneChangeDetection
 } from '@angular/core';
 import {provideRouter} from '@angular/router';
@@ -14,15 +15,15 @@ import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {getStorage, provideStorage} from '@angular/fire/storage';
 import {environment} from '../environments/environment';
-import {TranslateModule} from "@ngx-translate/core";
-import {EN_CODE} from "./sections/social/i18n";
-import {provideMessaging} from "@angular/fire/messaging";
-import {getMessaging} from "firebase/messaging";
+import {TranslateModule} from '@ngx-translate/core';
+import {EN_CODE} from './sections/social/i18n';
+import {provideMessaging} from '@angular/fire/messaging';
+import {getMessaging} from 'firebase/messaging';
 import {provideServiceWorker} from '@angular/service-worker';
-import {provideEventPlugins} from "@taiga-ui/event-plugins";
-import {XsrfInterceptor} from "./authentication/auth/xsrf-interceptor";
-import {csrfInitFactory} from "../../csrf-app-initializer";
-import {UserInfoService} from "./services/user-info.service";
+import {provideEventPlugins} from '@taiga-ui/event-plugins';
+import {XsrfInterceptor} from './authentication/auth/xsrf-interceptor';
+import {UserInfoService} from './services/user-info.service';
+import {csrfInitializer} from "../../csrf-app-initializer";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -35,31 +36,30 @@ const MY_CUSTOM_ERRORS = {
   unchanged: 'No changes',
 };
 
-export function initializeUserFactory(userInfoService: UserInfoService): () => Promise<any> {
+/**
+ * New-style app initializer that replaces initializeUserFactory.
+ * Runs in an injection context, so we can directly `inject(UserInfoService)`.
+ */
+export function initializeUser(): Promise<void> {
+  const userInfoService = inject(UserInfoService);
   const hasSessionCookie = document.cookie.includes('accessToken=');
 
-  if (hasSessionCookie) {
-    // Return a function that returns a Promise
-    return () => new Promise(resolve => {
-      userInfoService.fetchUserInfoFromServer().subscribe({
-        complete: () => resolve(true), // Resolve regardless of success/fail
-        error: () => resolve(true)
-      });
-    });
-  } else {
-    // No session, resolve immediately.
-    return () => Promise.resolve();
+  if (!hasSessionCookie) {
+    return Promise.resolve();
   }
-}
 
+  return new Promise<void>(resolve => {
+    userInfoService.fetchUserInfoFromServer().subscribe({
+      complete: () => resolve(),
+      error: () => resolve(),
+    });
+  });
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Stream Chat
     provideZoneChangeDetection({eventCoalescing: true}),
-    importProvidersFrom(TranslateModule.forRoot({
-      defaultLanguage: EN_CODE,
-    })),
+    importProvidersFrom(TranslateModule.forRoot({defaultLanguage: EN_CODE})),
 
     provideRouter(routes),
 
@@ -70,26 +70,21 @@ export const appConfig: ApplicationConfig = {
 
     // HTTP interceptors
     provideHttpClient(withInterceptorsFromDi()),
-    {provide: APP_INITIALIZER, useFactory: csrfInitFactory, multi: true},
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: TokenInterceptor,
-      multi: true,
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeUserFactory,
-      deps: [UserInfoService],
-      multi: true,
-    },
+    {provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: XsrfInterceptor, multi: true},
+
+    // App initializers (new API)
+    provideAppInitializer(csrfInitializer),
+    provideAppInitializer(initializeUser),
+
     provideEventPlugins(),
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: MY_CUSTOM_ERRORS,
-    }, provideServiceWorker('ngsw-worker.js', {
+    },
+    provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:30000'
+      registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
 };
