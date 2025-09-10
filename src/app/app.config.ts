@@ -1,7 +1,6 @@
 import {
   ApplicationConfig,
   importProvidersFrom,
-  inject,
   isDevMode,
   provideAppInitializer,
   provideZoneChangeDetection
@@ -22,8 +21,8 @@ import {getMessaging} from 'firebase/messaging';
 import {provideServiceWorker} from '@angular/service-worker';
 import {provideEventPlugins} from '@taiga-ui/event-plugins';
 import {XsrfInterceptor} from './authentication/auth/xsrf-interceptor';
-import {UserInfoService} from './services/user-info.service';
 import {csrfInitializer} from "../../csrf-app-initializer";
+import {initializeUser} from "../../user-app-initializer";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -35,26 +34,6 @@ const MY_CUSTOM_ERRORS = {
   serverError: 'Server error',
   unchanged: 'No changes',
 };
-
-/**
- * New-style app initializer that replaces initializeUserFactory.
- * Runs in an injection context, so we can directly `inject(UserInfoService)`.
- */
-export function initializeUser(): Promise<void> {
-  const userInfoService = inject(UserInfoService);
-  const hasSessionCookie = document.cookie.includes('accessToken=');
-
-  if (!hasSessionCookie) {
-    return Promise.resolve();
-  }
-
-  return new Promise<void>(resolve => {
-    userInfoService.fetchUserInfoFromServer().subscribe({
-      complete: () => resolve(),
-      error: () => resolve(),
-    });
-  });
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
