@@ -23,6 +23,7 @@ import {provideEventPlugins} from '@taiga-ui/event-plugins';
 import {XsrfInterceptor} from './authentication/auth/xsrf-interceptor';
 import {csrfInitializer} from "./initializers/csrf-app-initializer";
 import {initializeUser} from "./initializers/user-app-initializer";
+import {SwBypassInterceptor} from "./authentication/auth/sw-bypass-interceptor";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
@@ -51,6 +52,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     {provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: XsrfInterceptor, multi: true},
+    {provide: HTTP_INTERCEPTORS, useClass: SwBypassInterceptor, multi: true},
 
     // App initializers (new API)
     provideAppInitializer(csrfInitializer),
