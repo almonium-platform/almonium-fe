@@ -41,11 +41,12 @@
           <tui-multi-select
             formControlName="targetLanguages"
             placeholder="Start typing..."
+            tuiTextfieldSize="m"
             [autoColor]="true"
             [tuiTextfieldCleaner]="true"
+            [tuiTextfieldLabelOutside]="true"
             (searchChange)="targetSearch$.next($event ?? '')"
           >
-            Languages you want to master
             <tui-data-list-wrapper
               *tuiDataList
               [labels]="labels"
