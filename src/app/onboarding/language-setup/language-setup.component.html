@@ -38,25 +38,42 @@
         <!-- Target Languages -->
         <div class="form-group">
           <label>I want to learn</label>
-          <tui-multi-select
-            formControlName="targetLanguages"
-            placeholder="Start typing..."
-            tuiTextfieldSize="m"
-            [autoColor]="true"
-            [tuiTextfieldCleaner]="true"
-            [tuiTextfieldLabelOutside]="true"
-            (searchChange)="targetSearch$.next($event ?? '')"
+
+          <tui-textfield
+            multi
+            tuiChevron
           >
-            <tui-data-list-wrapper
-              *tuiDataList
-              [labels]="labels"
-              [items]="filteredTargetLanguages$ | async"
-            ></tui-data-list-wrapper>
-          </tui-multi-select>
+            <input
+              tuiInputChip
+              [formControl]="targetLanguagesControl"
+              [placeholder]="targetLanguagesControl.value.length ? '' : 'Start typing...'"
+              [tuiTextfieldCleaner]="true"
+            />
+
+            <!-- default chip view (remove if you use a custom chip component) -->
+            <tui-input-chip *tuiItem/>
+
+            @if (filteredTargetLanguages$ | async) {
+              <tui-data-list *tuiTextfieldDropdown>
+                <tui-opt-group [label]="labels[0]" tuiMultiSelectGroup>
+                  @for (name of specialTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
+                    <button new tuiOption [value]="name">{{ name }}</button>
+                  }
+                </tui-opt-group>
+
+                <tui-opt-group [label]="labels[1]" tuiMultiSelectGroup>
+                  @for (name of otherTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
+                    <button new tuiOption [value]="name">{{ name }}</button>
+                  }
+                </tui-opt-group>
+              </tui-data-list>
+            }
+          </tui-textfield>
+
           <tui-error
-            formControlName="targetLanguages"
+            [formControl]="targetLanguagesControl"
             [error]="[] | tuiFieldError | async"
-          ></tui-error>
+          />
         </div>
         @if (!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length) {
           <div
@@ -84,7 +101,7 @@
                     @for (feature of selectedTargetLanguageFeatures.special; track feature) {
                       <li>
                         💫 {{ feature.feature }}
-                        @if ((targetLanguageControl.value?.length || 0) > 1) {
+                        @if ((targetLanguagesControl.value.length || 0) > 1) {
                           <span>
                             ({{ feature.languages.join(', ') }})
                           </span>
