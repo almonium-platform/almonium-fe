@@ -15,7 +15,8 @@ import {
   FormArray,
   FormBuilder,
   FormControl,
-  FormGroup, FormsModule,
+  FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
@@ -40,7 +41,8 @@ import {
   TuiDataListComponent,
   TuiError,
   TuiTextfieldDropdownDirective,
-  TuiTextfieldMultiComponent, TuiTextfieldOptionsDirective
+  TuiTextfieldMultiComponent,
+  TuiTextfieldOptionsDirective
 } from '@taiga-ui/core';
 import {BehaviorSubject, delay, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
@@ -62,7 +64,7 @@ import {PopupTemplateStateService} from "../../shared/modals/popup-template/popu
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {TuiActiveZone, TuiItem} from "@taiga-ui/cdk";
-import {AsyncPipe, NgForOf} from "@angular/common";
+import {AsyncPipe} from "@angular/common";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";
 
@@ -109,7 +111,6 @@ import {ButtonComponent} from "../../shared/button/button.component";
     TuiHideSelectedPipe,
     TuiFilterByInputPipe,
     TuiTextfieldOptionsDirective,
-    NgForOf,
     FormsModule
   ]
 })
