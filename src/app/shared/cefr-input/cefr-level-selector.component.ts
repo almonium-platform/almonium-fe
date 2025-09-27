@@ -19,7 +19,7 @@ import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
   template: `
     <tui-textfield
       tuiChevron
-      tuiTextfieldSize="s"
+      tuiTextfieldSize="l"
       [tuiTextfieldCleaner]="false"
       class="cefr-select"
     >
@@ -39,7 +39,7 @@ import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
   styles: [`
     .cefr-select {
       font: normal 1.2rem/1.25rem var(--tui-font-text);
-      width: 5rem;
+      width: 6rem;
     }
   `],
 })
