@@ -24,7 +24,7 @@ import {
   TuiAlertService,
   TuiDropdownContext,
   TuiDropdownDirective,
-  TuiHintDirective,
+  TuiHintDirective, TuiOptionNew,
   TuiTextfieldComponent,
   TuiTextfieldDirective,
   TuiTextfieldDropdownDirective,
@@ -60,6 +60,7 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     TuiSelect,
     TuiDropdownContext,
     TuiDropdownDirective,
+    TuiOptionNew,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'

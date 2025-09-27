@@ -14,12 +14,7 @@ import {
   TuiInputChipDirective,
   TuiMultiSelectGroupDirective
 } from "@taiga-ui/kit";
-import {
-  TuiError,
-  TuiTextfieldDropdownDirective,
-  TuiTextfieldMultiComponent,
-  TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
+import {TuiError, TuiTextfieldDropdownDirective, TuiTextfieldMultiComponent} from "@taiga-ui/core";
 import {TuiItem} from "@taiga-ui/cdk";
 
 const MAX_LANGUAGES = 3;
@@ -35,7 +30,6 @@ const MAX_LANGUAGES = 3;
     TuiFieldErrorPipe,
     TuiTextfieldMultiComponent,
     TuiChevron,
-    TuiTextfieldOptionsDirective,
     TuiInputChipDirective,
     TuiDataListWrapperComponent,
     TuiTextfieldDropdownDirective,
