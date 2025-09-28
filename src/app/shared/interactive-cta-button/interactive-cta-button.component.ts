@@ -1,17 +1,7 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
+import {Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output,} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {TuiLoader} from '@taiga-ui/core';
-import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-interactive-cta-button',
@@ -22,20 +12,22 @@ import {NgIf} from "@angular/common";
         [disabled]="disabled || isLoading"
         (click)="onClick()"
       >
-        <tui-loader *ngIf="isLoading" class="loader"></tui-loader>
+        @if (isLoading) {
+          <tui-loader class="loader"></tui-loader>
+        }
 
         <!-- button text: hidden while loading -->
         <span
           class="btn-text"
           [style.visibility]="isLoading ? 'hidden' : 'visible'"
         >
-      {{ text }}
-    </span>
+          {{ text }}
+        </span>
       </button>
     </div>
   `,
   styleUrls: ['./interactive-cta-button.component.less'],
-  imports: [TuiLoader, NgIf],
+  imports: [TuiLoader],
 })
 export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
   @Input() text = 'Click Me';

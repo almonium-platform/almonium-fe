@@ -35,7 +35,7 @@ import {
   TuiDataListComponent,
   TuiDropdownContext,
   TuiDropdownDirective,
-  TuiOption
+  TuiOptionNew
 } from "@taiga-ui/core";
 import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
 import {ButtonComponent} from "../../button/button.component";
@@ -70,10 +70,10 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     TuiDropdownContext,
     TuiDataListComponent,
     TuiDataListDropdownManager,
-    TuiOption,
     TuiActiveZone,
     AvatarPreviewComponent,
     TimerComponent,
+    TuiOptionNew,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {

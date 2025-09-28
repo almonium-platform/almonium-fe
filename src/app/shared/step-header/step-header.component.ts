@@ -25,7 +25,11 @@ import {TuiHeader} from "@taiga-ui/layout";
       </div>
     </div>
   `,
-  styles: [``]
+  styles: [`
+    ::ng-deep tui-avatar[data-type='icon']::before {
+      font-size: calc(var(--t-size) * .4) !important;
+    }
+  `]
 })
 export class StepHeaderComponent {
   @Input() number: number = 0; // Accepts numbers 0-9

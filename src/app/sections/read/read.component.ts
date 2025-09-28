@@ -3,14 +3,16 @@ import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {TuiInputModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
   TuiCheckbox,
+  TuiChevron,
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
-  TuiProgressLabel, TuiSkeleton
+  TuiProgressLabel,
+  TuiSelect,
+  TuiSkeleton
 } from "@taiga-ui/kit";
 import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
 import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
@@ -18,7 +20,16 @@ import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {TuiAlertService, TuiHintDirective} from "@taiga-ui/core";
+import {
+  TuiAlertService,
+  TuiDropdownContext,
+  TuiDropdownDirective,
+  TuiHintDirective, TuiOptionNew,
+  TuiTextfieldComponent,
+  TuiTextfieldDirective,
+  TuiTextfieldDropdownDirective,
+  TuiTextfieldOptionsDirective
+} from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
@@ -27,13 +38,10 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
   selector: 'app-read',
   imports: [
     RouterLink,
-    TuiInputModule,
-    TuiTextfieldControllerModule,
     ReactiveFormsModule,
     TuiProgressLabel,
     TuiProgressCircle,
     TuiDataListWrapperComponent,
-    TuiSelectModule,
     CefrLevelSelectorComponent,
     SharedLucideIconsModule,
     TuiDataListDropdownManager,
@@ -44,6 +52,15 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     AsyncPipe,
     TuiSkeleton,
     ParallelTranslationComponent,
+    TuiTextfieldComponent,
+    TuiTextfieldDirective,
+    TuiTextfieldOptionsDirective,
+    TuiChevron,
+    TuiTextfieldDropdownDirective,
+    TuiSelect,
+    TuiDropdownContext,
+    TuiDropdownDirective,
+    TuiOptionNew,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'

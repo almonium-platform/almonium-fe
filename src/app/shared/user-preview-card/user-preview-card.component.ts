@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
 import {AvatarComponent} from "../avatar/avatar.component";
@@ -10,8 +10,7 @@ import {
   TuiAutoColorPipe,
   TuiDataListComponent,
   TuiDropdownDirective,
-  TuiDropdownOptionsDirective,
-  TuiOption
+  TuiDropdownOptionsDirective, TuiOptionNew
 } from "@taiga-ui/core";
 import {TuiChip, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit";
 import {TuiActiveZone} from "@taiga-ui/cdk";
@@ -40,12 +39,12 @@ import {NgClass} from "@angular/common";
     TuiDataListComponent,
     TuiDataListDropdownManager,
     TuiDropdownDirective,
-    TuiOption,
     TuiActiveZone,
     TuiDropdownOptionsDirective,
     ConfirmModalComponent,
     TuiSkeleton,
-    NgClass
+    NgClass,
+    TuiOptionNew
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'

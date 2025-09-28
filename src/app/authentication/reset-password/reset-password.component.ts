@@ -1,4 +1,3 @@
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
@@ -28,7 +27,6 @@ import {BehaviorSubject, finalize} from "rxjs";
     TuiError,
     TuiFieldErrorPipe,
     NgxParticlesModule,
-    TuiTextfieldControllerModule,
     AsyncPipe,
     ParticlesComponent,
     TuiIcon,

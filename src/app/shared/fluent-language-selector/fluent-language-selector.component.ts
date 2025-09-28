@@ -3,10 +3,19 @@ import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
 import {CommonModule} from '@angular/common';
-import {TuiMultiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {Language} from "../../models/language.model";
-import {TuiError} from "@taiga-ui/core";
+
+import {
+  TUI_VALIDATION_ERRORS,
+  TuiChevron,
+  TuiDataListWrapperComponent,
+  TuiFieldErrorPipe,
+  TuiInputChipComponent,
+  TuiInputChipDirective,
+  TuiMultiSelectGroupDirective
+} from "@taiga-ui/kit";
+import {TuiError, TuiTextfieldDropdownDirective, TuiTextfieldMultiComponent} from "@taiga-ui/core";
+import {TuiItem} from "@taiga-ui/cdk";
 
 const MAX_LANGUAGES = 3;
 
@@ -17,10 +26,16 @@ const MAX_LANGUAGES = 3;
   imports: [
     ReactiveFormsModule,
     CommonModule,
-    TuiMultiSelectModule,
-    TuiTextfieldControllerModule,
     TuiError,
     TuiFieldErrorPipe,
+    TuiTextfieldMultiComponent,
+    TuiChevron,
+    TuiInputChipDirective,
+    TuiDataListWrapperComponent,
+    TuiTextfieldDropdownDirective,
+    TuiMultiSelectGroupDirective,
+    TuiItem,
+    TuiInputChipComponent,
   ],
   providers: [
     {

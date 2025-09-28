@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   HostListener,
   OnDestroy,
   OnInit,
@@ -10,7 +11,6 @@ import {
   ViewChild
 } from "@angular/core";
 import {SocialService} from "./social.service";
-import {TuiInputComponent, TuiInputModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
@@ -20,10 +20,14 @@ import {
   TuiAlertService,
   TuiDataList,
   TuiDropdownDirective,
+  TuiDropdownManual,
   TuiHintDirective,
   TuiIcon,
   TuiPopup,
-  TuiScrollbar
+  TuiScrollbar,
+  TuiTextfieldComponent,
+  TuiTextfieldDirective,
+  TuiTextfieldOptionsDirective
 } from "@taiga-ui/core";
 import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
@@ -73,9 +77,7 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
   templateUrl: './social.component.html',
   styleUrls: ['./social.component.less'],
   imports: [
-    TuiInputModule,
     ReactiveFormsModule,
-    TuiTextfieldControllerModule,
     AvatarComponent,
     SharedLucideIconsModule,
     NgClass,
@@ -106,6 +108,11 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     UserPreviewCardComponent,
+    TuiTextfieldComponent,
+    TuiTextfieldDirective,
+    TuiDropdownDirective,
+    TuiDropdownManual,
+    TuiTextfieldOptionsDirective,
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
@@ -114,7 +121,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
-  @ViewChild('chatSearch') chatSearchField!: TuiInputComponent;
+  @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
 
   private readonly destroy$ = new Subject<void>();
@@ -1022,7 +1029,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isManuallyResized = true;
     this.sidebarWidth = window.innerWidth / 3 - 8;
     setTimeout(() => {
-      this.chatSearchField?.nativeFocusableElement?.focus();
+      this.chatInputRef?.nativeElement.focus();
     }, 100);
   }
 

@@ -140,18 +140,24 @@
               </tui-chip>
             } @else {
               @if (showLangDropdown) {
-                <tui-select
+                <tui-textfield
+                  tuiChevron
                   tuiTextfieldSize="s"
                   class="language-select"
-                  [formControl]="languageSelectControl"
-                  [tuiTextfieldLabelOutside]="true"
                   (clickOutside)="onClickOutsideLanguageDropdown($event)"
-                > Select Language
+                >
+                  <input
+                    tuiSelect
+                    [formControl]="languageSelectControl"
+                    placeholder="Language.."
+                  />
+
                   <tui-data-list-wrapper
-                    *tuiDataList
+                    new
+                    *tuiTextfieldDropdown
                     [items]="languagesAvailableForOrder"
-                  ></tui-data-list-wrapper>
-                </tui-select>
+                  />
+                </tui-textfield>
               } @else {
                 <tui-chip
                   class="edit-chip"

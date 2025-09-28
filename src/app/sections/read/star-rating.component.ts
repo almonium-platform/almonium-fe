@@ -1,19 +1,19 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 
 @Component({
   selector: 'app-star-rating',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="star-rating">
-      <div class="star-container" *ngFor="let i of getRange(5); let index = index">
-        <div class="star-background"></div>
-        <div
-          class="star-foreground"
-          [style.width.%]="getStarFillPercentage(index)"
-        ></div>
-      </div>
+      @for (i of getRange(5); track i; let index = $index) {
+        <div class="star-container">
+          <div class="star-background"></div>
+          <div
+            class="star-foreground"
+            [style.width.%]="getStarFillPercentage(index)"
+          ></div>
+        </div>
+      }
     </div>
   `,
   styleUrls: ['./star-rating.component.less'], // Keep the LESS from the previous working version
@@ -25,12 +25,13 @@ export class StarRatingComponent {
   set rating(value: number) {
     this._rating = Math.max(0, Math.min(5, value || 0));
   }
+
   get rating(): number {
     return this._rating;
   }
 
   getRange(count: number): number[] {
-    return Array.from({ length: count }, (_, i) => i);
+    return Array.from({length: count}, (_, i) => i);
   }
 
   /**

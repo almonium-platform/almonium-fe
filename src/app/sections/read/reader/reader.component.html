@@ -17,160 +17,159 @@
   }
 
   <!-- Wrapper for Native Scroll -->
-  <div #readerContentWrapper
-       class="reader-content-wrapper"
-       [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
-       (scroll)="onWrapperScroll($event)"
-       *ngIf="!isLoading && !errorMessage">
-
-    <!-- Content Area - PASS MODE TO PIPE -->
-    <div #readerContent
-         class="reader-content"
-         [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
-         [innerHTML]="bookHtmlContent | parallelFormat:(isParallelViewActive ? currentParallelMode : null) | safeHtml"
-         (click)="onContentClick($event)">
+  @if (!isLoading && !errorMessage) {
+    <div #readerContentWrapper
+         class="reader-content-wrapper"
+         [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
+         (scroll)="onWrapperScroll($event)"
+    >
+      <!-- Content Area - PASS MODE TO PIPE -->
+      <div #readerContent
+           class="reader-content"
+           [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+           [innerHTML]="bookHtmlContent | parallelFormat:(isParallelViewActive ? currentParallelMode : null) | safeHtml"
+           (click)="onContentClick($event)">
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Pagination/Navigation Controls -->
-  <div #paginationControls *ngIf="!isLoading && !errorMessage" class="pagination-controls">
-    <div class="pagination-center-area">
-
-      <!-- Table of Contents Dropdown -->
-      <div class="chapter-nav-container" *ngIf="chapterNav.length > 0">
-        <lucide-icon
-          #tocDropdown="tuiDropdown"
-          (click)="tocDropdown.toggle(true)"
-          (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
-          [tuiDropdown]="tocDropdownContent"
-          name="table-of-contents"
-          size="26"
-          strokeWidth="1.75"
-          class="icon"
-          title="Table of Contents"
-          tuiDropdown
-        >
-        </lucide-icon>
-
-        <!-- Dropdown Content Template -->
-        <ng-template #tocDropdownContent>
-          <tui-data-list role="menu">
-            <button
-              (click)="selectChapter(i)"
-              *ngFor="let chapter of chapterNav; let i = index"
-              role="menuitem"
-              tuiOption
+  @if (!isLoading && !errorMessage) {
+    <div #paginationControls class="pagination-controls">
+      <div class="pagination-center-area">
+        <!-- Table of Contents Dropdown -->
+        @if (chapterNav.length > 0) {
+          <div class="chapter-nav-container">
+            <lucide-icon
+              #tocDropdown="tuiDropdown"
+              (click)="tocDropdown.toggle(true)"
+              (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
+              [tuiDropdown]="tocDropdownContent"
+              name="table-of-contents"
+              size="26"
+              strokeWidth="1.75"
+              class="icon"
+              title="Table of Contents"
+              tuiDropdown
             >
-              {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
-            </button>
-          </tui-data-list>
-        </ng-template>
-      </div>
-
-      <!-- Previous Button -->
-      <app-button
-        appearance="text"
-        (mousedown)="startScrollHold('prev')"
-        (touchstart)="startScrollHold('prev'); $event.preventDefault()"
-        (mouseup)="stopScrollHold('prev')"
-        (touchend)="stopScrollHold('prev')"
-        (mouseleave)="clearScrollHoldTimers()"
-        (touchcancel)="clearScrollHoldTimers()"
-        [disabled]="isAtScrollTop"
-        title="Previous Page (Click) / Scroll Up (Hold)">
-        <lucide-icon name="circle-chevron-left"
-                     size="28"
-                     [strokeWidth]=1
-                     [absoluteStrokeWidth]="true"
-        ></lucide-icon>
-      </app-button>
-
-      <!-- Slider (Percentage) & Chapter Select -->
-      <div class="slider-chapter-area">
-        <input type="range"
-               class="page-slider"
-               tuiSlider
-               [min]="0"
-               [max]="100"
-               [ngModel]="currentScrollPercentage"
-               (input)="onSliderInput($event)"
-               aria-label="Scroll Position Slider"/>
-        <span class="pagination-info">{{ currentScrollPercentage }}%</span>
-      </div>
-
-      <!-- Next Button -->
-      <app-button
-        appearance="text"
-        (mousedown)="startScrollHold('next')"
-        (touchstart)="startScrollHold('next'); $event.preventDefault()"
-        (mouseup)="stopScrollHold('next')"
-        (touchend)="stopScrollHold('next')"
-        (mouseleave)="clearScrollHoldTimers()"
-        (touchcancel)="clearScrollHoldTimers()"
-        [disabled]="isAtScrollBottom"
-        title="Next Page (Click) / Scroll Down (Hold)">
-        <lucide-icon name="circle-chevron-right" size="28"
-                     strokeWidth="1.5"
-                     [absoluteStrokeWidth]="true"
-        >
-        </lucide-icon>
-      </app-button>
-
-      <!-- Parallel Text Controls -->
-      @if (parallelVersions.length > 0) {
-        <div class="parallel">
-          <app-parallel-translation
-            #langDropdown="tuiDropdown"
-            (click)="langDropdown.toggle(true); $event.stopPropagation()"
-            (tuiActiveZoneChange)="!$event && langDropdown.toggle(false)"
-            [tuiDropdown]="parallelLangMenu"
-            [loading]="isLoadingParallel"
-            [showHint]="false"
+            </lucide-icon>
+            <!-- Dropdown Content Template -->
+            <ng-template #tocDropdownContent>
+              <tui-data-list role="menu">
+                @for (chapter of chapterNav; track chapter; let i = $index) {
+                  <button
+                    (click)="selectChapter(i)"
+                    role="menuitem"
+                    tuiOption
+                  >
+                    {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
+                  </button>
+                }
+              </tui-data-list>
+            </ng-template>
+          </div>
+        }
+        <!-- Previous Button -->
+        <app-button
+          appearance="text"
+          (mousedown)="startScrollHold('prev')"
+          (touchstart)="startScrollHold('prev'); $event.preventDefault()"
+          (mouseup)="stopScrollHold('prev')"
+          (touchend)="stopScrollHold('prev')"
+          (mouseleave)="clearScrollHoldTimers()"
+          (touchcancel)="clearScrollHoldTimers()"
+          [disabled]="isAtScrollTop"
+          title="Previous Page (Click) / Scroll Up (Hold)">
+          <lucide-icon name="circle-chevron-left"
+                       size="28"
+                       [strokeWidth]=1
+                       [absoluteStrokeWidth]="true"
+          ></lucide-icon>
+        </app-button>
+        <!-- Slider (Percentage) & Chapter Select -->
+        <div class="slider-chapter-area">
+          <input type="range"
+                 class="page-slider"
+                 tuiSlider
+                 [min]="0"
+                 [max]="100"
+                 [ngModel]="currentScrollPercentage"
+                 (input)="onSliderInput($event)"
+                 aria-label="Scroll Position Slider"/>
+          <span class="pagination-info">{{ currentScrollPercentage }}%</span>
+        </div>
+        <!-- Next Button -->
+        <app-button
+          appearance="text"
+          (mousedown)="startScrollHold('next')"
+          (touchstart)="startScrollHold('next'); $event.preventDefault()"
+          (mouseup)="stopScrollHold('next')"
+          (touchend)="stopScrollHold('next')"
+          (mouseleave)="clearScrollHoldTimers()"
+          (touchcancel)="clearScrollHoldTimers()"
+          [disabled]="isAtScrollBottom"
+          title="Next Page (Click) / Scroll Down (Hold)">
+          <lucide-icon name="circle-chevron-right" size="28"
+                       strokeWidth="1.5"
+                       [absoluteStrokeWidth]="true"
           >
-          </app-parallel-translation>
-          <ng-template #parallelLangMenu>
-            <tui-data-list
-              role="menu"
-              tuiDataListDropdownManager
-              class="context-menu"
+          </lucide-icon>
+        </app-button>
+        <!-- Parallel Text Controls -->
+        @if (parallelVersions.length > 0) {
+          <div class="parallel">
+            <app-parallel-translation
+              #langDropdown="tuiDropdown"
+              (click)="langDropdown.toggle(true); $event.stopPropagation()"
+              (tuiActiveZoneChange)="!$event && langDropdown.toggle(false)"
+              [tuiDropdown]="parallelLangMenu"
+              [loading]="isLoadingParallel"
+              [showHint]="false"
             >
-              <tui-opt-group label="Languages">
-                @for (lang of availableLangs; track lang) {
+            </app-parallel-translation>
+            <ng-template #parallelLangMenu>
+              <tui-data-list
+                role="menu"
+                tuiDataListDropdownManager
+                class="context-menu"
+              >
+                <tui-opt-group label="Languages">
+                  @for (lang of availableLangs; track lang) {
+                    <button
+                      tuiOption
+                      type="button"
+                      (click)="selectOption(lang); langDropdown.toggle(false)"
+                    >
+                      {{ lang }}
+                    </button>
+                  }
+                </tui-opt-group>
+                <tui-opt-group label="">
+                  @if (selectedLangCode) {
+                    <button
+                      tuiOption
+                      type="button"
+                      (click)="selectOption(null); langDropdown.toggle(false)"
+                    >
+                      Show Original
+                    </button>
+                  }
+                </tui-opt-group>
+                <!-- Група налаштувань із підписом -->
+                <tui-opt-group label="">
                   <button
                     tuiOption
                     type="button"
-                    (click)="selectOption(lang); langDropdown.toggle(false)"
+                    (click)="openParallelSettings(); langDropdown.toggle(false)"
                   >
-                    {{ lang }}
+                    Settings
                   </button>
-                }
-              </tui-opt-group>
-
-              <tui-opt-group label="">
-                <button
-                  *ngIf="selectedLangCode"
-                  tuiOption
-                  type="button"
-                  (click)="selectOption(null); langDropdown.toggle(false)"
-                >
-                  Show Original
-                </button>
-              </tui-opt-group>
-
-              <!-- Група налаштувань із підписом -->
-              <tui-opt-group label="">
-                <button
-                  tuiOption
-                  type="button"
-                  (click)="openParallelSettings(); langDropdown.toggle(false)"
-                >
-                  Settings
-                </button>
-              </tui-opt-group>
-            </tui-data-list>
-          </ng-template>
-        </div>
-      }
+                </tui-opt-group>
+              </tui-data-list>
+            </ng-template>
+          </div>
+        }
+      </div>
     </div>
-  </div>
+  }
 </div>

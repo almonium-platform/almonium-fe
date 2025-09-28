@@ -1,4 +1,4 @@
-import {TuiMultiSelectModule, TuiSelectModule, TuiTextfieldControllerModule} from "@taiga-ui/legacy";
+import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -16,13 +16,34 @@ import {
   FormBuilder,
   FormControl,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiChip, TuiDataListWrapper, TuiFieldErrorPipe} from '@taiga-ui/kit';
-import {TuiAlertService, TuiAutoColorPipe, TuiError} from '@taiga-ui/core';
+import {
+  TUI_VALIDATION_ERRORS,
+  TuiChevron,
+  TuiChip,
+  TuiFieldErrorPipe,
+  TuiFilterByInputPipe,
+  TuiHideSelectedPipe,
+  TuiInputChip,
+  TuiInputChipDirective,
+  TuiMultiSelectGroupComponent,
+  TuiMultiSelectGroupDirective
+} from '@taiga-ui/kit';
+import {
+  TuiAlertService,
+  TuiAutoColorPipe,
+  TuiDataList,
+  TuiDataListComponent,
+  TuiError,
+  TuiTextfieldDropdownDirective,
+  TuiTextfieldMultiComponent,
+  TuiTextfieldOptionsDirective
+} from '@taiga-ui/core';
 import {BehaviorSubject, delay, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
@@ -40,12 +61,12 @@ import {OnboardingService} from "../onboarding.service";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
-import {ButtonComponent} from "../../shared/button/button.component";
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
-import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone, TuiItem} from "@taiga-ui/cdk";
 import {AsyncPipe} from "@angular/common";
+import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
+import {ButtonComponent} from "../../shared/button/button.component";
 
 
 @Component({
@@ -64,12 +85,9 @@ import {AsyncPipe} from "@angular/common";
   ],
   imports: [
     ReactiveFormsModule,
-    TuiMultiSelectModule,
-    TuiSelectModule,
     TuiTextfieldControllerModule,
     TuiError,
     TuiFieldErrorPipe,
-    TuiDataListWrapper,
     NgxParticlesModule,
     FluentLanguageSelectorComponent,
     TuiAutoColorPipe,
@@ -79,7 +97,21 @@ import {AsyncPipe} from "@angular/common";
     ButtonComponent,
     CefrLevelSelectorComponent,
     TuiActiveZone,
-    AsyncPipe
+    AsyncPipe,
+    TuiTextfieldMultiComponent,
+    TuiChevron,
+    TuiInputChipDirective,
+    TuiInputChip,
+    TuiItem,
+    TuiTextfieldDropdownDirective,
+    TuiMultiSelectGroupDirective,
+    TuiDataListComponent,
+    TuiMultiSelectGroupComponent,
+    TuiDataList,
+    TuiHideSelectedPipe,
+    TuiFilterByInputPipe,
+    TuiTextfieldOptionsDirective,
+    FormsModule
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -126,7 +158,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   };
 
   cachedFluentLanguages: string[] = [];
-  targetLanguageControl = new FormControl<string[]>([], []);
+  targetLanguagesControl = new FormControl<string[]>([], {nonNullable: true});
 
   // STEP 2. CEFR
   cefrForm!: FormGroup;
@@ -150,7 +182,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     private utilsService: UtilsService,
   ) {
     this.languageForm = this.fb.group({
-        targetLanguages: this.targetLanguageControl,
+        targetLanguages: this.targetLanguagesControl,
       }, {validators: this.languageFormValidator()}
     );
     this.cefrForm = this.fb.group({
@@ -198,11 +230,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       this.validationMessagesService.setMaxLanguages(maxLanguages);
 
       // Update validators dynamically
-      this.targetLanguageControl.setValidators([
+      this.targetLanguagesControl.setValidators([
         Validators.required,
         this.maxLanguagesValidator(maxLanguages),
       ]);
-      this.targetLanguageControl.updateValueAndValidity();
+      this.targetLanguagesControl.updateValueAndValidity();
     }
 
     this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
@@ -223,7 +255,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.cachedFluentLanguages = this.languageNameService.mapLanguageCodesToNames(languages, info.fluentLangs);
 
         const targetLangNames = this.languageNameService.mapLanguageCodesToNames(languages, info.targetLangs);
-        this.targetLanguageControl.setValue(this.embeddedMode ? [] : targetLangNames);
+        this.targetLanguagesControl.setValue(this.embeddedMode ? [] : targetLangNames);
         this.initializeCefrForm(info.learners, targetLangNames);
 
         if (this.embeddedMode && info.targetLangs.length > 0) {
@@ -244,9 +276,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     });
 
     // Update features when target languages change
-    this.targetLanguageControl.valueChanges.subscribe(() => {
+    this.targetLanguagesControl.valueChanges.subscribe(() => {
       this.updateSelectedFeatures();
-      const selectedLangNames = this.targetLanguageControl.value || [];
+      const selectedLangNames = this.targetLanguagesControl.value || [];
       this.updateCefrForm(selectedLangNames);
     });
   }
@@ -280,7 +312,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   private updateSelectedFeatures(): void {
-    const selectedLangNames = this.targetLanguageControl.value || [];
+    const selectedLangNames = this.targetLanguagesControl.value || [];
     const specialFeaturesMap: { [feature: string]: Set<string> } = {};
     const basicFeaturesMap: { [feature: string]: Set<string> } = {};
 
@@ -496,5 +528,13 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   protected onActiveZoneChange($event: boolean) {
     if ($event) return;
     this.popupTemplateStateService.close();
+  }
+
+  get specialTargetLanguageNames(): string[] {
+    return this.specialTargetLanguages.map(l => l.name);
+  }
+
+  get otherTargetLanguageNames(): string[] {
+    return this.otherTargetLanguages.map(l => l.name);
   }
 }

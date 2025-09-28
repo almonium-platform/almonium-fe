@@ -4,7 +4,6 @@ import {Subject, takeUntil} from 'rxjs';
 import {SetupStep, UserInfo} from "../../models/userinfo.model";
 import {Router} from "@angular/router";
 import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
-import {FirebaseNotificationService} from "../../services/firebase-notification.service";
 
 @Component({
   selector: 'app-home',
@@ -23,9 +22,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private userService: UserInfoService,
     private cdr: ChangeDetectorRef,
     private router: Router,
-    protected firebaseNotificationService: FirebaseNotificationService,
   ) {
-    firebaseNotificationService.initFCM().then();
   }
 
   ngOnInit(): void {
