@@ -62,7 +62,7 @@ import {PopupTemplateStateService} from "../../shared/modals/popup-template/popu
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {TuiActiveZone, TuiItem} from "@taiga-ui/cdk";
-import {AsyncPipe} from "@angular/common";
+import {AsyncPipe, NgClass} from "@angular/common";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";
 
@@ -108,7 +108,8 @@ import {ButtonComponent} from "../../shared/button/button.component";
     TuiDataList,
     FormsModule,
     TuiHideSelectedPipe,
-    TuiFilterByInputPipe
+    TuiFilterByInputPipe,
+    NgClass
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -169,8 +170,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   @ViewChild('targetInput', {static: true}) targetInput!: ElementRef<HTMLInputElement>;
 
   private allowedTarget = new Set<string>();
-  private lastFilteredTarget: string[] = []; // flattened for Enter
-  private targetMaxLanguages = 1;
+  protected targetMaxLanguages = 1;
 
   constructor(
     private fb: FormBuilder,
@@ -446,18 +446,23 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     const groupA = filt(this.specialTargetLanguages);
     const groupB = filt(this.otherTargetLanguages);
 
-    // keep a flat list for Enter behavior (groupA first)
-    this.lastFilteredTarget = [...groupA, ...groupB];
-
     return of([groupA, groupB]);
   }
 
   onTypeTarget(event: Event): void {
+    if (this.atTargetLimit) return; // block typing when capped
     const value = (event.target as HTMLInputElement).value ?? '';
     this.targetSearch$.next(value);
   }
 
+
+// block chip-creation keys; also block when capped
   trapSeparatorsTarget(e: KeyboardEvent): void {
+    if (this.atTargetLimit) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     const key = e.key;
     if (key === 'Enter' || key === ',' || key === ' ') {
       e.preventDefault();
@@ -465,12 +470,19 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     }
   }
 
+  private _lastTargetFilteredGroups: string[][] | null = null;
+
   onEnterTarget(e: KeyboardEvent): void {
+    if (this.atTargetLimit) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
-    if (this.lastFilteredTarget.length) {
-      this.onPickTarget(this.lastFilteredTarget[0]);
-    }
+    const groups = this._lastTargetFilteredGroups ?? [[], []]; // keep last if you store it
+    const first = [...groups[0], ...groups[1]][0];
+    if (first) this.onPickTarget(first);
   }
 
   onPickTarget(item?: string): void {
@@ -488,6 +500,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       }
     });
     this.targetSearch$.next('');
+  }
+
+  get atTargetLimit(): boolean {
+    return (this.targetLanguagesControl.value?.length ?? 0) >= this.targetMaxLanguages;
   }
 
   protected submitFirstStepForm(): void {
