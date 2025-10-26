@@ -2,6 +2,7 @@ import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnDestroy,
@@ -26,9 +27,7 @@ import {
   TUI_VALIDATION_ERRORS,
   TuiChevron,
   TuiChip,
-  TuiFieldErrorPipe,
-  TuiFilterByInputPipe,
-  TuiHideSelectedPipe,
+  TuiFieldErrorPipe, TuiFilterByInputPipe, TuiHideSelectedPipe,
   TuiInputChip,
   TuiInputChipDirective,
   TuiMultiSelectGroupComponent,
@@ -41,10 +40,9 @@ import {
   TuiDataListComponent,
   TuiError,
   TuiTextfieldDropdownDirective,
-  TuiTextfieldMultiComponent,
-  TuiTextfieldOptionsDirective
+  TuiTextfieldMultiComponent
 } from '@taiga-ui/core';
-import {BehaviorSubject, delay, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
 import {LanguageApiService} from '../../services/language-api.service';
@@ -108,10 +106,9 @@ import {ButtonComponent} from "../../shared/button/button.component";
     TuiDataListComponent,
     TuiMultiSelectGroupComponent,
     TuiDataList,
+    FormsModule,
     TuiHideSelectedPipe,
-    TuiFilterByInputPipe,
-    TuiTextfieldOptionsDirective,
-    FormsModule
+    TuiFilterByInputPipe
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -169,6 +166,12 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
+  @ViewChild('targetInput', {static: true}) targetInput!: ElementRef<HTMLInputElement>;
+
+  private allowedTarget = new Set<string>();
+  private lastFilteredTarget: string[] = []; // flattened for Enter
+  private targetMaxLanguages = 1;
+
   constructor(
     private fb: FormBuilder,
     private languageApiService: LanguageApiService,
@@ -191,9 +194,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     this.filteredTargetLanguages$ = this.targetSearch$.pipe(
       startWith(''),
-      debounceTime(300),
+      debounceTime(200),
       distinctUntilChanged(),
-      switchMap((search) => this.filterTargetLanguages(search))
+      switchMap(search => this.filterTargetLanguages(search)),
     );
   }
 
@@ -227,6 +230,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const setValidationForTargetLanguages = (maxLanguages: number) => {
+      this.targetMaxLanguages = maxLanguages;
       this.validationMessagesService.setMaxLanguages(maxLanguages);
 
       // Update validators dynamically
@@ -272,15 +276,44 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.otherTargetLanguages = this.availableTargetLanguages
           .filter((lang) => !Object.keys(this.languageFeatures).includes(lang.code))
           .sort((a, b) => a.name.localeCompare(b.name));
+
+        this.allowedTarget = new Set(
+          [...this.specialTargetLanguages, ...this.otherTargetLanguages].map(l => l.name)
+        );
+
+        // sanitize current control after (re)building allowed list
+        this.sanitizeTargetControl();
+
       })
     });
 
     // Update features when target languages change
     this.targetLanguagesControl.valueChanges.subscribe(() => {
+      this.sanitizeTargetControl();            // drop free-text / over-limit
       this.updateSelectedFeatures();
       const selectedLangNames = this.targetLanguagesControl.value || [];
       this.updateCefrForm(selectedLangNames);
     });
+  }
+
+  private sanitizeTargetControl(): void {
+    const raw = this.targetLanguagesControl.value ?? [];
+    const cleaned: string[] = [];
+
+    for (const v of raw) {
+      if (this.allowedTarget.has(v) && !cleaned.includes(v)) {
+        cleaned.push(v);
+        if (cleaned.length >= this.targetMaxLanguages) break; // enforce cap
+      }
+    }
+
+    // write back only if changed to avoid loops
+    const changed =
+      raw.length !== cleaned.length || raw.some((v, i) => v !== cleaned[i]);
+
+    if (changed) {
+      this.targetLanguagesControl.setValue(cleaned, {emitEvent: false});
+    }
   }
 
   protected get languages(): FormArray {
@@ -401,13 +434,60 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   private filterTargetLanguages(search: string): Observable<string[][]> {
-    const supportedLangNames = this.specialTargetLanguages
-      .map(lang => lang.name)
-      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
-    const otherLangNames = this.otherTargetLanguages
-      .map(lang => lang.name)
-      .filter(name => name.toLowerCase().includes(search.toLowerCase()));
-    return of([supportedLangNames, otherLangNames]).pipe(delay(300)); // Simulate server delay if needed
+    const q = search.toLowerCase().trim();
+    const selected = new Set(this.targetLanguagesControl.value ?? []);
+
+    const filt = (arr: Language[]) =>
+      arr
+        .map(l => l.name)
+        .filter(name => !selected.has(name))
+        .filter(name => (q ? name.toLowerCase().includes(q) : true));
+
+    const groupA = filt(this.specialTargetLanguages);
+    const groupB = filt(this.otherTargetLanguages);
+
+    // keep a flat list for Enter behavior (groupA first)
+    this.lastFilteredTarget = [...groupA, ...groupB];
+
+    return of([groupA, groupB]);
+  }
+
+  onTypeTarget(event: Event): void {
+    const value = (event.target as HTMLInputElement).value ?? '';
+    this.targetSearch$.next(value);
+  }
+
+  trapSeparatorsTarget(e: KeyboardEvent): void {
+    const key = e.key;
+    if (key === 'Enter' || key === ',' || key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
+  onEnterTarget(e: KeyboardEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    if (this.lastFilteredTarget.length) {
+      this.onPickTarget(this.lastFilteredTarget[0]);
+    }
+  }
+
+  onPickTarget(item?: string): void {
+    if (!item || !this.allowedTarget.has(item)) return;
+
+    const current = this.targetLanguagesControl.value ?? [];
+    if (current.includes(item) || current.length >= this.targetMaxLanguages) return;
+
+    this.targetLanguagesControl.setValue([...current, item]);
+
+    // clear typed text
+    queueMicrotask(() => {
+      if (this.targetInput?.nativeElement) {
+        this.targetInput.nativeElement.value = '';
+      }
+    });
+    this.targetSearch$.next('');
   }
 
   protected submitFirstStepForm(): void {

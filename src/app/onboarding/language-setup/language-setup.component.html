@@ -39,31 +39,40 @@
         <div class="form-group">
           <label>I want to learn</label>
 
-          <tui-textfield
-            multi
-            tuiChevron
-          >
+          <tui-textfield multi tuiChevron>
             <input
+              #targetInput
               tuiInputChip
               [formControl]="targetLanguagesControl"
               [placeholder]="targetLanguagesControl.value.length ? '' : 'Start typing...'"
-              [tuiTextfieldCleaner]="true"
+              (input)="onTypeTarget($event)"
+              (keydown)="trapSeparatorsTarget($any($event))"
+              (keydown.enter)="onEnterTarget($any($event))"
             />
 
-            <!-- default chip view (remove if you use a custom chip component) -->
             <tui-input-chip *tuiItem/>
 
-            @if (filteredTargetLanguages$ | async) {
+            @if (filteredTargetLanguages$ | async; as groups) {
               <tui-data-list *tuiTextfieldDropdown>
                 <tui-opt-group [label]="labels[0]" tuiMultiSelectGroup>
-                  @for (name of specialTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
-                    <button new tuiOption [value]="name">{{ name }}</button>
+                  @for (name of specialTargetLanguageNames
+                    | tuiHideSelected
+                    | tuiFilterByInput;
+                    track name) {
+                    <button new tuiOption (click)="onPickTarget(name)">
+                      {{ name }}
+                    </button>
                   }
                 </tui-opt-group>
 
                 <tui-opt-group [label]="labels[1]" tuiMultiSelectGroup>
-                  @for (name of otherTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
-                    <button new tuiOption [value]="name">{{ name }}</button>
+                  @for (name of otherTargetLanguageNames
+                    | tuiHideSelected
+                    | tuiFilterByInput;
+                    track name) {
+                    <button new tuiOption (click)="onPickTarget(name)">
+                      {{ name }}
+                    </button>
                   }
                 </tui-opt-group>
               </tui-data-list>
