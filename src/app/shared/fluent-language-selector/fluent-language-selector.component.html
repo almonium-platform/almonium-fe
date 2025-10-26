@@ -1,30 +1,36 @@
 <div class="">
-  <tui-textfield
-    multi
-    tuiChevron
-    class="cefr-select"
-  >
-    <input
-      tuiInputChip
-      [formControl]="fluentLanguageControl"
-      [placeholder]="(fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...'"
-    />
-
-    <!-- default chip view (remove if you use a custom chip component) -->
-    <tui-input-chip *tuiItem/>
-
-    @if (filteredFluentLanguages$ | async; as items) {
-      <tui-data-list-wrapper
-        *tuiTextfieldDropdown
-        new
-        tuiMultiSelectGroup
-        [items]="items"
+  <div class="">
+    <tui-textfield
+      multi
+      tuiChevron
+      class="cefr-select"
+    >
+      <input
+        #chipInput
+        tuiInputChip
+        [formControl]="fluentLanguageControl"
+        [placeholder]="(fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...'"
+        (input)="onType($event)"
+        (keydown)="trapSeparators($any($event))"
+        (keydown.enter)="onEnter($any($event))"
       />
-    }
-  </tui-textfield>
+      <!-- default chip view (remove if you use a custom chip component) -->
+      <tui-input-chip *tuiItem/>
 
-  <tui-error
-    [formControl]="fluentLanguageControl"
-    [error]="[] | tuiFieldError | async"
-  />
+      @if (filteredFluentLanguages$ | async; as items) {
+        <tui-data-list-wrapper
+          *tuiTextfieldDropdown
+          new
+          tuiMultiSelectGroup
+          [items]="items"
+          (itemClick)="onPick($event.item)"
+        />
+      }
+    </tui-textfield>
+
+    <tui-error
+      [formControl]="fluentLanguageControl"
+      [error]="[] | tuiFieldError | async"
+    />
+  </div>
 </div>
