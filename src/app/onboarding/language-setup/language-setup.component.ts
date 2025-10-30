@@ -621,11 +621,6 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     return this.selectedTargetLanguageFeatures.special.length > 0 || this.selectedTargetLanguageFeatures.basic.length > 0;
   }
 
-  protected onActiveZoneChange($event: boolean) {
-    if ($event) return;
-    this.popupTemplateStateService.close();
-  }
-
   get specialTargetLanguageNames(): string[] {
     return this.specialTargetLanguages.map(l => l.name);
   }
