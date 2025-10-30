@@ -242,7 +242,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       next: () => {  // No response body expected for 204
         this.alertService.open('Account successfully deleted!', {appearance: 'success'}).subscribe();
         this.localStorageService.clearUserRelatedData();
-        this.router.navigate(['/']).then();
+        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
       },
       error: (error) => {
         this.alertService
