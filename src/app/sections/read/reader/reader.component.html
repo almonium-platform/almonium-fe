@@ -27,7 +27,10 @@
       <div #readerContent
            class="reader-content"
            [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
-           [innerHTML]="bookHtmlContent | parallelFormat:(isParallelViewActive ? currentParallelMode : null) | safeHtml"
+           [innerHTML]="bookHtmlContent | parallelFormat:{
+              mode: isParallelViewActive ? currentParallelMode : null,
+              targetLang: targetLangCode,
+              fluentLang: fluentLangCode}"
            (click)="onContentClick($event)">
       </div>
     </div>
@@ -145,7 +148,7 @@
                   }
                 </tui-opt-group>
                 <tui-opt-group label="">
-                  @if (selectedLangCode) {
+                  @if (fluentLangCode) {
                     <button
                       tuiOption
                       type="button"
