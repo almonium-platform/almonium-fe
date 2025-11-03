@@ -71,7 +71,6 @@ export class SafeHtmlPipe implements PipeTransform {
     TuiSliderComponent,
     SlicePipe,
     TuiActiveZone,
-    SafeHtmlPipe,
     ParallelFormatPipe,
     LoadingIndicatorComponent,
     ParallelTranslationComponent,
@@ -140,13 +139,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected parallelVersions: BookLanguageVariant[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
   protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
-  private currentlyOpenUkrSpan: HTMLElement | null = null;
+  private currentlyOpenFluentSpan: HTMLElement | null = null;
 
   protected isAtScrollTop: boolean = true; // ADDED: True initially
   protected isAtScrollBottom: boolean = false; // ADDED: False initially
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
-  protected selectedLangCode: string | null = null;
+  protected fluentLangCode: string | null = null;
+  protected targetLangCode: string | null = null; // Language of the book being read
+
   private isSyncingHeights = false;
 
   private progressUpdate$ = new Subject<number>();
@@ -191,9 +192,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.scheduleHeightSync();
           }
           // Reset overlay state when switching away from overlay
-          if (mode !== 'overlay' && this.currentlyOpenUkrSpan) {
-            this.currentlyOpenUkrSpan.hidden = true;
-            this.currentlyOpenUkrSpan = null;
+          if (mode !== 'overlay' && this.currentlyOpenFluentSpan) {
+            this.currentlyOpenFluentSpan.hidden = true;
+            this.currentlyOpenFluentSpan = null;
           }
         }
       });
@@ -297,66 +298,59 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     let overallChangesMade = false;
-    console.log(`Found ${sectionWrappers.length} potential sections to synchronize.`);
 
     // --- Step 2: Iterate through each section wrapper ---
     sectionWrappers.forEach((wrapper, index) => {
-      // console.log(`Processing section ${index + 1}...`);
+      const mainCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-main');
+      const secondaryCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-secondary');
 
-      // --- Step 3: Find the columns WITHIN THIS SPECIFIC wrapper ---
-      const engCol = wrapper.querySelector<HTMLDivElement>('.sbs-eng-column');
-      const ukrCol = wrapper.querySelector<HTMLDivElement>('.sbs-ukr-column');
-
-      if (!engCol || !ukrCol) {
-        // console.warn(`  Section ${index + 1}: Could not find both ENG and UKR columns. Skipping this section.`);
-        return; // Skip this section wrapper
+      if (!mainCol || !secondaryCol) {
+        console.error(`  Height sync FAILED for Section ${index + 1}. One or both columns not found. Check pipe output.`);
+        return;
       }
 
-      // --- Step 4: Find blocks (p, h2) WITHIN THESE SPECIFIC columns ---
-      const engBlocks = Array.from(engCol.querySelectorAll<HTMLElement>('p, h2')); // Select p AND h2
-      const ukrBlocks = Array.from(ukrCol.querySelectorAll<HTMLElement>('p, h2'));
-
-      // Check if counts match for THIS section
-      if (engBlocks.length !== ukrBlocks.length) {
-        console.warn(`  Section ${index + 1}: Mismatch in block count (${engBlocks.length} vs ${ukrBlocks.length}). Alignment might be incorrect for this section.`);
+      const mainBlocks = Array.from(mainCol.querySelectorAll<HTMLElement>('p, h2'));
+      const secondaryBlocks = Array.from(secondaryCol.querySelectorAll<HTMLElement>('p, h2'));
+      if (mainBlocks.length !== secondaryBlocks.length) {
+        console.warn(`  Section ${index + 1}: Mismatch in block count (Main: ${mainBlocks.length} vs Secondary: ${secondaryBlocks.length}).`);
+      } else {
+        console.log(`  Section ${index + 1}: Block counts match (Main: ${mainBlocks.length}, Secondary: ${secondaryBlocks.length}).`);
       }
 
       let sectionChangesMade = false;
-      const numBlocksToAlign = Math.min(engBlocks.length, ukrBlocks.length);
+      const numBlocksToAlign = Math.min(mainBlocks.length, secondaryBlocks.length);
       // console.log(`  Section ${index + 1}: Aligning ${numBlocksToAlign} block pairs.`);
 
       // --- Step 5: Synchronize heights for blocks in THIS section ---
       for (let i = 0; i < numBlocksToAlign; i++) {
-        const engP = engBlocks[i];
-        const ukrP = ukrBlocks[i];
+        const targetP = mainBlocks[i];
+        const fluentP = secondaryBlocks[i];
 
         // Reset heights first
-        engP.style.minHeight = '';
-        ukrP.style.minHeight = '';
+        targetP.style.minHeight = '';
+        fluentP.style.minHeight = '';
         // Consider resetting margin if it interferes
-        // engP.style.marginBottom = '';
-        // ukrP.style.marginBottom = '';
+        // targetP.style.marginBottom = '';
+        // fluentP.style.marginBottom = '';
 
         // Force reflow (offsetHeight does this implicitly)
-        const engHeight = engP.offsetHeight;
-        const ukrHeight = ukrP.offsetHeight;
-        const maxHeight = Math.max(engHeight, ukrHeight);
-
-        // console.log(`    Block Pair ${i + 1} (<${engP.tagName}>): EngH=${engHeight}, UkrH=${ukrHeight}, MaxH=${maxHeight}`);
+        const targetHeight = targetP.offsetHeight;
+        const fluentHeight = fluentP.offsetHeight;
+        const maxHeight = Math.max(targetHeight, fluentHeight);
 
         // Apply the max height if different (use a small tolerance)
         const tolerance = 1; // pixels
-        if (Math.abs(engHeight - maxHeight) > tolerance) {
-          engP.style.minHeight = `${maxHeight}px`;
+        if (Math.abs(targetHeight - maxHeight) > tolerance) {
+          targetP.style.minHeight = `${maxHeight}px`;
           sectionChangesMade = true;
         }
-        if (Math.abs(ukrHeight - maxHeight) > tolerance) {
-          ukrP.style.minHeight = `${maxHeight}px`;
+        if (Math.abs(fluentHeight - maxHeight) > tolerance) {
+          fluentP.style.minHeight = `${maxHeight}px`;
           sectionChangesMade = true;
         }
         // Optional: Ensure consistent bottom margin if needed
-        // engP.style.marginBottom = '1em'; // Example
-        // ukrP.style.marginBottom = '1em'; // Example
+        // targetP.style.marginBottom = '1em'; // Example
+        // fluentP.style.marginBottom = '1em'; // Example
       }
 
       if (sectionChangesMade) {
@@ -379,53 +373,40 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   // --- Example method to handle mode-specific logic ---
-
   protected onContentClick(event: MouseEvent): void {
-    if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) return;
-
+    if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
+      return;
+    }
     const target = event.target as HTMLElement;
-    const engSpan = target.closest('span.eng'); // Find the clicked English span
 
-    if (engSpan) {
-      const segPair = engSpan.closest('span.seg-pair'); // Find its parent pair container
-      if (segPair) {
-        const ukrSpan = segPair.querySelector('span.ukr') as HTMLElement | null; // Find the corresponding Ukrainian span
+    // Find the segment that was clicked (must be the main/target segment)
+    const clickedSegment = target.closest('.seg-pair > .segment');
 
-        if (ukrSpan) {
-          // --- Logic to close previously open span ---
-          // Check if the clicked span is DIFFERENT from the currently open one
-          if (this.currentlyOpenUkrSpan && this.currentlyOpenUkrSpan !== ukrSpan) {
-            console.log("Closing previously open translation.");
-            this.currentlyOpenUkrSpan.hidden = true; // Hide the previous one
-            // If using class toggling: this.currentlyOpenUkrSpan.closest('span.seg-pair')?.classList.remove('show-translation');
-            this.currentlyOpenUkrSpan = null; // Reset the reference
-          }
-
-          // --- Toggle the clicked span ---
-          const isNowHidden = !ukrSpan.hidden; // State *after* toggling
-          ukrSpan.hidden = isNowHidden;
-          // If using class toggling: segPair.classList.toggle('show-translation', !isNowHidden);
-
-          // --- Update the reference ---
-          if (!isNowHidden) {
-            // If it was just made visible, store its reference
-            this.currentlyOpenUkrSpan = ukrSpan;
-            console.log(`Opened translation for: ${engSpan.textContent?.trim()}`);
-          } else {
-            // If it was just hidden (by clicking itself again), clear the reference
-            this.currentlyOpenUkrSpan = null;
-            console.log(`Closed translation for: ${engSpan.textContent?.trim()}`);
-          }
-        }
+    // Helper to close any currently visible translation
+    const closeOpenSegment = () => {
+      const openSegment = this.readerContentRef.nativeElement.querySelector('.fluent-segment-overlay.is-visible');
+      if (openSegment) {
+        openSegment.classList.remove('is-visible');
       }
-    } else {
-      // --- Clicked *outside* any engSpan ---
-      // Close the currently open span, if any
-      if (this.currentlyOpenUkrSpan) {
-        console.log("Clicked outside, closing open translation.");
-        this.currentlyOpenUkrSpan.hidden = true;
-        // If using class toggling: this.currentlyOpenUkrSpan.closest('span.seg-pair')?.classList.remove('show-translation');
-        this.currentlyOpenUkrSpan = null;
+    };
+
+    if (!clickedSegment) {
+      // If the click was outside a main segment, just close any open translation
+      closeOpenSegment();
+      return;
+    }
+
+    // Find the fluent translation that is a sibling to the clicked segment's parent
+    const overlayWrapper = clickedSegment.parentElement?.querySelector('.fluent-segment-overlay');
+
+    if (overlayWrapper) {
+      // If the clicked segment's translation is already visible, close it.
+      if (overlayWrapper.classList.contains('is-visible')) {
+        closeOpenSegment();
+      } else {
+        // Otherwise, close any other open one and show this one.
+        closeOpenSegment();
+        overlayWrapper.classList.add('is-visible');
       }
     }
   }
@@ -439,9 +420,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         tap(langCode => {
             console.log("Language selected:", langCode);
             // Fetch the parallel content
-            if (this.currentlyOpenUkrSpan) {
-              this.currentlyOpenUkrSpan.hidden = true;
-              this.currentlyOpenUkrSpan = null;
+            if (this.currentlyOpenFluentSpan) {
+              this.currentlyOpenFluentSpan.hidden = true;
+              this.currentlyOpenFluentSpan = null;
             }
             this.isParallelViewActive = false; // Tentatively set false
             if (langCode) this.isLoadingParallel = true; // Show loader only if selecting a lang
@@ -598,7 +579,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     const stream$ = isBase
       ? this.readService.loadBook(bookId)
-      : this.readService.getParallelText(bookId, this.selectedLangCode!); // Use selectedLangCode here
+      : this.readService.getParallelText(bookId, this.fluentLangCode!); // Use selectedLangCode here
 
     stream$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
@@ -617,7 +598,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.isLoadingParallel = false;
             this.errorMessage = null;
             console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
-            this.currentlyOpenUkrSpan = null;
+            this.currentlyOpenFluentSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
 
             if (this.currentParallelMode === 'side') {
@@ -667,11 +648,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     console.log("Reverting to base content.");
 
     // Check if content or state actually needs reverting
-    if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.selectedLangCode !== null) {
+    if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.fluentLangCode !== null) {
       this.bookHtmlContent = this.baseBookHtmlContent;
       this.isParallelViewActive = false;
-      this.currentlyOpenUkrSpan = null;
-      this.selectedLangCode = null;
+      this.currentlyOpenFluentSpan = null;
+      this.fluentLangCode = null;
 
       this.isLoadingParallel = false;
       this.cdRef.markForCheck();
@@ -688,6 +669,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
+          this.targetLangCode = book.language; // <-- ADD THIS LINE
+          console.log(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
           this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
           this.initialScrollPercentage = book.progressPercentage ?? 0;
           console.log(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
@@ -753,12 +736,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
 
       // Title: ALWAYS use English title from base H2 structure (No change needed here)
-      const engSpan = headingElement.querySelector<HTMLElement>('span.eng');
-      if (engSpan) {
-        title = engSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
+      const titleSpan = headingElement.querySelector<HTMLElement>(`span.segment[lang="${this.targetLangCode}"]`);
+
+// And update the if statement to use the new variable:
+      if (titleSpan) {
+        title = titleSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
       } else {
+        // Fallback for non-parallel headers
         title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-        // console.warn(`Chapter measurement (Base): Couldn't find span.eng in H2 at index ${index}. Used full H2 text.`);
       }
 
       // Store chapter info with its index
@@ -1201,15 +1186,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   get availableLangs(): string[] {
     console.log('Recalculating availableLangs'); // Add this to see how often it runs
-    return this.langs.filter(l => l !== this.selectedLangCode);
+    return this.langs.filter(l => l !== this.fluentLangCode);
   }
 
   private parallelLoadSubscription: Subscription | null = null;
 
   selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
-    console.log("Language selected:", langCode);
+    console.log(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
 
-    if (langCode !== null && langCode === this.selectedLangCode) {
+    if (langCode !== null && langCode === this.fluentLangCode) {
       console.log(`Language ${langCode} is already selected.`);
       // Optionally close the dropdown here if needed, depending on your template structure
       return; // Exit early
@@ -1218,16 +1203,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     // --- 1. Cancel Previous Request ---
     this.parallelLoadSubscription?.unsubscribe();
 
-    this.selectedLangCode = langCode;
+    this.fluentLangCode = langCode;
 
     // --- 2. Handle Selection ---
     if (langCode && this.bookId) {
       // --- 2a. Start Loading Process ---
 
       // Perform pre-fetch UI updates (from original 'tap')
-      if (this.currentlyOpenUkrSpan) {
-        this.currentlyOpenUkrSpan.hidden = true;
-        this.currentlyOpenUkrSpan = null;
+      if (this.currentlyOpenFluentSpan) {
+        this.currentlyOpenFluentSpan.hidden = true;
+        this.currentlyOpenFluentSpan = null;
       }
       this.isParallelViewActive = false; // Tentatively set false
       this.isLoadingParallel = true;    // Show loader

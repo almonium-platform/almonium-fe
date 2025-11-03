@@ -149,23 +149,83 @@
     }
   }
 
-  // Overlay mode: inline glosses on hover
-  &.mode-overlay {
-    ::ng-deep span.eng {
-      cursor: help;
-      transition: background-color 0.2s ease-out;
-      border-radius: 4px;
-
-      &:hover {
-        background-color: #e7f3ff;
-        text-decoration: underline;
-        text-decoration-color: var(--info-dark-blue);
+  &.mode-inline {
+    ::ng-deep {
+      .fluent-segment-inline .segment {
+        color: white;
+        background: #621567;
+        border-radius: 12px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.95em;
+        margin: 0 0.3em;
+        display: inline-block;
       }
     }
   }
 
-  // Inline Ukrainian spans
-  ::ng-deep span.ukr {
+  // --- OVERLAY MODE ---
+  &.mode-overlay {
+    ::ng-deep {
+      // 1. Style the main (target) segment to match your original design
+      .seg-pair > .segment { // '>' makes it specific to the direct child
+        cursor: help;
+        transition: background-color 0.2s ease-out;
+        border-radius: 4px;
+
+        &:hover {
+          background-color: #e7f3ff;
+          text-decoration: underline;
+          text-decoration-color: var(--info-dark-blue);
+        }
+      }
+
+      // 2. Hide the fluent segment's wrapper by default
+      .fluent-segment-overlay {
+        display: none;
+      }
+
+      // 3. When the wrapper is made visible by the script, style the segment inside it
+      .fluent-segment-overlay.is-visible {
+        display: inline; // Show the wrapper
+
+        .segment { // Style the fluent segment inside
+          color: white;
+          background: #621567;
+          border-radius: 12px;
+          padding: 0.2rem 0.5rem;
+          font-size: 0.95em;
+          margin: 0 0.3em;
+        }
+      }
+    }
+  }
+
+  &.mode-inline {
+    ::ng-deep {
+      // Target the fluent segment inside the wrapper our pipe creates
+      .fluent-segment-inline .segment {
+        // --- These are the styles from your original span.ukr ---
+        color: white;
+        background: #621567;
+        border-radius: 12px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.95em;
+        margin: 0 0.3em;
+        display: inline; // Use 'inline' for natural text flow
+
+        // Keep the subtle spacing from your original design
+        &::before {
+          margin-right: 0.1em;
+        }
+
+        &::after {
+          margin-left: 0.1em;
+        }
+      }
+    }
+  }
+
+  ::ng-deep span.segment + span.segment {
     color: white;
     background: #621567;
     border-radius: 12px;
@@ -213,6 +273,12 @@
         margin-bottom: 1em;
       }
 
+      .sbs-column p,
+      .sbs-column h2 {
+        margin-bottom: 0;
+      }
+
+
       .sbs-column {
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -223,11 +289,11 @@
       }
 
       // Optional explicit column placement
-      .sbs-eng-column {
+      .sbs-column-main {
         grid-column: 1;
       }
 
-      .sbs-ukr-column {
+      .sbs-column-secondary {
         grid-column: 2;
       }
 
@@ -277,7 +343,7 @@
       }
 
       // Hide inline spans in SxS mode
-      span.eng, span.ukr {
+      .seg-pair > span.segment { // This only targets spans directly inside a seg-pair
         display: none !important;
       }
     }
