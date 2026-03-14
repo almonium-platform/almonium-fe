@@ -80,7 +80,7 @@ jobs:
           ssh-key: ${{ secrets.INFRA_REPO_CHECKOUT_KEY }}
 
       - name: Run Ansible Playbook
-        uses: dawidd6/action-ansible-playbook@v3
+        uses: dawidd6/action-ansible-playbook@v4
         with:
           playbook: playbook-deploy-almonium-fe.yaml
           directory: almonium-infra/ansible
