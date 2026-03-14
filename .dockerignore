@@ -100,7 +100,6 @@ eslint.config.js
 tailwind.config.js
 
 # Lock files (package.json is copied separately)
-package-lock.json
 yarn.lock
 
 # Local development files
