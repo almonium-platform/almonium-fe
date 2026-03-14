@@ -62,7 +62,7 @@ jobs:
           push: true
           tags: ghcr.io/almonium-platform/almonium-fe:${{ needs.setup.outputs.image_tag }}
           build-args: |
-            BUILD_CONFIGURATION=prod
+            BUILD_CONFIGURATION=production
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
