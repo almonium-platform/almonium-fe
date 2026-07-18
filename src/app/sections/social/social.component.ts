@@ -62,7 +62,7 @@ import {Channel, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
-import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
+import {ChatHeaderComponent} from "./chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
