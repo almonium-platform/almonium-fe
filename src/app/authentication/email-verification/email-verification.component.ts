@@ -47,7 +47,7 @@ export class EmailVerificationComponent implements OnInit {
     // Extract the token from the URL parameters
     this.route.queryParams.pipe(
       switchMap((params) => {
-        const token = params['token'];
+        const token = params['oobCode'] || params['token'];
         if (token) {
           const verification$ = this.isChangeEmailRoute
             ? this.authService.changeEmail(token)

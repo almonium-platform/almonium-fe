@@ -7,12 +7,13 @@ import {
 } from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
-import {TokenInterceptor} from './authentication/auth/token-interceptor';
 
 import {TUI_VALIDATION_ERRORS} from '@taiga-ui/kit';
 import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {getStorage, provideStorage} from '@angular/fire/storage';
+import {provideAuth} from '@angular/fire/auth';
+import {getAuth} from 'firebase/auth';
 import {environment} from '../environments/environment';
 import {TranslateModule} from '@ngx-translate/core';
 import {EN_CODE} from './sections/social/i18n';
@@ -45,12 +46,12 @@ export const appConfig: ApplicationConfig = {
 
     // Firebase
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
+    provideAuth(() => getAuth()),
     provideStorage(() => getStorage()),
     provideMessaging(() => getMessaging()),
 
     // HTTP interceptors
     provideHttpClient(withInterceptorsFromDi()),
-    {provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: XsrfInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: SwBypassInterceptor, multi: true},
 

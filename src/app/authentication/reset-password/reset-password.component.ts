@@ -69,7 +69,7 @@ export class ResetPasswordComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      this.token = params['token'];
+      this.token = params['oobCode'] || params['token'];
       if (!this.token) {
         this.alertService.open('No token provided', {appearance: 'error'}).subscribe();
         this.router.navigate(['/auth']).then();

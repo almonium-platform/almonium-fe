@@ -326,11 +326,20 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       this.openAuthModal();
       return;
     }
-    const providerUrls: { [key: string]: string } = {
-      google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
-      apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
-    };
-    window.location.href = providerUrls[provider] + '/settings/auth&intent=link';
+    if (provider === 'google' || provider === 'apple') {
+      const signIn = provider === 'apple'
+        ? this.authService.appleSignIn('link')
+        : this.authService.googleSignIn('link');
+      signIn.subscribe({
+        next: () => {
+          this.alertService.open(`${provider === 'apple' ? 'Apple' : 'Google'} account linked!`, {appearance: 'success'}).subscribe();
+          this.populateAuthMethods();
+        },
+        error: error => this.alertService
+          .open(error?.message || `Failed to link ${provider === 'apple' ? 'Apple' : 'Google'}`, {appearance: 'error'})
+          .subscribe(),
+      });
+    }
   }
 
   private prepareUnlinkConfirmationModal(provider: string) {
@@ -499,13 +508,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected requestEmailVerification() {
-    if (!this.isProviderLinked('local')) {
-      this.alertService.open('To verify your email, you need to link a local account first', {appearance: 'info'}).subscribe();
-      this.authMode = 'linkLocal';
-      this.openAuthModal();
-      return;
-    }
-
     this.settingService.requestEmailVerification().subscribe({
       next: () => {
         this.alertService.open('Verification email sent!', {appearance: 'success'}).subscribe();
@@ -559,12 +561,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   private onEmailChange() {
     this.focusEmailInput();
-
-    if (!this.isProviderLinked('local')) {
-      this.authMode = 'changeEmail';
-      this.openAuthModal();
-      return;
-    }
 
     if (!this.emailEditable) {
       this.emailEditable = true;

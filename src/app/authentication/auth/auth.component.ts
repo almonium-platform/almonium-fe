@@ -27,8 +27,6 @@ import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
 
-declare const google: any;
-
 @Component({
   selector: 'app-auth',
   imports: [
@@ -118,33 +116,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   ) {
   }
 
-  initializeGoogleSignIn() {
-    const handleResponse = this.handleCredentialResponse.bind(this);
-
-    google.accounts.id.initialize({
-      client_id: environment.googleClientId,
-      callback: handleResponse,
-    });
-
-    // Automatically prompt the popup on page load
-    google.accounts.id.prompt();
-  }
-
-  handleCredentialResponse(response: any) {
-    this.replayGifTrigger.next();
-    const credential = response.credential;
-
-    this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
-      .subscribe({
-        next: () => {
-          this.router.navigate(['/home']).then(); // Redirect after successful auth
-        },
-        error: () => {
-          console.error('Error during login', response);
-        },
-      });
-  }
-
   ngOnInit(): void {
     this.userInfoService.userInfo$
       .pipe(takeUntil(this.destroy$))
@@ -182,12 +153,6 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.authForm.get('emailValue')?.setValue(info.email);
       }
     });
-
-    if (this.mode === 'default') {
-      this.loadGoogleSignInScript().then(() => {
-        this.initializeGoogleSignIn();
-      });
-    }
 
     this.route.fragment.subscribe((fragment) => {
       if (fragment === 'sign-up') {
@@ -371,22 +336,6 @@ export class AuthComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadGoogleSignInScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (typeof google !== 'undefined') {
-        resolve();  // Script is already loaded
-      } else {
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.onload = () => {
-          resolve();
-        };
-        script.onerror = () => reject('Google Sign-In script could not be loaded.');
-        document.head.appendChild(script);
-      }
-    });
-  }
-
   protected toggleSignUp() {
     this.isSignUp = !this.isSignUp;
   }
@@ -417,18 +366,29 @@ export class AuthComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (provider !== 'google' && provider !== 'apple') return;
+
     this.replayGifTrigger.next();
-    const providerUrls: { [key: string]: string } = {
-      google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
-      apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
-    };
-
-    const redirectUrl = this.embeddedMode
-      ? this.router.url + '&intent=' + this.intent
-      + (this.intent === 'reauth' ? '&userId=' + this.userInfo?.id : '')
-      : '/home';
-
-    window.location.href = providerUrls[provider] + redirectUrl;
+    this.loadingSubject$.next(true);
+    const mode = this.intent === 'link' ? 'link' : this.embeddedMode ? 'reauth' : 'sign-in';
+    const signIn = provider === 'apple'
+      ? this.authService.appleSignIn(mode)
+      : this.authService.googleSignIn(mode);
+    signIn
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          if (this.embeddedMode) {
+            this.router.navigate([this.router.url], {queryParams: {intent: this.intent}}).then();
+            this.popupTemplateStateService.close();
+          } else {
+            this.router.navigate(['/home']).then();
+          }
+        },
+        error: error => this.alertService
+          .open(error?.error?.message || error?.message || `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`, {appearance: 'error'})
+          .subscribe(),
+      });
   };
 
   get actionBtnText(): string {

@@ -77,7 +77,18 @@ export class UserInfoService {
     }
   }
 
-  private getCurrentUserInfo(): UserInfo | null {
+  get currentUserInfo(): UserInfo | null {
     return this.userInfoSubject.getValue();
+  }
+
+  setUserInfo(userInfoData: UserInfo): void {
+    const userInfo = UserInfo.fromJSON(userInfoData);
+    userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
+    this.localStorageService.saveUserInfo(userInfo);
+    this.userInfoSubject.next(userInfo);
+  }
+
+  private getCurrentUserInfo(): UserInfo | null {
+    return this.currentUserInfo;
   }
 }

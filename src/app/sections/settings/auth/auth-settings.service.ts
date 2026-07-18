@@ -1,101 +1,90 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {AppConstants} from "../../../app.constants";
-import {Observable, of} from "rxjs";
-import {map, tap} from "rxjs/operators";
-import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
-import {ResponseModel} from "../../../models/response.model";
-import {LocalStorageService} from "../../../services/local-storage.service";
-import {TuiAlertService} from "@taiga-ui/core";
+import {from, map, Observable, of, switchMap} from 'rxjs';
+import {AppConstants} from '../../../app.constants';
+import {AuthMethod, TokenInfo} from '../../../authentication/auth/auth.types';
+import {ResponseModel} from '../../../models/response.model';
+import {
+  Auth,
+  sendEmailVerification,
+  signOut,
+  unlink,
+  updatePassword,
+  verifyBeforeUpdateEmail,
+} from '@angular/fire/auth';
 
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({providedIn: 'root'})
 export class AuthSettingsService {
-  constructor(private http: HttpClient,
-              private localStorageService: LocalStorageService,
-              private alertService: TuiAlertService,
-  ) {
-  }
+  constructor(private http: HttpClient, private firebaseAuth: Auth) {}
 
   checkCurrentAccessTokenIsLive(): Observable<string | null> {
-    const url = `${AppConstants.AUTH_URL}/access-token/verify-live`;
-    return this.http.get<ResponseModel>(url, {withCredentials: true}).pipe(
-      map(response => response.success ? response.message! : null)
+    return this.http.get<ResponseModel>(`${AppConstants.AUTH_URL}/session/recent`, {withCredentials: true}).pipe(
+      map(response => response.success ? response.message! : null),
     );
   }
 
-  // email change request
-  requestEmailChange(email: string): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/email/change`;
-    return this.http.post<any>(url, {email}, {withCredentials: true});
+  requestEmailChange(email: string): Observable<void> {
+    return from(verifyBeforeUpdateEmail(this.requireUser(), email));
   }
 
-  // email verification requests
   requestEmailVerification(): Observable<void> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
-    return this.http.post<void>(url, {}, {withCredentials: true});
+    return from(sendEmailVerification(this.requireUser()));
   }
 
-  cancelEmailVerificationRequest(): Observable<any> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
-    return this.http.delete<any>(url, {withCredentials: true});
+  cancelEmailVerificationRequest(): Observable<void> {
+    return of(undefined);
   }
 
   resendEmailVerificationRequest(): Observable<void> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/resend`;
-    return this.http.post<void>(url, {}, {withCredentials: true});
+    return this.requestEmailVerification();
   }
 
-  getLastEmailVerificationToken(): Observable<TokenInfo> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/last/token`;
-    return this.http.get<TokenInfo>(url, {withCredentials: true});
+  getLastEmailVerificationToken(): Observable<TokenInfo | null> {
+    return of(null);
   }
 
-  // sensitive
   changePassword(newPassword: string): Observable<void> {
-    const url = `${AppConstants.AUTH_URL}/password`;
-    return this.http.put<void>(url, {password: newPassword}, {withCredentials: true});
+    return from(updatePassword(this.requireUser(), newPassword));
   }
 
-  deleteAccount(): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/me`;
-    return this.http.delete(url, {withCredentials: true});
+  deleteAccount(): Observable<void> {
+    this.requireUser();
+    return this.http.delete<void>(`${AppConstants.AUTH_URL}/me`, {withCredentials: true}).pipe(
+      switchMap(() => from(signOut(this.firebaseAuth))),
+    );
   }
 
   unlinkAuthProvider(provider: string): Observable<boolean> {
-    const url = `${AppConstants.AUTH_URL}/providers/${provider.toUpperCase()}`;
-    return this.http.delete<{ reauthRequired: boolean }>(url, {withCredentials: true})
-      .pipe(
-        map(response => response.reauthRequired)
-      );
+    const providerId = provider.toLowerCase() === 'local' ? 'password' : `${provider.toLowerCase()}.com`;
+    return from(unlink(this.requireUser(), providerId)).pipe(map(() => false));
   }
 
-  // auth data retrieval
   getAuthMethods(): Observable<AuthMethod[]> {
-    const url = `${AppConstants.AUTH_URL}/providers`;
-    return this.http.get<AuthMethod[]>(url, {withCredentials: true});
+    return from(this.firebaseAuth.authStateReady()).pipe(map(() => {
+      const user = this.firebaseAuth.currentUser;
+      if (!user) return [];
+      const createdAt = user.metadata.creationTime || new Date().toISOString();
+      const updatedAt = user.metadata.lastSignInTime || createdAt;
+      return user.providerData.map(provider => ({
+        provider: provider.providerId === 'password' ? 'local' : provider.providerId.replace('.com', ''),
+        email: provider.email || user.email || '',
+        createdAt,
+        updatedAt,
+      }));
+    }));
   }
 
-  isEmailAvailable(email: string): Observable<boolean> {
-    const url = `${AppConstants.AUTH_URL}/email/availability`;
-    return this.http.post<boolean>(url, {email}, {withCredentials: true});
+  isEmailAvailable(_email: string): Observable<boolean> {
+    return of(true);
   }
 
   populateAuthMethods(): Observable<AuthMethod[]> {
-    const cachedAuthMethods = this.localStorageService.getAuthMethods();
-    if (cachedAuthMethods) {
-      return of(cachedAuthMethods);
-    }
-    return this.getAuthMethods().pipe(
-      tap({
-        next: (methods) => this.localStorageService.saveAuthMethods(methods),
-        error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
-        }
-      })
-    );
+    return this.getAuthMethods();
+  }
+
+  private requireUser() {
+    const user = this.firebaseAuth.currentUser;
+    if (!user) throw new Error('Recent Firebase sign-in required');
+    return user;
   }
 }

@@ -20,6 +20,7 @@
             "outputPath": "dist/almonium-fe",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "poll": 1000,
             "polyfills": [
               "zone.js"
             ],
