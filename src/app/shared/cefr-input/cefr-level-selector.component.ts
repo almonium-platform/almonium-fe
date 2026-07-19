@@ -1,8 +1,7 @@
+import { TuiInput } from "@taiga-ui/core";
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CEFRLevel} from '../../models/userinfo.model';
-
-import {TuiTextfield} from '@taiga-ui/core';
 import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
 
 @Component({
@@ -11,7 +10,7 @@ import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    TuiTextfield,
+    TuiInput,
     TuiSelect,
     TuiChevron,
     TuiDataListWrapper,
@@ -31,7 +30,7 @@ import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
 
       <tui-data-list-wrapper
         new
-        *tuiTextfieldDropdown
+        *tuiDropdown
         [items]="levels"
       />
     </tui-textfield>
@@ -42,7 +41,7 @@ import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
     }
 
     .cefr-select {
-      font: normal 1.2rem/1.25rem var(--tui-font-text);
+      font: normal 1.2rem/1.25rem var(--tui-typography-family-text);
       width: 6rem;
     }
   `],

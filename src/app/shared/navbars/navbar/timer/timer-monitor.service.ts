@@ -1,6 +1,6 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Injectable} from '@angular/core';
 import {interval, Subscription} from 'rxjs';
-import {TuiAlertService} from '@taiga-ui/core';
 import {LocalStorageService} from "../../../../services/local-storage.service";
 
 @Injectable({
@@ -12,7 +12,7 @@ export class TimerMonitorService {
 
   constructor(
     private localStorageService: LocalStorageService,
-    private alertService: TuiAlertService
+    private alertService: TuiNotificationService
   ) {
   }
 

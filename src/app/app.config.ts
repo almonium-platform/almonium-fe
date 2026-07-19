@@ -1,3 +1,4 @@
+import { provideTaiga, TUI_VALIDATION_ERRORS } from "@taiga-ui/core";
 import {
   ApplicationConfig,
   importProvidersFrom,
@@ -7,8 +8,6 @@ import {
 } from '@angular/core';
 import {provideRouter} from '@angular/router';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
-
-import {TUI_VALIDATION_ERRORS} from '@taiga-ui/kit';
 import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {getStorage, provideStorage} from '@angular/fire/storage';
@@ -20,7 +19,6 @@ import {EN_CODE} from './sections/social/i18n';
 import {provideMessaging} from '@angular/fire/messaging';
 import {getMessaging} from 'firebase/messaging';
 import {provideServiceWorker} from '@angular/service-worker';
-import {provideEventPlugins} from '@taiga-ui/event-plugins';
 import {XsrfInterceptor} from './authentication/auth/xsrf-interceptor';
 import {csrfInitializer} from "./initializers/csrf-app-initializer";
 import {initializeUser} from "./initializers/user-app-initializer";
@@ -59,7 +57,7 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(csrfInitializer),
     provideAppInitializer(initializeUser),
 
-    provideEventPlugins(),
+    provideTaiga(),
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: MY_CUSTOM_ERRORS,

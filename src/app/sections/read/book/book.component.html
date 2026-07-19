@@ -85,14 +85,14 @@
             </p>
             <div class="translation">
               <app-parallel-translation></app-parallel-translation>
-              <tui-chip
+              <span tuiChip
                 class="chip"
                 appearance="neutral"
                 [style.background-color]="originalLanguage! | tuiAutoColor"
                 (click)="onOriginalLanguageClick()"
               >
                 {{ originalLanguage }}
-              </tui-chip>
+              </span>
             </div>
           </div>
         }
@@ -110,16 +110,16 @@
               <app-parallel-translation></app-parallel-translation>
             }
             @for (language of availableTranslations; track language) {
-              <tui-chip
+              <span tuiChip
                 class="chip"
                 [style.background-color]="language | tuiAutoColor"
                 (click)="onTranslatedLanguageClick(language)"
               >{{ language }}
-              </tui-chip>
+              </span>
             }
             @if (orderLanguageName) {
               <!-- Use the getter name -->
-              <tui-chip
+              <span tuiChip
                 class="edit-chip edit-chip--no-hover"
                 appearance="outline"
                 (click)="openLanguageDropdown()"
@@ -137,7 +137,7 @@
                 {{ orderLanguageName }}
                 <p class="inner-text">ORDERED</p>
                 <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder()"></lucide-icon>
-              </tui-chip>
+              </span>
             } @else {
               @if (showLangDropdown) {
                 <tui-textfield
@@ -154,12 +154,12 @@
 
                   <tui-data-list-wrapper
                     new
-                    *tuiTextfieldDropdown
+                    *tuiDropdown
                     [items]="languagesAvailableForOrder"
                   />
                 </tui-textfield>
               } @else {
-                <tui-chip
+                <span tuiChip
                   class="edit-chip"
                   appearance="outline"
                   (click)="openLanguageDropdown()"
@@ -171,7 +171,7 @@
                   >
                   </lucide-icon>
                   Order
-                </tui-chip>
+                </span>
               }
             }
           </div>

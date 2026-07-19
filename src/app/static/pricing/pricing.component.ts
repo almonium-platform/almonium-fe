@@ -1,8 +1,8 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
 import {NgTemplateOutlet} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UrlService} from "../../services/url.service";
 
 @Component({
@@ -19,7 +19,7 @@ export class PricingComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private urlService: UrlService
   ) {
   }

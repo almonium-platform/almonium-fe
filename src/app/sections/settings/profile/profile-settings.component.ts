@@ -8,7 +8,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
-import {TuiAlertService, TuiAutoColorPipe, TuiHintDirective} from "@taiga-ui/core";
+import { TuiHintDirective, TuiNotificationService } from "@taiga-ui/core";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {ActivatedRoute} from "@angular/router";
@@ -18,7 +18,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-settings.component";
 import {InterestsComponent} from "../../../shared/interests/interests.component";
-import {TuiChip} from "@taiga-ui/kit";
+import { TuiChip, TuiAutoColorPipe } from "@taiga-ui/kit";
 import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
@@ -111,7 +111,7 @@ auto-renewal in the customer portal.`;
     private recentAuthGuardService: RecentAuthGuardService,
     private activatedRoute: ActivatedRoute,
     private urlService: UrlService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

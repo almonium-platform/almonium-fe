@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
-import {TuiAlertService, TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
+import { TuiAppearance, TuiIcon, TuiTitle, TuiNotificationService } from "@taiga-ui/core";
 import {TuiCardLarge} from "@taiga-ui/layout";
 
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
@@ -71,7 +71,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
     private planService: PlanService,
     private userInfoService: UserInfoService,
     private onboardingService: OnboardingService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private router: Router,
   ) {
   }

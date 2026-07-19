@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {TuiAlertService, TuiAutoColorPipe} from '@taiga-ui/core';
+import { TuiNotificationService } from '@taiga-ui/core';
 import {Interest} from './interest.model';
 
-import {TuiChip, TuiSkeleton} from '@taiga-ui/kit';
+import { TuiChip, TuiSkeleton, TuiAutoColorPipe } from '@taiga-ui/kit';
 import {FormsModule} from '@angular/forms';
 import {StaticInfoService} from '../../services/static-info.service';
 
@@ -58,7 +58,7 @@ export class InterestsComponent implements OnInit {
 
   constructor(
     private staticInfoService: StaticInfoService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

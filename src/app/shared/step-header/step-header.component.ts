@@ -13,12 +13,11 @@ import {TuiHeader} from "@taiga-ui/layout";
   ],
   template: `
     <div class="flex items-center space-x-4 mb-4">
-      <tui-avatar
+      <span [tuiAvatar]="getAvatarClass()"
         appearance="primary"
-        [src]="getAvatarClass()"
         size="s"
-      ></tui-avatar>
-      <div tuiHeader="xs">
+      ></span>
+      <div tuiHeader="h6">
         <h3 tuiTitle>
           {{ text }}
         </h3>

@@ -29,7 +29,7 @@
                        tuiDropdown
                        (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
                        [tuiDropdown]="friendDropdownTemplate"
-                       tuiDropdownAlign="right"
+                       tuiDropdownAlign="end"
                        (click)="friendDropdown.toggle(true)"
           >
             <ng-template #friendDropdownTemplate>
@@ -38,9 +38,7 @@
                 tuiDataListDropdownManager
                 class="context-menu">
                 @if (userProfileInfo.relationshipStatus === 'FRIENDS') {
-                  <button
-                    new
-                    tuiOption
+                  <button tuiOption
                     type="button"
                     class="context-button negative"
                     (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
@@ -53,9 +51,7 @@
                   </button>
                 }
                 @if (userProfileInfo.relationshipStatus === 'BLOCKED') {
-                  <button
-                    new
-                    tuiOption
+                  <button tuiOption
                     type="button"
                     class="context-button negative"
                     (click)="unblock(); friendDropdown.toggle(false)"
@@ -67,9 +63,7 @@
                     Unblock
                   </button>
                 } @else {
-                  <button
-                    new
-                    tuiOption
+                  <button tuiOption
                     type="button"
                     class="context-button negative"
                     (click)="prepareBlockModal(); friendDropdown.toggle(false)"

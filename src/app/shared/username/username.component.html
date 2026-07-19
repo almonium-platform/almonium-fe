@@ -19,7 +19,7 @@
         tuiTextfieldSize="m"
       >
         <input
-          tuiTextfield
+          tuiInput
           formControlName="usernameValue"
           placeholder="Username"
           [readOnly]="!usernameEditable"
@@ -31,7 +31,6 @@
       }
       <tui-error
         formControlName="usernameValue"
-        [error]="[] | tuiFieldError | async"
       ></tui-error>
     </form>
   }

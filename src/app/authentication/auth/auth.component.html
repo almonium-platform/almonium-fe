@@ -54,7 +54,7 @@
                   data-size="l"
                 >
                   <input
-                    tuiTextfield
+                    tuiInput
                     formControlName="emailValue"
                     type="email"
                     placeholder="Email"
@@ -62,7 +62,7 @@
                     maxlength="320"
                   />
                 </tui-textfield>
-                <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+                <tui-error formControlName="emailValue"></tui-error>
               </div>
               <div class="row-2"
                    [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
@@ -72,7 +72,7 @@
                   data-size="l"
                 >
                   <input
-                    tuiTextfield
+                    tuiInput
                     formControlName="passwordValue"
                     type="password"
                     placeholder="Password"
@@ -80,7 +80,7 @@
                   />
                   <tui-icon tuiPassword/>
                 </tui-textfield>
-                <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+                <tui-error formControlName="passwordValue"></tui-error>
               </div>
               @if (!isSignUp && mode === 'default') {
                 <div class="forgot-div">

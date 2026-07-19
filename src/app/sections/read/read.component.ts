@@ -5,7 +5,6 @@ import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
-  TuiCheckbox,
   TuiChevron,
   TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
@@ -20,16 +19,7 @@ import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {
-  TuiAlertService,
-  TuiDropdownContext,
-  TuiDropdownDirective,
-  TuiHintDirective, TuiOptionNew,
-  TuiTextfieldComponent,
-  TuiTextfieldDirective,
-  TuiTextfieldDropdownDirective,
-  TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
+import { TuiDropdownContext, TuiDropdownDirective, TuiHintDirective, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TuiCheckbox, TuiOption, TuiDropdownContent } from "@taiga-ui/core";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
@@ -53,14 +43,13 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     TuiSkeleton,
     ParallelTranslationComponent,
     TuiTextfieldComponent,
-    TuiTextfieldDirective,
     TuiTextfieldOptionsDirective,
     TuiChevron,
-    TuiTextfieldDropdownDirective,
+    TuiDropdownContent,
     TuiSelect,
     TuiDropdownContext,
     TuiDropdownDirective,
-    TuiOptionNew,
+    TuiOption,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -93,7 +82,7 @@ export class ReadComponent implements OnInit, OnDestroy {
     private readService: ReadService,
     private targetLanguageDropdownService: TargetLanguageDropdownService,
     private userInfoService: UserInfoService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

@@ -1,5 +1,5 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
@@ -31,7 +31,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
 
   constructor(
     private onboardingService: OnboardingService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private userInfoService: UserInfoService,
   ) {
   }

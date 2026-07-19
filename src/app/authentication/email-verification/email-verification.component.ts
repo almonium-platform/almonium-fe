@@ -1,6 +1,6 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {TuiAlertService} from '@taiga-ui/core';
 import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
 import {catchError, switchMap, tap} from 'rxjs/operators';
@@ -35,7 +35,7 @@ export class EmailVerificationComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     public router: Router,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

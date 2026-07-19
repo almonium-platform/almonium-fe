@@ -30,13 +30,7 @@ import {TuiBadgedContentComponent, TuiBadgeNotification, TuiDataListDropdownMana
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
 import {Notification, NotificationType} from "../../notification/notification.model";
-import {
-  TuiAlertService,
-  TuiDataListComponent,
-  TuiDropdownContext,
-  TuiDropdownDirective,
-  TuiOptionNew
-} from "@taiga-ui/core";
+import { TuiDataListComponent, TuiDropdownContext, TuiDropdownDirective, TuiNotificationService, TuiOption } from "@taiga-ui/core";
 import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
 import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
@@ -73,7 +67,7 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     TuiActiveZone,
     AvatarPreviewComponent,
     TimerComponent,
-    TuiOptionNew,
+    TuiOption,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -148,7 +142,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               private chatUnreadService: ChatUnreadService,
               private notificationService: NotificationService,
               private firebaseNotificationService: FirebaseNotificationService,
-              private alertService: TuiAlertService,
+              private alertService: TuiNotificationService,
               private localStorageService: LocalStorageService,
   ) {
   }

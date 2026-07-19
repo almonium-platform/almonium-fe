@@ -157,11 +157,11 @@
       @if (interests.length !== 0 && !interestsEdit) {
         <div class="chips-box">
           @for (interest of interests; track interest) {
-            <tui-chip
+            <span tuiChip
               [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
-            </tui-chip>
+            </span>
           }
-          <tui-chip
+          <span tuiChip
             class="edit-chip"
             appearance="outline"
             (click)="editInterests()"
@@ -172,13 +172,13 @@
             >
             </lucide-icon>
             Edit
-          </tui-chip>
+          </span>
         </div>
       }
 
       @if (interests.length === 0 && !interestsEdit) {
         <div class="interests">
-          <tui-chip
+          <span tuiChip
             class="edit-chip"
             appearance="outline"
             (click)="editInterests()"
@@ -190,7 +190,7 @@
             >
             </lucide-icon>
             Add
-          </tui-chip>
+          </span>
           <p class="interest-text">Why so mysterious? Share your interests with us!</p>
         </div>
       }

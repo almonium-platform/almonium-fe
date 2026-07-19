@@ -1,3 +1,4 @@
+import { TuiInput } from "@taiga-ui/core";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {TuiProgress, TuiStepper} from "@taiga-ui/kit";
 import {ParticlesComponent} from "../shared/particles/particles.component";
@@ -11,7 +12,6 @@ import {WelcomeComponent} from "./welcome/welcome.component";
 import {PaywallComponent} from "../shared/paywall/paywall.component";
 import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
-import {TuiTextfield} from "@taiga-ui/core";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../services/viewport.service";
 import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
@@ -28,7 +28,7 @@ import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
     NgTemplateOutlet,
     ProfileSetupComponent,
     InterestsSetupComponent,
-    TuiTextfield,
+    TuiInput,
     LucideAngularModule,
     NgClass,
     UpgradeComponent

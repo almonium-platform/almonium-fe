@@ -7,7 +7,7 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {TitleCasePipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit";
 import {FormsModule} from "@angular/forms";
-import {TuiAlertService, TuiIcon} from "@taiga-ui/core";
+import { TuiIcon, TuiNotificationService } from "@taiga-ui/core";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
@@ -42,7 +42,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     private localStorageService: LocalStorageService,
     private supportedLanguagesService: SupportedLanguagesService,
     private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

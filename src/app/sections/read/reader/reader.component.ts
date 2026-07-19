@@ -20,7 +20,7 @@ import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
+import {TuiDataListDropdownManager} from "@taiga-ui/kit";
 import {ActivatedRoute} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
 import {TuiActiveZone} from "@taiga-ui/cdk";
@@ -32,7 +32,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
-import {TuiDataList, TuiDropdownDirective, TuiOptGroup} from "@taiga-ui/core";
+import { TuiDataList, TuiDropdownDirective, TuiOptGroup, TuiSliderComponent } from "@taiga-ui/core";
 
 interface BlockData {
   type: 'paragraph' | 'verse' | 'chapter';
@@ -76,9 +76,6 @@ export class SafeHtmlPipe implements PipeTransform {
     ParallelTranslationComponent,
     TuiDataListDropdownManager,
     ParallelSettingsComponent,
-    ParallelFormatPipe,
-    ParallelFormatPipe,
-    ParallelFormatPipe,
     TuiDropdownDirective,
     TuiOptGroup,
     TuiDataList,

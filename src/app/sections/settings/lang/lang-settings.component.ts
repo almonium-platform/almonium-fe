@@ -10,12 +10,9 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {
-  TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon, TuiTextfieldComponent,
-  TuiTextfieldDropdownDirective, TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
+import { TuiHintDirective, TuiIcon, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TuiDropdownContent } from "@taiga-ui/core";
 import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch} from "@taiga-ui/kit";
+import { TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch, TuiAutoColorPipe } from "@taiga-ui/kit";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -62,7 +59,7 @@ import {LucideAngularModule} from "lucide-angular";
     TuiTextfieldComponent,
     TuiSelectDirective,
     TuiDataListWrapperComponent,
-    TuiTextfieldDropdownDirective,
+    TuiDropdownContent,
     TuiTextfieldOptionsDirective
   ],
   templateUrl: './lang-settings.component.html',
@@ -103,7 +100,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     private languageService: LanguageApiService,
     protected languageNameService: LanguageNameService,
     private userInfoService: UserInfoService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private cdr: ChangeDetectorRef,
     private localStorageService: LocalStorageService,
     private languageApiService: LanguageApiService,

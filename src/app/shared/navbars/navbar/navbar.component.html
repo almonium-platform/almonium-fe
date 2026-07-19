@@ -253,9 +253,7 @@
                   (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
                   class="context-menu">
 
-                  <button
-                    new
-                    tuiOption
+                  <button tuiOption
                     type="button"
                     class="context-button"
                     [disabled]="loadingNotificationAction"
@@ -267,9 +265,7 @@
                     Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
                   </button>
 
-                  <button
-                    new
-                    tuiOption
+                  <button tuiOption
                     type="button"
                     class="context-button"
                     [disabled]="loadingNotificationAction"

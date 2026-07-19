@@ -1,7 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass} from "@angular/common";
-import {TuiButton} from "@taiga-ui/core";
-import {TuiButtonClose} from "@taiga-ui/kit";
+import { TuiButton, TuiButtonX } from "@taiga-ui/core";
 
 @Component({
   selector: 'app-dismiss-button',
@@ -30,7 +29,7 @@ import {TuiButtonClose} from "@taiga-ui/kit";
       </button>
     } @else {
       <button
-        tuiButtonClose
+        tuiButtonX
         tuiIconButton
         type="button"
         (click)="onClose()"
@@ -43,7 +42,7 @@ import {TuiButtonClose} from "@taiga-ui/kit";
   imports: [
     NgClass,
     TuiButton,
-    TuiButtonClose
+    TuiButtonX
   ],
   styleUrls: ['./dismiss-button.component.less']
 })

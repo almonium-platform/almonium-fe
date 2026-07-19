@@ -1,7 +1,7 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {UsernameComponent} from "../../shared/username/username.component";
 import {AvatarSettingsComponent} from "../../shared/avatar/settings/avatar-settings.component";
@@ -32,7 +32,7 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
 
   constructor(
     private onboardingService: OnboardingService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private userInfoService: UserInfoService,
   ) {
   }

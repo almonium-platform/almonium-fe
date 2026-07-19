@@ -1,8 +1,8 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, OnInit} from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";
 import {ActivatedRoute} from "@angular/router";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UserPreviewCardComponent} from "../user-preview-card/user-preview-card.component";
 import {UserProfileInfo} from "../user-preview-card/user-profile.model";
 
@@ -29,7 +29,7 @@ export class UserCardComponent implements OnInit {
   constructor(
     private profileService: ProfileService,
     private route: ActivatedRoute,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

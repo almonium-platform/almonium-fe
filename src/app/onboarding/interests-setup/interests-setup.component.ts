@@ -1,6 +1,6 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, Input} from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {SetupStep} from "../../models/userinfo.model";
 import {Interest} from "../../shared/interests/interest.model";
@@ -28,7 +28,7 @@ export class InterestsSetupComponent {
 
   constructor(
     private onboardingService: OnboardingService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private userInfoService: UserInfoService,
   ) {
   }

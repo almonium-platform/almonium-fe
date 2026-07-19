@@ -9,15 +9,14 @@ import {
   ValidatorFn,
   Validators
 } from "@angular/forms";
-import {TuiAlertService, TuiError, TuiHintDirective, TuiTextfield, TuiTextfieldComponent} from "@taiga-ui/core";
+import { TuiError, TuiHintDirective, TuiTextfieldComponent, TuiNotificationService, TuiInput } from "@taiga-ui/core";
 import {BehaviorSubject, Observable, of, Subject, timer} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil} from "rxjs/operators";
 import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
 import {AppConstants} from "../../app.constants";
 import {ProfileSettingsService} from "../../sections/settings/profile/profile-settings.service";
-import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiFieldErrorPipe} from "@taiga-ui/kit";
+import {NgClass} from "@angular/common";
 import {LucideAngularModule} from "lucide-angular";
 import {EditButtonComponent} from "../edit-button/edit-button.component";
 
@@ -29,10 +28,8 @@ import {EditButtonComponent} from "../edit-button/edit-button.component";
   imports: [
     NgClass,
     ReactiveFormsModule,
-    TuiTextfield,
+    TuiInput,
     TuiError,
-    AsyncPipe,
-    TuiFieldErrorPipe,
     LucideAngularModule,
     TuiHintDirective,
     EditButtonComponent,
@@ -61,7 +58,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
     private userInfoService: UserInfoService,
     private profileSettingsService: ProfileSettingsService,
     private cdr: ChangeDetectorRef,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
     this.usernameForm = new FormGroup({
       usernameValue: new FormControl('', {
@@ -153,7 +150,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
 
     // Focus the field once we switch to editing mode:
     setTimeout(() => {
-      this.usernameField?.input?.nativeElement.focus();
+      this.usernameField?.input()?.nativeElement.focus();
     });
   }
 

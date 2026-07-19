@@ -49,9 +49,10 @@
             ],
             "styles": [
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less",
-              "node_modules/@taiga-ui/styles/taiga-ui-global.less",
+              "node_modules/@taiga-ui/styles/taiga-ui-theme.less",
+              "node_modules/@taiga-ui/styles/taiga-ui-fonts.less",
+              // TODO: Vendor the remaining Taiga legacy utility styles before Taiga UI 6.
+              "node_modules/@taiga-ui/legacy/styles/taiga-ui-global.less",
               "src/styles.less",
               "src/styles.scss"
             ],

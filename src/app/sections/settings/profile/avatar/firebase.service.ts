@@ -1,6 +1,5 @@
 import {inject, Injectable} from '@angular/core';
 import {getDownloadURL, listAll, ref, Storage, uploadBytesResumable} from '@angular/fire/storage';
-import * as uuid from 'uuid';
 
 @Injectable({
   providedIn: 'root',
@@ -9,8 +8,7 @@ export class FirebaseService {
   private storage = inject(Storage);
 
   public uploadFile(file: File, folderPath: string): Promise<string> {
-    // Generate a unique name for the file using UUID
-    const uniqueFileName = `${uuid.v4()}`;
+    const uniqueFileName = crypto.randomUUID();
     const path = `${folderPath}/${uniqueFileName}`;
 
     const storageRef = ref(this.storage, path);

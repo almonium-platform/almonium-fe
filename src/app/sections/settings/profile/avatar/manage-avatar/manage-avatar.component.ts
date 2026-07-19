@@ -3,7 +3,7 @@ import {FileUploadComponent} from "../../../../../shared/file-upload/file-upload
 import {FirebaseService} from "../firebase.service";
 import {ProfileSettingsService} from "../../profile-settings.service";
 import {UserInfoService} from "../../../../../services/user-info.service";
-import {TuiAlertService, TuiIcon} from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core";
 import {TuiBadge, TuiBadgedContentComponent, TuiBadgedContentDirective} from "@taiga-ui/kit";
 import {NgClass} from "@angular/common";
 import {Avatar} from "../avatar.model";
@@ -17,7 +17,6 @@ import {AvatarComponent} from "../../../../../shared/avatar/avatar.component";
   imports: [
     FileUploadComponent,
     TuiBadgedContentComponent,
-    TuiIcon,
     TuiBadge,
     TuiBadgedContentDirective,
     AvatarComponent,
@@ -44,7 +43,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
     private userInfoService: UserInfoService,
     private fileUploadService: FirebaseService,
     private profileSettingsService: ProfileSettingsService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
   }
 

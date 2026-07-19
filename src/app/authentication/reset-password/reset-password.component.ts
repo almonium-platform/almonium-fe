@@ -2,17 +2,9 @@ import {Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {
-  TuiAlertService,
-  TuiError,
-  TuiIcon,
-  TuiTextfieldComponent,
-  TuiTextfieldDirective,
-  TuiTextfieldOptionsDirective
-} from '@taiga-ui/core';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
+import { TuiError, TuiIcon, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TUI_VALIDATION_ERRORS } from '@taiga-ui/core';
+import {TuiPassword} from '@taiga-ui/kit';
 import {NgxParticlesModule} from '@tsparticles/angular';
-import {AsyncPipe} from '@angular/common';
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {AppConstants} from "../../app.constants";
 import {ButtonComponent} from "../../shared/button/button.component";
@@ -25,14 +17,11 @@ import {BehaviorSubject, finalize} from "rxjs";
   imports: [
     ReactiveFormsModule,
     TuiError,
-    TuiFieldErrorPipe,
     NgxParticlesModule,
-    AsyncPipe,
     ParticlesComponent,
     TuiIcon,
     TuiPassword,
     TuiTextfieldComponent,
-    TuiTextfieldDirective,
     TuiTextfieldOptionsDirective,
     ButtonComponent,
   ],
@@ -60,7 +49,7 @@ export class ResetPasswordComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
   ) {
     this.resetForm = new FormGroup({
       newPassword: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),

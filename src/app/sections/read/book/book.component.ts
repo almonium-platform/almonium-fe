@@ -1,18 +1,12 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, signal} from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
-import {
-  TuiAlertService,
-  TuiAutoColorPipe,
-  TuiHintDirective,
-  TuiTextfield,
-  TuiTextfieldComponent,
-} from "@taiga-ui/core";
+import { TuiHintDirective, TuiTextfieldComponent, TuiNotificationService, TuiInput } from "@taiga-ui/core";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {StarRatingComponent} from "../star-rating.component";
-import {TuiChevron, TuiChip, TuiDataListWrapperComponent, TuiSelect, TuiSkeleton} from "@taiga-ui/kit";
+import { TuiChevron, TuiChip, TuiDataListWrapperComponent, TuiSelect, TuiSkeleton, TuiAutoColorPipe } from "@taiga-ui/kit";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {NgStyle} from "@angular/common";
@@ -41,7 +35,7 @@ import {ParallelTranslationComponent} from "../parallel-translation/parallel-tra
     TuiTextfieldComponent,
     TuiChevron,
     TuiSelect,
-    TuiTextfield,
+    TuiInput,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
@@ -59,7 +53,7 @@ export class BookComponent implements OnInit, OnDestroy {
   protected bookLoading = true;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private alertService: TuiAlertService,
+              private alertService: TuiNotificationService,
               private languageNameService: LanguageNameService,
               private readService: ReadService,
               private supportedLanguagesService: SupportedLanguagesService,

@@ -1,17 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
-import {
-  TuiAlertService,
-  TuiError,
-  TuiIcon,
-  TuiLink,
-  TuiTextfield,
-  TuiTextfieldComponent,
-  TuiTextfieldOptionsDirective
-} from '@taiga-ui/core';
-import {AsyncPipe, NgClass} from '@angular/common';
+import {TuiPassword} from '@taiga-ui/kit';
+import { TuiError, TuiIcon, TuiLink, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TuiInput, TUI_VALIDATION_ERRORS } from '@taiga-ui/core';
+import {NgClass} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -32,8 +24,6 @@ import {UserInfo} from "../../models/userinfo.model";
   imports: [
     TuiError,
     ReactiveFormsModule,
-    TuiFieldErrorPipe,
-    AsyncPipe,
     TuiLink,
     NgxParticlesModule,
     NgClass,
@@ -43,7 +33,7 @@ import {UserInfo} from "../../models/userinfo.model";
     TuiPassword,
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
-    TuiTextfield,
+    TuiInput,
     GifPlayerComponent,
     ButtonComponent
   ],
@@ -105,7 +95,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private authSettingsService: AuthSettingsService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,

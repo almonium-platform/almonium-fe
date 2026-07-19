@@ -70,7 +70,7 @@
               tuiTextfieldSize="m"
             >
               <input
-                tuiTextfield
+                tuiInput
                 formControlName="emailValue"
                 type="email"
                 placeholder="Email"
@@ -78,7 +78,7 @@
                 maxlength="320"
               />
             </tui-textfield>
-            <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+            <tui-error formControlName="emailValue"></tui-error>
           </div>
 
         </form>
@@ -154,14 +154,14 @@
                 data-size="m"
               >
                 <input
-                  tuiTextfield
+                  tuiInput
                   [readOnly]="!passwordEditable"
                   formControlName="passwordValue"
                   type="password"
                   maxlength="64"
                 />
               </tui-textfield>
-              <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+              <tui-error formControlName="passwordValue"></tui-error>
             </div>
           </form>
           @if (!passwordEditable) {

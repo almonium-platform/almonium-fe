@@ -1,6 +1,6 @@
+import { TuiAutoColorPipe } from "@taiga-ui/kit";
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {CEFRLevel} from "../../models/userinfo.model";
-import {TuiAutoColorPipe} from "@taiga-ui/core";
 
 @Component({
   selector: 'app-cefr',

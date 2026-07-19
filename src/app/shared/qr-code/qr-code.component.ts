@@ -1,8 +1,8 @@
+import { TuiNotificationService } from "@taiga-ui/core";
 import {Component, Input, OnInit} from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
 import {TuiSkeleton} from "@taiga-ui/kit";
 import {NgStyle} from "@angular/common";
-import {TuiAlertService} from "@taiga-ui/core";
 import {Router} from "@angular/router";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
@@ -21,7 +21,7 @@ export class QRCodeComponent implements OnInit {
   skeletonImgUrl: string = 'assets/img/other/qr-skeleton.png';
 
   constructor(private utilsService: UtilsService,
-              private alertService: TuiAlertService,
+              private alertService: TuiNotificationService,
               private router: Router,
               private popupTemplateStateService: PopupTemplateStateService,
   ) {

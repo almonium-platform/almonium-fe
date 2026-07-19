@@ -5,14 +5,8 @@ import {AvatarComponent} from "../avatar/avatar.component";
 import {ButtonComponent} from "../button/button.component";
 import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {
-  TuiAlertService,
-  TuiAutoColorPipe,
-  TuiDataListComponent,
-  TuiDropdownDirective,
-  TuiDropdownOptionsDirective, TuiOptionNew
-} from "@taiga-ui/core";
-import {TuiChip, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit";
+import { TuiDataListComponent, TuiDropdownDirective, TuiDropdownOptionsDirective, TuiNotificationService, TuiOption } from "@taiga-ui/core";
+import { TuiChip, TuiDataListDropdownManager, TuiSkeleton, TuiAutoColorPipe } from "@taiga-ui/kit";
 import {TuiActiveZone} from "@taiga-ui/cdk";
 import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
@@ -44,7 +38,7 @@ import {NgClass} from "@angular/common";
     ConfirmModalComponent,
     TuiSkeleton,
     NgClass,
-    TuiOptionNew
+    TuiOption
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'
@@ -88,7 +82,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     private userInfoService: UserInfoService,
     private socialService: SocialService,
     private chatService: ChatClientService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private router: Router,
   ) {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);

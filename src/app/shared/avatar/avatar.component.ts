@@ -5,16 +5,14 @@ import {TuiAvatar, TuiSkeleton} from "@taiga-ui/kit";
 @Component({
   selector: 'app-avatar',
   template: `
-    <tui-avatar
-      [src]="avatarUrl || initials"
+    <span [tuiAvatar]="avatarUrl || initials"
       [size]="size"
       [tuiSkeleton]="loading"
       [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
       [style.color]="'white'"
       [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       class="cursor-pointer"
-    >
-    </tui-avatar>
+    ></span>
   `,
   imports: [
     TuiAvatar,

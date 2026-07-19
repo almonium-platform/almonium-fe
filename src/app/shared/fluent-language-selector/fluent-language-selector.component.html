@@ -19,7 +19,7 @@
 
       @if (filteredFluentLanguages$ | async; as items) {
         <tui-data-list-wrapper
-          *tuiTextfieldDropdown
+          *tuiDropdown
           new
           tuiMultiSelectGroup
           [items]="items"
@@ -30,7 +30,6 @@
 
     <tui-error
       [formControl]="fluentLanguageControl"
-      [error]="[] | tuiFieldError | async"
     />
   </div>
 </div>

@@ -2,7 +2,6 @@ import {Component, Input, ViewChild} from '@angular/core';
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {AvatarComponent} from "../avatar.component";
-import {TuiIcon} from "@taiga-ui/core";
 import {TuiBadge, TuiBadgedContent} from "@taiga-ui/kit";
 
 @Component({
@@ -11,7 +10,6 @@ import {TuiBadge, TuiBadgedContent} from "@taiga-ui/kit";
   styleUrls: ['./avatar-settings.component.less'],
   imports: [
     AvatarComponent,
-    TuiIcon,
     TuiBadgedContent,
     TuiBadge,
     ManageAvatarComponent

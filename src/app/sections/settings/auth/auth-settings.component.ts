@@ -1,14 +1,13 @@
 import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AsyncPipe, NgClass, NgTemplateOutlet} from "@angular/common";
+import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import {TuiAlertService, TuiError, TuiIcon, TuiTextfield, TuiTextfieldComponent} from "@taiga-ui/core";
+import { TuiError, TuiIcon, TuiTextfieldComponent, TuiNotificationService, TuiInput, TUI_VALIDATION_ERRORS } from "@taiga-ui/core";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
@@ -31,10 +30,8 @@ import {ButtonComponent} from "../../../shared/button/button.component";
     NgTemplateOutlet,
     AuthComponent,
     NgClass,
-    AsyncPipe,
     ReactiveFormsModule,
     TuiError,
-    TuiFieldErrorPipe,
     EditButtonComponent,
     ProviderIconComponent,
     ActionModalComponent,
@@ -43,7 +40,7 @@ import {ButtonComponent} from "../../../shared/button/button.component";
     RecentAuthGuardComponent,
     TuiTextfieldComponent,
     FormsModule,
-    TuiTextfield,
+    TuiInput,
     ButtonComponent
   ],
   templateUrl: './auth-settings.component.html',
@@ -127,7 +124,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   constructor(
     private settingService: AuthSettingsService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private userInfoService: UserInfoService,
     private router: Router,
     private route: ActivatedRoute,
@@ -655,13 +652,13 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   private focusPasswordInput() {
     if (this.passwordField) {
-      this.passwordField.input?.nativeElement.focus();
+      this.passwordField.input()?.nativeElement.focus();
     }
   }
 
   private focusEmailInput() {
     if (this.emailField) {
-      this.emailField.input?.nativeElement.focus();
+      this.emailField.input()?.nativeElement.focus();
     }
   }
 

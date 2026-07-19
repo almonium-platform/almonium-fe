@@ -1,4 +1,3 @@
-import {TuiTextfieldControllerModule} from "@taiga-ui/legacy";
 import {
   ChangeDetectionStrategy,
   Component,
@@ -23,25 +22,8 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {
-  TUI_VALIDATION_ERRORS,
-  TuiChevron,
-  TuiChip,
-  TuiFieldErrorPipe, TuiFilterByInputPipe, TuiHideSelectedPipe,
-  TuiInputChip,
-  TuiInputChipDirective,
-  TuiMultiSelectGroupComponent,
-  TuiMultiSelectGroupDirective
-} from '@taiga-ui/kit';
-import {
-  TuiAlertService,
-  TuiAutoColorPipe,
-  TuiDataList,
-  TuiDataListComponent,
-  TuiError,
-  TuiTextfieldDropdownDirective,
-  TuiTextfieldMultiComponent
-} from '@taiga-ui/core';
+import { TuiChevron, TuiChip, TuiHideSelectedPipe, TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective, TuiAutoColorPipe } from '@taiga-ui/kit';
+import { TuiDataList, TuiDataListComponent, TuiError, TuiTextfieldMultiComponent, TuiNotificationService, TUI_VALIDATION_ERRORS, TuiFilterByInputPipe, TuiDropdownContent } from '@taiga-ui/core';
 import {BehaviorSubject, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
@@ -83,9 +65,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
   ],
   imports: [
     ReactiveFormsModule,
-    TuiTextfieldControllerModule,
     TuiError,
-    TuiFieldErrorPipe,
     NgxParticlesModule,
     FluentLanguageSelectorComponent,
     TuiAutoColorPipe,
@@ -101,7 +81,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
     TuiInputChipDirective,
     TuiInputChip,
     TuiItem,
-    TuiTextfieldDropdownDirective,
+    TuiDropdownContent,
     TuiMultiSelectGroupDirective,
     TuiDataListComponent,
     TuiMultiSelectGroupComponent,
@@ -178,7 +158,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     private onboardingService: OnboardingService,
     private languageNameService: LanguageNameService,
     private userInfoService: UserInfoService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private validationMessagesService: ValidationMessagesService,
     private supportedLanguagesService: SupportedLanguagesService,
     private popupTemplateStateService: PopupTemplateStateService,

@@ -16,19 +16,7 @@ import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom,
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
 import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {
-  TuiAlertService,
-  TuiDataList,
-  TuiDropdownDirective,
-  TuiDropdownManual,
-  TuiHintDirective,
-  TuiIcon,
-  TuiPopup,
-  TuiScrollbar,
-  TuiTextfieldComponent,
-  TuiTextfieldDirective,
-  TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
+import { TuiDataList, TuiDropdownDirective, TuiDropdownManual, TuiHintDirective, TuiIcon, TuiPopup, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService } from "@taiga-ui/core";
 import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
@@ -91,11 +79,9 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     StreamChatModule,
     TranslateModule,
     StreamAutocompleteTextareaModule,
-    StreamChatModule,
     ChatHeaderComponent,
     TuiDataList,
     TuiDataListDropdownManager,
-    AvatarComponent,
     CustomChatAvatarComponent,
     TuiActiveZone,
     NgStyle,
@@ -109,7 +95,6 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     TuiBadgedContentComponent,
     UserPreviewCardComponent,
     TuiTextfieldComponent,
-    TuiTextfieldDirective,
     TuiDropdownDirective,
     TuiDropdownManual,
     TuiTextfieldOptionsDirective,
@@ -198,7 +183,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private socialService: SocialService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private urlService: UrlService,
     private activatedRoute: ActivatedRoute,
     private chatService: ChatClientService,

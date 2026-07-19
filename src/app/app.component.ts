@@ -1,5 +1,5 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
-import {TuiAlertService, TuiRoot} from "@taiga-ui/core";
+import { TuiRoot, TuiNotificationService } from "@taiga-ui/core";
 import {Component, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
@@ -51,7 +51,7 @@ export class AppComponent implements OnInit {
     private urlService: UrlService,
     private streamI18nService: StreamI18nService,
     private firebaseNotificationService: FirebaseNotificationService,
-    private alertService: TuiAlertService,
+    private alertService: TuiNotificationService,
     private timerMonitorService: TimerMonitorService,
     private userInfoService: UserInfoService,
   ) {

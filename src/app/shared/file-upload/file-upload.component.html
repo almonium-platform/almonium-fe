@@ -5,20 +5,20 @@
       <ng-template let-dragged>
         @if (dragged) {
           <div class="content">
-            <tui-avatar
+            <span tuiAvatar="@tui.droplet"
               appearance="secondary"
-              src="@tui.droplet"
-            />
+
+            ></span>
             <div>
               Drop it like it's hot!
             </div>
           </div>
         } @else {
           <div class="content">
-            <tui-avatar
+            <span tuiAvatar="@tui.cloud-upload"
               appearance="secondary"
-              src="@tui.cloud-upload"
-            />
+
+            ></span>
             <div>
               <a tuiLink>Choose a file</a> <br>
               <span class="hidden sm:inline">or drop it here</span>

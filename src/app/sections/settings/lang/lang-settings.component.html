@@ -34,9 +34,9 @@
         @if (!fluentEditable) {
           <div class="chips-box">
             @for (language of currentFluentLanguages; track language) {
-              <tui-chip
+              <span tuiChip
                 [style.background-color]="language | tuiAutoColor">{{ language }}
-              </tui-chip>
+              </span>
             }
           </div>
         }
@@ -69,7 +69,7 @@
 
             <tui-data-list-wrapper
               new
-              *tuiTextfieldDropdown
+              *tuiDropdown
               [items]="targetLanguageNames"
             >
             </tui-data-list-wrapper>
@@ -79,9 +79,9 @@
                (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
                [ngClass]="targetLanguageNames.length > 1 ? 'cursor-pointer': ''"
           >
-            <tui-chip
+            <span tuiChip
               [style.background-color]="getCurrentTargetLanguageName() | tuiAutoColor">{{ getCurrentTargetLanguageName() }}
-            </tui-chip>
+            </span>
 
             @if (targetLanguageNames.length > 1) {
               <p class="and-more">+{{ targetLanguageNames.length - 1 }} more</p>

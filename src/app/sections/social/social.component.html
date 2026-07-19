@@ -10,7 +10,7 @@
 
 <tui-drawer
   *tuiPopup="isDrawerOpened()"
-  direction="left"
+  direction="start"
   class="drawer"
   [overlay]="true"
   (click.self)="closeDrawer()"
@@ -95,7 +95,7 @@
               >
                 <input
                   [formControl]="usernameFormControl"
-                  tuiTextfield type="text"
+                  tuiInput type="text"
                   placeholder="Type at least 3 characters"/>
               </tui-textfield>
               @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
@@ -143,7 +143,7 @@
                 >
                   <input
                     [formControl]="friendFormControl"
-                    tuiTextfield
+                    tuiInput
                     type="text"
                     placeholder="Type a username"
                   />
@@ -373,7 +373,7 @@
         >
           <input
             [formControl]="chatFormControl"
-            tuiTextfield
+            tuiInput
             tuiTextfieldSize="m"
             type="text"
             placeholder="Search"
