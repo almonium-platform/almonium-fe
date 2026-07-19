@@ -1,11 +1,11 @@
 <app-confirm-modal
-  [isVisible]="isConfirmModalVisible"
-  [title]="modalTitle"
-  [message]="modalMessage"
-  [confirmText]="modalConfirmText"
-  (closed)="closeConfirmModal()"
-  (confirm)="confirmModalAction()"
-  [useCountdown]="useCountdown">
+  [isVisible]="!!confirmation.state()"
+  [title]="confirmation.state()?.title ?? ''"
+  [message]="confirmation.state()?.message ?? ''"
+  [confirmText]="confirmation.state()?.confirmText ?? ''"
+  (closed)="confirmation.close()"
+  (confirm)="confirmation.confirm()"
+  [useCountdown]="confirmation.state()?.useCountdown ?? false">
 </app-confirm-modal>
 
 <tui-drawer
@@ -316,11 +316,13 @@
 
 <div class="super-container">
   <div class="left-container"
+       appSocialSidebarResize
+       #sidebar="socialSidebarResize"
        [ngClass]="{
          'hidden': isChatOpen,
-         'collapsed': isCollapsed
+         'collapsed': sidebar.isCollapsed
        }"
-       [ngStyle]="isManuallyResized ? {'width.px': sidebarWidth} : {'flex': '1'}">
+       [ngStyle]="sidebar.isManuallyResized ? {'width.px': sidebar.width} : {'flex': '1'}">
 
     <div class="chats-container">
       <div class="chats-header">
@@ -450,7 +452,7 @@
                     tuiDataListDropdownManager
                     class="context-menu">
 
-                    @if (amMember(channel)) {
+                    @if (channels.isMember(channel)) {
                       @if (!isHiddenChannel(channel)) {
                         <button
                           tuiOption
@@ -508,7 +510,7 @@
                       </button>
                     }
 
-                    @if (amMember(channel) && !isSelfChat(channel)) {
+                    @if (channels.isMember(channel) && !channels.isSelf(channel)) {
                       @if (isChannelMuted(channel)) {
                         <button
                           tuiOption
@@ -538,7 +540,7 @@
                       }
                     }
 
-                    @if (isPrivateChat(channel) || isSelfChat(channel)) {
+                    @if (channels.isPrivate(channel) || channels.isSelf(channel)) {
                       <button
                         tuiOption
                         type="button"
@@ -553,7 +555,7 @@
                       </button>
                     }
 
-                    @if (isPrivateChat(channel)) {
+                    @if (channels.isPrivate(channel)) {
                       <button
                         tuiOption
                         type="button"
@@ -568,8 +570,8 @@
                       </button>
                     }
 
-                    @if (isPublicChannel(channel)) {
-                      @if (!amMember(channel)) {
+                    @if (channels.isPublic(channel)) {
+                      @if (!channels.isMember(channel)) {
                         <button
                           tuiOption
                           type="button"
@@ -584,7 +586,7 @@
                         </button>
                       }
 
-                      @if (amMember(channel)) {
+                      @if (channels.isMember(channel)) {
                         <button
                           tuiOption
                           type="button"
@@ -606,7 +608,7 @@
                 <div class="str-chat__channel-preview-end-first-row">
                   <div class="str-chat__channel-preview-messenger--name">
                                 <span data-testid="channel-preview-title">
-                                  {{ getChatName(channel, channelDisplayTitle) }}
+                                  {{ channels.name(channel, channelDisplayTitle) }}
                                 </span>
                   </div>
                   @if (latestMessageTime) {
@@ -668,7 +670,7 @@
     </div>
   </div>
 
-  <div class="resizer" (mousedown)="startResizing()"></div>
+  <div class="resizer" (mousedown)="sidebar.start()"></div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <div class="chat-window">

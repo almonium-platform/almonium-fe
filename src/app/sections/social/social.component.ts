@@ -50,6 +50,9 @@ import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-m
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
+import {SocialChannelFacade} from './social-channel.facade';
+import {SocialSidebarResizeDirective} from './social-sidebar-resize.directive';
+import {SocialConfirmationService} from './social-confirmation.service';
 
 @Component({
   selector: 'app-social',
@@ -89,7 +92,9 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     TuiDropdownDirective,
     TuiDropdownManual,
     TuiTextfieldOptionsDirective,
-  ]
+    SocialSidebarResizeDirective,
+  ],
+  providers: [SocialChannelFacade, SocialConfirmationService],
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private socialService = inject(SocialService);
@@ -104,6 +109,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private messageService = inject(MessageService);
   private chatUnreadService = inject(ChatUnreadService);
   private cdr = inject(ChangeDetectorRef);
+  protected channels = inject(SocialChannelFacade);
+  protected confirmation = inject(SocialConfirmationService);
 
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<ChannelPreviewInfoContext>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
@@ -112,6 +119,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
   @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
+  @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
 
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
@@ -142,14 +150,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected readonly FriendshipStatus = RelationshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
-
-  // confirm modal settings
-  protected isConfirmModalVisible = false;
-  protected modalTitle = '';
-  protected modalMessage = '';
-  protected modalConfirmText = '';
-  protected modalAction: (() => void) | null = null;
-  protected useCountdown = false;
 
   // CHATS
   private chatClient: StreamChat;
@@ -206,6 +206,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       takeUntil(this.destroy$)
     ).subscribe(([userInfo, params]) => {
       this.userInfo = userInfo;
+      this.channels.setCurrentUser(userInfo.id);
       this.initializeChat(userInfo);
 
       this.handleQueryParams(params);
@@ -213,7 +214,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Now decide whether to open a specific chat or initialize channel service
       if (this.redirectId) {
-        const cid = this.getCidByFriendshipId(this.redirectId);
+        const cid = this.channels.friendshipCid(this.redirectId);
         setTimeout(() => {
           void this.openChatByCid(cid).then((found) => {
             if (!found) {
@@ -304,7 +305,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     const chat: unknown = params['chat'];
     if (typeof chat === 'string') {
       this.redirectId = chat;
-      console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId));
+      console.log('Redirecting to chat with cid:', this.channels.friendshipCid(this.redirectId));
     }
     this.urlService.clearUrl();
   }
@@ -329,36 +330,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name ?? AppConstants.PRIVATE_CHAT_NAME);
+      chatTitleElement.textContent = this.channels.name(channel, channel.data?.name ?? AppConstants.PRIVATE_CHAT_NAME);
       this.cdr.detectChanges();
     }, 1);
-  }
-
-  /**
-   * Creates a private 1-on-1 (P2P) chat channel between two users.
-   * @param userId The current user's ID (should already be connected).
-   * @param recipientId The user ID of the person they want to chat with.
-   * @param friendshipId The ID of the friendship between the two users.
-   * @returns A promise that resolves with the created channel.
-   */
-  async createPrivateChat(userId: string, recipientId: string, friendshipId: string) {
-    if (!this.chatClient.user) {
-      throw new Error('User must be connected before creating a chat.');
-    }
-
-    // Unique channel ID (e.g., `private_user1_user2`)
-    const channelId = `private_${friendshipId}`;
-
-    const channel = this.chatService.chatClient.channel('messaging', channelId, {
-      name: AppConstants.PRIVATE_CHAT_NAME,
-      members: [userId, recipientId], // Both users in the private chat
-      created_by_id: userId, // Set creator
-    });
-
-    await channel.create(); // Ensure the channel is created
-    await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
-
-    return channel;
   }
 
   private listenToUsernameField() {
@@ -420,7 +394,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
 
           if (!trimmedQuery) {
-            this.reloadChannelList();
+            this.channels.reload(this.showHiddenChannels$.value);
             return EMPTY; // Prevent API calls if the query is empty
           }
 
@@ -526,32 +500,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openChatWithFriend(friend: RelatedUserProfile) {
     this.closeDrawer();
 
-    const cid = this.getCidByFriendshipId(friend.relationshipId);
+    const cid = this.channels.friendshipCid(friend.relationshipId);
     void this.openChatByCid(cid).then((found) => {
       if (!found) {
-        void this.createPrivateChat(this.userInfo!.id, friend.id, friend.relationshipId).then(channel => {
+        void this.channels.createPrivateChat(friend.id, friend.relationshipId).then(channel => {
           this.channelService.setAsActiveChannel(channel);
         });
       }
     });
   }
 
-  private getCidByFriendshipId(friendshipId: string) {
-    return 'messaging:private_' + friendshipId;
-  }
-
   async openChatByCid(id: string): Promise<boolean> {
-    const filters = {
-      cid: {$eq: id},
-    };
-
-    const channels = await this.chatService.chatClient.queryChannels(filters);
-    if (channels.length > 0) {
-      this.channelService.setAsActiveChannel(channels[0]);
-      return true;
-    } else {
-      return false;
-    }
+    return this.channels.openByCid(id);
   }
 
   // to avoid multiple requests
@@ -594,7 +554,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(candidate.relationshipId, RelationshipAction.ACCEPT)
       .subscribe({
         next: () => {
-          void this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.relationshipId).then(() => {
+          void this.channels.createPrivateChat(candidate.id.toString(), candidate.relationshipId).then(() => {
             this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
@@ -777,21 +737,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isDrawerOpened.set(false);
   }
 
-  protected getChatName(channel: Channel, defaultName: string): string {
-    if (defaultName !== AppConstants.PRIVATE_CHAT_NAME) {
-      return defaultName;
-    }
-
-    const currentUserId = this.chatService.chatClient.userID;
-
-    // Get the other user in the channel
-    const otherMember = Object.values(channel.state.members).find(
-      (member) => member.user?.id !== currentUserId
-    );
-
-    return otherMember?.user?.name ?? AppConstants.PRIVATE_CHAT_NAME;
-  }
-
   hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
@@ -805,7 +750,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     setTimeout(() => {
       void channel.show().then(() => {
-        this.reloadChannelList();
+        this.channels.reload(this.showHiddenChannels$.value);
       });
     }, 30);
   }
@@ -823,8 +768,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isLastMessageFromOtherUser(channel: Channel): boolean {
-    const lastMessage = channel.state.messages[channel.state.messages.length - 1];
-    return (lastMessage && lastMessage.user?.id !== this.chatService.chatClient.userID);
+    return this.channels.isLastMessageFromAnotherUser(channel);
   }
 
   markAsRead(channel: Channel, dropdown: TuiDropdownDirective) {
@@ -862,18 +806,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return channel.muteStatus().muted;
   }
 
-  isPrivateChat(channel: Channel) {
-    return channel.data?.name === AppConstants.PRIVATE_CHAT_NAME;
-  }
-
-  isSelfChat(channel: Channel) {
-    return channel.data?.name === AppConstants.SELF_CHAT_NAME;
-  }
-
-  isPublicChannel(channel: Channel) {
-    return !this.isPrivateChat(channel) && !this.isSelfChat(channel);
-  }
-
   isHiddenChannel(channel: Channel) {
     return channel.data?.hidden;
   }
@@ -882,29 +814,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.showHiddenChannels$.next(!this.showHiddenChannels$.value);
   }
 
-  reloadChannelList() {
-    this.channelService.reset();
-    void this.channelService.init({
-      hidden: this.showHiddenChannels$.value,
-      members: {$in: [this.userInfo!.id]}
-    }, undefined, undefined, false);
-  }
-
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      void channel.addMembers([this.userInfo!.id]).then(() => {
+      void this.channels.join(channel).then(() => {
         this.chatFormControl.setValue('');
-        setTimeout(() => {
-          this.channelService.setAsActiveChannel(channel);
-        }, 600);
       });
     }, 30);
-  }
-
-  amMember(channel: Channel): boolean {
-    return channel.state.members[this.userInfo!.id] !== undefined
   }
 
   protected hoveredInterlocutorId = undefined;
@@ -947,7 +864,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openUser(location: AvatarLocation) {
-    if (location === 'channel-preview' && this.isPrivateChat(this.hoveredChannel!)) {
+    if (location === 'channel-preview' && this.channels.isPrivate(this.hoveredChannel!)) {
       const interlocutorId = this.getInterlocutorId();
       console.info('Opening chat with user:', interlocutorId);
     }
@@ -962,7 +879,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     const firstCheck = (this.currentLocation === location)
       && (this.hoveredChannel !== null)
-      && this.isPrivateChat(this.hoveredChannel);
+      && this.channels.isPrivate(this.hoveredChannel);
 
     return firstCheck && channel.cid === this.hoveredChannel?.cid;
   }
@@ -995,156 +912,68 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openSearch() {
-    if (!this.isCollapsed) return;
-    this.isCollapsed = false;
-    this.isManuallyResized = true;
-    this.sidebarWidth = window.innerWidth / 3 - 8;
+    if (!this.sidebarResize.isCollapsed) return;
+    this.sidebarResize.expand();
     setTimeout(() => {
       this.chatInputRef?.nativeElement.focus();
     }, 100);
   }
 
-  sidebarWidth = window.innerWidth / 3 - 8;
-  isResizing = false;
-  isCollapsed = false;
-  isManuallyResized = false;
-
-  startResizing() {
-    if (window.innerWidth < 640) return;
-    this.isResizing = true;
-    this.isManuallyResized = true;
-    document.addEventListener('mousemove', this.resizeSidebar);
-    document.addEventListener('mouseup', this.stopResizing);
-  }
-
-  resizeSidebar = (event: MouseEvent) => {
-    if (!this.isResizing) return;
-
-    const newWidth = event.clientX;
-
-    // Collapse to avatar mode if width is too small
-    if (newWidth < 68) {
-      this.sidebarWidth = 68;
-      this.isCollapsed = true;
-    } else if (newWidth > 600) {
-      this.sidebarWidth = 600; // Prevent exceeding max width
-      this.isCollapsed = false;
-    } else {
-      this.sidebarWidth = newWidth;
-      this.isCollapsed = false;
-    }
-  };
-
-  stopResizing = () => {
-    this.isResizing = false;
-    document.removeEventListener('mousemove', this.resizeSidebar);
-    document.removeEventListener('mouseup', this.stopResizing);
-  };
-
   get hiddenChatsTooltip() {
     return this.showHiddenChannels$.value ? 'Switch to visible chats' : 'Switch to hidden chats';
   }
 
-  // confirm modal chats
-  protected targetChannel: Channel | null = null;
-
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Delete Chat';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Delete';
-    this.modalAction = this.deleteChat.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
-  }
-
-  protected deleteChat() {
-    if (!this.targetChannel) {
-      console.error('Channel to delete is not set');
-      return;
-    }
-
-    void this.targetChannel.delete().then(() => {
-      this.targetChannel = null;
+    this.confirmation.open({
+      title: 'Delete Chat',
+      message: 'Are you sure? This action cannot be undone',
+      confirmText: 'Delete',
+      action: () => void channel.delete(),
     });
   }
 
   protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Clear Chat History';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Clear';
-    this.modalAction = this.clearChat.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
-  }
-
-  protected clearChat() {
-    if (!this.targetChannel) {
-      console.error('Channel to clear is not set');
-      return;
-    }
-
-    void this.targetChannel.truncate().then(() => {
-      this.targetChannel = null;
+    this.confirmation.open({
+      title: 'Clear Chat History',
+      message: 'Are you sure? This action cannot be undone',
+      confirmText: 'Clear',
+      action: () => void channel.truncate(),
     });
   }
 
   protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Leave Channel';
-    this.modalMessage = 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.';
-    this.modalConfirmText = 'Leave';
-    this.modalAction = this.leaveChannel.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
-  }
-
-  protected leaveChannel() {
-    if (!this.targetChannel) {
-      console.error('Channel to clear is not set');
-      return;
-    }
-
-    void this.targetChannel.show().then();
-    void this.targetChannel.unmute().then();
-    void this.targetChannel.removeMembers([this.userInfo!.id]);
+    this.confirmation.open({
+      title: 'Leave Channel',
+      message: 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.',
+      confirmText: 'Leave',
+      action: () => {
+        void channel.show();
+        void channel.unmute();
+        void channel.removeMembers([this.userInfo!.id]);
+      },
+    });
   }
 
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {
     this.closeDrawer();
-    this.modalTitle = 'Unfriend';
-    this.modalMessage = 'Are you sure you want to unfriend this user?';
-    this.modalConfirmText = 'Unfriend';
-    this.modalAction = () => this.unfriend(friendId, friendshipId);
-    this.isConfirmModalVisible = true;
+    this.confirmation.open({
+      title: 'Unfriend',
+      message: 'Are you sure you want to unfriend this user?',
+      confirmText: 'Unfriend',
+      action: () => this.unfriend(friendId, friendshipId),
+    });
   }
 
   protected prepareBlockModal(friendId: string, friendshipId: string) {
     this.closeDrawer();
-    this.modalTitle = 'Block User';
-    this.modalMessage = 'Are you sure you want to block this user?';
-    this.modalConfirmText = 'Block';
-    this.modalAction = () => this.block(friendId, friendshipId);
-    this.isConfirmModalVisible = true;
-  }
-
-  protected closeConfirmModal() {
-    this.isConfirmModalVisible = false;
-  }
-
-  protected confirmModalAction() {
-    if (this.modalAction) {
-      this.modalAction();
-    } else {
-      console.error('No action set for confirm modal');
-    }
-    this.closeConfirmModal();
+    this.confirmation.open({
+      title: 'Block User',
+      message: 'Are you sure you want to block this user?',
+      confirmText: 'Block',
+      action: () => this.block(friendId, friendshipId),
+    });
   }
 }

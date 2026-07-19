@@ -1,10 +1,10 @@
 import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
-import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
+import {FormsModule} from '@angular/forms';
+import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
 import {getErrorMessage} from '../../../shared/http-error';
-import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {catchError, debounceTime, distinctUntilChanged, takeUntil, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
@@ -20,19 +20,8 @@ import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
 import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/components";
 import {TuiDropdownDirective} from "@taiga-ui/core/portals";
-
-interface BlockData {
-  type: 'paragraph' | 'verse' | 'chapter';
-  content: string; // The text content, potentially with <em>/<strong>
-  originalIndex: number; // Use for unique IDs
-}
-
-interface ChapterNavInfo {
-  title: string;     // Always English Title
-  offsetTop: number; // Initial offset from base content (might become slightly inaccurate after height sync)
-  elementId: string; // Original anchor ID (chapX) - keep for reference if needed
-  index: number;     // The 0-based index of this chapter in the list
-}
+import {ReaderChapter, ReaderDomService} from './reader-dom.service';
+import {ReaderProgressTracker} from './reader-progress-tracker.service';
 
 @Component({
   selector: 'app-reader',
@@ -40,7 +29,6 @@ interface ChapterNavInfo {
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
     SharedLucideIconsModule,
     ButtonComponent,
     TuiSliderComponent,
@@ -58,6 +46,7 @@ interface ChapterNavInfo {
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ReaderDomService, ReaderProgressTracker],
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
   private cdRef = inject(ChangeDetectorRef);
@@ -66,17 +55,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private ngZone = inject(NgZone);
   private parallelModeService = inject(ParallelModeService);
   private popupTemplateStateService = inject(PopupTemplateStateService);
+  private readerDom = inject(ReaderDomService);
+  private progressTracker = inject(ReaderProgressTracker);
 
   // --- Element References ---
-  @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
 
   // --- State Properties ---
-  private processedContent = '';    // Raw text from backend
-  protected blocks: BlockData[] = [];       // Parsed blocks for rendering
-  protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
+  protected chapterNav: ReaderChapter[] = [];
   private hasMeasuredChapters = false; // Flag to ensure we measure only once
 
   protected bookHtmlContent = ''; // Store the raw HTML from backend
@@ -86,7 +74,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
   protected bookId: number | null = null;
-  protected currentBaseLanguage = 'EN'; // Assume base is EN, adjust if needed
 
   // --- Native Scroll State ---
   protected currentScrollPercentage = 0; // Current scroll position (0-100)
@@ -116,7 +103,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookLanguageVariant[] = [];
-  protected languageSelectControl = new FormControl<string | null>(null);
   protected isParallelViewActive = false; // Still needed to know *if* content has translations
   private currentlyOpenFluentSpan: HTMLElement | null = null;
 
@@ -129,16 +115,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   private isSyncingHeights = false;
 
-  private progressUpdate$ = new Subject<number>();
-  private lastSavedPercentage = -1; // Track last saved value
-  private readonly SAVE_DEBOUNCE_TIME = 750; // Wait ms after scrolling stops
-  private readonly SAVE_THROTTLE_TIME = 10000; // Save at most every 30s
   private initialScrollPercentage: number | null = null;
   private initialScrollApplied = false;
   private isDestroyed = false;
 
   private needsHeightSync = false;
-  protected mode: 'side' | 'overlay' | 'inline' = 'inline';
 
   // --- Lifecycle Hooks ---
 
@@ -146,7 +127,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
-    this.setupProgressSaving();
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
@@ -174,7 +154,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       if (this.bookId) {
         // Reset state for new book load
         this.initialScrollPercentage = null; // Reset scroll target
-        this.lastSavedPercentage = -1;    // Reset last saved progress
+        this.progressTracker.startBook(this.bookId);
         this.initialScrollApplied = false; // Reset flag for initial scroll
         this.isLoading = true; // Ensure loading starts true
         this.chapterNav = [];
@@ -187,45 +167,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         // Load the actual book content
         this.loadBookHtml(this.bookId, true);
 
-        // Setup listener for language selection changes AFTER initial load might start
-        this.setupLanguageSelectionListener();
       } else {
         this.handleError("Invalid Book ID.");
       }
     });
   }
 
-  private setupProgressSaving(): void {
-    this.progressUpdate$.pipe(
-      // 1. Debounce: Only react when scrolling might have paused
-      debounceTime(this.SAVE_DEBOUNCE_TIME),
-      // 2. Distinct: Only save if the rounded percentage actually changed since last emission
-      distinctUntilChanged(),
-      // 3. Filter: Don't save if essential info is missing
-      filter(() => !!this.bookId),
-      // 4. Throttle: Limit saves during periods of frequent stopping/starting
-      //    leading: false - don't save immediately on first event after throttle window opens
-      //    trailing: true - ensure the *last* debounced value in a burst gets saved after throttle time
-      throttleTime(this.SAVE_THROTTLE_TIME, undefined, {leading: false, trailing: true}),
-      takeUntil(this.destroy$) // Unsubscribe on component destroy
-    ).subscribe(percentage => {
-      // Check if it's different from the very last *saved* value
-      if (percentage !== this.lastSavedPercentage) {
-        console.log(`Throttled save triggered for percentage: ${percentage}`);
-        // Use switchMap if you want to cancel previous pending saves, though less critical with throttling
-        this.readService.saveProgress(this.bookId!, percentage)
-          .subscribe(() => {
-            this.lastSavedPercentage = percentage; // Update last saved value on success
-          });
-      } else {
-        console.log(`Skipping throttled save, percentage ${percentage} hasn't changed since last save.`);
-      }
-    });
-  }
-
   @HostListener('window:beforeunload')
   unloadNotification(): void {
-    this.saveProgressOnExit(true); // Attempt beacon save
+    this.progressTracker.saveOnExit(true);
   }
 
   // Schedules the height sync after Angular has rendered changes
@@ -250,94 +200,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     this.isSyncingHeights = true;
-    console.log("Synchronizing PARAGRAPH heights within columns, section by section...");
-    const contentElement = this.readerContentRef.nativeElement;
-
-    // --- Step 1: Identify the wrapper elements that contain ONE pair of columns ---
-    // Assuming your pipe wraps each chapter in a <div class="chapter"> (or similar)
-    // Adjust '.chapter' selector if your pipe uses a different wrapper class/tag.
-    const sectionWrappers = contentElement.querySelectorAll<HTMLElement>('.chapter'); // <-- ADJUST SELECTOR if needed
-
-    if (!sectionWrappers || sectionWrappers.length === 0) {
-      console.warn("Height Sync: Could not find any section wrappers (e.g., '.chapter'). Falling back to old method (might be incorrect).");
-      // Optional: Add fallback to old logic here if needed, but it's likely flawed.
-      // this.synchronizeSingleColumnPair(contentElement); // Example fallback
-      this.isSyncingHeights = false;
-      return;
-    }
-
-    let overallChangesMade = false;
-
-    // --- Step 2: Iterate through each section wrapper ---
-    sectionWrappers.forEach((wrapper, index) => {
-      const mainCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-main');
-      const secondaryCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-secondary');
-
-      if (!mainCol || !secondaryCol) {
-        console.error(`  Height sync FAILED for Section ${index + 1}. One or both columns not found. Check pipe output.`);
-        return;
-      }
-
-      const mainBlocks = Array.from(mainCol.querySelectorAll<HTMLElement>('p, h2'));
-      const secondaryBlocks = Array.from(secondaryCol.querySelectorAll<HTMLElement>('p, h2'));
-      if (mainBlocks.length !== secondaryBlocks.length) {
-        console.warn(`  Section ${index + 1}: Mismatch in block count (Main: ${mainBlocks.length} vs Secondary: ${secondaryBlocks.length}).`);
-      } else {
-        console.log(`  Section ${index + 1}: Block counts match (Main: ${mainBlocks.length}, Secondary: ${secondaryBlocks.length}).`);
-      }
-
-      let sectionChangesMade = false;
-      const numBlocksToAlign = Math.min(mainBlocks.length, secondaryBlocks.length);
-      // console.log(`  Section ${index + 1}: Aligning ${numBlocksToAlign} block pairs.`);
-
-      // --- Step 5: Synchronize heights for blocks in THIS section ---
-      for (let i = 0; i < numBlocksToAlign; i++) {
-        const targetP = mainBlocks[i];
-        const fluentP = secondaryBlocks[i];
-
-        // Reset heights first
-        targetP.style.minHeight = '';
-        fluentP.style.minHeight = '';
-        // Consider resetting margin if it interferes
-        // targetP.style.marginBottom = '';
-        // fluentP.style.marginBottom = '';
-
-        // Force reflow (offsetHeight does this implicitly)
-        const targetHeight = targetP.offsetHeight;
-        const fluentHeight = fluentP.offsetHeight;
-        const maxHeight = Math.max(targetHeight, fluentHeight);
-
-        // Apply the max height if different (use a small tolerance)
-        const tolerance = 1; // pixels
-        if (Math.abs(targetHeight - maxHeight) > tolerance) {
-          targetP.style.minHeight = `${maxHeight}px`;
-          sectionChangesMade = true;
-        }
-        if (Math.abs(fluentHeight - maxHeight) > tolerance) {
-          fluentP.style.minHeight = `${maxHeight}px`;
-          sectionChangesMade = true;
-        }
-        // Optional: Ensure consistent bottom margin if needed
-        // targetP.style.marginBottom = '1em'; // Example
-        // fluentP.style.marginBottom = '1em'; // Example
-      }
-
-      if (sectionChangesMade) {
-        overallChangesMade = true;
-      }
-    }); // End loop through sectionWrappers
-
-    console.log(`Section-by-section height synchronization complete. Overall changes applied: ${overallChangesMade}`);
+    const changesMade = this.readerDom.synchronizeParallelColumns(this.readerContentRef.nativeElement);
     this.isSyncingHeights = false;
 
-    // Trigger Angular updates if needed
-    if (overallChangesMade) {
-      // Use ngZone run if updates happen outside Angular's direct knowledge often
-      // this.ngZone.run(() => {
-      this.updateScrollState(); // Essential after height changes
-      this.scheduleChapterOffsetMeasurement(); // Recalculate chapter offsets
-      this.cdRef.markForCheck(); // Let Angular know things changed
-      // });
+    if (changesMade) {
+      this.updateScrollState();
+      this.scheduleChapterOffsetMeasurement();
+      this.cdRef.markForCheck();
     }
   }
 
@@ -346,100 +215,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
       return;
     }
-    const target = event.target as HTMLElement;
-
-    // Find the segment that was clicked (must be the main/target segment)
-    const clickedSegment = target.closest('.seg-pair > .segment');
-
-    // Helper to close any currently visible translation
-    const closeOpenSegment = () => {
-      const openSegment = this.readerContentRef.nativeElement.querySelector('.fluent-segment-overlay.is-visible');
-      if (openSegment) {
-        openSegment.classList.remove('is-visible');
-      }
-    };
-
-    if (!clickedSegment) {
-      // If the click was outside a main segment, just close any open translation
-      closeOpenSegment();
-      return;
-    }
-
-    // Find the fluent translation that is a sibling to the clicked segment's parent
-    const overlayWrapper = clickedSegment.parentElement?.querySelector('.fluent-segment-overlay');
-
-    if (overlayWrapper) {
-      // If the clicked segment's translation is already visible, close it.
-      if (overlayWrapper.classList.contains('is-visible')) {
-        closeOpenSegment();
-      } else {
-        // Otherwise, close any other open one and show this one.
-        closeOpenSegment();
-        overlayWrapper.classList.add('is-visible');
-      }
-    }
-  }
-
-// --- Language Selection Listener ---
-  private setupLanguageSelectionListener(): void {
-    this.languageSelectControl.valueChanges
-      .pipe(
-        takeUntil(this.destroy$),
-        distinctUntilChanged(), // Compare previous selection if needed
-        tap(langCode => {
-            console.log("Language selected:", langCode);
-            // Fetch the parallel content
-            if (this.currentlyOpenFluentSpan) {
-              this.currentlyOpenFluentSpan.hidden = true;
-              this.currentlyOpenFluentSpan = null;
-            }
-            this.isParallelViewActive = false; // Tentatively set false
-            if (langCode) this.isLoadingParallel = true; // Show loader only if selecting a lang
-            this.cdRef.markForCheck();
-          }
-        ),
-        // Use switchMap to automatically cancel previous load request if user selects quickly
-        switchMap(langCode => {
-          if (langCode && this.bookId) {
-            this.isLoadingParallel = true; // Show parallel loading indicator
-            this.isParallelViewActive = false; // Tentatively set false until loaded
-            this.cdRef.markForCheck();
-
-            return this.readService.getParallelText(this.bookId, langCode).pipe(
-              catchError(error => {
-                // Handle error within the stream
-                this.handleLoadError('parallel', getErrorMessage(error, 'Unknown error fetching parallel content.'));
-                return EMPTY; // Prevent observable from completing on error
-              })
-            );
-          } else {
-            // Language deselected (or null initially), revert to base
-            this.revertToBaseContent();
-            return EMPTY; // Don't proceed with network call
-          }
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          // Handle successful response from getParallelText
-          if (response.status === 200 && response.body) {
-            try {
-              this.bookHtmlContent = this.arrayBufferToString(response.body); // Store in current display
-              this.isParallelViewActive = true;   // Now parallel view is active
-              this.isLoadingParallel = false;
-              this.errorMessage = null;         // Clear previous errors
-              console.log(`Loaded parallel HTML content for ${this.languageSelectControl.value}.`);
-              this.cdRef.markForCheck();
-              this.scheduleChapterOffsetMeasurement(); // Remeasure layout
-              this.scrollToPercentage(0); // Scroll to top
-            } catch (e) {
-              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
-            }
-          } else {
-            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
-          }
-        }
-      });
+    this.readerDom.toggleOverlayTranslation(this.readerContentRef.nativeElement, event.target);
   }
 
   // Specific handler for load errors
@@ -495,38 +271,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.isDestroyed = true;
     this.clearScrollHoldTimers();
     this.parallelLoadSubscription?.unsubscribe();
-    this.saveProgressOnExit(false); // Attempt regular save
+    this.progressTracker.saveOnExit(false);
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private saveProgressOnExit(useBeacon: boolean): void {
-    console.log(`Attempting save on exit (useBeacon: ${useBeacon})`);
-    if (this.bookId && this.currentScrollPercentage !== this.lastSavedPercentage) {
-      const book = this.bookId;
-      const percentage = this.currentScrollPercentage;
-
-      if (useBeacon) {
-        // Try Beacon API first for ungraceful exit
-        const success = this.readService.sendProgressBeacon(book, percentage);
-        if (success) {
-          this.lastSavedPercentage = percentage; // Assume success if beacon sends
-        } else {
-          // Beacon failed or not supported - maybe a quick sync localStorage save as fallback?
-          console.warn("Beacon save failed/unsupported during unload.");
-          // localStorage.setItem(`reading_progress_${book}`, percentage.toString());
-        }
-      } else {
-        // Regular HTTP call for graceful exit (ngOnDestroy)
-        this.readService.saveProgress(book, percentage)
-          .subscribe(() => {
-            this.lastSavedPercentage = percentage;
-            console.log("Saved progress during ngOnDestroy");
-          });
-      }
-    } else {
-      console.log("Skipping save on exit: required data missing or percentage unchanged.");
-    }
   }
 
 // Modify loadBookHtml to trigger the scroll AFTER load
@@ -554,7 +301,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       next: (response) => {
         if (response.status === 200 && response.body) {
           try {
-            const fetchedHtml = this.arrayBufferToString(response.body);
+            const fetchedHtml = this.readerDom.decode(response.body);
             this.bookHtmlContent = fetchedHtml;
             if (isBase) {
               this.baseBookHtmlContent = fetchedHtml;
@@ -655,8 +402,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     console.error("Reader Error:", message);
     this.errorMessage = message;
     this.isLoading = false;
-    this.processedContent = '';
-    this.blocks = [];
     this.chapterNav = [];
     this.currentScrollPercentage = 0;
     this.cdRef.markForCheck();
@@ -666,70 +411,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): boolean {
-    // This function should now ONLY run successfully ONCE for BASE content
     if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
       return this.hasMeasuredChapters;
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
-    const wrapperElement = this.readerContentWrapperRef?.nativeElement;
+    if (!contentElement || this.isLoading) return false;
 
-    if (!contentElement || !wrapperElement || this.isLoading) {
-      console.warn("measureChapterOffsets (Base): Prerequisites not met.");
-      return false;
-    }
-
-    console.log("Measuring BASE chapter offsets from rendered HTML (using H2 IDs)..."); // Updated log
-    const newChapterNav: ChapterNavInfo[] = [];
-
-    // Find original H2s in BASE content
-    const headingElements = contentElement.querySelectorAll('h2');
-    console.log(`Base Mode Measurement: Found ${headingElements.length} potential chapter heading H2s.`);
-
-    headingElements.forEach((headingElement: HTMLElement, index: number) => {
-      let title = `Chapter ${index + 1}`;
-      let elementId = '';
-      const offsetTop = headingElement.offsetTop ?? 0;
-
-      // ********* ID: Get the ID directly from the H2 element *********
-      elementId = headingElement.id; // <<<< CHANGE IS HERE
-
-      // Check if the H2 actually has an ID and optionally if it matches the pattern
-      if (!elementId /* || !elementId.startsWith('chap') */) { // <<<< ADDED CHECK
-        // If no ID (or pattern doesn't match), skip this chapter.
-        console.warn(`Chapter measurement (Base): H2 at index ${index} lacks an ID (or required pattern 'chap*'). Skipping this chapter.`);
-        console.log('Problematic H2:', headingElement); // Log the element for easier debugging
-        return; // Skip this iteration
-      }
-      // ***************************************************************
-
-
-      // Title: ALWAYS use English title from base H2 structure (No change needed here)
-      const titleSpan = headingElement.querySelector<HTMLElement>(`span.segment[lang="${this.targetLangCode}"]`);
-
-// And update the if statement to use the new variable:
-      if (titleSpan) {
-        title = titleSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
-      } else {
-        // Fallback for non-parallel headers
-        title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-      }
-
-      // Store chapter info with its index
-      // console.log(`Storing Base Chapter: ${title} (ID: ${elementId}, Index: ${index}) at offset ${offsetTop}px`);
-      newChapterNav.push({
-        title: title,         // English title
-        offsetTop: offsetTop, // Initial offset
-        elementId: elementId, // Original ID from H2
-        index: index          // Store the index
-      });
-
-    }); // End forEach loop
-
-    this.chapterNav = newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop); // Store sorted list
-    console.log(`Stored ${this.chapterNav.length} base chapters using H2 IDs.`); // Updated log
-
-    return this.chapterNav.length > 0; // Return true if we found any chapters
+    this.chapterNav = this.readerDom.measureChapters(contentElement, this.targetLangCode);
+    return this.chapterNav.length > 0;
   }
 
 
@@ -810,59 +500,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Calculates and updates the current scroll percentage state
   private updateScrollState(): void {
     if (!this.readerContentWrapperRef) return;
-    const element = this.readerContentWrapperRef.nativeElement;
-    const scrollTop = element.scrollTop;
-    const scrollHeight = element.scrollHeight;
-    const clientHeight = element.clientHeight;
-    const scrollThreshold = 2; // Small pixel threshold to account for rounding/subpixels
-    let newPercentage: number; // Calculate the new percentage
+    const state = this.readerDom.getScrollState(this.readerContentWrapperRef.nativeElement);
+    this.isAtScrollTop = state.isAtTop;
+    this.isAtScrollBottom = state.isAtBottom;
 
-    if (scrollHeight <= clientHeight) {
-      // Content doesn't scroll or is exactly fitting
-      newPercentage = scrollTop <= scrollThreshold ? 0 : 100; // Consider it 0 if at top, 100 if scrolled down somehow
-      this.isAtScrollTop = true;
-      this.isAtScrollBottom = true;
-    } else {
-      // Standard percentage calculation
-      const calculatedPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      newPercentage = Math.max(0, Math.min(100, Math.round(calculatedPercentage))); // Round to nearest integer
-
-      this.isAtScrollTop = scrollTop <= scrollThreshold;
-      this.isAtScrollBottom = scrollTop >= (scrollHeight - clientHeight - scrollThreshold);
-    }
-
-    // Only update the property and emit if the rounded percentage has changed
-    if (newPercentage !== this.currentScrollPercentage) {
-      console.log(`Scroll state updated: New percentage = ${newPercentage}%`); // Optional log
-      this.currentScrollPercentage = newPercentage; // Update the component property
-      this.progressUpdate$.next(newPercentage);   // Emit the change for saving logic
+    if (state.percentage !== this.currentScrollPercentage) {
+      this.currentScrollPercentage = state.percentage;
+      this.progressTracker.update(state.percentage);
     }
   }
 
 // Keep the guards in scrollToPercentage
   private scrollToPercentage(percentage: number): void {
-    console.log(`Executing scrollToPercentage: ${percentage}%`);
-    if (!this.readerContentWrapperRef?.nativeElement) {
-      console.warn(`scrollToPercentage (${percentage}%): Wrapper ref not available.`);
-      return;
-    }
-
+    if (!this.readerContentWrapperRef?.nativeElement) return;
     const element = this.readerContentWrapperRef.nativeElement;
-    const scrollHeight = element.scrollHeight;
-    const clientHeight = element.clientHeight;
-
-    if (scrollHeight <= 0 || clientHeight <= 0) {
-      console.warn(`scrollToPercentage (${percentage}%): Invalid dimensions (scrollHeight=${scrollHeight}, clientHeight=${clientHeight}). Cannot scroll.`);
-      return;
-    }
-    if (scrollHeight <= clientHeight) {
-      console.log(`scrollToPercentage (${percentage}%): Content not scrollable (scrollHeight <= clientHeight).`);
-      return;
-    }
-
-    const targetScrollTop = (percentage / 100) * (scrollHeight - clientHeight);
-    console.log(`scrollToPercentage (${percentage}%): Calculated targetScrollTop=${Math.round(targetScrollTop)} from scrollHeight=${scrollHeight}, clientHeight=${clientHeight}`);
-    this.setScrollTop(Math.round(targetScrollTop));
+    const targetScrollTop = this.readerDom.scrollTopForPercentage(element, percentage);
+    if (targetScrollTop !== null) this.setScrollTop(targetScrollTop);
   }
 
   // Centralized method to set scrollTop and manage the programmatic scroll flag
@@ -870,9 +523,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
 
-    // Clamp value to valid scroll range
-    const maxScrollTop = Math.max(0, element.scrollHeight - element.clientHeight);
-    const clampedValue = Math.max(0, Math.min(value, maxScrollTop));
+    const clampedValue = this.readerDom.clampScrollTop(element, value);
 
     // Only scroll if the value is actually different
     if (Math.round(element.scrollTop) === Math.round(clampedValue)) {
@@ -1093,21 +744,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
 
-    let elementToScrollTo: HTMLElement | null = null;
-
-    try {
-      // 2. Find the element DIRECTLY BY ITS ID - REMOVE THE FILTERING
-      elementToScrollTo = contentElement.querySelector<HTMLElement>(`#${targetChapterInfo.elementId}`);
-
-      if (!elementToScrollTo) {
-        console.warn(`Cannot jump: Could not find element with ID '${targetChapterInfo.elementId}' within contentElement.`);
-        return; // Exit if element not found by ID
-      }
-
-    } catch (error) {
-      console.error("Error during DOM query in jumpToChapter:", error);
-      return; // Exit on error
-    }
+    const elementToScrollTo = this.readerDom.findChapter(contentElement, targetChapterInfo.elementId);
 
     // Perform the scroll if element found
     if (elementToScrollTo) {
@@ -1132,19 +769,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.jumpToChapter(chapterIndex);
     } else {
       console.warn("Invalid index received from chapter selection:", chapterIndex);
-    }
-  }
-
-  // Decodes ArrayBuffer response to string
-  private arrayBufferToString(buffer: ArrayBuffer): string {
-    try {
-      const decoder = new TextDecoder('utf-8', {fatal: true});
-      return decoder.decode(buffer);
-    } catch (e) {
-      console.warn("UTF-8 decoding failed, trying fallback.", e);
-      // Fallback to windows-1252 or latin1 might be needed depending on source files
-      const decoder = new TextDecoder('windows-1252');
-      return decoder.decode(buffer);
     }
   }
 
@@ -1208,7 +832,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           if (response.status === 200 && response.body) {
             try {
               // Decode and update content
-              this.bookHtmlContent = this.arrayBufferToString(response.body);
+              this.bookHtmlContent = this.readerDom.decode(response.body);
               this.isParallelViewActive = true;   // Now parallel view is active
               this.errorMessage = null;         // Clear previous errors
               console.log(`Loaded parallel HTML content for ${langCode}.`);
