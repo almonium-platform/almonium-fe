@@ -48,8 +48,8 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
   styleUrls: ['./dismiss-button.component.less']
 })
 export class DismissButtonComponent {
-  @Input() isOutside: boolean = false;
-  @Input() relative: boolean = false;
+  @Input() isOutside = false;
+  @Input() relative = false;
   @Output() close = new EventEmitter<void>();
 
 

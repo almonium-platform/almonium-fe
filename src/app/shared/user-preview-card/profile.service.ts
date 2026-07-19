@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {UserProfileInfo} from "./user-profile.model";
@@ -8,8 +8,8 @@ import {AppConstants} from "../../app.constants";
   providedIn: 'root',
 })
 export class ProfileService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getUserProfile(userId: string): Observable<UserProfileInfo> {
     const url = `${AppConstants.PROFILE_URL}/${userId}`;

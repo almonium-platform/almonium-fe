@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
+import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject } from "@angular/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
@@ -17,6 +17,10 @@ import {ButtonComponent} from "../../shared/button/button.component";
   styleUrl: './welcome.component.less'
 })
 export class WelcomeComponent implements OnInit, OnDestroy {
+  private onboardingService = inject(OnboardingService);
+  private alertService = inject(TuiNotificationService);
+  private userInfoService = inject(UserInfoService);
+
   @ViewChild('logoGif') logoGif?: ElementRef<HTMLImageElement>;
   @Output() continue = new EventEmitter<SetupStep>();
 
@@ -28,13 +32,6 @@ export class WelcomeComponent implements OnInit, OnDestroy {
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private onboardingService: OnboardingService,
-    private alertService: TuiNotificationService,
-    private userInfoService: UserInfoService,
-  ) {
-  }
 
   ngOnInit() {
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe({

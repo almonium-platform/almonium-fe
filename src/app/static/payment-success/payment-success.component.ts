@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {NgTemplateOutlet} from "@angular/common";
 import {UpgradeComponent} from "../../shared/upgrade/upgrade.component";
 import {UserInfoService} from "../../services/user-info.service";
@@ -13,8 +13,8 @@ import {UserInfoService} from "../../services/user-info.service";
   styleUrl: './payment-success.component.less'
 })
 export class PaymentSuccessComponent implements OnInit {
-  constructor(private userInfoService: UserInfoService) {
-  }
+  private userInfoService = inject(UserInfoService);
+
 
   ngOnInit() {
     this.userInfoService.fetchUserInfoFromServer().subscribe();

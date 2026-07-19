@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnChanges,
-  OnDestroy,
-  TemplateRef,
-  ViewChild
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
 import {Channel, StreamChat, UserResponse} from 'stream-chat';
 import {
   ChannelActionsContext,
@@ -89,6 +80,11 @@ import {LocalStorageService} from "../../../services/local-storage.service";
   providers: [DatePipe]
 })
 export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit {
+  private channelService = inject(ChannelService);
+  private customTemplatesService = inject(CustomTemplatesService);
+  private cdRef = inject(ChangeDetectorRef);
+  private localStorageService = inject(LocalStorageService);
+
   @ViewChild('typingIndicator') typingIndicator!: TemplateRef<TypingIndicatorContext>;
 
   @Input() channel: Channel | undefined;
@@ -108,12 +104,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
   protected lastActiveTime: Date | null | undefined;
   protected isOnline: boolean | undefined;
 
-  constructor(
-    private channelService: ChannelService,
-    private customTemplatesService: CustomTemplatesService,
-    private cdRef: ChangeDetectorRef,
-    private localStorageService: LocalStorageService,
-  ) {
+  constructor() {
     this.usersTyping$ = this.channelService.usersTypingInChannel$;
 
     this.subscriptions.push(
@@ -121,7 +112,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
         this.activeChannel = c;
         this.isPrivateChat = c?.data?.name === AppConstants.PRIVATE_CHAT_NAME;
         this.isSelfChat = c?.data?.name === AppConstants.SELF_CHAT_NAME;
-        const capabilities = this.activeChannel?.data?.own_capabilities as string[];
+        const capabilities = this.activeChannel?.data?.own_capabilities!;
         if (capabilities) {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
         }

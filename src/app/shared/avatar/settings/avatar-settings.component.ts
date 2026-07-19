@@ -1,4 +1,4 @@
-import {Component, Input, ViewChild} from '@angular/core';
+import { Component, Input, ViewChild, inject } from '@angular/core';
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {AvatarComponent} from "../avatar.component";
@@ -16,6 +16,8 @@ import {TuiBadge, TuiBadgedContent} from "@taiga-ui/kit/components";
   ]
 })
 export class AvatarSettingsComponent {
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   @Input() userInfo!: {
     avatarUrl: string | null;
     username: string | null;
@@ -25,10 +27,6 @@ export class AvatarSettingsComponent {
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'xxl';
   @Input() sizeInRem: number | null = null;
   @ViewChild(ManageAvatarComponent, {static: true}) manageAvatarComponent!: ManageAvatarComponent;
-
-  constructor(
-    private popupTemplateStateService: PopupTemplateStateService) {
-  }
 
   changeAvatar(): void {
     this.popupTemplateStateService.open(this.manageAvatarComponent.content, 'avatar');

@@ -167,7 +167,7 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   }
 
   private maxLanguagesValidator(max: number) {
-    return (control: FormControl): { [key: string]: any } | null => {
+    return (control: FormControl): Record<string, any> | null => {
       const value = control.value as string[] | null;
       return value && value.length > max ? {maxLanguages: true} : null;
     };

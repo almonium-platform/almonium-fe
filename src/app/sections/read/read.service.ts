@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
 import {Book, BookMiniDetails, BookshelfView} from "./book.model";
@@ -9,8 +9,8 @@ import {catchError, tap} from 'rxjs/operators';
   providedIn: 'root',
 })
 export class ReadService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   // --- Existing Methods (Keep As Is) ---
   getBooks(): Observable<Book[]> {

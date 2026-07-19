@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject, fromEventPattern} from 'rxjs';
 import {OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
 import {environment} from "../../../environments/environment";
@@ -10,15 +10,15 @@ import {SocialService} from "./social.service";
   providedIn: 'root',
 })
 export class ChatUnreadService {
+  private userInfoService = inject(UserInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private socialService = inject(SocialService);
+
   private unreadCount$ = new BehaviorSubject<number>(0);
   private chatClient: StreamChat;
   private friendIds: string[] = [];
 
-  constructor(
-    private userInfoService: UserInfoService,
-    private localStorageService: LocalStorageService,
-    private socialService: SocialService,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
 
     // Listen to unread count updates from Stream events

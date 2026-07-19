@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
@@ -11,8 +11,8 @@ import {CardDto} from "../models/card.model";
   providedIn: 'root',
 })
 export class CardService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getCardsInLanguage(language: LanguageCode): Observable<CardDto[]> {
     return this.http.get<CardDto[]>(`${AppConstants.CARDS_IN_LANG}/${language}`, {withCredentials: true}).pipe(

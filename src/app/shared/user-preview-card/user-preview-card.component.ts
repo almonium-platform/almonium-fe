@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
 import {AvatarComponent} from "../avatar/avatar.component";
@@ -47,6 +47,13 @@ import {NgClass} from "@angular/common";
   styleUrl: './user-preview-card.component.less'
 })
 export class UserPreviewCardComponent implements OnInit, OnDestroy {
+  private userService = inject(ProfileService);
+  private userInfoService = inject(UserInfoService);
+  private socialService = inject(SocialService);
+  private chatService = inject(ChatClientService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+
   @Input() userId!: string;
   @Input() publicProfile: UserProfileInfo | null = null;
 
@@ -62,7 +69,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private chatClient: StreamChat;
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
@@ -80,14 +87,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     },
   };
 
-  constructor(
-    private userService: ProfileService,
-    private userInfoService: UserInfoService,
-    private socialService: SocialService,
-    private chatService: ChatClientService,
-    private alertService: TuiNotificationService,
-    private router: Router,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
   }
 

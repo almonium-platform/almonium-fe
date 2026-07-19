@@ -20,7 +20,7 @@ import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StarRatingComponent {
-  _rating: number = 0;
+  _rating = 0;
   @Input()
   set rating(value: number) {
     this._rating = Math.max(0, Math.min(5, value || 0));

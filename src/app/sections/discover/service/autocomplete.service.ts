@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
@@ -8,8 +8,8 @@ import {LanguageCode} from "../../../models/language.enum";
   providedIn: 'root',
 })
 export class AutocompleteService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getAutocompleteSuggestions(searchText: string, language: LanguageCode): Observable<string[]> {
     if (language !== LanguageCode.EN || searchText.length < 3) {

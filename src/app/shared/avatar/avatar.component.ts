@@ -23,10 +23,10 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
 export class AvatarComponent {
   @Input() avatarUrl: string | null = null;
   @Input() username: string | null = null;
-  @Input() outline: boolean = false; // todo: rename to premium. remove? Not used anymore.
+  @Input() outline = false; // todo: rename to premium. remove? Not used anymore.
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
-  @Input() loading: boolean = false;
+  @Input() loading = false;
 
   get initials(): string {
     return this.username

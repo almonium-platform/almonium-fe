@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {NavbarComponent} from "../navbar/navbar.component";
 import {NavbarPublicComponent} from "../navbar-public/navbar-public.component";
 
@@ -17,14 +17,15 @@ import {UserInfoService} from "../../../services/user-info.service";
   styleUrl: './navbar-wrapper.component.less'
 })
 export class NavbarWrapperComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
   protected userInfo: UserInfo | null = null;
-  protected currentRoute: string = '';
-  protected isAuthenticated: boolean = false;
+  protected currentRoute = '';
+  protected isAuthenticated = false;
 
-  constructor(private userInfoService: UserInfoService,
-              private router: Router
-  ) {
+  constructor() {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.currentRoute = event.urlAfterRedirects;

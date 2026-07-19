@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {RouterLink} from "@angular/router";
@@ -54,6 +54,11 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
   styleUrl: './read.component.less'
 })
 export class ReadComponent implements OnInit, OnDestroy {
+  private readService = inject(ReadService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private userInfoService = inject(UserInfoService);
+  private alertService = inject(TuiNotificationService);
+
   private readonly destroy$ = new Subject<void>();
   sortOrder: 'asc' | 'desc' = 'desc';
 
@@ -69,21 +74,13 @@ export class ReadComponent implements OnInit, OnDestroy {
   cefrLevelControl = new FormControl<CEFRLevel>(CEFRLevel.A1);
 
   selectedBook: Book | null = null;
-  filterByCefrToggle: boolean = false;
-  parallelTranslationToggle: boolean = false;
-  sortToggle: boolean = false;
-  includeTranslationsToggle: boolean = false;
+  filterByCefrToggle = false;
+  parallelTranslationToggle = false;
+  sortToggle = false;
+  includeTranslationsToggle = false;
 
   loadingSubject$ = new BehaviorSubject<boolean>(false);
   loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private readService: ReadService,
-    private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private userInfoService: UserInfoService,
-    private alertService: TuiNotificationService,
-  ) {
-  }
 
   ngOnInit() {
     this.fetchBooksOnLanguageChange();
@@ -216,7 +213,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   private cefrLevelToNumber(level: string): number {
-    const cefrMap: { [key: string]: number } = {A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6};
+    const cefrMap: Record<string, number> = {A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6};
     return cefrMap[level] || 0;
   }
 

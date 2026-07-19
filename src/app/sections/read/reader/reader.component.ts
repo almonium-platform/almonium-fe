@@ -1,18 +1,4 @@
-import {
-  AfterViewChecked,
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  Pipe,
-  PipeTransform,
-  ViewChild
-} from '@angular/core';
+import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Pipe, PipeTransform, ViewChild, inject } from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -50,8 +36,8 @@ interface ChapterNavInfo {
 
 @Pipe({name: 'safeHtml', standalone: true})
 export class SafeHtmlPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {
-  }
+  private sanitizer = inject(DomSanitizer);
+
 
   transform(value: string | null | undefined): SafeHtml | null {
     if (value === null || value === undefined) return null;
@@ -86,6 +72,13 @@ export class SafeHtmlPipe implements PipeTransform {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
+  private cdRef = inject(ChangeDetectorRef);
+  private readService = inject(ReadService);
+  private route = inject(ActivatedRoute);
+  private ngZone = inject(NgZone);
+  private parallelModeService = inject(ParallelModeService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   // --- Element References ---
   @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
@@ -93,22 +86,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
 
   // --- State Properties ---
-  private processedContent: string = '';    // Raw text from backend
+  private processedContent = '';    // Raw text from backend
   protected blocks: BlockData[] = [];       // Parsed blocks for rendering
   protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
-  private hasMeasuredChapters: boolean = false; // Flag to ensure we measure only once
+  private hasMeasuredChapters = false; // Flag to ensure we measure only once
 
-  protected bookHtmlContent: string = ''; // Store the raw HTML from backend
-  protected baseBookHtmlContent: string = ''; // Store the raw HTML from backend
+  protected bookHtmlContent = ''; // Store the raw HTML from backend
+  protected baseBookHtmlContent = ''; // Store the raw HTML from backend
 
-  protected isLoading: boolean = true;          // General loading state
-  protected isLoadingParallel: boolean = false; // Specific loading state for parallel text
+  protected isLoading = true;          // General loading state
+  protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
   protected bookId: number | null = null;
-  protected currentBaseLanguage: string = 'EN'; // Assume base is EN, adjust if needed
+  protected currentBaseLanguage = 'EN'; // Assume base is EN, adjust if needed
 
   // --- Native Scroll State ---
-  protected currentScrollPercentage: number = 0; // Current scroll position (0-100)
+  protected currentScrollPercentage = 0; // Current scroll position (0-100)
   private isScrollingProgrammatically = false;  // Flag to prevent scroll event loops
 
   // --- RxJS Subjects and Subscriptions ---
@@ -129,18 +122,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // --- Press and Hold Scrolling State ---
   private scrollIntervalId: ReturnType<typeof setInterval> | null = null;
   private scrollHoldTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private isHoldingForScroll: boolean = false;
+  private isHoldingForScroll = false;
   private readonly SCROLL_HOLD_DELAY = 350;
   private readonly SCROLL_INTERVAL_DELAY = 50;
 
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookLanguageVariant[] = [];
   protected languageSelectControl = new FormControl<string | null>(null);
-  protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
+  protected isParallelViewActive = false; // Still needed to know *if* content has translations
   private currentlyOpenFluentSpan: HTMLElement | null = null;
 
-  protected isAtScrollTop: boolean = true; // ADDED: True initially
-  protected isAtScrollBottom: boolean = false; // ADDED: False initially
+  protected isAtScrollTop = true; // ADDED: True initially
+  protected isAtScrollBottom = false; // ADDED: False initially
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
@@ -149,25 +142,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private isSyncingHeights = false;
 
   private progressUpdate$ = new Subject<number>();
-  private lastSavedPercentage: number = -1; // Track last saved value
+  private lastSavedPercentage = -1; // Track last saved value
   private readonly SAVE_DEBOUNCE_TIME = 750; // Wait ms after scrolling stops
   private readonly SAVE_THROTTLE_TIME = 10000; // Save at most every 30s
   private initialScrollPercentage: number | null = null;
-  private initialScrollApplied: boolean = false;
+  private initialScrollApplied = false;
   private isDestroyed = false;
 
-  private needsHeightSync: boolean = false;
-  protected mode: 'side' | 'overlay' | 'inline' = 'inline'; // Default to side-by-side
-
-  constructor(
-    private cdRef: ChangeDetectorRef,
-    private readService: ReadService,
-    private route: ActivatedRoute,
-    private ngZone: NgZone,
-    private parallelModeService: ParallelModeService,
-    private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
+  private needsHeightSync = false;
+  protected mode: 'side' | 'overlay' | 'inline' = 'inline';
 
   // --- Lifecycle Hooks ---
 
@@ -559,7 +542,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
 // Modify loadBookHtml to trigger the scroll AFTER load
-  private loadBookHtml(bookId: number, isBase: boolean = false): void {
+  private loadBookHtml(bookId: number, isBase = false): void {
     if (isBase) {
       this.isLoading = true;
       this.isParallelViewActive = false;
@@ -718,7 +701,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     headingElements.forEach((headingElement: HTMLElement, index: number) => {
       let title = `Chapter ${index + 1}`;
       let elementId = '';
-      let offsetTop = headingElement.offsetTop ?? 0;
+      const offsetTop = headingElement.offsetTop ?? 0;
 
       // ********* ID: Get the ID directly from the H2 element *********
       elementId = headingElement.id; // <<<< CHANGE IS HERE
@@ -1115,7 +1098,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     // 1. Get the stored info, including the unique elementId ('chapX')
     const targetChapterInfo = this.chapterNav[chapterIndex];
-    if (!targetChapterInfo || !targetChapterInfo.elementId) {
+    if (!targetChapterInfo?.elementId) {
       console.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
       return;
     }

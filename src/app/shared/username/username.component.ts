@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -37,6 +37,11 @@ import {EditButtonComponent} from "../edit-button/edit-button.component";
   ]
 })
 export class UsernameComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private profileSettingsService = inject(ProfileSettingsService);
+  private cdr = inject(ChangeDetectorRef);
+  private alertService = inject(TuiNotificationService);
+
   private readonly destroy$ = new Subject<void>();
   usernameFontSize = '1.3rem';
 
@@ -55,12 +60,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   readonly loading$ = this.loadingSubject$.asObservable();
 
-  constructor(
-    private userInfoService: UserInfoService,
-    private profileSettingsService: ProfileSettingsService,
-    private cdr: ChangeDetectorRef,
-    private alertService: TuiNotificationService,
-  ) {
+  constructor() {
     this.usernameForm = new FormGroup({
       usernameValue: new FormControl('', {
         validators: [

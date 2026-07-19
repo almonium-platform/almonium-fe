@@ -1,4 +1,4 @@
-import {Injectable, NgZone, OnDestroy} from '@angular/core';
+import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
 import {BehaviorSubject, fromEvent, Subject} from 'rxjs';
 import {debounceTime, map, startWith, takeUntil} from 'rxjs/operators';
 
@@ -6,13 +6,15 @@ import {debounceTime, map, startWith, takeUntil} from 'rxjs/operators';
   providedIn: 'root', // Makes the service globally available
 })
 export class ViewportService implements OnDestroy {
+  private zone = inject(NgZone);
+
   private readonly destroy$ = new Subject<void>();
   private readonly isMobileSubject = new BehaviorSubject<boolean>(this.checkIsMobile());
   private customWidth = 768; // Default width threshold
 
   public readonly isMobile$ = this.isMobileSubject.asObservable();
 
-  constructor(private zone: NgZone) {
+  constructor() {
     this.zone.runOutsideAngular(() => {
       fromEvent(window, 'resize')
         .pipe(

@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError} from 'rxjs/operators';
@@ -10,9 +10,8 @@ import {PlanDto} from "../models/plan.model";
   providedIn: 'root',
 })
 export class PlanService {
-  constructor(private http: HttpClient,
-  ) {
-  }
+  private http = inject(HttpClient);
+
 
   getPlans(): Observable<PlanDto[]> {
     return this.http.get<PlanDto[]>(`${AppConstants.PLAN_URL}`).pipe(

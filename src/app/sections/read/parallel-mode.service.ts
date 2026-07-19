@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {ParallelMode} from './parallel-mode.type';
@@ -7,15 +7,14 @@ import {ParallelMode} from './parallel-mode.type';
   providedIn: 'root'
 })
 export class ParallelModeService {
+  private localStorageService = inject(LocalStorageService);
+
   private parallelModeSubject = new BehaviorSubject<ParallelMode>(
     this.localStorageService.getParallelMode()
   );
 
   /** Observable emitting the current parallel display mode. */
   readonly mode$ = this.parallelModeSubject.asObservable();
-
-  constructor(private localStorageService: LocalStorageService) {
-  }
 
   /** Sets the parallel display mode and saves it to local storage. */
   setMode(mode: ParallelMode): void {

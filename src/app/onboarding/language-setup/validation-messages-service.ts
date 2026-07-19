@@ -10,7 +10,7 @@ export class ValidationMessagesService {
     this.maxLanguages = max;
   }
 
-  getValidationMessages(): { [key: string]: string | (() => string) } {
+  getValidationMessages(): Record<string, string | (() => string)> {
     return {
       required: 'At least one language is required',
       maxLanguages: () => {

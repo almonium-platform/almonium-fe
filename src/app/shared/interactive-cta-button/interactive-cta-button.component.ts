@@ -1,4 +1,4 @@
-import {Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output,} from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {TuiLoader} from '@taiga-ui/core/components';
@@ -30,6 +30,8 @@ import {TuiLoader} from '@taiga-ui/core/components';
   imports: [TuiLoader],
 })
 export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
+  private elRef = inject(ElementRef);
+
   @Input() text = 'Click Me';
   @Input() loading$?: Observable<boolean>;
   @Input() disabled = false;
@@ -37,9 +39,6 @@ export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
   isLoading = false;
 
   private readonly destroy$ = new Subject<void>();
-
-  constructor(private elRef: ElementRef) {
-  }
 
   ngOnInit() {
     if (this.loading$) {

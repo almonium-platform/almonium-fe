@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IParticlesProps, NgParticlesService} from '@tsparticles/angular';
 import {loadFull} from 'tsparticles';
@@ -9,14 +9,11 @@ import {catchError, switchMap, tap} from 'rxjs/operators';
   providedIn: 'root',
 })
 export class ParticlesService {
+  private http = inject(HttpClient);
+  private particlesService = inject(NgParticlesService);
+
   private particlesOptionsSubject = new BehaviorSubject<IParticlesProps | undefined>(undefined);
   particlesOptions$: Observable<IParticlesProps | undefined> = this.particlesOptionsSubject.asObservable();
-
-  constructor(
-    private http: HttpClient,
-    private particlesService: NgParticlesService
-  ) {
-  }
 
   initializeParticles(): void {
     this.http.get<IParticlesProps>('/assets/particles-options.json').pipe(

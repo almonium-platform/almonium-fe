@@ -1,4 +1,4 @@
-import {Component, Input, ViewChild} from '@angular/core';
+import { Component, Input, ViewChild, inject } from '@angular/core';
 import {AvatarComponent} from "../avatar.component";
 import {UserPreviewCardComponent} from "../../user-preview-card/user-preview-card.component";
 import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core/portals";
@@ -51,21 +51,19 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
   ],
 })
 export class AvatarPreviewComponent {
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   @ViewChild('preview', {static: false}) wrapper!: UserPreviewCardWrapperComponent
 
   @Input() avatarUrl: string | null = null;
   @Input() username: string | null = null;
-  @Input() outline: boolean = false; // todo: rename to premium
+  @Input() outline = false; // todo: rename to premium
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
-  @Input() loading: boolean = false;
+  @Input() loading = false;
   @Input() userId: string | null = null;
-  protected previewOpened: boolean = false;
-  protected cardHovered: boolean = false;
-
-  constructor(
-    private popupTemplateStateService: PopupTemplateStateService) {
-  }
+  protected previewOpened = false;
+  protected cardHovered = false;
 
   onHover() {
     this.previewOpened = true;

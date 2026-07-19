@@ -1,5 +1,5 @@
 import {TuiInput} from "@taiga-ui/core/components";
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {TuiProgress, TuiStepper} from "@taiga-ui/kit/components";
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
@@ -37,12 +37,17 @@ import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
   styleUrl: './onboarding.component.less'
 })
 export class OnboardingComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private viewportService = inject(ViewportService);
+
   protected readonly SetupStep = SetupStep;
   private readonly destroy$ = new Subject<void>();// @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   userInfo: UserInfo | null = null;
 
-  protected isMobile: boolean = false;
+  protected isMobile = false;
   activeStep: SetupStep = SetupStep.WELCOME; // Active step in the stepper
   storedStep: SetupStep = SetupStep.WELCOME; // Step stored in the backend
   steps: SetupStep[] = [
@@ -52,14 +57,6 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     SetupStep.PROFILE,
     SetupStep.INTERESTS,
   ];
-
-  constructor(
-    private userInfoService: UserInfoService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-    private viewportService: ViewportService,
-  ) {
-  }
 
   ngOnInit() {
     this.userInfoService.userInfo$.pipe(

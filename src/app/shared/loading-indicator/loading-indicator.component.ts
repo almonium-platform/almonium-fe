@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 
 import {interval, Subject, Subscription} from 'rxjs';
 import {GifPlayerComponent} from '../gif-player/gif-player.component'; // Adjust path if needed
@@ -13,15 +13,14 @@ import {GifPlayerComponent} from '../gif-player/gif-player.component'; // Adjust
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoadingIndicatorComponent implements OnInit, OnDestroy {
-  @Input() baseText: string = 'Loading';
+  private cdr = inject(ChangeDetectorRef);
 
-  animatedText: string = '';
+  @Input() baseText = 'Loading';
+
+  animatedText = '';
   private intervalSubscription: Subscription | null = null;
   private readonly animationInterval = 350; // Animation speed
   protected replayGifTrigger = new Subject<void>();
-
-  constructor(private cdr: ChangeDetectorRef) {
-  }
 
   ngOnInit(): void {
     this.startAnimation();

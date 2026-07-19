@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
 import {TuiIcon, TuiNotificationService, TuiTitle} from "@taiga-ui/core/components";
@@ -33,12 +33,18 @@ import {ButtonComponent} from "../button/button.component";
   ]
 })
 export class PaywallComponent implements OnInit, OnDestroy {
+  private planService = inject(PlanService);
+  private userInfoService = inject(UserInfoService);
+  private onboardingService = inject(OnboardingService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
   private readonly step = SetupStep.PLAN;
 
   private userInfo: UserInfo | null = null;
-  protected planChosen: boolean = false;
+  protected planChosen = false;
 
   protected freeFeatures: string[] = [
     'One target language',
@@ -54,28 +60,19 @@ export class PaywallComponent implements OnInit, OnDestroy {
     'All play',
     'All target languages',
   ];
-  selectedMode: number = 0;
+  selectedMode = 0;
   premiumPrice = {
     monthly: 4.99,
     yearly: 49.99,
   };
-  premiumMonthlyId: string = '';
-  premiumYearlyId: string = '';
+  premiumMonthlyId = '';
+  premiumYearlyId = '';
 
   private freeLoadingSubject$ = new BehaviorSubject(false);
   private premiumLoadingSubject$ = new BehaviorSubject(false);
 
   readonly freeLoading$ = this.freeLoadingSubject$.asObservable();
   readonly premiumLoading$ = this.premiumLoadingSubject$.asObservable();
-
-  constructor(
-    private planService: PlanService,
-    private userInfoService: UserInfoService,
-    private onboardingService: OnboardingService,
-    private alertService: TuiNotificationService,
-    private router: Router,
-  ) {
-  }
 
   ngOnInit() {
     this.populatePlanInfo();
@@ -162,7 +159,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
     this.premiumLoadingSubject$.next(true);
 
-    let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
+    const selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
     this.planService.subscribeToPlan(String(selectedPlanId))
       .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
       .subscribe((url) => {

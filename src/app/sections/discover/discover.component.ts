@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild,} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild, inject } from '@angular/core';
 
 import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
@@ -21,41 +21,38 @@ import {AutocompleteService} from "./service/autocomplete.service";
   ]
 })
 export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
+  private renderer = inject(Renderer2);
+  private route = inject(ActivatedRoute);
+  private frequencyService = inject(FrequencyService);
+  private languageService = inject(TargetLanguageDropdownService);
+  private diacriticService = inject(DiacriticService);
+  private autocompleteService = inject(AutocompleteService);
+
   // Diacritic popup
   @ViewChild('diacriticPopup') diacriticPopup!: DiacriticPopupComponent;
   @ViewChild('searchInput') searchInput!: ElementRef;
   protected popupOptions: string[] = [];
   protected popupPosition = {top: '0px', left: '0px'};
   protected diacriticPopupFocusIndex = -1;
-  private diacriticPopupFocused: boolean = false;
+  private diacriticPopupFocused = false;
 
   // input
   private readonly MAX_INPUT_LENGTH = 150;
-  @Input() searchText: string = '';
-  private singleLineHeight: number = 0;
-  protected submitted: boolean = false;
-  private previousSearchText: string = '';
+  @Input() searchText = '';
+  private singleLineHeight = 0;
+  protected submitted = false;
+  private previousSearchText = '';
 
   // autocomplete
   protected filteredOptions: string[] = [];
-  private currentAutocompleteItemFocusIndex: number = -1;
+  private currentAutocompleteItemFocusIndex = -1;
 
   // islands
-  protected frequency: number = 0;
+  protected frequency = 0;
 
   private currentLanguage: LanguageCode = LanguageCode.EN;
 
   private globalKeydownListener!: () => void;
-
-  constructor(
-    private renderer: Renderer2,
-    private route: ActivatedRoute,
-    private frequencyService: FrequencyService,
-    private languageService: TargetLanguageDropdownService,
-    private diacriticService: DiacriticService,
-    private autocompleteService: AutocompleteService,
-  ) {
-  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {

@@ -52,7 +52,7 @@ export class AppConstants {
 
   public static MIN_USERNAME_LENGTH = 3;
   public static MAX_USERNAME_LENGTH = 20;
-  public static USERNAME_PATTERN: string = '^[a-zA-Z0-9_]*$';
+  public static USERNAME_PATTERN = '^[a-zA-Z0-9_]*$';
 
   // CHATS
   public static PRIVATE_CHAT_NAME = 'Private Chat';

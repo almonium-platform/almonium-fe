@@ -1,6 +1,6 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
@@ -15,7 +15,7 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
 
 // Declare gtag function to make TypeScript aware of it globally
-declare var gtag: Function;
+declare let gtag: Function;
 
 @Component({
   selector: 'app-root',
@@ -25,8 +25,16 @@ declare var gtag: Function;
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
 export class AppComponent implements OnInit {
+  private router = inject(Router);
+  private urlService = inject(UrlService);
+  private streamI18nService = inject(StreamI18nService);
+  private firebaseNotificationService = inject(FirebaseNotificationService);
+  private alertService = inject(TuiNotificationService);
+  private timerMonitorService = inject(TimerMonitorService);
+  private userInfoService = inject(UserInfoService);
+
   title = 'almonium-fe';
-  protected showNavbar: boolean = false;
+  protected showNavbar = false;
   private noNavbarRoutes: string[] = [
     '/auth',
     '/login',
@@ -46,15 +54,7 @@ export class AppComponent implements OnInit {
 
   private measurementId = environment.googleAnalyticsId;
 
-  constructor(
-    private router: Router,
-    private urlService: UrlService,
-    private streamI18nService: StreamI18nService,
-    private firebaseNotificationService: FirebaseNotificationService,
-    private alertService: TuiNotificationService,
-    private timerMonitorService: TimerMonitorService,
-    private userInfoService: UserInfoService,
-  ) {
+  constructor() {
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
@@ -75,7 +75,7 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event) => {
-      const navigationEvent = event as NavigationEnd;
+      const navigationEvent = event;
 
       const clearedUrl = this.urlService.getClearedUrl();
       const isMobile = window.innerWidth <= 640;

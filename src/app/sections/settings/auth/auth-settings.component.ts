@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
@@ -61,6 +61,18 @@ import {ButtonComponent} from "../../../shared/button/button.component";
   styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit, OnDestroy {
+  private settingService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private userInfoService = inject(UserInfoService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  private urlService = inject(UrlService);
+  private recentAuthGuardService = inject(RecentAuthGuardService);
+  private localStorageService = inject(LocalStorageService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private cdr = inject(ChangeDetectorRef);
+
   private readonly destroy$ = new Subject<void>();
 
   // populated in ngOnInit
@@ -70,10 +82,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   // email and password settings
   protected emailVerifiedTextExpanded = true;
-  protected emailEditable: boolean = false;
-  protected passwordEditable: boolean = false;
-  protected lastPasswordUpdate: string = '';
-  protected emailVerified: boolean = true;
+  protected emailEditable = false;
+  protected passwordEditable = false;
+  protected lastPasswordUpdate = '';
+  protected emailVerified = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl<string>('', {
       validators: [Validators.required, Validators.email],
@@ -94,26 +106,26 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   @ViewChild(AuthComponent, {static: false}) authComponent!: AuthComponent;
 
   // Provider info modal
-  protected providerInfoVisible: boolean = false;
-  protected providerInfoTitle: string = '';
-  protected providerInfoText: string = '';
-  protected providerInfoIcon: string = '';
+  protected providerInfoVisible = false;
+  protected providerInfoTitle = '';
+  protected providerInfoText = '';
+  protected providerInfoIcon = '';
 
   // email token settings
   protected tokenInfo: TokenInfo | null = null;
-  protected isEmailTokenModalVisible: boolean = false;
+  protected isEmailTokenModalVisible = false;
 
   // auth modal settings
   protected authMode: 'embedded' | 'linkLocal' | 'changeEmail' = 'embedded';
-  protected isAuthModalVisible: boolean = false;
+  protected isAuthModalVisible = false;
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
-  protected useCountdown: boolean = false;
+  protected useCountdown = false;
 
 
   private readonly loadingSubjectEmail$ = new BehaviorSubject<boolean>(false);
@@ -121,22 +133,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   private readonly loadingSubjectPassword$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingPassword$ = this.loadingSubjectPassword$.asObservable();
-
-
-  constructor(
-    private settingService: AuthSettingsService,
-    private alertService: TuiNotificationService,
-    private userInfoService: UserInfoService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private authService: AuthService,
-    private urlService: UrlService,
-    private recentAuthGuardService: RecentAuthGuardService,
-    private localStorageService: LocalStorageService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private cdr: ChangeDetectorRef,
-  ) {
-  }
 
 
   ngOnInit(): void {
@@ -268,7 +264,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected getProviderInfo = (provider: string) => {
-    let method = this.authMethods
+    const method = this.authMethods
       .filter(method => method.provider.toLowerCase() === provider.toLowerCase())
       .pop();
 

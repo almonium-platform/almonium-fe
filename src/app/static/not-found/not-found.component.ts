@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {RouterLink} from "@angular/router";
 
@@ -11,10 +11,9 @@ import {RouterLink} from "@angular/router";
   ]
 })
 export class NotFoundComponent implements OnInit {
-  showNavbar: boolean = false;
+  private localStorageService = inject(LocalStorageService);
 
-  constructor(private localStorageService: LocalStorageService) {
-  }
+  showNavbar = false;
 
   ngOnInit(): void {
     const userInfo = this.localStorageService.getUserInfo();

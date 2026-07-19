@@ -24,7 +24,7 @@ export class PopupTemplateStateService {
 
   drawerState$: Observable<DrawerState> = this.drawerState.asObservable();
 
-  open(content: any, type: string, outside: boolean = false, doNotTrackOutsideClick: boolean = false) {
+  open(content: any, type: string, outside = false, doNotTrackOutsideClick = false) {
     this.drawerState.next({
       visible: true,
       closeBtnOutside: outside,

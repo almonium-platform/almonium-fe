@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, Input} from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
 import {SetupStep} from "../../models/userinfo.model";
@@ -20,18 +20,15 @@ import {BehaviorSubject, finalize} from "rxjs";
   styleUrl: './interests-setup.component.less'
 })
 export class InterestsSetupComponent {
+  private onboardingService = inject(OnboardingService);
+  private alertService = inject(TuiNotificationService);
+  private userInfoService = inject(UserInfoService);
+
   @Input() currentInterests: Interest[] = [];
   protected selectedInterests: Interest[] = [];
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private onboardingService: OnboardingService,
-    private alertService: TuiNotificationService,
-    private userInfoService: UserInfoService,
-  ) {
-  }
 
   submit() {
     this.loadingSubject$.next(true);

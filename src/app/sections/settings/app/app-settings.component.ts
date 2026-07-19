@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
@@ -28,23 +28,20 @@ import {catchError} from "rxjs/operators";
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
+  private profileSettingsService = inject(ProfileSettingsService);
+  private userInfoService = inject(UserInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private alertService = inject(TuiNotificationService);
+
   private readonly destroy$ = new Subject<void>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
-  navbarColumns: [Array<keyof UIPreferences["navbar"]>, Array<keyof UIPreferences["navbar"]>] = [[], []];
-
-  constructor(
-    private profileSettingsService: ProfileSettingsService,
-    private userInfoService: UserInfoService,
-    private localStorageService: LocalStorageService,
-    private supportedLanguagesService: SupportedLanguagesService,
-    private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private alertService: TuiNotificationService,
-  ) {
-  }
+  navbarColumns: [(keyof UIPreferences["navbar"])[], (keyof UIPreferences["navbar"])[]] = [[], []];
 
   ngOnInit(): void {
     this.userInfoService.userInfo$

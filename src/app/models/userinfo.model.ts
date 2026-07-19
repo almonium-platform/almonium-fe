@@ -151,7 +151,7 @@ export enum CEFRLevel {
 export class Subscription {
   constructor(
     public name: string,
-    public limits: { [key: string]: number },
+    public limits: Record<string, number>,
     public type: PlanType,
     public autoRenewal: boolean | null,
     public startDate: Date,
@@ -163,7 +163,7 @@ export class Subscription {
     return new Subscription(data.name, data.limits, data.type, data.autoRenewal, new Date(data.startDate), new Date(data.endDate));
   }
 
-  getLimit(key: string, defaultValue: number = Infinity): number {
+  getLimit(key: string, defaultValue = Infinity): number {
     return this.limits[key] ?? defaultValue;
   }
 

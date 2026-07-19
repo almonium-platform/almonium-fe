@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {from, map, Observable, of, switchMap} from 'rxjs';
 import {AppConstants} from '../../../app.constants';
@@ -15,7 +15,9 @@ import {
 
 @Injectable({providedIn: 'root'})
 export class AuthSettingsService {
-  constructor(private http: HttpClient, private firebaseAuth: Auth) {}
+  private http = inject(HttpClient);
+  private firebaseAuth = inject(Auth);
+
 
   checkCurrentAccessTokenIsLive(): Observable<string | null> {
     return this.http.get<ResponseModel>(`${AppConstants.AUTH_URL}/session/recent`, {withCredentials: true}).pipe(

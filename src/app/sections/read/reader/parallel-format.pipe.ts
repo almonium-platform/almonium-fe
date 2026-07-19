@@ -1,4 +1,4 @@
-import {Pipe, PipeTransform} from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {ParallelMode} from '../parallel-mode.type';
 
@@ -15,12 +15,11 @@ export interface ParallelFormatOptions {
   standalone: true,
 })
 export class ParallelFormatPipe implements PipeTransform {
+  private sanitizer = inject(DomSanitizer);
 
-  constructor(private sanitizer: DomSanitizer) {
-  }
 
   transform(value: string | null, options: ParallelFormatOptions | null): SafeHtml | null {
-    if (!value || !options || !options.mode || !options.targetLang || !options.fluentLang) {
+    if (!value || !options?.mode || !options.targetLang || !options.fluentLang) {
       return this.sanitizer.bypassSecurityTrustHtml(value || '');
     }
     const {mode, targetLang, fluentLang} = options;

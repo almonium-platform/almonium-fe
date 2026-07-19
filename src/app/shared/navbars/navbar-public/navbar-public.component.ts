@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
@@ -20,14 +20,12 @@ import {LucideAngularModule} from "lucide-angular";
   ]
 })
 export class NavbarPublicComponent implements OnInit, OnDestroy {
-  @Input() currentRoute: string = '';
-  protected isDiscoverMenuOpen: boolean = false;
-  isMobile: boolean = false;
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(private router: Router,
-              private cdr: ChangeDetectorRef,
-  ) {
-  }
+  @Input() currentRoute = '';
+  protected isDiscoverMenuOpen = false;
+  isMobile = false;
 
   ngOnInit(): void {
     this.checkDeviceType();

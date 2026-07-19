@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../../app.constants";
@@ -8,8 +8,8 @@ import {Notification} from "./notification.model";
   providedIn: 'root',
 })
 export class NotificationService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getNotifications(): Observable<Notification[]> {
     const url = `${AppConstants.NOTIFICATIONS_URL}`;

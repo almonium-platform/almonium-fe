@@ -12,8 +12,8 @@ export class ShareLinkComponent implements OnInit {
   @ViewChild('shareLink', {static: true}) content!: TemplateRef<any>;
   @Input() link!: string;
   @Input() title!: string;
-  protected showCopied: boolean = false;
-  protected fieldTextValue: string = '';
+  protected showCopied = false;
+  protected fieldTextValue = '';
 
   ngOnInit(): void {
     this.fieldTextValue = this.link;

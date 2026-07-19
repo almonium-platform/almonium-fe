@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {CardService} from '../../services/card.service';
 import {CardDto} from '../../models/card.model';
 import {LanguageCode} from '../../models/language.enum';
@@ -16,16 +16,14 @@ import {RouterLink} from "@angular/router";
   ]
 })
 export class ReviewComponent implements OnInit, OnDestroy {
+  private cardService = inject(CardService);
+  private languageService = inject(TargetLanguageDropdownService);
+  private languageNameService = inject(LanguageNameService);
+
   private readonly destroy$ = new Subject<void>();
   cards: CardDto[] = [];
   selectedLanguage!: LanguageCode;
-  displayLanguageName: string = ''; // Variable to store the full name of the language
-
-  constructor(private cardService: CardService,
-              private languageService: TargetLanguageDropdownService,
-              private languageNameService: LanguageNameService,
-  ) {
-  }
+  displayLanguageName = '';
 
   ngOnInit(): void {
     this.languageService.currentLanguage$

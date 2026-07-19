@@ -65,12 +65,12 @@ export class LocalStorageService {
     this.removeItem(CURRENT_LANGUAGE_KEY);
   }
 
-  saveLangColors(colors: { [key: string]: string }): void {
+  saveLangColors(colors: Record<string, string>): void {
     this.saveItem(LANG_COLOR_KEY, colors);
   }
 
-  getLangColors(): { [key: string]: string } | null {
-    return this.getItem<{ [key: string]: string }>(LANG_COLOR_KEY);
+  getLangColors(): Record<string, string> | null {
+    return this.getItem<Record<string, string>>(LANG_COLOR_KEY);
   }
 
   clearLangColors(): void {
@@ -104,14 +104,14 @@ export class LocalStorageService {
   }
 
   saveLastSeen(userId: string, timestamp: Date): void {
-    const lastSeenData = this.getItem<{ [key: string]: string }>(LAST_SEEN_KEY) || {};
+    const lastSeenData = this.getItem<Record<string, string>>(LAST_SEEN_KEY) || {};
     lastSeenData[userId] = timestamp.toISOString();
     this.saveItem(LAST_SEEN_KEY, lastSeenData);
   }
 
   // Retrieve last seen timestamp for a user
   getLastSeen(userId: string): Date | null {
-    const lastSeenData = this.getItem<{ [key: string]: string }>(LAST_SEEN_KEY);
+    const lastSeenData = this.getItem<Record<string, string>>(LAST_SEEN_KEY);
     return lastSeenData?.[userId] ? new Date(lastSeenData[userId]) : null;
   }
 
@@ -138,7 +138,7 @@ export class LocalStorageService {
   getParallelMode(): ParallelMode {
     const storedMode = this.getItem<string>(PARALLEL_MODE_KEY);
     if (storedMode === 'side' || storedMode === 'overlay' || storedMode === 'inline') {
-      return storedMode as ParallelMode;
+      return storedMode;
     }
     return DEFAULT_PARALLEL_MODE;
   }

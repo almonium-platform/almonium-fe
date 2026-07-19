@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
@@ -68,6 +68,21 @@ import {LucideAngularModule} from "lucide-angular";
   styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit, OnDestroy {
+  private languageService = inject(LanguageApiService);
+  protected languageNameService = inject(LanguageNameService);
+  private userInfoService = inject(UserInfoService);
+  private alertService = inject(TuiNotificationService);
+  private cdr = inject(ChangeDetectorRef);
+  private localStorageService = inject(LocalStorageService);
+  private languageApiService = inject(LanguageApiService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private route = inject(ActivatedRoute);
+  private urlService = inject(UrlService);
+  private recentAuthGuardService = inject(RecentAuthGuardService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private utilsService = inject(UtilsService);
+
   private readonly destroy$ = new Subject<void>();
   @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
 
@@ -77,7 +92,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   // fluent languages
   protected selectedFluentLanguages: string[] = [];
   protected currentFluentLanguages: string[] = [];
-  protected fluentEditable: boolean = false;
+  protected fluentEditable = false;
   protected fluentEnabled$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -92,29 +107,11 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected showTargetLangDropdown = false;
 
   // TL deletion modal
-  protected isConfirmTargetLangDeletionModalVisible: boolean = false;
+  protected isConfirmTargetLangDeletionModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
-
-  constructor(
-    private languageService: LanguageApiService,
-    protected languageNameService: LanguageNameService,
-    private userInfoService: UserInfoService,
-    private alertService: TuiNotificationService,
-    private cdr: ChangeDetectorRef,
-    private localStorageService: LocalStorageService,
-    private languageApiService: LanguageApiService,
-    private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private route: ActivatedRoute,
-    private urlService: UrlService,
-    private recentAuthGuardService: RecentAuthGuardService,
-    private supportedLanguagesService: SupportedLanguagesService,
-    private utilsService: UtilsService,
-  ) {
-  }
 
   ngOnInit(): void {
     this.popupTemplateStateService.drawerState$
@@ -185,7 +182,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       return;
     }
     this.cefrFormControl.patchValue(
-      learner.selfReportedLevel as CEFRLevel,
+      learner.selfReportedLevel,
       {emitEvent: false} // so we don’t fire the .valueChanges subscription immediately
     );
   }

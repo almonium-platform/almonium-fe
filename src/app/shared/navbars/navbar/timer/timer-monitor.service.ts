@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {interval, Subscription} from 'rxjs';
 import {LocalStorageService} from "../../../../services/local-storage.service";
 
@@ -7,14 +7,11 @@ import {LocalStorageService} from "../../../../services/local-storage.service";
   providedIn: 'root'
 })
 export class TimerMonitorService {
+  private localStorageService = inject(LocalStorageService);
+  private alertService = inject(TuiNotificationService);
+
   private checkInterval = 1000;
   private subscription: Subscription | null = null;
-
-  constructor(
-    private localStorageService: LocalStorageService,
-    private alertService: TuiNotificationService
-  ) {
-  }
 
   /**
    * Starts the background timer monitoring process.

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
@@ -52,17 +52,26 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
   styleUrl: './profile-settings.component.less'
 })
 export class ProfileSettingsComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private profileSettingsService = inject(ProfileSettingsService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private planService = inject(PlanService);
+  private recentAuthGuardService = inject(RecentAuthGuardService);
+  private activatedRoute = inject(ActivatedRoute);
+  private urlService = inject(UrlService);
+  private alertService = inject(TuiNotificationService);
+
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
   @ViewChild(ShareLinkComponent, {static: false}) shareLinkComponent!: ShareLinkComponent;
 
   private readonly destroy$ = new Subject<void>();
 
   protected userInfo: UserInfo | null = null;
-  protected premium: boolean = true;
+  protected premium = true;
   protected readonly PlanType = PlanType;
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessageSubCancel =
     `This will immediately cancel your subscription \
@@ -75,8 +84,8 @@ auto-renewal in the customer portal.`;
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
-  protected useCountdown: boolean = false;
-  protected tooltipRenewal: string = '';
+  protected useCountdown = false;
+  protected tooltipRenewal = '';
 
   // features
   protected premiumFeatures: string[] = [
@@ -93,7 +102,7 @@ auto-renewal in the customer portal.`;
   private featureRotationInterval: any;
 
   // interests
-  protected interestsEdit: boolean = false;
+  protected interestsEdit = false;
   protected interests: Interest[] = [];
 
   private readonly loadingSubjectInterests$ = new BehaviorSubject<boolean>(false);
@@ -104,18 +113,6 @@ auto-renewal in the customer portal.`;
 
   private readonly loadingSubjectHideProfile$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingHideProfile$ = this.loadingSubjectHideProfile$.asObservable();
-
-  constructor(
-    private userInfoService: UserInfoService,
-    private profileSettingsService: ProfileSettingsService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private planService: PlanService,
-    private recentAuthGuardService: RecentAuthGuardService,
-    private activatedRoute: ActivatedRoute,
-    private urlService: UrlService,
-    private alertService: TuiNotificationService,
-  ) {
-  }
 
   ngOnInit() {
     this.dealWithQueryParams();
@@ -282,7 +279,7 @@ auto-renewal in the customer portal.`;
 
   protected toggleHidden(): void {
     const toggleValue = !this.userInfo?.hidden;
-    if (!this.userInfo || this.userInfo.hidden === undefined) {
+    if (this.userInfo?.hidden === undefined) {
       return; // Exit early if userInfo is not set
     }
 

@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
 import {NgTemplateOutlet} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
@@ -15,14 +15,11 @@ import {UrlService} from "../../services/url.service";
   styleUrl: './pricing.component.less'
 })
 export class PricingComponent implements OnInit {
-  @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
+  private activatedRoute = inject(ActivatedRoute);
+  private alertService = inject(TuiNotificationService);
+  private urlService = inject(UrlService);
 
-  constructor(
-    private activatedRoute: ActivatedRoute,
-    private alertService: TuiNotificationService,
-    private urlService: UrlService
-  ) {
-  }
+  @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
 
   ngOnInit(): void {
     this.activatedRoute.queryParams.subscribe(params => {

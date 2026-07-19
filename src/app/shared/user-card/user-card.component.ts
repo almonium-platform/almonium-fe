@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";
 import {ActivatedRoute} from "@angular/router";
@@ -23,15 +23,12 @@ import {UserProfileInfo} from "../user-preview-card/user-profile.model";
   ]
 })
 export class UserCardComponent implements OnInit {
+  private profileService = inject(ProfileService);
+  private route = inject(ActivatedRoute);
+  private alertService = inject(TuiNotificationService);
+
   username: string | null = null;  // Store the username
   publicProfile: UserProfileInfo | null = null;
-
-  constructor(
-    private profileService: ProfileService,
-    private route: ActivatedRoute,
-    private alertService: TuiNotificationService,
-  ) {
-  }
 
   ngOnInit(): void {
     this.username = this.route.snapshot.paramMap.get('username');

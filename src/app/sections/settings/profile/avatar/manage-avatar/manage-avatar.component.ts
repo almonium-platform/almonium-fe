@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {FileUploadComponent} from "../../../../../shared/file-upload/file-upload.component";
 import {FirebaseService} from "../firebase.service";
 import {ProfileSettingsService} from "../../profile-settings.service";
@@ -25,6 +25,11 @@ import {AvatarComponent} from "../../../../../shared/avatar/avatar.component";
   styleUrls: ['./manage-avatar.component.less']
 })
 export class ManageAvatarComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private fileUploadService = inject(FirebaseService);
+  private profileSettingsService = inject(ProfileSettingsService);
+  private alertService = inject(TuiNotificationService);
+
   @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<any>;
 
   private readonly FIREBASE_AVATAR_URL_PATH = 'avatars/users';
@@ -35,17 +40,9 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
 
   defaultAvatars: string[] = [];
   customAvatars: Avatar[] = [];
-  isUpdated: boolean = false;
-  isReset: boolean = false;
+  isUpdated = false;
+  isReset = false;
   deletedAvatarId: string | null = null;
-
-  constructor(
-    private userInfoService: UserInfoService,
-    private fileUploadService: FirebaseService,
-    private profileSettingsService: ProfileSettingsService,
-    private alertService: TuiNotificationService,
-  ) {
-  }
 
   ngOnInit() {
     this.loadDefaultAvatars().then();

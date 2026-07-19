@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import {LocalStorageService} from './local-storage.service';
@@ -10,14 +10,14 @@ import {StaticInfoService} from "./static-info.service"; // Assuming a Language 
   providedIn: 'root',
 })
 export class SupportedLanguagesService {
+  private staticInfoService = inject(StaticInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private languageNameService = inject(LanguageNameService);
+
   private supportedLanguagesSubject = new BehaviorSubject<Language[] | null>(null);
   supportedLanguages$ = this.supportedLanguagesSubject.asObservable();
 
-  constructor(
-    private staticInfoService: StaticInfoService,
-    private localStorageService: LocalStorageService,
-    private languageNameService: LanguageNameService
-  ) {
+  constructor() {
     this.loadSupportedLanguages();
   }
 

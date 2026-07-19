@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Interest} from './interest.model';
 
@@ -20,8 +20,11 @@ import {StaticInfoService} from '../../services/static-info.service';
   styleUrl: './interests.component.less',
 })
 export class InterestsComponent implements OnInit {
+  private staticInfoService = inject(StaticInfoService);
+  private alertService = inject(TuiNotificationService);
+
   protected interests: Interest[] = [];
-  protected loading: boolean = true;
+  protected loading = true;
   @Input() currentInterests: Interest[] = [];
   @Output() selectedInterestsChange = new EventEmitter<Interest[]>(); // Emit selected interests
 
@@ -57,12 +60,6 @@ export class InterestsComponent implements OnInit {
     {id: 0, name: 'Gaming'},
     {id: 0, name: 'Education'},
   ];
-
-  constructor(
-    private staticInfoService: StaticInfoService,
-    private alertService: TuiNotificationService,
-  ) {
-  }
 
   ngOnInit() {
     this.interests = this.predefinedInterests;

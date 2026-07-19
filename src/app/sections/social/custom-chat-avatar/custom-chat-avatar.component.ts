@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  NgZone,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {Channel, User} from 'stream-chat';
@@ -24,6 +14,10 @@ import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angula
 })
 export class CustomChatAvatarComponent
   implements OnChanges, OnInit, OnChanges, AfterViewInit, OnDestroy {
+  private chatClientService = inject(ChatClientService);
+  private ngZone = inject(NgZone);
+  private cdRef = inject(ChangeDetectorRef);
+
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
    */
@@ -61,18 +55,11 @@ export class CustomChatAvatarComponent
   isError = false;
   isOnline = false;
   private isOnlineSubscription?: Subscription;
-  initials: string = '';
+  initials = '';
   fallbackChannelImage: string | undefined;
   private userId?: string;
   private isViewInited = false;
   private subscriptions: Subscription[] = [];
-
-  constructor(
-    private chatClientService: ChatClientService,
-    private ngZone: NgZone,
-    private cdRef: ChangeDetectorRef
-  ) {
-  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -123,7 +110,7 @@ export class CustomChatAvatarComponent
   }
 
   private setInitials() {
-    let result: string = '';
+    let result = '';
     if (this.type === 'user') {
       result = this.name?.toString() || '';
     } else if (this.type === 'channel') {

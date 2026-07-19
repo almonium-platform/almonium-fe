@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  TemplateRef,
-  ViewChild
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -98,14 +87,25 @@ import {ButtonComponent} from "../../shared/button/button.component";
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private languageApiService = inject(LanguageApiService);
+  private onboardingService = inject(OnboardingService);
+  private languageNameService = inject(LanguageNameService);
+  private userInfoService = inject(UserInfoService);
+  private alertService = inject(TuiNotificationService);
+  private validationMessagesService = inject(ValidationMessagesService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private utilsService = inject(UtilsService);
+
   @ViewChild('langSetup', {static: true}) content!: TemplateRef<any>;
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.LANGUAGES;
 
   @Output() continue = new EventEmitter<SetupStep>();
-  @Input() embeddedMode: boolean = false;
+  @Input() embeddedMode = false;
 
-  protected onSecondForm: boolean = false;
+  protected onSecondForm = false;
 
   private userInfo: UserInfo | null = null;
   languageForm: FormGroup;
@@ -134,7 +134,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   basicFeatures: string[] = ['Translation', 'Flashcards', 'Statistics', 'Standard Games',];
 
   // Additional features for specific languages
-  languageFeatures: { [code: string]: string[] } = {
+  languageFeatures: Record<string, string[]> = {
     EN: ['Lexemes', 'Frequency', 'Prepared Decks', 'Parts of Speech'],
     DE: ['Lexemes', 'Frequency', 'Prepared Decks'],
     // Add more if needed
@@ -146,7 +146,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   // STEP 2. CEFR
   cefrForm!: FormGroup;
   cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
-  fluentFormValid: boolean = true;
+  fluentFormValid = true;
   private cachedCefrLevels = new Map<string, string>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
@@ -157,18 +157,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private allowedTarget = new Set<string>();
   protected targetMaxLanguages = 1;
 
-  constructor(
-    private fb: FormBuilder,
-    private languageApiService: LanguageApiService,
-    private onboardingService: OnboardingService,
-    private languageNameService: LanguageNameService,
-    private userInfoService: UserInfoService,
-    private alertService: TuiNotificationService,
-    private validationMessagesService: ValidationMessagesService,
-    private supportedLanguagesService: SupportedLanguagesService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private utilsService: UtilsService,
-  ) {
+  constructor() {
     this.languageForm = this.fb.group({
         targetLanguages: this.targetLanguagesControl,
       }, {validators: this.languageFormValidator()}
@@ -331,8 +320,8 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   private updateSelectedFeatures(): void {
     const selectedLangNames = this.targetLanguagesControl.value || [];
-    const specialFeaturesMap: { [feature: string]: Set<string> } = {};
-    const basicFeaturesMap: { [feature: string]: Set<string> } = {};
+    const specialFeaturesMap: Record<string, Set<string>> = {};
+    const basicFeaturesMap: Record<string, Set<string>> = {};
 
     selectedLangNames.forEach((langName) => {
       const lang = this.supportedLanguages.find((l) => l.name === langName);

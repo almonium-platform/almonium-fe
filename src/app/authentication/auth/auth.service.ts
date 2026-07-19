@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {catchError, from, Observable, of, switchMap, tap} from 'rxjs';
 import {AppConstants} from '../../app.constants';
@@ -33,15 +33,15 @@ import {
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
+  private http = inject(HttpClient);
+  private firebaseAuth = inject(Auth);
+  private userInfoService = inject(UserInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   private readonly ready: Promise<void>;
 
-  constructor(
-    private http: HttpClient,
-    private firebaseAuth: Auth,
-    private userInfoService: UserInfoService,
-    private localStorageService: LocalStorageService,
-    private popupTemplateStateService: PopupTemplateStateService,
-  ) {
+  constructor() {
     this.ready = setPersistence(this.firebaseAuth, inMemoryPersistence);
   }
 

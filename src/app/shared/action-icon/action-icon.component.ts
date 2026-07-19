@@ -38,15 +38,15 @@ export class ActionIconComponent implements OnInit {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  @Input() icon: string = ''; // Icon name
-  @Input() size: number = 24; // Icon size
-  @Input() loaderSize: number = 24; // Loader size for alignment
-  @Input() strokeWidth: number = 1; // Icon stroke width
-  @Input() disabled: boolean = false; // Whether the icon should be disabled
+  @Input() icon = ''; // Icon name
+  @Input() size = 24; // Icon size
+  @Input() loaderSize = 24; // Loader size for alignment
+  @Input() strokeWidth = 1; // Icon stroke width
+  @Input() disabled = false; // Whether the icon should be disabled
   @Input() action: () => Observable<any> = () => new Observable(); // Action to execute
   @Output() actionCompleted = new EventEmitter<void>(); // Emit when action finishes
 
-  protected loadingState: boolean = false;
+  protected loadingState = false;
 
   ngOnInit() {
     this.loading$.subscribe((loading) => {

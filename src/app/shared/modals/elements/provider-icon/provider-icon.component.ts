@@ -42,7 +42,7 @@ export class ProviderIconComponent {
   @Input() clickOnUnlinked?: Function;
   @Input() loginFlow?: boolean = false;
 
-  private providerConfig: { [key: string]: { sizeClass: string; clickHandler: () => void } } = {
+  private providerConfig: Record<string, { sizeClass: string; clickHandler: () => void }> = {
     google: {
       sizeClass: 'text-2xl',
       clickHandler: () => this.handleProviderAction('google')
@@ -88,9 +88,9 @@ export class ProviderIconComponent {
 
   private handleProviderAction(provider: string): void {
     if (this.isProviderConnected() || this.loginFlow) {
-      this.clickOnLinked && this.clickOnLinked(provider);
+      this.clickOnLinked?.(provider);
     } else {
-      this.clickOnUnlinked && this.clickOnUnlinked(provider);
+      this.clickOnUnlinked?.(provider);
     }
   }
 }

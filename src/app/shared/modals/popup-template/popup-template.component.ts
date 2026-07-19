@@ -1,4 +1,4 @@
-import {Component, HostListener, Input, OnDestroy, OnInit} from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
@@ -105,13 +105,12 @@ import {Subject, takeUntil} from "rxjs";
   ],
 })
 export class PopupTemplateComponent implements OnInit, OnDestroy {
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   private readonly destroy$ = new Subject<void>();
   @Input() fullscreen = false;
   drawerState!: DrawerState;
   private ignoreClicks = true;
-
-  constructor(private popupTemplateStateService: PopupTemplateStateService) {
-  }
 
   ngOnInit() {
     this.popupTemplateStateService.drawerState$

@@ -1,5 +1,5 @@
 import {ParticlesService} from "../../services/particles.service";
-import {Component} from "@angular/core";
+import { Component, inject } from "@angular/core";
 import {AsyncPipe} from "@angular/common";
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {IOptions, RecursivePartial} from "@tsparticles/engine";
@@ -22,11 +22,11 @@ import {Observable} from "rxjs";
   ]
 })
 export class ParticlesComponent {
+  protected particlesService = inject(ParticlesService);
+
   particlesOptions$: Observable<RecursivePartial<IOptions> | undefined>;
 
-  constructor(
-    protected particlesService: ParticlesService
-  ) {
+  constructor() {
     this.particlesOptions$ = this.particlesService.particlesOptions$;
     this.particlesService.initializeParticles();
   }

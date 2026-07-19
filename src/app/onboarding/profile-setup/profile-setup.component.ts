@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
@@ -22,6 +22,10 @@ import {ButtonComponent} from "../../shared/button/button.component";
   styleUrl: './profile-setup.component.less'
 })
 export class ProfileSetupComponent implements OnInit, OnDestroy {
+  private onboardingService = inject(OnboardingService);
+  private alertService = inject(TuiNotificationService);
+  private userInfoService = inject(UserInfoService);
+
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.PROFILE;
   @Output() continue = new EventEmitter<SetupStep>();
@@ -29,13 +33,6 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private onboardingService: OnboardingService,
-    private alertService: TuiNotificationService,
-    private userInfoService: UserInfoService,
-  ) {
-  }
 
   ngOnInit() {
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe({

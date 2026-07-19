@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {TuiSegmented} from "@taiga-ui/kit/components";
 import {ParallelMode} from '../sections/read/parallel-mode.type';
 import {Subject, takeUntil} from "rxjs";
@@ -19,9 +19,12 @@ interface ModeConfig {
   styleUrl: './parallel-settings.component.less'
 })
 export class ParallelSettingsComponent implements OnInit, OnDestroy {
+  private parallelModeService = inject(ParallelModeService);
+  private cdRef = inject(ChangeDetectorRef);
+
   @ViewChild('parallelSettings', {static: true}) content!: TemplateRef<any>;
 
-  modeSelectedIndex: number = 0;
+  modeSelectedIndex = 0;
 
   // --- Define the configuration for each mode ---
   readonly modeConfigs: ModeConfig[] = [
@@ -55,12 +58,6 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
   };
 
   private destroy$ = new Subject<void>();
-
-  constructor(
-    private parallelModeService: ParallelModeService,
-    private cdRef: ChangeDetectorRef
-  ) {
-  }
 
   ngOnInit(): void {
     // Subscribe to mode changes from the service to update the segmented control

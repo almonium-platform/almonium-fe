@@ -31,8 +31,8 @@ import {TuiHeader} from "@taiga-ui/layout/components";
   `]
 })
 export class StepHeaderComponent {
-  @Input() number: number = 0; // Accepts numbers 0-9
-  @Input() text: string = 'Default';
+  @Input() number = 0; // Accepts numbers 0-9
+  @Input() text = 'Default';
 
   // Generate avatar class dynamically based on number
   getAvatarClass(): string {

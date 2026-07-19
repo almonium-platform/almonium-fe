@@ -1,5 +1,5 @@
 import {HttpClient} from '@angular/common/http';
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiPassword} from '@taiga-ui/kit/directives';
 import {TuiError, TuiIcon, TuiInput, TuiLink, TuiNotificationService, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from '@taiga-ui/core/components';
@@ -55,6 +55,17 @@ import {UserInfo} from "../../models/userinfo.model";
   ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private authSettingsService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private userInfoService = inject(UserInfoService);
+  private http = inject(HttpClient);
+  private urlService = inject(UrlService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   private readonly destroy$ = new Subject<void>();
   @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
 
@@ -62,50 +73,36 @@ export class AuthComponent implements OnInit, OnDestroy {
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
   protected providers: string[] = ['google', 'apple', 'local'];
 
-  protected embeddedMode: boolean = false;
-  private intent: string = '';
-  protected showSeparatorAndForm: boolean = true;
+  protected embeddedMode = false;
+  private intent = '';
+  protected showSeparatorAndForm = true;
   protected connectedProviders: string[] = [];
 
   // MAIN COMPONENT
   // legal links
   private readonly TERMS_OF_USE_PATH = '/terms-of-use';
   private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
-  protected termsOfUseUrl: string = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
-  protected privacyPolicyUrl: string = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
+  protected termsOfUseUrl = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
+  protected privacyPolicyUrl = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
 
   // greetings
-  greetings: { [key: string]: string } = {};
+  greetings: Record<string, string> = {};
   currentGreeting: string = Object.keys(this.greetings)[0];
   currentLanguage: string = this.greetings[this.currentGreeting];
-  isHovering: boolean = false;
+  isHovering = false;
 
   // form
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
   });
-  isSignUp: boolean = false;
+  isSignUp = false;
 
   // logo
   protected replayGifTrigger = new Subject<void>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private authService: AuthService,
-    private authSettingsService: AuthSettingsService,
-    private alertService: TuiNotificationService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private userInfoService: UserInfoService,
-    private http: HttpClient,
-    private urlService: UrlService,
-    private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
 
   ngOnInit(): void {
     this.userInfoService.userInfo$
@@ -198,7 +195,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   private loadGreetings(): void {
-    this.http.get<{ [key: string]: string }>('/assets/greetings.json').subscribe({
+    this.http.get<Record<string, string>>('/assets/greetings.json').subscribe({
       next: (data) => {
         this.greetings = data;
 

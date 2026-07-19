@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
@@ -26,12 +26,14 @@ interface Ngram {
   providedIn: 'root',
 })
 export class FrequencyService {
+  private http = inject(HttpClient);
+
   private readonly LOWEST_SCORE = 1;
   private readonly EXPONENT = 9;
   private readonly FREQUENCY_THRESHOLD = Math.pow(10, -this.EXPONENT);
 
   // Map language to its specific scale as defined in the backend
-  private readonly languageScale: Map<LanguageCode, number> = new Map([
+  private readonly languageScale = new Map<LanguageCode, number>([
     [LanguageCode.EN, 12.78990589161462],
     [LanguageCode.RU, 10.5], // Replace with actual RU scale
     [LanguageCode.DE, 11.3], // Replace with actual DE scale
@@ -39,15 +41,12 @@ export class FrequencyService {
   ]);
 
   // Map language to corpus name as per ngrams.dev API
-  private readonly corpusName: Map<LanguageCode, string> = new Map([
+  private readonly corpusName = new Map<LanguageCode, string>([
     [LanguageCode.EN, 'eng'],
     [LanguageCode.RU, 'rus'],
     [LanguageCode.DE, 'ger'],
     // Add other languages and their corpus names as needed
   ]);
-
-  constructor(private http: HttpClient) {
-  }
 
   /**
    * Fetches frequency data for a given word using the ngrams.dev API.

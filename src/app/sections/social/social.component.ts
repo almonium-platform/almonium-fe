@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  OnDestroy,
-  OnInit,
-  signal,
-  TemplateRef,
-  ViewChild
-} from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
 import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
@@ -101,6 +90,19 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
   ]
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
+  private socialService = inject(SocialService);
+  private alertService = inject(TuiNotificationService);
+  private urlService = inject(UrlService);
+  private activatedRoute = inject(ActivatedRoute);
+  private chatService = inject(ChatClientService);
+  private channelService = inject(ChannelService);
+  private streamI18nService = inject(StreamI18nService);
+  private userInfoService = inject(UserInfoService);
+  private customTemplatesService = inject(CustomTemplatesService);
+  private messageService = inject(MessageService);
+  private chatUnreadService = inject(ChatUnreadService);
+  private cdr = inject(ChangeDetectorRef);
+
   @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
@@ -123,36 +125,36 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected drawerUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
-  protected requestsIndex: number = 0;
+  protected requestsIndex = 0;
   protected incomingRequestsCount = 0;
   // drawer
   protected readonly isDrawerOpened = signal(false);
   protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' | 'menu' = 'menu';
-  protected drawerHeader: string = 'Menu';
-  protected loadingFriends: boolean = false;
-  protected loadingBlocked: boolean = false;
-  protected loadingIncomingRequests: boolean = false;
-  protected loadingOutgoingRequests: boolean = false;
-  protected noResultMessage: string = 'No results found';
-  protected drawerIcon: string = 'menu';
+  protected drawerHeader = 'Menu';
+  protected loadingFriends = false;
+  protected loadingBlocked = false;
+  protected loadingIncomingRequests = false;
+  protected loadingOutgoingRequests = false;
+  protected noResultMessage = 'No results found';
+  protected drawerIcon = 'menu';
 
   protected readonly FriendshipStatus = RelationshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
-  protected useCountdown: boolean = false;
+  protected useCountdown = false;
 
   // CHATS
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
   protected hoveredChannel: Channel | null = null;
-  protected currentLocation: string = '';
-  protected isChatOpen: boolean = false;
+  protected currentLocation = '';
+  protected isChatOpen = false;
   protected redirectId: string | undefined = undefined;
 
   protected filteredActions: string[] = [
@@ -181,20 +183,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     "upload-file"
   ];
 
-  constructor(
-    private socialService: SocialService,
-    private alertService: TuiNotificationService,
-    private urlService: UrlService,
-    private activatedRoute: ActivatedRoute,
-    private chatService: ChatClientService,
-    private channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
-    private userInfoService: UserInfoService,
-    private customTemplatesService: CustomTemplatesService,
-    private messageService: MessageService,
-    private chatUnreadService: ChatUnreadService,
-    private cdr: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
     this.displayAs = this.messageService.displayAs;
   }
@@ -231,7 +220,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         }, 300);
       } else {
-        this.channelService.init({members: {$in: [this.userInfo!.id]}}, undefined, undefined, false);
+        this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false);
       }
     });
 
@@ -310,7 +299,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.requestsIndex = 1;
       this.openDrawerAndSetupData();
     }
-    if (!!params['chat']) {
+    if (params['chat']) {
       this.redirectId = params['chat'];
       console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId!));
     }
@@ -473,7 +462,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             orConditions = [filterForPublicChannels];
           }
 
-          let finalFilters: Record<string, any> = {$or: orConditions};
+          const finalFilters: Record<string, any> = {$or: orConditions};
 
           try {
             this.channelService.reset();
@@ -1034,7 +1023,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   resizeSidebar = (event: MouseEvent) => {
     if (!this.isResizing) return;
 
-    let newWidth = event.clientX;
+    const newWidth = event.clientX;
 
     // Collapse to avatar mode if width is too small
     if (newWidth < 68) {

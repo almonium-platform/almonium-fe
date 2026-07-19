@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {AppConstants} from '../app.constants';
@@ -10,8 +10,8 @@ import {Learner} from "../models/userinfo.model";
   providedIn: 'root',
 })
 export class LanguageApiService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   saveFluentLanguages(payload: { langCodes: string[] }): Observable<any> {
     const url = `${AppConstants.MY_LANGUAGES_URL}/fluent`;

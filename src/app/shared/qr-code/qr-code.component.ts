@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, Input, OnInit} from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {NgStyle} from "@angular/common";
@@ -16,16 +16,14 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
   ]
 })
 export class QRCodeComponent implements OnInit {
-  @Input() linkToEncode: string = 'https://almonium.com';
-  qrCodeUrl: string | undefined;
-  skeletonImgUrl: string = 'assets/img/other/qr-skeleton.png';
+  private utilsService = inject(UtilsService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
 
-  constructor(private utilsService: UtilsService,
-              private alertService: TuiNotificationService,
-              private router: Router,
-              private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
+  @Input() linkToEncode = 'https://almonium.com';
+  qrCodeUrl: string | undefined;
+  skeletonImgUrl = 'assets/img/other/qr-skeleton.png';
 
   ngOnInit(): void {
     if (this.linkToEncode) {

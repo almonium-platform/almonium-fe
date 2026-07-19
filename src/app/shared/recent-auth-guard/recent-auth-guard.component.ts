@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
 import {AuthComponent} from "../../authentication/auth/auth.component";
 import {filter, Subject, takeUntil} from "rxjs";
@@ -18,17 +18,14 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
   ],
 })
 export class RecentAuthGuardComponent implements OnInit, OnDestroy {
+  private recentGuardService = inject(RecentAuthGuardStateService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private cdr = inject(ChangeDetectorRef);
+
   private readonly destroy$ = new Subject<void>();
   @ViewChild(AuthComponent, {static: false}) authComponent!: AuthComponent;
 
   protected isAuthModalVisible = false;
-
-  constructor(
-    private recentGuardService: RecentAuthGuardStateService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private cdr: ChangeDetectorRef,
-  ) {
-  }
 
   ngOnInit() {
     this.recentGuardService.recentAuthState$

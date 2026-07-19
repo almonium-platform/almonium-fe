@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, inject } from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
@@ -59,13 +59,15 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
   ],
 })
 export class ButtonComponent implements OnInit {
+  private router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
   @Input() loading$?: Observable<boolean>;
   @Input() label!: string;
   @Input() hoverLabel?: string;
-  @Input() disabled: boolean = false;
+  @Input() disabled = false;
   @Input() appearance: 'bw' | 'gradient' | 'underline' | 'text' = 'gradient';
-  @Input() customClass: string = '';
+  @Input() customClass = '';
   @Input() fontSize?: number;
   @Input() fontWeight?: number;
   @Input() color?: string;
@@ -83,12 +85,9 @@ export class ButtonComponent implements OnInit {
   @Input() hintAppearance = 'onDark';
   @Input() hintDirection: TuiHintDirection = 'top';
 
-  private loadingState: boolean = false;
+  private loadingState = false;
   protected isHovered = false;
   @Input() skeleton?: boolean;
-
-  constructor(private router: Router) {
-  }
 
   ngOnInit() {
     if (this.loading$) {

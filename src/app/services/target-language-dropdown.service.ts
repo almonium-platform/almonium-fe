@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {LocalStorageService} from './local-storage.service';
@@ -11,6 +11,10 @@ import {UserInfoService} from "./user-info.service";
   providedIn: 'root'
 })
 export class TargetLanguageDropdownService {
+  private localStorageService = inject(LocalStorageService);
+  private http = inject(HttpClient);
+  private userInfoService = inject(UserInfoService);
+
   private currentLanguageSubject = new BehaviorSubject<LanguageCode>(
     this.localStorageService.getCurrentLanguage()
   );
@@ -28,16 +32,12 @@ export class TargetLanguageDropdownService {
     )
   );
 
-  private langColorsSubject = new BehaviorSubject<{ [key: string]: string }>(
+  private langColorsSubject = new BehaviorSubject<Record<string, string>>(
     this.getCachedLangColors() || {}
   );
   langColors$ = this.langColorsSubject.asObservable();
 
-  constructor(
-    private localStorageService: LocalStorageService,
-    private http: HttpClient,
-    private userInfoService: UserInfoService
-  ) {
+  constructor() {
     this.loadLangColors(); // Load colors on app start
   }
 
@@ -90,7 +90,7 @@ export class TargetLanguageDropdownService {
     if (cachedColors) {
       this.langColorsSubject.next(cachedColors);
     } else {
-      this.http.get<{ [key: string]: string }>('assets/lang-color.json').subscribe((colors) => {
+      this.http.get<Record<string, string>>('assets/lang-color.json').subscribe((colors) => {
         this.langColorsSubject.next(colors);
         this.localStorageService.saveLangColors(colors); // Cache in local storage
       });
@@ -98,7 +98,7 @@ export class TargetLanguageDropdownService {
   }
 
   // Get cached language colors from localStorage
-  private getCachedLangColors(): { [key: string]: string } | null {
+  private getCachedLangColors(): Record<string, string> | null {
     return this.localStorageService.getLangColors();
   }
 }

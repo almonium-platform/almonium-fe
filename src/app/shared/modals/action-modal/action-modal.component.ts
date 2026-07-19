@@ -44,9 +44,9 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   `
 })
 export class ActionModalComponent {
-  @Input() isVisible: boolean = false;
-  @Input() title: string = '';
-  @Input() message: string = '';
+  @Input() isVisible = false;
+  @Input() title = '';
+  @Input() message = '';
   @Input() primaryActionText?: string;
   @Input() secondaryActionText?: string;
   @Input() titleIcon?: string;

@@ -12,7 +12,7 @@ import {RouterLink} from "@angular/router";
   styleUrls: ['./play.component.less']
 })
 export class PlayComponent implements OnInit {
-  filter: string = 'all';
+  filter = 'all';
 
   constructor() {
   }

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -40,18 +40,18 @@ import {BehaviorSubject, finalize} from "rxjs";
   ]
 })
 export class ResetPasswordComponent implements OnInit {
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private alertService = inject(TuiNotificationService);
+
   protected resetForm: FormGroup;
-  private token: string = '';
+  private token = '';
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  constructor(
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private alertService: TuiNotificationService,
-  ) {
+  constructor() {
     this.resetForm = new FormGroup({
       newPassword: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
     });

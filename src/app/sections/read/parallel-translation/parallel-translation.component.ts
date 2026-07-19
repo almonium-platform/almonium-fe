@@ -12,7 +12,7 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
   styleUrls: ['./parallel-translation.component.less']
 })
 export class ParallelTranslationComponent {
-  @Input() inactive: boolean = false;
-  @Input() showHint: boolean = true;
-  @Input() loading: boolean = false;
+  @Input() inactive = false;
+  @Input() showHint = true;
+  @Input() loading = false;
 }

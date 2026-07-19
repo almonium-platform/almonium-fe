@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {PublicUserProfile, RelatedUserProfile} from "./social.model";
@@ -9,10 +9,8 @@ import {UserProfileInfo} from "../../shared/user-preview-card/user-profile.model
   providedIn: 'root',
 })
 export class SocialService {
-  constructor(
-    private http: HttpClient,
-  ) {
-  }
+  private http = inject(HttpClient);
+
 
   getFriends(): Observable<RelatedUserProfile[]> {
     return this.http.get<RelatedUserProfile[]>(`${AppConstants.RELATIONSHIPS_URL}`, {withCredentials: true});

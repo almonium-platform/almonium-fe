@@ -50,18 +50,18 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   `
 })
 export class ConfirmModalComponent implements OnChanges, OnDestroy {
-  @Input() isVisible: boolean = false;
-  @Input() title: string = '';
-  @Input() message: string = '';
-  @Input() confirmText: string = '';
-  @Input() useCountdown: boolean = false;
+  @Input() isVisible = false;
+  @Input() title = '';
+  @Input() message = '';
+  @Input() confirmText = '';
+  @Input() useCountdown = false;
 
   @Output() close = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();
 
-  fadeOutAnimating: boolean = false;
-  countdown: number = 5;
-  isButtonDisabled: boolean = true;
+  fadeOutAnimating = false;
+  countdown = 5;
+  isButtonDisabled = true;
   intervalId: any;
 
   ngOnChanges(changes: SimpleChanges) {

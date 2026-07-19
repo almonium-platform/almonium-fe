@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
@@ -21,23 +21,20 @@ import {ButtonComponent} from "../../shared/button/button.component";
   ]
 })
 export class EmailVerificationComponent implements OnInit {
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  router = inject(Router);
+  private alertService = inject(TuiNotificationService);
+
   private readonly REDIRECT_TIMEOUT = 3000;  // Time to wait before redirecting after verification completes
   private readonly MINIMUM_ROTATE_TIME = 2000;  // Minimum rotate time for animation
 
-  message: string = 'Verifying...';
-  pendingMessage: string = '';  // Use this to store the final message until both processes complete
-  verificationCompleted: boolean = false;
-  verificationSuccess: boolean = false;
-  isRotating: boolean = true;
-  isChangeEmailRoute: boolean = false;
-
-  constructor(
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    public router: Router,
-    private alertService: TuiNotificationService,
-  ) {
-  }
+  message = 'Verifying...';
+  pendingMessage = '';  // Use this to store the final message until both processes complete
+  verificationCompleted = false;
+  verificationSuccess = false;
+  isRotating = true;
+  isChangeEmailRoute = false;
 
   ngOnInit(): void {
     // Minimum timer to keep rotating for at least 1 second

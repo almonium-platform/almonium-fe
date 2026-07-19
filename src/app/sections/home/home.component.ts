@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {UserInfoService} from '../../services/user-info.service';
 import {Subject, takeUntil} from 'rxjs';
 import {SetupStep, UserInfo} from "../../models/userinfo.model";
@@ -14,16 +14,13 @@ import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
   ]
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  private userService = inject(UserInfoService);
+  private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
 
   userInfo: UserInfo | null = null;
-
-  constructor(
-    private userService: UserInfoService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-  ) {
-  }
 
   ngOnInit(): void {
     // Subscribe to the shared user info observable

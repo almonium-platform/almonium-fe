@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
@@ -9,8 +9,8 @@ import {Learner, SetupStep} from "../models/userinfo.model";
   providedIn: 'root',
 })
 export class OnboardingService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   completeStep(step: SetupStep): Observable<any> {
     const url = `${AppConstants.ONBOARDING_STEP_URL}/${step}`;

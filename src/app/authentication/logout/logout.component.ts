@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {AuthService} from "../auth/auth.service";
 import {forkJoin, timer} from "rxjs";
 import {finalize} from "rxjs/operators";
@@ -13,9 +13,8 @@ import {LoadingIndicatorComponent} from "../../shared/loading-indicator/loading-
   styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {
+  private authService = inject(AuthService);
 
-  constructor(private authService: AuthService) {
-  }
 
   ngOnInit(): void {
     const minDisplayTime$ = timer(1000);

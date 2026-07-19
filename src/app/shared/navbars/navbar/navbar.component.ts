@@ -1,15 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
@@ -73,20 +62,32 @@ import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit/com
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private userInfoService = inject(UserInfoService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private viewportService = inject(ViewportService);
+  private chatUnreadService = inject(ChatUnreadService);
+  private notificationService = inject(NotificationService);
+  private firebaseNotificationService = inject(FirebaseNotificationService);
+  private alertService = inject(TuiNotificationService);
+  private localStorageService = inject(LocalStorageService);
+
   private readonly destroy$ = new Subject<void>();
 
-  @Input() currentRoute: string = '';
+  @Input() currentRoute = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
   @ViewChild(ManageAvatarComponent, {static: false}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
-  protected isProfilePopoverOpen: boolean = false;
-  protected isDiscoverMenuOpen: boolean = false;
-  protected isLanguageDropdownOpen: boolean = false;
-  protected isNotificationOpen: boolean = false;
-  protected isTimerOpen: boolean = false;
-  protected isMobile: boolean = false;
+  protected isProfilePopoverOpen = false;
+  protected isDiscoverMenuOpen = false;
+  protected isLanguageDropdownOpen = false;
+  protected isNotificationOpen = false;
+  protected isTimerOpen = false;
+  protected isMobile = false;
 
   // User info
   protected userInfo: UserInfo | null = null;
@@ -97,7 +98,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected filteredLanguages: LanguageCode[] = [];
   private targetLanguages: LanguageCode[] = [];
 
-  private langColors: { [key: string]: string } = {};
+  private langColors: Record<string, string> = {};
 
   protected replayGifSubject = new Subject<void>();
 
@@ -133,20 +134,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
         action: () => this.toggleNotificationPopover()
       }
     ];
-  }
-
-  constructor(private router: Router,
-              private cdr: ChangeDetectorRef,
-              private userInfoService: UserInfoService,
-              private targetLanguageDropdownService: TargetLanguageDropdownService,
-              private popupTemplateStateService: PopupTemplateStateService,
-              private viewportService: ViewportService,
-              private chatUnreadService: ChatUnreadService,
-              private notificationService: NotificationService,
-              private firebaseNotificationService: FirebaseNotificationService,
-              private alertService: TuiNotificationService,
-              private localStorageService: LocalStorageService,
-  ) {
   }
 
   ngOnInit(): void {
@@ -459,8 +446,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  protected notificationDropdownActive: boolean = false;
-  protected userPreviewDropdownActive: boolean = false;
+  protected notificationDropdownActive = false;
+  protected userPreviewDropdownActive = false;
 
   togglePreviewDropdownActive($event: boolean) {
     this.userPreviewDropdownActive = $event;
@@ -486,7 +473,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       });
   }
 
-  protected loadingNotificationAction: boolean = false;
+  protected loadingNotificationAction = false;
 
   toggleRead(notification: Notification, dropdown: TuiDropdownDirective) {
     if (!notification.readAt) {

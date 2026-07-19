@@ -1,4 +1,4 @@
-import {Component, Input, ViewChild} from '@angular/core';
+import { Component, Input, ViewChild, inject } from '@angular/core';
 import {NgOptimizedImage} from "@angular/common";
 import {PaywallComponent} from "../paywall/paywall.component";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
@@ -42,11 +42,13 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
   ]
 })
 export class PremiumBadgedContentComponent {
-  @Input() display: boolean = true; // Whether the badge is displayed
-  @Input() showIcon: boolean = true; // Whether the icon is displayed
-  @Input() badgeIconSrc: string = ''; // Badge icon source
-  @Input() badgeAltText: string = 'badge'; // Alt text for the badge
-  @Input() badgeSize: string = '20px'; // Size of the badge
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
+  @Input() display = true; // Whether the badge is displayed
+  @Input() showIcon = true; // Whether the icon is displayed
+  @Input() badgeIconSrc = ''; // Badge icon source
+  @Input() badgeAltText = 'badge'; // Alt text for the badge
+  @Input() badgeSize = '20px'; // Size of the badge
   @Input() badgeText: string | null = null; // Optional text for the badge
   @Input() iconPosition: { top?: string; right?: string; bottom?: string; left?: string } = {
     top: '-5px',
@@ -57,9 +59,6 @@ export class PremiumBadgedContentComponent {
   // paywall dialog
   @Input() originalClickHandler: (() => void) | null = null; // Original logic when not paywalled
   @ViewChild(PaywallComponent, {static: true}) paywallComponent!: PaywallComponent;
-
-  constructor(private popupTemplateStateService: PopupTemplateStateService) {
-  }
 
   get badgeNumericSize(): number {
     return parseInt(this.badgeSize.replace('px', ''), 10) || 20; // Fallback to 20 if invalid

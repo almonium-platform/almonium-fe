@@ -27,9 +27,9 @@ import {ButtonComponent} from "../button/button.component";
   ],
 })
 export class EditButtonComponent {
-  @Input() label: string = '';
-  @Input() editable: boolean = false;
-  @Input() disabled: boolean = false;
+  @Input() label = '';
+  @Input() editable = false;
+  @Input() disabled = false;
   @Input() loading$!: Observable<boolean>;
   @Output() clickFunction = new EventEmitter<void>();
 }

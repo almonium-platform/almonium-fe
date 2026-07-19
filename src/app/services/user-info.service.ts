@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
@@ -10,13 +10,13 @@ import {AppConstants} from "../app.constants";
   providedIn: 'root',
 })
 export class UserInfoService {
+  private http = inject(HttpClient);
+  private localStorageService = inject(LocalStorageService);
+
   private userInfoSubject = new BehaviorSubject<UserInfo | null>(null);
   userInfo$ = this.userInfoSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private localStorageService: LocalStorageService
-  ) {
+  constructor() {
     this.loadUserInfoFromLocalStorage();
   }
 

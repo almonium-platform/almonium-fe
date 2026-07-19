@@ -1,4 +1,4 @@
-import {Injectable, Injector} from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import {Messaging, getToken, onMessage} from '@angular/fire/messaging';
 import {BehaviorSubject} from 'rxjs';
 import {environment} from "../../environments/environment";
@@ -9,11 +9,11 @@ import {AppConstants} from "../app.constants";
   providedIn: 'root',
 })
 export class FirebaseNotificationService {
+  private http = inject(HttpClient);
+  private injector = inject(Injector);
+
   private messaging: Messaging | null = null;
   private currentMessage = new BehaviorSubject<any | null>(null);
-
-  constructor(private http: HttpClient, private injector: Injector) {
-  }
 
   public async initFCM() {
     try {
@@ -84,8 +84,8 @@ export class FirebaseNotificationService {
   }
 
   private isSupportedBrowser(): boolean {
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const isChrome = navigator.userAgent.includes('Chrome') && navigator.vendor.includes('Google Inc');
+    const isFirefox = navigator.userAgent.includes('Firefox');
     const isSecureContext = window.isSecureContext; // Ensures HTTPS or `localhost` in Chrome
 
     if (!isSecureContext) {

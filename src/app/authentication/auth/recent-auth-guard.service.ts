@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {RecentAuthGuardStateService} from "../../shared/recent-auth-guard/recent-auth-guard-state.service";
@@ -8,15 +8,12 @@ import {RecentAuthGuardStateService} from "../../shared/recent-auth-guard/recent
   providedIn: 'root'
 })
 export class RecentAuthGuardService {
-  private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
+  private settingService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private localStorageService = inject(LocalStorageService);
+  private recentAuthGuardStateService = inject(RecentAuthGuardStateService);
 
-  constructor(
-    private settingService: AuthSettingsService,
-    private alertService: TuiNotificationService,
-    private localStorageService: LocalStorageService,
-    private recentAuthGuardStateService: RecentAuthGuardStateService,
-  ) {
-  }
+  private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   // universal live token auth guard
   public guardAction(onValidToken: () => void) {

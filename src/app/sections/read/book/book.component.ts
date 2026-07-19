@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, signal} from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
 import {TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
@@ -44,26 +44,24 @@ import {ParallelTranslationComponent} from "../parallel-translation/parallel-tra
   styleUrl: './book.component.less'
 })
 export class BookComponent implements OnInit, OnDestroy {
+  private activatedRoute = inject(ActivatedRoute);
+  private alertService = inject(TuiNotificationService);
+  private languageNameService = inject(LanguageNameService);
+  private readService = inject(ReadService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
   private readonly destroy$ = new Subject<void>();
   protected bookId: number | null = null;
   protected book: Book | null = null;
   protected availableTranslations: string[] = [];
-  protected bookLanguage: string = "";
+  protected bookLanguage = "";
   protected originalLanguage: string | undefined = undefined;
   private supportedLanguages: Language[] = [];
-  protected showLangDropdown: boolean = false;
+  protected showLangDropdown = false;
   protected languageSelectControl = new FormControl("Language");
   protected bookLoading = true;
-
-  constructor(private activatedRoute: ActivatedRoute,
-              private alertService: TuiNotificationService,
-              private languageNameService: LanguageNameService,
-              private readService: ReadService,
-              private supportedLanguagesService: SupportedLanguagesService,
-              private router: Router,
-              private cdr: ChangeDetectorRef,
-  ) {
-  }
 
   ngOnInit() {
     this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
@@ -128,7 +126,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   get orderLanguage() {
-    if (!this.book || !this.book.orderLanguage) {
+    if (!this.book?.orderLanguage) {
       return '';
     }
     return this.languageNameService.getLanguageName(this.book?.orderLanguage);
@@ -173,7 +171,7 @@ export class BookComponent implements OnInit, OnDestroy {
     this.showLangDropdown = true;
   }
 
-  protected orderLoading: boolean = false;
+  protected orderLoading = false;
 
   orderTranslation() {
     const language = this.languageNameService.getLanguageCode(this.languageSelectControl.value!);
@@ -274,7 +272,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   onOriginalLanguageClick() {
-    if (!this.book || !this.book.originalId) {
+    if (!this.book?.originalId) {
       console.warn("Original book ID is missing, cannot navigate.");
       return;
     }
@@ -302,7 +300,7 @@ export class BookComponent implements OnInit, OnDestroy {
 
   get orderLanguageName(): string | undefined {
     // Don't try to calculate if loading, book is null, or no order language code exists
-    if (this.bookLoading || !this.book || !this.book.orderLanguage) {
+    if (this.bookLoading || !this.book?.orderLanguage) {
       return undefined; // Return undefined (or null) so the @if correctly evaluates to false
     }
     // We have a book and an orderLanguage code, get the display name

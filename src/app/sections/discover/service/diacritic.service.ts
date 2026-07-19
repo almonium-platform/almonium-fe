@@ -84,7 +84,7 @@ export class DiacriticService {
   /** Get diacritic options for a given character and language */
   getDiacriticOptions(lastLetter: string, language: string): string[] {
     const lowerLetter = lastLetter.toLowerCase();
-    const options = this.diacriticOptions[language as keyof DiacriticOptions]?.[lowerLetter] || [];
+    const options = this.diacriticOptions[language]?.[lowerLetter] || [];
 
     // If the last letter is uppercase, convert options to uppercase, except for 'ß'
     return lastLetter === lastLetter.toUpperCase()
