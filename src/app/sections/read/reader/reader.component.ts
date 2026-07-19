@@ -1,4 +1,4 @@
-import { AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, Pipe, PipeTransform, ViewChild, inject } from '@angular/core';
+import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
@@ -11,7 +11,6 @@ import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
 import {ActivatedRoute} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
-import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
@@ -33,18 +32,6 @@ interface ChapterNavInfo {
   offsetTop: number; // Initial offset from base content (might become slightly inaccurate after height sync)
   elementId: string; // Original anchor ID (chapX) - keep for reference if needed
   index: number;     // The 0-based index of this chapter in the list
-}
-
-@Pipe({name: 'safeHtml', standalone: true})
-export class SafeHtmlPipe implements PipeTransform {
-  private sanitizer = inject(DomSanitizer);
-
-
-  transform(value: string | null | undefined): SafeHtml | null {
-    if (value === null || value === undefined) return null;
-    // Trust the HTML source from Gutenberg (assuming it's safe)
-    return this.sanitizer.bypassSecurityTrustHtml(value);
-  }
 }
 
 @Component({
