@@ -133,7 +133,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.subscribe(params => {
       if (params['error']) {
-        this.alertService.open(params['error'], {appearance: 'error'}).subscribe();
+        this.alertService.open(params['error'], {appearance: 'negative'}).subscribe();
         this.urlService.clearUrl();
       }
     });
@@ -246,11 +246,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account linked', {appearance: 'success'}).subscribe();
+          this.alertService.open('Local account linked', {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -263,11 +263,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
+          this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -281,12 +281,12 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.alertService
-            .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
+            .open(response.message || 'Next step, verify your email!', {appearance: 'positive'})
             .subscribe();
           this.isSignUp = false;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Registration failed', {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -303,7 +303,7 @@ export class AuthComponent implements OnInit, OnDestroy {
             this.popupTemplateStateService.close();
           },
           error: (error) => {
-            this.alertService.open(error.error.message || 'Identity verification failed', {appearance: 'error'}).subscribe();
+            this.alertService.open(error.error.message || 'Identity verification failed', {appearance: 'negative'}).subscribe();
           },
         });
       return;
@@ -317,11 +317,11 @@ export class AuthComponent implements OnInit, OnDestroy {
             this.router.navigate(['/home']).then();
             this.popupTemplateStateService.close();
           } else {
-            this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'error'}).subscribe();
+            this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'negative'}).subscribe();
           }
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Login failed', {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -333,16 +333,16 @@ export class AuthComponent implements OnInit, OnDestroy {
   protected onForgotPassword() {
     const emailValue = this.authForm.get('emailValue')?.value!;
     if (!emailValue) {
-      this.alertService.open('Please enter your email address', {appearance: 'error'}).subscribe();
+      this.alertService.open('Please enter your email address', {appearance: 'negative'}).subscribe();
       return;
     }
     this.authService.forgotPassword(emailValue).subscribe({
       next: (response) => {
-        this.alertService.open(response.message || 'Password reset link sent!', {appearance: 'success'}).subscribe();
+        this.alertService.open(response.message || 'Password reset link sent!', {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to send password reset link', {appearance: 'error'})
+          .open(error.error.message || 'Failed to send password reset link', {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -376,7 +376,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           }
         },
         error: error => this.alertService
-          .open(error?.error?.message || error?.message || `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`, {appearance: 'error'})
+          .open(error?.error?.message || error?.message || `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`, {appearance: 'negative'})
           .subscribe(),
       });
   };

@@ -25,7 +25,7 @@ export class RecentAuthGuardService {
 
   public updateStatusAndShowAlert() {
     this.getRecentAuthStatus();
-    this.alertService.open('You successfully verified your identity!', {appearance: 'success'}).subscribe();
+    this.alertService.open('You successfully verified your identity!', {appearance: 'positive'}).subscribe();
   }
 
   public getRecentAuthStatus(onValidTokenAction?: () => void, identityVerification?: () => void): void {
@@ -45,7 +45,7 @@ export class RecentAuthGuardService {
         }
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to check access token', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to check access token', {appearance: 'negative'}).subscribe();
         console.error('Error checking access token:', error);
       }
     });

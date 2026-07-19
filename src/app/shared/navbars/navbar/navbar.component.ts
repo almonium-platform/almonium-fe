@@ -438,7 +438,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -479,7 +479,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.unreadNotificationsCount = 0;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark all as read', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to mark all as read', {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -506,7 +506,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -521,7 +521,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         dropdown.toggle(false);
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'negative'}).subscribe();
       }
     });
   }

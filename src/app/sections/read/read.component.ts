@@ -258,7 +258,7 @@ export class ReadComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             console.error('Error deleting progress:', error);
-            this.alertService.open('Failed to reset book progress', {appearance: 'error'}).subscribe();
+            this.alertService.open('Failed to reset book progress', {appearance: 'negative'}).subscribe();
           }
         });
     });

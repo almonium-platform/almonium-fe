@@ -488,7 +488,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   protected submitFirstStepForm(): void {
     if (this.languageForm.invalid || !this.fluentFormValid) {
-      this.alertService.open('Please fill in all required fields', {appearance: 'error'}).subscribe();
+      this.alertService.open('Please fill in all required fields', {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -507,11 +507,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           // if no delay, for a split second, until popup is truly closed, user sees too many entries on second step
           this.userInfoService.updateUserInfo({learners: learners});
         }, 200);
-        this.alertService.open('New target language added to your profile!', {appearance: 'success'}).subscribe();
+        this.alertService.open('New target language added to your profile!', {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
         console.error('Error saving languages:', error);
-        this.alertService.open(error.error.message || 'Failed to add new target languages', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to add new target languages', {appearance: 'negative'}).subscribe();
       },
     });
   }
@@ -566,7 +566,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'negative'}).subscribe();
           console.error('Error saving languages:', error);
         },
       });

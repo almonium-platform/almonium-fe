@@ -126,7 +126,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.subscribe((params) => {
       if (params['target_lang'] === 'success') {
-        this.alertService.open('Your target language has been successfully saved', {appearance: 'success'}).subscribe();
+        this.alertService.open('Your target language has been successfully saved', {appearance: 'positive'}).subscribe();
         this.urlService.clearUrl();
       }
 
@@ -198,7 +198,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to update CEFR:', err);
-        this.alertService.open('Failed to update CEFR level', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to update CEFR level', {appearance: 'negative'}).subscribe();
         this.currentLearner.selfReportedLevel = oldValue;
       },
     });
@@ -256,13 +256,13 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }).pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Fluent languages saved', {appearance: 'success'}).subscribe();
+          this.alertService.open('Fluent languages saved', {appearance: 'positive'}).subscribe();
           this.localStorageService.clearUserInfo();
           this.fluentEditable = false;
           this.currentFluentLanguages = this.selectedFluentLanguages;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'negative'}).subscribe();
           this.restoreFluent();
         },
       });
@@ -314,7 +314,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.languageApiService.deleteLearner(deletedLanguageCode).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${deletedLanguageName} profile has been deleted`, {appearance: 'success'})
+          .open(`Your ${deletedLanguageName} profile has been deleted`, {appearance: 'positive'})
           .subscribe();
 
         // Remove from UI list
@@ -331,7 +331,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to delete your target language', {appearance: 'error'})
+          .open(error.error.message || 'Failed to delete your target language', {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -354,7 +354,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected onToggleActiveStatus(active: boolean, languageCode: LanguageCode): void {
     if (!active && this.getActiveLearnersCount() === 1) {
-      this.alertService.open('You must have at least one active target language', {appearance: 'error'}).subscribe();
+      this.alertService.open('You must have at least one active target language', {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -370,7 +370,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.alertService.open(err.error.message || 'Failed to update active status', {appearance: 'error'}).subscribe();
+        this.alertService.open(err.error.message || 'Failed to update active status', {appearance: 'negative'}).subscribe();
         this.currentLearner.active = !active;
       },
     });

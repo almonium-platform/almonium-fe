@@ -44,7 +44,7 @@ export class InterestsSetupComponent {
         },
         error: (error) => {
           console.error('Failed to save interests', error);
-          this.alertService.open('Failed to save interests', {appearance: 'error'}).subscribe();
+          this.alertService.open('Failed to save interests', {appearance: 'negative'}).subscribe();
         }
       });
   }

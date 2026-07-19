@@ -60,7 +60,7 @@ export class ResetPasswordComponent implements OnInit {
     this.route.queryParams.subscribe((params) => {
       this.token = params['oobCode'] || params['token'];
       if (!this.token) {
-        this.alertService.open('No token provided', {appearance: 'error'}).subscribe();
+        this.alertService.open('No token provided', {appearance: 'negative'}).subscribe();
         this.router.navigate(['/auth']).then();
       }
 
@@ -85,7 +85,7 @@ export class ResetPasswordComponent implements OnInit {
         .pipe(finalize(() => this.loadingSubject$.next(false)))
         .subscribe({
           next: () => {
-            this.alertService.open('Password reset successfully!', {appearance: 'success'}).subscribe();
+            this.alertService.open('Password reset successfully!', {appearance: 'positive'}).subscribe();
             this.router.navigate(['/auth']).then();
           },
           error: (error) => {
@@ -97,7 +97,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   private showErrorAndRedirect(message: string) {
-    this.alertService.open(message, {appearance: 'error'}).subscribe();
+    this.alertService.open(message, {appearance: 'negative'}).subscribe();
     this.router.navigate(['/auth']).then();
   }
 }

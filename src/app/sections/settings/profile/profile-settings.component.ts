@@ -191,7 +191,7 @@ auto-renewal in the customer portal.`;
   // cancel subscription methods
   protected cancelSubscription() {
     this.planService.cancelSubscription().subscribe(() => {
-      this.alertService.open('You\'ve been downgraded to a free account, allow some time or re-login to see the changes.', {appearance: 'success'}).subscribe();
+      this.alertService.open('You\'ve been downgraded to a free account, allow some time or re-login to see the changes.', {appearance: 'positive'}).subscribe();
       setTimeout(() => {
         this.userInfoService.fetchUserInfoFromServer().subscribe();
       }, 4000);
@@ -239,11 +239,11 @@ auto-renewal in the customer portal.`;
       this.interestsEdit = false;
       this.userInfoService.updateUserInfo({interests: this.interests});
       this.alertService
-        .open('Interests updated', {appearance: 'success'})
+        .open('Interests updated', {appearance: 'positive'})
         .subscribe();
     } catch (error) {
       this.alertService
-        .open('Failed to update interests', {appearance: 'error'})
+        .open('Failed to update interests', {appearance: 'negative'})
         .subscribe();
     } finally {
       this.loadingSubjectInterests$.next(false);
@@ -296,7 +296,7 @@ auto-renewal in the customer portal.`;
           this.userInfo.hidden = oldValue;
         }
         console.error('Failed to save preferences:', error);
-        this.alertService.open('Failed to save preferences', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to save preferences', {appearance: 'negative'}).subscribe();
       },
     });
   }

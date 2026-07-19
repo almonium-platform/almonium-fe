@@ -88,7 +88,7 @@ export class BookComponent implements OnInit, OnDestroy {
           return this.readService.getBookById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
             catchError(error => {
               console.error(`Failed to fetch book data for ID ${id}:`, error);
-              this.alertService.open('Failed to load book details.', {appearance: 'error'}).subscribe();
+              this.alertService.open('Failed to load book details.', {appearance: 'negative'}).subscribe();
               this.book = null; // Clear book data on error
               this.cdr.detectChanges(); // Update view
               // Optional: Hide loading state indication here
@@ -188,11 +188,11 @@ export class BookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.book!.orderLanguage = language;
-          this.alertService.open('Translation ordered', {appearance: 'success'}).subscribe();
+          this.alertService.open('Translation ordered', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error('Failed to order translation:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t order translation', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Couldn\'t order translation', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -212,12 +212,12 @@ export class BookComponent implements OnInit, OnDestroy {
         .pipe(finalize(() => this.favoriteBlocked = false))
         .subscribe({
           next: () => {
-            this.alertService.open(message, {appearance: 'success'}).subscribe();
+            this.alertService.open(message, {appearance: 'positive'}).subscribe();
             this.book!.favorite = true;
             this.cdr.detectChanges();
           }, error: (error) => {
             console.error('Failed to add to favorites:', error);
-            this.alertService.open(error.error.message || 'Couldn\'t add to favorites', {appearance: 'error'}).subscribe();
+            this.alertService.open(error.error.message || 'Couldn\'t add to favorites', {appearance: 'negative'}).subscribe();
           }
         });
     } else {
@@ -226,12 +226,12 @@ export class BookComponent implements OnInit, OnDestroy {
         .pipe(finalize(() => this.favoriteBlocked = false))
         .subscribe({
           next: () => {
-            this.alertService.open(message, {appearance: 'success'}).subscribe();
+            this.alertService.open(message, {appearance: 'positive'}).subscribe();
             this.book!.favorite = false;
             this.cdr.detectChanges();
           }, error: (error) => {
             console.error('Failed to add to favorites:', error);
-            this.alertService.open(error.error.message || 'Couldn\'t remove favorites', {appearance: 'error'}).subscribe();
+            this.alertService.open(error.error.message || 'Couldn\'t remove favorites', {appearance: 'negative'}).subscribe();
           }
         });
     }
@@ -258,10 +258,10 @@ export class BookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.book!.orderLanguage = undefined;
-          this.alertService.open('Translation order cancelled', {appearance: 'success'}).subscribe();
+          this.alertService.open('Translation order cancelled', {appearance: 'positive'}).subscribe();
         }, error: (error) => {
           console.error('Failed to cancel translation order:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t cancel translation order', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Couldn\'t cancel translation order', {appearance: 'negative'}).subscribe();
         }
       });
   }

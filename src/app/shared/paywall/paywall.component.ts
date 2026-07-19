@@ -144,7 +144,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to choose free plan:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'negative'}).subscribe();
         }
       });
   }

@@ -580,11 +580,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         next: () => {
           this.outgoingRequests = this.outgoingRequests.filter(request => request.relationshipId !== friendshipId);
           this.drawerUserTiles = this.outgoingRequests;
-          this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
+          this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -607,11 +607,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
               .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
             this.acceptInProgressIds.delete(candidate.relationshipId);
           })
-          this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
+          this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'negative'}).subscribe();
           this.acceptInProgressIds.delete(candidate.relationshipId);
         }
       });
@@ -629,11 +629,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.incomingRequests = this.incomingRequests.filter(request => request.relationshipId !== id);
-          this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
+          this.alertService.open('Friend request rejected', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -653,11 +653,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         next: () => {
           this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
           this.drawerUserTiles = this.blockedUsers;
-          this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
+          this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -679,7 +679,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
         next: (friendship) => {
-          this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+          this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
 
           setTimeout(() => {
@@ -689,7 +689,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -699,12 +699,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;
-        this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
+        this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
         this.setDrawerMode('friends');
       },
       error: (error) => {
         console.error(error);
-        this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -716,12 +716,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.drawerUserTiles = this.friends;
-        this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
+        this.alertService.open('User blocked', {appearance: 'positive'}).subscribe();
         this.setDrawerMode('blocked');
       },
       error: (error) => {
         console.error(error);
-        this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
+        this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'negative'}).subscribe();
       }
     });
   }

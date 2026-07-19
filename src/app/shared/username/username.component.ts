@@ -169,7 +169,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
         next: () => {
           this.userInfoService.updateUserInfo({username});
           this.usernameForm.get('usernameValue')?.setValue(username, {emitEvent: false});
-          this.alertService.open('Username updated', {appearance: 'success'}).subscribe();
+          this.alertService.open('Username updated', {appearance: 'positive'}).subscribe();
           this.usernameEditable = false;
           this.usernameForm.updateValueAndValidity();
           // Recalculate label size
@@ -177,7 +177,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: () => {
-          this.alertService.open('Failed to update username', {appearance: 'error'}).subscribe();
+          this.alertService.open('Failed to update username', {appearance: 'negative'}).subscribe();
         },
       });
   }

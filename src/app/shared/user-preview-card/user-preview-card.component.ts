@@ -246,12 +246,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = profileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
+          this.alertService.open('User blocked', {appearance: 'positive'}).subscribe();
           this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -276,11 +276,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
+          this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -300,11 +300,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
+          this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -336,11 +336,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
+          this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -367,7 +367,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
               this.userProfileInfo = userProfileInfo;
               this.setButtonConfig();
 
-              this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
+              this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
             });
         },
         error: (error) => console.error(error),
@@ -409,11 +409,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+          this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'negative'}).subscribe();
         }
       });
   }

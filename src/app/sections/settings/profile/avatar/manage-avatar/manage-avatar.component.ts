@@ -68,14 +68,14 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({avatarUrl: filePath});
           this.playUpdatedAnimation();
           this.loadCustomAvatars();
-          this.alertService.open('Profile picture updated', {appearance: 'success'}).subscribe();
+          this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
         },
         error: () => {
-          this.alertService.open('Failed to set new avatar', {appearance: 'error'}).subscribe();
+          this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
         }
       });
     } catch (error) {
-      this.alertService.open('Failed to upload avatar', {appearance: 'error'}).subscribe();
+      this.alertService.open('Failed to upload avatar', {appearance: 'negative'}).subscribe();
     }
   }
 
@@ -91,9 +91,9 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({avatarUrl: ''});
         }
         this.loadCustomAvatars();
-        this.alertService.open('Avatar deleted', {appearance: 'success'}).subscribe();
+        this.alertService.open('Avatar deleted', {appearance: 'positive'}).subscribe();
       }, error: () => {
-        this.alertService.open('Failed to delete avatar', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to delete avatar', {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -103,9 +103,9 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
       next: () => {
         this.userInfoService.updateUserInfo({avatarUrl: url});
         this.playUpdatedAnimation();
-        this.alertService.open('Profile picture updated', {appearance: 'success'}).subscribe();
+        this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
       }, error: () => {
-        this.alertService.open('Failed to set new avatar', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
       }
     })
   }
@@ -115,9 +115,9 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
       next: () => {
         this.userInfoService.updateUserInfo({avatarUrl: this.customAvatars.find(avatar => avatar.id === id)?.url});
         this.playUpdatedAnimation();
-        this.alertService.open('Profile picture updated', {appearance: 'success'}).subscribe();
+        this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
       }, error: () => {
-        this.alertService.open('Failed to set new avatar', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -127,9 +127,9 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
       next: () => {
         this.userInfoService.updateUserInfo({avatarUrl: ''});
         this.playAvatarResetAnimation();
-        this.alertService.open('Profile picture deleted', {appearance: 'success'}).subscribe();
+        this.alertService.open('Profile picture deleted', {appearance: 'positive'}).subscribe();
       }, error: () => {
-        this.alertService.open('Failed to delete avatar', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to delete avatar', {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -139,7 +139,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
       next: (avatars) => {
         this.customAvatars = avatars;
       }, error: () => {
-        this.alertService.open('Failed to load custom avatars', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to load custom avatars', {appearance: 'negative'}).subscribe();
       }
     });
   }

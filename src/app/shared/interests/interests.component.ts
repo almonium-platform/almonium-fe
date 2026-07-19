@@ -80,7 +80,7 @@ export class InterestsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to get interests', error);
-        this.alertService.open('Failed to get interests', {appearance: 'error'}).subscribe();
+        this.alertService.open('Failed to get interests', {appearance: 'negative'}).subscribe();
       },
     });
   }

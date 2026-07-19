@@ -140,17 +140,17 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
             // Update local state if needed (e.g., this.uiPreferences)
             this.uiPreferences = {...userInfo.uiPreferences};
 
-            this.alertService.open('Data has been reloaded', {appearance: 'success'}).subscribe();
+            this.alertService.open('Data has been reloaded', {appearance: 'positive'}).subscribe();
           } else {
             // Handle cases where one or both fetches failed
-            this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'error'}).subscribe();
+            this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'negative'}).subscribe();
             console.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
           }
         },
         error: (error) => {
           // Handle errors from forkJoin itself (less likely with catchError on sources)
           console.error('Critical failure during data reload:', error);
-          this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'error'}).subscribe();
+          this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'negative'}).subscribe();
         },
       });
   }
