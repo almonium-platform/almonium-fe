@@ -8,7 +8,7 @@ import {NgStyle} from "@angular/common";
       <div class="diacritic-popup" [ngStyle]="position">
         @for (option of options; track option; let i = $index) {
           <span
-            (click)="selectOption(option)"
+            (keydown.enter)="selectOption(option)" tabindex="0" (click)="selectOption(option)"
             [class.focused]="i === focusedIndex"
             class="letter">
             {{ option }}

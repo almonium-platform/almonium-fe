@@ -12,7 +12,7 @@ export class OnboardingService {
   private http = inject(HttpClient);
 
 
-  completeStep(step: SetupStep): Observable<any> {
+  completeStep(step: SetupStep): Observable<unknown> {
     const url = `${AppConstants.ONBOARDING_STEP_URL}/${step}`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
@@ -22,7 +22,7 @@ export class OnboardingService {
     return this.http.put<Learner[]>(url, payload, {withCredentials: true});
   }
 
-  saveInterests(ids: number[]): Observable<any> {
+  saveInterests(ids: number[]): Observable<unknown> {
     const url = `${AppConstants.ONBOARDING_URL}/interests`;
     return this.http.post(url, {ids}, {withCredentials: true});
   }

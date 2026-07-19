@@ -44,7 +44,7 @@ export class ParticlesService {
     });
   }
 
-  particlesLoaded(container: any): void {
+  particlesLoaded(): void {
     console.info('Particles loaded');
   }
 

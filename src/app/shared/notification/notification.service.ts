@@ -16,22 +16,22 @@ export class NotificationService {
     return this.http.get<Notification[]>(url, {withCredentials: true});
   }
 
-  markAllAsRead(): Observable<any> {
+  markAllAsRead(): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/read`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  markAsRead(id: string): Observable<any> {
+  markAsRead(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/read`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  markAsUnread(id: string): Observable<any> {
+  markAsUnread(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/unread`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  delete(id: string): Observable<any> {
+  delete(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}`;
     return this.http.delete(url, {withCredentials: true});
   }

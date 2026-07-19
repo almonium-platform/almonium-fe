@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {DEFAULT_UI_PREFERENCES, UserInfo} from "../models/userinfo.model";
+import {DEFAULT_UI_PREFERENCES, UserInfo, UserInfoDto} from "../models/userinfo.model";
 import {LocalStorageService} from "./local-storage.service";
 import {AppConstants} from "../app.constants";
 
@@ -51,7 +51,7 @@ export class UserInfoService {
    * Fetch user info from the server.
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
-    return this.http.get<UserInfo>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
+    return this.http.get<UserInfoDto>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
       map((data) => {
         const userInfo = UserInfo.fromJSON(data);
         userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
@@ -81,7 +81,7 @@ export class UserInfoService {
     return this.userInfoSubject.getValue();
   }
 
-  setUserInfo(userInfoData: UserInfo): void {
+  setUserInfo(userInfoData: UserInfoDto): void {
     const userInfo = UserInfo.fromJSON(userInfoData);
     userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
     this.localStorageService.saveUserInfo(userInfo);

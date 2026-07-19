@@ -20,7 +20,7 @@ export class ParallelFormatPipe implements PipeTransform {
 
   transform(value: string | null, options: ParallelFormatOptions | null): SafeHtml | null {
     if (!value || !options?.mode || !options.targetLang || !options.fluentLang) {
-      return this.sanitizer.bypassSecurityTrustHtml(value || '');
+      return this.sanitizer.bypassSecurityTrustHtml(value ?? '');
     }
     const {mode, targetLang, fluentLang} = options;
 
@@ -82,7 +82,12 @@ export class ParallelFormatPipe implements PipeTransform {
     if (mode === 'inline' || mode === 'overlay') {
       const segPairs = doc.querySelectorAll('span.seg-pair');
       segPairs.forEach(pair => {
+        const targetSegment = pair.querySelector(`span.segment[lang="${targetLang}"]`);
         const fluentSegment = pair.querySelector(`span.segment[lang="${fluentLang}"]`);
+        if (mode === 'overlay' && targetSegment) {
+          targetSegment.setAttribute('role', 'button');
+          targetSegment.setAttribute('tabindex', '0');
+        }
         if (fluentSegment) {
           // Create a wrapper and move the fluent segment inside it
           const wrapper = doc.createElement('span');

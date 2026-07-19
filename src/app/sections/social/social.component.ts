@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../shared/http-error';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
 import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
@@ -26,6 +27,7 @@ import {
   AvatarLocation,
   ChannelActionsContext,
   ChannelHeaderInfoContext,
+  ChannelPreviewInfoContext,
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
@@ -35,7 +37,7 @@ import {
   StreamChatModule,
   StreamI18nService
 } from "stream-chat-angular";
-import {Channel, StreamChat, User} from "stream-chat";
+import {Channel, ChannelFilters, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
@@ -103,7 +105,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private chatUnreadService = inject(ChatUnreadService);
   private cdr = inject(ChangeDetectorRef);
 
-  @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
+  @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<ChannelPreviewInfoContext>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
@@ -194,7 +196,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.channelService.deselectActiveChannel();
   }
 
-  async ngOnInit() {
+  ngOnInit(): void {
     this.setupChatFormControl();
 
     combineLatest([
@@ -213,14 +215,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.redirectId) {
         const cid = this.getCidByFriendshipId(this.redirectId);
         setTimeout(() => {
-          this.openChatByCid(cid).then((found) => {
+          void this.openChatByCid(cid).then((found) => {
             if (!found) {
               console.error("Could not find chat with cid:", cid);
             }
           });
         }, 300);
       } else {
-        this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false);
+        void this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false);
       }
     });
 
@@ -267,7 +269,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe((channel) => {
         this.setChatTitle(channel);
         this.openChat();
-        this.chatUnreadService.fetchUnreadCount();
+        void this.chatUnreadService.fetchUnreadCount();
       });
   }
 
@@ -281,7 +283,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       image: userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
     };
 
-    this.chatService.init(environment.streamChatApiKey, user, userToken);
+    void this.chatService.init(environment.streamChatApiKey, user, userToken);
   }
 
   private handleQueryParams(params: Params) {
@@ -299,9 +301,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.requestsIndex = 1;
       this.openDrawerAndSetupData();
     }
-    if (params['chat']) {
-      this.redirectId = params['chat'];
-      console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId!));
+    const chat: unknown = params['chat'];
+    if (typeof chat === 'string') {
+      this.redirectId = chat;
+      console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId));
     }
     this.urlService.clearUrl();
   }
@@ -326,7 +329,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || AppConstants.PRIVATE_CHAT_NAME);
+      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name ?? AppConstants.PRIVATE_CHAT_NAME);
       this.cdr.detectChanges();
     }, 1);
   }
@@ -402,7 +405,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private listenToChannelSearch() {
     combineLatest([
       this.chatFormControl.valueChanges.pipe(
-        startWith(this.chatFormControl.value || ''),
+        startWith(this.chatFormControl.value ?? ''),
         debounceTime(300),
         distinctUntilChanged()
       ),
@@ -422,11 +425,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           // 🔹 Filters for user’s channels (membership required)
-          const filterWithMembership: Record<string, any> = {
+          const filterWithMembership: ChannelFilters = {
             members: {$in: [user.id]}, // Ensure the user is a member of the channels
           };
 
-          let orConditions: any[] = [];
+          let orConditions: ChannelFilters[] = [];
 
           if (trimmedQuery) {
             orConditions.push(
@@ -448,7 +451,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           }
 
           // 🔹 Filters for **public (broadcast) channels**, regardless of membership
-          const filterForPublicChannels: Record<string, any> = {
+          const filterForPublicChannels: ChannelFilters = {
             type: "broadcast",
             name: {$autocomplete: trimmedQuery},
             hidden: this.showHiddenChannels$.value,
@@ -462,7 +465,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             orConditions = [filterForPublicChannels];
           }
 
-          const finalFilters: Record<string, any> = {$or: orConditions};
+          const finalFilters: ChannelFilters = {
+            $or: orConditions as [ChannelFilters, ChannelFilters, ...ChannelFilters[]],
+          };
 
           try {
             this.channelService.reset();
@@ -522,9 +527,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.closeDrawer();
 
     const cid = this.getCidByFriendshipId(friend.relationshipId);
-    this.openChatByCid(cid).then((found) => {
+    void this.openChatByCid(cid).then((found) => {
       if (!found) {
-        this.createPrivateChat(this.userInfo!.id, friend.id, friend.relationshipId).then(channel => {
+        void this.createPrivateChat(this.userInfo!.id, friend.id, friend.relationshipId).then(channel => {
           this.channelService.setAsActiveChannel(channel);
         });
       }
@@ -573,7 +578,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -589,7 +594,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(candidate.relationshipId, RelationshipAction.ACCEPT)
       .subscribe({
         next: () => {
-          this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.relationshipId).then(_ => {
+          void this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.relationshipId).then(() => {
             this.incomingRequestsCount--;
             this.incomingRequests
               .filter(profile => profile === candidate)
@@ -600,7 +605,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to accept friendship request'), {appearance: 'negative'}).subscribe();
           this.acceptInProgressIds.delete(candidate.relationshipId);
         }
       });
@@ -622,7 +627,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to reject friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -634,8 +639,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.unblockInProgressIds.add(friendshipId);
 
-    this.chatClient.unBlockUser(friendId.toString()).then(() => {
-    });
+    void this.chatClient.unBlockUser(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.UNBLOCK)
       .pipe(finalize(() => this.unblockInProgressIds.delete(friendshipId)))
       .subscribe({
@@ -646,7 +650,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -667,7 +671,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.createFriendshipRequest(id)
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
-        next: (friendship) => {
+        next: () => {
           this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
 
@@ -678,7 +682,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -693,14 +697,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (error) => {
         console.error(error);
-        this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
       }
     });
   }
 
   block(friendId: string, friendshipId: string) {
-    this.chatClient.blockUser(friendId.toString()).then(() => {
-    });
+    void this.chatClient.blockUser(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.BLOCK).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
@@ -710,7 +713,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       },
       error: (error) => {
         console.error(error);
-        this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -786,15 +789,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       (member) => member.user?.id !== currentUserId
     );
 
-    return otherMember?.user?.name || AppConstants.PRIVATE_CHAT_NAME;
+    return otherMember?.user?.name ?? AppConstants.PRIVATE_CHAT_NAME;
   }
 
   hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.hide().then(() => {
-      });
+      void channel.hide();
     }, 30);
   }
 
@@ -802,7 +804,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.show().then(() => {
+      void channel.show().then(() => {
         this.reloadChannelList();
       });
     }, 30);
@@ -812,8 +814,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.mute().then(() => {
-      });
+      void channel.mute();
     }, 30);
   }
 
@@ -830,8 +831,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.markRead().then(() => {
-      });
+      void channel.markRead();
     }, 30);
   }
 
@@ -843,8 +843,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Only mark as unread if the last message was sent by someone else
       if (lastMessage && this.isLastMessageFromOtherUser(channel)) {
-        channel.markUnread({message_id: lastMessage.id}).then(() => {
-        }).catch(err => console.error('Mark as unread failed', err));
+        channel.markUnread({message_id: lastMessage.id}).catch(err => console.error('Mark as unread failed', err));
       } else {
         console.warn('Cannot mark as unread: No valid message from another user');
       }
@@ -855,8 +854,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.unmute().then(() => {
-      });
+      void channel.unmute();
     }, 30);
   }
 
@@ -886,18 +884,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   reloadChannelList() {
     this.channelService.reset();
-    this.channelService.init({
+    void this.channelService.init({
       hidden: this.showHiddenChannels$.value,
       members: {$in: [this.userInfo!.id]}
-    }, undefined, undefined, false).then(() => {
-    });
+    }, undefined, undefined, false);
   }
 
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     setTimeout(() => {
-      channel.addMembers([this.userInfo!.id]).then(() => {
+      void channel.addMembers([this.userInfo!.id]).then(() => {
         this.chatFormControl.setValue('');
         setTimeout(() => {
           this.channelService.setAsActiveChannel(channel);
@@ -932,7 +929,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.currentLocation = location;
   }
 
-  private timeout: any;
+  private timeout?: ReturnType<typeof setTimeout>;
 
   stopAvatarHover() {
     this.timeout = setTimeout(() => {
@@ -1012,7 +1009,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   isCollapsed = false;
   isManuallyResized = false;
 
-  startResizing(event: MouseEvent) {
+  startResizing() {
     if (window.innerWidth < 640) return;
     this.isResizing = true;
     this.isManuallyResized = true;
@@ -1069,7 +1066,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.targetChannel.delete().then(() => {
+    void this.targetChannel.delete().then(() => {
       this.targetChannel = null;
     });
   }
@@ -1092,7 +1089,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.targetChannel.truncate().then(() => {
+    void this.targetChannel.truncate().then(() => {
       this.targetChannel = null;
     });
   }
@@ -1115,10 +1112,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    this.targetChannel.show().then();
-    this.targetChannel.unmute().then();
-    this.targetChannel.removeMembers([this.userInfo!.id]).then(() => {
-    });
+    void this.targetChannel.show().then();
+    void this.targetChannel.unmute().then();
+    void this.targetChannel.removeMembers([this.userInfo!.id]);
   }
 
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {

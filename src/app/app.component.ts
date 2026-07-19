@@ -15,7 +15,7 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
 
 // Declare gtag function to make TypeScript aware of it globally
-declare let gtag: Function;
+declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
 
 @Component({
   selector: 'app-root',
@@ -66,7 +66,7 @@ export class AppComponent implements OnInit {
       distinctUntilChanged((prev, curr) => !!prev === !!curr)
     ).subscribe(user => {
       if (user) {
-        this.firebaseNotificationService.initFCM().then();
+        void this.firebaseNotificationService.initFCM().then();
       }
     });
   }

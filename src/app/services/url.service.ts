@@ -11,7 +11,7 @@ export class UrlService {
 
   clearUrl() {
     const clearedUrl = this.getClearedUrl();
-    this.router.navigateByUrl(clearedUrl, {replaceUrl: true}).then();
+    void this.router.navigateByUrl(clearedUrl, {replaceUrl: true}).then();
   }
 
   getClearedUrl() {

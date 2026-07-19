@@ -1,5 +1,5 @@
 import 'stream-chat';
-import type { DefaultAttachmentData, DefaultChannelData } from 'stream-chat-angular';
+import type {DefaultChannelData} from 'stream-chat-angular';
 
 
 declare module 'stream-chat' {
@@ -7,6 +7,4 @@ declare module 'stream-chat' {
     name?: string;
     hidden?: boolean;
   }
-
-  interface CustomAttachmentData extends DefaultAttachmentData {}
 }

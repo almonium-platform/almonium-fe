@@ -93,7 +93,7 @@ export class FrequencyService {
     if (frequency < this.FREQUENCY_THRESHOLD) {
       return this.LOWEST_SCORE;
     }
-    const scale = this.languageScale.get(language) || 1; // Default scale if language not found
+    const scale = this.languageScale.get(language) ?? 1; // Default scale if language not found
     const normalizeByZero = Math.log10(frequency) + this.EXPONENT;
     const result = scale * normalizeByZero + this.LOWEST_SCORE;
     return Math.round(result);

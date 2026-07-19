@@ -33,7 +33,7 @@ export class TargetLanguageDropdownService {
   );
 
   private langColorsSubject = new BehaviorSubject<Record<string, string>>(
-    this.getCachedLangColors() || {}
+    this.getCachedLangColors() ?? {}
   );
   langColors$ = this.langColorsSubject.asObservable();
 

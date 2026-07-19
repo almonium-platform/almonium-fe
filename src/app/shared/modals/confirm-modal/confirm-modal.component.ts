@@ -17,7 +17,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           [class.fade-slide-out]="fadeOutAnimating"
           class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
         >
-          <app-dismiss-button (close)="onClose()"/>
+          <app-dismiss-button (closed)="onClose()"/>
           <div class="flex items-center mb-4 flex-row">
             <span
               class="flex items-center justify-center" style="margin-right: 6px">
@@ -56,22 +56,22 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() confirmText = '';
   @Input() useCountdown = false;
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();
 
   fadeOutAnimating = false;
   countdown = 5;
   isButtonDisabled = true;
-  intervalId: any;
+  intervalId?: ReturnType<typeof setInterval>;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['isVisible'] && changes['isVisible'].currentValue === true) {
+    if (changes['isVisible']?.currentValue === true) {
       if (this.useCountdown) {
         this.resetCountdown();
       } else {
         this.isButtonDisabled = false;
       }
-    } else if (changes['isVisible'] && changes['isVisible'].currentValue === false) {
+    } else if (changes['isVisible']?.currentValue === false) {
       this.clearCountdown();
     }
   }
@@ -94,7 +94,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   clearCountdown() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
-      this.intervalId = null;
+      this.intervalId = undefined;
     }
   }
 
@@ -102,7 +102,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
     this.clearCountdown();
     this.fadeOutAnimating = true;
     setTimeout(() => {
-      this.close.emit();
+      this.closed.emit();
       this.fadeOutAnimating = false;
     }, 200); // Match animation duration in milliseconds
   }

@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../http-error';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
@@ -15,7 +16,7 @@ import {OnboardingService} from "../../onboarding/onboarding.service";
 import {ButtonComponent} from "../button/button.component";
 
 @Component({
-  selector: 'paywall',
+  selector: 'app-paywall',
   templateUrl: './paywall.component.html',
   styleUrls: ['./paywall.component.less'],
   imports: [
@@ -40,7 +41,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   private readonly destroy$ = new Subject<void>();
-  @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('paywallContent', {static: true}) content!: TemplateRef<unknown>;
   private readonly step = SetupStep.PLAN;
 
   private userInfo: UserInfo | null = null;
@@ -142,14 +143,14 @@ export class PaywallComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to choose free plan:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Couldn\'t choose free plan'), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   subscribeToPlan() {
     if (!this.userInfo) {
-      this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
+      void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
     }
     if (this.premiumLoadingSubject$.value) {
@@ -163,7 +164,9 @@ export class PaywallComponent implements OnInit, OnDestroy {
     this.planService.subscribeToPlan(String(selectedPlanId))
       .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
       .subscribe((url) => {
-        window.location.href = url.sessionUrl;
+        if (url) {
+          window.location.href = url.sessionUrl;
+        }
       });
   }
 }

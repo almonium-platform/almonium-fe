@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../http-error';
 import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
@@ -77,8 +78,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   @Input() currentRoute = '';
-  @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
-  @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
+  @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef<HTMLButtonElement>>; // Get all dropdown buttons
+  @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef<HTMLElement>; // Reference to the dropdown
   @ViewChild(ManageAvatarComponent, {static: false}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
@@ -249,7 +250,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   clickOutside(event: MouseEvent): void {
     // Use a small timeout to ensure dropdown click is not detected as outside click
     setTimeout(() => {
-      if (this.isLanguageDropdownOpen && this.langDropdown && !this.langDropdown.nativeElement.contains(event.target)) {
+      if (this.isLanguageDropdownOpen && this.langDropdown && event.target instanceof Node && !this.langDropdown.nativeElement.contains(event.target)) {
         this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
         this.cdr.detectChanges(); // Trigger change detection to update the view
       }
@@ -339,27 +340,27 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.focusedLangIndex = -1;
   }
 
-  langsOnClickOutside(_: Event) {
+  langsOnClickOutside() {
     this.closeDropdown();
   }
 
 
   // POPOVERS
-  profileOnClickOutside(_: Event) {
+  profileOnClickOutside() {
     this.isProfilePopoverOpen = false;
   }
 
-  discoverOnClickOutside(_: Event) {
+  discoverOnClickOutside() {
     this.isDiscoverMenuOpen = false;
   }
 
-  notificationOnClickOutside(_: Event) {
+  notificationOnClickOutside() {
     if (!this.notificationDropdownActive && !this.userPreviewDropdownActive) {
       this.isNotificationOpen = false;
     }
   }
 
-  timerOnClickOutside(_: Event) {
+  timerOnClickOutside() {
     this.isTimerOpen = false;
   }
 
@@ -369,7 +370,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {
-      this.router.navigate(['/home']).then();
+      void this.router.navigate(['/home']).then();
     }
   }
 
@@ -407,10 +408,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     switch (notification.type) {
       case NotificationType.FRIENDSHIP_ACCEPTED:
-        this.router.navigate(['/social'], {queryParams: {tab: 'friends'}}).then();
+        void this.router.navigate(['/social'], {queryParams: {tab: 'friends'}}).then();
         break;
       case NotificationType.FRIENDSHIP_REQUESTED:
-        this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
+        void this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
         break;
     }
     this.markNotificationAsRead(notification);
@@ -427,7 +428,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -468,7 +469,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.unreadNotificationsCount = 0;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark all as read', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to mark all as read'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -495,7 +496,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to mark as unread'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -510,7 +511,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         dropdown.toggle(false);
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, 'Failed to delete notification'), {appearance: 'negative'}).subscribe();
       }
     });
   }

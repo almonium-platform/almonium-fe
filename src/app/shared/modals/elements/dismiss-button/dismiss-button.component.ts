@@ -50,10 +50,10 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
 export class DismissButtonComponent {
   @Input() isOutside = false;
   @Input() relative = false;
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
 
 
   onClose() {
-    this.close.emit();
+    this.closed.emit();
   }
 }

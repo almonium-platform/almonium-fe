@@ -69,14 +69,12 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     return [items.slice(0, middleIndex), items.slice(middleIndex)];
   }
 
-  protected onPreferenceChange<K extends keyof UIPreferences>(
-    category: K,
-    key: keyof UIPreferences[K], // Ensure `key` matches the keys of the category
+  protected onPreferenceChange(
+    key: keyof UIPreferences['navbar'],
     value: boolean
   ): void {
-    // @ts-ignores
-    const oldValue = this.uiPreferences[category][key]; // @ts-ignore
-    this.uiPreferences[category][key] = value;
+    const oldValue = this.uiPreferences.navbar[key];
+    this.uiPreferences.navbar[key] = value;
     this.profileSettingsService.saveUiPreferences(this.uiPreferences)
       .subscribe({
         next: () => {
@@ -84,7 +82,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to save preferences:', error);
-          this.uiPreferences[category][key] = oldValue;
+          this.uiPreferences.navbar[key] = oldValue;
         },
       });
   }

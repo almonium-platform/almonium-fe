@@ -30,7 +30,7 @@ import {TuiLoader} from '@taiga-ui/core/components';
   imports: [TuiLoader],
 })
 export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
-  private elRef = inject(ElementRef);
+  private elRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   @Input() text = 'Click Me';
   @Input() loading$?: Observable<boolean>;

@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
-import {Channel, StreamChat, UserResponse} from 'stream-chat';
+import {Channel, Event as StreamEvent, StreamChat, UserResponse} from 'stream-chat';
 import {
   ChannelActionsContext,
   ChannelHeaderInfoContext,
@@ -112,7 +112,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
         this.activeChannel = c;
         this.isPrivateChat = c?.data?.name === AppConstants.PRIVATE_CHAT_NAME;
         this.isSelfChat = c?.data?.name === AppConstants.SELF_CHAT_NAME;
-        const capabilities = this.activeChannel?.data?.own_capabilities!;
+        const capabilities = this.activeChannel?.data?.own_capabilities;
         if (capabilities) {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
         }
@@ -136,10 +136,10 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
   private subscribeToPresenceChanges(): void {
     if (!this.interlocutorId) return;
 
-    this.presenceSubscription = fromEventPattern(
+    this.presenceSubscription = fromEventPattern<StreamEvent>(
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
-    ).subscribe((event: any) => {
+    ).subscribe(event => {
       if (event.user?.id === this.interlocutorId) {
         if (this.interlocutorId) {
           this.lastActiveTime = new Date();
@@ -180,11 +180,11 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
   }
 
   get memberCountParam() {
-    return {memberCount: this.activeChannel?.data?.member_count || 0};
+    return {memberCount: this.activeChannel?.data?.member_count ?? 0};
   }
 
   get watcherCountParam() {
-    return {watcherCount: this.activeChannel?.state?.watcher_count || 0};
+    return {watcherCount: this.activeChannel?.state?.watcher_count ?? 0};
   }
 
   get isInterlocutorOnline() {
@@ -231,7 +231,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
 
   private getOtherMemberIfOneToOneChannel() {
     const otherMembers = Object.values(
-      this.activeChannel?.state?.members || {}
+      this.activeChannel?.state?.members ?? {}
     ).filter((m) => m.user_id !== this.chatClient.userID);
     if (otherMembers.length === 1) {
       return otherMembers[0].user;

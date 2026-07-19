@@ -4,11 +4,11 @@ import {PaywallComponent} from "../paywall/paywall.component";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
 @Component({
-  selector: 'premium-badged-content',
+  selector: 'app-premium-badged-content',
   template: `
-    <paywall #paywallComponent></paywall>
+    <app-paywall #paywallComponent></app-paywall>
 
-    <div class="custom-badged-content" (click)="handleClick($event)">
+    <div class="custom-badged-content" tabindex="0" (keydown.enter)="handleClick($event)" (click)="handleClick($event)">
       <ng-content></ng-content>
       <!-- Badge Icon at Top-Right -->
       @if (display) {
@@ -76,7 +76,7 @@ export class PremiumBadgedContentComponent {
     };
   }
 
-  handleClick(event: MouseEvent): void {
+  handleClick(event: Event): void {
     event.stopPropagation();
 
     if (this.display) {

@@ -3,7 +3,7 @@ import {CanActivateFn, Router} from '@angular/router';
 import {LocalStorageService} from '../../../services/local-storage.service'; // Replace with actual service path
 
 // Unauth guard to protect routes that should not be accessible to authenticated users
-export const unauthGuard: CanActivateFn = (route, state) => {
+export const unauthGuard: CanActivateFn = () => {
   const localStorageService = inject(LocalStorageService);
   const router = inject(Router);
 

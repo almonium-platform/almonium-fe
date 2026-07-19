@@ -15,7 +15,7 @@
                   tuiSwitch
                   type="checkbox"
                   [ngModel]="uiPreferences.navbar[item]"
-                  (ngModelChange)="onPreferenceChange('navbar', item, $event)"
+                  (ngModelChange)="onPreferenceChange(item, $event)"
                   [showIcons]="true"
                 />
               </div>

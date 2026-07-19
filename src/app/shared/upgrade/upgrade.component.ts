@@ -17,7 +17,7 @@ export class UpgradeComponent implements OnInit {
   private router = inject(Router);
   private userInfoService = inject(UserInfoService);
 
-  @ViewChild('upgrade', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('upgrade', {static: true}) content!: TemplateRef<unknown>;
   @Input() onboardingMode = false;
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.PLAN;
@@ -45,7 +45,7 @@ export class UpgradeComponent implements OnInit {
         this.userInfoService.updateUserInfo({setupStep: nextStep});
       }
     } else {
-      this.router.navigate(['/home']).then();
+      void this.router.navigate(['/home']).then();
     }
   }
 }

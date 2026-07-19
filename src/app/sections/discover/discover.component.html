@@ -25,7 +25,7 @@
       <ul class="autocomplete-list">
         @for (option of filteredOptions; track option; let i = $index) {
           <li
-            (click)="onOptionSelected(option)"
+            (keydown.enter)="onOptionSelected(option)" tabindex="0" (click)="onOptionSelected(option)"
             class="autocomplete-item"
             [class.autocomplete-item-focused]="isOptionFocused(i)"
           >

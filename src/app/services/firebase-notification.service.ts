@@ -1,5 +1,6 @@
 import { Injectable, Injector, inject } from '@angular/core';
-import {Messaging, getToken, onMessage} from '@angular/fire/messaging';
+import {Messaging, onMessage, onRegistered, register} from '@angular/fire/messaging';
+import type {MessagePayload} from 'firebase/messaging';
 import {BehaviorSubject} from 'rxjs';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
@@ -13,7 +14,8 @@ export class FirebaseNotificationService {
   private injector = inject(Injector);
 
   private messaging: Messaging | null = null;
-  private currentMessage = new BehaviorSubject<any | null>(null);
+  private currentMessage = new BehaviorSubject<MessagePayload | null>(null);
+  private stopRegistrationListener?: () => void;
 
   public async initFCM() {
     try {
@@ -27,7 +29,7 @@ export class FirebaseNotificationService {
 
       await this.requestPermission();
       this.listenForMessages();
-    } catch (error) {
+    } catch {
       console.error('FCM initialization failed');
     }
   }
@@ -43,16 +45,14 @@ export class FirebaseNotificationService {
       }
 
       const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      const token = await getToken(this.messaging, {
+      this.stopRegistrationListener?.();
+      this.stopRegistrationListener = onRegistered(this.messaging, installationId => {
+        this.sendTokenToBackend(installationId);
+      });
+      await register(this.messaging, {
         vapidKey: environment.firebaseConfig.vapidKey,
         serviceWorkerRegistration: registration,
       });
-
-      if (token) {
-        this.sendTokenToBackend(token);
-      } else {
-        console.warn('No FCM token received.');
-      }
     } catch (error) {
       console.error('Failed to request FCM token:', error);
     }
@@ -77,23 +77,20 @@ export class FirebaseNotificationService {
   private sendTokenToBackend(token: string) {
     this.http.post(`${AppConstants.API_URL}/fcm/register`, {token, deviceType: 'web'}, {withCredentials: true})
       .subscribe({
-        next: () => {
-        },
         error: (err) => console.error('Failed to register FCM token:', err),
       });
   }
 
   private isSupportedBrowser(): boolean {
-    const isChrome = navigator.userAgent.includes('Chrome') && navigator.vendor.includes('Google Inc');
-    const isFirefox = navigator.userAgent.includes('Firefox');
     const isSecureContext = window.isSecureContext; // Ensures HTTPS or `localhost` in Chrome
+    const hasRequiredApis = 'serviceWorker' in navigator && 'Notification' in window;
 
     if (!isSecureContext) {
       console.warn('Push notifications require HTTPS (except in Chrome on localhost).');
       return false;
     }
 
-    if (!(isChrome || isFirefox)) {
+    if (!hasRequiredApis) {
       console.warn('Push notifications are not supported in this browser.');
       return false;
     }

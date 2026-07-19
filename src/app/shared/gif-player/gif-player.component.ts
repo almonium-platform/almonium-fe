@@ -38,7 +38,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
     // if autoplay + not looped and you want it to rest on last frame on first load
     if (this.playOnLoad && !this.looped) {
       this.vid.nativeElement.addEventListener('loadedmetadata', () => {
-        this.vid.nativeElement.play().catch(() => {});
+        this.vid.nativeElement.play().catch(() => undefined);
       });
     }
   }
@@ -50,7 +50,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
     v.pause();
     // if previously frozen at end, jump to start
     v.currentTime = 0;
-    v.play().catch(() => {});
+    v.play().catch(() => undefined);
   }
 
   private freezeLastFrame() {

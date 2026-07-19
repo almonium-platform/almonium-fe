@@ -7,7 +7,6 @@ import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
   TuiDataListWrapperComponent,
   TuiProgressCircle,
-  TuiProgressLabel,
   TuiSelect
 } from "@taiga-ui/kit/components";
 import {TuiChevron, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
@@ -28,7 +27,6 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
   imports: [
     RouterLink,
     ReactiveFormsModule,
-    TuiProgressLabel,
     TuiProgressCircle,
     TuiDataListWrapperComponent,
     CefrLevelSelectorComponent,
@@ -110,7 +108,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       books = books.filter(book => {
         const bookLevelFrom = this.cefrLevelToNumber(book.levelFrom);
         const bookLevelTo = this.cefrLevelToNumber(book.levelTo);
-        const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value || CEFRLevel.B1);  // Handling null values
+        const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value ?? CEFRLevel.B1);  // Handling null values
 
         return selectedLevelNum >= bookLevelFrom && selectedLevelNum <= bookLevelTo;
       });
@@ -227,7 +225,7 @@ export class ReadComponent implements OnInit, OnDestroy {
         map(([userInfo, targetLang]): CEFRLevel => {
           if (!userInfo.learners) return CEFRLevel.B1;
           const learner = userInfo.learners.find(learner => learner.language === targetLang);
-          return learner?.selfReportedLevel || CEFRLevel.B1;
+          return learner?.selfReportedLevel ?? CEFRLevel.B1;
         })
       )
       .subscribe((level: CEFRLevel) => {
@@ -246,7 +244,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   undoProgress() {
     const bookId = this.selectedBook?.id;
     if (!bookId) return;
-    this.targetLanguageDropdownService.currentLanguage$.subscribe(lang => {
+    this.targetLanguageDropdownService.currentLanguage$.subscribe(() => {
       this.readService.deleteProgress(bookId)
         .subscribe({
           next: () => {

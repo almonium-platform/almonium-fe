@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../shared/http-error';
 import {HttpClient} from '@angular/common/http';
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -67,7 +68,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
 
   private readonly destroy$ = new Subject<void>();
-  @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('auth', {static: true}) content!: TemplateRef<unknown>;
 
   private userInfo: UserInfo | null = null;
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
@@ -129,9 +130,10 @@ export class AuthComponent implements OnInit, OnDestroy {
       );
     }
 
-    this.route.queryParams.subscribe(params => {
-      if (params['error']) {
-        this.alertService.open(params['error'], {appearance: 'negative'}).subscribe();
+    this.route.queryParamMap.subscribe(params => {
+      const error = params.get('error');
+      if (error) {
+        this.alertService.open(error, {appearance: 'negative'}).subscribe();
         this.urlService.clearUrl();
       }
     });
@@ -218,8 +220,8 @@ export class AuthComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const emailValue = this.authForm.get('emailValue')?.value!;
-    const passwordValue = this.authForm.get('passwordValue')?.value!;
+    const emailValue = this.authForm.controls.emailValue.value ?? '';
+    const passwordValue = this.authForm.controls.passwordValue.value ?? '';
 
     if (this.mode === 'linkLocal') {
       this.linkLocal(passwordValue);
@@ -248,7 +250,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -265,7 +267,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -284,7 +286,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           this.isSignUp = false;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Registration failed', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Registration failed'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -297,11 +299,11 @@ export class AuthComponent implements OnInit, OnDestroy {
         .pipe(finalize(() => this.loadingSubject$.next(false)))
         .subscribe({
           next: () => {
-            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
+            void this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
             this.popupTemplateStateService.close();
           },
           error: (error) => {
-            this.alertService.open(error.error.message || 'Identity verification failed', {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, 'Identity verification failed'), {appearance: 'negative'}).subscribe();
           },
         });
       return;
@@ -312,14 +314,14 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (userInfo) => {
           if (userInfo) {
-            this.router.navigate(['/home']).then();
+            void this.router.navigate(['/home']).then();
             this.popupTemplateStateService.close();
           } else {
             this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'negative'}).subscribe();
           }
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Login failed', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Login failed'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -329,7 +331,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   protected onForgotPassword() {
-    const emailValue = this.authForm.get('emailValue')?.value!;
+    const emailValue = this.authForm.controls.emailValue.value ?? '';
     if (!emailValue) {
       this.alertService.open('Please enter your email address', {appearance: 'negative'}).subscribe();
       return;
@@ -340,7 +342,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to send password reset link', {appearance: 'negative'})
+          .open(getErrorMessage(error, 'Failed to send password reset link'), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -367,14 +369,14 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           if (this.embeddedMode) {
-            this.router.navigate([this.router.url], {queryParams: {intent: this.intent}}).then();
+            void this.router.navigate([this.router.url], {queryParams: {intent: this.intent}}).then();
             this.popupTemplateStateService.close();
           } else {
-            this.router.navigate(['/home']).then();
+            void this.router.navigate(['/home']).then();
           }
         },
         error: error => this.alertService
-          .open(error?.error?.message || error?.message || `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`, {appearance: 'negative'})
+          .open(getErrorMessage(error, `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`), {appearance: 'negative'})
           .subscribe(),
       });
   };

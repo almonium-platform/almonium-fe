@@ -2,6 +2,7 @@ import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, OnInit, inject } from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";
+import {getErrorMessage} from '../http-error';
 import {ActivatedRoute} from "@angular/router";
 import {UserPreviewCardComponent} from "../user-preview-card/user-preview-card.component";
 import {UserProfileInfo} from "../user-preview-card/user-profile.model";
@@ -44,7 +45,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, "Couldn't get profile"), {appearance: 'negative'}).subscribe();
         },
       });
     } else {
@@ -53,7 +54,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, "Couldn't get profile"), {appearance: 'negative'}).subscribe();
         },
       });
     }

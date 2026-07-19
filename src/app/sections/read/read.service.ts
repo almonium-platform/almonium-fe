@@ -43,23 +43,22 @@ export class ReadService {
     return this.http.get<BookMiniDetails>(url, {withCredentials: true});
   }
 
-  // TODO fix Observable<any> to a more specific type everywhere
-  orderTranslation(bookId: number, language: string): Observable<any> {
+  orderTranslation(bookId: number, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  cancelTranslationOrder(bookId: number, language: string): Observable<any> {
+  cancelTranslationOrder(bookId: number, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.delete(url, {withCredentials: true});
   }
 
-  favoriteBook(bookId: number, language: string): Observable<any> {
+  favoriteBook(bookId: number, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  unfavoriteBook(bookId: number, language: string): Observable<any> {
+  unfavoriteBook(bookId: number, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.delete(url, {withCredentials: true});
   }

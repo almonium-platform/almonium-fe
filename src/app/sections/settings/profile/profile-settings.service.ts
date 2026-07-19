@@ -24,7 +24,7 @@ export class ProfileSettingsService {
    * Add and set a new avatar for the current user
    * @param avatarUrl of the new avatar
    */
-  addAndSetNewAvatar(avatarUrl: string): Observable<any> {
+  addAndSetNewAvatar(avatarUrl: string): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}`;
     return this.http.post(url, {avatarUrl}, {withCredentials: true});
   }
@@ -33,7 +33,7 @@ export class ProfileSettingsService {
    * Choose another existing custom avatar as the active one
    * @param avatarId ID of the avatar to be set as active
    */
-  chooseExistingCustomAvatar(avatarId: string): Observable<any> {
+  chooseExistingCustomAvatar(avatarId: string): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
@@ -42,7 +42,7 @@ export class ProfileSettingsService {
    * Choose a default avatar for the current user
    * @param avatarUrl URL of the default avatar to be set
    */
-  chooseDefaultAvatar(avatarUrl: string): Observable<any> {
+  chooseDefaultAvatar(avatarUrl: string): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}/default`;
     return this.http.patch(url, {avatarUrl}, {withCredentials: true});
   }
@@ -51,7 +51,7 @@ export class ProfileSettingsService {
    * Delete an avatar by its ID
    * @param avatarId ID of the avatar to delete
    */
-  deleteCustomAvatar(avatarId: string): Observable<any> {
+  deleteCustomAvatar(avatarId: string): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
     return this.http.delete(url, {withCredentials: true});
   }
@@ -59,13 +59,13 @@ export class ProfileSettingsService {
   /**
    * Reset current user's avatar to the default one
    */
-  resetAvatar(): Observable<any> {
+  resetAvatar(): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}/current`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
   // usernames
-  updateUsername(username: string): Observable<any> {
+  updateUsername(username: string): Observable<unknown> {
     const url = `${AppConstants.ME_URL}/username`;
     return this.http.patch(url, {username}, {withCredentials: true});
   }
@@ -75,17 +75,17 @@ export class ProfileSettingsService {
     return this.http.get<{ available: boolean }>(url, {withCredentials: true});
   }
 
-  saveInterests(ids: number[]): Observable<any> {
+  saveInterests(ids: number[]): Observable<unknown> {
     const url = `${AppConstants.ME_URL}/interests`;
     return this.http.patch(url, {ids}, {withCredentials: true});
   }
 
-  saveUiPreferences(uiPreferences: UIPreferences): Observable<any> {
+  saveUiPreferences(uiPreferences: UIPreferences): Observable<unknown> {
     const url = `${AppConstants.PROFILE_URL}/ui-preferences`;
     return this.http.patch(url, uiPreferences, {withCredentials: true});
   }
 
-  toggleHidden(hidden: boolean): Observable<any> {
+  toggleHidden(hidden: boolean): Observable<unknown> {
     const url = `${AppConstants.PROFILE_URL}/hidden`;
     return this.http.patch(url, {hidden}, {withCredentials: true});
   }

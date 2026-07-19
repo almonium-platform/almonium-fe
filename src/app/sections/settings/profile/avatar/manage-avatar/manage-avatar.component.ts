@@ -30,7 +30,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
   private profileSettingsService = inject(ProfileSettingsService);
   private alertService = inject(TuiNotificationService);
 
-  @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<unknown>;
 
   private readonly FIREBASE_AVATAR_URL_PATH = 'avatars/users';
   private readonly FIREBASE_DEFAULT_URL_PATH = this.FIREBASE_AVATAR_URL_PATH + '/default';
@@ -45,7 +45,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
   deletedAvatarId: string | null = null;
 
   ngOnInit() {
-    this.loadDefaultAvatars().then();
+    void this.loadDefaultAvatars().then();
     this.loadCustomAvatars();
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
       this.userInfo = info;
@@ -71,7 +71,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
           this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
         }
       });
-    } catch (error) {
+    } catch {
       this.alertService.open('Failed to upload avatar', {appearance: 'negative'}).subscribe();
     }
   }
@@ -145,7 +145,7 @@ export class ManageAvatarComponent implements OnInit, OnDestroy {
     try {
       // Fetch the default avatars from Firebase
       this.defaultAvatars = await this.fileUploadService.getDefaultAvatars(this.FIREBASE_DEFAULT_URL_PATH);
-    } catch (error) {
+    } catch {
       this.alertService.open('Failed to load default avatars', {label: 'Error'}).subscribe();
     }
   }

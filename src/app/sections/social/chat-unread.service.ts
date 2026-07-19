@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject, fromEventPattern} from 'rxjs';
-import {OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
+import {Event as StreamEvent, OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
@@ -38,21 +38,20 @@ export class ChatUnreadService {
         return;
       }
       if (!this.chatClient.user) {
-        this.chatClient.connectUser(
+        void this.chatClient.connectUser(
           {id: userInfo.id},
           userInfo.streamChatToken
         ).then(() => {
-          this.fetchUnreadCount().then(() => {
-          });
+          void this.fetchUnreadCount();
         });
       }
     });
 
-    fromEventPattern(
+    fromEventPattern<StreamEvent>(
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
-    ).subscribe((event: any) => {
-      if (this.friendIds.includes(event.user?.id)) {
+    ).subscribe(event => {
+      if (event.user?.id && this.friendIds.includes(event.user.id)) {
         this.localStorageService.saveLastSeen(event.user.id, new Date());
       }
     });
@@ -66,7 +65,7 @@ export class ChatUnreadService {
     return !!u && 'total_unread_count' in u;
   }
 
-  public async fetchUnreadCount() {
+  public fetchUnreadCount(): void {
     const u = this.chatClient.user;
     const unreadCount = this.isOwnUser(u) ? Number(u.total_unread_count ?? 0) : 0;
     this.updateUnreadCount(unreadCount);

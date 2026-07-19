@@ -63,7 +63,7 @@ export class CustomChatAvatarComponent
 
   ngOnInit(): void {
     this.subscriptions.push(
-      this.chatClientService.user$.subscribe((u: any) => {
+      this.chatClientService.user$.subscribe(u => {
         if (u?.id !== this.userId) {
           this.userId = u?.id;
           if (this.type || this.channel || this.name) {
@@ -112,14 +112,14 @@ export class CustomChatAvatarComponent
   private setInitials() {
     let result = '';
     if (this.type === 'user') {
-      result = this.name?.toString() || '';
+      result = this.name?.toString() ?? '';
     } else if (this.type === 'channel') {
       if (this.channel?.data?.name) {
         result = this.channel?.data?.name;
       } else {
         const otherMember = this.getOtherMemberIfOneToOneChannel();
         if (otherMember) {
-          result = otherMember.name || otherMember.id || '';
+          result = (otherMember.name ?? otherMember.id) || '';
         } else {
           result = '#';
         }
@@ -140,13 +140,13 @@ export class CustomChatAvatarComponent
     if (this.channel) {
       const otherMember = this.getOtherMemberIfOneToOneChannel();
       if (otherMember) {
-        this.isOnline = otherMember.online || false;
+        this.isOnline = otherMember.online ?? false;
         this.isOnlineSubscription = this.chatClientService.events$
           .pipe(filter((e) => e.eventType === 'user.presence.changed'))
           .subscribe((event) => {
             if (event.event.user?.id === otherMember.id) {
               this.ngZone.run(() => {
-                this.isOnline = event.event.user?.online || false;
+                this.isOnline = event.event.user?.online ?? false;
               });
             }
           });
@@ -165,7 +165,7 @@ export class CustomChatAvatarComponent
   }
 
   private getOtherMemberIfOneToOneChannel() {
-    if (!this.channel || this.channel.type !== 'messaging') {
+    if (this.channel?.type !== 'messaging') {
       return undefined;
     }
 

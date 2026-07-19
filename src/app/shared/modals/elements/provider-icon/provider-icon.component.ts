@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
@@ -38,8 +38,8 @@ import {NgClass, NgStyle} from '@angular/common';
 export class ProviderIconComponent {
   @Input() provider!: string;
   @Input() connectedProviders!: string[];
-  @Input() clickOnLinked!: Function;
-  @Input() clickOnUnlinked?: Function;
+  @Input() clickOnLinked!: (provider: string) => void;
+  @Input() clickOnUnlinked?: (provider: string) => void;
   @Input() loginFlow?: boolean = false;
 
   private providerConfig: Record<string, { sizeClass: string; clickHandler: () => void }> = {
@@ -76,8 +76,7 @@ export class ProviderIconComponent {
   }
 
   getClickHandler(): () => void {
-    return this.providerConfig[this.provider.toLowerCase()]?.clickHandler || (() => {
-    });
+    return this.providerConfig[this.provider.toLowerCase()]?.clickHandler ?? (() => undefined);
   }
 
   isProviderConnected(): boolean {

@@ -3,6 +3,7 @@ import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
+import {getErrorMessage} from '../../../shared/http-error';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
@@ -180,8 +181,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
       });
 
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const bookId = params['id'];
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const bookId = params.get('id');
       this.bookId = bookId ? +bookId : null;
       if (this.bookId) {
         // Reset state for new book load
@@ -235,8 +236,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     });
   }
 
-  @HostListener('window:beforeunload', ['$event'])
-  unloadNotification($event: BeforeUnloadEvent): void {
+  @HostListener('window:beforeunload')
+  unloadNotification(): void {
     this.saveProgressOnExit(true); // Attempt beacon save
   }
 
@@ -354,7 +355,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   // --- Example method to handle mode-specific logic ---
-  protected onContentClick(event: MouseEvent): void {
+  protected onContentClick(event: Event): void {
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
       return;
     }
@@ -420,7 +421,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             return this.readService.getParallelText(this.bookId, langCode).pipe(
               catchError(error => {
                 // Handle error within the stream
-                this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
+                this.handleLoadError('parallel', getErrorMessage(error, 'Unknown error fetching parallel content.'));
                 return EMPTY; // Prevent observable from completing on error
               })
             );
@@ -592,7 +593,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to load content. Status: ${response.status}`);
         }
       },
-      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
+      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, 'Unknown error loading content.')),
     });
   }
 
@@ -953,19 +954,19 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Touch & Hold Scroll ---
   // Flag start/end of touch interaction
-  protected onTouchStart(event: TouchEvent): void {
+  protected onTouchStart(): void {
     this.isTouching = true;
     this.clearScrollHoldTimers(); // Prevent hold scroll if touch interaction starts
   }
 
-  protected onTouchMove(event: TouchEvent): void { /* Browser handles native scroll */
+  protected onTouchMove(): void { /* Browser handles native scroll */
   }
 
-  protected onTouchEnd(event: TouchEvent): void {
+  protected onTouchEnd(): void {
     this.isTouching = false;
   }
 
-  protected onTouchCancel(event: TouchEvent): void {
+  protected onTouchCancel(): void {
     this.isTouching = false;
   }
 
@@ -1210,7 +1211,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }),
         catchError(error => {
           // Handle error within the stream (from original 'catchError')
-          this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
+          this.handleLoadError('parallel', getErrorMessage(error, 'Unknown error fetching parallel content.'));
           this.revertToBaseContent(); // Revert UI on error
           return EMPTY; // Prevent observable from completing incorrectly
         })

@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../shared/http-error';
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, OnInit, inject } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -42,9 +43,9 @@ export class EmailVerificationComponent implements OnInit {
     this.isChangeEmailRoute = this.router.url.includes('/change-email'); // Determine purpose by route
 
     // Extract the token from the URL parameters
-    this.route.queryParams.pipe(
+    this.route.queryParamMap.pipe(
       switchMap((params) => {
-        const token = params['oobCode'] || params['token'];
+        const token = params.get('oobCode') ?? params.get('token');
         if (token) {
           const verification$ = this.isChangeEmailRoute
             ? this.authService.changeEmail(token)
@@ -59,7 +60,7 @@ export class EmailVerificationComponent implements OnInit {
             }),
             catchError(error => {
               this.verificationSuccess = false;
-              this.pendingMessage = error.error.message || `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`;
+              this.pendingMessage = getErrorMessage(error, `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`);
               return of(null);
             })
           )]);
@@ -102,11 +103,11 @@ export class EmailVerificationComponent implements OnInit {
       // Set a minimum display time before redirecting
       timer(this.REDIRECT_TIMEOUT).subscribe(() => {
         if (this.isChangeEmailRoute) {
-          this.router.navigate(['/logout']).then();
+          void this.router.navigate(['/logout']).then();
           // Logout will redirect to /auth for unauthenticated users,
           // and will clear outdated authentication data for authenticated users
         } else {
-          this.router.navigate(['/settings/auth']).then();
+          void this.router.navigate(['/settings/auth']).then();
           // Redirect to settings page after verification for authenticated users
           // (it's secured by the AuthGuard, so unauthenticated users will be redirected to /auth)
         }

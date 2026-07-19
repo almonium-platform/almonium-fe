@@ -12,7 +12,7 @@ import {Observable} from "rxjs";
       <ngx-particles
         id="tsparticles"
         [options]="particlesOptions"
-        (particlesLoaded)="particlesService.particlesLoaded($event)"
+        (particlesLoaded)="particlesService.particlesLoaded()"
       ></ngx-particles>
     }
   `,

@@ -29,7 +29,7 @@ import {Subject, takeUntil} from "rxjs";
           (clickOutside)="onClickOutside()"
         >
           <app-dismiss-button
-            (close)="close()"
+            (closed)="close()"
             [isOutside]="drawerState.closeBtnOutside"
           ></app-dismiss-button>
           <!-- Render the content if we have it -->

@@ -3,7 +3,7 @@
   [title]="modalTitle"
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
-  (close)="closeConfirmModal()"
+  (closed)="closeConfirmModal()"
   (confirm)="confirmModalAction()"
   [useCountdown]="useCountdown">
 </app-confirm-modal>
@@ -15,7 +15,7 @@
   [message]="getEmailTokenMessage()"
   [primaryActionText]="'Resend email'"
   [secondaryActionText]="'Cancel request'"
-  (close)="closeEmailTokenModal()"
+  (closed)="closeEmailTokenModal()"
   (primaryAction)="resendEmailChangeRequest()"
   (secondaryAction)="cancelEmailChangeRequest()"
 >
@@ -26,7 +26,7 @@
   [title]="providerInfoTitle"
   [message]="providerInfoText"
   [titleIcon]="providerInfoIcon"
-  (close)="closeProviderInfo()"
+  (closed)="closeProviderInfo()"
 >
 </app-action-modal>
 

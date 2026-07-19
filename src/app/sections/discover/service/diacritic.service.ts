@@ -78,9 +78,6 @@ export class DiacriticService {
     },
   };
 
-  constructor() {
-  }
-
   /** Get diacritic options for a given character and language */
   getDiacriticOptions(lastLetter: string, language: string): string[] {
     const lowerLetter = lastLetter.toLowerCase();

@@ -33,7 +33,7 @@ export interface BookMiniDetails {
 
 export interface BookLanguageVariant {
   id: number;
-  language: string;
+  language: LanguageCode;
 }
 
 export interface BookshelfView {

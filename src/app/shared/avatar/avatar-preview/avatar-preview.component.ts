@@ -34,7 +34,7 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
           [userId]="userId"
           (mouseenter)="dropdownOnHover()"
           (mouseleave)="cardHovered = false"
-          (close)="onLeave()"
+          (closed)="onLeave()"
         ></app-user-preview-card>
       } @else {
         Error! No userId provided.
@@ -69,7 +69,7 @@ export class AvatarPreviewComponent {
     this.previewOpened = true;
   }
 
-  timeout: any;
+  timeout?: ReturnType<typeof setTimeout>;
 
   onLeave() {
     this.timeout = setTimeout(() => {

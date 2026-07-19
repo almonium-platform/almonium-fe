@@ -81,7 +81,7 @@
         </div>
       } @else {
         <div class="card plan">
-          <paywall #paywallComponent></paywall>
+          <app-paywall #paywallComponent></app-paywall>
           @if (paywallComponent.content) {
             <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
           }

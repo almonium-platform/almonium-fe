@@ -32,7 +32,7 @@ export class QRCodeComponent implements OnInit {
   }
 
   get qrCodeImgUrl(): string | undefined {
-    return this.qrCodeUrl || undefined;
+    return this.qrCodeUrl ?? undefined;
   }
 
 
@@ -51,7 +51,7 @@ export class QRCodeComponent implements OnInit {
   protected redirect() {
     this.popupTemplateStateService.closeImmediately();
     setTimeout(() => {
-      this.router.navigate([this.linkToEncode]).then();
+      void this.router.navigate([this.linkToEncode]).then();
     }, 0);
   }
 }

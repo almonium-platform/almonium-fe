@@ -9,7 +9,7 @@ import {TuiBadge, TuiBadgedContentDirective} from '@taiga-ui/kit/components';
   styleUrls: ['./share-link.component.less'],
 })
 export class ShareLinkComponent implements OnInit {
-  @ViewChild('shareLink', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('shareLink', {static: true}) content!: TemplateRef<unknown>;
   @Input() link!: string;
   @Input() title!: string;
   protected showCopied = false;

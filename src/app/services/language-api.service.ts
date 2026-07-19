@@ -13,7 +13,7 @@ export class LanguageApiService {
   private http = inject(HttpClient);
 
 
-  saveFluentLanguages(payload: { langCodes: string[] }): Observable<any> {
+  saveFluentLanguages(payload: { langCodes: string[] }): Observable<unknown> {
     const url = `${AppConstants.MY_LANGUAGES_URL}/fluent`;
     return this.http.put(url, payload, {withCredentials: true});
   }

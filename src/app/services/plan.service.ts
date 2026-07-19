@@ -5,6 +5,9 @@ import {catchError} from 'rxjs/operators';
 import {AppConstants} from "../app.constants";
 import {PlanDto} from "../models/plan.model";
 
+export interface SessionUrlResponse {
+  sessionUrl: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -22,8 +25,8 @@ export class PlanService {
     );
   }
 
-  subscribeToPlan(planId: string): Observable<any> {
-    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true}).pipe(
+  subscribeToPlan(planId: string): Observable<SessionUrlResponse | null> {
+    return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true}).pipe(
       catchError((error) => {
         console.error('Error subscribing to plan:', error);
         return of(null);
@@ -31,8 +34,8 @@ export class PlanService {
     );
   }
 
-  accessCustomerPortal(): Observable<any> {
-    return this.http.post(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true}).pipe(
+  accessCustomerPortal(): Observable<SessionUrlResponse | null> {
+    return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true}).pipe(
       catchError((error) => {
         console.error('Error accessing portal:', error);
         return of(null);

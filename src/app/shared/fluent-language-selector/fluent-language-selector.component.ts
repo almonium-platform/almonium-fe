@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {CommonModule} from '@angular/common';
 import {Language} from '../../models/language.model';
 
@@ -167,7 +167,7 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   }
 
   private maxLanguagesValidator(max: number) {
-    return (control: FormControl): Record<string, any> | null => {
+    return (control: FormControl): Record<string, boolean> | null => {
       const value = control.value as string[] | null;
       return value && value.length > max ? {maxLanguages: true} : null;
     };

@@ -28,14 +28,14 @@ export class LanguageNameService {
     }
 
     // Return the name if found, otherwise return the code in uppercase as a fallback
-    return name || code.toUpperCase();
+    return name ?? code.toUpperCase();
   }
 
   getLanguageNames(codes: string[]): string[] {
     return codes.map((code) => this.getLanguageName(code));
   }
 
-  public mapLanguageCodesToNames(languages: Language[], languageCodes: string[]) {
+  public mapLanguageCodesToNames(languages: Language[], languageCodes: LanguageCode[]) {
     return languageCodes
       .map((code) => {
         const lang = languages.find((l) => l.code === code);

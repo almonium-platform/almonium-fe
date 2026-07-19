@@ -8,6 +8,7 @@ import {
   OnInit,
   SimpleChanges,
   TemplateRef,
+  inject,
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {
@@ -40,6 +41,9 @@ import {TranslateModule} from "@ngx-translate/core";
 })
 export class MessageActionsBoxComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit {
+  public readonly customTemplatesService = inject(CustomTemplatesService);
+  private messageActionsService = inject(MessageActionsService);
+  private cdRef = inject(ChangeDetectorRef);
   /**
    * Indicates if the message actions are belonging to a message that was sent by the current user or not.
    */
@@ -69,17 +73,9 @@ export class MessageActionsBoxComponent
   private readonly messageActionItems: (
     | MessageActionItem
     | MessageReactionActionItem
-    )[];
+    )[] = this.messageActionsService.defaultActions;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
-
-  constructor(
-    public readonly customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService,
-    private cdRef: ChangeDetectorRef
-  ) {
-    this.messageActionItems = this.messageActionsService.defaultActions;
-  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -132,7 +128,7 @@ export class MessageActionsBoxComponent
   getReactionSelectorTemplateContext(): MessageReactionsSelectorContext {
     return {
       messageId: this.message?.id,
-      ownReactions: this.message?.own_reactions || [],
+      ownReactions: this.message?.own_reactions ?? [],
     };
   }
 

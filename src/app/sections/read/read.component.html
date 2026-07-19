@@ -140,8 +140,7 @@
               </ng-template>
             }
             @if (book.progressPercentage) {
-              <label
-                tuiProgressLabel
+              <div
                 class="progress"
               >
                 <span class="percent">{{ book.progressPercentage }}%</span>
@@ -152,7 +151,7 @@
                   [value]="book.progressPercentage"
                   [style.color]="'#ff7f00'"
                 />
-              </label>
+              </div>
             }
             <img alt="book cover image" [src]="book.coverImageUrl"/>
             <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>
@@ -178,9 +177,9 @@
       </div>
     }
     @if (loading$ | async) {
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"><span class="sr-only">Loading book</span></a></div>
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"><span class="sr-only">Loading book</span></a></div>
+      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"><span class="sr-only">Loading book</span></a></div>
     } @else if (filteredBooks.length === 0) {
       <div class="no-found">No books found 🥲</div>
     }

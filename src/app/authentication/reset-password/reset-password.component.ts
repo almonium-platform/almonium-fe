@@ -10,6 +10,7 @@ import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {AppConstants} from "../../app.constants";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {BehaviorSubject, finalize} from "rxjs";
+import {getErrorMessage} from '../../shared/http-error';
 
 @Component({
   selector: 'app-reset-password',
@@ -45,7 +46,7 @@ export class ResetPasswordComponent implements OnInit {
   private router = inject(Router);
   private alertService = inject(TuiNotificationService);
 
-  protected resetForm: FormGroup;
+  protected resetForm: FormGroup<{newPassword: FormControl<string>}>;
   private token = '';
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
@@ -53,16 +54,16 @@ export class ResetPasswordComponent implements OnInit {
 
   constructor() {
     this.resetForm = new FormGroup({
-      newPassword: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
+      newPassword: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]}),
     });
   }
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.token = params['oobCode'] || params['token'];
+    this.route.queryParamMap.subscribe((params) => {
+      this.token = params.get('oobCode') ?? params.get('token') ?? '';
       if (!this.token) {
         this.alertService.open('No token provided', {appearance: 'negative'}).subscribe();
-        this.router.navigate(['/auth']).then();
+        void this.router.navigate(['/auth']).then();
       }
 
       // Preemptively validate the token
@@ -81,16 +82,16 @@ export class ResetPasswordComponent implements OnInit {
     if (this.resetForm.valid) {
       this.loadingSubject$.next(true);
 
-      const newPassword = this.resetForm.get('newPassword')?.value;
+      const newPassword = this.resetForm.controls.newPassword.value ?? '';
       this.authService.resetPassword(this.token, newPassword)
         .pipe(finalize(() => this.loadingSubject$.next(false)))
         .subscribe({
           next: () => {
             this.alertService.open('Password reset successfully!', {appearance: 'positive'}).subscribe();
-            this.router.navigate(['/auth']).then();
+            void this.router.navigate(['/auth']).then();
           },
           error: (error) => {
-            const message = error.error.message;
+            const message = getErrorMessage(error, 'Password reset failed');
             this.showErrorAndRedirect(message);
           },
         });
@@ -99,6 +100,6 @@ export class ResetPasswordComponent implements OnInit {
 
   private showErrorAndRedirect(message: string) {
     this.alertService.open(message, {appearance: 'negative'}).subscribe();
-    this.router.navigate(['/auth']).then();
+    void this.router.navigate(['/auth']).then();
   }
 }

@@ -25,7 +25,7 @@ export class SwBypassInterceptor implements HttpInterceptor {
     }
   }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const origin = typeof location !== 'undefined' ? location.origin : 'http://localhost';
     if (!this.isApi(req.url, origin)) return next.handle(req);
     return next.handle(req.clone({setHeaders: {'ngsw-bypass': 'true'}}));

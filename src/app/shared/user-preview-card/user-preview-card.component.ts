@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../http-error';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
@@ -57,7 +58,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   @Input() userId!: string;
   @Input() publicProfile: UserProfileInfo | null = null;
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   // constant to store how many interests to display
   protected readonly MAX_INTERESTS = 4;
   protected readonly MAX_TARGET_LANGS = 4;
@@ -80,11 +81,10 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
   private dropdownOpen = false;
 
-  protected buttonConfig = {
+  protected buttonConfig: {label: string; icon: string; action: () => void} = {
     label: '',
     icon: '',
-    action: () => {
-    },
+    action: () => undefined,
   };
 
   constructor() {
@@ -117,7 +117,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         image: this.userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
       };
 
-      this.chatService.init(environment.streamChatApiKey, user, userToken);
+      void this.chatService.init(environment.streamChatApiKey, user, userToken);
     });
   }
 
@@ -142,28 +142,28 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
     }
     switch (this.userProfileInfo.relationshipStatus) {
-      case 'FRIENDS':
+      case RelationshipStatus.FRIENDS:
         this.buttonConfig = {
           label: 'Message',
           icon: 'message-circle',
           action: this.openChat.bind(this),
         };
         break;
-      case 'PENDING_INCOMING':
+      case RelationshipStatus.PENDING_INCOMING:
         this.buttonConfig = {
           label: 'Accept Request',
           icon: 'user-round-plus',
           action: this.acceptFriendRequest.bind(this),
         };
         break;
-      case 'PENDING_OUTGOING':
+      case RelationshipStatus.PENDING_OUTGOING:
         this.buttonConfig = {
           label: 'Cancel Request',
           icon: 'x',
           action: this.cancelFriendRequest.bind(this),
         };
         break;
-      case "STRANGER":
+      case RelationshipStatus.STRANGER:
         if (this.userProfileInfo.acceptsRequests) {
           console.log('User accepts requests');
           this.buttonConfig = {
@@ -175,17 +175,15 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.buttonConfig = {
             label: '',
             icon: '',
-            action: () => {
-            },
+            action: () => undefined,
           };
         }
         break;
-      case 'BLOCKED':
+      case RelationshipStatus.BLOCKED:
         this.buttonConfig = {
           label: '',
           icon: '',
-          action: () => {
-          },
+          action: () => undefined,
         };
     }
   }
@@ -238,8 +236,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.chatClient.blockUser(userId).then(() => {
-    });
+    void this.chatClient.blockUser(userId);
 
     this.loadingSubject$.next(true);
     this.socialService.block(userId)
@@ -254,7 +251,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -268,8 +265,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.chatClient.unBlockUser(friendId).then(() => {
-    });
+    void this.chatClient.unBlockUser(friendId);
 
     this.loadingSubject$.next(true);
     this.socialService.patchFriendship(relationshipId, RelationshipAction.UNBLOCK)
@@ -283,7 +279,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -307,7 +303,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -320,7 +316,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.router.navigate(['/social'], {queryParams: {chat: relationshipId}}).then();
+    void this.router.navigate(['/social'], {queryParams: {chat: relationshipId}}).then();
   }
 
   private cancelFriendRequest() {
@@ -343,7 +339,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -365,7 +361,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: (userProfileInfo) => {
-          this.createPrivateChat(userInfo.id, userProfileInfo.id, relationshipId)
+          void this.createPrivateChat(userInfo.id, userProfileInfo.id, relationshipId)
             .then(() => {
               this.userProfileInfo = userProfileInfo;
               this.setButtonConfig();
@@ -416,7 +412,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -431,7 +427,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected onMouseLeave() {
     setTimeout(() => {
       if (!this.dropdownOpen) {
-        this.close.emit();
+        this.closed.emit();
       }
     }, 10);
   }

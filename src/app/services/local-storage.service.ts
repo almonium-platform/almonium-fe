@@ -3,6 +3,7 @@ import {LanguageCode} from "../models/language.enum";
 import {AuthMethod} from "../authentication/auth/auth.types";
 import {Language} from "../models/language.model";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from "../sections/read/parallel-mode.type";
+import {UserInfo, UserInfoDto} from "../models/userinfo.model";
 
 const PARALLEL_MODE_KEY = 'parallel_mode';
 const USER_INFO_KEY = 'user_info';
@@ -19,7 +20,7 @@ const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
 export class LocalStorageService {
 
   // universal methods for saving, getting and removing items from local storage
-  public saveItem(key: string, value: any): void {
+  public saveItem(key: string, value: unknown): void {
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
@@ -41,12 +42,12 @@ export class LocalStorageService {
     window.localStorage.removeItem(key);
   }
 
-  saveUserInfo(userInfo: any): void {
+  saveUserInfo(userInfo: UserInfo): void {
     this.saveItem(USER_INFO_KEY, userInfo);
   }
 
-  getUserInfo(): any {
-    return this.getItem<any>(USER_INFO_KEY);
+  getUserInfo(): UserInfoDto | null {
+    return this.getItem<UserInfoDto>(USER_INFO_KEY);
   }
 
   clearUserInfo(): void {
@@ -58,7 +59,7 @@ export class LocalStorageService {
   }
 
   getCurrentLanguage(): LanguageCode {
-    return this.getItem<LanguageCode>(CURRENT_LANGUAGE_KEY) || LanguageCode.EN;
+    return this.getItem<LanguageCode>(CURRENT_LANGUAGE_KEY) ?? LanguageCode.EN;
   }
 
   removeCurrentLanguage(): void {
@@ -104,7 +105,7 @@ export class LocalStorageService {
   }
 
   saveLastSeen(userId: string, timestamp: Date): void {
-    const lastSeenData = this.getItem<Record<string, string>>(LAST_SEEN_KEY) || {};
+    const lastSeenData = this.getItem<Record<string, string>>(LAST_SEEN_KEY) ?? {};
     lastSeenData[userId] = timestamp.toISOString();
     this.saveItem(LAST_SEEN_KEY, lastSeenData);
   }

@@ -27,9 +27,9 @@ import {SwBypassInterceptor} from "./authentication/auth/sw-bypass-interceptor";
 
 const MY_CUSTOM_ERRORS = {
   required: 'Value is required',
-  minlength: ({requiredLength, actualLength}: any) =>
+  minlength: ({requiredLength, actualLength}: {requiredLength: number; actualLength: number}) =>
     `Too short: ${actualLength}/${requiredLength} characters`,
-  maxlength: ({requiredLength, actualLength}: any) =>
+  maxlength: ({requiredLength, actualLength}: {requiredLength: number; actualLength: number}) =>
     `Too long: ${actualLength}/${requiredLength} characters`,
   usernameTaken: 'Username is already taken',
   serverError: 'Server error',

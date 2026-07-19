@@ -50,10 +50,10 @@ export class NavbarPublicComponent implements OnInit, OnDestroy {
   }
 
   navigateToRoot() {
-    this.router.navigate(['/']).then();
+    void this.router.navigate(['/']).then();
   }
 
-  discoverOnClickOutside(_: Event) {
+  discoverOnClickOutside() {
     this.isDiscoverMenuOpen = false;
   }
 }

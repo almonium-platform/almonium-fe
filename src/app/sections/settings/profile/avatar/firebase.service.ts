@@ -18,13 +18,10 @@ export class FirebaseService {
         'state_changed',
         null,
         (error) => reject(error),
-        async () => {
-          try {
-            const url = await getDownloadURL(uploadTask.snapshot.ref); // Ensure the file is uploaded
-            resolve(url);
-          } catch (error) {
-            reject(error);
-          }
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then(resolve).catch((error: unknown) => {
+            reject(error instanceof Error ? error : new Error('Failed to resolve uploaded file URL'));
+          });
         }
       );
     });
@@ -35,9 +32,7 @@ export class FirebaseService {
     try {
       const result = await listAll(listRef);
       return await Promise.all(
-        result.items.map(async (itemRef) => {
-          return await getDownloadURL(itemRef);
-        })
+        result.items.map(itemRef => getDownloadURL(itemRef))
       );
     } catch (error) {
       console.error('Error fetching default avatars:', error);

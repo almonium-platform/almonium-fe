@@ -1,10 +1,10 @@
-import {Injectable} from '@angular/core';
+import {Injectable, TemplateRef} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 
 export interface DrawerState {
   visible: boolean;
   closeBtnOutside: boolean;
-  content?: any;
+  content?: TemplateRef<unknown>;
   type?: string;
   closing: boolean;
   doNotTrackOutsideClick?: boolean;
@@ -24,7 +24,7 @@ export class PopupTemplateStateService {
 
   drawerState$: Observable<DrawerState> = this.drawerState.asObservable();
 
-  open(content: any, type: string, outside = false, doNotTrackOutsideClick = false) {
+  open(content: TemplateRef<unknown>, type: string, outside = false, doNotTrackOutsideClick = false): void {
     this.drawerState.next({
       visible: true,
       closeBtnOutside: outside,

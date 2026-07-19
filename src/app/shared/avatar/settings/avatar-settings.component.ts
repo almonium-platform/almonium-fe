@@ -33,11 +33,11 @@ export class AvatarSettingsComponent {
   }
 
   get avatarUrl(): string | null {
-    return this.userInfo?.avatarUrl || null;
+    return this.userInfo?.avatarUrl ?? null;
   }
 
   get username(): string | null {
-    return this.userInfo?.username || null;
+    return this.userInfo?.username ?? null;
   }
 
   get outline(): boolean {

@@ -6,9 +6,11 @@ import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 @Component({
   selector: 'app-action-icon',
   template: `
-    <div
+    <button
+      type="button"
       class="relative flex items-center justify-center cursor-pointer"
       [class.disabled]="disabled || loadingState"
+      [disabled]="disabled || loadingState"
       (click)="onClick()"
     >
       @if (loadingState) {
@@ -25,7 +27,7 @@ import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
           [class.loading]="loadingState"
         ></lucide-icon>
       }
-    </div>
+    </button>
   `,
   imports: [
     SharedLucideIconsModule,
@@ -43,7 +45,7 @@ export class ActionIconComponent implements OnInit {
   @Input() loaderSize = 24; // Loader size for alignment
   @Input() strokeWidth = 1; // Icon stroke width
   @Input() disabled = false; // Whether the icon should be disabled
-  @Input() action: () => Observable<any> = () => new Observable(); // Action to execute
+  @Input() action: () => Observable<unknown> = () => new Observable(); // Action to execute
   @Output() actionCompleted = new EventEmitter<void>(); // Emit when action finishes
 
   protected loadingState = false;

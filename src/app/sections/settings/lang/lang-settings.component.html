@@ -3,7 +3,7 @@
   [title]="modalTitle"
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
-  (close)="closeTargetLangDeletionConfirmModal()"
+  (closed)="closeTargetLangDeletionConfirmModal()"
   (confirm)="confirmTargetLangDeletion()"
   [useCountdown]="true">
 </app-confirm-modal>
@@ -43,7 +43,7 @@
 
         <app-edit-button
           class="edit-element"
-          [disabled]="!(fluentEnabled$ | async)"
+          [disabled]="(fluentEnabled$ | async) !== true"
           [label]="'Save'"
           [editable]="fluentEditable"
           [loading$]="loading$"
@@ -76,6 +76,8 @@
           </tui-textfield>
         } @else {
           <div class="target-lang-chip"
+               tabindex="0"
+               (keydown.enter)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
                (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
                [ngClass]="targetLanguageNames.length > 1 ? 'cursor-pointer': ''"
           >
@@ -89,7 +91,7 @@
           </div>
         }
         <div class="edit-element">
-          <premium-badged-content
+          <app-premium-badged-content
             [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
             [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
             [badgeAltText]="'Premium'"
@@ -102,7 +104,7 @@
               class="black-n-white-button edit-btn circular-icon">
               <i class="fa-regular fa-plus text-base"></i>
             </button>
-          </premium-badged-content>
+          </app-premium-badged-content>
         </div>
       </div>
       <div class="row-container lang-settings">

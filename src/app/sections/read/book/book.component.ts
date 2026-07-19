@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -133,7 +134,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   get pages() {
-    if (this.book && this.book.wordCount) {
+    if (this.book?.wordCount) {
       const pages = Math.ceil(this.book.wordCount / 250);
       return pages > 0 ? pages : 1;
     }
@@ -180,7 +181,7 @@ export class BookComponent implements OnInit, OnDestroy {
     }
     this.showLangDropdown = false;
     this.orderLoading = true;
-    const id = this.book?.originalId ? this.book?.originalId : this.bookId;
+    const id = this.book?.originalId ?? this.bookId;
     this.readService.orderTranslation(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
@@ -193,7 +194,7 @@ export class BookComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Failed to order translation:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t order translation', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Couldn\'t order translation'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -218,7 +219,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.cdr.detectChanges();
           }, error: (error) => {
             console.error('Failed to add to favorites:', error);
-            this.alertService.open(error.error.message || 'Couldn\'t add to favorites', {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, 'Couldn\'t add to favorites'), {appearance: 'negative'}).subscribe();
           }
         });
     } else {
@@ -232,7 +233,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.cdr.detectChanges();
           }, error: (error) => {
             console.error('Failed to add to favorites:', error);
-            this.alertService.open(error.error.message || 'Couldn\'t remove favorites', {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, 'Couldn\'t remove favorites'), {appearance: 'negative'}).subscribe();
           }
         });
     }
@@ -251,7 +252,7 @@ export class BookComponent implements OnInit, OnDestroy {
       return;
     }
     this.orderLoading = true;
-    const id = this.book?.originalId ? this.book?.originalId : this.bookId;
+    const id = this.book?.originalId ?? this.bookId;
     this.readService.cancelTranslationOrder(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
@@ -262,13 +263,13 @@ export class BookComponent implements OnInit, OnDestroy {
           this.alertService.open('Translation order cancelled', {appearance: 'positive'}).subscribe();
         }, error: (error) => {
           console.error('Failed to cancel translation order:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t cancel translation order', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Couldn\'t cancel translation order'), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   getBookmarkColor(): string {
-    return this.book && this.book.favorite ? 'orange' : 'grey';
+    return this.book?.favorite ? 'orange' : 'grey';
   }
 
   onOriginalLanguageClick() {
@@ -281,7 +282,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   private navigateToId(id: number) {
-    this.router.navigate([`/book/${id}`]).then(success => {
+    void this.router.navigate([`/book/${id}`]).then(success => {
       if (!success) {
         console.error("Navigation failed!");
       }
@@ -289,12 +290,12 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   goToReader() {
-    this.router.navigate([`/reader/${this.bookId}`]).then();
+    void this.router.navigate([`/reader/${this.bookId}`]).then();
   }
 
   protected readonly signal = signal;
 
-  onClickOutsideLanguageDropdown($event: Event) {
+  onClickOutsideLanguageDropdown() {
     this.showLangDropdown = false;
   }
 

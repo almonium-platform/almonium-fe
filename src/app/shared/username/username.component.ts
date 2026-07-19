@@ -51,7 +51,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
   @ViewChild('username') usernameField!: TuiTextfieldComponent<string>;
   isLoading = false;
 
-  usernameForm: FormGroup;
+  usernameForm: FormGroup<{usernameValue: FormControl<string>}>;
   tooltipUsername = `Requirements:
 • ${AppConstants.MIN_USERNAME_LENGTH}-${AppConstants.MAX_USERNAME_LENGTH} characters,
 • lowercase Latin letters,
@@ -162,14 +162,14 @@ export class UsernameComponent implements OnInit, OnDestroy {
 
     this.loadingSubject$.next(true);
 
-    const username = this.usernameForm.get('usernameValue')?.value || '';
+    const username = this.usernameForm.controls.usernameValue.value;
     this.profileSettingsService
       .updateUsername(username)
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({username});
-          this.usernameForm.get('usernameValue')?.setValue(username, {emitEvent: false});
+          this.usernameForm.controls.usernameValue.setValue(username, {emitEvent: false});
           this.alertService.open('Username updated', {appearance: 'positive'}).subscribe();
           this.usernameEditable = false;
           this.usernameForm.updateValueAndValidity();
@@ -202,9 +202,8 @@ export class UsernameComponent implements OnInit, OnDestroy {
 
   private usernameAppNameValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const forbidden = control.value
-        ?.toLowerCase()
-        .includes('almonium'); // or whatever your app name is
+      const value = control.value as unknown;
+      const forbidden = typeof value === 'string' && value.toLowerCase().includes('almonium');
       return forbidden ? {appNameForbidden: 'You can\'t mention the app name'} : null;
     };
   }
@@ -223,7 +222,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
       // Debounce 500 ms, then check with server:
       return timer(500).pipe(
         switchMap(() =>
-          this.profileSettingsService.checkUsernameAvailability(control.value).pipe(
+          this.profileSettingsService.checkUsernameAvailability(String(control.value)).pipe(
             map(response => (response.available ? null : {usernameTaken: true})),
             catchError(() => of({serverError: true}))
           )

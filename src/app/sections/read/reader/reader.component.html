@@ -2,10 +2,13 @@
 
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
-     (touchstart)="onTouchStart($event)"
-     (touchmove)="onTouchMove($event)"
-     (touchend)="onTouchEnd($event)"
-     (touchcancel)="onTouchCancel($event)">
+     (keydown.arrowleft)="prevPage()"
+     (keydown.arrowright)="nextPage()"
+     tabindex="0"
+     (touchstart)="onTouchStart()"
+     (touchmove)="onTouchMove()"
+     (touchend)="onTouchEnd()"
+     (touchcancel)="onTouchCancel()">
 
   <!-- Loading and Error States -->
   @if (isLoading) {
@@ -25,13 +28,15 @@
     >
       <!-- Content Area - PASS MODE TO PIPE -->
       <div #readerContent
+           tabindex="-1"
            class="reader-content"
            [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
            [innerHTML]="bookHtmlContent | parallelFormat:{
               mode: isParallelViewActive ? currentParallelMode : null,
               targetLang: targetLangCode,
               fluentLang: fluentLangCode}"
-           (click)="onContentClick($event)">
+           (click)="onContentClick($event)"
+           (keydown.enter)="onContentClick($event)">
       </div>
     </div>
   }

@@ -14,7 +14,7 @@ import {UserPreviewCardComponent} from "./user-preview-card.component";
   standalone: true
 })
 export class UserPreviewCardWrapperComponent {
-  @ViewChild('preview', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('preview', {static: true}) content!: TemplateRef<unknown>;
 
   @Input() userId!: string;
 }

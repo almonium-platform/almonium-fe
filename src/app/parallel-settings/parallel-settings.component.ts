@@ -22,7 +22,7 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
   private parallelModeService = inject(ParallelModeService);
   private cdRef = inject(ChangeDetectorRef);
 
-  @ViewChild('parallelSettings', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('parallelSettings', {static: true}) content!: TemplateRef<unknown>;
 
   modeSelectedIndex = 0;
 

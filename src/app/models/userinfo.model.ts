@@ -47,7 +47,7 @@ export class UserInfo {
     );
   }
 
-  static fromJSON(data: any): UserInfo {
+  static fromJSON(data: UserInfoDto): UserInfo {
     return new UserInfo(
       data.id,
       data.username,
@@ -63,7 +63,7 @@ export class UserInfo {
       data.tags,
       Subscription.fromJSON(data.subscription),
       data.premium,
-      data.learners.map((learner: any) => Learner.fromJSON(learner)),
+      data.learners.map(learner => Learner.fromJSON(learner)),
       data.interests,
       data.uiPreferences,
       data.streamChatToken,
@@ -86,6 +86,27 @@ export class UserInfo {
   public isTargetLangPaywalled(): boolean {
     return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
   }
+}
+
+export interface UserInfoDto {
+  id: string;
+  username: string;
+  email: string;
+  emailVerified: boolean;
+  hidden: boolean;
+  uiLang: string | null;
+  avatarUrl: string | null;
+  background: string | null;
+  streak: number | null;
+  fluentLangs: LanguageCode[];
+  setupStep: SetupStep;
+  tags: string[] | null;
+  subscription: SubscriptionDto;
+  premium: boolean;
+  learners: LearnerDto[];
+  interests: Interest[];
+  uiPreferences: UIPreferences;
+  streamChatToken: string;
 }
 
 export interface UIPreferences {
@@ -129,7 +150,7 @@ export class Learner {
   ) {
   }
 
-  static fromJSON(data: any): Learner {
+  static fromJSON(data: LearnerDto): Learner {
     return new Learner(
       data.id,
       data.language,
@@ -137,6 +158,13 @@ export class Learner {
       data.active,
     );
   }
+}
+
+export interface LearnerDto {
+  id: string;
+  language: LanguageCode;
+  selfReportedLevel: CEFRLevel;
+  active: boolean;
 }
 
 export enum CEFRLevel {
@@ -159,7 +187,7 @@ export class Subscription {
   ) {
   }
 
-  static fromJSON(data: any): Subscription {
+  static fromJSON(data: SubscriptionDto): Subscription {
     return new Subscription(data.name, data.limits, data.type, data.autoRenewal, new Date(data.startDate), new Date(data.endDate));
   }
 
@@ -170,6 +198,15 @@ export class Subscription {
   getMaxTargetLanguages(): number {
     return this.getLimit(PlanLimitKeys.MAX_TARGET_LANGS);
   }
+}
+
+export interface SubscriptionDto {
+  name: string;
+  limits: Record<string, number>;
+  type: PlanType;
+  autoRenewal: boolean | null;
+  startDate: string | Date;
+  endDate: string | Date;
 }
 
 export const PlanLimitKeys = {

@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../shared/http-error';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
 import {
   AbstractControl,
@@ -42,6 +43,10 @@ import {AsyncPipe, NgClass} from "@angular/common";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";
 
+type CefrFormGroup = FormGroup<{
+  language: FormControl<string>;
+  cefrLevel: FormControl<CEFRLevel | null>;
+}>;
 
 @Component({
   selector: 'app-language-setup',
@@ -98,7 +103,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private utilsService = inject(UtilsService);
 
-  @ViewChild('langSetup', {static: true}) content!: TemplateRef<any>;
+  @ViewChild('langSetup', {static: true}) content!: TemplateRef<unknown>;
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.LANGUAGES;
 
@@ -144,10 +149,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   targetLanguagesControl = new FormControl<string[]>([], {nonNullable: true});
 
   // STEP 2. CEFR
-  cefrForm!: FormGroup;
+  cefrForm!: FormGroup<{languages: FormArray<CefrFormGroup>}>;
   cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
   fluentFormValid = true;
-  private cachedCefrLevels = new Map<string, string>();
+  private cachedCefrLevels = new Map<string, CEFRLevel>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -163,7 +168,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       }, {validators: this.languageFormValidator()}
     );
     this.cefrForm = this.fb.group({
-      languages: this.fb.array([])
+      languages: this.fb.array<CefrFormGroup>([])
     });
 
     this.filteredTargetLanguages$ = this.targetSearch$.pipe(
@@ -175,7 +180,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   private languageFormValidator(): ValidatorFn {
-    return (_: AbstractControl): ValidationErrors | null => {
+    return (): ValidationErrors | null => {
       if (!this.fluentFormValid) {
         return {fluentLanguagesInvalid: true}; // Error if fluent form is invalid
       }
@@ -185,11 +190,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   private cefrLevelValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-      const value = control.value;
+      const value = control.value as unknown;
 
       // Check if the value is a valid CEFR level
       const validLevels = Object.values(CEFRLevel);
-      if (!validLevels.includes(value)) {
+      if (typeof value !== 'string' || !validLevels.includes(value as CEFRLevel)) {
         return {invalidCefrLevel: true};
       }
 
@@ -290,12 +295,12 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected get languages(): FormArray {
-    return this.cefrForm.get('languages') as FormArray;
+  protected get languages(): FormArray<CefrFormGroup> {
+    return this.cefrForm.controls.languages;
   }
 
-  protected getCefrLevelControl(idx: number): FormControl {
-    return this.languages.at(idx).get('cefrLevel') as FormControl;
+  protected getCefrLevelControl(idx: number): FormControl<CEFRLevel | null> {
+    return this.languages.at(idx).controls.cefrLevel;
   }
 
   private initializeCefrForm(learners: Learner[], targetLanguages: string[]): void {
@@ -305,11 +310,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       const learner = learners.find((l) => l.language === languageCode);
 
       return this.fb.group({
-        language: [languageName, Validators.required],
-        cefrLevel: [
-          learner?.selfReportedLevel || null,
-          [Validators.required, this.cefrLevelValidator()],
-        ],
+        language: this.fb.nonNullable.control(languageName, Validators.required),
+        cefrLevel: new FormControl<CEFRLevel | null>(
+          learner?.selfReportedLevel ?? null,
+          [Validators.required, this.cefrLevelValidator()]
+        ),
       });
     });
 
@@ -364,11 +369,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     const formArray = this.languages;
 
     // Create a map of existing languages and their CEFR levels
-    const existingLevels = new Map<string, string>();
+    const existingLevels = new Map<string, CEFRLevel>();
     formArray.controls.forEach((control) => {
       const language = control.get('language')?.value;
       const cefrLevel = control.get('cefrLevel')?.value;
-      if (language) {
+      if (language && cefrLevel) {
         existingLevels.set(language, cefrLevel);
         this.cachedCefrLevels.set(language, cefrLevel); // Cache the CEFR level
       }
@@ -381,11 +386,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     targetLanguages.forEach((language) => {
       formArray.push(
         this.fb.group({
-          language: [language, Validators.required], // Read-only field for the language name
-          cefrLevel: [
-            existingLevels.get(language) || this.cachedCefrLevels.get(language) || null,
-            [Validators.required, this.cefrLevelValidator()],
-          ],
+          language: this.fb.nonNullable.control(language, Validators.required), // Read-only field for the language name
+          cefrLevel: new FormControl<CEFRLevel | null>(
+            (existingLevels.get(language) ?? this.cachedCefrLevels.get(language)) ?? null,
+            [Validators.required, this.cefrLevelValidator()]
+          ),
         })
       );
     });
@@ -505,7 +510,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error saving languages:', error);
-        this.alertService.open(error.error.message || 'Failed to add new target languages', {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, 'Failed to add new target languages'), {appearance: 'negative'}).subscribe();
       },
     });
   }
@@ -560,15 +565,21 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to save your preferences', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to save your preferences'), {appearance: 'negative'}).subscribe();
           console.error('Error saving languages:', error);
         },
       });
   }
 
-  private prepareTargetLanguagesData(): { language: string; cefrLevel: string }[] {
-    return this.cefrForm.value.languages.map((entry: any) => {
+  private prepareTargetLanguagesData(): TargetLanguageWithProficiency[] {
+    return this.cefrForm.getRawValue().languages.map(entry => {
+      if (!entry.cefrLevel) {
+        throw new Error(`Missing CEFR level for ${entry.language}`);
+      }
       const languageCode = this.languageNameService.mapLanguageNameToCode(this.supportedLanguages, entry.language);
+      if (!languageCode) {
+        throw new Error(`Unsupported language: ${entry.language}`);
+      }
       this.cachedCefrLevels.set(entry.language, entry.cefrLevel); // Cache CEFR level
       return {
         language: languageCode,
@@ -579,7 +590,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   get isDataChanged(): boolean {
     const currentData = this.prepareTargetLanguagesData();
-    const originalData = this.userInfo!.learners.map((learner: any) => ({
+    const originalData = this.userInfo!.learners.map(learner => ({
       language: learner.language,
       cefrLevel: learner.selfReportedLevel,
     }));

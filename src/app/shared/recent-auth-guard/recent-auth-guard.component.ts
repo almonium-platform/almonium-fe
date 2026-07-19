@@ -34,7 +34,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
           this.isAuthModalVisible = state.visible;
           if (state.visible) {
             setTimeout(() => {
-              if (this.authComponent && this.authComponent.content) {
+              if (this.authComponent?.content) {
                 this.popupTemplateStateService.open(this.authComponent.content, 'auth', true);
               } else {
                 console.error('AuthComponent or its content is undefined.');

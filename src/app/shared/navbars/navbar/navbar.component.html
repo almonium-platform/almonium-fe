@@ -2,7 +2,7 @@
 
 <nav class="navbar">
   <div class="navbar-content">
-    <div class="logo-container relative" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside($event)">
+  <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
       <app-gif-player [replayTrigger]="replayGifSubject" class="app-icon"></app-gif-player>
     </div>
 
@@ -44,7 +44,7 @@
     }
 
     <div class="nav-actions">
-      <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
+      <div class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
         <div class="relative lang-dropdown">
           <button (click)="toggleLanguageDropdown()" class="badge-btn text-lg"
                   [ngStyle]="getButtonStyles(currentLanguage)">
@@ -54,6 +54,7 @@
 
           @if (isLanguageDropdownOpen) {
             <div
+              tabindex="0"
               class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
               (keydown)="handleKeydown($event)">
               <div class="py-1">
@@ -75,7 +76,7 @@
       </div>
       @for (item of navbarItems; track item.name) {
         @if (item.enabled) {
-          <div class="icon-badge relative" (click)="item.action()">
+          <div class="icon-badge relative" (keydown.enter)="item.action()" tabindex="0" (click)="item.action()">
             <button>
               <tui-badged-content>
                 @if (item.hasUpdate) {
@@ -96,8 +97,8 @@
       }
 
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" (click)="toggleProfilePopover()"
-           (clickOutside)="profileOnClickOutside($event)">
+      <div class="user-profile relative" (keydown.enter)="toggleProfilePopover()" tabindex="0" (click)="toggleProfilePopover()"
+           (clickOutside)="profileOnClickOutside()">
         <app-avatar
           class="profile-circle"
           [avatarUrl]="userInfo?.avatarUrl ?? null"
@@ -196,7 +197,7 @@
 @if (isTimerOpen) {
   <div
     class="popover-menu right-32 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 notifications"
-    (clickOutside)="timerOnClickOutside($event)"
+    (clickOutside)="timerOnClickOutside()"
   >
     <app-timer></app-timer>
   </div>
@@ -205,7 +206,7 @@
 @if (isNotificationOpen) {
   <div
     class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 notifications"
-    (clickOutside)="notificationOnClickOutside($event)"
+    (clickOutside)="notificationOnClickOutside()"
   >
     @if (notifications.length > 0) {
       <div class="header">
@@ -290,7 +291,7 @@
                   [userId]="notification.senderId"
                 ></app-avatar-preview>
 
-                <div class="notification-content" (click)="onNotificationClick(notification)">
+                <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
                   <div class="notification-title">{{ notification.title }}
                     <p>
                       {{ (notification.createdAt | shortRelativeTime) }}

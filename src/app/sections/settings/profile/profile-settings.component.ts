@@ -99,7 +99,7 @@ auto-renewal in the customer portal.`;
 
   private currentFeatureIndex = Math.floor(Math.random() * this.premiumFeatures.length);
   protected displayedFeature = this.premiumFeatures[this.currentFeatureIndex];
-  private featureRotationInterval: any;
+  private featureRotationInterval?: ReturnType<typeof setInterval>;
 
   // interests
   protected interestsEdit = false;
@@ -182,7 +182,9 @@ auto-renewal in the customer portal.`;
 
     this.planService.accessCustomerPortal().subscribe((url) => {
       this.loadingSubjectCustomerPortal$.next(false);
-      window.location.href = url.sessionUrl;
+      if (url) {
+        window.location.href = url.sessionUrl;
+      }
     });
   }
 
@@ -208,7 +210,7 @@ auto-renewal in the customer portal.`;
     this.modalTitle = 'Cancel Subscription';
     this.modalMessage = this.modalMessageSubCancel;
     this.modalConfirmText = 'Downgrade Now';
-    this.modalAction = this.cancelSubscription;
+    this.modalAction = () => this.cancelSubscription();
     this.isConfirmModalVisible = true;
   }
 
@@ -240,7 +242,7 @@ auto-renewal in the customer portal.`;
       this.alertService
         .open('Interests updated', {appearance: 'positive'})
         .subscribe();
-    } catch (error) {
+    } catch {
       this.alertService
         .open('Failed to update interests', {appearance: 'negative'})
         .subscribe();

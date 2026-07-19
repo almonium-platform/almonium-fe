@@ -118,7 +118,7 @@ export class ButtonComponent implements OnInit {
 
   onClick() {
     if (this.redirectUrl) {
-      this.router.navigate([this.redirectUrl]).then();
+      void this.router.navigate([this.redirectUrl]).then();
       return;
     }
     this.clickFunction.emit();

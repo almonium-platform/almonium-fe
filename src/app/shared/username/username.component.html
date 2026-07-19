@@ -1,11 +1,11 @@
 <div class="row-content">
   @if (!usernameEditable) {
-    <label
+    <div
       [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
       [style.font-size]="usernameFontSize"
       class="username-label flex items-center"
     >&#64;{{ userInfo?.username }}
-    </label>
+    </div>
   }
 
   @if (usernameEditable) {

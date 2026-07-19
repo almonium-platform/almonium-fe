@@ -1,5 +1,5 @@
 <!--content for popups-->
-<paywall></paywall>
+<app-paywall></app-paywall>
 <app-recent-auth-guard></app-recent-auth-guard>
 
 @if (userInfo) {
@@ -13,7 +13,7 @@
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
   (confirm)="cancelSubscription()"
-  (close)="closeModal()"
+  (closed)="closeModal()"
   [useCountdown]="useCountdown">
 </app-confirm-modal>
 
@@ -164,7 +164,7 @@
           <span tuiChip
             class="edit-chip"
             appearance="outline"
-            (click)="editInterests()"
+            (keydown.enter)="editInterests()" tabindex="0" (click)="editInterests()"
           >
             <lucide-icon name="pencil"
                          [size]="15"
@@ -181,7 +181,7 @@
           <span tuiChip
             class="edit-chip"
             appearance="outline"
-            (click)="editInterests()"
+            (keydown.enter)="editInterests()" tabindex="0" (click)="editInterests()"
           >
             <lucide-icon name="plus"
                          [size]="'15'"

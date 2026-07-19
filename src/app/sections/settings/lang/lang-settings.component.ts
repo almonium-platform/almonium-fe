@@ -1,3 +1,4 @@
+import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -103,7 +104,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
   protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
-  protected targetLanguageSelectControl = new FormControl();
+  protected targetLanguageSelectControl = new FormControl('', {nonNullable: true});
   protected showTargetLangDropdown = false;
 
   // TL deletion modal
@@ -167,7 +168,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.selectedFluentLanguages = info.fluentLangs;
         this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
         this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
-        this.targetLanguageSelectControl = new FormControl(this.targetLanguageNames[0]);
+        this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
         this.learners = info.learners;
         this.updateFluentEnabled();
         this.patchCefrControlFromCurrentLearner();
@@ -209,9 +210,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
     const learner = this.learners.find((learner) => learner.language === selectedLanguageCode);
     if (!learner) {
-      console.error(`Learner not found for ${selectedLanguageCode}`);
+      throw new Error(`Learner not found for ${selectedLanguageCode}`);
     }
-    return learner!;
+    return learner;
   }
 
   private validateFluentLanguages() {
@@ -223,7 +224,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       !this.fluentEditable ||
       (this.validateFluentLanguages() && !this.utilsService.areArraysEqual(this.selectedFluentLanguages, this.currentFluentLanguages, (a, b) => a === b));
 
-    Promise.resolve().then(() => {
+    void Promise.resolve().then(() => {
       this.fluentEnabled$.next(isEnabled);
       this.cdr.detectChanges();
     });
@@ -261,7 +262,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
           this.currentFluentLanguages = this.selectedFluentLanguages;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to save fluent languages'), {appearance: 'negative'}).subscribe();
           this.restoreFluent();
         },
       });
@@ -285,7 +286,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected getCurrentTargetLanguageName() {
+  protected getCurrentTargetLanguageName(): string {
     return this.targetLanguageSelectControl.value;
   }
 
@@ -320,7 +321,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.targetLanguageNames = this.targetLanguageNames.filter(lang => lang !== deletedLanguageName);
 
         // Reset selection to the first available language
-        this.targetLanguageSelectControl.setValue(this.targetLanguageNames.length ? this.targetLanguageNames[0] : null);
+        this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
 
         // Remove from service and update user info
         this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguageCode);
@@ -330,7 +331,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to delete your target language', {appearance: 'negative'})
+          .open(getErrorMessage(error, 'Failed to delete your target language'), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -369,7 +370,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.alertService.open(err.error.message || 'Failed to update active status', {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(err, 'Failed to update active status'), {appearance: 'negative'}).subscribe();
         this.currentLearner.active = !active;
       },
     });

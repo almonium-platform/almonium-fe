@@ -3,7 +3,7 @@
   [title]="modalTitle"
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
-  (close)="closeConfirmModal()"
+  (closed)="closeConfirmModal()"
   (confirm)="confirmModalAction()"
   [useCountdown]="useCountdown">
 </app-confirm-modal>
@@ -27,22 +27,22 @@
                    (click)="setDrawerMode('menu')"
       ></lucide-icon>
       <p class="header-text">{{ drawerHeader }}</p>
-      <app-dismiss-button [relative]="true" (close)="closeDrawer()"></app-dismiss-button>
+      <app-dismiss-button [relative]="true" (closed)="closeDrawer()"></app-dismiss-button>
     </div>
   </header>
   <div class="drawer-container">
     @if (drawerMode === 'menu') {
       <div class="menu-tiles">
-        <div class="menu-tile card" (click)="setDrawerMode('search')">
+        <div class="menu-tile card" (keydown.enter)="setDrawerMode('search')" tabindex="0" (click)="setDrawerMode('search')">
           <lucide-icon name="user-round-search" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Search</p>
         </div>
-        <div class="menu-tile card" (click)="setDrawerMode('friends')">
+        <div class="menu-tile card" (keydown.enter)="setDrawerMode('friends')" tabindex="0" (click)="setDrawerMode('friends')">
           <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Friends</p>
         </div>
 
-        <div class="menu-tile card" (click)="setDrawerMode('requests')">
+        <div class="menu-tile card" (keydown.enter)="setDrawerMode('requests')" tabindex="0" (click)="setDrawerMode('requests')">
           <tui-badged-content class="menu-icon">
             @if (incomingRequestsCount > 0) {
               <tui-badge-notification
@@ -57,7 +57,7 @@
           <p class="menu-text">Requests</p>
         </div>
 
-        <div class="menu-tile card" (click)="setDrawerMode('blocked')">
+        <div class="menu-tile card" (keydown.enter)="setDrawerMode('blocked')" tabindex="0" (click)="setDrawerMode('blocked')">
           <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
           <p class="menu-text">Blocked</p>
         </div>
@@ -362,7 +362,7 @@
         </lucide-icon>
       </div>
       <div class="search-header"
-           (click)="openSearch()">
+           (keydown.enter)="openSearch()" tabindex="0" (click)="openSearch()">
         <lucide-icon name="search"
                      class="search-icon"
         ></lucide-icon>
@@ -417,7 +417,7 @@
                       <app-user-preview-card
                         [userId]="interlocutorId"
                         (mouseenter)="previewCardOnHover()"
-                        (close)="previewCardOnLeave()"
+                        (closed)="previewCardOnLeave()"
                       ></app-user-preview-card>
                     }
                   </ng-template>
@@ -441,7 +441,7 @@
                 tuiDropdownContext
                 [tuiDropdown]="contextMenu"
                 (contextmenu)="dropdown.toggle(true)"
-                (click)="dropdown.toggle(false)"
+                (keydown.enter)="dropdown.toggle(false)" tabindex="0" (click)="dropdown.toggle(false)"
               >
                 <ng-template #contextMenu>
 
@@ -668,7 +668,7 @@
     </div>
   </div>
 
-  <div class="resizer" (mousedown)="startResizing($event)"></div>
+  <div class="resizer" (mousedown)="startResizing()"></div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <div class="chat-window">

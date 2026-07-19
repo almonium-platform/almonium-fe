@@ -30,7 +30,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Diacritic popup
   @ViewChild('diacriticPopup') diacriticPopup!: DiacriticPopupComponent;
-  @ViewChild('searchInput') searchInput!: ElementRef;
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLElement>;
   protected popupOptions: string[] = [];
   protected popupPosition = {top: '0px', left: '0px'};
   protected diacriticPopupFocusIndex = -1;
@@ -55,8 +55,8 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private globalKeydownListener!: () => void;
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      this.searchText = params['text'] || '';
+    this.route.queryParamMap.subscribe(params => {
+      this.searchText = params.get('text') ?? '';
     });
 
     this.globalKeydownListener = this.renderer.listen('document', 'keydown', (event: KeyboardEvent) => {
@@ -77,7 +77,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     // Listen for paste events to sanitize pasted content
     this.renderer.listen(this.searchInput.nativeElement, 'paste', (event: ClipboardEvent) => {
       event.preventDefault(); // Prevent the default paste behavior
-      const text = event.clipboardData?.getData('text/plain') || ''; // Get plain text from the clipboard
+      const text = event.clipboardData?.getData('text/plain') ?? ''; // Get plain text from the clipboard
       this.insertTextAtCursor(text); // Insert the plain text at the cursor position
       this.changeTextAlignIfMoreThanOneLine();
     });
@@ -99,7 +99,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private focusSearchInput(): void {
-    const element = this.renderer.selectRootElement('.search-input', true);
+    const element = this.renderer.selectRootElement('.search-input', true) as HTMLElement;
     if (element) {
       element.focus();
 
@@ -136,7 +136,8 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   protected onSearchChange(): void {
     this.changeTextAlignIfMoreThanOneLine();
 
-    let {previousText, currentText, changeIndex} = this.trackTextChanges();
+    const {previousText, currentText: initialText, changeIndex} = this.trackTextChanges();
+    let currentText = initialText;
 
     // Prevent leading whitespace
     if (currentText.startsWith(' ')) {
@@ -205,8 +206,6 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     const element = this.searchInput.nativeElement;
 
     // Save the current selection
-    const selection = window.getSelection();
-    const range = selection?.getRangeAt(0);
     const caretOffset = this.getCaretCharacterOffsetWithin(element);
 
     // Update the content
@@ -232,15 +231,15 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private setCaretPosition(element: HTMLElement, offset: number): void {
     const selection = window.getSelection();
     const range = document.createRange();
-    range.setStart(element.firstChild || element, 0);
+    range.setStart(element.firstChild ?? element, 0);
     range.collapse(true);
     selection?.removeAllRanges();
     selection?.addRange(range);
 
     // Move the caret to the desired offset
     const textNode = element.firstChild;
-    if (textNode && textNode.nodeType === Node.TEXT_NODE) {
-      range.setStart(textNode, Math.min(offset, textNode.textContent?.length || 0));
+    if (textNode?.nodeType === Node.TEXT_NODE) {
+      range.setStart(textNode, Math.min(offset, textNode.textContent?.length ?? 0));
       range.collapse(true);
       selection?.removeAllRanges();
       selection?.addRange(range);
@@ -257,7 +256,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Tracks changes between the previous and current text input */
   private trackTextChanges(): { previousText: string; currentText: string; changeIndex: number | null } {
-    const currentText = (this.searchInput.nativeElement.textContent || '').replace(/\u00A0/g, ' ');
+    const currentText = (this.searchInput.nativeElement.textContent ?? '').replace(/\u00A0/g, ' ');
     const previousText = this.previousSearchText;
     const changeIndex = this.diacriticService.findChangeIndex(previousText, currentText);
     return {previousText, currentText, changeIndex};
@@ -304,7 +303,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     this.clearDiactrics();
 
     // Update `previousSearchText` to reflect the new text content of the input
-    this.previousSearchText = (this.searchInput.nativeElement.textContent || '').replace(/\u00A0/g, ' ');
+    this.previousSearchText = (this.searchInput.nativeElement.textContent ?? '').replace(/\u00A0/g, ' ');
   }
 
   private isTouchDevice() {
@@ -314,7 +313,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private mobileHandle(diacritic: string) {
     const input = this.searchInput.nativeElement;
     input.focus();
-    const textContent = input.textContent || '';
+    const textContent = input.textContent ?? '';
     input.textContent = textContent.slice(0, -1) + diacritic;
 
     // Set caret at the end of content
@@ -340,7 +339,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
         const previousNode = this.getPreviousTextNode(range.startContainer);
         if (previousNode) {
           // Set the range to the last character of the previous text node
-          const length = previousNode.textContent?.length || 0;
+          const length = previousNode.textContent?.length ?? 0;
           range.setStart(previousNode, length - 1);
           range.setEnd(previousNode, length);
         }
@@ -491,7 +490,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.filteredOptions = [];
       this.currentAutocompleteItemFocusIndex = -1;
-      const element = this.renderer.selectRootElement('.search-input', true);
+      const element = this.renderer.selectRootElement('.search-input', true) as HTMLElement;
       if (element) {
         element.blur();
       }
@@ -549,7 +548,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     const inputElement = this.searchInput.nativeElement;
     const currentContentHeight = inputElement.scrollHeight;
 
-    if (this.singleLineHeight == 0) {
+    if (this.singleLineHeight === 0) {
       this.singleLineHeight = currentContentHeight;
       return;
     }

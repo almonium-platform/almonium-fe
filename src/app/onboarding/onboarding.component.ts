@@ -70,7 +70,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       this.activeStep = this.storedStep; // Default active step is the stored step initially
       this.cdr.detectChanges();
       if (this.storedStep === SetupStep.COMPLETED) {
-        this.router.navigate(['/home']).then();
+        void this.router.navigate(['/home']).then();
       }
     });
 

@@ -27,7 +27,7 @@
         <!-- Fluent Languages-->
         @if (!embeddedMode) {
           <div class="form-group">
-            <label>I'm fluent in</label>
+            <div class="form-label">I'm fluent in</div>
             <app-fluent-language-selector
               [languages]="supportedLanguages"
               [selectedLanguages]="cachedFluentLanguages"
@@ -37,7 +37,7 @@
         }
         <!-- Target Languages -->
         <div class="form-group">
-          <label>I want to learn</label>
+          <div class="form-label">I want to learn</div>
 
           <tui-textfield
             multi
@@ -160,7 +160,7 @@
               >
                 <span tuiChip
                   class="cefr-lang-chip"
-                  [style.background-color]="languages.at(idx).get('language')?.value | tuiAutoColor"
+              [style.background-color]="languages.at(idx).controls.language.value | tuiAutoColor"
                 >
                   {{ languages.at(idx).get('language')?.value }}
                 </span>

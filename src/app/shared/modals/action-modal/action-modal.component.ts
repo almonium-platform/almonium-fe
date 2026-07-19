@@ -12,7 +12,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     @if (isVisible) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative motion-preset-slide-up-sm">
-          <app-dismiss-button (close)="onClose()"></app-dismiss-button>
+          <app-dismiss-button (closed)="onClose()"></app-dismiss-button>
           <div class="flex items-center mb-4 flex-row">
             <span class="flex items-center justify-center" style="margin-right: 6px">
               <i [ngClass]="titleIcon"
@@ -51,12 +51,12 @@ export class ActionModalComponent {
   @Input() secondaryActionText?: string;
   @Input() titleIcon?: string;
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() primaryAction = new EventEmitter<void>();
   @Output() secondaryAction = new EventEmitter<void>();
 
   onClose() {
-    this.close.emit();
+    this.closed.emit();
   }
 
   onConfirmOne() {

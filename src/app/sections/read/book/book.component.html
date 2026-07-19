@@ -89,7 +89,7 @@
                 class="chip"
                 appearance="neutral"
                 [style.background-color]="originalLanguage! | tuiAutoColor"
-                (click)="onOriginalLanguageClick()"
+                (keydown.enter)="onOriginalLanguageClick()" tabindex="0" (click)="onOriginalLanguageClick()"
               >
                 {{ originalLanguage }}
               </span>
@@ -113,7 +113,7 @@
               <span tuiChip
                 class="chip"
                 [style.background-color]="language | tuiAutoColor"
-                (click)="onTranslatedLanguageClick(language)"
+                (keydown.enter)="onTranslatedLanguageClick(language)" tabindex="0" (click)="onTranslatedLanguageClick(language)"
               >{{ language }}
               </span>
             }
@@ -122,7 +122,7 @@
               <span tuiChip
                 class="edit-chip edit-chip--no-hover"
                 appearance="outline"
-                (click)="openLanguageDropdown()"
+                (keydown.enter)="openLanguageDropdown()" tabindex="0" (click)="openLanguageDropdown()"
                 tuiHintAppearance="dark"
                 tuiHintDirection="bottom"
                 [tuiHint]="orderTooltip"
@@ -144,7 +144,7 @@
                   tuiChevron
                   tuiTextfieldSize="s"
                   class="language-select"
-                  (clickOutside)="onClickOutsideLanguageDropdown($event)"
+                  (clickOutside)="onClickOutsideLanguageDropdown()"
                 >
                   <input
                     tuiSelect
@@ -162,7 +162,7 @@
                 <span tuiChip
                   class="edit-chip"
                   appearance="outline"
-                  (click)="openLanguageDropdown()"
+                  (keydown.enter)="openLanguageDropdown()" tabindex="0" (click)="openLanguageDropdown()"
                   [tuiSkeleton]="orderLoading"
                 >
                   <lucide-icon name="plus"

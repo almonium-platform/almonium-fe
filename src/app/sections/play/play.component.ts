@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {NgClass} from "@angular/common";
 import {RouterLink} from "@angular/router";
 
@@ -11,14 +11,8 @@ import {RouterLink} from "@angular/router";
   ],
   styleUrls: ['./play.component.less']
 })
-export class PlayComponent implements OnInit {
+export class PlayComponent {
   filter = 'all';
-
-  constructor() {
-  }
-
-  ngOnInit() {
-  }
 
   filterGames(filter: string) {
     this.filter = filter;

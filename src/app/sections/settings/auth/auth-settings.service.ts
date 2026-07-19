@@ -65,19 +65,19 @@ export class AuthSettingsService {
     return from(this.firebaseAuth.authStateReady()).pipe(map(() => {
       const user = this.firebaseAuth.currentUser;
       if (!user) return [];
-      const createdAt = user.metadata.creationTime || new Date().toISOString();
-      const updatedAt = user.metadata.lastSignInTime || createdAt;
+      const createdAt = user.metadata.creationTime ?? new Date().toISOString();
+      const updatedAt = user.metadata.lastSignInTime ?? createdAt;
       return user.providerData.map(provider => ({
         provider: provider.providerId === 'password' ? 'local' : provider.providerId.replace('.com', ''),
-        email: provider.email || user.email || '',
+        email: (provider.email ?? user.email) ?? '',
         createdAt,
         updatedAt,
       }));
     }));
   }
 
-  isEmailAvailable(_email: string): Observable<boolean> {
-    return of(true);
+  isEmailAvailable(email: string): Observable<boolean> {
+    return of(email.length > 0);
   }
 
   populateAuthMethods(): Observable<AuthMethod[]> {

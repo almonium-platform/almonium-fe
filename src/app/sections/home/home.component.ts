@@ -26,8 +26,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Subscribe to the shared user info observable
     this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       this.userInfo = info;
-      if (info?.setupStep! !== SetupStep.COMPLETED) {
-        this.router.navigate(['/onboarding']).then();
+      if (info?.setupStep !== SetupStep.COMPLETED) {
+        void this.router.navigate(['/onboarding']).then();
       }
       this.cdr.markForCheck(); // Trigger change detection manually to update the view
     });
