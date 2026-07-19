@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import {TuiSegmented} from "@taiga-ui/kit";
+import {TuiSegmented} from "@taiga-ui/kit/components";
 import {ParallelMode} from '../sections/read/parallel-mode.type';
 import {Subject, takeUntil} from "rxjs";
 import {ParallelModeService} from "../sections/read/parallel-mode.service";

@@ -2,8 +2,9 @@ import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angu
 import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
-import {TuiHintDirection, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiLoader} from "@taiga-ui/core/components";
+import {TuiHintDirection, TuiHintDirective} from "@taiga-ui/core/portals";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 
 @Component({
   selector: 'app-button',

@@ -16,14 +16,16 @@ import {CommonModule} from '@angular/common';
 import {Language} from '../../models/language.model';
 
 import {
-  TuiChevron,
   TuiDataListWrapperComponent,
   TuiInputChipComponent,
   TuiInputChipDirective,
   TuiMultiSelectGroupDirective
-} from '@taiga-ui/kit';
-import { TuiError, TuiTextfieldMultiComponent, TUI_VALIDATION_ERRORS, TuiDropdownContent } from '@taiga-ui/core';
-import {TuiItem} from '@taiga-ui/cdk';
+} from '@taiga-ui/kit/components';
+import {TuiChevron} from '@taiga-ui/kit/directives';
+import {TuiError, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
+import {TuiDropdownContent} from '@taiga-ui/core/portals';
+import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
+import {TuiItem} from '@taiga-ui/cdk/directives';
 
 const MAX_LANGUAGES = 3;
 

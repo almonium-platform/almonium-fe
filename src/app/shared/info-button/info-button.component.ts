@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-import {TuiHint} from "@taiga-ui/core";
+import {TuiHint} from "@taiga-ui/core/portals";
 import {LucideAngularModule} from "lucide-angular";
 
 @Component({

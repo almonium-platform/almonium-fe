@@ -1,8 +1,9 @@
-import { TuiInput } from "@taiga-ui/core";
+import {TuiInput} from "@taiga-ui/core/components";
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CEFRLevel} from '../../models/userinfo.model';
-import {TuiChevron, TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit';
+import {TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit/components';
+import {TuiChevron} from '@taiga-ui/kit/directives';
 
 @Component({
   selector: 'app-cefr-level-selector',

@@ -20,10 +20,10 @@ import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiDataListDropdownManager} from "@taiga-ui/kit";
+import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
 import {ActivatedRoute} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
@@ -32,7 +32,8 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
-import { TuiDataList, TuiDropdownDirective, TuiOptGroup, TuiSliderComponent } from "@taiga-ui/core";
+import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/components";
+import {TuiDropdownDirective} from "@taiga-ui/core/portals";
 
 interface BlockData {
   type: 'paragraph' | 'verse' | 'chapter';

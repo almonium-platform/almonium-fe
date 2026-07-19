@@ -1,8 +1,10 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import { TuiNotificationService } from '@taiga-ui/core';
+import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Interest} from './interest.model';
 
-import { TuiChip, TuiSkeleton, TuiAutoColorPipe } from '@taiga-ui/kit';
+import {TuiChip} from '@taiga-ui/kit/components';
+import {TuiSkeleton} from '@taiga-ui/kit/directives';
+import {TuiAutoColorPipe} from '@taiga-ui/kit/pipes';
 import {FormsModule} from '@angular/forms';
 import {StaticInfoService} from '../../services/static-info.service';
 

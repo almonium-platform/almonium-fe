@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass} from "@angular/common";
-import { TuiButton, TuiButtonX } from "@taiga-ui/core";
+import {TuiButton} from "@taiga-ui/core/components";
+import {TuiButtonX} from "@taiga-ui/core/directives";
 
 @Component({
   selector: 'app-dismiss-button',

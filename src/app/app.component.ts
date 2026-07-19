@@ -1,5 +1,5 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
-import { TuiRoot, TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
 import {Component, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";

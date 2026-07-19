@@ -5,21 +5,20 @@ import {RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
-  TuiChevron,
-  TuiDataListDropdownManager,
   TuiDataListWrapperComponent,
   TuiProgressCircle,
   TuiProgressLabel,
-  TuiSelect,
-  TuiSkeleton
-} from "@taiga-ui/kit";
+  TuiSelect
+} from "@taiga-ui/kit/components";
+import {TuiChevron, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
 import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
 import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import { TuiDropdownContext, TuiDropdownDirective, TuiHintDirective, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TuiCheckbox, TuiOption, TuiDropdownContent } from "@taiga-ui/core";
+import {TuiCheckbox, TuiNotificationService, TuiOption, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
+import {TuiDropdownContent, TuiDropdownContext, TuiDropdownDirective, TuiHintDirective} from "@taiga-ui/core/portals";
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";

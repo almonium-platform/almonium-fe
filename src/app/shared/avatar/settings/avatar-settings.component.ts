@@ -2,7 +2,7 @@ import {Component, Input, ViewChild} from '@angular/core';
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {AvatarComponent} from "../avatar.component";
-import {TuiBadge, TuiBadgedContent} from "@taiga-ui/kit";
+import {TuiBadge, TuiBadgedContent} from "@taiga-ui/kit/components";
 
 @Component({
   selector: 'app-avatar-settings',

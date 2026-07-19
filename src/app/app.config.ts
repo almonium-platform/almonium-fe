@@ -1,4 +1,5 @@
-import { provideTaiga, TUI_VALIDATION_ERRORS } from "@taiga-ui/core";
+import {TUI_VALIDATION_ERRORS} from "@taiga-ui/core/tokens";
+import {provideTaiga} from "@taiga-ui/core/utils";
 import {
   ApplicationConfig,
   importProvidersFrom,

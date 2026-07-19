@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
-import {TuiHintDirective} from "@taiga-ui/core";
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 
 @Component({
   selector: 'app-parallel-translation',

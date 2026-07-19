@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Injectable} from '@angular/core';
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {LocalStorageService} from "../../services/local-storage.service";

@@ -10,10 +10,10 @@ import {
   TuiFilesComponent,
   TuiInputFiles,
   TuiInputFilesDirective
-} from '@taiga-ui/kit';
+} from '@taiga-ui/kit/components';
 import {AsyncPipe} from "@angular/common";
 import {LucideAngularModule} from "lucide-angular";
-import {TuiLink} from "@taiga-ui/core";
+import {TuiLink} from "@taiga-ui/core/components";
 
 @Component({
   selector: 'app-file-upload',

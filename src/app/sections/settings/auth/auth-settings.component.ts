@@ -2,7 +2,8 @@ import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import { TuiError, TuiIcon, TuiTextfieldComponent, TuiNotificationService, TuiInput, TUI_VALIDATION_ERRORS } from "@taiga-ui/core";
+import {TuiError, TuiIcon, TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TUI_VALIDATION_ERRORS} from "@taiga-ui/core/tokens";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";

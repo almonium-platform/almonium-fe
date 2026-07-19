@@ -1,7 +1,7 @@
 import {Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output,} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
-import {TuiLoader} from '@taiga-ui/core';
+import {TuiLoader} from '@taiga-ui/core/components';
 
 @Component({
   selector: 'app-interactive-cta-button',

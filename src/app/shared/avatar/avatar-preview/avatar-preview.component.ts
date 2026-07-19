@@ -1,7 +1,7 @@
 import {Component, Input, ViewChild} from '@angular/core';
 import {AvatarComponent} from "../avatar.component";
 import {UserPreviewCardComponent} from "../../user-preview-card/user-preview-card.component";
-import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core";
+import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core/portals";
 import {LucideAngularModule} from "lucide-angular";
 import {UserPreviewCardWrapperComponent} from "../../user-preview-card/user-preview-card-wrapper.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";

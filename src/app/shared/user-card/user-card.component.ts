@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Component, OnInit} from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";

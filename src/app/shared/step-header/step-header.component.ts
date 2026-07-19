@@ -1,7 +1,7 @@
 import {Component, Input} from '@angular/core';
-import {TuiAvatar} from "@taiga-ui/kit";
-import {TuiTitle} from "@taiga-ui/core";
-import {TuiHeader} from "@taiga-ui/layout";
+import {TuiAvatar} from "@taiga-ui/kit/components";
+import {TuiTitle} from "@taiga-ui/core/components";
+import {TuiHeader} from "@taiga-ui/layout/components";
 
 @Component({
   selector: 'app-step-header',

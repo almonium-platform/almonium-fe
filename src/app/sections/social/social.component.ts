@@ -16,16 +16,16 @@ import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom,
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
 import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import { TuiDataList, TuiDropdownDirective, TuiDropdownManual, TuiHintDirective, TuiIcon, TuiPopup, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService } from "@taiga-ui/core";
+import {TuiDataList, TuiIcon, TuiNotificationService, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
+import {TuiDropdownDirective, TuiDropdownManual, TuiHintDirective, TuiPopup} from "@taiga-ui/core/portals";
 import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
-  TuiDataListDropdownManager,
   TuiDrawer,
-  TuiSegmented,
-  TuiSkeleton
-} from "@taiga-ui/kit";
+  TuiSegmented
+} from "@taiga-ui/kit/components";
+import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
 import {ActivatedRoute, Params, RouterLink} from "@angular/router";
@@ -54,7 +54,7 @@ import {ChatHeaderComponent} from "./chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";

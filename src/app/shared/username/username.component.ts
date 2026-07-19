@@ -9,7 +9,8 @@ import {
   ValidatorFn,
   Validators
 } from "@angular/forms";
-import { TuiError, TuiHintDirective, TuiTextfieldComponent, TuiNotificationService, TuiInput } from "@taiga-ui/core";
+import {TuiError, TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {BehaviorSubject, Observable, of, Subject, timer} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, finalize, map, switchMap, takeUntil} from "rxjs/operators";
 import {UserInfoService} from "../../services/user-info.service";

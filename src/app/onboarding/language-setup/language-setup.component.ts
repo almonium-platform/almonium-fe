@@ -22,8 +22,13 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { TuiChevron, TuiChip, TuiHideSelectedPipe, TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective, TuiAutoColorPipe } from '@taiga-ui/kit';
-import { TuiDataList, TuiDataListComponent, TuiError, TuiTextfieldMultiComponent, TuiNotificationService, TUI_VALIDATION_ERRORS, TuiFilterByInputPipe, TuiDropdownContent } from '@taiga-ui/core';
+import {TuiChip, TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective} from '@taiga-ui/kit/components';
+import {TuiChevron} from '@taiga-ui/kit/directives';
+import {TuiAutoColorPipe, TuiHideSelectedPipe} from '@taiga-ui/kit/pipes';
+import {TuiDataList, TuiDataListComponent, TuiError, TuiNotificationService, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
+import {TuiFilterByInputPipe} from '@taiga-ui/core/pipes';
+import {TuiDropdownContent} from '@taiga-ui/core/portals';
+import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {BehaviorSubject, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
 import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {Language} from '../../models/language.model';
@@ -43,7 +48,7 @@ import {TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../services/utils.service";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
-import {TuiActiveZone, TuiItem} from "@taiga-ui/cdk";
+import {TuiActiveZone, TuiItem} from "@taiga-ui/cdk/directives";
 import {AsyncPipe, NgClass} from "@angular/common";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";

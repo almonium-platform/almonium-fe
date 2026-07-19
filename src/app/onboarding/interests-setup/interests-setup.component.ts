@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Component, Input} from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";

@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
 import {NgTemplateOutlet} from "@angular/common";

@@ -1,7 +1,7 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Component, Input, OnInit} from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";

@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";

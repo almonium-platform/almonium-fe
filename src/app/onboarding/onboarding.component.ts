@@ -1,6 +1,6 @@
-import { TuiInput } from "@taiga-ui/core";
+import {TuiInput} from "@taiga-ui/core/components";
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {TuiProgress, TuiStepper} from "@taiga-ui/kit";
+import {TuiProgress, TuiStepper} from "@taiga-ui/kit/components";
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
 import {NgClass, NgTemplateOutlet} from "@angular/common";

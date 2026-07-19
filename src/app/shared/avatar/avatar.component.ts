@@ -1,5 +1,6 @@
 import {Component, Input} from '@angular/core';
-import {TuiAvatar, TuiSkeleton} from "@taiga-ui/kit";
+import {TuiAvatar} from "@taiga-ui/kit/components";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 
 
 @Component({

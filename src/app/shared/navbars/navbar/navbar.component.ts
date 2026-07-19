@@ -26,19 +26,21 @@ import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
 import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
-import {TuiBadgedContentComponent, TuiBadgeNotification, TuiDataListDropdownManager} from "@taiga-ui/kit";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
 import {Notification, NotificationType} from "../../notification/notification.model";
-import { TuiDataListComponent, TuiDropdownContext, TuiDropdownDirective, TuiNotificationService, TuiOption } from "@taiga-ui/core";
+import {TuiDataListComponent, TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
+import {TuiDropdownContext, TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
 import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
 import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
 import {TimerComponent} from "./timer/timer.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
+import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
+import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit/components";
 
 @Component({
   selector: 'app-navbar',

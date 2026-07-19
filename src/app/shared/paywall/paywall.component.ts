@@ -1,8 +1,9 @@
 import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
-import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
+import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
-import { TuiAppearance, TuiIcon, TuiTitle, TuiNotificationService } from "@taiga-ui/core";
-import {TuiCardLarge} from "@taiga-ui/layout";
+import {TuiIcon, TuiNotificationService, TuiTitle} from "@taiga-ui/core/components";
+import {TuiAppearance} from "@taiga-ui/core/directives";
+import {TuiCardLarge} from "@taiga-ui/layout/components";
 
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";

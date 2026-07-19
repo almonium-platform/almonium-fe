@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {QRCodeComponent} from '../qr-code/qr-code.component';
-import {TuiBadge, TuiBadgedContentDirective} from '@taiga-ui/kit';
+import {TuiBadge, TuiBadgedContentDirective} from '@taiga-ui/kit/components';
 
 @Component({
   selector: 'app-share-link',

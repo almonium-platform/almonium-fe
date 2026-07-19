@@ -3,8 +3,8 @@ import {FileUploadComponent} from "../../../../../shared/file-upload/file-upload
 import {FirebaseService} from "../firebase.service";
 import {ProfileSettingsService} from "../../profile-settings.service";
 import {UserInfoService} from "../../../../../services/user-info.service";
-import {TuiNotificationService} from "@taiga-ui/core";
-import {TuiBadge, TuiBadgedContentComponent, TuiBadgedContentDirective} from "@taiga-ui/kit";
+import {TuiNotificationService} from "@taiga-ui/core/components";
+import {TuiBadge, TuiBadgedContentComponent, TuiBadgedContentDirective} from "@taiga-ui/kit/components";
 import {NgClass} from "@angular/common";
 import {Avatar} from "../avatar.model";
 import {UserInfo} from "../../../../../models/userinfo.model";

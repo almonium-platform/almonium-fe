@@ -1,4 +1,4 @@
-import { TuiNotificationService } from "@taiga-ui/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {Injectable} from '@angular/core';
 import {interval, Subscription} from 'rxjs';
 import {LocalStorageService} from "../../../../services/local-storage.service";

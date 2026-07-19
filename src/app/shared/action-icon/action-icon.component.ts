@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {BehaviorSubject, finalize, Observable} from 'rxjs';
-import {TuiLoader} from "@taiga-ui/core";
+import {TuiLoader} from "@taiga-ui/core/components";
 import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 
 @Component({

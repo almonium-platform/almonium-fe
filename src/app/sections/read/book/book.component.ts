@@ -1,12 +1,15 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit, signal} from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
-import { TuiHintDirective, TuiTextfieldComponent, TuiNotificationService, TuiInput } from "@taiga-ui/core";
+import {TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {StarRatingComponent} from "../star-rating.component";
-import { TuiChevron, TuiChip, TuiDataListWrapperComponent, TuiSelect, TuiSkeleton, TuiAutoColorPipe } from "@taiga-ui/kit";
+import {TuiChip, TuiDataListWrapperComponent, TuiSelect} from "@taiga-ui/kit/components";
+import {TuiChevron, TuiSkeleton} from "@taiga-ui/kit/directives";
+import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {NgStyle} from "@angular/common";

@@ -1,8 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TuiPassword} from '@taiga-ui/kit';
-import { TuiError, TuiIcon, TuiLink, TuiTextfieldComponent, TuiTextfieldOptionsDirective, TuiNotificationService, TuiInput, TUI_VALIDATION_ERRORS } from '@taiga-ui/core';
+import {TuiPassword} from '@taiga-ui/kit/directives';
+import {TuiError, TuiIcon, TuiInput, TuiLink, TuiNotificationService, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from '@taiga-ui/core/components';
+import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {NgClass} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
