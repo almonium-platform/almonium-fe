@@ -69,8 +69,8 @@ export class ActionModalComponent {
     this.secondaryAction.emit();
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.isVisible) {
       this.onClose();
     }

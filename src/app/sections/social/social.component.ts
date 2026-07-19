@@ -780,8 +780,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isDrawerOpened.set(false);
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     this.isDrawerOpened.set(false);
   }
 

@@ -116,8 +116,8 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
     this.clearCountdown();
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.isVisible) {
       this.onClose();
     }

@@ -478,7 +478,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   // EMAIL AND PASSWORD SETTINGS
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   protected onEscape() {
     this.restoreEmailAndPasswordFields();
   }

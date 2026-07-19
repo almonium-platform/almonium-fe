@@ -132,10 +132,10 @@
               <app-parallel-translation
                 tuiHintAppearance="dark"
                 tuiHintDirection="bottom"
-                [tuiHint]="tooltip"
+                [tuiHint]="parallelTooltip"
                 class="parallel"
               ></app-parallel-translation>
-              <ng-template #tooltip>
+              <ng-template #parallelTooltip>
                 <div>Parallel mode in a language you understand</div>
               </ng-template>
             }
@@ -164,9 +164,9 @@
               <p class="rating"
                  tuiHintAppearance="dark"
                  tuiHintDirection="bottom"
-                 [tuiHint]="tooltip"
+                 [tuiHint]="ratingTooltip"
               ><span class="star">⭐</span>{{ book.rating }}</p>
-              <ng-template #tooltip>
+              <ng-template #ratingTooltip>
                 <div>out of 5 (Goodreads)</div>
               </ng-template>
             </div>

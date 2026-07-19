@@ -138,8 +138,8 @@ export class PopupTemplateComponent implements OnInit, OnDestroy {
     this.popupTemplateStateService.close();
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.drawerState.visible) {
       this.close();
     }
