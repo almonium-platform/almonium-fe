@@ -22,7 +22,7 @@ import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
 import {ChatClientService} from "stream-chat-angular";
 import {Router} from "@angular/router";
-import {RelationshipAction} from "../../sections/social/social.model";
+import {RelationshipAction} from "../relationship.model";
 import {NgClass} from "@angular/common";
 
 @Component({

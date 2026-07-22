@@ -1,0 +1,16 @@
+export enum RelationshipStatus {
+  FRIENDS = 'FRIENDS',
+  BLOCKED = 'BLOCKED',
+  PENDING_OUTGOING = 'PENDING_OUTGOING',
+  PENDING_INCOMING = 'PENDING_INCOMING',
+  STRANGER = 'STRANGER',
+}
+
+export enum RelationshipAction {
+  ACCEPT = 'ACCEPT',
+  REJECT = 'REJECT',
+  CANCEL = 'CANCEL',
+  UNFRIEND = 'UNFRIEND',
+  BLOCK = 'BLOCK',
+  UNBLOCK = 'UNBLOCK',
+}
