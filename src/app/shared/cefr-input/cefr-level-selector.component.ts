@@ -48,7 +48,7 @@ import {TuiChevron} from '@taiga-ui/kit/directives';
   `],
 })
 export class CefrLevelSelectorComponent {
-  @Input() control!: FormControl<string | null>;
+  @Input() control!: FormControl<CEFRLevel | null>;
   @Input() levels: string[] = Object.values(CEFRLevel);
   @Input() openOnInit = false;
 }

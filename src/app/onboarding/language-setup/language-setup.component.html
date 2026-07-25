@@ -63,7 +63,7 @@
                   @for (name of specialTargetLanguageNames
                     | tuiHideSelected
                     | tuiFilterByInput; track name) {
-                    <button tuiOption (click)="onPickTarget(name)">{{ name }}</button>
+                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
                   }
                 </tui-opt-group>
 
@@ -71,7 +71,7 @@
                   @for (name of otherTargetLanguageNames
                     | tuiHideSelected
                     | tuiFilterByInput; track name) {
-                    <button tuiOption (click)="onPickTarget(name)">{{ name }}</button>
+                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
                   }
                 </tui-opt-group>
               </tui-data-list>
