@@ -1,6 +1,6 @@
 import {logger} from "../logger";
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {BehaviorSubject, finalize, Observable} from 'rxjs';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {finalize, Observable} from 'rxjs';
 import {TuiLoader} from "@taiga-ui/core/components";
 import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 
@@ -36,10 +36,7 @@ import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
   ],
   styleUrls: ['./action-icon.component.less'],
 })
-export class ActionIconComponent implements OnInit {
-  // todo delete unused?
-  private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
-  protected readonly loading$ = this.loadingSubject$.asObservable();
+export class ActionIconComponent {
 
   @Input() icon = ''; // Icon name
   @Input() size = 24; // Icon size
@@ -51,21 +48,15 @@ export class ActionIconComponent implements OnInit {
 
   protected loadingState = false;
 
-  ngOnInit() {
-    this.loading$.subscribe((loading) => {
-      this.loadingState = loading;
-    });
-  }
-
   onClick(): void {
     if (this.disabled || this.loadingState) {
       return;
     }
 
     // Trigger loading and execute action
-    this.loadingSubject$.next(true);
+    this.loadingState = true;
     this.action()
-      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .pipe(finalize(() => this.loadingState = false))
       .subscribe({
         next: () => {
           this.actionCompleted.emit(); // Notify parent of successful action
