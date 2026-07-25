@@ -10,6 +10,7 @@ import {
 } from "./social.model";
 import {AppConstants} from "../../app.constants";
 import {UserProfileInfo} from "../../shared/user-preview-card/user-profile.model";
+import {parseUserProfileInfo} from '../../shared/user-preview-card/user-profile.model';
 
 @Injectable({
   providedIn: 'root',
@@ -49,21 +50,22 @@ export class SocialService {
   }
 
   block(id: string): Observable<UserProfileInfo> {
-    return this.http.post<UserProfileInfo>(`${AppConstants.RELATIONSHIPS_URL}/block/${id}`, {}, {withCredentials: true});
+    return this.http.post<unknown>(`${AppConstants.RELATIONSHIPS_URL}/block/${id}`, {}, {withCredentials: true})
+      .pipe(map(parseUserProfileInfo));
   }
 
   createFriendshipRequest(recipientId: string): Observable<UserProfileInfo> {
-    return this.http.post<UserProfileInfo>(
+    return this.http.post<unknown>(
       `${AppConstants.RELATIONSHIPS_URL}`,
       {recipientId},
-      {withCredentials: true});
+      {withCredentials: true}).pipe(map(parseUserProfileInfo));
   }
 
   patchFriendship(id: string, action: string): Observable<UserProfileInfo> {
-    return this.http.patch<UserProfileInfo>(
+    return this.http.patch<unknown>(
       `${AppConstants.RELATIONSHIPS_URL}/${id}`,
       {action},
-      {withCredentials: true});
+      {withCredentials: true}).pipe(map(parseUserProfileInfo));
   }
 
   getBlocked(): Observable<RelatedUserProfile[]> {
