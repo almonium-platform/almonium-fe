@@ -13,7 +13,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {TuiChip, TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective} from '@taiga-ui/kit/components';
+import {TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective} from '@taiga-ui/kit/components';
 import {TuiChevron} from '@taiga-ui/kit/directives';
 import {TuiAutoColorPipe, TuiHideSelectedPipe} from '@taiga-ui/kit/pipes';
 import {TuiDataList, TuiDataListComponent, TuiError, TuiNotificationService, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
@@ -69,7 +69,6 @@ type CefrFormGroup = FormGroup<{
     NgxParticlesModule,
     FluentLanguageSelectorComponent,
     TuiAutoColorPipe,
-    TuiChip,
     SharedLucideIconsModule,
     InfoIconComponent,
     ButtonComponent,
