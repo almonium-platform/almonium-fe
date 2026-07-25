@@ -6,7 +6,7 @@ import {PlanType, UserInfo} from "../../../models/userinfo.model";
 import {NgStyle} from "@angular/common";
 import {InteractiveCtaButtonComponent} from "../../../shared/interactive-cta-button/interactive-cta-button.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
-import {BehaviorSubject, firstValueFrom, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, firstValueFrom, Subject, takeUntil} from "rxjs";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {PlanService} from "../../../services/plan.service";
 import {TuiNotificationService} from "@taiga-ui/core/components";
@@ -27,6 +27,7 @@ import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {ShareLinkComponent} from "../../../shared/share-link/share-link.component";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
+import {getErrorMessage} from '../../../shared/http-error';
 
 @Component({
   selector: 'app-profile-settings',
@@ -181,22 +182,33 @@ auto-renewal in the customer portal.`;
   protected accessCustomerPortal() {
     this.loadingSubjectCustomerPortal$.next(true);
 
-    this.planService.accessCustomerPortal().subscribe((url) => {
-      this.loadingSubjectCustomerPortal$.next(false);
-      if (url) {
+    this.planService.accessCustomerPortal().pipe(
+      finalize(() => this.loadingSubjectCustomerPortal$.next(false)),
+    ).subscribe({
+      next: url => {
         window.location.href = url.sessionUrl;
-      }
+      },
+      error: error => this.alertService.open(
+        getErrorMessage(error, 'Could not open the customer portal'),
+        {appearance: 'negative'},
+      ).subscribe(),
     });
   }
 
 
   // cancel subscription methods
   protected cancelSubscription() {
-    this.planService.cancelSubscription().subscribe(() => {
-      this.alertService.open('You\'ve been downgraded to a free account, allow some time or re-login to see the changes.', {appearance: 'positive'}).subscribe();
-      setTimeout(() => {
-        this.userInfoService.fetchUserInfoFromServer().subscribe();
-      }, 4000);
+    this.planService.cancelSubscription().subscribe({
+      next: () => {
+        this.alertService.open('You\'ve been downgraded to a free account, allow some time or re-login to see the changes.', {appearance: 'positive'}).subscribe();
+        setTimeout(() => {
+          this.userInfoService.fetchUserInfoFromServer().subscribe();
+        }, 4000);
+      },
+      error: error => this.alertService.open(
+        getErrorMessage(error, 'Could not cancel the subscription'),
+        {appearance: 'negative'},
+      ).subscribe(),
     });
   }
 

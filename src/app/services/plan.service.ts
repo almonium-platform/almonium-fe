@@ -1,14 +1,9 @@
-import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {AppConstants} from "../app.constants";
-import {PlanDto} from "../models/plan.model";
-
-export interface SessionUrlResponse {
-  sessionUrl: string;
-}
+import {parsePlans, parseSessionUrlResponse, PlanDto, SessionUrlResponse} from "../models/plan.model";
 
 @Injectable({
   providedIn: 'root',
@@ -18,38 +13,20 @@ export class PlanService {
 
 
   getPlans(): Observable<PlanDto[]> {
-    return this.http.get<PlanDto[]>(`${AppConstants.PLAN_URL}`).pipe(
-      catchError((error) => {
-        logger.error('Error fetching plans:', error);
-        return of([]);
-      })
-    );
+    return this.http.get<unknown>(`${AppConstants.PLAN_URL}`).pipe(map(parsePlans));
   }
 
-  subscribeToPlan(planId: string): Observable<SessionUrlResponse | null> {
-    return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true}).pipe(
-      catchError((error) => {
-        logger.error('Error subscribing to plan:', error);
-        return of(null);
-      })
-    );
+  subscribeToPlan(planId: string): Observable<SessionUrlResponse> {
+    return this.http.post<unknown>(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true})
+      .pipe(map(parseSessionUrlResponse));
   }
 
-  accessCustomerPortal(): Observable<SessionUrlResponse | null> {
-    return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true}).pipe(
-      catchError((error) => {
-        logger.error('Error accessing portal:', error);
-        return of(null);
-      })
-    );
+  accessCustomerPortal(): Observable<SessionUrlResponse> {
+    return this.http.post<unknown>(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true})
+      .pipe(map(parseSessionUrlResponse));
   }
 
-  cancelSubscription() {
-    return this.http.delete(`${AppConstants.SUBSCRIPTION_URL}`, {withCredentials: true}).pipe(
-      catchError((error) => {
-        logger.error('Error canceling subscription:', error);
-        return of(null);
-      })
-    );
+  cancelSubscription(): Observable<void> {
+    return this.http.delete<void>(`${AppConstants.SUBSCRIPTION_URL}`, {withCredentials: true});
   }
 }

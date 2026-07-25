@@ -99,17 +99,23 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   private populatePlanInfo() {
-    this.planService.getPlans().subscribe(plans => {
-      const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
-      const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
-      if (monthlyPremium) {
-        this.premiumPrice.monthly = monthlyPremium.price;
-        this.premiumMonthlyId = monthlyPremium.id;
-      }
-      if (yearlyPremium) {
-        this.premiumPrice.yearly = yearlyPremium.price;
-        this.premiumYearlyId = yearlyPremium.id;
-      }
+    this.planService.getPlans().subscribe({
+      next: plans => {
+        const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
+        const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
+        if (monthlyPremium) {
+          this.premiumPrice.monthly = monthlyPremium.price;
+          this.premiumMonthlyId = String(monthlyPremium.id);
+        }
+        if (yearlyPremium) {
+          this.premiumPrice.yearly = yearlyPremium.price;
+          this.premiumYearlyId = String(yearlyPremium.id);
+        }
+      },
+      error: error => this.alertService.open(
+        getErrorMessage(error, 'Could not load subscription plans'),
+        {appearance: 'negative'},
+      ).subscribe(),
     });
   }
 
@@ -164,10 +170,14 @@ export class PaywallComponent implements OnInit, OnDestroy {
     const selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
     this.planService.subscribeToPlan(String(selectedPlanId))
       .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
-      .subscribe((url) => {
-        if (url) {
+      .subscribe({
+        next: url => {
           window.location.href = url.sessionUrl;
-        }
+        },
+        error: error => this.alertService.open(
+          getErrorMessage(error, 'Could not start checkout'),
+          {appearance: 'negative'},
+        ).subscribe(),
       });
   }
 }
