@@ -470,39 +470,64 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getOutgoingRequests() {
     this.loadingOutgoingRequests = true;
-    this.socialService.getOutgoingRequests().subscribe(outgoingRequests => {
-      this.outgoingRequests = outgoingRequests;
-      this.drawerUserTiles = outgoingRequests;
-      this.loadingOutgoingRequests = false;
+    this.socialService.getOutgoingRequests().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingOutgoingRequests = false),
+    ).subscribe({
+      next: outgoingRequests => {
+        this.outgoingRequests = outgoingRequests;
+        this.drawerUserTiles = outgoingRequests;
+      },
+      error: error => this.showSocialLoadError('outgoing friend requests', error),
     });
   }
 
   getIncomingRequests() {
     this.loadingIncomingRequests = true;
-    this.socialService.getIncomingRequests().subscribe(incomingRequests => {
-      this.incomingRequests = incomingRequests;
-      this.drawerUserTiles = incomingRequests;
-      this.loadingIncomingRequests = false;
-      this.incomingRequestsCount = incomingRequests.length;
+    this.socialService.getIncomingRequests().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingIncomingRequests = false),
+    ).subscribe({
+      next: incomingRequests => {
+        this.incomingRequests = incomingRequests;
+        this.drawerUserTiles = incomingRequests;
+        this.incomingRequestsCount = incomingRequests.length;
+      },
+      error: error => this.showSocialLoadError('incoming friend requests', error),
     });
   }
 
   getFriends() {
     this.loadingFriends = true;
-    this.socialService.getFriends().subscribe(friends => {
-      this.friends = friends;
-      this.drawerUserTiles = friends;
-      this.loadingFriends = false;
+    this.socialService.getFriends().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingFriends = false),
+    ).subscribe({
+      next: friends => {
+        this.friends = friends;
+        this.drawerUserTiles = friends;
+      },
+      error: error => this.showSocialLoadError('friends', error),
     });
   }
 
   getBlocked() {
     this.loadingBlocked = true;
-    this.socialService.getBlocked().subscribe(blocked => {
-      this.blockedUsers = blocked;
-      this.drawerUserTiles = blocked;
-      this.loadingBlocked = false;
+    this.socialService.getBlocked().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingBlocked = false),
+    ).subscribe({
+      next: blocked => {
+        this.blockedUsers = blocked;
+        this.drawerUserTiles = blocked;
+      },
+      error: error => this.showSocialLoadError('blocked users', error),
     });
+  }
+
+  private showSocialLoadError(resource: string, error: unknown): void {
+    logger.error(`Could not load ${resource}`, error);
+    this.alertService.open(`Could not load ${resource}. Please try again.`, {appearance: 'negative'}).subscribe();
   }
 
   openChatWithFriend(friend: RelatedUserProfile) {
