@@ -20,7 +20,6 @@ export class UserInfo {
     public learners: Learner[],
     public interests: Interest[],
     public uiPreferences: UIPreferences,
-    public streamChatToken: string,
   ) {
   }
 
@@ -43,11 +42,10 @@ export class UserInfo {
       updates.learners ?? this.learners,
       updates.interests ?? this.interests,
       updates.uiPreferences ?? this.uiPreferences,
-      updates.streamChatToken ?? this.streamChatToken,
     );
   }
 
-  static fromJSON(data: UserInfoDto): UserInfo {
+  static fromJSON(data: UserInfoData): UserInfo {
     return new UserInfo(
       data.id,
       data.username,
@@ -66,7 +64,6 @@ export class UserInfo {
       data.learners.map(learner => Learner.fromJSON(learner)),
       data.interests,
       data.uiPreferences,
-      data.streamChatToken,
     );
   }
 
@@ -88,7 +85,7 @@ export class UserInfo {
   }
 }
 
-export interface UserInfoDto {
+export interface UserInfoData {
   id: string;
   username: string;
   email: string;
@@ -106,6 +103,9 @@ export interface UserInfoDto {
   learners: LearnerDto[];
   interests: Interest[];
   uiPreferences: UIPreferences;
+}
+
+export interface UserInfoDto extends UserInfoData {
   streamChatToken: string;
 }
 

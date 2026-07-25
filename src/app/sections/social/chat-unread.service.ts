@@ -37,10 +37,14 @@ export class ChatUnreadService {
       if (!userInfo) {
         return;
       }
+      const streamChatToken = this.userInfoService.streamChatToken;
+      if (!streamChatToken) {
+        return;
+      }
       if (!this.chatClient.user) {
         void this.chatClient.connectUser(
           {id: userInfo.id},
-          userInfo.streamChatToken
+          streamChatToken
         ).then(() => {
           void this.fetchUnreadCount();
         });

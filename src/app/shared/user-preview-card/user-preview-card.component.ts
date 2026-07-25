@@ -108,7 +108,10 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       }
       this.userInfo = info;
       const userId = this.userInfo.id;
-      const userToken = this.userInfo.streamChatToken;
+      const userToken = this.userInfoService.streamChatToken;
+      if (!userToken) {
+        return;
+      }
       const userName = this.userInfo.username;
 
       const user: User = {

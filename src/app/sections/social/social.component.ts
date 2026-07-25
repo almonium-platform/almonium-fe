@@ -276,7 +276,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private initializeChat(userInfo: UserInfo) {
     const userId = userInfo.id;
-    const userToken = userInfo.streamChatToken;
+    const userToken = this.userInfoService.streamChatToken;
+    if (!userToken) {
+      console.error('Cannot initialize chat without a server-issued Stream token.');
+      return;
+    }
     const userName = userInfo.username;
     const user: User = {
       id: userId,

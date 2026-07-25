@@ -3,7 +3,7 @@ import {LanguageCode} from "../models/language.enum";
 import {AuthMethod} from "../authentication/auth/auth.types";
 import {Language} from "../models/language.model";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from "../sections/read/parallel-mode.type";
-import {UserInfo, UserInfoDto} from "../models/userinfo.model";
+import {UserInfo, UserInfoData} from "../models/userinfo.model";
 
 const PARALLEL_MODE_KEY = 'parallel_mode';
 const USER_INFO_KEY = 'user_info';
@@ -46,8 +46,15 @@ export class LocalStorageService {
     this.saveItem(USER_INFO_KEY, userInfo);
   }
 
-  getUserInfo(): UserInfoDto | null {
-    return this.getItem<UserInfoDto>(USER_INFO_KEY);
+  getUserInfo(): UserInfoData | null {
+    const storedUserInfo = this.getItem<UserInfoData & {streamChatToken?: string}>(USER_INFO_KEY);
+    if (storedUserInfo && Object.hasOwn(storedUserInfo, 'streamChatToken')) {
+      const safeUserInfo = {...storedUserInfo};
+      delete safeUserInfo.streamChatToken;
+      this.saveItem(USER_INFO_KEY, safeUserInfo);
+      return safeUserInfo;
+    }
+    return storedUserInfo;
   }
 
   clearUserInfo(): void {

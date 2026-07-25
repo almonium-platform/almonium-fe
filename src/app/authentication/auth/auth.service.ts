@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {catchError, from, Observable, of, switchMap, tap} from 'rxjs';
+import {catchError, from, map, Observable, of, switchMap, tap} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {UserInfoService} from '../../services/user-info.service';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {PopupTemplateStateService} from '../../shared/modals/popup-template/popup-template-state.service';
-import {UserInfo} from '../../models/userinfo.model';
+import {UserInfo, UserInfoDto} from '../../models/userinfo.model';
 import {Auth} from '@angular/fire/auth';
 import {
   applyActionCode,
@@ -161,12 +161,13 @@ export class AuthService {
 
   private exchangeSession(user: User): Observable<UserInfo> {
     return from(getIdToken(user, true)).pipe(
-      switchMap(idToken => this.http.post<UserInfo>(
+      switchMap(idToken => this.http.post<UserInfoDto>(
         `${AppConstants.AUTH_URL}/session`,
         {idToken},
         {withCredentials: true},
       )),
       tap(userInfo => this.userInfoService.setUserInfo(userInfo)),
+      map(() => this.userInfoService.currentUserInfo!),
     );
   }
 
