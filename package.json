@@ -8,10 +8,13 @@
     "lint": "ng lint",
     "start:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "test:e2e": "playwright test"
   },
   "overrides": {
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "brace-expansion": "^5.0.8"
   },
   "private": true,
   "dependencies": {
@@ -69,6 +72,7 @@
     "@angular/build": "^21.2.19",
     "@angular/cli": "^21.2.19",
     "@angular/compiler-cli": "^21.2.18",
+    "@playwright/test": "^1.57.0",
     "@types/jasmine": "~6.0.0",
     "@types/semver": "^7.7.1",
     "@typescript-eslint/eslint-plugin": "^8.64.0",
