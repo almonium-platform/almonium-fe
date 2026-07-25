@@ -10,7 +10,7 @@ import {
   TuiSelect
 } from "@taiga-ui/kit/components";
 import {TuiChevron, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
-import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject} from "rxjs";
+import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject, take} from "rxjs";
 import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
 import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
@@ -244,7 +244,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   undoProgress() {
     const bookId = this.selectedBook?.id;
     if (!bookId) return;
-    this.targetLanguageDropdownService.currentLanguage$.subscribe(() => {
+    this.targetLanguageDropdownService.currentLanguage$.pipe(take(1)).subscribe(() => {
       this.readService.deleteProgress(bookId)
         .subscribe({
           next: () => {

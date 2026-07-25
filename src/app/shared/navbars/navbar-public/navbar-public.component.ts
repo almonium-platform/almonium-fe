@@ -26,14 +26,15 @@ export class NavbarPublicComponent implements OnInit, OnDestroy {
   @Input() currentRoute = '';
   protected isDiscoverMenuOpen = false;
   isMobile = false;
+  private readonly resizeListener = () => this.checkDeviceType();
 
   ngOnInit(): void {
     this.checkDeviceType();
-    window.addEventListener('resize', this.checkDeviceType.bind(this));
+    window.addEventListener('resize', this.resizeListener);
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('resize', this.checkDeviceType.bind(this));
+    window.removeEventListener('resize', this.resizeListener);
   }
 
   private checkDeviceType(): void {

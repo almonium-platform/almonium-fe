@@ -220,7 +220,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       this.targetLanguagesControl.updateValueAndValidity();
     }
 
-    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
       if (!languages) {
         return;
       }
@@ -267,7 +267,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     });
 
     // Update features when target languages change
-    this.targetLanguagesControl.valueChanges.subscribe(() => {
+    this.targetLanguagesControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.sanitizeTargetControl();            // drop free-text / over-limit
       this.updateSelectedFeatures();
       const selectedLangNames = this.targetLanguagesControl.value || [];

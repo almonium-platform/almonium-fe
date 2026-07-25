@@ -1,6 +1,6 @@
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
@@ -13,6 +13,7 @@ import {TimerMonitorService} from "./shared/navbars/navbar/timer/timer-monitor.s
 import {environment} from '../environments/environment'
 import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 // Declare gtag function to make TypeScript aware of it globally
 declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit {
   private alertService = inject(TuiNotificationService);
   private timerMonitorService = inject(TimerMonitorService);
   private userInfoService = inject(UserInfoService);
+  private destroyRef = inject(DestroyRef);
 
   title = 'almonium-fe';
   protected showNavbar = false;
@@ -59,11 +61,13 @@ export class AppComponent implements OnInit {
     this.listenForPushNotifications();
     this.listenToRouter();
     this.timerMonitorService.startMonitoring();
+    this.destroyRef.onDestroy(() => this.timerMonitorService.stopMonitoring());
   }
 
   ngOnInit(): void {
     this.userInfoService.userInfo$.pipe(
-      distinctUntilChanged((prev, curr) => !!prev === !!curr)
+      distinctUntilChanged((prev, curr) => !!prev === !!curr),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(user => {
       if (user) {
         void this.firebaseNotificationService.initFCM().then();
@@ -73,7 +77,8 @@ export class AppComponent implements OnInit {
 
   private listenToRouter() {
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter(event => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe((event) => {
       const navigationEvent = event;
 
@@ -106,7 +111,10 @@ export class AppComponent implements OnInit {
 
   private listenForPushNotifications(): void {
     this.firebaseNotificationService.currentMessage$
-      .pipe(filter((message) => !!message?.notification))
+      .pipe(
+        filter((message) => !!message?.notification),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((message) => {
         this.alertService.open(message?.notification?.body ?? "New Notification", {appearance: "info"}).subscribe();
       });

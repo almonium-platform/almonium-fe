@@ -26,7 +26,7 @@ export class NavbarWrapperComponent implements OnInit, OnDestroy {
   protected isAuthenticated = false;
 
   constructor() {
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(takeUntil(this.destroy$)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.currentRoute = event.urlAfterRedirects;
       }

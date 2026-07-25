@@ -65,7 +65,7 @@ export class BookComponent implements OnInit, OnDestroy {
   protected bookLoading = true;
 
   ngOnInit() {
-    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
       if (languages) {
         this.supportedLanguages = languages;
       }

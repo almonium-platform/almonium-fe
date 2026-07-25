@@ -1,6 +1,6 @@
 import {getErrorMessage} from '../../shared/http-error';
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
@@ -9,6 +9,7 @@ import {NgxParticlesModule} from "@tsparticles/angular";
 import {NgClass} from "@angular/common";
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {ButtonComponent} from "../../shared/button/button.component";
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-email-verification',
@@ -26,6 +27,7 @@ export class EmailVerificationComponent implements OnInit {
   private route = inject(ActivatedRoute);
   router = inject(Router);
   private alertService = inject(TuiNotificationService);
+  private destroyRef = inject(DestroyRef);
 
   private readonly REDIRECT_TIMEOUT = 3000;  // Time to wait before redirecting after verification completes
   private readonly MINIMUM_ROTATE_TIME = 2000;  // Minimum rotate time for animation
@@ -70,7 +72,8 @@ export class EmailVerificationComponent implements OnInit {
           this.pendingMessage = 'No token provided';
           return combineLatest([minRotateTimer$, of(null)]);
         }
-      })
+      }),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => {
         // Once both the timer and the API call complete, stop the rotation and show the final message
@@ -101,7 +104,7 @@ export class EmailVerificationComponent implements OnInit {
     }).subscribe();
     if (result === 'success') {
       // Set a minimum display time before redirecting
-      timer(this.REDIRECT_TIMEOUT).subscribe(() => {
+      timer(this.REDIRECT_TIMEOUT).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         if (this.isChangeEmailRoute) {
           void this.router.navigate(['/logout']).then();
           // Logout will redirect to /auth for unauthenticated users,

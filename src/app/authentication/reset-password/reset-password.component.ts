@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AuthService} from '../auth/auth.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -11,6 +11,7 @@ import {AppConstants} from "../../app.constants";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {BehaviorSubject, finalize} from "rxjs";
 import {getErrorMessage} from '../../shared/http-error';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-reset-password',
@@ -45,6 +46,7 @@ export class ResetPasswordComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private alertService = inject(TuiNotificationService);
+  private destroyRef = inject(DestroyRef);
 
   protected resetForm: FormGroup<{newPassword: FormControl<string>}>;
   private token = '';
@@ -59,7 +61,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.token = params.get('oobCode') ?? params.get('token') ?? '';
       if (!this.token) {
         this.alertService.open('No token provided', {appearance: 'negative'}).subscribe();
@@ -67,7 +69,7 @@ export class ResetPasswordComponent implements OnInit {
       }
 
       // Preemptively validate the token
-      this.authService.validateResetPasswordToken(this.token).subscribe({
+      this.authService.validateResetPasswordToken(this.token).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (isValid) => {
           if (!isValid) {
             this.showErrorAndRedirect('Invalid or expired reset token');
@@ -84,7 +86,10 @@ export class ResetPasswordComponent implements OnInit {
 
       const newPassword = this.resetForm.controls.newPassword.value ?? '';
       this.authService.resetPassword(this.token, newPassword)
-        .pipe(finalize(() => this.loadingSubject$.next(false)))
+        .pipe(
+          finalize(() => this.loadingSubject$.next(false)),
+          takeUntilDestroyed(this.destroyRef),
+        )
         .subscribe({
           next: () => {
             this.alertService.open('Password reset successfully!', {appearance: 'positive'}).subscribe();

@@ -1,4 +1,4 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { Injectable, Injector, OnDestroy, inject } from '@angular/core';
 import {Messaging, onMessage, onRegistered, register} from '@angular/fire/messaging';
 import type {MessagePayload} from 'firebase/messaging';
 import {BehaviorSubject} from 'rxjs';
@@ -9,13 +9,14 @@ import {AppConstants} from "../app.constants";
 @Injectable({
   providedIn: 'root',
 })
-export class FirebaseNotificationService {
+export class FirebaseNotificationService implements OnDestroy {
   private http = inject(HttpClient);
   private injector = inject(Injector);
 
   private messaging: Messaging | null = null;
   private currentMessage = new BehaviorSubject<MessagePayload | null>(null);
   private stopRegistrationListener?: () => void;
+  private stopMessageListener?: () => void;
 
   public async initFCM() {
     try {
@@ -62,7 +63,8 @@ export class FirebaseNotificationService {
     try {
       if (!this.messaging) return;
 
-      onMessage(this.messaging, (payload) => {
+      this.stopMessageListener?.();
+      this.stopMessageListener = onMessage(this.messaging, (payload) => {
         this.currentMessage.next(payload);
       });
     } catch (error) {
@@ -96,5 +98,10 @@ export class FirebaseNotificationService {
     }
 
     return true;
+  }
+
+  ngOnDestroy(): void {
+    this.stopRegistrationListener?.();
+    this.stopMessageListener?.();
   }
 }

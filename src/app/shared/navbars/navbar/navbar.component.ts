@@ -138,7 +138,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.chatUnreadService.getUnreadCount().subscribe((count) => {
+    this.chatUnreadService.getUnreadCount().pipe(takeUntil(this.destroy$)).subscribe((count) => {
       this.hasUnreadMessages = count > 0;
       this.cdr.detectChanges();
     });
@@ -196,7 +196,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.getNotifications();
       });
 
-    this.firebaseNotificationService.currentMessage$.subscribe((message) => {
+    this.firebaseNotificationService.currentMessage$.pipe(takeUntil(this.destroy$)).subscribe((message) => {
       if (message) {
         this.getNotifications();
       }
@@ -204,7 +204,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private getNotifications() {
-    this.notificationService.getNotifications().subscribe((notifications) => {
+    this.notificationService.getNotifications().pipe(takeUntil(this.destroy$)).subscribe((notifications) => {
       this.notifications = notifications;
       this.unreadNotificationsCount = notifications.filter(n => !n.readAt).length;
     });

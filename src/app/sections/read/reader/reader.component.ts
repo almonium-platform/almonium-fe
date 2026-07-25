@@ -118,6 +118,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private initialScrollPercentage: number | null = null;
   private initialScrollApplied = false;
   private isDestroyed = false;
+  private baseLoadSubscription: Subscription | null = null;
+  private bookDetailsSubscription: Subscription | null = null;
+  private heightSyncTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private chapterScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private chapterMeasurementFrameId: number | null = null;
 
   private needsHeightSync = false;
 
@@ -186,7 +192,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
     console.log("Scheduling height synchronization...");
     // Use setTimeout to queue it after the current rendering cycle
-    setTimeout(() => {
+    if (this.heightSyncTimeoutId !== null) {
+      clearTimeout(this.heightSyncTimeoutId);
+    }
+    this.heightSyncTimeoutId = setTimeout(() => {
+      this.heightSyncTimeoutId = null;
       this.synchronizeColumnHeights();
     }, 10);
   }
@@ -270,6 +280,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   ngOnDestroy(): void {
     this.isDestroyed = true;
     this.clearScrollHoldTimers();
+    this.clearScheduledWork();
+    this.baseLoadSubscription?.unsubscribe();
+    this.bookDetailsSubscription?.unsubscribe();
     this.parallelLoadSubscription?.unsubscribe();
     this.progressTracker.saveOnExit(false);
     this.destroy$.next();
@@ -297,7 +310,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       ? this.readService.loadBook(bookId)
       : this.readService.getParallelText(bookId, this.fluentLangCode!); // Use selectedLangCode here
 
-    stream$.pipe(takeUntil(this.destroy$)).subscribe({
+    if (isBase) {
+      this.baseLoadSubscription?.unsubscribe();
+    }
+    const subscription = stream$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
           try {
@@ -329,6 +345,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       },
       error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, 'Unknown error loading content.')),
     });
+    if (isBase) {
+      this.baseLoadSubscription = subscription;
+    }
   }
 
   // attemptInitialScroll checks everything and scrolls if needed
@@ -382,7 +401,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // Placeholder fetch for parallel languages options
   private fetchBookData(bookId: number): void {
-    this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
+    this.bookDetailsSubscription?.unsubscribe();
+    this.bookDetailsSubscription = this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
           this.targetLangCode = book.language; // <-- ADD THIS LINE
@@ -425,7 +445,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // Schedules chapter measurement reliably after view updates
   private scheduleChapterOffsetMeasurement(): void {
-    requestAnimationFrame(() => {
+    if (this.chapterMeasurementFrameId !== null) {
+      cancelAnimationFrame(this.chapterMeasurementFrameId);
+    }
+    this.chapterMeasurementFrameId = requestAnimationFrame(() => {
+      this.chapterMeasurementFrameId = null;
       if (this.isDestroyed) {
         console.log("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
         return;
@@ -542,7 +566,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     // Reset the flag shortly after, outside Angular zone
     this.ngZone.runOutsideAngular(() => {
-      setTimeout(() => {
+      if (this.scrollFlagTimeoutId !== null) {
+        clearTimeout(this.scrollFlagTimeoutId);
+      }
+      this.scrollFlagTimeoutId = setTimeout(() => {
+        this.scrollFlagTimeoutId = null;
         this.isScrollingProgrammatically = false;
       }, this.SCROLL_UPDATE_THROTTLE_TIME + 50); // Delay slightly longer than throttle time
     });
@@ -751,7 +779,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       console.log(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
-      setTimeout(() => {
+      if (this.chapterScrollTimeoutId !== null) {
+        clearTimeout(this.chapterScrollTimeoutId);
+      }
+      this.chapterScrollTimeoutId = setTimeout(() => {
+        this.chapterScrollTimeoutId = null;
         if (!this.isDestroyed) {
           this.updateScrollState();
           this.cdRef.markForCheck();
@@ -783,6 +815,25 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   private parallelLoadSubscription: Subscription | null = null;
+
+  private clearScheduledWork(): void {
+    if (this.heightSyncTimeoutId !== null) {
+      clearTimeout(this.heightSyncTimeoutId);
+      this.heightSyncTimeoutId = null;
+    }
+    if (this.scrollFlagTimeoutId !== null) {
+      clearTimeout(this.scrollFlagTimeoutId);
+      this.scrollFlagTimeoutId = null;
+    }
+    if (this.chapterScrollTimeoutId !== null) {
+      clearTimeout(this.chapterScrollTimeoutId);
+      this.chapterScrollTimeoutId = null;
+    }
+    if (this.chapterMeasurementFrameId !== null) {
+      cancelAnimationFrame(this.chapterMeasurementFrameId);
+      this.chapterMeasurementFrameId = null;
+    }
+  }
 
   selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
     console.log(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);

@@ -124,7 +124,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['target_lang'] === 'success') {
         this.alertService.open('Your target language has been successfully saved', {appearance: 'positive'}).subscribe();
         this.urlService.clearUrl();
@@ -136,7 +136,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
       if (languages) {
         this.languages = languages;
         this.populateFromUserInfo();

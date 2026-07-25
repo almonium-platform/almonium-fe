@@ -1,10 +1,11 @@
-import { Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import {BehaviorSubject, fromEventPattern} from 'rxjs';
 import {Event as StreamEvent, OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {SocialService} from "./social.service";
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +14,7 @@ export class ChatUnreadService {
   private userInfoService = inject(UserInfoService);
   private localStorageService = inject(LocalStorageService);
   private socialService = inject(SocialService);
+  private destroyRef = inject(DestroyRef);
 
   private unreadCount$ = new BehaviorSubject<number>(0);
   private chatClient: StreamChat;
@@ -22,18 +24,21 @@ export class ChatUnreadService {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
 
     // Listen to unread count updates from Stream events
-    this.chatClient.on((event) => {
-      if (event.total_unread_count !== undefined) {
-        this.updateUnreadCount(event.total_unread_count);
-      }
-    });
+    fromEventPattern<StreamEvent>(
+      handler => this.chatClient.on(handler),
+      handler => this.chatClient.off(handler),
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+        if (event.total_unread_count !== undefined) {
+          this.updateUnreadCount(event.total_unread_count);
+        }
+      });
 
     // todo replace, friends should be part of userInfo
-    this.socialService.getFriends().subscribe((friends) => {
+    this.socialService.getFriends().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((friends) => {
       this.friendIds = friends.map((f) => f.id);
     });
 
-    this.userInfoService.userInfo$.subscribe((userInfo) => {
+    this.userInfoService.userInfo$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((userInfo) => {
       if (!userInfo) {
         return;
       }
@@ -54,7 +59,7 @@ export class ChatUnreadService {
     fromEventPattern<StreamEvent>(
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
-    ).subscribe(event => {
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       if (event.user?.id && this.friendIds.includes(event.user.id)) {
         this.localStorageService.saveLastSeen(event.user.id, new Date());
       }

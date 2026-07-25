@@ -150,7 +150,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private displayAppropriateAlerts() {
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const error = params.get('error');
       if (error) {
         this.alertService.open(error, {appearance: 'negative'}).subscribe();

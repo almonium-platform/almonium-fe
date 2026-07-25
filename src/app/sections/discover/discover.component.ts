@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, ElementRef, Input, OnDestroy, OnInit, Renderer2, ViewChild, inject } from '@angular/core';
 
 import {FormsModule} from '@angular/forms';
 import {ContenteditableValueAccessorModule} from '@tinkoff/angular-contenteditable-accessor';
@@ -9,6 +9,9 @@ import {TargetLanguageDropdownService} from '../../services/target-language-drop
 import {DiacriticPopupComponent} from './diacritic-popup/diacritic-popup.component';
 import {DiacriticService} from "./service/diacritic.service";
 import {AutocompleteService} from "./service/autocomplete.service";
+import {Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, switchMap} from 'rxjs/operators';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-discover',
@@ -27,6 +30,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private languageService = inject(TargetLanguageDropdownService);
   private diacriticService = inject(DiacriticService);
   private autocompleteService = inject(AutocompleteService);
+  private destroyRef = inject(DestroyRef);
 
   // Diacritic popup
   @ViewChild('diacriticPopup') diacriticPopup!: DiacriticPopupComponent;
@@ -46,6 +50,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   // autocomplete
   protected filteredOptions: string[] = [];
   private currentAutocompleteItemFocusIndex = -1;
+  private readonly autocompleteQuery$ = new Subject<{text: string; language: LanguageCode}>();
 
   // islands
   protected frequency = 0;
@@ -53,9 +58,10 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
   private currentLanguage: LanguageCode = LanguageCode.EN;
 
   private globalKeydownListener!: () => void;
+  private pasteListener?: () => void;
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.searchText = params.get('text') ?? '';
     });
 
@@ -66,16 +72,29 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
-    this.languageService.currentLanguage$.subscribe(currentLanguage => {
+    this.languageService.currentLanguage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(currentLanguage => {
       if (currentLanguage) {
         this.currentLanguage = currentLanguage;
+      }
+    });
+
+    this.autocompleteQuery$.pipe(
+      debounceTime(200),
+      distinctUntilChanged((previous, current) =>
+        previous.text === current.text && previous.language === current.language
+      ),
+      switchMap(({text, language}) => this.autocompleteService.getAutocompleteSuggestions(text, language)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(options => {
+      if (!this.submitted) {
+        this.filteredOptions = options;
       }
     });
   }
 
   ngAfterViewInit() {
     // Listen for paste events to sanitize pasted content
-    this.renderer.listen(this.searchInput.nativeElement, 'paste', (event: ClipboardEvent) => {
+    this.pasteListener = this.renderer.listen(this.searchInput.nativeElement, 'paste', (event: ClipboardEvent) => {
       event.preventDefault(); // Prevent the default paste behavior
       const text = event.clipboardData?.getData('text/plain') ?? ''; // Get plain text from the clipboard
       this.insertTextAtCursor(text); // Insert the plain text at the cursor position
@@ -87,6 +106,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.globalKeydownListener) {
       this.globalKeydownListener();
     }
+    this.pasteListener?.();
   }
 
   /** Utility method to insert text at the cursor position in a contenteditable element */
@@ -120,7 +140,9 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     this.submitted = true;
     this.filteredOptions = [];
     if (this.searchText) {
-      this.frequencyService.getFrequency(this.searchText, this.currentLanguage).subscribe(freq => {
+      this.frequencyService.getFrequency(this.searchText, this.currentLanguage)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(freq => {
         this.frequency = freq;
       });
     }
@@ -195,11 +217,7 @@ export class DiscoverComponent implements OnInit, OnDestroy, AfterViewInit {
     this.submitted = false;
     this.currentAutocompleteItemFocusIndex = -1;
 
-    this.autocompleteService.getAutocompleteSuggestions(this.searchText, this.currentLanguage).subscribe(options => {
-      if (!this.submitted) {
-        this.filteredOptions = options;
-      }
-    });
+    this.autocompleteQuery$.next({text: this.searchText, language: this.currentLanguage});
   }
 
   private updateContentEditable(text: string): void {

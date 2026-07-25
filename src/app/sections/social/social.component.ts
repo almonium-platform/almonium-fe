@@ -315,7 +315,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected listenToFriendSearch() {
-    this.friendFormControl.valueChanges.subscribe(value => {
+    this.friendFormControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
       if (value === null) return;
       this.drawerUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
     });

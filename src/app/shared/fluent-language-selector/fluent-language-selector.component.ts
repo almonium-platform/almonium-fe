@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   Input,
@@ -7,7 +8,8 @@ import {
   OnInit,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  inject,
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
@@ -26,6 +28,7 @@ import {TuiError, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
 import {TuiDropdownContent} from '@taiga-ui/core/portals';
 import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {TuiItem} from '@taiga-ui/cdk/directives';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 const MAX_LANGUAGES = 3;
 
@@ -58,6 +61,7 @@ const MAX_LANGUAGES = 3;
   standalone: true,
 })
 export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() languages: Language[] = [];
   @Input() size: 's' | 'm' | 'l' = 'l';
   @Input() selectedLanguages?: string[] = [];
@@ -108,9 +112,13 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   private lastFiltered: string[] = [];
 
   ngOnInit(): void {
-    this.filteredFluentLanguages$.subscribe(list => (this.lastFiltered = list));
+    this.filteredFluentLanguages$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => (this.lastFiltered = list));
 
-    this.fluentLanguageControl.valueChanges.subscribe(() => {
+    this.fluentLanguageControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
       this.sanitizeControl(); // strip “fre” etc.
       const value = this.fluentLanguageControl.value ?? [];
       this.selectedFluentLanguages.emit({

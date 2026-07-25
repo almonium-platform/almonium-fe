@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, ViewChild, inject } from '@angular/core';
 import {AvatarComponent} from "../avatar.component";
 import {UserPreviewCardComponent} from "../../user-preview-card/user-preview-card.component";
 import {TuiDropdownDirective, TuiDropdownManual} from "@taiga-ui/core/portals";
@@ -50,7 +50,7 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
     UserPreviewCardWrapperComponent
   ],
 })
-export class AvatarPreviewComponent {
+export class AvatarPreviewComponent implements OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
 
   @ViewChild('preview', {static: false}) wrapper!: UserPreviewCardWrapperComponent
@@ -92,5 +92,9 @@ export class AvatarPreviewComponent {
 
   openUserCard() {
     this.popupTemplateStateService.open(this.wrapper.content, 'preview', true);
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.timeout);
   }
 }

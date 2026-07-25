@@ -24,12 +24,16 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
 
   @ViewChild('vid', { static: true }) vid!: ElementRef<HTMLVideoElement>;
   private sub?: Subscription;
+  private readonly endedListener = () => {
+    if (!this.looped) this.freezeLastFrame();
+  };
+  private readonly loadedMetadataListener = () => {
+    this.vid.nativeElement.play().catch(() => undefined);
+  };
 
   ngOnInit() {
     // freeze on last frame when not looped
-    this.vid.nativeElement.addEventListener('ended', () => {
-      if (!this.looped) this.freezeLastFrame();
-    });
+    this.vid.nativeElement.addEventListener('ended', this.endedListener);
 
     if (this.replayTrigger) {
       this.sub = this.replayTrigger.subscribe(() => this.replay());
@@ -37,13 +41,15 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
 
     // if autoplay + not looped and you want it to rest on last frame on first load
     if (this.playOnLoad && !this.looped) {
-      this.vid.nativeElement.addEventListener('loadedmetadata', () => {
-        this.vid.nativeElement.play().catch(() => undefined);
-      });
+      this.vid.nativeElement.addEventListener('loadedmetadata', this.loadedMetadataListener);
     }
   }
 
-  ngOnDestroy() { this.sub?.unsubscribe(); }
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
+    this.vid.nativeElement.removeEventListener('ended', this.endedListener);
+    this.vid.nativeElement.removeEventListener('loadedmetadata', this.loadedMetadataListener);
+  }
 
   replay() {
     const v = this.vid.nativeElement;

@@ -63,6 +63,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   countdown = 5;
   isButtonDisabled = true;
   intervalId?: ReturnType<typeof setInterval>;
+  closeTimeout?: ReturnType<typeof setTimeout>;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isVisible']?.currentValue === true) {
@@ -101,7 +102,8 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   onClose() {
     this.clearCountdown();
     this.fadeOutAnimating = true;
-    setTimeout(() => {
+    clearTimeout(this.closeTimeout);
+    this.closeTimeout = setTimeout(() => {
       this.closed.emit();
       this.fadeOutAnimating = false;
     }, 200); // Match animation duration in milliseconds
@@ -114,6 +116,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.clearCountdown();
+    clearTimeout(this.closeTimeout);
   }
 
   @HostListener('document:keydown.escape')

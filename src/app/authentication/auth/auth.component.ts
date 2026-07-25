@@ -68,6 +68,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
 
   private readonly destroy$ = new Subject<void>();
+  private greetingInterval?: ReturnType<typeof setInterval>;
   @ViewChild('auth', {static: true}) content!: TemplateRef<unknown>;
 
   private userInfo: UserInfo | null = null;
@@ -123,14 +124,14 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.setModes();
 
     if (this.mode === 'embedded') {
-      this.authSettingsService.populateAuthMethods().subscribe(
+      this.authSettingsService.populateAuthMethods().pipe(takeUntil(this.destroy$)).subscribe(
         (providers) => {
           this.connectedProviders = providers.map((provider) => provider.provider.toLowerCase());
         }
       );
     }
 
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const error = params.get('error');
       if (error) {
         this.alertService.open(error, {appearance: 'negative'}).subscribe();
@@ -138,13 +139,13 @@ export class AuthComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.userInfoService.userInfo$.subscribe((info) => {
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       if (info) {
         this.authForm.get('emailValue')?.setValue(info.email);
       }
     });
 
-    this.route.fragment.subscribe((fragment) => {
+    this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe((fragment) => {
       if (fragment === 'sign-up') {
         this.isSignUp = true;
       } else if (fragment === 'sign-in') {
@@ -154,7 +155,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     this.loadGreetings();
 
-    setInterval(() => {
+    this.greetingInterval = setInterval(() => {
       if (!this.isHovering && Object.keys(this.greetings).length > 0) {
         const greetingKeys = Object.keys(this.greetings);
         this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
@@ -192,6 +193,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearInterval(this.greetingInterval);
     this.destroy$.next();
     this.destroy$.complete();
   }
