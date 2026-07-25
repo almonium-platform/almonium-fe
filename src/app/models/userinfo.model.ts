@@ -200,7 +200,7 @@ export class Subscription {
     public type: PlanType,
     public autoRenewal: boolean | null,
     public startDate: Date,
-    public endDate: Date
+    public endDate: Date | null
   ) {
   }
 
@@ -223,7 +223,9 @@ export class Subscription {
       expectEnum(data['type'], Object.values(PlanType), 'user.subscription.type'),
       autoRenewal,
       expectDate(data['startDate'], 'user.subscription.startDate'),
-      expectDate(data['endDate'], 'user.subscription.endDate'),
+      data['endDate'] === null || data['endDate'] === undefined
+        ? null
+        : expectDate(data['endDate'], 'user.subscription.endDate'),
     );
   }
 
@@ -242,7 +244,7 @@ export interface SubscriptionDto {
   type: PlanType;
   autoRenewal: boolean | null;
   startDate: string | Date;
-  endDate: string | Date;
+  endDate: string | Date | null;
 }
 
 export const PlanLimitKeys = {

@@ -114,6 +114,20 @@ describe('UserInfoService', () => {
     expect(localStorage.saveUserInfo.calls.count()).toBe(0);
   });
 
+  it('accepts a null end date for lifetime subscriptions', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush({
+      ...serverUser,
+      subscription: {
+        ...serverUser.subscription,
+        type: PlanType.LIFETIME,
+        endDate: null,
+      },
+    });
+
+    expect((await resultPromise)?.subscription.endDate).toBeNull();
+  });
+
   it('normalizes partial UI preferences with safe defaults', async () => {
     const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
     httpTesting.expectOne(AppConstants.ME_URL).flush({

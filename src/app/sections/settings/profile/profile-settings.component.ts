@@ -147,16 +147,19 @@ auto-renewal in the customer portal.`;
   }
 
   private setRenewalTooltip(info: UserInfo) {
+    if (info.subscription?.type === PlanType.LIFETIME || !info.subscription?.endDate) {
+      this.tooltipRenewal = 'Lifetime subscription 🎉';
+      return;
+    }
+
     const renewalStatus = info.subscription?.autoRenewal ? 'renew' : 'end';
-    const formattedDate = info.subscription?.endDate.toLocaleDateString('en-US', {
+    const formattedDate = info.subscription.endDate.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     }).replace(/(\d+)(?=\D*$)/, '$1');
 
-    this.tooltipRenewal = info.subscription?.type === PlanType.LIFETIME
-      ? 'Lifetime subscription 🎉'
-      : `Subscription will ${renewalStatus} on ${formattedDate}`;
+    this.tooltipRenewal = `Subscription will ${renewalStatus} on ${formattedDate}`;
   }
 
   private dealWithQueryParams() {
