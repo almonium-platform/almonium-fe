@@ -6,6 +6,7 @@ import {Subject, takeUntil} from 'rxjs';
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {LanguageNameService} from "../../services/language-name.service";
 import {RouterLink} from "@angular/router";
+import {getErrorMessage} from '../../shared/http-error';
 
 @Component({
   selector: 'app-review',
@@ -24,6 +25,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
   cards: CardDto[] = [];
   selectedLanguage!: LanguageCode;
   displayLanguageName = '';
+  protected loadError = '';
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -41,8 +43,15 @@ export class ReviewComponent implements OnInit, OnDestroy {
   }
 
   private fetchCardsForLanguage(language: LanguageCode): void {
-    this.cardService.getCardsInLanguage(language).subscribe((cards) => {
-      this.cards = cards;
+    this.loadError = '';
+    this.cardService.getCardsInLanguage(language).pipe(takeUntil(this.destroy$)).subscribe({
+      next: cards => {
+        this.cards = cards;
+      },
+      error: error => {
+        this.cards = [];
+        this.loadError = getErrorMessage(error, 'Could not load your review cards. Please try again.');
+      },
     });
   }
 }

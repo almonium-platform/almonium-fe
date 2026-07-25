@@ -1,7 +1,7 @@
 import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
-import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {map, tap} from 'rxjs/operators';
 import {LocalStorageService} from './local-storage.service';
 import {Language} from '../models/language.model';
 import {LanguageNameService} from "./language-name.service";
@@ -33,7 +33,9 @@ export class SupportedLanguagesService {
       this.supportedLanguagesSubject.next(cachedLanguages);
     } else {
       // If no cached data, fetch from server
-      this.getAllSupportedLanguages().subscribe();
+      this.getAllSupportedLanguages().subscribe({
+        error: error => logger.error('Error fetching supported languages:', error),
+      });
     }
   }
 
@@ -59,10 +61,6 @@ export class SupportedLanguagesService {
         this.supportedLanguagesSubject.next(languages);
         this.cacheSupportedLanguages(languages);
       }),
-      catchError((error) => {
-        logger.error('Error fetching supported languages:', error);
-        return of([]); // Return an empty array in case of error
-      })
     );
   }
 

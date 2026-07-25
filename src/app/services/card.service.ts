@@ -1,11 +1,10 @@
-import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {LanguageCode} from "../models/language.enum";
 import {AppConstants} from "../app.constants";
-import {CardDto} from "../models/card.model";
+import {CardDto, parseCards} from "../models/card.model";
 
 
 @Injectable({
@@ -16,11 +15,7 @@ export class CardService {
 
 
   getCardsInLanguage(language: LanguageCode): Observable<CardDto[]> {
-    return this.http.get<CardDto[]>(`${AppConstants.CARDS_IN_LANG}/${language}`, {withCredentials: true}).pipe(
-      catchError((error) => {
-        logger.error('Error fetching cards:', error);
-        return of([]);
-      })
-    );
+    return this.http.get<unknown>(`${AppConstants.CARDS_IN_LANG}/${language}`, {withCredentials: true})
+      .pipe(map(parseCards));
   }
 }
