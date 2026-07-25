@@ -128,6 +128,7 @@ jobs:
           playbook: playbook-deploy-almonium-fe.yaml
           directory: almonium-infra/ansible
           key: ${{ secrets.CLOUD_KEY }}
+          known_hosts: ${{ secrets.CLOUD_KNOWN_HOSTS }}
           options: |
             -i inventory/hosts.ini
             --limit almonium
