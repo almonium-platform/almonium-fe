@@ -11,8 +11,8 @@ import {
   parseBooks,
   parseBookshelfView,
 } from "./book.model";
-import {EMPTY, Observable} from "rxjs";
-import {catchError, map, tap} from 'rxjs/operators';
+import {Observable} from "rxjs";
+import {map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -86,10 +86,6 @@ export class ReadService {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     return this.http.delete<void>(url, {withCredentials: true}).pipe(
       tap(() => logger.debug(`ReadService: Deleted progress for ${bookId}`)),
-      catchError(err => {
-        logger.error(`ReadService: Failed to delete progress for ${bookId}`, err);
-        return EMPTY;
-      })
     );
   }
 
@@ -104,10 +100,6 @@ export class ReadService {
 
     return this.http.post<void>(url, null, {params, withCredentials: true}).pipe(
       tap(() => logger.debug(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
-      catchError(err => {
-        logger.error(`ReadService: Failed to save progress for ${bookId}`, err);
-        return EMPTY;
-      })
     );
   }
 

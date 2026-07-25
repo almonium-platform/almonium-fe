@@ -1,7 +1,8 @@
 import {DestroyRef, Injectable, inject} from '@angular/core';
-import {BehaviorSubject, EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap, tap, throttleTime} from 'rxjs';
+import {BehaviorSubject, catchError, EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap, tap, throttleTime} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {ReadService} from '../read.service';
+import {logger} from '../../../shared/logger';
 
 /** Owns reader progress persistence and its timing policy. */
 @Injectable()
@@ -22,6 +23,11 @@ export class ReaderProgressTracker {
         throttleTime(10_000, undefined, {leading: false, trailing: true}),
         switchMap(percentage => this.readService.saveProgress(bookId, percentage).pipe(
           tap(() => this.lastSavedPercentage = percentage),
+          // A later scroll update should still be able to save after a transient failure.
+          catchError(error => {
+            logger.error(`Could not save reading progress for ${bookId}`, error);
+            return EMPTY;
+          }),
         )),
       )),
       takeUntilDestroyed(this.destroyRef),
@@ -52,6 +58,9 @@ export class ReaderProgressTracker {
 
     const percentage = this.currentPercentage;
     this.readService.saveProgress(this.bookId, percentage)
-      .subscribe(() => this.lastSavedPercentage = percentage);
+      .subscribe({
+        next: () => this.lastSavedPercentage = percentage,
+        error: error => logger.error(`Could not save reading progress for ${this.bookId}`, error),
+      });
   }
 }
