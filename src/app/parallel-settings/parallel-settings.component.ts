@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {TuiSegmented} from "@taiga-ui/kit/components";
 import {ParallelMode} from '../sections/read/parallel-mode.type';
@@ -68,7 +69,7 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
         if (this.modeSelectedIndex !== newIndex) {
           this.modeSelectedIndex = newIndex;
           this.cdRef.markForCheck(); // Update view if needed
-          console.log('Settings component updated index from service:', newIndex);
+          logger.debug('Settings component updated index from service:', newIndex);
         }
       });
   }
@@ -88,11 +89,11 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
     // Convert index back to mode string ('side', 'overlay', 'inline')
     const newMode = this.indexModeMap[newIndex];
     if (newMode) {
-      console.log('Settings component sending mode to service:', newMode);
+      logger.debug('Settings component sending mode to service:', newMode);
       // Set the mode via the service (this will also save to localStorage)
       this.parallelModeService.setMode(newMode);
     } else {
-      console.warn('Invalid index received from segmented control:', newIndex);
+      logger.warn('Invalid index received from segmented control:', newIndex);
     }
   }
 }

@@ -1,5 +1,16 @@
 import {LanguageCode} from "./language.enum";
 import {Interest} from "../shared/interests/interest.model";
+import {
+  expectArray,
+  expectBoolean,
+  expectDate,
+  expectEnum,
+  expectNullableNumber,
+  expectNullableString,
+  expectNumber,
+  expectRecord,
+  expectString,
+} from '../shared/runtime-validation';
 
 export class UserInfo {
   constructor(
@@ -45,25 +56,30 @@ export class UserInfo {
     );
   }
 
-  static fromJSON(data: UserInfoData): UserInfo {
+  static fromJSON(value: unknown): UserInfo {
+    const data = expectRecord(value, 'user');
     return new UserInfo(
-      data.id,
-      data.username,
-      data.email,
-      data.emailVerified,
-      data.hidden,
-      data.uiLang,
-      data.avatarUrl,
-      data.background,
-      data.streak,
-      data.fluentLangs,
-      data.setupStep,
-      data.tags,
-      Subscription.fromJSON(data.subscription),
-      data.premium,
-      data.learners.map(learner => Learner.fromJSON(learner)),
-      data.interests,
-      data.uiPreferences,
+      expectString(data['id'], 'user.id'),
+      expectString(data['username'], 'user.username'),
+      expectString(data['email'], 'user.email'),
+      expectBoolean(data['emailVerified'], 'user.emailVerified'),
+      expectBoolean(data['hidden'], 'user.hidden'),
+      expectNullableString(data['uiLang'], 'user.uiLang'),
+      expectNullableString(data['avatarUrl'], 'user.avatarUrl'),
+      expectNullableString(data['background'], 'user.background'),
+      expectNullableNumber(data['streak'], 'user.streak'),
+      parseEnumArray(data['fluentLangs'], Object.values(LanguageCode), 'user.fluentLangs'),
+      expectEnum(data['setupStep'], Object.values(SetupStep), 'user.setupStep'),
+      parseNullableStringArray(data['tags'], 'user.tags'),
+      Subscription.fromJSON(data['subscription']),
+      expectBoolean(data['premium'], 'user.premium'),
+      expectArray(data['learners'], 'user.learners').map((learner, index) =>
+        Learner.fromJSON(learner, `user.learners[${index}]`)
+      ),
+      expectArray(data['interests'], 'user.interests').map((interest, index) =>
+        parseInterest(interest, `user.interests[${index}]`)
+      ),
+      parseUiPreferences(data['uiPreferences']),
     );
   }
 
@@ -150,12 +166,13 @@ export class Learner {
   ) {
   }
 
-  static fromJSON(data: LearnerDto): Learner {
+  static fromJSON(value: unknown, path = 'learner'): Learner {
+    const data = expectRecord(value, path);
     return new Learner(
-      data.id,
-      data.language,
-      data.selfReportedLevel,
-      data.active,
+      expectString(data['id'], `${path}.id`),
+      expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
+      expectEnum(data['selfReportedLevel'], Object.values(CEFRLevel), `${path}.selfReportedLevel`),
+      expectBoolean(data['active'], `${path}.active`),
     );
   }
 }
@@ -187,8 +204,27 @@ export class Subscription {
   ) {
   }
 
-  static fromJSON(data: SubscriptionDto): Subscription {
-    return new Subscription(data.name, data.limits, data.type, data.autoRenewal, new Date(data.startDate), new Date(data.endDate));
+  static fromJSON(value: unknown): Subscription {
+    const data = expectRecord(value, 'user.subscription');
+    const rawLimits = expectRecord(data['limits'], 'user.subscription.limits');
+    const limits = Object.fromEntries(
+      Object.entries(rawLimits).map(([key, limit]) => [
+        key,
+        expectNumber(limit, `user.subscription.limits.${key}`),
+      ])
+    );
+    const autoRenewal = data['autoRenewal'] === null
+      ? null
+      : expectBoolean(data['autoRenewal'], 'user.subscription.autoRenewal');
+
+    return new Subscription(
+      expectString(data['name'], 'user.subscription.name'),
+      limits,
+      expectEnum(data['type'], Object.values(PlanType), 'user.subscription.type'),
+      autoRenewal,
+      expectDate(data['startDate'], 'user.subscription.startDate'),
+      expectDate(data['endDate'], 'user.subscription.endDate'),
+    );
   }
 
   getLimit(key: string, defaultValue = Infinity): number {
@@ -251,4 +287,64 @@ export function getNextStep(currentStep: SetupStep): SetupStep {
   ) as SetupStep | undefined;
 
   return nextStep ?? SetupStep.COMPLETED;
+}
+
+export function parseUserInfoDto(value: unknown): {userInfo: UserInfo; streamChatToken: string} {
+  const data = expectRecord(value, 'user');
+  return {
+    userInfo: UserInfo.fromJSON(data),
+    streamChatToken: expectString(data['streamChatToken'], 'user.streamChatToken'),
+  };
+}
+
+function parseNullableStringArray(value: unknown, path: string): string[] | null {
+  if (value === null || value === undefined) return null;
+  return expectArray(value, path).map((item, index) => expectString(item, `${path}[${index}]`));
+}
+
+function parseEnumArray<T extends string>(value: unknown, values: readonly T[], path: string): T[] {
+  return expectArray(value, path).map((item, index) => expectEnum(item, values, `${path}[${index}]`));
+}
+
+function parseInterest(value: unknown, path: string): Interest {
+  const data = expectRecord(value, path);
+  return {
+    id: expectNumber(data['id'], `${path}.id`),
+    name: expectString(data['name'], `${path}.name`),
+  };
+}
+
+function parseUiPreferences(value: unknown): UIPreferences {
+  if (value === null || value === undefined) {
+    return structuredClone(DEFAULT_UI_PREFERENCES);
+  }
+  const preferences = expectRecord(value, 'user.uiPreferences');
+  const navbar = preferences['navbar'] === undefined
+    ? {}
+    : expectRecord(preferences['navbar'], 'user.uiPreferences.navbar');
+  const profileMenu = preferences['profileMenu'] === undefined
+    ? {}
+    : expectRecord(preferences['profileMenu'], 'user.uiPreferences.profileMenu');
+
+  return {
+    navbar: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.navbar, navbar, 'user.uiPreferences.navbar'),
+    profileMenu: parseBooleanPreferences(
+      DEFAULT_UI_PREFERENCES.profileMenu,
+      profileMenu,
+      'user.uiPreferences.profileMenu',
+    ),
+  };
+}
+
+function parseBooleanPreferences<T extends Record<string, boolean>>(
+  defaults: T,
+  value: Record<string, unknown>,
+  path: string,
+): T {
+  return Object.fromEntries(
+    Object.entries(defaults).map(([key, fallback]) => [
+      key,
+      value[key] === undefined ? fallback : expectBoolean(value[key], `${path}.${key}`),
+    ])
+  ) as T;
 }

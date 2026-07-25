@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {BehaviorSubject, finalize, Observable} from 'rxjs';
 import {TuiLoader} from "@taiga-ui/core/components";
@@ -70,7 +71,7 @@ export class ActionIconComponent implements OnInit {
           this.actionCompleted.emit(); // Notify parent of successful action
         },
         error: () => {
-          console.error('Action failed'); // Handle error if needed
+          logger.error('Action failed'); // Handle error if needed
         },
       });
   }

@@ -1,3 +1,4 @@
+import {logger} from "./shared/logger";
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
@@ -98,9 +99,9 @@ export class AppComponent implements OnInit {
         gtag('config', this.measurementId, { // Use the measurementId variable
           'page_path': navigationEvent.urlAfterRedirects // Send the final URL after redirects
         });
-        console.log(`GA: Sent page_view for ${navigationEvent.urlAfterRedirects}`);
+        logger.debug(`GA: Sent page_view for ${navigationEvent.urlAfterRedirects}`);
       } else {
-        console.warn('GA: gtag function not found. Ensure GA script is loaded in index.html.');
+        logger.warn('GA: gtag function not found. Ensure GA script is loaded in index.html.');
       }
     });
   }

@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
 import {ButtonComponent} from "../button/button.component";
 import {Router} from "@angular/router";
@@ -41,7 +42,7 @@ export class UpgradeComponent implements OnInit {
       if (isStepAfter(this.userInfo!.setupStep, this.step)) {
         this.continue.emit(nextStep);
       } else {
-        console.error('This shouldn`t happen. If user already has a plan, his setup step should be next after plan');
+        logger.error('This shouldn`t happen. If user already has a plan, his setup step should be next after plan');
         this.userInfoService.updateUserInfo({setupStep: nextStep});
       }
     } else {

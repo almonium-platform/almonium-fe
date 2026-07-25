@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
@@ -176,7 +177,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         this.updateLocalAuthData(methods);
       },
       error: (error) => {
-        console.error(error);
+        logger.error(error);
         this.alertService.open(getErrorMessage(error, 'Failed to get auth methods'), {appearance: 'negative'}).subscribe();
       },
     });
@@ -436,7 +437,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(getErrorMessage(error, 'Failed to get last token'), {appearance: 'negative'}).subscribe();
-        console.error('Error getting last token:', error);
+        logger.error('Error getting last token:', error);
       },
     });
   }
@@ -455,7 +456,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(getErrorMessage(error, 'Failed to cancel email verification request'), {appearance: 'negative'}).subscribe();
-        console.error('Error cancelling email verification request:', error);
+        logger.error('Error cancelling email verification request:', error);
       },
     });
   }
@@ -470,7 +471,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(getErrorMessage(error, 'Failed to resend email verification request'), {appearance: 'negative'}).subscribe();
-        console.error('Error resending email verification request:', error);
+        logger.error('Error resending email verification request:', error);
       },
     });
   }
@@ -548,7 +549,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.restorePasswordField();
     this.focusEmailInput();
     if (this.hasPendingEmailVerificationRequest()) {
-      console.error('This button should not be visible');
+      logger.error('This button should not be visible');
       return;
     }
 
@@ -621,7 +622,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.alertService.open(getErrorMessage(error, 'Failed to check email availability'), {appearance: 'negative'}).subscribe();
-          console.error('Error checking email availability:', error);
+          logger.error('Error checking email availability:', error);
         },
       });
   }
@@ -636,7 +637,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService.open(getErrorMessage(error, 'Failed to send email change request'), {appearance: 'negative'}).subscribe();
-        console.error('Error sending email change request:', error);
+        logger.error('Error sending email change request:', error);
       }
     });
   }

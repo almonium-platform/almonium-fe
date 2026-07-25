@@ -1,3 +1,4 @@
+import {logger} from "../../../logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Injectable, inject } from '@angular/core';
 import {interval, Subscription} from 'rxjs';
@@ -50,7 +51,7 @@ export class TimerMonitorService {
    * Logic to execute when the timer reaches 0.0.
    */
   private triggerTimerEndAlert() {
-    console.log("⏳ Timer expired! Triggering alert...");
+    logger.debug("⏳ Timer expired! Triggering alert...");
     this.alertService.open("⏳ Time's up!", {appearance: "warning"}).subscribe();
   }
 }

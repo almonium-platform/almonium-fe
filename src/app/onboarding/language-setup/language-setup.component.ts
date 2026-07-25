@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
 import {
@@ -509,7 +510,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.alertService.open('New target language added to your profile!', {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
-        console.error('Error saving languages:', error);
+        logger.error('Error saving languages:', error);
         this.alertService.open(getErrorMessage(error, 'Failed to add new target languages'), {appearance: 'negative'}).subscribe();
       },
     });
@@ -517,17 +518,17 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   protected submitSecondStepForm(): void {
     if (this.loadingSubject$.getValue()) {
-      console.warn('Submission already in progress. Skipping.');
+      logger.warn('Submission already in progress. Skipping.');
       return;
     }
 
     if (this.cefrForm.invalid) {
-      console.error('Form is invalid. Please fill in all fields.');
+      logger.error('Form is invalid. Please fill in all fields.');
       return;
     }
 
     if (!this.isDataChanged) {
-      console.info('No changes detected. Skipping request.');
+      logger.info('No changes detected. Skipping request.');
       this.continue.emit(getNextStep(this.step));
       return;
     }
@@ -566,7 +567,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           this.alertService.open(getErrorMessage(error, 'Failed to save your preferences'), {appearance: 'negative'}).subscribe();
-          console.error('Error saving languages:', error);
+          logger.error('Error saving languages:', error);
         },
       });
   }

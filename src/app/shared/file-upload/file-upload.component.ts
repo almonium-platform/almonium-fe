@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {Component, EventEmitter, Output} from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {finalize, Observable, of, Subject, switchMap} from 'rxjs';
@@ -63,7 +64,7 @@ export class FileUploadComponent {
         this.fileUploaded.emit(file as File); // Notify parent that the file is ready
       }),
       catchError((error) => {
-        console.error('Error processing file:', error);
+        logger.error('Error processing file:', error);
         this.failedFiles$.next(file); // Notify about the failure
         return of(null); // Emit null on error
       }),

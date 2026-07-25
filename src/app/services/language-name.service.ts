@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import {Injectable} from '@angular/core';
 import iso6391 from 'iso-639-1';
 import {iso6393} from 'iso-639-3';
@@ -80,7 +81,7 @@ export class LanguageNameService {
       if (Object.values(LanguageCode).includes(code as LanguageCode)) {
         return code as LanguageCode; // Safe cast
       } else {
-        console.warn(`Language code "${code}" is not a valid LanguageCode enum value.`);
+        logger.warn(`Language code "${code}" is not a valid LanguageCode enum value.`);
         return null; // Code is not a valid enum value
       }
     }

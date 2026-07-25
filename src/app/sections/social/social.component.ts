@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
 import {SocialService} from "./social.service";
@@ -218,7 +219,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         setTimeout(() => {
           void this.openChatByCid(cid).then((found) => {
             if (!found) {
-              console.error("Could not find chat with cid:", cid);
+              logger.error("Could not find chat with cid:", cid);
             }
           });
         }, 300);
@@ -278,7 +279,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     const userId = userInfo.id;
     const userToken = this.userInfoService.streamChatToken;
     if (!userToken) {
-      console.error('Cannot initialize chat without a server-issued Stream token.');
+      logger.error('Cannot initialize chat without a server-issued Stream token.');
       return;
     }
     const userName = userInfo.username;
@@ -309,7 +310,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     const chat: unknown = params['chat'];
     if (typeof chat === 'string') {
       this.redirectId = chat;
-      console.log('Redirecting to chat with cid:', this.channels.friendshipCid(this.redirectId));
+      logger.debug('Redirecting to chat with cid:', this.channels.friendshipCid(this.redirectId));
     }
     this.urlService.clearUrl();
   }
@@ -452,7 +453,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             await this.channelService.init(finalFilters, undefined, undefined, false);
             return [];
           } catch (error) {
-            console.error("Error fetching channels:", error);
+            logger.error("Error fetching channels:", error);
             return EMPTY;
           }
         })
@@ -527,7 +528,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   cancelFriendRequest(friendshipId: string) {
     if (this.cancelInProgressIds.has(friendshipId)) {
-      console.warn('Cancel request already in progress');
+      logger.warn('Cancel request already in progress');
       return;
     }
     this.cancelInProgressIds.add(friendshipId);
@@ -541,7 +542,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -549,7 +550,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   acceptFriendRequest(candidate: RelatedUserProfile) {
     if (this.acceptInProgressIds.has(candidate.relationshipId)) {
-      console.warn('Accept request already in progress');
+      logger.warn('Accept request already in progress');
       return;
     }
 
@@ -568,7 +569,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to accept friendship request'), {appearance: 'negative'}).subscribe();
           this.acceptInProgressIds.delete(candidate.relationshipId);
         }
@@ -577,7 +578,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   rejectFriendRequest(id: string) {
     if (this.rejectInProgressIds.has(id)) {
-      console.warn('Reject request already in progress');
+      logger.warn('Reject request already in progress');
       return;
     }
     this.rejectInProgressIds.add(id);
@@ -590,7 +591,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.alertService.open('Friend request rejected', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to reject friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -598,7 +599,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   unblock(friendId: string, friendshipId: string) {
     if (this.unblockInProgressIds.has(friendshipId)) {
-      console.warn('Unblock request already in progress');
+      logger.warn('Unblock request already in progress');
       return;
     }
     this.unblockInProgressIds.add(friendshipId);
@@ -613,7 +614,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -621,12 +622,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   sendFriendRequest(id: string) {
     if (this.requestedIds.includes(id)) {
-      console.warn('Request already sent');
+      logger.warn('Request already sent');
       return;
     }
 
     if (this.sendRequestInProgressIds.has(id)) {
-      console.warn('Request already in progress');
+      logger.warn('Request already in progress');
       return;
     }
 
@@ -645,7 +646,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           }, 2000);
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -660,7 +661,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setDrawerMode('friends');
       },
       error: (error) => {
-        console.error(error);
+        logger.error(error);
         this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
       }
     });
@@ -676,7 +677,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setDrawerMode('blocked');
       },
       error: (error) => {
-        console.error(error);
+        logger.error(error);
         this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
       }
     });
@@ -791,9 +792,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Only mark as unread if the last message was sent by someone else
       if (lastMessage && this.isLastMessageFromOtherUser(channel)) {
-        channel.markUnread({message_id: lastMessage.id}).catch(err => console.error('Mark as unread failed', err));
+        channel.markUnread({message_id: lastMessage.id}).catch(err => logger.error('Mark as unread failed', err));
       } else {
-        console.warn('Cannot mark as unread: No valid message from another user');
+        logger.warn('Cannot mark as unread: No valid message from another user');
       }
     }, 30);
   }
@@ -870,7 +871,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openUser(location: AvatarLocation) {
     if (location === 'channel-preview' && this.channels.isPrivate(this.hoveredChannel!)) {
       const interlocutorId = this.getInterlocutorId();
-      console.info('Opening chat with user:', interlocutorId);
+      logger.info('Opening chat with user:', interlocutorId);
     }
   }
 

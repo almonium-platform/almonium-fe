@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
@@ -138,7 +139,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       .subscribe(mode => {
         const previousMode = this.currentParallelMode;
         if (previousMode !== mode) {
-          console.log('Reader received new parallel mode:', mode);
+          logger.debug('Reader received new parallel mode:', mode);
           this.currentParallelMode = mode;
           this.cdRef.markForCheck(); // Trigger pipe re-evaluation
 
@@ -187,10 +188,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Schedules the height sync after Angular has rendered changes
   private scheduleHeightSync(): void {
     if (this.currentParallelMode !== 'side' || !this.readerContentRef) {
-      console.log("Skipping height sync: Not in side mode or content ref missing.");
+      logger.debug("Skipping height sync: Not in side mode or content ref missing.");
       return;
     }
-    console.log("Scheduling height synchronization...");
+    logger.debug("Scheduling height synchronization...");
     // Use setTimeout to queue it after the current rendering cycle
     if (this.heightSyncTimeoutId !== null) {
       clearTimeout(this.heightSyncTimeoutId);
@@ -255,14 +256,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   ngAfterViewChecked(): void {
     // Try to measure chapters ONLY ONCE after base load
     if (!this.hasMeasuredChapters && !this.isLoading && this.baseBookHtmlContent && !this.isParallelViewActive) {
-      console.log("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
+      logger.debug("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
       const measured = this.measureChapterOffsets(); // Try measuring base content
       if (measured) {
         this.hasMeasuredChapters = true; // Mark as done
-        console.log("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
+        logger.debug("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
         this.cdRef.markForCheck(); // Update ToC dropdown
       } else {
-        console.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
+        logger.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
       }
     }
 
@@ -329,7 +330,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             this.isLoading = false;
             this.isLoadingParallel = false;
             this.errorMessage = null;
-            console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
+            logger.debug(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
             this.currentlyOpenFluentSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
 
@@ -365,22 +366,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       const clientHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
 
       if (scrollHeight > 0 && (scrollHeight > clientHeight || target === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
-        console.log(`Attempting initial scroll to target: ${target}% (scrollHeight: ${scrollHeight})`);
+        logger.debug(`Attempting initial scroll to target: ${target}% (scrollHeight: ${scrollHeight})`);
         this.scrollToPercentage(target);
         this.initialScrollApplied = true; // Mark as applied
       } else {
-        console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): scrollHeight not ready or not scrollable. scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${target}`);
+        logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): scrollHeight not ready or not scrollable. scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${target}`);
       }
     } else if (!this.initialScrollApplied && this.initialScrollPercentage !== null) {
       // Log only if we expected to scroll but didn't yet
-      // console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
+      // logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
     }
   }
 
 
   // Reverts the view to the base language content
   private revertToBaseContent(): void {
-    console.log("Reverting to base content.");
+    logger.debug("Reverting to base content.");
 
     // Check if content or state actually needs reverting
     if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.fluentLangCode !== null) {
@@ -393,9 +394,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.cdRef.markForCheck();
 
       this.initialScrollApplied = false; // Re-apply the scroll when content changes
-      console.log("Reverted to base, flags set for ngAfterViewChecked.");
+      logger.debug("Reverted to base, flags set for ngAfterViewChecked.");
     } else {
-      console.log("Already in base content state.");
+      logger.debug("Already in base content state.");
     }
   }
 
@@ -406,20 +407,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       next: (book) => {
         if (book) {
           this.targetLangCode = book.language; // <-- ADD THIS LINE
-          console.log(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
+          logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
           this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
           this.initialScrollPercentage = book.progressPercentage ?? 0;
-          console.log(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
+          logger.debug(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
           this.cdRef.markForCheck();
         }
       },
-      error: (error) => console.error('Error fetching book details for parallel options:', error)
+      error: (error) => logger.error('Error fetching book details for parallel options:', error)
     });
   }
 
   // General error handler
   private handleError(message: string): void {
-    console.error("Reader Error:", message);
+    logger.error("Reader Error:", message);
     this.errorMessage = message;
     this.isLoading = false;
     this.chapterNav = [];
@@ -451,7 +452,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.chapterMeasurementFrameId = requestAnimationFrame(() => {
       this.chapterMeasurementFrameId = null;
       if (this.isDestroyed) {
-        console.log("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
+        logger.debug("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
         return;
       }
       const measurementSuccess = this.measureChapterOffsets();
@@ -459,7 +460,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.updateScrollState(); // Update scroll state based on new measurements
         this.cdRef.markForCheck(); // Update dropdown
       } else {
-        console.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
+        logger.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
       }
     });
   }
@@ -471,7 +472,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      console.log('Window resized...');
+      logger.debug('Window resized...');
       this.scheduleChapterOffsetMeasurement(); // Keep chapter remeasurement
       // Also re-sync heights if in side-by-side mode
       if (this.currentParallelMode === 'side') {
@@ -489,7 +490,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(percentage => {
-      console.log(`Slider target percentage: ${percentage}`);
+      logger.debug(`Slider target percentage: ${percentage}`);
       this.scrollToPercentage(percentage);
     });
   }
@@ -675,11 +676,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     // If it wasn't a hold scroll that activated, AND not currently touching
     if (!wasHoldScrollActive && !this.isTouching) {
-      console.log("Performing single page action on click/release.");
+      logger.debug("Performing single page action on click/release.");
       if (triggerAction === 'prev') this.prevPage();
       else this.nextPage();
     } else if (wasHoldScrollActive) {
-      console.log("Hold scroll stopped.");
+      logger.debug("Hold scroll stopped.");
     }
     // isHoldingForScroll is reset in clearScrollHoldTimers
   }
@@ -753,30 +754,30 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Scrolls to the measured offsetTop of a selected chapter
   protected jumpToChapter(chapterIndex: number): void { // Parameter is index
     if (this.isLoading || !this.readerContentWrapperRef || chapterIndex < 0 || chapterIndex >= this.chapterNav.length) {
-      console.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
+      logger.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
       return;
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement) {
-      console.warn(`Cannot jump: contentElement not available.`);
+      logger.warn(`Cannot jump: contentElement not available.`);
       return;
     }
 
     // 1. Get the stored info, including the unique elementId ('chapX')
     const targetChapterInfo = this.chapterNav[chapterIndex];
     if (!targetChapterInfo?.elementId) {
-      console.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
+      logger.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
       return;
     }
 
-    console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
+    logger.debug(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
 
     const elementToScrollTo = this.readerDom.findChapter(contentElement, targetChapterInfo.elementId);
 
     // Perform the scroll if element found
     if (elementToScrollTo) {
-      console.log(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
+      logger.debug(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
       if (this.chapterScrollTimeoutId !== null) {
@@ -790,17 +791,17 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
       }, 350); // Increased timeout slightly just in case
     } else {
-      console.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
+      logger.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
     }
   }
 
 // Modify selectChapter to pass the INDEX
   protected selectChapter(chapterIndex: number): void { // Parameter is now index
-    console.log("Chapter selected by index:", chapterIndex);
+    logger.debug("Chapter selected by index:", chapterIndex);
     if (chapterIndex !== null && chapterIndex >= 0) {
       this.jumpToChapter(chapterIndex);
     } else {
-      console.warn("Invalid index received from chapter selection:", chapterIndex);
+      logger.warn("Invalid index received from chapter selection:", chapterIndex);
     }
   }
 
@@ -810,7 +811,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   get availableLangs(): string[] {
-    console.log('Recalculating availableLangs'); // Add this to see how often it runs
+    logger.debug('Recalculating availableLangs'); // Add this to see how often it runs
     return this.langs.filter(l => l !== this.fluentLangCode);
   }
 
@@ -836,10 +837,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
-    console.log(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
+    logger.debug(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
 
     if (langCode !== null && langCode === this.fluentLangCode) {
-      console.log(`Language ${langCode} is already selected.`);
+      logger.debug(`Language ${langCode} is already selected.`);
       // Optionally close the dropdown here if needed, depending on your template structure
       return; // Exit early
     }
@@ -886,14 +887,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.bookHtmlContent = this.readerDom.decode(response.body);
               this.isParallelViewActive = true;   // Now parallel view is active
               this.errorMessage = null;         // Clear previous errors
-              console.log(`Loaded parallel HTML content for ${langCode}.`);
+              logger.debug(`Loaded parallel HTML content for ${langCode}.`);
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()
               if (this.currentParallelMode === 'side') {
                 this.needsHeightSync = true;
               }
-              console.log("Parallel content loaded, flags set for ngAfterViewChecked.");
+              logger.debug("Parallel content loaded, flags set for ngAfterViewChecked.");
               // We also want to reset scroll to top when changing language
               this.initialScrollPercentage = 0; // Target 0%
               this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
@@ -912,7 +913,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         },
         // Error handler in subscribe is less likely due to catchError, but good practice
         error: (err) => {
-          console.error("Unexpected error in parallel load subscription:", err);
+          logger.error("Unexpected error in parallel load subscription:", err);
           this.handleLoadError('parallel', 'An unexpected error occurred during parallel load.');
           this.revertToBaseContent(); // Revert UI on unexpected error
           // isLoadingParallel is handled by finalize
@@ -922,7 +923,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     } else {
       // --- 2b. Language Deselected or Missing bookId: Revert to Base ---
-      console.log("Reverting to base content (no valid language selected or missing bookId).");
+      logger.debug("Reverting to base content (no valid language selected or missing bookId).");
       this.revertToBaseContent();
       // Ensure loader is off if we bail out early
       if (this.isLoadingParallel) {

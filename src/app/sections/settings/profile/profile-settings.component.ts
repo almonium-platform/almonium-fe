@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
@@ -225,7 +226,7 @@ auto-renewal in the customer portal.`;
   protected async saveInterests() {
     if (this.interests === this.userInfo?.interests) {
       this.interestsEdit = false;
-      console.info('no changes');
+      logger.info('no changes');
       return;
     }
 
@@ -270,7 +271,7 @@ auto-renewal in the customer portal.`;
         this.alertService.open('Link copied to clipboard', {appearance: 'neutral'}).subscribe();
       },
       (err) => {
-        console.error('Failed to copy: ', err);
+        logger.error('Failed to copy: ', err);
       }
     );
   }
@@ -296,7 +297,7 @@ auto-renewal in the customer portal.`;
         if (this.userInfo) {
           this.userInfo.hidden = oldValue;
         }
-        console.error('Failed to save preferences:', error);
+        logger.error('Failed to save preferences:', error);
         this.alertService.open('Failed to save preferences', {appearance: 'negative'}).subscribe();
       },
     });

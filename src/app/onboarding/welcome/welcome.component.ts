@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject } from "@angular/core";
 import {UserInfoService} from "../../services/user-info.service";
@@ -65,7 +66,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({setupStep: nextStep});
         },
         error: (error) => {
-          console.error('Failed to start onboarding', error);
+          logger.error('Failed to start onboarding', error);
           this.alertService.open('Failed to start onboarding', {appearance: 'negative'}).subscribe()
         },
       });

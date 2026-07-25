@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
 import {AuthComponent} from "../../authentication/auth/auth.component";
@@ -37,7 +38,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
               if (this.authComponent?.content) {
                 this.popupTemplateStateService.open(this.authComponent.content, 'auth', true);
               } else {
-                console.error('AuthComponent or its content is undefined.');
+                logger.error('AuthComponent or its content is undefined.');
               }
             }, 50);
           }

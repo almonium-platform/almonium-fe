@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { Injectable, Injector, OnDestroy, inject } from '@angular/core';
 import {Messaging, onMessage, onRegistered, register} from '@angular/fire/messaging';
 import type {MessagePayload} from 'firebase/messaging';
@@ -21,7 +22,7 @@ export class FirebaseNotificationService implements OnDestroy {
   public async initFCM() {
     try {
       if (!this.isSupportedBrowser()) {
-        console.warn('FCM is not supported in this browser.');
+        logger.warn('FCM is not supported in this browser.');
         return;
       }
 
@@ -31,7 +32,7 @@ export class FirebaseNotificationService implements OnDestroy {
       await this.requestPermission();
       this.listenForMessages();
     } catch {
-      console.error('FCM initialization failed');
+      logger.error('FCM initialization failed');
     }
   }
 
@@ -41,7 +42,7 @@ export class FirebaseNotificationService implements OnDestroy {
 
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        console.warn('User denied notification permission.');
+        logger.warn('User denied notification permission.');
         return;
       }
 
@@ -55,7 +56,7 @@ export class FirebaseNotificationService implements OnDestroy {
         serviceWorkerRegistration: registration,
       });
     } catch (error) {
-      console.error('Failed to request FCM token:', error);
+      logger.error('Failed to request FCM token:', error);
     }
   }
 
@@ -68,7 +69,7 @@ export class FirebaseNotificationService implements OnDestroy {
         this.currentMessage.next(payload);
       });
     } catch (error) {
-      console.error('Error setting up message listener:', error);
+      logger.error('Error setting up message listener:', error);
     }
   }
 
@@ -79,7 +80,7 @@ export class FirebaseNotificationService implements OnDestroy {
   private sendTokenToBackend(token: string) {
     this.http.post(`${AppConstants.API_URL}/fcm/register`, {token, deviceType: 'web'}, {withCredentials: true})
       .subscribe({
-        error: (err) => console.error('Failed to register FCM token:', err),
+        error: (err) => logger.error('Failed to register FCM token:', err),
       });
   }
 
@@ -88,12 +89,12 @@ export class FirebaseNotificationService implements OnDestroy {
     const hasRequiredApis = 'serviceWorker' in navigator && 'Notification' in window;
 
     if (!isSecureContext) {
-      console.warn('Push notifications require HTTPS (except in Chrome on localhost).');
+      logger.warn('Push notifications require HTTPS (except in Chrome on localhost).');
       return false;
     }
 
     if (!hasRequiredApis) {
-      console.warn('Push notifications are not supported in this browser.');
+      logger.warn('Push notifications are not supported in this browser.');
       return false;
     }
 

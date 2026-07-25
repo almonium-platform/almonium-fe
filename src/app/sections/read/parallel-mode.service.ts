@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
 import {LocalStorageService} from '../../services/local-storage.service';
@@ -22,7 +23,7 @@ export class ParallelModeService {
     if (mode !== this.parallelModeSubject.getValue()) {
       this.parallelModeSubject.next(mode);
       this.localStorageService.saveParallelMode(mode);
-      console.log('Parallel mode set to:', mode);
+      logger.debug('Parallel mode set to:', mode);
     }
   }
 

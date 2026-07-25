@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
 import {Channel, Event as StreamEvent, StreamChat, UserResponse} from 'stream-chat';
 import {
@@ -226,7 +227,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
 
         this.cdRef.detectChanges();
       })
-      .catch((error) => console.error('Error querying users:', error));
+      .catch((error) => logger.error('Error querying users:', error));
   }
 
   private getOtherMemberIfOneToOneChannel() {

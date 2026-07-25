@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import {TuiInput} from "@taiga-ui/core/components";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {TuiProgress, TuiStepper} from "@taiga-ui/kit/components";
@@ -111,7 +112,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   protected goBack() {
     if (this.backDisabled()) {
-      console.info('Back button disabled');
+      logger.info('Back button disabled');
       return;
     }
     this.activeStep = this.steps[this.activeStepIndex - 1];
@@ -119,7 +120,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   protected goForward() {
     if (this.forwardDisabled()) {
-      console.info('Forward button disabled');
+      logger.info('Forward button disabled');
       return;
     }
     this.activeStep = this.steps[this.activeStepIndex + 1];

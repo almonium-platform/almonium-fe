@@ -101,4 +101,31 @@ describe('UserInfoService', () => {
     const persistedUser = localStorage.saveUserInfo.calls.mostRecent().args[0];
     expect(Object.hasOwn(persistedUser, 'streamChatToken')).toBeFalse();
   });
+
+  it('rejects malformed session DTOs without persisting partial identity state', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush({
+      ...serverUser,
+      learners: 'not-an-array',
+    });
+
+    expect(await resultPromise).toBeNull();
+    expect(service.currentUserInfo).toBeNull();
+    expect(localStorage.saveUserInfo.calls.count()).toBe(0);
+  });
+
+  it('normalizes partial UI preferences with safe defaults', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush({
+      ...serverUser,
+      uiPreferences: {
+        navbar: {read: false},
+      },
+    });
+
+    const user = await resultPromise;
+    expect(user?.uiPreferences.navbar.read).toBeFalse();
+    expect(user?.uiPreferences.navbar.discover).toBeTrue();
+    expect(user?.uiPreferences.profileMenu.billing).toBeFalse();
+  });
 });

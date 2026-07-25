@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
@@ -84,12 +85,12 @@ export class BookComponent implements OnInit, OnDestroy {
         map(id => +id),                          // Convert id string to number
         distinctUntilChanged(),                  // Only proceed if the ID truly changed
         switchMap(id => {                        // Switch to the data fetching observable
-          console.log(`Route changed or initial load. Fetching book ID: ${id}`);
+          logger.debug(`Route changed or initial load. Fetching book ID: ${id}`);
           this.bookId = id; // Update the component's bookId property
           // Optional: Add loading state indication here
           return this.readService.getBookById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
             catchError(error => {
-              console.error(`Failed to fetch book data for ID ${id}:`, error);
+              logger.error(`Failed to fetch book data for ID ${id}:`, error);
               this.alertService.open('Failed to load book details.', {appearance: 'negative'}).subscribe();
               this.book = null; // Clear book data on error
               this.cdr.detectChanges(); // Update view
@@ -111,7 +112,7 @@ export class BookComponent implements OnInit, OnDestroy {
             : undefined; // Explicitly set to undefined if no original language
           this.availableTranslations = this.languageNameService.getLanguageNames(book.languageVariants.map(t => t.language))
             .filter(lang => lang !== this.bookLanguage && lang !== this.originalLanguage);
-          console.log(`Successfully loaded book: ${book.title}`);
+          logger.debug(`Successfully loaded book: ${book.title}`);
           this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
         }
       });
@@ -151,7 +152,7 @@ export class BookComponent implements OnInit, OnDestroy {
     const lang = this.languageNameService.getLanguageCode(language)
     const bookIdInThisLanguage = this.book?.languageVariants.find(t => t.language === lang)?.id;
     if (!bookIdInThisLanguage) {
-      console.error("Book ID in this language not found");
+      logger.error("Book ID in this language not found");
       return;
     }
     this.navigateToId(bookIdInThisLanguage)
@@ -160,12 +161,12 @@ export class BookComponent implements OnInit, OnDestroy {
   openLanguageDropdown() {
     const bookId = this.bookId;
     if (!bookId) {
-      console.error("Book was not found");
+      logger.error("Book was not found");
       return;
     }
 
     if (this.book?.orderLanguage) {
-      console.info("Order is already placed");
+      logger.info("Order is already placed");
       return;
     }
 
@@ -193,7 +194,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.alertService.open('Translation ordered', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error('Failed to order translation:', error);
+          logger.error('Failed to order translation:', error);
           this.alertService.open(getErrorMessage(error, 'Couldn\'t order translation'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -218,7 +219,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.book!.favorite = true;
             this.cdr.detectChanges();
           }, error: (error) => {
-            console.error('Failed to add to favorites:', error);
+            logger.error('Failed to add to favorites:', error);
             this.alertService.open(getErrorMessage(error, 'Couldn\'t add to favorites'), {appearance: 'negative'}).subscribe();
           }
         });
@@ -232,7 +233,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.book!.favorite = false;
             this.cdr.detectChanges();
           }, error: (error) => {
-            console.error('Failed to add to favorites:', error);
+            logger.error('Failed to add to favorites:', error);
             this.alertService.open(getErrorMessage(error, 'Couldn\'t remove favorites'), {appearance: 'negative'}).subscribe();
           }
         });
@@ -262,7 +263,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.book!.orderLanguage = undefined;
           this.alertService.open('Translation order cancelled', {appearance: 'positive'}).subscribe();
         }, error: (error) => {
-          console.error('Failed to cancel translation order:', error);
+          logger.error('Failed to cancel translation order:', error);
           this.alertService.open(getErrorMessage(error, 'Couldn\'t cancel translation order'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -274,7 +275,7 @@ export class BookComponent implements OnInit, OnDestroy {
 
   onOriginalLanguageClick() {
     if (!this.book?.originalId) {
-      console.warn("Original book ID is missing, cannot navigate.");
+      logger.warn("Original book ID is missing, cannot navigate.");
       return;
     }
 
@@ -284,7 +285,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private navigateToId(id: number) {
     void this.router.navigate([`/book/${id}`]).then(success => {
       if (!success) {
-        console.error("Navigation failed!");
+        logger.error("Navigation failed!");
       }
     });
   }

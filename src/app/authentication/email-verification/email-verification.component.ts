@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
@@ -83,7 +84,7 @@ export class EmailVerificationComponent implements OnInit {
       },
       error: (error) => {
         // If an error occurs while fetching query params, show a generic error message
-        console.error('Error fetching query params:', error);
+        logger.error('Error fetching query params:', error);
         this.pendingMessage = 'Verification process failed';
         this.verificationSuccess = false;
         this.stopRotation();

@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
 import {AuthMethod} from "../authentication/auth/auth.types";
@@ -24,7 +25,7 @@ export class LocalStorageService {
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
-      console.error('Error saving to localStorage', e);
+      logger.error('Error saving to localStorage', e);
     }
   }
 
@@ -33,7 +34,7 @@ export class LocalStorageService {
       const data = window.localStorage.getItem(key);
       return data ? JSON.parse(data) as T : null;
     } catch (e) {
-      console.error('Error reading from localStorage', e);
+      logger.error('Error reading from localStorage', e);
       return null;
     }
   }

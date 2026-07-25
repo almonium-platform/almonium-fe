@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
@@ -19,7 +20,7 @@ export class PlanService {
   getPlans(): Observable<PlanDto[]> {
     return this.http.get<PlanDto[]>(`${AppConstants.PLAN_URL}`).pipe(
       catchError((error) => {
-        console.error('Error fetching plans:', error);
+        logger.error('Error fetching plans:', error);
         return of([]);
       })
     );
@@ -28,7 +29,7 @@ export class PlanService {
   subscribeToPlan(planId: string): Observable<SessionUrlResponse | null> {
     return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true}).pipe(
       catchError((error) => {
-        console.error('Error subscribing to plan:', error);
+        logger.error('Error subscribing to plan:', error);
         return of(null);
       })
     );
@@ -37,7 +38,7 @@ export class PlanService {
   accessCustomerPortal(): Observable<SessionUrlResponse | null> {
     return this.http.post<SessionUrlResponse>(`${AppConstants.SUBSCRIPTION_URL}/portal`, {}, {withCredentials: true}).pipe(
       catchError((error) => {
-        console.error('Error accessing portal:', error);
+        logger.error('Error accessing portal:', error);
         return of(null);
       })
     );
@@ -46,7 +47,7 @@ export class PlanService {
   cancelSubscription() {
     return this.http.delete(`${AppConstants.SUBSCRIPTION_URL}`, {withCredentials: true}).pipe(
       catchError((error) => {
-        console.error('Error canceling subscription:', error);
+        logger.error('Error canceling subscription:', error);
         return of(null);
       })
     );

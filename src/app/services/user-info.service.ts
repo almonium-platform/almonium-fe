@@ -1,8 +1,9 @@
+import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {DEFAULT_UI_PREFERENCES, UserInfo, UserInfoDto} from "../models/userinfo.model";
+import {UserInfo, UserInfoDto, parseUserInfoDto} from "../models/userinfo.model";
 import {LocalStorageService} from "./local-storage.service";
 import {AppConstants} from "../app.constants";
 
@@ -43,11 +44,9 @@ export class UserInfoService {
    * Fetch user info from the server.
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
-    return this.http.get<UserInfoDto>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
+    return this.http.get<unknown>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
       map((data) => {
-        const userInfo = UserInfo.fromJSON(data);
-        userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
-        return {userInfo, streamChatToken: data.streamChatToken};
+        return parseUserInfoDto(data);
       }),
       tap(({userInfo, streamChatToken}) => {
         this.streamChatTokenValue = streamChatToken;
@@ -57,7 +56,7 @@ export class UserInfoService {
       }),
       map(({userInfo}) => userInfo),
       catchError((error) => {
-        console.error('Failed to load user info from server:', error);
+        logger.error('Failed to load user info from server:', error);
         this.sessionVerified = false;
         this.streamChatTokenValue = null;
         if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
@@ -86,9 +85,8 @@ export class UserInfoService {
   }
 
   setUserInfo(userInfoData: UserInfoDto): void {
-    const userInfo = UserInfo.fromJSON(userInfoData);
-    userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
-    this.streamChatTokenValue = userInfoData.streamChatToken;
+    const {userInfo, streamChatToken} = parseUserInfoDto(userInfoData);
+    this.streamChatTokenValue = streamChatToken;
     this.sessionVerified = true;
     this.localStorageService.saveUserInfo(userInfo);
     this.userInfoSubject.next(userInfo);

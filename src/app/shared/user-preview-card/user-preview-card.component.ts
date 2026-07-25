@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {ProfileService} from "./profile.service";
@@ -140,7 +141,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
   private setButtonConfig(): void {
     if (!this.userProfileInfo) {
-      console.error('No user profile, cannot set button config');
+      logger.error('No user profile, cannot set button config');
       return;
 
     }
@@ -168,7 +169,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         break;
       case RelationshipStatus.STRANGER:
         if (this.userProfileInfo.acceptsRequests) {
-          console.log('User accepts requests');
+          logger.debug('User accepts requests');
           this.buttonConfig = {
             label: 'Send Request',
             icon: 'user-round-plus',
@@ -219,7 +220,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     if (this.modalAction) {
       this.modalAction();
     } else {
-      console.error('No action set for confirm modal');
+      logger.error('No action set for confirm modal');
     }
     this.closeConfirmModal();
   }
@@ -235,7 +236,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected block() {
     const userId = this.userProfileInfo?.id;
     if (!userId) {
-      console.error('No user profile');
+      logger.error('No user profile');
       return;
     }
 
@@ -253,7 +254,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -264,7 +265,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const friendId = this.userProfileInfo?.id;
 
     if (!relationshipId || !friendId) {
-      console.error('No relationshipId or friendId');
+      logger.error('No relationshipId or friendId');
       return;
     }
 
@@ -281,7 +282,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -290,7 +291,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private unfriend() {
     const relationshipId = this.userProfileInfo?.relationshipId;
     if (!relationshipId) {
-      console.error('No user profile or relationshipId');
+      logger.error('No user profile or relationshipId');
       return;
     }
 
@@ -305,7 +306,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -315,7 +316,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const relationshipId = this.userProfileInfo?.relationshipId;
 
     if (!this.userProfileInfo || !relationshipId) {
-      console.error('No user profile or relationshipId');
+      logger.error('No user profile or relationshipId');
       return;
     }
 
@@ -326,7 +327,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const relationshipId = this.userProfileInfo?.relationshipId;
 
     if (!relationshipId) {
-      console.error('No relationshipId');
+      logger.error('No relationshipId');
       return;
     }
 
@@ -341,7 +342,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -355,7 +356,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
     // Check for null in the captured variables
     if (!userProfileInfo || !userInfo || !userProfileInfo.relationshipId || !relationshipId) {
-      console.error('No user profile or invalid relationshipId');
+      logger.error('No user profile or invalid relationshipId');
       return;
     }
 
@@ -372,7 +373,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
               this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
             });
         },
-        error: (error) => console.error(error),
+        error: (error) => logger.error(error),
       });
   }
 
@@ -399,7 +400,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private sendFriendRequest() {
     const userProfileId = this.userProfileInfo?.id;
     if (!userProfileId) {
-      console.error('No user profile id');
+      logger.error('No user profile id');
       return;
     }
 
@@ -414,7 +415,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
+          logger.error(error);
           this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
         }
       });

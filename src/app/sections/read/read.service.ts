@@ -1,9 +1,18 @@
+import {logger} from "../../shared/logger";
 import { Injectable, inject } from "@angular/core";
 import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
-import {Book, BookMiniDetails, BookshelfView} from "./book.model";
+import {
+  Book,
+  BookMiniDetails,
+  BookshelfView,
+  parseBook,
+  parseBookMiniDetails,
+  parseBooks,
+  parseBookshelfView,
+} from "./book.model";
 import {EMPTY, Observable} from "rxjs";
-import {catchError, tap} from 'rxjs/operators';
+import {catchError, map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -15,13 +24,13 @@ export class ReadService {
   // --- Existing Methods (Keep As Is) ---
   getBooks(): Observable<Book[]> {
     const url = `${AppConstants.PUBLIC_BOOKS_URL}`;
-    return this.http.get<Book[]>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBooks));
   }
 
   getBooksForLang(language: string, includeTranslations: boolean): Observable<BookshelfView> {
     const url = `${AppConstants.BOOKS_URL}/language/${language}`;
     const params = new HttpParams().set('includeTranslations', includeTranslations.toString());
-    return this.http.get<BookshelfView>(url, {params, withCredentials: true});
+    return this.http.get<unknown>(url, {params, withCredentials: true}).pipe(map(parseBookshelfView));
   }
 
   getParallelText(id1: number, language: string): Observable<HttpResponse<ArrayBuffer>> {
@@ -35,12 +44,12 @@ export class ReadService {
 
   getBookById(bookId: number, language: string): Observable<Book> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
-    return this.http.get<Book>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(value => parseBook(value)));
   }
 
   getMiniBookDetailsById(bookId: number): Observable<BookMiniDetails> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}`;
-    return this.http.get<BookMiniDetails>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBookMiniDetails));
   }
 
   orderTranslation(bookId: number, language: string): Observable<unknown> {
@@ -76,9 +85,9 @@ export class ReadService {
   deleteProgress(bookId: number): Observable<void> { // Return void for clarity
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     return this.http.delete<void>(url, {withCredentials: true}).pipe(
-      tap(() => console.log(`ReadService: Deleted progress for ${bookId}`)),
+      tap(() => logger.debug(`ReadService: Deleted progress for ${bookId}`)),
       catchError(err => {
-        console.error(`ReadService: Failed to delete progress for ${bookId}`, err);
+        logger.error(`ReadService: Failed to delete progress for ${bookId}`, err);
         return EMPTY;
       })
     );
@@ -94,9 +103,9 @@ export class ReadService {
     const params = new HttpParams().set('percentage', percentage.toString());
 
     return this.http.post<void>(url, null, {params, withCredentials: true}).pipe(
-      tap(() => console.log(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
+      tap(() => logger.debug(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
       catchError(err => {
-        console.error(`ReadService: Failed to save progress for ${bookId}`, err);
+        logger.error(`ReadService: Failed to save progress for ${bookId}`, err);
         return EMPTY;
       })
     );
@@ -108,7 +117,7 @@ export class ReadService {
    */
   sendProgressBeacon(bookId: number, percentage: number): boolean {
     if (!navigator.sendBeacon) {
-      console.warn('ReadService: Beacon API not supported.');
+      logger.warn('ReadService: Beacon API not supported.');
       return false;
     }
 
@@ -118,13 +127,13 @@ export class ReadService {
     try {
       const sent = navigator.sendBeacon(url);
       if (sent) {
-        console.log(`ReadService: Sent Beacon progress ${percentage}% for $/${bookId}`);
+        logger.debug(`ReadService: Sent Beacon progress ${percentage}% for $/${bookId}`);
       } else {
-        console.warn(`ReadService: Beacon API returned false for ${bookId}`);
+        logger.warn(`ReadService: Beacon API returned false for ${bookId}`);
       }
       return sent;
     } catch (e) {
-      console.error(`ReadService: Error sending beacon for ${bookId}`, e);
+      logger.error(`ReadService: Error sending beacon for ${bookId}`, e);
       return false;
     }
   }

@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
@@ -57,7 +58,7 @@ export class FrequencyService {
   getFrequency(word: string, language: LanguageCode = LanguageCode.EN): Observable<number> {
     const corpus = this.corpusName.get(language);
     if (!corpus) {
-      console.error(`Language ${language} is not supported.`);
+      logger.error(`Language ${language} is not supported.`);
       return of(0); // Or handle as per your application's requirement
     }
 
@@ -69,11 +70,11 @@ export class FrequencyService {
           const relFrequency = response.ngrams[0].relTotalMatchCount;
           return this.calculateFrequency(relFrequency, language);
         }
-        console.warn(`No ngrams data found for word: ${word}`);
+        logger.warn(`No ngrams data found for word: ${word}`);
         return 0; // Default frequency if not found
       }),
       catchError(error => {
-        console.error('Error fetching frequency data from ngrams.dev:', error);
+        logger.error('Error fetching frequency data from ngrams.dev:', error);
         return of(0); // Return a default value in case of error
       })
     );

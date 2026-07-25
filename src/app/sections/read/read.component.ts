@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {ReadService} from "./read.service";
 import {Book} from "./book.model";
@@ -170,7 +171,7 @@ export class ReadComponent implements OnInit, OnDestroy {
           return this.readService.getBooksForLang(language, this.includeTranslationsToggle)
             .pipe(
               catchError(error => {
-                console.error("Error fetching books:", error);
+                logger.error("Error fetching books:", error);
                 return of({
                   available: [],
                   favorites: [],
@@ -231,14 +232,14 @@ export class ReadComponent implements OnInit, OnDestroy {
       .subscribe((level: CEFRLevel) => {
         this.cefrLevelControl.setValue(level); // Sync CEFR Level Control
         this.applyFiltersAndSort(); // Trigger filter immediately
-        console.log('Set default sorting by CEFR Level:', level);
+        logger.debug('Set default sorting by CEFR Level:', level);
       });
   }
 
   onRightClick(event: MouseEvent, book: Book): void {
     event.preventDefault(); // Prevent the default context menu from showing
     this.selectedBook = book; // Set the selected book's ID
-    console.log('Right-clicked on book with ID:', this.selectedBook.id);
+    logger.debug('Right-clicked on book with ID:', this.selectedBook.id);
   }
 
   undoProgress() {
@@ -251,7 +252,7 @@ export class ReadComponent implements OnInit, OnDestroy {
             this.fetchBooksOnLanguageChange();
           },
           error: (error) => {
-            console.error('Error deleting progress:', error);
+            logger.error('Error deleting progress:', error);
             this.alertService.open('Failed to reset book progress', {appearance: 'negative'}).subscribe();
           }
         });

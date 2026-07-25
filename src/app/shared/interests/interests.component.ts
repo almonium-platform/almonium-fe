@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Interest} from './interest.model';
@@ -78,7 +79,7 @@ export class InterestsComponent implements OnInit {
         }, 500);
       },
       error: (error) => {
-        console.error('Failed to get interests', error);
+        logger.error('Failed to get interests', error);
         this.alertService.open('Failed to get interests', {appearance: 'negative'}).subscribe();
       },
     });

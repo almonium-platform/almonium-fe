@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {Component, Input} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiTitle} from "@taiga-ui/core/components";
@@ -37,7 +38,7 @@ export class StepHeaderComponent {
   // Generate avatar class dynamically based on number
   getAvatarClass(): string {
     if (this.number < 0 || this.number > 9) {
-      console.warn('Number out of range (0-9). Defaulting to 0.');
+      logger.warn('Number out of range (0-9). Defaulting to 0.');
       return '@tui.fa.solid.0';
     }
     return `@tui.fa.solid.${this.number}`;

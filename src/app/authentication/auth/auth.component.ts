@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import {HttpClient} from '@angular/common/http';
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
@@ -211,14 +212,14 @@ export class AuthComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error loading greetings:', error);
+        logger.error('Error loading greetings:', error);
       }
     });
   }
 
   protected onSubmit() {
     if (!this.authForm.valid) {
-      console.error('Button should be disabled');
+      logger.error('Button should be disabled');
       return;
     }
 

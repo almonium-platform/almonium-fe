@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, Input, inject } from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
@@ -40,7 +41,7 @@ export class InterestsSetupComponent {
           this.userInfoService.updateUserInfo({setupStep: SetupStep.COMPLETED});
         },
         error: (error) => {
-          console.error('Failed to save interests', error);
+          logger.error('Failed to save interests', error);
           this.alertService.open('Failed to save interests', {appearance: 'negative'}).subscribe();
         }
       });

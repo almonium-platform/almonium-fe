@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
@@ -129,7 +130,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   chooseFreePlan() {
     if (this.planChosen) {
-      console.error('User is not onboarded');
+      logger.error('User is not onboarded');
       return;
     }
 
@@ -142,7 +143,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
         },
         error: (error) => {
-          console.error('Failed to choose free plan:', error);
+          logger.error('Failed to choose free plan:', error);
           this.alertService.open(getErrorMessage(error, 'Couldn\'t choose free plan'), {appearance: 'negative'}).subscribe();
         }
       });
@@ -154,7 +155,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.premiumLoadingSubject$.value) {
-      console.warn('Rapid clicks detected');
+      logger.warn('Rapid clicks detected');
       return;
     }
 

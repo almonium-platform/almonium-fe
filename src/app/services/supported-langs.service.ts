@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
@@ -59,7 +60,7 @@ export class SupportedLanguagesService {
         this.cacheSupportedLanguages(languages);
       }),
       catchError((error) => {
-        console.error('Error fetching supported languages:', error);
+        logger.error('Error fetching supported languages:', error);
         return of([]); // Return an empty array in case of error
       })
     );

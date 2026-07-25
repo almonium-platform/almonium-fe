@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {IParticlesProps, NgParticlesService} from '@tsparticles/angular';
@@ -28,24 +29,24 @@ export class ParticlesService {
       }),
       switchMap(() => this.particlesService.init(async (engine) => {
         await loadFull(engine);
-        console.info('Particles engine loaded');
+        logger.info('Particles engine loaded');
       })),
       catchError((error) => {
-        console.error('Error during particles initialization:', error);
+        logger.error('Error during particles initialization:', error);
         throw error;
       })
     ).subscribe({
       next: () => {
-        console.info('Particles initialized with loaded options');
+        logger.info('Particles initialized with loaded options');
       },
       error: (error) => {
-        console.error('Error loading particles options:', error);
+        logger.error('Error loading particles options:', error);
       },
     });
   }
 
   particlesLoaded(): void {
-    console.info('Particles loaded');
+    logger.info('Particles loaded');
   }
 
   private getDynamicColor(): string {

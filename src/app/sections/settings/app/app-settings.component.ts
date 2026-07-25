@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
@@ -81,7 +82,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({uiPreferences: this.uiPreferences});
         },
         error: (error) => {
-          console.error('Failed to save preferences:', error);
+          logger.error('Failed to save preferences:', error);
           this.uiPreferences.navbar[key] = oldValue;
         },
       });
@@ -103,14 +104,14 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     // Create observables for fetching BOTH user info and supported languages
     const userInfoFetch$ = this.userInfoService.fetchUserInfoFromServer().pipe(
       catchError(err => {
-        console.error("Failed to fetch user info:", err);
+        logger.error("Failed to fetch user info:", err);
         return of(null); // Return null on error to allow forkJoin to complete
       })
     );
 
     const supportedLangsFetch$ = this.supportedLanguagesService.getAllSupportedLanguages().pipe(
       catchError(err => {
-        console.error("Failed to fetch supported languages:", err);
+        logger.error("Failed to fetch supported languages:", err);
         return of(null); // Return null on error
       })
     );
@@ -139,12 +140,12 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           } else {
             // Handle cases where one or both fetches failed
             this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'negative'}).subscribe();
-            console.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
+            logger.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
           }
         },
         error: (error) => {
           // Handle errors from forkJoin itself (less likely with catchError on sources)
-          console.error('Critical failure during data reload:', error);
+          logger.error('Critical failure during data reload:', error);
           this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'negative'}).subscribe();
         },
       });

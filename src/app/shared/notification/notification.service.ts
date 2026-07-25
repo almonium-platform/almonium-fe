@@ -1,8 +1,9 @@
 import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
+import {map} from 'rxjs/operators';
 import {AppConstants} from "../../app.constants";
-import {Notification} from "./notification.model";
+import {Notification, parseNotifications} from "./notification.model";
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,7 @@ export class NotificationService {
 
   getNotifications(): Observable<Notification[]> {
     const url = `${AppConstants.NOTIFICATIONS_URL}`;
-    return this.http.get<Notification[]>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseNotifications));
   }
 
   markAllAsRead(): Observable<unknown> {

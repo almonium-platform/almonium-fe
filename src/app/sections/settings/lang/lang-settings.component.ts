@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
@@ -197,7 +198,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.userInfoService.updateUserInfo({learners: this.learners});
       },
       error: (err) => {
-        console.error('Failed to update CEFR:', err);
+        logger.error('Failed to update CEFR:', err);
         this.alertService.open('Failed to update CEFR level', {appearance: 'negative'}).subscribe();
         this.currentLearner.selfReportedLevel = oldValue;
       },
@@ -244,7 +245,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.fluentEnabled$) {
-      console.error('This should not happen: form is invalid but submit was called');
+      logger.error('This should not happen: form is invalid but submit was called');
       return;
     }
 
@@ -278,7 +279,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected deleteTargetLang() {
     this.restoreFluent();
     if (this.learners.length === 1) {
-      console.error("This should not happen: trying to delete the last target language");
+      logger.error("This should not happen: trying to delete the last target language");
       return;
     }
     this.recentAuthGuardService.guardAction(() => {
@@ -307,7 +308,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     const deletedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, deletedLanguageName);
 
     if (!deletedLanguageCode) {
-      console.error(`Language code not found for ${deletedLanguageName}`);
+      logger.error(`Language code not found for ${deletedLanguageName}`);
       return;
     }
 

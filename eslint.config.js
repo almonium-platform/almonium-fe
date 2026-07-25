@@ -38,6 +38,7 @@ module.exports = tseslint.config(
       '@typescript-eslint/no-deprecated': 'warn',
       // Static methods such as Angular's Validators cannot capture an instance `this`.
       '@typescript-eslint/unbound-method': ['error', {ignoreStatic: true}],
+      'no-console': 'error',
     },
   },
   {

@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import { Component, OnInit, inject } from '@angular/core';
 import {AuthService} from "../auth/auth.service";
 import {forkJoin, timer} from "rxjs";
@@ -28,7 +29,7 @@ export class LogoutComponent implements OnInit {
       })
     ).subscribe({
       error: (err) => {
-        console.error('Logout API call failed, but still redirecting.', err);
+        logger.error('Logout API call failed, but still redirecting.', err);
       }
     });
   }

@@ -1,3 +1,4 @@
+import {logger} from "../../../../shared/logger";
 import {inject, Injectable} from '@angular/core';
 import {getDownloadURL, listAll, ref, Storage, uploadBytesResumable} from '@angular/fire/storage';
 
@@ -35,7 +36,7 @@ export class FirebaseService {
         result.items.map(itemRef => getDownloadURL(itemRef))
       );
     } catch (error) {
-      console.error('Error fetching default avatars:', error);
+      logger.error('Error fetching default avatars:', error);
       return [];
     }
   }

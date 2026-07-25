@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Injectable, inject } from '@angular/core';
@@ -44,7 +45,7 @@ export class RecentAuthGuardService {
       },
       error: (error) => {
         this.alertService.open(getErrorMessage(error, 'Failed to check access token'), {appearance: 'negative'}).subscribe();
-        console.error('Error checking access token:', error);
+        logger.error('Error checking access token:', error);
       }
     });
   }

@@ -1,3 +1,4 @@
+import {logger} from "../../../shared/logger";
 import {inject} from '@angular/core';
 import {CanActivateFn, Router} from '@angular/router';
 import {UserInfoService} from "../../../services/user-info.service";
@@ -22,7 +23,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
 
     return true;
   } catch (error) {
-    console.error('Error loading user info in authGuard:', error);
+    logger.error('Error loading user info in authGuard:', error);
     return router.createUrlTree(['/auth'])
   }
 };

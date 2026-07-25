@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, Input, OnInit, inject } from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
@@ -42,7 +43,7 @@ export class QRCodeComponent implements OnInit {
         this.qrCodeUrl = url;
       },
       error: (err) => {
-        console.error('Failed to generate QR code:', err);
+        logger.error('Failed to generate QR code:', err);
         this.alertService.open('Failed to generate QR code', {appearance: 'negative'}).subscribe();
       },
     });

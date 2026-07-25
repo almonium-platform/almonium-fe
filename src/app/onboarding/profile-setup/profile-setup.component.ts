@@ -1,3 +1,4 @@
+import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
@@ -67,7 +68,7 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
           this.userInfoService.updateUserInfo({setupStep: nextStep});
         },
         error: (err) => {
-          console.error('Failed to finish profile setup', err);
+          logger.error('Failed to finish profile setup', err);
           this.alertService.open('Failed to finish profile setup', {appearance: 'negative'}).subscribe();
         }
       });

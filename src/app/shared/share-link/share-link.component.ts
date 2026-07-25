@@ -1,3 +1,4 @@
+import {logger} from "../logger";
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {QRCodeComponent} from '../qr-code/qr-code.component';
 import {TuiBadge, TuiBadgedContentDirective} from '@taiga-ui/kit/components';
@@ -30,7 +31,7 @@ export class ShareLinkComponent implements OnInit {
         }, 1000);
       },
       (err) => {
-        console.error('Failed to copy: ', err);
+        logger.error('Failed to copy: ', err);
       }
     );
   }
