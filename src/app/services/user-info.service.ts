@@ -1,11 +1,12 @@
 import {logger} from "../shared/logger";
 import { Injectable, inject } from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
 import {UserInfo, UserInfoDto, parseUserInfoDto} from "../models/userinfo.model";
 import {LocalStorageService} from "./local-storage.service";
 import {AppConstants} from "../app.constants";
+import {AppHttpError} from '../shared/app-http-error';
 
 @Injectable({
   providedIn: 'root',
@@ -59,7 +60,7 @@ export class UserInfoService {
         logger.error('Failed to load user info from server:', error);
         this.sessionVerified = false;
         this.streamChatTokenValue = null;
-        if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+        if (error instanceof AppHttpError && (error.status === 401 || error.status === 403)) {
           this.clearUserInfo();
         }
         return of(null);
