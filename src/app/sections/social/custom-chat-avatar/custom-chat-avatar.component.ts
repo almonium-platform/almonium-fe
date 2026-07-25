@@ -94,6 +94,7 @@ export class CustomChatAvatarComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+    this.isOnlineSubscription?.unsubscribe();
   }
 
   private setFallbackChannelImage() {
@@ -137,6 +138,8 @@ export class CustomChatAvatarComponent
   }
 
   private updateIsOnlineSubscription() {
+    this.isOnlineSubscription?.unsubscribe();
+    this.isOnlineSubscription = undefined;
     if (this.channel) {
       const otherMember = this.getOtherMemberIfOneToOneChannel();
       if (otherMember) {
@@ -152,11 +155,9 @@ export class CustomChatAvatarComponent
           });
       } else {
         this.isOnline = false;
-        this.isOnlineSubscription?.unsubscribe();
       }
     } else {
       this.isOnline = false;
-      this.isOnlineSubscription?.unsubscribe();
     }
   }
 

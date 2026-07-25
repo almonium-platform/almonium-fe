@@ -1,5 +1,5 @@
 import {logger} from "../../../shared/logger";
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, Input, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
 import {Channel, Event as StreamEvent, StreamChat, UserResponse} from 'stream-chat';
 import {
   ChannelActionsContext,
@@ -80,11 +80,12 @@ import {LocalStorageService} from "../../../services/local-storage.service";
   `],
   providers: [DatePipe]
 })
-export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit {
+export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
   private channelService = inject(ChannelService);
   private customTemplatesService = inject(CustomTemplatesService);
   private cdRef = inject(ChangeDetectorRef);
   private localStorageService = inject(LocalStorageService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('typingIndicator') typingIndicator!: TemplateRef<TypingIndicatorContext>;
 
@@ -125,6 +126,9 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
           }
           this.fetchInterlocutorLastActive();
           this.subscribeToPresenceChanges();
+        } else {
+          this.presenceSubscription?.unsubscribe();
+          this.presenceSubscription = undefined;
         }
       })
     );
@@ -132,11 +136,22 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
 
   ngAfterViewInit(): void {
     this.customTemplatesService.typingIndicatorTemplate$.next(this.typingIndicator);
+    this.subscriptions.push(
+      this.customTemplatesService.channelActionsTemplate$.subscribe((template) => {
+        this.channelActionsTemplate = template;
+        this.cdRef.detectChanges();
+      }),
+      this.customTemplatesService.channelHeaderInfoTemplate$.subscribe((template) => {
+        this.channelHeaderInfoTemplate = template;
+        this.cdRef.detectChanges();
+      }),
+    );
   }
 
   private subscribeToPresenceChanges(): void {
     if (!this.interlocutorId) return;
 
+    this.presenceSubscription?.unsubscribe();
     this.presenceSubscription = fromEventPattern<StreamEvent>(
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
@@ -149,21 +164,6 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
         this.cdRef.detectChanges();
       }
     });
-  }
-
-  ngOnChanges(): void {
-    this.subscriptions.push(
-      this.customTemplatesService.channelActionsTemplate$.subscribe((template) => {
-        this.channelActionsTemplate = template;
-        this.cdRef.detectChanges();
-      })
-    );
-    this.subscriptions.push(
-      this.customTemplatesService.channelHeaderInfoTemplate$.subscribe((template) => {
-        this.channelHeaderInfoTemplate = template;
-        this.cdRef.detectChanges();
-      })
-    );
   }
 
   ngOnDestroy() {
@@ -210,6 +210,7 @@ export class ChatHeaderComponent implements OnChanges, OnDestroy, AfterViewInit 
 
     this.chatClient.queryUsers({id: {$in: [this.interlocutorId]}})
       .then((response) => {
+        if (this.destroyRef.destroyed) return;
         const user = response.users?.[0];
         if (!user) return;
 

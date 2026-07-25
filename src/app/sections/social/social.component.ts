@@ -123,6 +123,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
 
   private readonly destroy$ = new Subject<void>();
+  private readonly scheduledTasks = new Set<ReturnType<typeof setTimeout>>();
   private userInfo: UserInfo | null = null;
 
   protected usernameFormControl = new FormControl<string>('');
@@ -192,6 +193,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.scheduledTasks.forEach(task => clearTimeout(task));
+    this.scheduledTasks.clear();
     this.destroy$.next();
     this.destroy$.complete();
     this.channelService.deselectActiveChannel();
@@ -216,7 +219,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       // Now decide whether to open a specific chat or initialize channel service
       if (this.redirectId) {
         const cid = this.channels.friendshipCid(this.redirectId);
-        setTimeout(() => {
+        this.schedule(() => {
           void this.openChatByCid(cid).then((found) => {
             if (!found) {
               logger.error("Could not find chat with cid:", cid);
@@ -331,7 +334,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setChatTitle(channel: Channel) {
-    setTimeout(() => {
+    this.schedule(() => {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
@@ -640,7 +643,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
 
-          setTimeout(() => {
+          this.schedule(() => {
             this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
             this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
           }, 2000);
@@ -745,7 +748,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void channel.hide();
     }, 30);
   }
@@ -753,7 +756,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   showChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void channel.show().then(() => {
         this.channels.reload(this.showHiddenChannels$.value);
       });
@@ -763,7 +766,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   muteChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void channel.mute();
     }, 30);
   }
@@ -779,7 +782,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   markAsRead(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void channel.markRead();
     }, 30);
   }
@@ -787,7 +790,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   markAsUnread(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       const lastMessage = channel.state.messages[channel.state.messages.length - 1];
 
       // Only mark as unread if the last message was sent by someone else
@@ -802,7 +805,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   unmuteChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void channel.unmute();
     }, 30);
   }
@@ -822,7 +825,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
-    setTimeout(() => {
+    this.schedule(() => {
       void this.channels.join(channel).then(() => {
         this.chatFormControl.setValue('');
       });
@@ -853,8 +856,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private timeout?: ReturnType<typeof setTimeout>;
 
+  private schedule(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const task = globalThis.setTimeout(() => {
+      this.scheduledTasks.delete(task);
+      callback();
+    }, delay);
+    this.scheduledTasks.add(task);
+    return task;
+  }
+
   stopAvatarHover() {
-    this.timeout = setTimeout(() => {
+    this.timeout = this.schedule(() => {
       this.hoveredChannel = null;
       this.currentLocation = '';
     }, 200);
@@ -919,7 +931,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   openSearch() {
     if (!this.sidebarResize.isCollapsed) return;
     this.sidebarResize.expand();
-    setTimeout(() => {
+    this.schedule(() => {
       this.chatInputRef?.nativeElement.focus();
     }, 100);
   }

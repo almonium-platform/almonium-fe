@@ -159,7 +159,7 @@ auto-renewal in the customer portal.`;
   }
 
   private dealWithQueryParams() {
-    this.activatedRoute.queryParams.subscribe(params => {
+    this.activatedRoute.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['portal'] === 'from') {
         this.userInfoService.fetchUserInfoFromServer().subscribe();
         this.urlService.clearUrl();
