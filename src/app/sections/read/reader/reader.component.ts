@@ -23,6 +23,7 @@ import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/compo
 import {TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ReaderChapter, ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
+import {ReaderPosition} from './reader-position.model';
 
 @Component({
   selector: 'app-reader',
@@ -117,6 +118,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private isSyncingHeights = false;
 
   private initialScrollPercentage: number | null = null;
+  private initialPosition: ReaderPosition | null = null;
   private initialScrollApplied = false;
   private isDestroyed = false;
   private baseLoadSubscription: Subscription | null = null;
@@ -140,6 +142,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         const previousMode = this.currentParallelMode;
         if (previousMode !== mode) {
           logger.debug('Reader received new parallel mode:', mode);
+          if (this.isParallelViewActive && this.fluentLangCode) {
+            this.updateScrollState();
+            this.progressTracker.startPresentation(`parallel:${this.fluentLangCode}:${mode}`);
+          }
           this.currentParallelMode = mode;
           this.cdRef.markForCheck(); // Trigger pipe re-evaluation
 
@@ -161,7 +167,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       if (this.bookId) {
         // Reset state for new book load
         this.initialScrollPercentage = null; // Reset scroll target
-        this.progressTracker.startBook(this.bookId);
+        this.initialPosition = this.progressTracker.startBook(this.bookId);
         this.initialScrollApplied = false; // Reset flag for initial scroll
         this.isLoading = true; // Ensure loading starts true
         this.chapterNav = [];
@@ -182,6 +188,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   @HostListener('window:beforeunload')
   unloadNotification(): void {
+    this.updateScrollState();
     this.progressTracker.saveOnExit(true);
   }
 
@@ -285,6 +292,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.baseLoadSubscription?.unsubscribe();
     this.bookDetailsSubscription?.unsubscribe();
     this.parallelLoadSubscription?.unsubscribe();
+    this.updateScrollState();
     this.progressTracker.saveOnExit(false);
     this.destroy$.next();
     this.destroy$.complete();
@@ -359,20 +367,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     // Conditions: Not loading, target known, not applied yet, wrapper exists
-    if (!this.isLoading && !this.isLoadingParallel && this.initialScrollPercentage !== null && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
-      const target = this.initialScrollPercentage;
+    const hasInitialTarget = this.initialPosition !== null || this.initialScrollPercentage !== null;
+    if (!this.isLoading && !this.isLoadingParallel && hasInitialTarget && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
+      const wrapper = this.readerContentWrapperRef.nativeElement;
+      const targetPercentage = this.initialPosition?.percentage ?? this.initialScrollPercentage ?? 0;
       // Add extra check for scrollHeight to ensure layout is likely ready
-      const scrollHeight = this.readerContentWrapperRef.nativeElement.scrollHeight;
-      const clientHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
+      const scrollHeight = wrapper.scrollHeight;
+      const clientHeight = wrapper.clientHeight;
 
-      if (scrollHeight > 0 && (scrollHeight > clientHeight || target === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
-        logger.debug(`Attempting initial scroll to target: ${target}% (scrollHeight: ${scrollHeight})`);
-        this.scrollToPercentage(target);
+      if (scrollHeight > 0 && (scrollHeight > clientHeight || targetPercentage === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
+        if (this.initialPosition && this.readerContentRef?.nativeElement) {
+          const targetScrollTop = this.readerDom.scrollTopForPosition(
+            wrapper,
+            this.readerContentRef.nativeElement,
+            this.initialPosition,
+          );
+          logger.debug(`Restoring precise local reader position at ${targetScrollTop}px.`);
+          this.setScrollTop(targetScrollTop);
+        } else {
+          logger.debug(`Restoring server reader progress at ${targetPercentage}%.`);
+          this.scrollToPercentage(targetPercentage);
+        }
         this.initialScrollApplied = true; // Mark as applied
+        this.updateScrollState();
       } else {
-        logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): scrollHeight not ready or not scrollable. scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${target}`);
+        logger.debug(`Skipped initial scroll attempt: scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${targetPercentage}`);
       }
-    } else if (!this.initialScrollApplied && this.initialScrollPercentage !== null) {
+    } else if (!this.initialScrollApplied && hasInitialTarget) {
       // Log only if we expected to scroll but didn't yet
       // logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
     }
@@ -389,6 +410,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.isParallelViewActive = false;
       this.currentlyOpenFluentSpan = null;
       this.fluentLangCode = null;
+      this.initialPosition = this.progressTracker.startPresentation('base');
+      this.initialScrollPercentage = this.initialPosition ? null : this.currentScrollPercentage;
 
       this.isLoadingParallel = false;
       this.cdRef.markForCheck();
@@ -409,8 +432,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.targetLangCode = book.language; // <-- ADD THIS LINE
           logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
           this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
-          this.initialScrollPercentage = book.progressPercentage ?? 0;
-          logger.debug(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
+          if (!this.initialPosition) {
+            this.initialScrollPercentage = book.progressPercentage ?? 0;
+            logger.debug(`Stored server scroll fallback: ${this.initialScrollPercentage}%`);
+          }
           this.cdRef.markForCheck();
         }
       },
@@ -531,7 +556,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     if (state.percentage !== this.currentScrollPercentage) {
       this.currentScrollPercentage = state.percentage;
-      this.progressTracker.update(state.percentage);
+    }
+
+    if (this.initialScrollApplied && this.readerContentRef?.nativeElement) {
+      const position = this.readerDom.capturePosition(
+        this.readerContentWrapperRef.nativeElement,
+        this.readerContentRef.nativeElement,
+      );
+      this.progressTracker.update(state.percentage, position);
     }
   }
 
@@ -888,6 +920,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.isParallelViewActive = true;   // Now parallel view is active
               this.errorMessage = null;         // Clear previous errors
               logger.debug(`Loaded parallel HTML content for ${langCode}.`);
+              this.initialPosition = this.progressTracker.startPresentation(
+                `parallel:${langCode}:${this.currentParallelMode}`,
+              );
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()
@@ -895,8 +930,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
                 this.needsHeightSync = true;
               }
               logger.debug("Parallel content loaded, flags set for ngAfterViewChecked.");
-              // We also want to reset scroll to top when changing language
-              this.initialScrollPercentage = 0; // Target 0%
+              // Resume this exact presentation when it has been used before.
+              this.initialScrollPercentage = this.initialPosition ? null : 0;
               this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
             } catch (e) {
               // Handle decoding error

@@ -36,6 +36,50 @@ describe('ReaderDomService', () => {
     expect(service.scrollTopForPercentage(element, 50)).toBeNull();
   });
 
+  it('restores the exact pixel when the reader layout is unchanged', () => {
+    const wrapper = document.createElement('div');
+    const content = document.createElement('div');
+    Object.defineProperties(wrapper, {
+      scrollTop: {value: 0, writable: true, configurable: true},
+      scrollHeight: {value: 2000, configurable: true},
+      clientHeight: {value: 500, configurable: true},
+      clientWidth: {value: 800, configurable: true},
+    });
+
+    expect(service.scrollTopForPosition(wrapper, content, {
+      version: 1,
+      scrollTop: 731,
+      scrollHeight: 2000,
+      clientWidth: 800,
+      percentage: 48.7,
+      anchor: null,
+    })).toBe(731);
+  });
+
+  it('restores an anchor and pixel offset after the layout changes', () => {
+    const wrapper = document.createElement('div');
+    const content = document.createElement('div');
+    const paragraph = document.createElement('p');
+    content.appendChild(paragraph);
+    Object.defineProperties(wrapper, {
+      scrollTop: {value: 0, writable: true, configurable: true},
+      scrollHeight: {value: 3000, configurable: true},
+      clientHeight: {value: 500, configurable: true},
+      clientWidth: {value: 600, configurable: true},
+    });
+    wrapper.getBoundingClientRect = () => ({top: 100} as DOMRect);
+    paragraph.getBoundingClientRect = () => ({top: 400} as DOMRect);
+
+    expect(service.scrollTopForPosition(wrapper, content, {
+      version: 1,
+      scrollTop: 731,
+      scrollHeight: 2000,
+      clientWidth: 800,
+      percentage: 48.7,
+      anchor: {path: [0], offset: 25},
+    })).toBe(325);
+  });
+
   it('opens only the selected overlay translation', () => {
     const content = document.createElement('div');
     content.innerHTML = `

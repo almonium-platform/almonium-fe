@@ -14,6 +14,7 @@ const AUTH_METHODS_KEY = 'auth_methods';
 const SUPPORTED_LANGUAGES_KEY = 'supported_languages';
 const LAST_SEEN_KEY = 'last_seen_users';
 const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
+const READER_POSITIONS_KEY = 'reader_positions';
 
 @Injectable({
   providedIn: 'root'
@@ -140,6 +141,10 @@ export class LocalStorageService {
     this.removeItem(TIMER_END_TIMESTAMP_KEY);
   }
 
+  clearReaderPositions(): void {
+    this.removeItem(READER_POSITIONS_KEY);
+  }
+
   saveParallelMode(mode: ParallelMode): void {
     this.saveItem(PARALLEL_MODE_KEY, mode);
   }
@@ -161,6 +166,7 @@ export class LocalStorageService {
     this.removeCurrentLanguage();
     this.clearAuthMethods();
     this.clearParallelMode();
+    this.clearReaderPositions();
   }
 
   public clearAllData(): void {
