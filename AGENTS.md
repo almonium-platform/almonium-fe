@@ -16,6 +16,11 @@ repositories:
   It is the source of truth for deployment configuration and secrets. Read its
   `AGENTS.md` before changing it; never copy vault material or production
   credentials into this repository.
+- `../almonium-mobile` is the Expo SDK 54 React Native client for iOS and
+  Android. It shares the backend API and product flows, but uses Firebase
+  bearer tokens and native/Expo distribution rather than the browser's
+  HttpOnly-cookie session or this repository's container deployment. Coordinate
+  API DTO, authentication, and user-flow changes across both clients.
 
 - Keep `src/environments/environment*.ts` aligned with the API environment
   being targeted. A frontend environment/configuration change may require the
