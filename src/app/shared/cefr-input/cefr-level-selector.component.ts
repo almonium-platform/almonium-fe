@@ -1,51 +1,54 @@
+import {TuiInput} from "@taiga-ui/core/components";
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {CEFRLevel} from '../../models/userinfo.model';
+import {TuiDataListWrapper, TuiSelect} from '@taiga-ui/kit/components';
+import {TuiChevron} from '@taiga-ui/kit/directives';
 
 @Component({
   selector: 'app-cefr-level-selector',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    TuiInput,
+    TuiSelect,
+    TuiChevron,
+    TuiDataListWrapper,
+  ],
   template: `
-    <select
+    <tui-textfield
+      tuiChevron
+      tuiTextfieldSize="m"
+      [tuiTextfieldCleaner]="false"
       class="cefr-select"
-      aria-label="CEFR level"
-      [formControl]="control"
     >
-      <option [ngValue]="null" disabled>Select level</option>
-      @for (level of levels; track level) {
-        <option [ngValue]="level">{{ level }}</option>
-      }
-    </select>
+      <input
+        tuiSelect
+        [formControl]="control"
+        placeholder="Select level"
+      />
+
+      <tui-data-list-wrapper
+        new
+        *tuiDropdown
+        [items]="levels"
+      />
+    </tui-textfield>
   `,
   styles: [`
     :host {
-      display: block;
-      flex: 0 0 auto;
+      --tui-radius-m: 2rem;
     }
 
     .cefr-select {
-      width: 7.5rem;
-      height: 2.75rem;
-      box-sizing: border-box;
-      border: 1px solid var(--tui-border-normal);
-      border-radius: 1rem;
-      padding: 0 0.75rem;
-      background: var(--tui-background-base);
-      color: var(--tui-text-primary);
-      font: normal 1rem/1.25rem var(--tui-typography-family-text);
-      cursor: pointer;
-    }
-
-    .cefr-select:focus-visible {
-      outline: 2px solid var(--tui-background-accent-1);
-      outline-offset: 2px;
+      font: normal 1.2rem/1.25rem var(--tui-typography-family-text);
+      width: 6rem;
     }
   `],
 })
 export class CefrLevelSelectorComponent {
   @Input() control!: FormControl<CEFRLevel | null>;
-  @Input() levels: CEFRLevel[] = Object.values(CEFRLevel);
+  @Input() levels: string[] = Object.values(CEFRLevel);
   @Input() openOnInit = false;
 }

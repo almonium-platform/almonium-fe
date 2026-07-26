@@ -158,11 +158,11 @@
                 [formGroupName]="idx"
                 class="cefr-language-row"
               >
-                <span
+                <span tuiChip
                   class="cefr-lang-chip"
-                  [style.background-color]="languages.at(idx).controls.language.value | tuiAutoColor"
+              [style.background-color]="languages.at(idx).controls.language.value | tuiAutoColor"
                 >
-                  {{ languages.at(idx).controls.language.value }}
+                  {{ languages.at(idx).get('language')?.value }}
                 </span>
                 <app-cefr-level-selector
                   [control]="getCefrLevelControl(idx)"

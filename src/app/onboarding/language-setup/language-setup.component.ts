@@ -13,7 +13,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import {TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective} from '@taiga-ui/kit/components';
+import {TuiChip, TuiInputChip, TuiInputChipDirective, TuiMultiSelectGroupComponent, TuiMultiSelectGroupDirective} from '@taiga-ui/kit/components';
 import {TuiChevron} from '@taiga-ui/kit/directives';
 import {TuiAutoColorPipe, TuiHideSelectedPipe} from '@taiga-ui/kit/pipes';
 import {TuiDataList, TuiDataListComponent, TuiError, TuiNotificationService, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
@@ -69,6 +69,7 @@ type CefrFormGroup = FormGroup<{
     NgxParticlesModule,
     FluentLanguageSelectorComponent,
     TuiAutoColorPipe,
+    TuiChip,
     SharedLucideIconsModule,
     InfoIconComponent,
     ButtonComponent,
@@ -571,26 +572,50 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       });
   }
 
-  private prepareTargetLanguagesData(): TargetLanguageWithProficiency[] {
-    return this.cefrForm.getRawValue().languages.map(entry => {
+  private buildTargetLanguagesData(): TargetLanguageWithProficiency[] | null {
+    const data: TargetLanguageWithProficiency[] = [];
+
+    for (const entry of this.cefrForm.getRawValue().languages) {
       if (!entry.cefrLevel) {
-        throw new Error(`Missing CEFR level for ${entry.language}`);
+        return null;
       }
+
       const languageCode = this.languageNameService.mapLanguageNameToCode(this.supportedLanguages, entry.language);
       if (!languageCode) {
-        throw new Error(`Unsupported language: ${entry.language}`);
+        return null;
       }
-      this.cachedCefrLevels.set(entry.language, entry.cefrLevel); // Cache CEFR level
-      return {
+
+      data.push({
         language: languageCode,
         cefrLevel: entry.cefrLevel,
-      };
+      });
+    }
+
+    return data;
+  }
+
+  private prepareTargetLanguagesData(): TargetLanguageWithProficiency[] {
+    const data = this.buildTargetLanguagesData();
+    if (!data) {
+      throw new Error('Cannot prepare target languages from an incomplete or unsupported CEFR form');
+    }
+
+    this.cefrForm.getRawValue().languages.forEach(entry => {
+      if (entry.cefrLevel) {
+        this.cachedCefrLevels.set(entry.language, entry.cefrLevel);
+      }
     });
+
+    return data;
   }
 
   get isDataChanged(): boolean {
-    const currentData = this.prepareTargetLanguagesData();
-    const originalData = this.userInfo!.learners.map(learner => ({
+    const currentData = this.buildTargetLanguagesData();
+    if (!currentData || !this.userInfo) {
+      return false;
+    }
+
+    const originalData = this.userInfo.learners.map(learner => ({
       language: learner.language,
       cefrLevel: learner.selfReportedLevel,
     }));
