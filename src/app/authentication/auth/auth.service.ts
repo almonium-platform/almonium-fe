@@ -123,6 +123,15 @@ export class AuthService {
     );
   }
 
+  resendEmailVerification(): Observable<void> {
+    return from(sendEmailVerification(this.requireCurrentUser()));
+  }
+
+  isEmailVerificationRequired(error: unknown): boolean {
+    return error instanceof Error
+      && error.message.includes('Verify your email with Firebase before signing in');
+  }
+
   verifyEmail(code: string): Observable<void> {
     return from(applyActionCode(this.firebaseAuth, code));
   }
