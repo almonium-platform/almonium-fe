@@ -324,30 +324,9 @@ export class AuthComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          if (this.authService.isEmailVerificationRequired(error)) {
-            this.resendVerificationAfterBlockedLogin();
-            return;
-          }
           this.alertService.open(getErrorMessage(error, 'Login failed'), {appearance: 'negative'}).subscribe();
         },
       });
-  }
-
-  private resendVerificationAfterBlockedLogin(): void {
-    this.authService.resendEmailVerification().subscribe({
-      next: () => {
-        this.alertService.open(
-          'Your email must be verified before signing in. We sent a new verification email; check spam too.',
-          {appearance: 'positive'},
-        ).subscribe();
-      },
-      error: (error) => {
-        this.alertService.open(
-          `Your email must be verified before signing in. ${getErrorMessage(error, 'Firebase could not send the verification email. Please contact support.')}`,
-          {appearance: 'negative'},
-        ).subscribe();
-      },
-    });
   }
 
   protected toggleSignUp() {
