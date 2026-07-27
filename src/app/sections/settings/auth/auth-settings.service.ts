@@ -84,9 +84,21 @@ export class AuthSettingsService {
 
   populateAuthMethods(): Observable<AuthMethod[]> {
     return this.getAuthMethods().pipe(
-      map(methods => this.firebaseAuth.currentUser
-        ? methods
-        : this.localStorageService.getAuthMethods() ?? []),
+      switchMap(methods => {
+        if (this.firebaseAuth.currentUser) {
+          return of(methods);
+        }
+
+        const cachedMethods = this.localStorageService.getAuthMethods();
+        if (cachedMethods) {
+          return of(cachedMethods);
+        }
+
+        return this.http.get<AuthMethod[]>(
+          `${AppConstants.AUTH_URL}/session/providers`,
+          {withCredentials: true},
+        ).pipe(tap(providers => this.localStorageService.saveAuthMethods(providers)));
+      }),
     );
   }
 

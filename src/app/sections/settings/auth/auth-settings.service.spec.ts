@@ -1,7 +1,8 @@
 import {HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {Auth} from '@angular/fire/auth';
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom, of} from 'rxjs';
+import {AppConstants} from '../../../app.constants';
 import {LocalStorageService} from '../../../services/local-storage.service';
 import {AuthSettingsService} from './auth-settings.service';
 
@@ -16,6 +17,7 @@ describe('AuthSettingsService provider cache', () => {
     authStateReady: jasmine.Spy<() => Promise<void>>;
   };
   let storage: jasmine.SpyObj<LocalStorageService>;
+  let http: jasmine.SpyObj<HttpClient>;
 
   beforeEach(() => {
     firebaseAuth = {
@@ -26,11 +28,12 @@ describe('AuthSettingsService provider cache', () => {
       'LocalStorageService',
       ['getAuthMethods', 'saveAuthMethods'],
     );
+    http = jasmine.createSpyObj<HttpClient>('HttpClient', ['get']);
 
     TestBed.configureTestingModule({
       providers: [
         AuthSettingsService,
-        {provide: HttpClient, useValue: jasmine.createSpyObj<HttpClient>('HttpClient', ['get'])},
+        {provide: HttpClient, useValue: http},
         {provide: Auth, useValue: firebaseAuth},
         {provide: LocalStorageService, useValue: storage},
       ],
@@ -70,5 +73,23 @@ describe('AuthSettingsService provider cache', () => {
     expect(methods.map(method => method.provider)).toEqual(['google', 'local']);
     expect(storage.saveAuthMethods.calls.mostRecent().args[0]).toEqual(methods);
     expect(storage.getAuthMethods.calls.count()).toBe(0);
+  });
+
+  it('bootstraps providers from the authenticated backend session when no cache exists', async () => {
+    const providers = [{
+      provider: 'apple',
+      email: 'reader@example.com',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-07-01T00:00:00Z',
+    }];
+    storage.getAuthMethods.and.returnValue(null);
+    http.get.and.returnValue(of(providers));
+
+    expect(await firstValueFrom(service.populateAuthMethods())).toEqual(providers);
+    expect(http.get.calls.mostRecent().args).toEqual([
+      `${AppConstants.AUTH_URL}/session/providers`,
+      {withCredentials: true},
+    ]);
+    expect(storage.saveAuthMethods.calls.mostRecent().args[0]).toEqual(providers);
   });
 });
