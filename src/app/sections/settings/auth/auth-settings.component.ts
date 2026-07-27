@@ -406,7 +406,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   // universal live token auth guard
   private checkAuth(onValidToken: () => void) {
-    this.recentAuthGuardService.guardAction(onValidToken);
+    this.recentAuthGuardService.guardAction(onValidToken, !this.authService.currentUser());
   }
 
   // PENDING EMAIL CHANGE REQUEST

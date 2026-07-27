@@ -20,8 +20,13 @@ export class RecentAuthGuardService {
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   // universal live token auth guard
-  public guardAction(onValidToken: () => void) {
+  public guardAction(onValidToken: () => void, forceReauthentication = false) {
     this.pendingAction = onValidToken;
+    if (forceReauthentication) {
+      this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+      this.showIdentityVerificationPopup();
+      return;
+    }
     this.checkAuth(this.runPendingAction.bind(this), this.showIdentityVerificationPopup.bind(this));
   }
 

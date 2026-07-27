@@ -67,6 +67,18 @@ describe('RecentAuthGuardService', () => {
     ]);
   });
 
+  it('forces the modal when Firebase in-memory auth is missing despite a recent session cache', () => {
+    storage.getItem.and.returnValue(Date.now() + 60_000);
+    const action = jasmine.createSpy('action');
+
+    service.guardAction(action, true);
+
+    expect(state.open.calls.count()).toBe(1);
+    expect(settings.checkCurrentAccessTokenIsLive.calls.count()).toBe(0);
+    expect(action).not.toHaveBeenCalled();
+    expect(storage.removeItem.calls.allArgs()).toContain(['recent_login_cache_timestamp']);
+  });
+
   it('keeps unexpected access-token failures as errors', () => {
     settings.checkCurrentAccessTokenIsLive.and.returnValues(
       throwError(() => new Error('Network unavailable')),
