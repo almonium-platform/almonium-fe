@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {from, map, Observable, of, switchMap} from 'rxjs';
+import {from, map, Observable, of, switchMap, tap} from 'rxjs';
 import {AppConstants} from '../../../app.constants';
 import {AuthMethod, TokenInfo} from '../../../authentication/auth/auth.types';
+import {authMethodsFromFirebaseUser} from '../../../authentication/auth/auth-methods';
 import {ResponseModel} from '../../../models/response.model';
+import {LocalStorageService} from '../../../services/local-storage.service';
 import {
   Auth,
   sendEmailVerification,
@@ -17,6 +19,7 @@ import {
 export class AuthSettingsService {
   private http = inject(HttpClient);
   private firebaseAuth = inject(Auth);
+  private localStorageService = inject(LocalStorageService);
 
 
   checkCurrentAccessTokenIsLive(): Observable<string | null> {
@@ -62,18 +65,17 @@ export class AuthSettingsService {
   }
 
   getAuthMethods(): Observable<AuthMethod[]> {
-    return from(this.firebaseAuth.authStateReady()).pipe(map(() => {
-      const user = this.firebaseAuth.currentUser;
-      if (!user) return [];
-      const createdAt = user.metadata.creationTime ?? new Date().toISOString();
-      const updatedAt = user.metadata.lastSignInTime ?? createdAt;
-      return user.providerData.map(provider => ({
-        provider: provider.providerId === 'password' ? 'local' : provider.providerId.replace('.com', ''),
-        email: (provider.email ?? user.email) ?? '',
-        createdAt,
-        updatedAt,
-      }));
-    }));
+    return from(this.firebaseAuth.authStateReady()).pipe(
+      map(() => {
+        const user = this.firebaseAuth.currentUser;
+        return user ? authMethodsFromFirebaseUser(user) : [];
+      }),
+      tap(methods => {
+        if (this.firebaseAuth.currentUser) {
+          this.localStorageService.saveAuthMethods(methods);
+        }
+      }),
+    );
   }
 
   isEmailAvailable(email: string): Observable<boolean> {
@@ -81,7 +83,11 @@ export class AuthSettingsService {
   }
 
   populateAuthMethods(): Observable<AuthMethod[]> {
-    return this.getAuthMethods();
+    return this.getAuthMethods().pipe(
+      map(methods => this.firebaseAuth.currentUser
+        ? methods
+        : this.localStorageService.getAuthMethods() ?? []),
+    );
   }
 
   private requireUser() {

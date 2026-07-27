@@ -6,6 +6,7 @@ import {UserInfoService} from '../../services/user-info.service';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {PopupTemplateStateService} from '../../shared/modals/popup-template/popup-template-state.service';
 import {UserInfo, UserInfoDto} from '../../models/userinfo.model';
+import {authMethodsFromFirebaseUser} from './auth-methods';
 import {Auth} from '@angular/fire/auth';
 import {
   applyActionCode,
@@ -166,7 +167,10 @@ export class AuthService {
         {idToken},
         {withCredentials: true},
       )),
-      tap(userInfo => this.userInfoService.setUserInfo(userInfo)),
+      tap(userInfo => {
+        this.userInfoService.setUserInfo(userInfo);
+        this.localStorageService.saveAuthMethods(authMethodsFromFirebaseUser(user));
+      }),
       map(() => this.userInfoService.currentUserInfo!),
     );
   }
