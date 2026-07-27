@@ -169,7 +169,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private populateAuthMethods() {
+  private populateAuthMethods(onComplete?: () => void) {
     this.settingService.populateAuthMethods().subscribe({
       next: (methods) => {
         this.authMethods = methods;
@@ -180,6 +180,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         logger.error(error);
         this.alertService.open(getErrorMessage(error, 'Failed to get auth methods'), {appearance: 'negative'}).subscribe();
       },
+      complete: () => onComplete?.(),
     });
   }
 
@@ -308,7 +309,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   protected handleProviderWrapped = (provider: string) => () => {
     this.restoreEmailAndPasswordFields();
-    this.checkAuth(() => this.universalProviderHandler(provider));
+    this.checkAuth(() => this.populateAuthMethods(() => this.universalProviderHandler(provider)));
   }
 
   private universalProviderHandler(provider: string) {

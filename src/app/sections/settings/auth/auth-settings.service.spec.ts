@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {Auth} from '@angular/fire/auth';
-import {firstValueFrom, of} from 'rxjs';
+import {firstValueFrom, of, toArray} from 'rxjs';
 import {AppConstants} from '../../../app.constants';
 import {LocalStorageService} from '../../../services/local-storage.service';
 import {AuthSettingsService} from './auth-settings.service';
@@ -49,10 +49,18 @@ describe('AuthSettingsService provider cache', () => {
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-07-01T00:00:00Z',
     }];
+    const refreshedMethods = [...cachedMethods, {
+      provider: 'local',
+      email: 'reader@example.com',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-07-27T12:00:00Z',
+    }];
     storage.getAuthMethods.and.returnValue(cachedMethods);
+    http.get.and.returnValue(of(refreshedMethods));
 
-    expect(await firstValueFrom(service.populateAuthMethods())).toEqual(cachedMethods);
-    expect(storage.saveAuthMethods.calls.count()).toBe(0);
+    expect(await firstValueFrom(service.populateAuthMethods().pipe(toArray())))
+      .toEqual([cachedMethods, refreshedMethods]);
+    expect(storage.saveAuthMethods.calls.mostRecent().args[0]).toEqual(refreshedMethods);
   });
 
   it('refreshes the cache when Firebase identity is available', async () => {

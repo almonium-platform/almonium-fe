@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {from, map, Observable, of, switchMap, tap} from 'rxjs';
+import {catchError, concat, EMPTY, from, map, Observable, of, switchMap, tap} from 'rxjs';
 import {AppConstants} from '../../../app.constants';
 import {AuthMethod, TokenInfo} from '../../../authentication/auth/auth.types';
 import {authMethodsFromFirebaseUser} from '../../../authentication/auth/auth-methods';
@@ -91,15 +91,22 @@ export class AuthSettingsService {
 
         const cachedMethods = this.localStorageService.getAuthMethods();
         if (cachedMethods) {
-          return of(cachedMethods);
+          return concat(
+            of(cachedMethods),
+            this.getSessionAuthMethods().pipe(catchError(() => EMPTY)),
+          );
         }
 
-        return this.http.get<AuthMethod[]>(
-          `${AppConstants.AUTH_URL}/session/providers`,
-          {withCredentials: true},
-        ).pipe(tap(providers => this.localStorageService.saveAuthMethods(providers)));
+        return this.getSessionAuthMethods();
       }),
     );
+  }
+
+  private getSessionAuthMethods(): Observable<AuthMethod[]> {
+    return this.http.get<AuthMethod[]>(
+      `${AppConstants.AUTH_URL}/session/providers`,
+      {withCredentials: true},
+    ).pipe(tap(providers => this.localStorageService.saveAuthMethods(providers)));
   }
 
   private requireUser() {
