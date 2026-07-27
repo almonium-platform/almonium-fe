@@ -235,6 +235,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private confirmDeletion() {
+    this.checkAuth(this.deleteAccount.bind(this));
+  }
+
+  private deleteAccount() {
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
         this.alertService.open('Account successfully deleted!', {appearance: 'positive'}).subscribe();
@@ -348,6 +352,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private unlinkAuthMethod(provider: string) {
+    this.checkAuth(() => this.performUnlinkAuthMethod(provider));
+  }
+
+  private performUnlinkAuthMethod(provider: string) {
     this.clearAuthCache();
 
     this.settingService.unlinkAuthProvider(provider).subscribe({
@@ -447,8 +455,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected cancelEmailChangeRequest() {
-    this.checkAuth(() => undefined);
+    this.checkAuth(this.cancelEmailChangeRequestAfterAuth.bind(this));
+  }
 
+  private cancelEmailChangeRequestAfterAuth() {
     this.settingService.cancelEmailVerificationRequest().subscribe({
       next: () => {
         this.alertService.open('Email verification request cancelled!', {appearance: 'positive'}).subscribe();
@@ -462,8 +472,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected resendEmailChangeRequest() {
-    this.checkAuth(() => undefined);
+    this.checkAuth(this.resendEmailChangeRequestAfterAuth.bind(this));
+  }
 
+  private resendEmailChangeRequestAfterAuth() {
     this.settingService.resendEmailVerificationRequest().subscribe({
       next: () => {
         this.alertService.open('Email verification request resent!', {appearance: 'positive'}).subscribe();

@@ -5,6 +5,7 @@ import { Injectable, inject } from '@angular/core';
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {RecentAuthGuardStateService} from "../../shared/recent-auth-guard/recent-auth-guard-state.service";
+import {AppHttpError} from "../../shared/app-http-error";
 
 @Injectable({
   providedIn: 'root'
@@ -14,17 +15,21 @@ export class RecentAuthGuardService {
   private alertService = inject(TuiNotificationService);
   private localStorageService = inject(LocalStorageService);
   private recentAuthGuardStateService = inject(RecentAuthGuardStateService);
+  private pendingAction: (() => void) | null = null;
 
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   // universal live token auth guard
   public guardAction(onValidToken: () => void) {
-    this.checkAuth(onValidToken, this.showIdentityVerificationPopup.bind(this));
+    this.pendingAction = onValidToken;
+    this.checkAuth(this.runPendingAction.bind(this), this.showIdentityVerificationPopup.bind(this));
   }
 
   public updateStatusAndShowAlert() {
-    this.getRecentAuthStatus();
-    this.alertService.open('You successfully verified your identity!', {appearance: 'positive'}).subscribe();
+    this.getRecentAuthStatus(() => {
+      this.alertService.open('You successfully verified your identity!', {appearance: 'positive'}).subscribe();
+      this.runPendingAction();
+    });
   }
 
   public getRecentAuthStatus(onValidTokenAction?: () => void, identityVerification?: () => void): void {
@@ -44,6 +49,12 @@ export class RecentAuthGuardService {
         }
       },
       error: (error) => {
+        if (error instanceof AppHttpError && error.status === 403 && identityVerification) {
+          this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+          identityVerification();
+          return;
+        }
+        this.pendingAction = null;
         this.alertService.open(getErrorMessage(error, 'Failed to check access token'), {appearance: 'negative'}).subscribe();
         logger.error('Error checking access token:', error);
       }
@@ -72,5 +83,11 @@ export class RecentAuthGuardService {
     } else {
       onValidTokenAction();
     }
+  }
+
+  private runPendingAction(): void {
+    const action = this.pendingAction;
+    this.pendingAction = null;
+    action?.();
   }
 }
