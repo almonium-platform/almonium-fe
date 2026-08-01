@@ -21,6 +21,7 @@ import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
+import {isUuid} from '../../../shared/runtime-validation';
 
 @Component({
   selector: 'app-book',
@@ -55,7 +56,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
   private readonly destroy$ = new Subject<void>();
-  protected bookId: number | null = null;
+  protected bookId: string | null = null;
   protected book: Book | null = null;
   protected availableTranslations: string[] = [];
   protected bookLanguage = "";
@@ -81,8 +82,7 @@ export class BookComponent implements OnInit, OnDestroy {
     this.activatedRoute.paramMap
       .pipe(
         map(params => params.get('id')),
-        filter((id): id is string => id !== null),
-        map(id => +id),                          // Convert id string to number
+        filter((id): id is string => id !== null && isUuid(id)),
         distinctUntilChanged(),                  // Only proceed if the ID truly changed
         switchMap(id => {                        // Switch to the data fetching observable
           logger.debug(`Route changed or initial load. Fetching book ID: ${id}`);
@@ -282,7 +282,7 @@ export class BookComponent implements OnInit, OnDestroy {
     this.navigateToId(this.book.originalId);
   }
 
-  private navigateToId(id: number) {
+  private navigateToId(id: string) {
     void this.router.navigate([`/book/${id}`]).then(success => {
       if (!success) {
         logger.error("Navigation failed!");

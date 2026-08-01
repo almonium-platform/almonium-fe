@@ -12,7 +12,7 @@ type StoredPositions = Record<string, ReaderPosition>;
 export class ReaderPositionStorage {
   private readonly localStorage = inject(LocalStorageService);
 
-  get(bookId: number, presentation: string): ReaderPosition | null {
+  get(bookId: string, presentation: string): ReaderPosition | null {
     const key = this.positionKey(bookId, presentation);
     if (!key) return null;
 
@@ -20,7 +20,7 @@ export class ReaderPositionStorage {
     return this.isPosition(position) ? position : null;
   }
 
-  save(bookId: number, presentation: string, position: ReaderPosition): void {
+  save(bookId: string, presentation: string, position: ReaderPosition): void {
     const key = this.positionKey(bookId, presentation);
     if (!key) return;
 
@@ -29,7 +29,7 @@ export class ReaderPositionStorage {
     this.localStorage.saveItem(READER_POSITIONS_KEY, positions);
   }
 
-  private positionKey(bookId: number, presentation: string): string | null {
+  private positionKey(bookId: string, presentation: string): string | null {
     const userId = this.localStorage.getUserInfo()?.id;
     return userId ? `${userId}:${bookId}:${presentation}` : null;
   }

@@ -6,6 +6,7 @@ import {ReaderPositionStorage} from './reader-position-storage.service';
 describe('ReaderPositionStorage', () => {
   let localStorage: LocalStorageService;
   let storage: ReaderPositionStorage;
+  const bookId = '01989f47-4c2a-7a10-9e5b-751983624a25';
 
   const position: ReaderPosition = {
     version: 1,
@@ -26,17 +27,17 @@ describe('ReaderPositionStorage', () => {
   afterEach(() => window.localStorage.clear());
 
   it('keeps precise positions separate for each reader presentation', () => {
-    storage.save(12, 'base', position);
-    storage.save(12, 'parallel:UK:side', {...position, scrollTop: 900});
+    storage.save(bookId, 'base', position);
+    storage.save(bookId, 'parallel:UK:side', {...position, scrollTop: 900});
 
-    expect(storage.get(12, 'base')).toEqual(position);
-    expect(storage.get(12, 'parallel:UK:side')?.scrollTop).toBe(900);
+    expect(storage.get(bookId, 'base')).toEqual(position);
+    expect(storage.get(bookId, 'parallel:UK:side')?.scrollTop).toBe(900);
   });
 
   it('does not expose one user position to another user', () => {
-    storage.save(12, 'base', position);
+    storage.save(bookId, 'base', position);
     localStorage.saveItem('user_info', {id: 'reader-2'});
 
-    expect(storage.get(12, 'base')).toBeNull();
+    expect(storage.get(bookId, 'base')).toBeNull();
   });
 });

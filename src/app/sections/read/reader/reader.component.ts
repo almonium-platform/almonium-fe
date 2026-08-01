@@ -24,6 +24,7 @@ import {TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ReaderChapter, ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
 import {ReaderPosition} from './reader-position.model';
+import {isUuid} from '../../../shared/runtime-validation';
 
 @Component({
   selector: 'app-reader',
@@ -75,7 +76,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isLoading = true;          // General loading state
   protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
-  protected bookId: number | null = null;
+  protected bookId: string | null = null;
 
   // --- Native Scroll State ---
   protected currentScrollPercentage = 0; // Current scroll position (0-100)
@@ -163,7 +164,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const bookId = params.get('id');
-      this.bookId = bookId ? +bookId : null;
+      this.bookId = bookId && isUuid(bookId) ? bookId : null;
       if (this.bookId) {
         // Reset state for new book load
         this.initialScrollPercentage = null; // Reset scroll target
@@ -299,7 +300,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
 // Modify loadBookHtml to trigger the scroll AFTER load
-  private loadBookHtml(bookId: number, isBase = false): void {
+  private loadBookHtml(bookId: string, isBase = false): void {
     if (isBase) {
       this.isLoading = true;
       this.isParallelViewActive = false;
@@ -424,7 +425,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   // Placeholder fetch for parallel languages options
-  private fetchBookData(bookId: number): void {
+  private fetchBookData(bookId: string): void {
     this.bookDetailsSubscription?.unsubscribe();
     this.bookDetailsSubscription = this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {

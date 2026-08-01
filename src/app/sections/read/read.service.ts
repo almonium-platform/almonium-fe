@@ -33,7 +33,7 @@ export class ReadService {
     return this.http.get<unknown>(url, {params, withCredentials: true}).pipe(map(parseBookshelfView));
   }
 
-  getParallelText(id1: number, language: string): Observable<HttpResponse<ArrayBuffer>> {
+  getParallelText(id1: string, language: string): Observable<HttpResponse<ArrayBuffer>> {
     const url = `${AppConstants.BOOKS_URL}/${id1}/parallel/${language}`;
     return this.http.get(url, {
       withCredentials: true,
@@ -42,37 +42,37 @@ export class ReadService {
     });
   }
 
-  getBookById(bookId: number, language: string): Observable<Book> {
+  getBookById(bookId: string, language: string): Observable<Book> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
     return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(value => parseBook(value)));
   }
 
-  getMiniBookDetailsById(bookId: number): Observable<BookMiniDetails> {
+  getMiniBookDetailsById(bookId: string): Observable<BookMiniDetails> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}`;
     return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBookMiniDetails));
   }
 
-  orderTranslation(bookId: number, language: string): Observable<unknown> {
+  orderTranslation(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  cancelTranslationOrder(bookId: number, language: string): Observable<unknown> {
+  cancelTranslationOrder(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.delete(url, {withCredentials: true});
   }
 
-  favoriteBook(bookId: number, language: string): Observable<unknown> {
+  favoriteBook(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  unfavoriteBook(bookId: number, language: string): Observable<unknown> {
+  unfavoriteBook(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.delete(url, {withCredentials: true});
   }
 
-  loadBook(bookId: number): Observable<HttpResponse<ArrayBuffer>> {
+  loadBook(bookId: string): Observable<HttpResponse<ArrayBuffer>> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/text`;
     return this.http.get(url, {
       withCredentials: true,
@@ -82,7 +82,7 @@ export class ReadService {
   }
 
   // --- Progress Methods ---
-  deleteProgress(bookId: number): Observable<void> { // Return void for clarity
+  deleteProgress(bookId: string): Observable<void> { // Return void for clarity
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     return this.http.delete<void>(url, {withCredentials: true}).pipe(
       tap(() => logger.debug(`ReadService: Deleted progress for ${bookId}`)),
@@ -93,7 +93,7 @@ export class ReadService {
    * Saves progress using a standard HTTP POST request with query parameters.
    * Use for regular saves and ngOnDestroy.
    */
-  saveProgress(bookId: number, percentage: number): Observable<void> {
+  saveProgress(bookId: string, percentage: number): Observable<void> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
     const params = new HttpParams().set('percentage', percentage.toString());
@@ -107,7 +107,7 @@ export class ReadService {
    * Saves progress using the Beacon API.
    * Use for 'beforeunload' event. Returns true if beacon was queued, false otherwise.
    */
-  sendProgressBeacon(bookId: number, percentage: number): boolean {
+  sendProgressBeacon(bookId: string, percentage: number): boolean {
     if (!navigator.sendBeacon) {
       logger.warn('ReadService: Beacon API not supported.');
       return false;

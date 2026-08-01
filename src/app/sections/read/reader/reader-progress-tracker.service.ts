@@ -14,12 +14,12 @@ export class ReaderProgressTracker {
   private readonly positionStorage = inject(ReaderPositionStorage);
   private readonly updates$ = new Subject<number>();
   private readonly positionUpdates$ = new Subject<{
-    bookId: number;
+    bookId: string;
     presentation: string;
     position: ReaderPosition;
   }>();
-  private readonly book$ = new BehaviorSubject<number | null>(null);
-  private bookId: number | null = null;
+  private readonly book$ = new BehaviorSubject<string | null>(null);
+  private bookId: string | null = null;
   private currentPercentage = 0;
   private lastSavedPercentage = -1;
   private currentPosition: ReaderPosition | null = null;
@@ -51,7 +51,7 @@ export class ReaderProgressTracker {
     });
   }
 
-  startBook(bookId: number): ReaderPosition | null {
+  startBook(bookId: string): ReaderPosition | null {
     this.flushPosition();
     this.bookId = bookId;
     this.currentPercentage = 0;

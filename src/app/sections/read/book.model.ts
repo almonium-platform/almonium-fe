@@ -8,10 +8,11 @@ import {
   expectNumber,
   expectRecord,
   expectString,
+  expectUuid,
 } from '../../shared/runtime-validation';
 
 export interface Book {
-  id: number;
+  id: string;
   title: string;
   author: string;
   publicationYear: number;
@@ -30,7 +31,7 @@ export interface Book {
   favorite: boolean;
   orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
-  originalId?: number;
+  originalId?: string;
   translator?: string;
 }
 
@@ -41,7 +42,7 @@ export interface BookMiniDetails {
 }
 
 export interface BookLanguageVariant {
-  id: number;
+  id: string;
   language: LanguageCode;
 }
 
@@ -76,7 +77,7 @@ export function parseBookMiniDetails(value: unknown): BookMiniDetails {
 export function parseBook(value: unknown, path = 'book'): Book {
   const data = expectRecord(value, path);
   return {
-    id: expectNumber(data['id'], `${path}.id`),
+    id: expectUuid(data['id'], `${path}.id`),
     title: expectString(data['title'], `${path}.title`),
     author: expectString(data['author'], `${path}.author`),
     publicationYear: expectNumber(data['publicationYear'], `${path}.publicationYear`),
@@ -104,7 +105,7 @@ export function parseBook(value: unknown, path = 'book'): Book {
       : expectBoolean(data['favorite'], `${path}.favorite`),
     ...optionalEnum(data['orderLanguage'], Object.values(LanguageCode), 'orderLanguage', path),
     ...optionalEnum(data['originalLanguage'], Object.values(LanguageCode), 'originalLanguage', path),
-    ...optionalNumber(data['originalId'], 'originalId', path),
+    ...optionalUuid(data['originalId'], 'originalId', path),
     ...optionalString(data['translator'], 'translator', path),
   };
 }
@@ -118,7 +119,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
     const itemPath = `${path}[${index}]`;
     const data = expectRecord(variant, itemPath);
     return {
-      id: expectNumber(data['id'], `${itemPath}.id`),
+      id: expectUuid(data['id'], `${itemPath}.id`),
       language: expectEnum(data['language'], Object.values(LanguageCode), `${itemPath}.language`),
     };
   });
@@ -134,14 +135,14 @@ function optionalString(
     : {[key]: expectString(value, `${path}.${key}`)};
 }
 
-function optionalNumber(
+function optionalUuid(
   value: unknown,
   key: 'originalId',
   path: string,
 ): Partial<Pick<Book, 'originalId'>> {
   return value === null || value === undefined
     ? {}
-    : {[key]: expectNumber(value, `${path}.${key}`)};
+    : {[key]: expectUuid(value, `${path}.${key}`)};
 }
 
 function optionalEnum<K extends 'orderLanguage' | 'originalLanguage'>(

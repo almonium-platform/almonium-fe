@@ -5,7 +5,7 @@ import {parseBook, parseBookMiniDetails, parseBookshelfView} from './book.model'
 
 describe('book API runtime validation', () => {
   const book = {
-    id: 1,
+    id: '01989f47-4c2a-7a10-9e5b-751983624a25',
     title: 'The Book',
     author: 'An Author',
     publicationYear: 2026,
@@ -35,6 +35,10 @@ describe('book API runtime validation', () => {
 
   it('rejects an unknown language before it reaches reader state', () => {
     expect(() => parseBook({...book, language: 'INVALID'})).toThrowError(ApiContractError);
+  });
+
+  it('rejects numeric book identifiers', () => {
+    expect(() => parseBook({...book, id: 1})).toThrowError(ApiContractError);
   });
 
   it('rejects malformed mini-details arrays', () => {
