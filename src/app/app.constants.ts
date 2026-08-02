@@ -25,6 +25,7 @@ export class AppConstants {
   // BOOKS
   public static PUBLIC_BOOKS_URL = AppConstants.PUBLIC_URL + '/books';
   public static BOOKS_URL = AppConstants.API_URL + '/books';
+  public static BOOK_IMPORTS_URL = AppConstants.API_URL + '/book-imports';
 
   // PLANS
   public static PLAN_URL = AppConstants.PUBLIC_URL + '/plans';

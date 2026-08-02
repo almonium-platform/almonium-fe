@@ -3,6 +3,7 @@ import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from "@angular/core";
 import {filter, finalize, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router} from "@angular/router";
+import {Meta, Title} from '@angular/platform-browser';
 import {TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
@@ -20,8 +21,8 @@ import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
-import {isUuid} from '../../../shared/runtime-validation';
 import {BookCoverComponent} from '../book-cover/book-cover.component';
+import {UserInfoService} from '../../../services/user-info.service';
 
 @Component({
   selector: 'app-book',
@@ -54,9 +55,14 @@ export class BookComponent implements OnInit, OnDestroy {
   private supportedLanguagesService = inject(SupportedLanguagesService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private userInfoService = inject(UserInfoService);
+  private pageTitle = inject(Title);
+  private meta = inject(Meta);
 
   private readonly destroy$ = new Subject<void>();
   protected bookId: string | null = null;
+  protected bookSlug: string | null = null;
+  protected authenticated = false;
   protected book: Book | null = null;
   protected availableTranslations: string[] = [];
   protected bookLanguage = "";
@@ -67,6 +73,7 @@ export class BookComponent implements OnInit, OnDestroy {
   protected bookLoading = true;
 
   ngOnInit() {
+    this.authenticated = this.userInfoService.currentUserInfo !== null;
     this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
       if (languages) {
         this.supportedLanguages = languages;
@@ -81,16 +88,16 @@ export class BookComponent implements OnInit, OnDestroy {
     // Extract the 'id' parameter from the route (Path variable)
     this.activatedRoute.paramMap
       .pipe(
-        map(params => params.get('id')),
-        filter((id): id is string => id !== null && isUuid(id)),
+        map(params => params.get('slug')),
+        filter((slug): slug is string => slug !== null && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)),
         distinctUntilChanged(),                  // Only proceed if the ID truly changed
-        switchMap(id => {                        // Switch to the data fetching observable
-          logger.debug(`Route changed or initial load. Fetching book ID: ${id}`);
-          this.bookId = id; // Update the component's bookId property
+        switchMap(slug => {                        // Switch to the data fetching observable
+          logger.debug(`Route changed or initial load. Fetching book slug: ${slug}`);
+          this.bookSlug = slug;
           // Optional: Add loading state indication here
-          return this.readService.getBookById(id, 'EN').pipe( // Assuming 'EN' is context language, adjust if needed
+          return this.readService.getPublicBook(slug).pipe(
             catchError(error => {
-              logger.error(`Failed to fetch book data for ID ${id}:`, error);
+              logger.error(`Failed to fetch book data for slug ${slug}:`, error);
               this.alertService.open('Failed to load book details.', {appearance: 'negative'}).subscribe();
               this.book = null; // Clear book data on error
               this.cdr.detectChanges(); // Update view
@@ -105,6 +112,9 @@ export class BookComponent implements OnInit, OnDestroy {
         this.bookLoading = false;
         if (book) {
           this.book = book;
+          this.bookId = book.id;
+          this.pageTitle.setTitle(`${book.title} by ${book.author} | Almonium`);
+          this.meta.updateTag({name: 'description', content: book.description || `Read ${book.title} by ${book.author} on Almonium.`});
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
           // Reset original language info before setting new value
           this.originalLanguage = book.originalLanguage
@@ -150,15 +160,19 @@ export class BookComponent implements OnInit, OnDestroy {
 
   onTranslatedLanguageClick(language: string) {
     const lang = this.languageNameService.getLanguageCode(language)
-    const bookIdInThisLanguage = this.book?.languageVariants.find(t => t.language === lang)?.id;
-    if (!bookIdInThisLanguage) {
+    const bookSlugInThisLanguage = this.book?.languageVariants.find(t => t.language === lang)?.editionSlug;
+    if (!bookSlugInThisLanguage) {
       logger.error("Book ID in this language not found");
       return;
     }
-    this.navigateToId(bookIdInThisLanguage)
+    this.navigateToSlug(bookSlugInThisLanguage)
   }
 
   openLanguageDropdown() {
+    if (!this.authenticated) {
+      void this.router.navigate(['/auth'], {queryParams: {returnUrl: `/books/${this.bookSlug}`}});
+      return;
+    }
     const bookId = this.bookId;
     if (!bookId) {
       logger.error("Book was not found");
@@ -203,6 +217,10 @@ export class BookComponent implements OnInit, OnDestroy {
   private favoriteBlocked = false;
 
   onBookmarkClick() {
+    if (!this.authenticated) {
+      void this.router.navigate(['/auth'], {queryParams: {returnUrl: `/books/${this.bookSlug}`}});
+      return;
+    }
     if (!this.book || this.favoriteBlocked || !this.bookId) {
       return;
     }
@@ -279,11 +297,12 @@ export class BookComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.navigateToId(this.book.originalId);
+    const originalSlug = this.book.languageVariants.find(variant => variant.id === this.book?.originalId)?.editionSlug;
+    if (originalSlug) this.navigateToSlug(originalSlug);
   }
 
-  private navigateToId(id: string) {
-    void this.router.navigate([`/book/${id}`]).then(success => {
+  private navigateToSlug(slug: string) {
+    void this.router.navigate([`/books/${slug}`]).then(success => {
       if (!success) {
         logger.error("Navigation failed!");
       }
@@ -291,7 +310,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   goToReader() {
-    void this.router.navigate([`/reader/${this.bookId}`]).then();
+    void this.router.navigate([`/reader/${this.bookSlug}`]).then();
   }
 
   protected readonly signal = signal;

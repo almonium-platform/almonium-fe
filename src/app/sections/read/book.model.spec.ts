@@ -6,9 +6,11 @@ import {parseBook, parseBookMiniDetails, parseBookshelfView} from './book.model'
 describe('book API runtime validation', () => {
   const book = {
     id: '01989f47-4c2a-7a10-9e5b-751983624a25',
+    editionSlug: 'the-book-en',
     workSlug: 'the-book',
     title: 'The Book',
     author: 'An Author',
+    description: 'A useful description.',
     publicationYear: 2026,
     coverUrl: '/cover.jpg',
     wordCount: 1000,

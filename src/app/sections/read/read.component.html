@@ -24,6 +24,14 @@
 
 
 <div class="base-container read-container">
+  <div class="library-actions">
+    <a [routerLink]="isAuthenticated ? (isPremium ? '/my-books/import' : '/pricing') : '/auth'"
+       class="import-book-action">
+      <lucide-icon name="upload" size="18"></lucide-icon>
+      Import your EPUB or TEI
+      @if (!isPremium) { <span class="premium-pill">Premium</span> }
+    </a>
+  </div>
   <div class="filter-container">
     <tui-textfield
       class="search-input shadowless-input"
@@ -53,21 +61,23 @@
         class="shadowless-input"
       ></app-cefr-level-selector>
     </div>
-    <div class="unit">
-      <input
-        tuiCheckbox
-        type="checkbox"
-        [ngModel]="includeTranslationsToggle"
-        (ngModelChange)="onIncludeTranslationsChange($event)"
-        size="m"
-      />
+    @if (isAuthenticated) {
+      <div class="unit">
+        <input
+          tuiCheckbox
+          type="checkbox"
+          [ngModel]="includeTranslationsToggle"
+          (ngModelChange)="onIncludeTranslationsChange($event)"
+          size="m"
+        />
 
-      Include Translations
-      <app-info-icon
-        [tooltipText]="'You will read books that have been translated into the selected language, although their original language is different.'"
-        [size]="20"
-      ></app-info-icon>
-    </div>
+        Include Translations
+        <app-info-icon
+          [tooltipText]="'You will read books that have been translated into the selected language, although their original language is different.'"
+          [size]="20"
+        ></app-info-icon>
+      </div>
+    }
 
     <div class="unit">
       <input
@@ -125,7 +135,7 @@
            (contextmenu)="onRightClick($event, book)"
       >
         <a
-          routerLink="/book/{{ book.id }}"
+          routerLink="/books/{{ book.editionSlug }}"
           class="game-card ladder-card solo-game">
           <div class="game-img ladder-img">
             @if (book.hasParallelTranslation && !book.progressPercentage) {

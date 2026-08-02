@@ -33,15 +33,17 @@
         <h1 class="title">{{ book.title }}</h1>
         <p class="author">{{ book.author }}</p>
 
-        <div class="book-actions">
-          <lucide-icon
-            [name]="bookmarkIcon"
-            class="bookmark"
-            (click)="onBookmarkClick()"
-            [ngStyle]="{'color': getBookmarkColor() }"
-            [strokeWidth]="1.2"
-          ></lucide-icon>
-        </div>
+        @if (authenticated) {
+          <div class="book-actions">
+            <lucide-icon
+              [name]="bookmarkIcon"
+              class="bookmark"
+              (click)="onBookmarkClick()"
+              [ngStyle]="{'color': getBookmarkColor() }"
+              [strokeWidth]="1.2"
+            ></lucide-icon>
+          </div>
+        }
 
         <div class="block">
           <div class="original">
@@ -69,6 +71,12 @@
             }
           </div>
         </div>
+
+        @if (book.description) {
+          <div class="block book-description">
+            <p>{{ book.description }}</p>
+          </div>
+        }
 
         @if (book.isTranslation) {
           <div class="block">
@@ -123,8 +131,7 @@
               >
                 <ng-template #orderTooltip>
                   <div>
-                    We will notify you when the translation is available.
-                    Translation orders are prioritized based on demand.
+                    Your AI translation request is queued. We will notify you when it is available.
                   </div>
                 </ng-template>
                 {{ orderLanguageName }}
@@ -163,7 +170,7 @@
                                [strokeWidth]="1.7"
                   >
                   </lucide-icon>
-                  Order
+                  Request AI translation
                 </span>
               }
             }

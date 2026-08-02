@@ -66,6 +66,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   filteredBooks: Book[] = [];
   protected allBooks: Book[] = [];
   protected continueReading: Book[] = [];
+  protected isAuthenticated = false;
+  protected isPremium = false;
 
   titleFormControl = new FormControl<string>('');
   sortParameters: string[] = ['Level', 'Year'];
@@ -84,7 +86,11 @@ export class ReadComponent implements OnInit, OnDestroy {
   loading$ = this.loadingSubject$.asObservable();
 
   ngOnInit() {
-    this.fetchBooksOnLanguageChange();
+    this.userInfoService.loadUserInfo().pipe(take(1)).subscribe(user => {
+      this.isAuthenticated = user !== null;
+      this.isPremium = user?.premium ?? false;
+      this.refreshBooks();
+    });
     this.listenToBookSearch();
     this.syncCefrLevel();
     this.listenToSortChanges();
@@ -194,6 +200,27 @@ export class ReadComponent implements OnInit, OnDestroy {
       });
   }
 
+  private fetchPublicBooks() {
+    this.loadingSubject$.next(true);
+    this.readService.getBooks().pipe(
+      catchError(error => {
+        logger.error('Error fetching public books:', error);
+        return of([] as Book[]);
+      }),
+      finalize(() => this.loadingSubject$.next(false)),
+      takeUntil(this.destroy$),
+    ).subscribe(books => {
+      this.allBooks = books;
+      this.continueReading = [];
+      this.applyFiltersAndSort();
+    });
+  }
+
+  private refreshBooks() {
+    if (this.isAuthenticated) this.fetchBooksOnLanguageChange();
+    else this.fetchPublicBooks();
+  }
+
   private sortBooks(books: Book[]) {
     const sortBy = this.sortControl.value;
     const factor = this.sortOrder === 'asc' ? 1 : -1;
@@ -269,7 +296,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   onIncludeTranslationsChange($event: boolean) {
     this.includeTranslationsToggle = $event;
-    this.fetchBooksOnLanguageChange();
+    this.refreshBooks();
   }
 
   onParallelTranslationChange($event: boolean) {

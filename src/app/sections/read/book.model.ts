@@ -13,9 +13,11 @@ import {
 
 export interface Book {
   id: string;
+  editionSlug: string;
   workSlug: string;
   title: string;
   author: string;
+  description: string;
   publicationYear: number;
   coverUrl: string | null;
   wordCount: number;
@@ -41,6 +43,7 @@ export interface BookMiniDetails {
 
 export interface BookLanguageVariant {
   id: string;
+  editionSlug: string;
   language: LanguageCode;
 }
 
@@ -76,9 +79,13 @@ export function parseBook(value: unknown, path = 'book'): Book {
   const data = expectRecord(value, path);
   return {
     id: expectUuid(data['id'], `${path}.id`),
+    editionSlug: expectString(data['editionSlug'], `${path}.editionSlug`),
     workSlug: expectString(data['workSlug'], `${path}.workSlug`),
     title: expectString(data['title'], `${path}.title`),
     author: expectString(data['author'], `${path}.author`),
+    description: data['description'] === null
+      ? ''
+      : expectString(data['description'], `${path}.description`),
     publicationYear: expectNumber(data['publicationYear'], `${path}.publicationYear`),
     coverUrl: data['coverUrl'] === null
       ? null
@@ -116,6 +123,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
     const data = expectRecord(variant, itemPath);
     return {
       id: expectUuid(data['id'], `${itemPath}.id`),
+      editionSlug: expectString(data['editionSlug'], `${itemPath}.editionSlug`),
       language: expectEnum(data['language'], Object.values(LanguageCode), `${itemPath}.language`),
     };
   });

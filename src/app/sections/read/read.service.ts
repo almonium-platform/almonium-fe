@@ -11,6 +11,7 @@ import {
   parseBooks,
   parseBookshelfView,
 } from "./book.model";
+import {BookImport, parseBookImport} from './book-import.model';
 import {Observable} from "rxjs";
 import {map, tap} from 'rxjs/operators';
 
@@ -25,6 +26,43 @@ export class ReadService {
   getBooks(): Observable<Book[]> {
     const url = `${AppConstants.PUBLIC_BOOKS_URL}`;
     return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBooks));
+  }
+
+  getPublicBook(editionSlug: string): Observable<Book> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}`)
+      .pipe(map(value => parseBook(value)));
+  }
+
+  loadPublicBook(editionSlug: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/text`, {
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
+  }
+
+  getPublicParallelText(editionSlug: string, language: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/parallel/${language}`, {
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
+  }
+
+  createBookImport(form: FormData): Observable<BookImport> {
+    return this.http.post<unknown>(AppConstants.BOOK_IMPORTS_URL, form, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  getBookImport(id: string): Observable<BookImport> {
+    return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  loadPrivateBook(id: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.BOOK_IMPORTS_URL}/${id}/text`, {
+      withCredentials: true,
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
   }
 
   getBooksForLang(language: string, includeTranslations: boolean): Observable<BookshelfView> {

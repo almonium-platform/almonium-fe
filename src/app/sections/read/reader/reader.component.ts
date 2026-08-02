@@ -25,6 +25,7 @@ import {ReaderChapter, ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
 import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
+import {UserInfoService} from '../../../services/user-info.service';
 
 @Component({
   selector: 'app-reader',
@@ -60,6 +61,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private readerDom = inject(ReaderDomService);
   private progressTracker = inject(ReaderProgressTracker);
+  private userInfoService = inject(UserInfoService);
 
   // --- Element References ---
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
@@ -77,6 +79,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
   protected bookId: string | null = null;
+  private bookSlug: string | null = null;
+  private privateBookId: string | null = null;
+  private trackProgress = false;
 
   // --- Native Scroll State ---
   protected currentScrollPercentage = 0; // Current scroll position (0-100)
@@ -145,7 +150,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           logger.debug('Reader received new parallel mode:', mode);
           if (this.isParallelViewActive && this.fluentLangCode) {
             this.updateScrollState();
-            this.progressTracker.startPresentation(`parallel:${this.fluentLangCode}:${mode}`);
+            if (this.trackProgress) this.progressTracker.startPresentation(`parallel:${this.fluentLangCode}:${mode}`);
           }
           this.currentParallelMode = mode;
           this.cdRef.markForCheck(); // Trigger pipe re-evaluation
@@ -163,34 +168,67 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       });
 
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const bookId = params.get('id');
-      this.bookId = bookId && isUuid(bookId) ? bookId : null;
-      if (this.bookId) {
-        // Reset state for new book load
-        this.initialScrollPercentage = null; // Reset scroll target
-        this.initialPosition = this.progressTracker.startBook(this.bookId);
-        this.initialScrollApplied = false; // Reset flag for initial scroll
-        this.isLoading = true; // Ensure loading starts true
-        this.chapterNav = [];
-        this.hasMeasuredChapters = false;
-        this.cdRef.markForCheck(); // Update view for loader
+      this.resetForBook();
+      const privateId = params.get('id');
+      const slug = params.get('slug');
+      if (privateId) this.openPrivateBook(privateId);
+      else if (slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) this.openPublicBook(slug);
+      else this.handleError("Invalid book reference.");
+    });
+  }
 
-        // Fetch metadata FIRST (or parallel is fine, just store the value)
-        this.fetchBookData(this.bookId);
+  private resetForBook(): void {
+    this.initialScrollPercentage = null;
+    this.initialPosition = null;
+    this.initialScrollApplied = false;
+    this.isLoading = true;
+    this.chapterNav = [];
+    this.hasMeasuredChapters = false;
+    this.parallelVersions = [];
+    this.cdRef.markForCheck();
+  }
 
-        // Load the actual book content
-        this.loadBookHtml(this.bookId, true);
+  private openPublicBook(slug: string): void {
+    this.bookSlug = slug;
+    this.privateBookId = null;
+    this.readService.getPublicBook(slug).pipe(takeUntil(this.destroy$)).subscribe({
+      next: book => {
+        this.bookId = book.id;
+        this.targetLangCode = book.language;
+        this.parallelVersions = book.languageVariants.filter(variant => variant.language !== book.language);
+        this.trackProgress = this.userInfoService.currentUserInfo !== null;
+        if (this.trackProgress) {
+          this.initialPosition = this.progressTracker.startBook(book.id);
+          this.fetchBookData(book.id);
+        }
+        this.loadBookHtml(slug, true);
+      },
+      error: error => this.handleError(getErrorMessage(error, 'Could not load book details.')),
+    });
+  }
 
-      } else {
-        this.handleError("Invalid Book ID.");
-      }
+  private openPrivateBook(id: string): void {
+    if (!isUuid(id)) {
+      this.handleError('Invalid private book ID.');
+      return;
+    }
+    this.privateBookId = id;
+    this.bookSlug = null;
+    this.bookId = id;
+    this.trackProgress = false;
+    this.readService.getBookImport(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: book => {
+        this.targetLangCode = book.language;
+        this.loadBookHtml(id, true);
+      },
+      error: error => this.handleError(getErrorMessage(error, 'Could not load private book.')),
     });
   }
 
   @HostListener('window:beforeunload')
   unloadNotification(): void {
     this.updateScrollState();
-    this.progressTracker.saveOnExit(true);
+    if (this.trackProgress) this.progressTracker.saveOnExit(true);
   }
 
   // Schedules the height sync after Angular has rendered changes
@@ -294,7 +332,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.bookDetailsSubscription?.unsubscribe();
     this.parallelLoadSubscription?.unsubscribe();
     this.updateScrollState();
-    this.progressTracker.saveOnExit(false);
+    if (this.trackProgress) this.progressTracker.saveOnExit(false);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -317,8 +355,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.needsHeightSync = false
 
     const stream$ = isBase
-      ? this.readService.loadBook(bookId)
-      : this.readService.getParallelText(bookId, this.fluentLangCode!); // Use selectedLangCode here
+      ? this.privateBookId
+        ? this.readService.loadPrivateBook(bookId)
+        : this.readService.loadPublicBook(bookId)
+      : this.readService.getPublicParallelText(bookId, this.fluentLangCode!);
 
     if (isBase) {
       this.baseLoadSubscription?.unsubscribe();
@@ -411,7 +451,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.isParallelViewActive = false;
       this.currentlyOpenFluentSpan = null;
       this.fluentLangCode = null;
-      this.initialPosition = this.progressTracker.startPresentation('base');
+      this.initialPosition = this.trackProgress ? this.progressTracker.startPresentation('base') : null;
       this.initialScrollPercentage = this.initialPosition ? null : this.currentScrollPercentage;
 
       this.isLoadingParallel = false;
@@ -559,7 +599,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.currentScrollPercentage = state.percentage;
     }
 
-    if (this.initialScrollApplied && this.readerContentRef?.nativeElement) {
+    if (this.trackProgress && this.initialScrollApplied && this.readerContentRef?.nativeElement) {
       const position = this.readerDom.capturePosition(
         this.readerContentWrapperRef.nativeElement,
         this.readerContentRef.nativeElement,
@@ -884,7 +924,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.fluentLangCode = langCode;
 
     // --- 2. Handle Selection ---
-    if (langCode && this.bookId) {
+    if (langCode && this.bookSlug) {
       // --- 2a. Start Loading Process ---
 
       // Perform pre-fetch UI updates (from original 'tap')
@@ -898,7 +938,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.cdRef.markForCheck();        // Update UI
 
       // Initiate the network call (from original 'switchMap')
-      this.parallelLoadSubscription = this.readService.getParallelText(this.bookId, langCode).pipe(
+      this.parallelLoadSubscription = this.readService.getPublicParallelText(this.bookSlug, langCode).pipe(
         takeUntil(this.destroy$), // Auto-unsubscribe on component destroy
         finalize(() => {
           // Runs on completion, error, or unsubscribe
@@ -921,9 +961,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.isParallelViewActive = true;   // Now parallel view is active
               this.errorMessage = null;         // Clear previous errors
               logger.debug(`Loaded parallel HTML content for ${langCode}.`);
-              this.initialPosition = this.progressTracker.startPresentation(
-                `parallel:${langCode}:${this.currentParallelMode}`,
-              );
+              this.initialPosition = this.trackProgress
+                ? this.progressTracker.startPresentation(`parallel:${langCode}:${this.currentParallelMode}`)
+                : null;
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()

@@ -21,9 +21,9 @@ export const routes: Routes = [
       {path: 'onboarding', loadComponent: () => import('./onboarding/onboarding.component').then(m => m.OnboardingComponent)},
       {path: 'home', loadComponent: () => import('./sections/home/home.component').then(m => m.HomeComponent)},
       {path: 'review', loadComponent: () => import('./sections/review/review.component').then(m => m.ReviewComponent)},
-      {path: 'book/:id', loadComponent: () => import('./sections/read/book/book.component').then(m => m.BookComponent)},
-      {path: 'reader/:id', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
-      {path: 'read', loadComponent: () => import('./sections/read/read.component').then(m => m.ReadComponent)},
+      {path: 'my-books/import', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
+      {path: 'my-books/:id', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
+      {path: 'reader/private/:id', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
       {path: 'social', loadComponent: () => import('./sections/social/social.component').then(m => m.SocialComponent)},
       {
         path: 'settings',
@@ -60,6 +60,9 @@ export const routes: Routes = [
   // sections of both auth and unauth
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},
   {path: 'discover', loadComponent: () => import('./sections/discover/discover.component').then(m => m.DiscoverComponent)},
+  {path: 'read', loadComponent: () => import('./sections/read/read.component').then(m => m.ReadComponent)},
+  {path: 'books/:slug', loadComponent: () => import('./sections/read/book/book.component').then(m => m.BookComponent)},
+  {path: 'reader/:slug', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
 
   // Test route
   {path: 'test', loadComponent: () => import('./test/test.component').then(m => m.TestComponent)},

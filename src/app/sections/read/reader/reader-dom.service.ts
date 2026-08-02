@@ -197,7 +197,7 @@ export class ReaderDomService {
   }
 
   measureChapters(content: HTMLElement, targetLanguage: string | null): ReaderChapter[] {
-    return Array.from(content.querySelectorAll<HTMLElement>('h2'))
+    return Array.from(content.querySelectorAll<HTMLElement>('h2.chapter-title'))
       .map((heading, index): ReaderChapter | null => {
         if (!heading.id) return null;
         const titleSpan = targetLanguage
@@ -216,6 +216,6 @@ export class ReaderDomService {
   }
 
   findChapter(content: HTMLElement, elementId: string): HTMLElement | null {
-    return Array.from(content.querySelectorAll<HTMLElement>('h2')).find(element => element.id === elementId) ?? null;
+    return Array.from(content.querySelectorAll<HTMLElement>('h2.chapter-title')).find(element => element.id === elementId) ?? null;
   }
 }
