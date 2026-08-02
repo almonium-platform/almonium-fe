@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
 import {TuiIcon, TuiNotificationService, TuiTitle} from "@taiga-ui/core/components";
@@ -35,6 +35,8 @@ import {ButtonComponent} from "../button/button.component";
   ]
 })
 export class PaywallComponent implements OnInit, OnDestroy {
+  @Input() layout: 'modal' | 'page' = 'modal';
+
   private planService = inject(PlanService);
   private userInfoService = inject(UserInfoService);
   private onboardingService = inject(OnboardingService);
