@@ -31,6 +31,7 @@
             <app-fluent-language-selector
               [languages]="supportedLanguages"
               [maxLanguages]="fluentMaxLanguages"
+              [showLimitMessage]="true"
               [selectedLanguages]="cachedFluentLanguages"
               (selectedFluentLanguages)="listenToFluentForm($event)"
             ></app-fluent-language-selector>

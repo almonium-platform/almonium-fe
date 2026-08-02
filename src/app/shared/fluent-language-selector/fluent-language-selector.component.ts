@@ -65,6 +65,7 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   @Input() languages: Language[] = [];
   @Input() size: 's' | 'm' | 'l' = 'l';
   @Input() selectedLanguages?: string[] = [];
+  @Input() showLimitMessage = false;
   @Input() set maxLanguages(value: number) {
     this._maxLanguages = value;
     this.sanitizeControl();
@@ -77,6 +78,10 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
 
   get maxLanguages(): number {
     return this._maxLanguages;
+  }
+
+  get atLanguageLimit(): boolean {
+    return (this.fluentLanguageControl.value?.length ?? 0) >= this.maxLanguages;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -142,6 +147,10 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
 
   // capture typing from the native input
   onType(event: Event): void {
+    if (this.atLanguageLimit) {
+      return;
+    }
+
     const value = (event.target as HTMLInputElement).value ?? '';
     this.fluentSearch$.next(value);
   }
@@ -164,6 +173,12 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
 
   // block Enter/Comma/Space from creating free chips
   trapSeparators(event: KeyboardEvent): void {
+    if (this.atLanguageLimit) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const key = event.key;
     if (key === 'Enter' || key === ',' || key === ' ') {
       // if a dropdown item is focused, Taiga will handle Enter via itemClick;
@@ -190,6 +205,10 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   }
 
   private filterFluentLanguages(search: string): Observable<string[]> {
+    if (this.atLanguageLimit) {
+      return of([]);
+    }
+
     const q = search.toLowerCase().trim();
     const selected = new Set(this.fluentLanguageControl.value ?? []);
     const filtered = this.languages

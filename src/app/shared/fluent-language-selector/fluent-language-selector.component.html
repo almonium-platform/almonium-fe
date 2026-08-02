@@ -4,12 +4,14 @@
       multi
       tuiChevron
       class="cefr-select"
+      [class.fluent-disabled]="atLanguageLimit"
     >
       <input
         #chipInput
         tuiInputChip
         [formControl]="fluentLanguageControl"
-        [placeholder]="(fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...'"
+        [placeholder]="atLanguageLimit ? 'Limit reached' : ((fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...')"
+        [attr.aria-disabled]="atLanguageLimit"
         (input)="onType($event)"
         (keydown)="trapSeparators($any($event))"
         (keydown.enter)="onEnter($any($event))"
@@ -31,5 +33,10 @@
     <tui-error
       [formControl]="fluentLanguageControl"
     />
+    @if (showLimitMessage && maxLanguages === 1 && atLanguageLimit) {
+      <div class="limit-message tui-text_m tui-text_negative tui-space_top-2">
+        Free plan lets you pick only one fluent language.
+      </div>
+    }
   </div>
 </div>
