@@ -90,9 +90,9 @@
       @if (!premium) {
         <div class="row-content">
           <div class="plan">
-            <h1 class="text free">FREE</h1>
+            <h1 class="text free">Free</h1>
           </div>
-          <div class="premium-feature">✨ {{ displayedFeature }} 👉</div>
+          <div class="premium-feature">{{ displayedFeature }}</div>
           <app-interactive-cta-button text="Upgrade"
                                       class="cta"
                                       (buttonClick)="showComparePlansPopup()"
@@ -104,7 +104,7 @@
       @if (premium) {
         <div class="row-content">
           <div class="plan">
-            <button class="text full-gradient-btn" (click)="accessCustomerPortal()">PREMIUM</button>
+            <button class="text full-gradient-btn" (click)="accessCustomerPortal()">Premium</button>
           </div>
           @if (userInfo?.subscription?.autoRenewal !== null) {
             <lucide-icon

@@ -19,7 +19,7 @@
         ></app-avatar>
         <div class="right-hand">
           <p class="username">{{ userProfileInfo.username }}</p>
-          <p class="member-since">🐣 {{ formatDate(userProfileInfo.registeredAt) }}</p>
+          <p class="member-since">{{ formatDate(userProfileInfo.registeredAt) }}</p>
         </div>
         @if (!publicProfile) {
           <lucide-icon name="ellipsis-vertical"

@@ -90,14 +90,15 @@
           }
         </div>
         @if (!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length) {
-          <div
-            class="bg-blue-50 text-blue-900 rounded-lg p-4 flex items-start space-x-2 mb-4">
+          <div class="language-note">
             <div class="text-left">
               <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-                <span class="inline-block text-yellow-500">💫</span> Some languages have special features.
+                <lucide-icon name="star" class="feature-marker special"></lucide-icon>
+                Some languages have special features.
               </p>
               <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-                <span class="inline-block text-purple-500">✔️</span> Core functionality is available for all of them.
+                <lucide-icon name="check-check" class="feature-marker"></lucide-icon>
+                Core functionality is available for all of them.
               </p>
             </div>
           </div>
@@ -114,7 +115,8 @@
                   <ul class="features-list">
                     @for (feature of selectedTargetLanguageFeatures.special; track feature) {
                       <li>
-                        💫 {{ feature.feature }}
+                        <lucide-icon name="star" class="feature-marker special"></lucide-icon>
+                        {{ feature.feature }}
                         @if ((targetLanguagesControl.value.length || 0) > 1) {
                           <span>
                             ({{ feature.languages.join(', ') }})
@@ -131,7 +133,8 @@
                 <ul class="features-list">
                   @for (feature of selectedTargetLanguageFeatures.basic; track feature) {
                     <li>
-                      ✔️ {{ feature.feature }}
+                      <lucide-icon name="check-check" class="feature-marker"></lucide-icon>
+                      {{ feature.feature }}
                     </li>
                   }
                 </ul>

@@ -148,7 +148,7 @@ auto-renewal in the customer portal.`;
 
   private setRenewalTooltip(info: UserInfo) {
     if (info.subscription?.type === PlanType.LIFETIME || !info.subscription?.endDate) {
-      this.tooltipRenewal = 'Lifetime subscription 🎉';
+      this.tooltipRenewal = 'Lifetime subscription';
       return;
     }
 

@@ -94,11 +94,9 @@
         <div class="edit-element">
           <app-premium-badged-content
             [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
-            [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
-            [badgeAltText]="'Premium'"
-            [showIcon]="true"
-            [badgeSize]="'24px'"
-            [iconPosition]="{ top: '-10px', right: '-10px' }"
+            [badgeText]="'Premium'"
+            [showIcon]="false"
+            [labelPosition]="{ top: '-1.25rem', right: '-0.5rem' }"
             [originalClickHandler]="openLangSetupPopup.bind(this)"
           >
             <button

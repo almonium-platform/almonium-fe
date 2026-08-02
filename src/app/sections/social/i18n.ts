@@ -88,7 +88,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   '{{ user }} has been muted': '{{ user }} has been muted',
   '{{ user }} has been unmuted': '{{ user }} has been unmuted',
   '{{ watcherCount }} online': '{{ watcherCount }} online',
-  '🏙 Attachment...': '🏙 Attachment...',
+  '🏙 Attachment...': 'Attachment...',
   'Connection error': 'Connection error',
   'Load more': 'Load more',
   failed: 'failed',
