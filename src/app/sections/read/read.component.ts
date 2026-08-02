@@ -254,6 +254,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   protected quotaLabel(): string | null {
     if (!this.importQuota) return null;
+    if (this.importQuota.limit < 0) return 'Unlimited imports';
     const remaining = Math.max(0, this.importQuota.limit - this.importQuota.used);
     return `${remaining} of ${this.importQuota.limit} imports left this month`;
   }

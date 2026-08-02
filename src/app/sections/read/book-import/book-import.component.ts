@@ -94,11 +94,12 @@ export class BookImportComponent implements OnInit, OnDestroy {
   }
 
   protected get canImport(): boolean {
-    return this.quota !== null && this.quota.limit > this.quota.used;
+    return this.quota !== null && (this.quota.limit < 0 || this.quota.limit > this.quota.used);
   }
 
   protected get quotaMessage(): string {
     if (!this.quota) return 'Checking your import allowance…';
+    if (this.quota.limit < 0) return 'Unlimited imports';
     const remaining = Math.max(0, this.quota.limit - this.quota.used);
     return `${remaining} of ${this.quota.limit} imports left this month`;
   }
