@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EMPTY, Subject, interval, startWith, switchMap, takeUntil} from 'rxjs';
@@ -7,12 +7,14 @@ import {LanguageCode} from '../../../models/language.enum';
 import {Language} from '../../../models/language.model';
 import {SupportedLanguagesService} from '../../../services/supported-langs.service';
 import {getErrorMessage} from '../../../shared/http-error';
-import {BookImport, BookImportStatus} from '../book-import.model';
+import {BookImport, BookImportQuota, BookImportStatus} from '../book-import.model';
 import {ReadService} from '../read.service';
+import {PaywallComponent} from '../../../shared/paywall/paywall.component';
+import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 
 @Component({
   selector: 'app-book-import',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, PaywallComponent],
   templateUrl: './book-import.component.html',
   styleUrl: './book-import.component.less',
 })
@@ -21,6 +23,7 @@ export class BookImportComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly readService = inject(ReadService);
   private readonly supportedLanguagesService = inject(SupportedLanguagesService);
+  private readonly popupTemplateStateService = inject(PopupTemplateStateService);
   private readonly destroy$ = new Subject<void>();
 
   protected languages: Language[] = [];
@@ -29,6 +32,10 @@ export class BookImportComponent implements OnInit, OnDestroy {
   protected selectedFile: File | null = null;
   protected submitting = false;
   protected error = '';
+  protected quota: BookImportQuota | null = null;
+  protected quotaLoading = true;
+
+  @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
 
   protected readonly form = new FormGroup({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(500)]}),
@@ -44,7 +51,11 @@ export class BookImportComponent implements OnInit, OnDestroy {
     });
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params.get('id');
-      if (id) this.pollImport(id);
+      if (id) {
+        this.pollImport(id);
+      } else {
+        this.loadQuota();
+      }
     });
   }
 
@@ -58,7 +69,7 @@ export class BookImportComponent implements OnInit, OnDestroy {
   }
 
   protected submit(): void {
-    if (this.form.invalid || !this.selectedFile || this.submitting) {
+    if (this.form.invalid || !this.selectedFile || this.submitting || !this.canImport) {
       this.form.markAllAsTouched();
       return;
     }
@@ -78,6 +89,37 @@ export class BookImportComponent implements OnInit, OnDestroy {
       error: error => {
         this.submitting = false;
         this.error = getErrorMessage(error, 'Could not import this book.');
+      },
+    });
+  }
+
+  protected get canImport(): boolean {
+    return this.quota !== null && this.quota.limit > this.quota.used;
+  }
+
+  protected get quotaMessage(): string {
+    if (!this.quota) return 'Checking your import allowance…';
+    const remaining = Math.max(0, this.quota.limit - this.quota.used);
+    return `${remaining} of ${this.quota.limit} imports left this month`;
+  }
+
+  protected openPaywall(): void {
+    if (this.paywallComponent) {
+      this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+    }
+  }
+
+  private loadQuota(): void {
+    this.quotaLoading = true;
+    this.readService.getBookImportQuota().pipe(takeUntil(this.destroy$)).subscribe({
+      next: quota => {
+        this.quota = quota;
+        this.quotaLoading = false;
+        if (quota.limit === 0) this.openPaywall();
+      },
+      error: error => {
+        this.quotaLoading = false;
+        this.error = getErrorMessage(error, 'Could not load your import allowance.');
       },
     });
   }

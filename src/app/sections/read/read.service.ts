@@ -11,7 +11,13 @@ import {
   parseBooks,
   parseBookshelfView,
 } from "./book.model";
-import {BookImport, parseBookImport} from './book-import.model';
+import {
+  BookImport,
+  BookImportQuota,
+  parseBookImport,
+  parseBookImportQuota,
+  parseBookImports,
+} from './book-import.model';
 import {Observable} from "rxjs";
 import {map, tap} from 'rxjs/operators';
 
@@ -55,6 +61,16 @@ export class ReadService {
   getBookImport(id: string): Observable<BookImport> {
     return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true})
       .pipe(map(parseBookImport));
+  }
+
+  getBookImports(): Observable<BookImport[]> {
+    return this.http.get<unknown>(AppConstants.BOOK_IMPORTS_URL, {withCredentials: true})
+      .pipe(map(parseBookImports));
+  }
+
+  getBookImportQuota(): Observable<BookImportQuota> {
+    return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/quota`, {withCredentials: true})
+      .pipe(map(parseBookImportQuota));
   }
 
   loadPrivateBook(id: string): Observable<HttpResponse<ArrayBuffer>> {

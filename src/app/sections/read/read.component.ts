@@ -1,8 +1,8 @@
 import {logger} from "../../shared/logger";
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {ReadService} from "./read.service";
 import {Book} from "./book.model";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
 import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {
@@ -11,7 +11,7 @@ import {
   TuiSelect
 } from "@taiga-ui/kit/components";
 import {TuiChevron, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
-import {BehaviorSubject, combineLatestWith, debounceTime, of, Subject, take} from "rxjs";
+import {BehaviorSubject, combineLatestWith, debounceTime, forkJoin, of, Subject, take} from "rxjs";
 import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
 import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
 import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
@@ -23,6 +23,9 @@ import {InfoIconComponent} from "../../shared/info-button/info-button.component"
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
 import {BookCoverComponent} from './book-cover/book-cover.component';
+import {BookImport, BookImportQuota, BookImportStatus} from './book-import.model';
+import {PaywallComponent} from '../../shared/paywall/paywall.component';
+import {PopupTemplateStateService} from '../../shared/modals/popup-template/popup-template-state.service';
 
 @Component({
   selector: 'app-read',
@@ -50,6 +53,7 @@ import {BookCoverComponent} from './book-cover/book-cover.component';
     TuiDropdownDirective,
     TuiOption,
     BookCoverComponent,
+    PaywallComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -59,6 +63,10 @@ export class ReadComponent implements OnInit, OnDestroy {
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private userInfoService = inject(UserInfoService);
   private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
+  @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
 
   private readonly destroy$ = new Subject<void>();
   sortOrder: 'asc' | 'desc' = 'desc';
@@ -68,6 +76,9 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected continueReading: Book[] = [];
   protected isAuthenticated = false;
   protected isPremium = false;
+  protected privateBooks: BookImport[] = [];
+  protected importQuota: BookImportQuota | null = null;
+  protected readonly importStatus = BookImportStatus;
 
   titleFormControl = new FormControl<string>('');
   sortParameters: string[] = ['Level', 'Year'];
@@ -90,6 +101,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       this.isAuthenticated = user !== null;
       this.isPremium = user?.premium ?? false;
       this.refreshBooks();
+      if (this.isAuthenticated) this.loadPrivateLibrary();
     });
     this.listenToBookSearch();
     this.syncCefrLevel();
@@ -219,6 +231,41 @@ export class ReadComponent implements OnInit, OnDestroy {
   private refreshBooks() {
     if (this.isAuthenticated) this.fetchBooksOnLanguageChange();
     else this.fetchPublicBooks();
+  }
+
+  protected startImport(): void {
+    if (!this.isAuthenticated) {
+      void this.router.navigate(['/auth'], {fragment: 'sign-up'});
+      return;
+    }
+    if (!this.isPremium) {
+      if (this.paywallComponent) {
+        this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+      }
+      return;
+    }
+    void this.router.navigate(['/my-books/import']);
+  }
+
+  protected importActionLabel(): string {
+    if (!this.isAuthenticated) return 'Sign up to import';
+    return this.isPremium ? 'Import a book' : 'Unlock private imports';
+  }
+
+  protected quotaLabel(): string | null {
+    if (!this.importQuota) return null;
+    const remaining = Math.max(0, this.importQuota.limit - this.importQuota.used);
+    return `${remaining} of ${this.importQuota.limit} imports left this month`;
+  }
+
+  private loadPrivateLibrary(): void {
+    forkJoin({
+      imports: this.readService.getBookImports().pipe(catchError(() => of([] as BookImport[]))),
+      quota: this.readService.getBookImportQuota().pipe(catchError(() => of(null))),
+    }).pipe(takeUntil(this.destroy$)).subscribe(({imports, quota}) => {
+      this.privateBooks = imports;
+      this.importQuota = quota;
+    });
   }
 
   private sortBooks(books: Book[]) {

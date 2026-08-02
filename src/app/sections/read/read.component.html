@@ -24,15 +24,64 @@
 
 
 <div class="base-container read-container">
-  <div class="library-actions">
-    <a [routerLink]="isAuthenticated ? (isPremium ? '/my-books/import' : '/pricing') : '/auth'"
-       class="import-book-action">
-      <lucide-icon name="upload" size="18"></lucide-icon>
-      Import your EPUB or TEI
-      @if (!isPremium) { <span class="premium-pill">Premium</span> }
-    </a>
-  </div>
-  <div class="filter-container">
+  <app-paywall></app-paywall>
+  <section class="read-hero">
+    <div>
+      <p class="eyebrow">Reading library</p>
+      <h1>Read in the language you’re learning.</h1>
+      <p>Choose a story from Almonium’s library, or bring a book that is yours alone.</p>
+    </div>
+    <button type="button" class="import-book-action" (click)="startImport()">
+      <lucide-icon name="plus" size="18"></lucide-icon>
+      {{ importActionLabel() }}
+      @if (isAuthenticated && !isPremium) { <span class="premium-pill">Premium</span> }
+    </button>
+  </section>
+
+  @if (isAuthenticated) {
+    <section class="private-library" aria-labelledby="my-books-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Your space</p>
+          <h2 id="my-books-heading">My books</h2>
+        </div>
+        @if (isPremium && quotaLabel(); as quota) {
+          <span class="quota">{{ quota }}</span>
+        }
+      </div>
+
+      @if (privateBooks.length > 0) {
+        <div class="private-books-grid">
+          @for (book of privateBooks; track book.id) {
+            <a class="private-book-card" [routerLink]="book.status === importStatus.READY ? ['/reader/private', book.id] : ['/my-books', book.id]">
+              <div class="private-book-icon"><lucide-icon name="book-open-text" size="24"></lucide-icon></div>
+              <div class="private-book-copy">
+                <span class="book-status" [class.ready]="book.status === importStatus.READY">{{ book.status === importStatus.READY ? 'Ready to read' : book.status === importStatus.FAILED ? 'Needs attention' : 'Preparing your book' }}</span>
+                <h3>{{ book.title }}</h3>
+                <p>{{ book.author }}</p>
+              </div>
+              <lucide-icon name="arrow-right" size="18" aria-hidden="true"></lucide-icon>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="private-empty">
+          <lucide-icon name="book-open-text" size="22" aria-hidden="true"></lucide-icon>
+          <p>Your private books will live here, ready whenever you are.</p>
+          <button type="button" class="text-action" (click)="startImport()">{{ isPremium ? 'Import your first book' : 'Learn about private imports' }}</button>
+        </div>
+      }
+    </section>
+  }
+
+  <section class="catalogue" aria-labelledby="catalogue-heading">
+    <div class="section-heading catalogue-heading">
+      <div>
+        <p class="eyebrow">Almonium library</p>
+        <h2 id="catalogue-heading">Find your next read</h2>
+      </div>
+    </div>
+    <div class="filter-container">
     <tui-textfield
       class="search-input shadowless-input"
       iconStart="@tui.search"
@@ -124,9 +173,9 @@
       />
       Parallel Translation
     </div>
-  </div>
+    </div>
 
-  <div class="books-container">
+    <div class="books-container">
     @for (book of filteredBooks; track book) {
       <div class="book"
            tuiDropdownContext
@@ -190,5 +239,6 @@
     } @else if (filteredBooks.length === 0) {
       <div class="no-found">No books found 🥲</div>
     }
-  </div>
+    </div>
+  </section>
 </div>

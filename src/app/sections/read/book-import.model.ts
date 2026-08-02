@@ -21,6 +21,13 @@ export interface BookImport {
   error: string;
 }
 
+export interface BookImportQuota {
+  limit: number;
+  used: number;
+  periodStartsAt: string;
+  periodEndsAt: string;
+}
+
 export function parseBookImport(value: unknown): BookImport {
   const data = expectRecord(value, 'bookImport');
   return {
@@ -36,5 +43,22 @@ export function parseBookImport(value: unknown): BookImport {
     progress: expectNumber(data['progress'], 'bookImport.progress'),
     wordCount: expectNumber(data['wordCount'], 'bookImport.wordCount'),
     error: expectString(data['error'], 'bookImport.error'),
+  };
+}
+
+export function parseBookImports(value: unknown): BookImport[] {
+  if (!Array.isArray(value)) {
+    throw new Error('bookImports must be an array');
+  }
+  return value.map(parseBookImport);
+}
+
+export function parseBookImportQuota(value: unknown): BookImportQuota {
+  const data = expectRecord(value, 'bookImportQuota');
+  return {
+    limit: expectNumber(data['limit'], 'bookImportQuota.limit'),
+    used: expectNumber(data['used'], 'bookImportQuota.used'),
+    periodStartsAt: expectString(data['periodStartsAt'], 'bookImportQuota.periodStartsAt'),
+    periodEndsAt: expectString(data['periodEndsAt'], 'bookImportQuota.periodEndsAt'),
   };
 }

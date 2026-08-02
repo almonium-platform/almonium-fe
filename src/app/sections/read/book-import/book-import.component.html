@@ -1,12 +1,14 @@
 <main class="import-page">
+  <app-paywall></app-paywall>
   @if (bookImport) {
     <section class="status-card">
-      <p class="eyebrow">Private book</p>
+      <a routerLink="/read" class="back-link">← Back to Read</a>
+      <p class="eyebrow">Your private library</p>
       <h1>{{ bookImport.title }}</h1>
-      <p>{{ bookImport.author }}</p>
+      <p class="book-author">{{ bookImport.author }}</p>
 
       @if (bookImport.status === status.READY) {
-        <p>Your book is ready. It is visible only to you.</p>
+        <p class="status-copy">Your book is ready. It is visible only to you.</p>
         <a class="primary-action" [routerLink]="['/reader/private', bookImport.id]">Start reading</a>
       } @else if (bookImport.status === status.FAILED) {
         <p class="error">{{ bookImport.error || 'The processor could not import this file.' }}</p>
@@ -22,21 +24,37 @@
     </section>
   } @else {
     <section class="import-card">
-      <p class="eyebrow">Premium · 3 imports per month</p>
-      <h1>Import your own book</h1>
-      <p>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported.</p>
+      <div class="import-intro">
+        <a routerLink="/read" class="back-link">← Back to Read</a>
+        <p class="eyebrow">Your private library</p>
+        <h1>Import a book you want to keep close.</h1>
+        <p>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported.</p>
+      </div>
+
+      <div class="quota-card" [class.exhausted]="quota && !canImport">
+        <div>
+          <span class="quota-label">Import allowance</span>
+          <strong>{{ quotaMessage }}</strong>
+          @if (quota) { <span>Resets {{ quota.periodEndsAt | date:'MMM d, y' }}</span> }
+        </div>
+        @if (quota && !canImport && quota.limit === 0) {
+          <button type="button" class="secondary-action" (click)="openPaywall()">See Premium</button>
+        }
+      </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()">
-        <label>Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required></label>
-        <label>Title<input formControlName="title" maxlength="500"></label>
-        <label>Author<input formControlName="author" maxlength="300"></label>
-        <label>Description<textarea formControlName="description" rows="4"></textarea></label>
+        <label class="file-input">Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required><span>{{ selectedFile?.name || 'Choose an EPUB or TEI XML file' }}</span></label>
+        <div class="details-grid">
+          <label>Title<input formControlName="title" maxlength="500"></label>
+          <label>Author<input formControlName="author" maxlength="300"></label>
+        </div>
+        <label>Description <span class="optional">Optional</span><textarea formControlName="description" rows="4"></textarea></label>
         <div class="row">
           <label>Language<select formControlName="language">@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
-          <label>Publication year<input type="number" min="1" max="9999" formControlName="publicationYear"></label>
+          <label>Publication year <span class="optional">Optional</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
         </div>
         @if (error) { <p class="error">{{ error }}</p> }
-        <button class="primary-action" type="submit" [disabled]="submitting">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
+        <button class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
       </form>
     </section>
   }
