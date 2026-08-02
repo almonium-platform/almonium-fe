@@ -26,7 +26,6 @@ import {
 import {TuiChevron} from '@taiga-ui/kit/directives';
 import {TuiError, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
 import {TuiDropdownContent} from '@taiga-ui/core/portals';
-import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {TuiItem} from '@taiga-ui/cdk/directives';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
@@ -48,15 +47,6 @@ const DEFAULT_MAX_LANGUAGES = 3;
     TuiMultiSelectGroupDirective,
     TuiItem,
     TuiInputChipComponent,
-  ],
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'At least one language is required',
-        maxLanguages: () => `You can select up to ${DEFAULT_MAX_LANGUAGES} languages`,
-      },
-    },
   ],
   standalone: true,
 })

@@ -30,9 +30,9 @@
       }
     </tui-textfield>
 
-    <tui-error
-      [formControl]="fluentLanguageControl"
-    />
+    @if (fluentLanguageControl.hasError('required')) {
+      <tui-error [formControl]="fluentLanguageControl" />
+    }
     @if (showLimitMessage && maxLanguages === 1 && atLanguageLimit) {
       <div class="limit-message tui-text_m tui-text_negative tui-space_top-2">
         Free plan lets you pick only one fluent language.
