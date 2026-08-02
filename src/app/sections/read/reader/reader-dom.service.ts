@@ -197,7 +197,9 @@ export class ReaderDomService {
   }
 
   measureChapters(content: HTMLElement, targetLanguage: string | null): ReaderChapter[] {
-    return Array.from(content.querySelectorAll<HTMLElement>('h2.chapter-title'))
+    // Keep supporting legacy/imported book HTML, where chapter headings have
+    // an id but do not carry the newer `chapter-title` class.
+    return Array.from(content.querySelectorAll<HTMLElement>('h2[id]'))
       .map((heading, index): ReaderChapter | null => {
         if (!heading.id) return null;
         const titleSpan = targetLanguage
@@ -216,6 +218,6 @@ export class ReaderDomService {
   }
 
   findChapter(content: HTMLElement, elementId: string): HTMLElement | null {
-    return Array.from(content.querySelectorAll<HTMLElement>('h2.chapter-title')).find(element => element.id === elementId) ?? null;
+    return Array.from(content.querySelectorAll<HTMLElement>('h2[id]')).find(element => element.id === elementId) ?? null;
   }
 }

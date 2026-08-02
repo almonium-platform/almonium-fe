@@ -95,7 +95,7 @@ describe('ReaderDomService', () => {
 
   it('measures only identified chapter headings', () => {
     const content = document.createElement('div');
-    content.innerHTML = '<h2 class="chapter-title" id="chapter-1"><span class="segment" lang="EN"> First chapter </span></h2><h2>Ignored</h2>';
+    content.innerHTML = '<h2 id="chapter-1"><span class="segment" lang="EN"> First chapter </span></h2><h2>Ignored</h2>';
 
     expect(service.measureChapters(content, 'EN')).toEqual([{
       title: 'First chapter',
@@ -103,5 +103,6 @@ describe('ReaderDomService', () => {
       elementId: 'chapter-1',
       index: 0,
     }]);
+    expect(service.findChapter(content, 'chapter-1')).toBe(content.querySelector<HTMLElement>('#chapter-1'));
   });
 });
