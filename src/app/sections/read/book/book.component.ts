@@ -8,7 +8,6 @@ import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {StarRatingComponent} from "../star-rating.component";
 import {TuiChip, TuiDataListWrapperComponent, TuiSelect} from "@taiga-ui/kit/components";
 import {TuiChevron, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
@@ -22,12 +21,13 @@ import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {NgClickOutsideDirective} from "ng-click-outside2";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 import {isUuid} from '../../../shared/runtime-validation';
+import {BookCoverComponent} from '../book-cover/book-cover.component';
 
 @Component({
   selector: 'app-book',
   imports: [
     ButtonComponent,
-    StarRatingComponent,
+    BookCoverComponent,
     TuiAutoColorPipe,
     TuiChip,
     TuiHintDirective,

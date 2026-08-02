@@ -153,21 +153,18 @@
                 />
               </div>
             }
-            <img alt="book cover image" [src]="book.coverImageUrl"/>
-            <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>
+            <app-book-cover
+              [title]="book.title"
+              [author]="book.author"
+              [workSlug]="book.workSlug"
+              [coverUrl]="book.coverUrl"
+            ></app-book-cover>
+            <div class="level-badge">{{ book.cefrLevel }}</div>
             <div class="year-badge">{{ book.publicationYear }}</div>
           </div>
           <div class="description-section">
             <div class="flex flex-row justify-between">
               <div class="title">{{ book.title }}</div>
-              <p class="rating"
-                 tuiHintAppearance="dark"
-                 tuiHintDirection="bottom"
-                 [tuiHint]="ratingTooltip"
-              ><span class="star">⭐</span>{{ book.rating }}</p>
-              <ng-template #ratingTooltip>
-                <div>out of 5 (Goodreads)</div>
-              </ng-template>
             </div>
             <div class="description">
               {{ book.author }}, {{ book.publicationYear }}

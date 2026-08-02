@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  container-type: inline-size;
+}
+
+img,
+.typographic-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+img {
+  object-fit: cover;
+}
+
+.typographic-cover {
+  position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 17% 12% 13%;
+  background: #f9f1df;
+  color: #282626;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.color-field {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 8%;
+  background: var(--cover-color);
+}
+
+.ornament {
+  color: var(--cover-color);
+  font-size: clamp(.45rem, 4cqw, .7rem);
+  letter-spacing: .22em;
+  margin-bottom: 28%;
+}
+
+strong {
+  font-size: clamp(1rem, 10cqw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.rule {
+  width: 32%;
+  height: 2px;
+  margin: auto 0 10%;
+  background: var(--cover-color);
+}
+
+.author {
+  font-size: clamp(.65rem, 5.5cqw, 1rem);
+  font-style: italic;
+  line-height: 1.3;
+}

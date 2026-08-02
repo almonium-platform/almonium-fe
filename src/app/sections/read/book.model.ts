@@ -13,20 +13,18 @@ import {
 
 export interface Book {
   id: string;
+  workSlug: string;
   title: string;
   author: string;
   publicationYear: number;
-  coverImageUrl: string;
+  coverUrl: string | null;
   wordCount: number;
-  rating: number;
   language: LanguageCode;
-  levelFrom: CEFRLevel;
-  levelTo: CEFRLevel;
+  cefrLevel: CEFRLevel;
   progressPercentage: number | null;
   isTranslation: boolean;
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
-  description: string;
   languageVariants: BookLanguageVariant[];
   favorite: boolean;
   orderLanguage?: LanguageCode;
@@ -78,15 +76,16 @@ export function parseBook(value: unknown, path = 'book'): Book {
   const data = expectRecord(value, path);
   return {
     id: expectUuid(data['id'], `${path}.id`),
+    workSlug: expectString(data['workSlug'], `${path}.workSlug`),
     title: expectString(data['title'], `${path}.title`),
     author: expectString(data['author'], `${path}.author`),
     publicationYear: expectNumber(data['publicationYear'], `${path}.publicationYear`),
-    coverImageUrl: expectString(data['coverImageUrl'], `${path}.coverImageUrl`),
+    coverUrl: data['coverUrl'] === null
+      ? null
+      : expectString(data['coverUrl'], `${path}.coverUrl`),
     wordCount: expectNumber(data['wordCount'], `${path}.wordCount`),
-    rating: expectNumber(data['rating'], `${path}.rating`),
     language: expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
-    levelFrom: expectEnum(data['levelFrom'], Object.values(CEFRLevel), `${path}.levelFrom`),
-    levelTo: expectEnum(data['levelTo'], Object.values(CEFRLevel), `${path}.levelTo`),
+    cefrLevel: expectEnum(data['cefrLevel'], Object.values(CEFRLevel), `${path}.cefrLevel`),
     progressPercentage: expectNullableNumber(data['progressPercentage'], `${path}.progressPercentage`),
     isTranslation: expectBoolean(data['isTranslation'], `${path}.isTranslation`),
     hasParallelTranslation: expectBoolean(
@@ -94,9 +93,6 @@ export function parseBook(value: unknown, path = 'book'): Book {
       `${path}.hasParallelTranslation`,
     ),
     hasTranslation: expectBoolean(data['hasTranslation'], `${path}.hasTranslation`),
-    description: data['description'] === undefined
-      ? ''
-      : expectString(data['description'], `${path}.description`),
     languageVariants: data['languageVariants'] === undefined
       ? []
       : parseLanguageVariants(data['languageVariants'], `${path}.languageVariants`),

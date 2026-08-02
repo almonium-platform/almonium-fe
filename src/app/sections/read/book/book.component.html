@@ -4,7 +4,12 @@
       class="game-card ladder-card solo-game">
       <div class="game-img ladder-img">
         @if (book) {
-          <img alt="book cover image" [src]="book.coverImageUrl"/>
+          <app-book-cover
+            [title]="book.title"
+            [author]="book.author"
+            [workSlug]="book.workSlug"
+            [coverUrl]="book.coverUrl"
+          ></app-book-cover>
         } @else {
           <img [tuiSkeleton]="true" alt="book cover image" src=""/>
         }
@@ -28,19 +33,7 @@
         <h1 class="title">{{ book.title }}</h1>
         <p class="author">{{ book.author }}</p>
 
-        <div class="rating">
-          <app-star-rating
-            class="star"
-            [rating]="book.rating"
-            tuiHintAppearance="dark"
-            tuiHintDirection="bottom"
-            [tuiHint]="ratingTooltip"
-          >
-            <ng-template #ratingTooltip>
-              <div>Goodreads rating</div>
-            </ng-template>
-          </app-star-rating>
-          <div class="number">{{ book.rating }}</div>
+        <div class="book-actions">
           <lucide-icon
             [name]="bookmarkIcon"
             class="bookmark"
@@ -64,12 +57,12 @@
                 type="checkbox"
               />
               {{ bookLanguage }}
-              <p class="inner-text">{{ book.levelFrom }} – {{ book.levelTo }}</p>
+              <p class="inner-text">{{ book.cefrLevel }}</p>
             </label>
             •
             <p class="pages">{{ pages }} pages</p>
             •
-            <p class="pages">First published in {{ book.publicationYear }}</p>
+            <p class="pages">Published in {{ book.publicationYear }}</p>
             @if (book.isTranslation && originalLanguage) {
               •
               <p class="pages">Translated by <em>{{ book.translator }}</em></p>
@@ -176,9 +169,6 @@
             }
           </div>
         </div>
-        <div class="description">
-          <p>{{ book.description }}</p>
-        </div>
       </div>
       <!-- === END: Actual Book Content === -->
 
@@ -193,20 +183,10 @@
         <!-- Author Placeholder Block -->
         <div class="skeleton-placeholder skeleton-author" [tuiSkeleton]="true"></div>
 
-        <!-- Rating Placeholder Block -->
-        <div class="skeleton-placeholder skeleton-rating" [tuiSkeleton]="true"></div>
+        <div class="skeleton-placeholder skeleton-actions" [tuiSkeleton]="true"></div>
 
         <!-- Info Block 1 Placeholder Block -->
         <div class="skeleton-placeholder skeleton-info-chips" [tuiSkeleton]="true"></div>
-
-        <!-- Description Placeholder Blocks -->
-        <div class="description-skeleton-group"> <!-- Group description lines -->
-          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
-          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
-          <div class="skeleton-placeholder skeleton-description-line" [tuiSkeleton]="true"></div>
-          <div class="skeleton-placeholder skeleton-description-line skeleton-description-line--short"
-               [tuiSkeleton]="true"></div>
-        </div>
 
       </div>
     }

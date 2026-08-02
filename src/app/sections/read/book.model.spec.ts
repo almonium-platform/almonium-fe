@@ -6,15 +6,14 @@ import {parseBook, parseBookMiniDetails, parseBookshelfView} from './book.model'
 describe('book API runtime validation', () => {
   const book = {
     id: '01989f47-4c2a-7a10-9e5b-751983624a25',
+    workSlug: 'the-book',
     title: 'The Book',
     author: 'An Author',
     publicationYear: 2026,
-    coverImageUrl: '/cover.jpg',
+    coverUrl: '/cover.jpg',
     wordCount: 1000,
-    rating: 4.5,
     language: LanguageCode.EN,
-    levelFrom: CEFRLevel.A1,
-    levelTo: CEFRLevel.B1,
+    cefrLevel: CEFRLevel.B1,
     progressPercentage: null,
     isTranslation: false,
     hasParallelTranslation: false,
@@ -28,7 +27,6 @@ describe('book API runtime validation', () => {
       favorites: [],
     });
 
-    expect(view.continueReading[0].description).toBe('');
     expect(view.continueReading[0].languageVariants).toEqual([]);
     expect(view.continueReading[0].favorite).toBeFalse();
   });

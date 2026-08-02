@@ -22,6 +22,7 @@ import {TuiDropdownContent, TuiDropdownContext, TuiDropdownDirective, TuiHintDir
 import {InfoIconComponent} from "../../shared/info-button/info-button.component";
 import {AsyncPipe} from "@angular/common";
 import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
+import {BookCoverComponent} from './book-cover/book-cover.component';
 
 @Component({
   selector: 'app-read',
@@ -48,6 +49,7 @@ import {ParallelTranslationComponent} from "./parallel-translation/parallel-tran
     TuiDropdownContext,
     TuiDropdownDirective,
     TuiOption,
+    BookCoverComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -66,7 +68,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected continueReading: Book[] = [];
 
   titleFormControl = new FormControl<string>('');
-  sortParameters: string[] = ['Level', 'Rating', 'Year'];
+  sortParameters: string[] = ['Level', 'Year'];
   sortControl = new FormControl<string>('Level');
 
   cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
@@ -107,11 +109,10 @@ export class ReadComponent implements OnInit, OnDestroy {
     // Apply CEFR filter if active
     if (this.filterByCefrToggle) {
       books = books.filter(book => {
-        const bookLevelFrom = this.cefrLevelToNumber(book.levelFrom);
-        const bookLevelTo = this.cefrLevelToNumber(book.levelTo);
+        const bookLevel = this.cefrLevelToNumber(book.cefrLevel);
         const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value ?? CEFRLevel.B1);  // Handling null values
 
-        return selectedLevelNum >= bookLevelFrom && selectedLevelNum <= bookLevelTo;
+        return selectedLevelNum === bookLevel;
       });
     }
 
@@ -201,11 +202,8 @@ export class ReadComponent implements OnInit, OnDestroy {
       if (sortBy === 'Year') {
         return factor * (a.publicationYear - b.publicationYear);
       }
-      if (sortBy === 'Rating') {
-        return factor * (a.rating - b.rating);
-      }
       if (sortBy === 'Level') {
-        return factor * (this.cefrLevelToNumber(a.levelTo) - this.cefrLevelToNumber(b.levelTo));
+        return factor * (this.cefrLevelToNumber(a.cefrLevel) - this.cefrLevelToNumber(b.cefrLevel));
       }
       return 0;
     });

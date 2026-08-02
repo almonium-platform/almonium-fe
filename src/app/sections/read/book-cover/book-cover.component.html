@@ -1,0 +1,15 @@
+@if (coverUrl && !imageFailed) {
+  <img
+    [src]="coverUrl"
+    [alt]="title + ' by ' + author + ' cover'"
+    (error)="onImageError()"
+  />
+} @else {
+  <div class="typographic-cover" [style.--cover-color]="color" role="img" [attr.aria-label]="title + ' by ' + author + ' cover'">
+    <span class="color-field" aria-hidden="true"></span>
+    <span class="ornament" aria-hidden="true">ALMONIUM</span>
+    <strong>{{ title }}</strong>
+    <span class="rule" aria-hidden="true"></span>
+    <span class="author">{{ author }}</span>
+  </div>
+}
