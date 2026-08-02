@@ -18,7 +18,6 @@ import {AsyncPipe, NgClass} from "@angular/common";
 import {TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch} from "@taiga-ui/kit/components";
 import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
-import {LocalStorageService} from "../../../services/local-storage.service";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
@@ -75,7 +74,6 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   private userInfoService = inject(UserInfoService);
   private alertService = inject(TuiNotificationService);
   private cdr = inject(ChangeDetectorRef);
-  private localStorageService = inject(LocalStorageService);
   private languageApiService = inject(LanguageApiService);
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private popupTemplateStateService = inject(PopupTemplateStateService);
@@ -166,8 +164,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
       if (info) {
         this.userInfo = info;
-        this.selectedFluentLanguages = info.fluentLangs;
-        this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
+        const fluentLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
+        this.selectedFluentLanguages = fluentLanguageNames;
+        this.currentFluentLanguages = fluentLanguageNames;
         this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
         this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
         this.learners = info.learners;
@@ -259,9 +258,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.alertService.open('Fluent languages saved', {appearance: 'positive'}).subscribe();
-          this.localStorageService.clearUserInfo();
           this.fluentEditable = false;
-          this.currentFluentLanguages = this.selectedFluentLanguages;
+          this.userInfoService.updateUserInfo({fluentLangs: fluentLanguageCodes});
         },
         error: (error) => {
           this.alertService.open(getErrorMessage(error, 'Failed to save fluent languages'), {appearance: 'negative'}).subscribe();

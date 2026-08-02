@@ -9,6 +9,7 @@ import {
   UserInfoData,
   UserInfoDto,
 } from '../models/userinfo.model';
+import {LanguageCode} from '../models/language.enum';
 import {AppConstants} from '../app.constants';
 import {LocalStorageService} from './local-storage.service';
 import {UserInfoService} from './user-info.service';
@@ -133,6 +134,17 @@ describe('UserInfoService', () => {
     httpTesting.expectOne(AppConstants.ME_URL).flush(serverUser);
 
     expect((await resultPromise)?.subscription.getMaxFluentLanguages()).toBe(1);
+  });
+
+  it('updates the cached and in-memory fluent languages together', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush(serverUser);
+    await resultPromise;
+
+    service.updateUserInfo({fluentLangs: [LanguageCode.DE]});
+
+    expect(service.currentUserInfo?.fluentLangs).toEqual([LanguageCode.DE]);
+    expect(localStorage.saveUserInfo.calls.mostRecent().args[0].fluentLangs).toEqual([LanguageCode.DE]);
   });
 
   it('normalizes partial UI preferences with safe defaults', async () => {
