@@ -26,6 +26,7 @@ import {ReaderProgressTracker} from './reader-progress-tracker.service';
 import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
 import {UserInfoService} from '../../../services/user-info.service';
+import {BookHtmlPipe} from './book-html.pipe';
 
 @Component({
   selector: 'app-reader',
@@ -46,6 +47,7 @@ import {UserInfoService} from '../../../services/user-info.service';
     TuiDropdownDirective,
     TuiOptGroup,
     TuiDataList,
+    BookHtmlPipe,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],

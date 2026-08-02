@@ -23,6 +23,7 @@ const BOOK_HTML_TAGS = [
   'p',
   'pre',
   'q',
+  'section',
   'small',
   'span',
   'strong',

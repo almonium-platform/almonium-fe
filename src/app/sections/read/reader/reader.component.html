@@ -34,7 +34,7 @@
            [innerHTML]="bookHtmlContent | parallelFormat:{
               mode: isParallelViewActive ? currentParallelMode : null,
               targetLang: targetLangCode,
-              fluentLang: fluentLangCode}"
+              fluentLang: fluentLangCode} | bookHtml"
            (click)="onContentClick($event)"
            (keydown.enter)="onContentClick($event)">
       </div>
