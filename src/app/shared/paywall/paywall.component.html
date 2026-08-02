@@ -27,11 +27,9 @@
         <div class="plan-content">
           <div class="header">
             <h1 tuiTitle class="premium-text">
-              {{ founderOfferAvailable ? 'Founding Member' : 'Premium' }}
+              Premium
             </h1>
-            @if (founderOfferAvailable) {
-              <span>{{ founderRemaining }} founding spots left · price locked while subscribed</span>
-            }
+            <p class="plan-subtitle">Everything in Free, plus</p>
           </div>
           <div class="features">
             @for (feature of premiumFeatures; track feature) {
@@ -46,11 +44,20 @@
         </div>
         <footer>
           <div class="price">
+            @if (founderOfferAvailable) {
+              <span class="price-original">${{ currentPublicPriceValue }}</span>
+            }
             <span class="price-value">${{ currentPriceValue }}</span>
             <span class="price-period">{{ currentPricePeriod }}</span>
           </div>
-          <app-interactive-cta-button (buttonClick)="subscribeToPlan()"
-                                      [text]="planChosen ? 'Upgrade' : 'Go Premium'"
+          @if (founderOfferAvailable) {
+            <div class="founder-offer">
+              <span>Founding price, locked for as long as you stay subscribed.</span>
+              <span>{{ founderRemaining }} of {{ founderCapacity }} places left.</span>
+            </div>
+          }
+          <app-interactive-cta-button (buttonClick)="onPremiumAction()"
+                                      [text]="premiumButtonText"
                                       [loading$]="premiumLoading$"
                                       class="cta"
           ></app-interactive-cta-button>
@@ -86,7 +93,7 @@
           </div>
 
           <app-button
-            [label]="planChosen ? 'Current Plan' : 'Start for Free'"
+            [label]="planChosen ? 'Current plan' : 'Start reading'"
             [loading$]="freeLoading$"
             [disabled]="planChosen"
             [fontSize]="16"

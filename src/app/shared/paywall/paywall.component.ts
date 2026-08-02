@@ -53,21 +53,25 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   private userInfo: UserInfo | null = null;
   protected planChosen = false;
+  protected premium = false;
 
   protected freeFeatures: string[] = [
-    'One target language',
-    'One fluent language',
-    'One story a day',
-    '100 card reviews a day',
-    'Basic play',
+    'Read any book in the library',
+    'Unlimited word lookup and translation',
+    '100 saved words',
+    'Unlimited review, with confusion detection',
+    'One target language, one fluent language',
+    '3 AI stories a week',
+    'No card required',
   ];
   protected premiumFeatures: string[] = [
-    'Unlimited stories',
-    'Unlimited translations',
-    'Unlimited reviews',
-    'Card rephrasing',
-    'All play',
-    'All target languages',
+    'Unlimited saved words',
+    'Every target and fluent language',
+    'Books adapted to your level — B1, B2, C1',
+    'Import your own books — 3 a month',
+    '10 hours of audio',
+    'Sync across devices',
+    'Share word packs with friends',
   ];
   selectedMode = 0;
   premiumPrice = {
@@ -77,6 +81,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   premiumMonthlyId = '';
   premiumYearlyId = '';
   protected founderOfferAvailable = false;
+  protected founderCapacity = 0;
   protected founderRemaining = 0;
 
   private freeLoadingSubject$ = new BehaviorSubject(false);
@@ -104,6 +109,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
         }
         this.userInfo = userInfo;
         this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+        this.premium = userInfo.premium;
       });
   }
 
@@ -114,16 +120,17 @@ export class PaywallComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: ({plans, founder}) => {
         const founderStatus = parseFoundingMemberStatus(founder);
+        this.founderCapacity = founderStatus.capacity;
         this.founderRemaining = Math.max(0, founderStatus.capacity - founderStatus.claimed);
         this.founderOfferAvailable = this.founderRemaining > 0;
         const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
         const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
         if (monthlyPremium) {
-          this.premiumPrice.monthly = this.founderOfferAvailable ? 8 : monthlyPremium.price;
+          this.premiumPrice.monthly = monthlyPremium.price;
           this.premiumMonthlyId = String(monthlyPremium.id);
         }
         if (yearlyPremium) {
-          this.premiumPrice.yearly = this.founderOfferAvailable ? 80 : yearlyPremium.price;
+          this.premiumPrice.yearly = yearlyPremium.price;
           this.premiumYearlyId = String(yearlyPremium.id);
         }
       },
@@ -139,7 +146,18 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   get currentPriceValue(): number {
+    if (this.founderOfferAvailable) {
+      return this.selectedMode === 0 ? 8 : 80;
+    }
+    return this.currentPublicPriceValue;
+  }
+
+  get currentPublicPriceValue(): number {
     return this.selectedMode === 0 ? this.premiumPrice.monthly : this.premiumPrice.yearly;
+  }
+
+  get premiumButtonText(): string {
+    return this.premium ? 'Manage plan' : 'Become a member';
   }
 
   getIcon(feature: string) {
@@ -170,7 +188,15 @@ export class PaywallComponent implements OnInit, OnDestroy {
       });
   }
 
-  subscribeToPlan() {
+  onPremiumAction() {
+    if (this.premium) {
+      this.accessCustomerPortal();
+      return;
+    }
+    this.subscribeToPlan();
+  }
+
+  private subscribeToPlan() {
     if (!this.userInfo) {
       void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
@@ -191,6 +217,25 @@ export class PaywallComponent implements OnInit, OnDestroy {
         },
         error: error => this.alertService.open(
           getErrorMessage(error, 'Could not start checkout'),
+          {appearance: 'negative'},
+        ).subscribe(),
+      });
+  }
+
+  private accessCustomerPortal() {
+    if (this.premiumLoadingSubject$.value) {
+      return;
+    }
+
+    this.premiumLoadingSubject$.next(true);
+    this.planService.accessCustomerPortal()
+      .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
+      .subscribe({
+        next: url => {
+          window.location.href = url.sessionUrl;
+        },
+        error: error => this.alertService.open(
+          getErrorMessage(error, 'Could not open subscription management'),
           {appearance: 'negative'},
         ).subscribe(),
       });

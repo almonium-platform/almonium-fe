@@ -32,8 +32,8 @@
 
 .plan-section {
   flex: 1 1 calc(50% - 2rem); /* Each card takes half the width minus the gap */
-  max-width: 300px;
-  min-width: 300px;
+  max-width: 340px;
+  min-width: 340px;
   box-sizing: border-box;
 }
 
@@ -52,6 +52,13 @@
 
 .header.free h1 {
   color: var(--text-color);
+}
+
+.plan-subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--disabled-text-color);
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .plan-content {
@@ -88,7 +95,15 @@
 
 .price {
   display: flex;
+  align-items: baseline;
   padding: 1.5rem;
+}
+
+.price-original {
+  margin-right: 0.5rem;
+  color: var(--disabled-text-color);
+  font-size: 1.35rem;
+  text-decoration: line-through;
 }
 
 .price-value {
@@ -102,6 +117,19 @@
   color: var(--disabled-text-color);
   margin-left: 0.5rem;
   font-weight: 700;
+}
+
+.founder-offer {
+  display: grid;
+  gap: 0.25rem;
+  margin: -0.75rem 1.5rem 1.25rem;
+  color: var(--purple-dark);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.founder-offer span:last-child {
+  font-weight: 600;
 }
 
 .segmented {
