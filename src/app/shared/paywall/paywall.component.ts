@@ -67,8 +67,8 @@ export class PaywallComponent implements OnInit, OnDestroy {
   ];
   selectedMode = 0;
   premiumPrice = {
-    monthly: 4.99,
-    yearly: 49.99,
+    monthly: 12,
+    yearly: 120,
   };
   premiumMonthlyId = '';
   premiumYearlyId = '';
