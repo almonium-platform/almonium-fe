@@ -52,6 +52,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   protected freeFeatures: string[] = [
     'One target language',
+    'One fluent language',
     'One story a day',
     '100 card reviews a day',
     'Basic play',

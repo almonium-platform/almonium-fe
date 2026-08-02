@@ -30,7 +30,7 @@ import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {TuiItem} from '@taiga-ui/cdk/directives';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
-const MAX_LANGUAGES = 3;
+const DEFAULT_MAX_LANGUAGES = 3;
 
 @Component({
   selector: 'app-fluent-language-selector',
@@ -54,7 +54,7 @@ const MAX_LANGUAGES = 3;
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
         required: 'At least one language is required',
-        maxLanguages: () => `You can select up to ${MAX_LANGUAGES} languages`,
+        maxLanguages: () => `You can select up to ${DEFAULT_MAX_LANGUAGES} languages`,
       },
     },
   ],
@@ -65,9 +65,19 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   @Input() languages: Language[] = [];
   @Input() size: 's' | 'm' | 'l' = 'l';
   @Input() selectedLanguages?: string[] = [];
+  @Input() set maxLanguages(value: number) {
+    this._maxLanguages = value;
+    this.sanitizeControl();
+    this.fluentLanguageControl.updateValueAndValidity();
+  }
   @Output() selectedFluentLanguages = new EventEmitter<{ languages: string[]; valid: boolean }>();
   @ViewChild('chipInput', {static: true}) chipInput!: ElementRef<HTMLInputElement>;
   private allowed = new Set<string>();
+  private _maxLanguages = DEFAULT_MAX_LANGUAGES;
+
+  get maxLanguages(): number {
+    return this._maxLanguages;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['languages']) {
@@ -91,11 +101,9 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  maxLanguages = MAX_LANGUAGES;
-
   fluentLanguageControl = new FormControl<string[]>([], [
     Validators.required,
-    this.maxLanguagesValidator(this.maxLanguages),
+    this.maxLanguagesValidator(),
   ]);
 
   // text typed into the input
@@ -174,10 +182,10 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  private maxLanguagesValidator(max: number) {
+  private maxLanguagesValidator() {
     return (control: FormControl): Record<string, boolean> | null => {
       const value = control.value as string[] | null;
-      return value && value.length > max ? {maxLanguages: true} : null;
+      return value && value.length > this.maxLanguages ? {maxLanguages: true} : null;
     };
   }
 

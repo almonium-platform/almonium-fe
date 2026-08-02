@@ -30,6 +30,7 @@
             <div class="form-label">I'm fluent in</div>
             <app-fluent-language-selector
               [languages]="supportedLanguages"
+              [maxLanguages]="fluentMaxLanguages"
               [selectedLanguages]="cachedFluentLanguages"
               (selectedFluentLanguages)="listenToFluentForm($event)"
             ></app-fluent-language-selector>

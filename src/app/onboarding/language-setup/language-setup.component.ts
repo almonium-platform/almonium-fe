@@ -162,6 +162,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   private allowedTarget = new Set<string>();
   protected targetMaxLanguages = 1;
+  protected fluentMaxLanguages = 3;
 
   constructor() {
     this.languageForm = this.fb.group({
@@ -235,6 +236,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
         const limit = this.userInfo.subscription.getMaxTargetLanguages();
         setValidationForTargetLanguages.call(this, limit);
+        this.fluentMaxLanguages = this.userInfo.subscription.getMaxFluentLanguages();
 
         this.cachedFluentLanguages = this.languageNameService.mapLanguageCodesToNames(languages, info.fluentLangs);
 

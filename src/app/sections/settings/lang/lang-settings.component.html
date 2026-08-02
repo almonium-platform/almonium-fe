@@ -26,6 +26,7 @@
           <app-fluent-language-selector
             class="fluent-language-selector"
             [languages]="languages"
+            [maxLanguages]="userInfo?.subscription?.getMaxFluentLanguages() ?? 3"
             [size]="'m'"
             [selectedLanguages]="currentFluentLanguages"
             (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>

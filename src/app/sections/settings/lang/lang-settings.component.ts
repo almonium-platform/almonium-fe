@@ -217,7 +217,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   private validateFluentLanguages() {
-    return this.selectedFluentLanguages.length <= 3 && this.selectedFluentLanguages.length > 0;
+    return this.selectedFluentLanguages.length <= this.userInfo!.subscription.getMaxFluentLanguages()
+      && this.selectedFluentLanguages.length > 0;
   }
 
   private updateFluentEnabled(): void {

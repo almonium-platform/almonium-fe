@@ -33,7 +33,7 @@ describe('UserInfoService', () => {
     tags: [],
     subscription: {
       name: 'Free',
-      limits: {},
+      limits: {MAX_FLUENT_LANGS: 1},
       type: PlanType.MONTHLY,
       autoRenewal: null,
       startDate: '2026-01-01T00:00:00Z',
@@ -126,6 +126,13 @@ describe('UserInfoService', () => {
     });
 
     expect((await resultPromise)?.subscription.endDate).toBeNull();
+  });
+
+  it('uses the fluent-language limit supplied by the subscription', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush(serverUser);
+
+    expect((await resultPromise)?.subscription.getMaxFluentLanguages()).toBe(1);
   });
 
   it('normalizes partial UI preferences with safe defaults', async () => {

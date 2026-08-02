@@ -236,6 +236,10 @@ export class Subscription {
   getMaxTargetLanguages(): number {
     return this.getLimit(PlanLimitKeys.MAX_TARGET_LANGS);
   }
+
+  getMaxFluentLanguages(): number {
+    return this.getLimit(PlanLimitKeys.MAX_FLUENT_LANGS, 3);
+  }
 }
 
 export interface SubscriptionDto {
@@ -249,6 +253,7 @@ export interface SubscriptionDto {
 
 export const PlanLimitKeys = {
   MAX_TARGET_LANGS: 'MAX_TARGET_LANGS',
+  MAX_FLUENT_LANGS: 'MAX_FLUENT_LANGS',
 };
 
 export enum PlanType {
