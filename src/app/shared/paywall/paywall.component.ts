@@ -10,11 +10,14 @@ import {TuiCardLarge} from "@taiga-ui/layout/components";
 import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
 import {UserInfoService} from "../../services/user-info.service";
-import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, Subject, takeUntil} from "rxjs";
+import {HttpClient} from '@angular/common/http';
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../../onboarding/onboarding.service";
 import {ButtonComponent} from "../button/button.component";
+import {AppConstants} from '../../app.constants';
+import {expectNumber, expectRecord} from '../runtime-validation';
 
 @Component({
   selector: 'app-paywall',
@@ -42,6 +45,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   private onboardingService = inject(OnboardingService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
+  private http = inject(HttpClient);
 
   private readonly destroy$ = new Subject<void>();
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<unknown>;
@@ -72,6 +76,8 @@ export class PaywallComponent implements OnInit, OnDestroy {
   };
   premiumMonthlyId = '';
   premiumYearlyId = '';
+  protected founderOfferAvailable = false;
+  protected founderRemaining = 0;
 
   private freeLoadingSubject$ = new BehaviorSubject(false);
   private premiumLoadingSubject$ = new BehaviorSubject(false);
@@ -102,16 +108,22 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   private populatePlanInfo() {
-    this.planService.getPlans().subscribe({
-      next: plans => {
+    forkJoin({
+      plans: this.planService.getPlans(),
+      founder: this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`),
+    }).subscribe({
+      next: ({plans, founder}) => {
+        const founderStatus = parseFoundingMemberStatus(founder);
+        this.founderRemaining = Math.max(0, founderStatus.capacity - founderStatus.claimed);
+        this.founderOfferAvailable = this.founderRemaining > 0;
         const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
         const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
         if (monthlyPremium) {
-          this.premiumPrice.monthly = monthlyPremium.price;
+          this.premiumPrice.monthly = this.founderOfferAvailable ? 8 : monthlyPremium.price;
           this.premiumMonthlyId = String(monthlyPremium.id);
         }
         if (yearlyPremium) {
-          this.premiumPrice.yearly = yearlyPremium.price;
+          this.premiumPrice.yearly = this.founderOfferAvailable ? 80 : yearlyPremium.price;
           this.premiumYearlyId = String(yearlyPremium.id);
         }
       },
@@ -171,7 +183,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
     this.premiumLoadingSubject$.next(true);
 
     const selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
-    this.planService.subscribeToPlan(String(selectedPlanId))
+    this.planService.subscribeToPlan(String(selectedPlanId), this.founderOfferAvailable)
       .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
       .subscribe({
         next: url => {
@@ -183,4 +195,12 @@ export class PaywallComponent implements OnInit, OnDestroy {
         ).subscribe(),
       });
   }
+}
+
+function parseFoundingMemberStatus(value: unknown): {capacity: number; claimed: number} {
+  const status = expectRecord(value, 'founding-member status');
+  return {
+    capacity: expectNumber(status['capacity'], 'founding-member status.capacity'),
+    claimed: expectNumber(status['claimed'], 'founding-member status.claimed'),
+  };
 }

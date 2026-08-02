@@ -46,6 +46,7 @@ export class AppComponent implements OnInit {
     '/reset-password',
     '/verify-email',
     '/change-email',
+    '/payment/checkout',
     '/payment/success',
     '/users',
     '/reader'

@@ -27,8 +27,11 @@
         <div class="plan-content">
           <div class="header">
             <h1 tuiTitle class="premium-text">
-              Premium
+              {{ founderOfferAvailable ? 'Founding Member' : 'Premium' }}
             </h1>
+            @if (founderOfferAvailable) {
+              <span>{{ founderRemaining }} founding spots left · price locked while subscribed</span>
+            }
           </div>
           <div class="features">
             @for (feature of premiumFeatures; track feature) {

@@ -51,6 +51,7 @@ export const routes: Routes = [
   {path: 'privacy-policy', loadComponent: () => import('./static/legal/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent)},
 
   // Payment
+  {path: 'payment/checkout', loadComponent: () => import('./static/payment-checkout/payment-checkout.component').then(m => m.PaymentCheckoutComponent)},
   {path: 'payment/success', loadComponent: () => import('./static/payment-success/payment-success.component').then(m => m.PaymentSuccessComponent)},
 
   // Marketing

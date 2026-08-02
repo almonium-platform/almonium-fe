@@ -16,8 +16,12 @@ export class PlanService {
     return this.http.get<unknown>(`${AppConstants.PLAN_URL}`).pipe(map(parsePlans));
   }
 
-  subscribeToPlan(planId: string): Observable<SessionUrlResponse> {
-    return this.http.post<unknown>(`${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`, {}, {withCredentials: true})
+  subscribeToPlan(planId: string, founder: boolean): Observable<SessionUrlResponse> {
+    return this.http.post<unknown>(
+      `${AppConstants.SUBSCRIPTION_URL}/plans/${planId}`,
+      {},
+      {withCredentials: true, params: {founder}},
+    )
       .pipe(map(parseSessionUrlResponse));
   }
 
