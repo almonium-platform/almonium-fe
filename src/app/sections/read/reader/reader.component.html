@@ -50,7 +50,8 @@
           <div class="chapter-nav-container">
             <lucide-icon
               #tocDropdown="tuiDropdown"
-              (click)="tocDropdown.toggle(true)"
+              #tocTrigger
+              (click)="toggleChapterNavigation(tocDropdown)"
               (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
               [tuiDropdown]="tocDropdownContent"
               name="table-of-contents"
@@ -66,7 +67,7 @@
               <tui-data-list role="menu">
                 @for (chapter of chapterNav; track chapter; let i = $index) {
                   <button
-                    (click)="selectChapter(i)"
+                    (click)="selectChapter(i); tocDropdown.toggle(false)"
                     role="menuitem"
                     tuiOption
                   >

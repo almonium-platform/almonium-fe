@@ -69,6 +69,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('tocTrigger', {read: ElementRef}) private tocTrigger?: ElementRef<HTMLElement>;
 
   // --- State Properties ---
   protected chapterNav: ReaderChapter[] = [];
@@ -135,6 +136,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private chapterScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private chapterMeasurementFrameId: number | null = null;
+  private chapterNavigationDropdown: TuiDropdownDirective | null = null;
 
   private needsHeightSync = false;
 
@@ -828,6 +830,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     } else {
       this.prevPage();
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected closeChapterNavigation(event: MouseEvent): void {
+    const target = event.target;
+    if (target instanceof Node && this.tocTrigger?.nativeElement.contains(target)) return;
+    this.chapterNavigationDropdown?.toggle(false);
+  }
+
+  protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
+    this.chapterNavigationDropdown = dropdown;
+    dropdown.toggle(!dropdown.ref());
   }
 
   // --- Chapter Navigation ---
