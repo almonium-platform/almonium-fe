@@ -350,7 +350,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.errorMessage = null;
     if (isBase) this.baseBookHtmlContent = '';
     this.bookHtmlContent = '';
-    this.chapterNav = [];
+    if (isBase) this.chapterNav = [];
     this.cdRef.markForCheck();
     this.needsHeightSync = false
 
@@ -382,6 +382,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             logger.debug(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
             this.currentlyOpenFluentSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
+
+            // The reader content is behind an @if while the book is loading, so its
+            // ViewChild does not exist during ngAfterViewInit. Measure after this
+            // response has caused the base content view to render.
+            if (isBase) this.scheduleChapterOffsetMeasurement();
 
             if (this.currentParallelMode === 'side') {
               this.needsHeightSync = true;

@@ -197,8 +197,7 @@ export class ReaderDomService {
   }
 
   measureChapters(content: HTMLElement, targetLanguage: string | null): ReaderChapter[] {
-    // Keep supporting legacy/imported book HTML, where chapter headings have
-    // an id but do not carry the newer `chapter-title` class.
+    // Chapter identity is the heading anchor, not its presentation class.
     return Array.from(content.querySelectorAll<HTMLElement>('h2[id]'))
       .map((heading, index): ReaderChapter | null => {
         if (!heading.id) return null;
