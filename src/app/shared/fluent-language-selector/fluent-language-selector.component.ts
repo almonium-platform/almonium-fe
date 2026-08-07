@@ -61,14 +61,15 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
     this.sanitizeControl();
     this.fluentLanguageControl.updateValueAndValidity();
   }
-  @Output() selectedFluentLanguages = new EventEmitter<{ languages: string[]; valid: boolean }>();
-  @ViewChild('chipInput', {static: true}) chipInput!: ElementRef<HTMLInputElement>;
-  private allowed = new Set<string>();
-  private _maxLanguages = DEFAULT_MAX_LANGUAGES;
 
   get maxLanguages(): number {
     return this._maxLanguages;
   }
+
+  @Output() selectedFluentLanguages = new EventEmitter<{ languages: string[]; valid: boolean }>();
+  @ViewChild('chipInput', {static: true}) chipInput!: ElementRef<HTMLInputElement>;
+  private allowed = new Set<string>();
+  private _maxLanguages = DEFAULT_MAX_LANGUAGES;
 
   get atLanguageLimit(): boolean {
     return (this.fluentLanguageControl.value?.length ?? 0) >= this.maxLanguages;
