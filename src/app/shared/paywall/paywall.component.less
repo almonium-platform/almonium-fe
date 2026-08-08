@@ -16,9 +16,9 @@
 }
 
 .tui-segmented-wrapper {
-  margin: 1.5rem 0;
   display: flex;
   justify-content: center;
+  padding: 20px 0 8px;
 }
 
 .cards {
@@ -194,12 +194,34 @@
 }
 
 .segmented {
-  border-radius: 10px;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgb(237, 229, 227);
 }
 
 .btn-text {
-  color: var(--text-color);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.segmented button {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 10px 20px;
+  border-radius: 9px;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.segmented button:not(.tui-segmented_active) {
+  color: rgb(107, 97, 104);
+  background: transparent;
+  box-shadow: none;
+}
+
+.segmented button.tui-segmented_active {
+  color: rgb(43, 34, 38);
+  background: white;
+  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
 }
 
 @media screen and (max-width: 600px) {
@@ -232,17 +254,6 @@
   line-height: 1.2;
   border-radius: 999px;
   white-space: nowrap;
-}
-
-.segmented button {
-  flex: 1;
-  text-align: center;
-  padding: 0.5rem 0.75rem;
-  max-width: none;
-  min-width: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .yearly-btn {
