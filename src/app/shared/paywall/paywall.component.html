@@ -24,12 +24,16 @@
         tuiCardLarge
         class="plan-section premium"
       >
+        <div class="shining-effect" aria-hidden="true"></div>
         <div class="plan-content">
           <div class="header">
             <h1 tuiTitle class="premium-text">
               Premium
             </h1>
             <p class="plan-subtitle">Everything in Free, plus</p>
+          </div>
+          <div class="premium-star-badge" aria-hidden="true">
+            <img src="assets/img/icons/premium-star.svg" alt="" width="25" height="25" />
           </div>
           <div class="features">
             @for (feature of premiumFeatures; track feature) {
@@ -53,7 +57,7 @@
           @if (founderOfferAvailable) {
             <div class="founder-offer">
               <span>Founding price, locked for as long as you stay subscribed.</span>
-              <span>{{ founderRemaining }} of {{ founderCapacity }} places left.</span>
+              <span>Limited to {{ founderCapacity }} founding members.</span>
             </div>
           }
           <app-interactive-cta-button (buttonClick)="onPremiumAction()"

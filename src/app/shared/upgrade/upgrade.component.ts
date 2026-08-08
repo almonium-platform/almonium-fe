@@ -20,6 +20,7 @@ export class UpgradeComponent implements OnInit {
 
   @ViewChild('upgrade', {static: true}) content!: TemplateRef<unknown>;
   @Input() onboardingMode = false;
+  @Input() celebrate = false;
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.PLAN;
   @Output() continue = new EventEmitter<SetupStep>();

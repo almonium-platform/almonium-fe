@@ -1,5 +1,5 @@
 <div class="headless-container">
-  <app-upgrade [onboardingMode]="false" #upgradeComponent></app-upgrade>
+  <app-upgrade [onboardingMode]="false" [celebrate]="celebrate" #upgradeComponent></app-upgrade>
   @if (upgradeComponent?.content) {
     <ng-container *ngTemplateOutlet="upgradeComponent.content"></ng-container>
   }

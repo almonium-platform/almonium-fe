@@ -2,7 +2,7 @@
   <div class="content">
     <div class="text motion-preset-slide-up motion-duration-1500">
       {{ onboardingMode ? 'Welcome to' : 'Upgraded to ' }}
-      <div class="premium-text">
+      <div class="premium-text" [class.motion-preset-confetti]="celebrate">
         Premium
       </div>
     </div>

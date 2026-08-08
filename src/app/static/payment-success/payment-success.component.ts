@@ -14,9 +14,16 @@ import {UserInfoService} from "../../services/user-info.service";
 })
 export class PaymentSuccessComponent implements OnInit {
   private userInfoService = inject(UserInfoService);
+  protected celebrate = false;
 
+  private readonly celebrationStorageKey = 'almonium.payment-success.celebrated';
 
   ngOnInit() {
-    this.userInfoService.fetchUserInfoFromServer().subscribe();
+    this.userInfoService.fetchUserInfoFromServer().subscribe(userInfo => {
+      if (userInfo?.premium && !sessionStorage.getItem(this.celebrationStorageKey)) {
+        sessionStorage.setItem(this.celebrationStorageKey, 'true');
+        this.celebrate = true;
+      }
+    });
   }
 }
