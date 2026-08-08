@@ -2,8 +2,37 @@
   <h1>Access grants</h1>
   <p class="ops-page__hint">
     Overrides a user's entitlement independent of billing (see AccessGrant on the backend).
-    There is no user lookup yet &mdash; find the user ID in the database.
   </p>
+
+  <form [formGroup]="lookupForm" class="ops-form" (ngSubmit)="onLookup()">
+    <label class="ops-form__field">
+      Find user by email
+      <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
+    </label>
+    <div class="ops-form__actions">
+      <button type="submit" [disabled]="lookingUp">Look up</button>
+    </div>
+  </form>
+
+  @if (lookupResult) {
+    <div class="ops-summary">
+      <p><strong>{{ lookupResult.username }}</strong> ({{ lookupResult.email }})</p>
+      <p>Effective entitlement: {{ lookupResult.effectiveEntitlement }}</p>
+      @if (lookupResult.activeGrant) {
+        <p>
+          Active grant: {{ lookupResult.activeGrant.entitlement }}
+          @if (lookupResult.activeGrant.expiresAt) {
+            (expires {{ lookupResult.activeGrant.expiresAt | date:'medium' }})
+          } @else {
+            (no expiry)
+          }
+          &mdash; "{{ lookupResult.activeGrant.reason }}"
+        </p>
+      } @else {
+        <p>No active grant &mdash; entitlement comes from their plan.</p>
+      }
+    </div>
+  }
 
   <form [formGroup]="form" class="ops-form">
     <label class="ops-form__field">
