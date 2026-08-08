@@ -1,26 +1,21 @@
 <div class="base-container">
-  <!-- Filter Buttons -->
   <div class="filters">
-    <div class="filter-container">
-      <div class="filter-buttons">
-        <button
-          [ngClass]="{'active': filter === 'all'}"
-          (click)="filterGames('all')"
-          class="filter-btn">All
-        </button>
-
-        <button
-          [ngClass]="{'active': filter === 'solo'}"
-          (click)="filterGames('solo')"
-          class="filter-btn">Solo
-        </button>
-
-        <button
-          [ngClass]="{'active': filter === 'pvp'}"
-          (click)="filterGames('pvp')"
-          class="filter-btn">PvP
-        </button>
-      </div>
+    <div class="billing-toggle" role="group" aria-label="Game type">
+      <button type="button"
+              [attr.aria-pressed]="filter === 'all'"
+              (click)="filterGames('all')">
+        All
+      </button>
+      <button type="button"
+              [attr.aria-pressed]="filter === 'solo'"
+              (click)="filterGames('solo')">
+        Solo
+      </button>
+      <button type="button"
+              [attr.aria-pressed]="filter === 'pvp'"
+              (click)="filterGames('pvp')">
+        PvP
+      </button>
     </div>
   </div>
   <!-- Game Cards -->

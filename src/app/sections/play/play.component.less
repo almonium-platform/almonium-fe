@@ -104,46 +104,37 @@
 }
 
 /* Parent container to create the white "pad" effect */
-.filter-container {
-  margin-top: 20px;
-  background-color: white; /* White background for the pad */
-  padding: 8px 14px; /* Padding around the buttons */
-  border-radius: 18px;
-}
-
-/* Buttons inside the pad */
-.filter-buttons {
-  display: flex;
-  gap: 10px; /* Space between buttons */
-  justify-content: center; /* Center the buttons inside the container */
-}
-
 .filters {
   display: flex;
   width: 100%;
-  padding-left: 2.5em;
-  flex-direction: row;
-  justify-content: start;
+  padding: 20px 0 8px;
+  justify-content: center;
 }
 
-/* Individual buttons */
-.filter-btn {
-  border: none;
-  border-radius: 15px;
-  padding: 8px 16px;
+.billing-toggle {
+  display: flex;
+  background: #ede5e3;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.billing-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
   cursor: pointer;
-  font-family: 'Arial', sans-serif;
-  font-size: 16px;
-  background-color: transparent; /* Background of the button is transparent */
-  transition: background-color 0.2s;
+  font: 600 15px Helvetica, Arial, sans-serif;
+  padding: 10px 20px;
+  border-radius: 9px;
+  background: transparent;
+  color: #6b6168;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
-.filter-btn.active {
-  background-color: #ffeefb; /* Selected state */
-  color: #8F2356;
-  font-weight: bold;
-}
-
-.filter-btn:hover {
-  background-color: #F8F8F8;
+.billing-toggle button[aria-pressed='true'] {
+  background: #fff;
+  color: #2b2226;
+  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
 }
