@@ -28,6 +28,7 @@ export class UserInfo {
     public tags: string[] | null,
     public subscription: Subscription,
     public premium: boolean,
+    public admin: boolean,
     public learners: Learner[],
     public interests: Interest[],
     public uiPreferences: UIPreferences,
@@ -50,6 +51,7 @@ export class UserInfo {
       updates.tags ?? this.tags,
       updates.subscription ?? this.subscription,
       updates.premium ?? this.premium,
+      updates.admin ?? this.admin,
       updates.learners ?? this.learners,
       updates.interests ?? this.interests,
       updates.uiPreferences ?? this.uiPreferences,
@@ -73,6 +75,7 @@ export class UserInfo {
       parseNullableStringArray(data['tags'], 'user.tags'),
       Subscription.fromJSON(data['subscription']),
       expectBoolean(data['premium'], 'user.premium'),
+      expectBoolean(data['admin'], 'user.admin'),
       expectArray(data['learners'], 'user.learners').map((learner, index) =>
         Learner.fromJSON(learner, `user.learners[${index}]`)
       ),
@@ -116,6 +119,7 @@ export interface UserInfoData {
   tags: string[] | null;
   subscription: SubscriptionDto;
   premium: boolean;
+  admin: boolean;
   learners: LearnerDto[];
   interests: Interest[];
   uiPreferences: UIPreferences;

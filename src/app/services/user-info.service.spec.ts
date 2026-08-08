@@ -41,6 +41,7 @@ describe('UserInfoService', () => {
       endDate: '2027-01-01T00:00:00Z',
     },
     premium: false,
+    admin: false,
     learners: [],
     interests: [],
     uiPreferences: DEFAULT_UI_PREFERENCES,
