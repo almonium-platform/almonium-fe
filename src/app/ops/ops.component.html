@@ -1,69 +1,120 @@
 <div class="ops-page">
-  <h1>Access grants</h1>
-  <p class="ops-page__hint">
-    Overrides a user's entitlement independent of billing (see AccessGrant on the backend).
-  </p>
-
-  <form [formGroup]="lookupForm" class="ops-form" (ngSubmit)="onLookup()">
-    <label class="ops-form__field">
-      Find user by email
-      <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
-    </label>
-    <div class="ops-form__actions">
-      <button type="submit" [disabled]="lookingUp">Look up</button>
+  <header class="ops-page__header">
+    <div>
+      <p class="ops-page__eyebrow">Operations console</p>
+      <h1>Access grants</h1>
+      <p class="ops-page__hint">
+        Grant temporary or permanent entitlement overrides without changing a user's billing plan.
+      </p>
     </div>
-  </form>
+    <span class="ops-page__badge">Admin only</span>
+  </header>
 
-  @if (lookupResult) {
-    <div class="ops-summary">
-      <p><strong>{{ lookupResult.username }}</strong> ({{ lookupResult.email }})</p>
-      <p>Effective entitlement: {{ lookupResult.effectiveEntitlement }}</p>
-      @if (lookupResult.activeGrant) {
-        <p>
-          Active grant: {{ lookupResult.activeGrant.entitlement }}
-          @if (lookupResult.activeGrant.expiresAt) {
-            (expires {{ lookupResult.activeGrant.expiresAt | date:'medium' }})
+  <div class="ops-layout">
+    <section class="ops-card ops-card--lookup" aria-labelledby="lookup-title">
+      <div class="ops-card__heading">
+        <span class="ops-card__step">01</span>
+        <div>
+          <h2 id="lookup-title">Find a user</h2>
+          <p>Search by email to load their current access and user ID.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="lookupForm" class="ops-form" (ngSubmit)="onLookup()">
+        <label class="ops-form__field">
+          <span>Email address</span>
+          <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
+        </label>
+        <button class="ops-button ops-button--primary" type="submit" [disabled]="lookingUp">
+          {{ lookingUp ? 'Searching…' : 'Look up user' }}
+        </button>
+      </form>
+
+      @if (lookupResult) {
+        <div class="ops-summary" aria-live="polite">
+          <div class="ops-summary__identity">
+            <div class="ops-summary__avatar" aria-hidden="true">{{ lookupResult.username.charAt(0).toUpperCase() }}</div>
+            <div>
+              <strong>{{ lookupResult.username }}</strong>
+              <span>{{ lookupResult.email }}</span>
+            </div>
+          </div>
+          <div class="ops-summary__entitlement">
+            <span>Effective entitlement</span>
+            <strong>{{ lookupResult.effectiveEntitlement }}</strong>
+          </div>
+          @if (lookupResult.activeGrant) {
+            <div class="ops-summary__grant ops-summary__grant--active">
+              <div>
+                <span class="ops-summary__label">Active access grant</span>
+                <strong>{{ lookupResult.activeGrant.entitlement }}</strong>
+              </div>
+              <p>
+                @if (lookupResult.activeGrant.expiresAt) {
+                  Expires {{ lookupResult.activeGrant.expiresAt | date:'medium' }}
+                } @else {
+                  No expiry
+                }
+                <span aria-hidden="true"> · </span>{{ lookupResult.activeGrant.reason }}
+              </p>
+            </div>
           } @else {
-            (no expiry)
+            <div class="ops-summary__grant ops-summary__grant--none">
+              <span class="ops-summary__status-dot" aria-hidden="true"></span>
+              <span>No active grant — access comes from their plan.</span>
+            </div>
           }
-          &mdash; "{{ lookupResult.activeGrant.reason }}"
-        </p>
-      } @else {
-        <p>No active grant &mdash; entitlement comes from their plan.</p>
+        </div>
       }
-    </div>
-  }
+    </section>
 
-  <form [formGroup]="form" class="ops-form">
-    <label class="ops-form__field">
-      User ID
-      <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
-    </label>
+    <section class="ops-card ops-card--grant" aria-labelledby="grant-title">
+      <div class="ops-card__heading">
+        <span class="ops-card__step">02</span>
+        <div>
+          <h2 id="grant-title">Manage access</h2>
+          <p>Choose the entitlement and leave a note for the audit trail.</p>
+        </div>
+      </div>
 
-    <label class="ops-form__field">
-      Entitlement
-      <select formControlName="entitlement">
-        @for (entitlement of entitlements; track entitlement) {
-          <option [value]="entitlement">{{ entitlement }}</option>
-        }
-      </select>
-    </label>
+      <form [formGroup]="form" class="ops-form">
+        <label class="ops-form__field ops-form__field--wide">
+          <span>User ID</span>
+          <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+        </label>
 
-    <label class="ops-form__field">
-      Expires at (optional)
-      <input type="datetime-local" formControlName="expiresAt" />
-    </label>
+        <div class="ops-form__grid">
+          <label class="ops-form__field">
+            <span>Entitlement</span>
+            <select formControlName="entitlement">
+              @for (entitlement of entitlements; track entitlement) {
+                <option [value]="entitlement">{{ entitlement }}</option>
+              }
+            </select>
+          </label>
 
-    <label class="ops-form__field">
-      Reason
-      <input type="text" formControlName="reason" placeholder="Why is this grant being issued?" />
-    </label>
+          <label class="ops-form__field">
+            <span>Expires at <em>optional</em></span>
+            <input type="datetime-local" formControlName="expiresAt" />
+          </label>
+        </div>
 
-    <div class="ops-form__actions">
-      <button type="button" [disabled]="submitting" (click)="onGrant()">Grant / update</button>
-      <button type="button" [disabled]="submitting" (click)="onRevoke()">Revoke</button>
-    </div>
-  </form>
+        <label class="ops-form__field">
+          <span>Reason</span>
+          <input type="text" formControlName="reason" placeholder="Why is this grant being issued?" />
+        </label>
+
+        <div class="ops-form__actions">
+          <button class="ops-button ops-button--primary" type="button" [disabled]="submitting" (click)="onGrant()">
+            Grant / update
+          </button>
+          <button class="ops-button ops-button--danger" type="button" [disabled]="submitting" (click)="onRevoke()">
+            Revoke access
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
 </div>
 
 <app-recent-auth-guard></app-recent-auth-guard>
