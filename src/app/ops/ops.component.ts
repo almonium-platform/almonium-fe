@@ -59,19 +59,23 @@ export class OpsComponent {
   }
 
   protected onGrant(): void {
-    if (this.form.invalid) {
+    if (this.submitting || this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+    // Set before the async guardAction round-trip resolves, otherwise a double-click fires two
+    // overlapping requests against the same AccessGrant row and the second loses an optimistic-lock race.
+    this.submitting = true;
     this.recentAuthGuardService.guardAction(() => this.performGrant());
   }
 
   protected onRevoke(): void {
     const userId = this.form.controls.userId.value;
-    if (!userId) {
+    if (this.submitting || !userId) {
       this.form.controls.userId.markAsTouched();
       return;
     }
+    this.submitting = true;
     this.recentAuthGuardService.guardAction(() => this.performRevoke(userId));
   }
 
@@ -83,7 +87,6 @@ export class OpsComponent {
       reason,
     };
 
-    this.submitting = true;
     this.opsService.grantAccess(userId, request)
       .pipe(finalize(() => this.submitting = false))
       .subscribe({
@@ -96,7 +99,6 @@ export class OpsComponent {
   }
 
   private performRevoke(userId: string): void {
-    this.submitting = true;
     this.opsService.revokeAccess(userId)
       .pipe(finalize(() => this.submitting = false))
       .subscribe({
