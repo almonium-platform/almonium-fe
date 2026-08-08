@@ -57,7 +57,11 @@
           @if (founderOfferAvailable) {
             <div class="founder-offer">
               <span>Founding price, locked for as long as you stay subscribed.</span>
-              <span>Limited to {{ founderCapacity }} founding members.</span>
+              @if (founderRemaining < founderCapacity) {
+                <span>{{ founderRemaining }} of {{ founderCapacity }} places left.</span>
+              } @else {
+                <span>Limited to {{ founderCapacity }} founding members.</span>
+              }
             </div>
           }
           <app-interactive-cta-button (buttonClick)="onPremiumAction()"
