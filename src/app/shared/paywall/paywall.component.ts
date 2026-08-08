@@ -1,7 +1,6 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
 import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
-import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
 import {TuiIcon, TuiNotificationService, TuiTitle} from "@taiga-ui/core/components";
 import {TuiAppearance} from "@taiga-ui/core/directives";
@@ -29,12 +28,8 @@ import {expectNumber, expectRecord} from '../runtime-validation';
     TuiTitle,
     TuiCardLarge,
     TuiIcon,
-    TuiSegmented,
     InteractiveCtaButtonComponent,
     ButtonComponent
-  ],
-  providers: [
-    tuiSwitchOptionsProvider({showIcons: false, appearance: () => 'primary'}),
   ]
 })
 export class PaywallComponent implements OnInit, OnDestroy {

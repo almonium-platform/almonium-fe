@@ -18,7 +18,52 @@
 .tui-segmented-wrapper {
   display: flex;
   justify-content: center;
-  padding: .25rem 0 .25rem;
+  padding: 20px 0 8px;
+}
+
+.billing-toggle {
+  display: flex;
+  background: #ede5e3;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.billing-toggle button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  cursor: pointer;
+  font: 600 15px Helvetica, Arial, sans-serif;
+  padding: 10px 20px;
+  border-radius: 9px;
+  background: transparent;
+  color: #6b6168;
+  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+}
+
+.billing-toggle button[aria-pressed='true'] {
+  background: #fff;
+  color: #2b2226;
+  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
+}
+
+.billing-toggle .chip {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  background: #ded3d0;
+  color: #6b6168;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.billing-toggle button[aria-pressed='true'] .chip {
+  background: #6e2b5e;
+  color: #fff;
 }
 
 .cards {
@@ -193,37 +238,6 @@
   font-weight: 600;
 }
 
-.segmented {
-  gap: 2px;
-  padding: 4px;
-  border-radius: 12px;
-  background: rgb(237, 229, 227);
-}
-
-.btn-text {
-  font-weight: 600;
-}
-
-.segmented button {
-  flex: 0 0 auto;
-  min-width: 0;
-  padding: 10px 20px;
-  border-radius: 9px;
-  transition: background 180ms ease, color 180ms ease;
-}
-
-.segmented button:not(.tui-segmented_active) {
-  color: rgb(107, 97, 104);
-  background: transparent;
-  box-shadow: none;
-}
-
-.segmented button.tui-segmented_active {
-  color: rgb(43, 34, 38);
-  background: white;
-  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
-}
-
 @media screen and (max-width: 600px) {
   .cards {
     flex-direction: row; /* Keep cards in a row */
@@ -242,35 +256,6 @@
 .plan-section.premium tui-icon:after {
   background: var(--premium-gradient);
   color: transparent;
-}
-
-.discount-badge {
-  display: inline-block;
-  flex: 0 0 auto;
-  background-color: rgb(222, 211, 208);
-  color: rgb(107, 97, 104);
-  padding: 3px 7px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  border-radius: 5px;
-  white-space: nowrap;
-  transition: background 180ms ease, color 180ms ease;
-}
-
-.yearly-btn {
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.yearly-btn > span:first-child {
-  flex: 0 0 auto;
-}
-
-.yearly-btn.tui-segmented_active .discount-badge {
-  background-color: rgb(110, 43, 94);
-  color: white;
 }
 
 .cta {

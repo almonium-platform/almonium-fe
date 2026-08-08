@@ -6,17 +6,18 @@
       </h1>
     </div>
     <div class="tui-segmented-wrapper">
-      <tui-segmented
-        size="m"
-        class="segmented"
-        [(activeItemIndex)]="selectedMode"
-      >
-        <button type="button" class="btn-text">Monthly</button>
-        <button type="button" class="btn-text yearly-btn">
-          <span>Yearly</span>
-          <span class="discount-badge">2 months free</span>
+      <div class="billing-toggle" role="group" aria-label="Billing period">
+        <button type="button"
+                [attr.aria-pressed]="selectedMode === 0"
+                (click)="selectedMode = 0">
+          Monthly
         </button>
-      </tui-segmented>
+        <button type="button"
+                [attr.aria-pressed]="selectedMode === 1"
+                (click)="selectedMode = 1">
+          Yearly <span class="chip">2 months free</span>
+        </button>
+      </div>
     </div>
     <div class="cards">
       <div
