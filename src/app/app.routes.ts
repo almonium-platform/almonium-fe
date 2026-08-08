@@ -1,6 +1,7 @@
 import {Routes} from '@angular/router';
 import {authGuard} from "./authentication/auth/guard/auth.guard";
 import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
+import {adminGuard} from "./authentication/auth/guard/admin.guard";
 
 export const routes: Routes = [
   {path: '', loadComponent: () => import('./sections/landing/landing.component').then(m => m.LandingComponent)},
@@ -31,6 +32,8 @@ export const routes: Routes = [
           () => import('../app/sections/settings/settings.module')
             .then(m => m.SettingsModule),
       },
+
+      {path: 'ops', canActivate: [adminGuard], loadComponent: () => import('./ops/ops.component').then(m => m.OpsComponent)},
 
       // Games
       {path: 'play/ladder', loadComponent: () => import('./games/ladder/ladder.component').then(m => m.LadderComponent)},

@@ -48,6 +48,9 @@ export class AppConstants {
   // UTILS
   public static UTILS_URL = AppConstants.API_URL + '/utils';
 
+  // OPS (admin-only)
+  public static OPS_URL = AppConstants.API_URL + '/ops';
+
   // OTHER
   public static MIN_PASSWORD_LENGTH = 8;
 

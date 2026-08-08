@@ -1,0 +1,40 @@
+<div class="ops-page">
+  <h1>Access grants</h1>
+  <p class="ops-page__hint">
+    Overrides a user's entitlement independent of billing (see AccessGrant on the backend).
+    There is no user lookup yet &mdash; find the user ID in the database.
+  </p>
+
+  <form [formGroup]="form" class="ops-form">
+    <label class="ops-form__field">
+      User ID
+      <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+    </label>
+
+    <label class="ops-form__field">
+      Entitlement
+      <select formControlName="entitlement">
+        @for (entitlement of entitlements; track entitlement) {
+          <option [value]="entitlement">{{ entitlement }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="ops-form__field">
+      Expires at (optional)
+      <input type="datetime-local" formControlName="expiresAt" />
+    </label>
+
+    <label class="ops-form__field">
+      Reason
+      <input type="text" formControlName="reason" placeholder="Why is this grant being issued?" />
+    </label>
+
+    <div class="ops-form__actions">
+      <button type="button" [disabled]="submitting" (click)="onGrant()">Grant / update</button>
+      <button type="button" [disabled]="submitting" (click)="onRevoke()">Revoke</button>
+    </div>
+  </form>
+</div>
+
+<app-recent-auth-guard></app-recent-auth-guard>
