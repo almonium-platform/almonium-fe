@@ -30,6 +30,7 @@
     "@angular/service-worker": "^21.2.19",
     "@flaticon/flaticon-uicons": "^3.3.1",
     "@fontsource/libre-baskerville": "^5.3.0",
+    "@fontsource/literata": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@ngx-translate/core": "^17.0.0",
     "@paddle/paddle-js": "^1.6.4",
