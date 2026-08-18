@@ -22,8 +22,6 @@ import {
   OAuthProvider,
   reauthenticateWithCredential,
   reauthenticateWithPopup,
-  sendEmailVerification,
-  sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -86,7 +84,7 @@ export class AuthService {
   register(email: string, password: string): Observable<{message: string}> {
     return from(this.ready).pipe(
       switchMap(() => from(createUserWithEmailAndPassword(this.firebaseAuth, email, password))),
-      switchMap(credential => from(sendEmailVerification(credential.user))),
+      switchMap(credential => this.requestEmailVerification(credential.user)),
       switchMap(() => from(signOut(this.firebaseAuth))),
       switchMap(() => of({message: 'Next step, verify your email!'})),
     );
@@ -119,9 +117,7 @@ export class AuthService {
   }
 
   forgotPassword(email: string): Observable<{message: string}> {
-    return from(sendPasswordResetEmail(this.firebaseAuth, email)).pipe(
-      switchMap(() => of({message: 'Password reset link sent!'})),
-    );
+    return this.http.post<{message: string}>(`${AppConstants.PUBLIC_AUTH_URL}/password-resets`, {email});
   }
 
   verifyEmail(code: string): Observable<void> {
@@ -129,7 +125,7 @@ export class AuthService {
   }
 
   changeEmail(code: string): Observable<void> {
-    return from(applyActionCode(this.firebaseAuth, code));
+    return this.http.post<void>(`${AppConstants.PUBLIC_AUTH_URL}/email-changes?token=${encodeURIComponent(code)}`, {});
   }
 
   resetPassword(code: string, newPassword: string): Observable<void> {
@@ -172,6 +168,15 @@ export class AuthService {
         this.localStorageService.saveAuthMethods(authMethodsFromFirebaseUser(user));
       }),
       map(() => this.userInfoService.currentUserInfo!),
+    );
+  }
+
+  private requestEmailVerification(user: User): Observable<void> {
+    return from(getIdToken(user, true)).pipe(
+      switchMap(idToken => this.http.post<void>(
+        `${AppConstants.PUBLIC_AUTH_URL}/email-verification`,
+        {idToken},
+      )),
     );
   }
 

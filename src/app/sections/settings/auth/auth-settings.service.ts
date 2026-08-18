@@ -8,11 +8,10 @@ import {ResponseModel} from '../../../models/response.model';
 import {LocalStorageService} from '../../../services/local-storage.service';
 import {
   Auth,
-  sendEmailVerification,
   signOut,
   unlink,
   updatePassword,
-  verifyBeforeUpdateEmail,
+  getIdToken,
 } from '@angular/fire/auth';
 
 @Injectable({providedIn: 'root'})
@@ -29,11 +28,17 @@ export class AuthSettingsService {
   }
 
   requestEmailChange(email: string): Observable<void> {
-    return from(verifyBeforeUpdateEmail(this.requireUser(), email));
+    this.requireUser();
+    return this.http.post<void>(`${AppConstants.AUTH_URL}/email-changes`, {email}, {withCredentials: true});
   }
 
   requestEmailVerification(): Observable<void> {
-    return from(sendEmailVerification(this.requireUser()));
+    return from(getIdToken(this.requireUser(), true)).pipe(
+      switchMap(idToken => this.http.post<void>(
+        `${AppConstants.PUBLIC_AUTH_URL}/email-verification`,
+        {idToken},
+      )),
+    );
   }
 
   cancelEmailVerificationRequest(): Observable<void> {
