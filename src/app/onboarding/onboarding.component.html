@@ -62,26 +62,8 @@
       <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
     }
 
-    @if (activeStep === SetupStep.PLAN) {
-      @if (userInfo && userInfo.premium) {
-        <div class="card step upgraded">
-          <app-upgrade
-            [onboardingMode]="true"
-            (continue)="updateActiveStep($event)"
-            #upgradeComponent
-          ></app-upgrade>
-          @if (upgradeComponent?.content) {
-            <ng-container *ngTemplateOutlet="upgradeComponent.content"></ng-container>
-          }
-        </div>
-      } @else {
-        <div class="card plan">
-          <app-paywall #paywallComponent></app-paywall>
-          @if (paywallComponent.content) {
-            <ng-container *ngTemplateOutlet="paywallComponent.content"></ng-container>
-          }
-        </div>
-      }
+    @if (activeStep === SetupStep.LEVEL) {
+      <app-level-setup (continue)="updateActiveStep($event)" />
     }
 
     @if (activeStep === SetupStep.PROFILE) {
@@ -94,6 +76,10 @@
       <app-interests-setup
         [currentInterests]="userInfo?.interests ?? []"
       ></app-interests-setup>
+    }
+
+    @if (activeStep === SetupStep.GREETING) {
+      <app-onboarding-greeting />
     }
   </div>
 </div>

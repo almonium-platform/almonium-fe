@@ -44,7 +44,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   @ViewChild('paywallContent', {static: true}) content!: TemplateRef<unknown>;
-  private readonly step = SetupStep.PLAN;
+  private readonly step = SetupStep.LANGUAGES;
 
   private userInfo: UserInfo | null = null;
   protected planChosen = false;
@@ -103,7 +103,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
           return;
         }
         this.userInfo = userInfo;
-        this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+        this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.LANGUAGES);
         this.premium = userInfo.premium;
       });
   }

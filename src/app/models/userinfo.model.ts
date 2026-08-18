@@ -268,21 +268,23 @@ export enum PlanType {
 
 export enum SetupStep {
   WELCOME = 'WELCOME',
-  PLAN = 'PLAN',
   LANGUAGES = 'LANGUAGES',
-  PROFILE = 'PROFILE',
+  LEVEL = 'LEVEL',
   INTERESTS = 'INTERESTS',
+  PROFILE = 'PROFILE',
+  GREETING = 'GREETING',
   COMPLETED = 'COMPLETED',
 }
 
 // Define an order map
 export const SetupStepOrder: Record<SetupStep, number> = {
   [SetupStep.WELCOME]: 0,
-  [SetupStep.PLAN]: 1,
-  [SetupStep.LANGUAGES]: 2,
-  [SetupStep.PROFILE]: 3,
-  [SetupStep.INTERESTS]: 4,
-  [SetupStep.COMPLETED]: 5,
+  [SetupStep.LANGUAGES]: 1,
+  [SetupStep.LEVEL]: 2,
+  [SetupStep.INTERESTS]: 3,
+  [SetupStep.PROFILE]: 4,
+  [SetupStep.GREETING]: 5,
+  [SetupStep.COMPLETED]: 6,
 };
 
 export function isStepAfter(currentStep: SetupStep, referenceStep: SetupStep): boolean {

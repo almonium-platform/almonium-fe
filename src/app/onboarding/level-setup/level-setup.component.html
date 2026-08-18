@@ -1,0 +1,17 @@
+<div class="card step level-step">
+  @for (learner of userInfo?.learners ?? []; track learner.id) {
+    <div class="level-question">
+      <h1>How much {{ languageName(learner.language) }} can you read?</h1>
+      <p>Pick whichever sounds most like you. You can change it whenever you like.</p>
+      <div class="level-options">
+        @for (level of levels; track level[0]) {
+          <button type="button" class="level-option" [class.selected]="control(learner.language).value === level[0]"
+            (click)="control(learner.language).setValue(level[0])">
+            <code>{{ level[0] }}</code><span>{{ level[1] }}</span>
+          </button>
+        }
+      </div>
+    </div>
+  }
+  <app-button label="Continue" appearance="solid" class="w-full" [loading$]="loading$" (click)="submit()" />
+</div>

@@ -1,169 +1,67 @@
 @import '../onboarding.styles.less';
 
-.card.step {
-  --tui-status-negative: #ac1c1c;
-  --tui-text-negative: #ac1c1c;
-  --tui-radius-m: 1rem;
-  --tui-typography-body-s: normal 0.9rem/1.25rem var(--tui-typography-family-text);
-  --tui-text-tertiary: var(--tui-background-accent-1);
-  --tui-background-accent-opposite-pressed: var(--purple-dark);
+.language-step {
+  max-width: 46rem;
+  align-items: stretch;
 }
 
-.text-sm {
-  line-height: 1.5rem;
+.step-description, .native-language, .native-note, .plan-limit {
+  margin: 0;
+  color: #5f5560;
+  font-size: .9rem;
+  text-align: center;
 }
 
-.language-note {
-  display: flex;
-  margin-bottom: 1rem;
+.language-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+  margin: .5rem 0 1rem;
+}
+
+.language-card {
+  min-height: 5.6rem;
   padding: 1rem;
-  color: var(--purple-dark);
-  background-color: #f4edf4;
-  border-radius: 0.5rem;
-}
-
-.feature-marker {
-  width: 1rem;
-  height: 1rem;
-  margin-right: 0.25rem;
-  vertical-align: -0.15rem;
-  color: var(--purple-dark);
-
-  &.special {
-    color: var(--dark-raspberry);
-  }
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  .form-group {
-    margin-bottom: 1.5rem;
-    text-align: left;
-
-    label, .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      margin-left: 1.1rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-  }
-
-  .features {
-    text-align: left;
-    margin-bottom: 2rem;
-
-    h3 {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .columns {
-      display: flex;
-      justify-content: space-evenly;
-      gap: 1rem;
-    }
-
-    .column {
-      flex-grow: 1;
-    }
-
-    .special-features,
-    .basic-features {
-      h4 {
-        font-size: 1rem;
-        margin-bottom: 0.6rem;
-        margin-left: 0.5rem;
-        font-weight: 600;
-      }
-
-      ul.features-list {
-
-        li {
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
-}
-
-// Second step, CEFR
-.cefr-form {
-  margin: 1rem 0;
-  width: 100%;
-}
-
-.cefr-rows {
-  width: 100%;
-}
-
-.cefr-lang-chip {
-  padding: 1.3rem 1rem;
-  font-size: 1.2rem;
-}
-
-.cefr-select {
-  width: 6rem;
-}
-
-.cefr-language-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  gap: 2rem;
-  margin-bottom: 1rem;
-}
-
-
-.header-icon {
-  display: inline-block;
-  vertical-align: middle;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #edebe8;
+  border-radius: 1rem;
+  color: #2c2530;
   cursor: pointer;
-  color: var(--text-color);
-  border-radius: 50%;
-  padding: .1rem;
-  margin-top: .1rem;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 
-.go-back-icon {
-  .header-icon;
-  left: .5rem;
-}
-
-.go-back-icon:hover {
-  background-color: var(--text-color);
-  color: var(--info-light-blue);
-}
-
-.info-btn {
-  .header-icon;
-  right: .5rem;
-}
-
-/* Media query for small screens */
-@media (max-width: 420px) {
-  .columns {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  &:hover:not(:disabled) {
+    border-color: #5A1A74;
+    box-shadow: 0 4px 12px rgba(72, 23, 125, .12);
   }
+
+  &.selected {
+    border: 2px solid #5A1A74;
+    background: #faf6fb;
+    padding: calc(1rem - 1px);
+  }
+
+  &:disabled { cursor: not-allowed; color: #8b8290; background: #f5f1f3; }
 }
 
-// Hide Select all button
-::ng-deep tui-opt-group[tuiMultiSelectGroup] .t-wrapper > .t-button {
-  display: none !important;
-}
+.language-name, .language-features { display: block; }
+.language-name { font-family: var(--font-family-reading); font-size: 1.05rem; font-weight: 600; }
+.language-features { margin-top: .35rem; color: #7e7e7e; font-size: .8rem; }
+.another-language { border-style: dashed; }
 
-.target-disabled input[tuiInputChip] {
-  opacity: 0.6;
-  cursor: not-allowed;
+.native-language { margin-bottom: .25rem; }
+.native-language button, .plan-limit a { color: #5A1A74; text-decoration: none; font: inherit; font-weight: 600; background: none; border: 0; cursor: pointer; }
+.native-note { margin-bottom: .5rem; }
+.plan-limit { margin: .3rem 0 1rem; }
+
+form { display: flex; flex-direction: column; width: 100%; }
+.form-group { margin-bottom: 1.5rem; text-align: left; }
+.form-label { margin-bottom: .5rem; font-size: .9rem; font-weight: 600; }
+.cefr-rows { width: 100%; margin-bottom: 1.5rem; }
+.cefr-language-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
+.cefr-lang-chip { padding: .75rem 1rem; }
+.target-disabled input[tuiInputChip] { cursor: not-allowed; }
+
+@media (max-width: 560px) {
+  .language-grid { grid-template-columns: 1fr; }
 }

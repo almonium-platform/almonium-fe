@@ -1,189 +1,88 @@
 <ng-template #langSetup>
-  <div class="card step">
-    <div class="tui-header header-row"
-         [style.padding]="onSecondForm ? '0 3rem' : ''"
-    >
-      @if (onSecondForm) {
-        <lucide-icon
-          class="go-back-icon"
-          name="circle-chevron-left"
-          (click)="onSecondForm = false"
-        ></lucide-icon>
-      }
+  <div class="card step language-step">
+    @if (!embeddedMode) {
+      <div class="tui-header header-row">What would you like to read?</div>
+      <p class="step-description">Choose a language to start with. You can add another later.</p>
 
-      {{ onSecondForm ? 'Assess Your Level' : embeddedMode ? 'Add New Languages' : 'Choose Your Languages' }}
-      @if (onSecondForm) {
-        <app-info-icon
-          class="info-btn"
-          [size]=25
-          [strokeWidth]="1.75"
-          tooltipText="CEFR stands for Common European Framework of Reference for Languages.">
-        </app-info-icon>
-      }
-
-    </div>
-    @if (!onSecondForm) {
-      <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()" class="">
-        <!-- Fluent Languages-->
-        @if (!embeddedMode) {
-          <div class="form-group">
-            <div class="form-label">I'm fluent in</div>
-            <app-fluent-language-selector
-              [languages]="supportedLanguages"
-              [maxLanguages]="fluentMaxLanguages"
-              [showLimitMessage]="true"
-              [selectedLanguages]="cachedFluentLanguages"
-              (selectedFluentLanguages)="listenToFluentForm($event)"
-            ></app-fluent-language-selector>
-          </div>
-        }
-        <!-- Target Languages -->
-        <div class="form-group">
-          <div class="form-label">I want to learn</div>
-
-          <tui-textfield
-            multi
-            tuiChevron
-            [ngClass]="{ 'target-disabled': atTargetLimit }"
-          >
-            <input
-              #targetInput
-              tuiInputChip
-              [formControl]="targetLanguagesControl"
-              [placeholder]="targetLanguagesControl.value.length? '': (atTargetLimit ? 'Limit reached' : 'Start typing...')"
-              [attr.aria-disabled]="atTargetLimit"
-              (input)="onTypeTarget($event)"
-              (keydown)="trapSeparatorsTarget($any($event))"
-              (keydown.enter)="onEnterTarget($any($event))"
-            />
-
-            <tui-input-chip *tuiItem/>
-
-            @if (filteredTargetLanguages$ | async) {
-              <tui-data-list *tuiDropdown>
-                <tui-opt-group [label]="labels[0]" tuiMultiSelectGroup>
-                  @for (name of specialTargetLanguageNames
-                    | tuiHideSelected
-                    | tuiFilterByInput; track name) {
-                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
-                  }
-                </tui-opt-group>
-
-                <tui-opt-group [label]="labels[1]" tuiMultiSelectGroup>
-                  @for (name of otherTargetLanguageNames
-                    | tuiHideSelected
-                    | tuiFilterByInput; track name) {
-                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
-                  }
-                </tui-opt-group>
-              </tui-data-list>
-            }
-          </tui-textfield>
-
-          <tui-error
-            [formControl]="targetLanguagesControl"
-          />
-          @if (atTargetLimit) {
-            <div class="tui-text_m tui-text_secondary tui-space_top-2 flex justify-center items-center">
-              Free plan lets you pick only {{ targetMaxLanguages }} target language.
-            </div>
+      <form [formGroup]="languageForm" (ngSubmit)="submitOnboardingLanguageForm()">
+        <div class="language-grid">
+          @for (language of visibleTargetLanguages; track language.code) {
+            <button
+              type="button"
+              class="language-card"
+              [class.selected]="isTargetSelected(language.name)"
+              [disabled]="atTargetLimit && !isTargetSelected(language.name)"
+              (click)="toggleTarget(language.name)"
+            >
+              <span class="language-name">{{ language.name }}</span>
+              <span class="language-features">{{ featuresFor(language) }}</span>
+            </button>
+          }
+          @if (!showAllLanguages && remainingLanguageCount > 0) {
+            <button type="button" class="language-card another-language" (click)="showAllLanguages = true">
+              <span class="language-name">Another language</span>
+              <span class="language-features">{{ remainingLanguageCount }} more available</span>
+            </button>
           }
         </div>
-        @if (!selectedTargetLanguageFeatures.special.length && !selectedTargetLanguageFeatures.basic.length) {
-          <div class="language-note">
-            <div class="text-left">
-              <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-                <lucide-icon name="star" class="feature-marker special"></lucide-icon>
-                Some languages have special features.
-              </p>
-              <p class="text-sm break-words whitespace-normal max-w-[20rem]">
-                <lucide-icon name="check-check" class="feature-marker"></lucide-icon>
-                Core functionality is available for all of them.
-              </p>
-            </div>
-          </div>
-        }
-        <!-- Features Display -->
-        @if (featuresVisible()) {
-          <div class="features"
-          >
-            <div class="columns">
-              <!-- Special Features Column -->
-              @if (selectedTargetLanguageFeatures.special.length > 0) {
-                <div class="special-features">
-                  <h4>Special Features</h4>
-                  <ul class="features-list">
-                    @for (feature of selectedTargetLanguageFeatures.special; track feature) {
-                      <li>
-                        <lucide-icon name="star" class="feature-marker special"></lucide-icon>
-                        {{ feature.feature }}
-                        @if ((targetLanguagesControl.value.length || 0) > 1) {
-                          <span>
-                            ({{ feature.languages.join(', ') }})
-                          </span>
-                        }
-                      </li>
-                    }
-                  </ul>
-                </div>
-              }
-              <!-- Basic Features Column -->
-              <div class="basic-features">
-                <h4>Core Features</h4>
-                <ul class="features-list">
-                  @for (feature of selectedTargetLanguageFeatures.basic; track feature) {
-                    <li>
-                      <lucide-icon name="check-check" class="feature-marker"></lucide-icon>
-                      {{ feature.feature }}
-                    </li>
-                  }
-                </ul>
-              </div>
-            </div>
-          </div>
-        }
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          [disabled]="languageForm.invalid"
-          class="gradient-button"
-        >
-          Continue
-        </button>
-      </form>
-    }
 
-    <!--    Second Step -->
-    @if (onSecondForm) {
-      <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
-        <div class="cefr-form">
+        <div class="native-language">
+          Reading from {{ detectedNativeLanguage }} — detected
+          <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">change</button>
+        </div>
+        @if (showNativeLanguageNote) {
+          <p class="native-note">You can update your reading languages later in Settings.</p>
+        }
+
+        <tui-error [formControl]="targetLanguagesControl" />
+        @if (targetMaxLanguages === 1) {
+          <p class="plan-limit">Free covers one language at a time. <a href="/pricing">See plans</a></p>
+        }
+
+        <app-button
+          label="Continue"
+          appearance="solid"
+          class="w-full"
+          [disabled]="languageForm.invalid"
+          [loading$]="loading$"
+        />
+      </form>
+    } @else {
+      <div class="tui-header header-row">{{ onSecondForm ? 'Assess Your Level' : 'Add New Languages' }}</div>
+      @if (!onSecondForm) {
+        <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()">
+          <div class="form-group">
+            <div class="form-label">I want to learn</div>
+            <tui-textfield multi tuiChevron [ngClass]="{ 'target-disabled': atTargetLimit }">
+              <input #targetInput tuiInputChip [formControl]="targetLanguagesControl" placeholder="Start typing..."
+                (input)="onTypeTarget($event)" (keydown)="trapSeparatorsTarget($any($event))"
+                (keydown.enter)="onEnterTarget($any($event))" />
+              <tui-input-chip *tuiItem />
+              @if (filteredTargetLanguages$ | async) {
+                <tui-data-list *tuiDropdown>
+                  @for (name of otherTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
+                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
+                  }
+                </tui-data-list>
+              }
+            </tui-textfield>
+            <tui-error [formControl]="targetLanguagesControl" />
+          </div>
+          <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />
+        </form>
+      } @else {
+        <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
           <div formArrayName="languages" class="cefr-rows">
             @for (i of languages.controls; track i; let idx = $index) {
-              <div
-                [formGroupName]="idx"
-                class="cefr-language-row"
-              >
-                <span tuiChip
-                  class="cefr-lang-chip"
-              [style.background-color]="languages.at(idx).controls.language.value | tuiAutoColor"
-                >
-                  {{ languages.at(idx).get('language')?.value }}
-                </span>
-                <app-cefr-level-selector
-                  [control]="getCefrLevelControl(idx)"
-                  [levels]="cefrLevels"
-                ></app-cefr-level-selector>
+              <div [formGroupName]="idx" class="cefr-language-row">
+                <span tuiChip class="cefr-lang-chip">{{ languages.at(idx).controls.language.value }}</span>
+                <app-cefr-level-selector [control]="getCefrLevelControl(idx)" [levels]="cefrLevels" />
               </div>
             }
           </div>
-        </div>
-        <app-button
-          appearance="gradient"
-          [label]="isDataChanged? 'Save & Continue' : 'Continue'"
-          [loading$]="loading$"
-          [disabled]="cefrForm.invalid"
-        ></app-button>
-      </form>
+          <app-button label="Save & Continue" appearance="solid" class="w-full" [loading$]="loading$" [disabled]="cefrForm.invalid" />
+        </form>
+      }
     }
   </div>
 </ng-template>

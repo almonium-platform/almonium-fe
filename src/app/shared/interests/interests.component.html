@@ -5,7 +5,7 @@
       size="s"
       [tuiSkeleton]="loading"
       [appearance]="interest.selected ? 'neutral' : 'floating'"
-      [style.background-color]="interest.selected ? (interest.name | tuiAutoColor) : ''"
+      [class.selected]="interest.selected"
     >
       <input
         hidden

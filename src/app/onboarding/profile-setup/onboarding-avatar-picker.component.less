@@ -1,0 +1,9 @@
+.avatar-preview { position: relative; display: inline-flex; }
+.avatar-preview > button { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border: 1px solid #d8cfd6; border-radius: 50%; background: #fff; color: #5A1A74; cursor: pointer; }
+.avatar-picker { padding: .5rem; max-width: 28rem; }
+.avatar-picker h1 { margin: 0; font-family: var(--font-family-reading); color: #2c2530; }
+.avatar-picker p { color: #5f5560; }
+.avatar-choices { display: flex; flex-wrap: wrap; gap: .75rem; }
+.avatar-choice { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .5rem; border: 1px solid #edebe8; border-radius: .85rem; background: #fff; color: #5f5560; cursor: pointer; }
+.avatar-choice.selected, .avatar-choice:hover { border-color: #5A1A74; background: #faf6fb; }
+.avatar-choice span { font-size: .75rem; }

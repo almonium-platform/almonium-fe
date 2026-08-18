@@ -22,7 +22,7 @@ export class UpgradeComponent implements OnInit {
   @Input() onboardingMode = false;
   @Input() celebrate = false;
   private readonly destroy$ = new Subject<void>();
-  private readonly step = SetupStep.PLAN;
+  private readonly step = SetupStep.LANGUAGES;
   @Output() continue = new EventEmitter<SetupStep>();
   protected userInfo: UserInfo | null = null;
 

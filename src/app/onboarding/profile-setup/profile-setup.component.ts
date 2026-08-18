@@ -5,19 +5,17 @@ import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userin
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
 import {UsernameComponent} from "../../shared/username/username.component";
-import {AvatarSettingsComponent} from "../../shared/avatar/settings/avatar-settings.component";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 
-import {StepHeaderComponent} from "../../shared/step-header/step-header.component";
 import {ButtonComponent} from "../../shared/button/button.component";
+import {OnboardingAvatarPickerComponent} from './onboarding-avatar-picker.component';
 
 @Component({
   selector: 'app-profile-setup',
   imports: [
     UsernameComponent,
-    AvatarSettingsComponent,
-    StepHeaderComponent,
-    ButtonComponent
+    ButtonComponent,
+    OnboardingAvatarPickerComponent,
   ],
   templateUrl: './profile-setup.component.html',
   styleUrl: './profile-setup.component.less'

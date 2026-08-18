@@ -10,12 +10,12 @@ import {Subject, takeUntil} from "rxjs";
 import {SetupStep, UserInfo} from "../models/userinfo.model";
 import {Router} from "@angular/router";
 import {WelcomeComponent} from "./welcome/welcome.component";
-import {PaywallComponent} from "../shared/paywall/paywall.component";
 import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../services/viewport.service";
-import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
+import {LevelSetupComponent} from './level-setup/level-setup.component';
+import {GreetingComponent} from './greeting/greeting.component';
 
 @Component({
   selector: 'app-onboarding',
@@ -25,14 +25,14 @@ import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
     TuiProgress,
     LanguageSetupComponent,
     WelcomeComponent,
-    PaywallComponent,
     NgTemplateOutlet,
     ProfileSetupComponent,
     InterestsSetupComponent,
     TuiInput,
     LucideAngularModule,
     NgClass,
-    UpgradeComponent
+    LevelSetupComponent,
+    GreetingComponent,
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.less'
@@ -53,10 +53,11 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   storedStep: SetupStep = SetupStep.WELCOME; // Step stored in the backend
   steps: SetupStep[] = [
     SetupStep.WELCOME,
-    SetupStep.PLAN,
     SetupStep.LANGUAGES,
-    SetupStep.PROFILE,
+    SetupStep.LEVEL,
     SetupStep.INTERESTS,
+    SetupStep.PROFILE,
+    SetupStep.GREETING,
   ];
 
   ngOnInit() {

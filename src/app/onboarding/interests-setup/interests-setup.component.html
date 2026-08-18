@@ -1,6 +1,6 @@
 <div class="card step">
   <div class="tui-header header-row">
-    Curate Your Reading Topics
+    What do you like to read?
   </div>
 
   <app-interests
@@ -10,11 +10,12 @@
   </app-interests>
 
   <app-button
-    label="Start Your Journey"
+    label="Start reading"
     (click)="submit()"
     appearance="gradient"
     class="w-full"
     [loading$]="loading$"
+    [disabled]="selectedInterests.length < 3"
   >
   </app-button>
 </div>

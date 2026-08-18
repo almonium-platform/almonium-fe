@@ -1,0 +1,11 @@
+@import '../onboarding.styles.less';
+
+.level-step { max-width: 42rem; align-items: stretch; }
+.level-question h1 { margin: 0; font-family: var(--font-family-reading); font-size: 1.65rem; color: #2c2530; }
+.level-question p { margin: .5rem 0 1.25rem; color: #5f5560; }
+.level-options { display: flex; flex-direction: column; gap: .5rem; }
+.level-option { display: flex; align-items: baseline; gap: .9rem; width: 100%; padding: .85rem 1rem; text-align: left; border: 1px solid #edebe8; border-radius: 1rem; background: #fff; color: #2c2530; cursor: pointer; }
+.level-option:hover, .level-option.selected { border-color: #5A1A74; background: #faf6fb; }
+.level-option.selected { border-width: 2px; padding: calc(.85rem - 1px) calc(1rem - 1px); }
+.level-option code { width: 1.8rem; color: #5A1A74; font-weight: 600; }
+.level-option span { font-family: var(--font-family-reading); }

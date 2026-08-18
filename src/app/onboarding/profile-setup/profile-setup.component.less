@@ -1,32 +1,9 @@
 @import "../onboarding.styles.less";
 
-.avatar-section {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  padding-right: .5rem;
-  align-items: center;
-}
-
-.section-block {
-  padding: unset;
-}
-
-.description {
-  font-size: 0.9rem;
-  color: var(--text-color);
-}
-
-.section-block {
-  min-width: 20rem;
-  max-width: 25rem;
-  width: 100%;
-}
-
-.username-wrapper {
-  background: #f9f9f9;
-  border-radius: 1rem;
-  padding: 1rem;
-  margin: 2rem 0 0 0;
-  border: 1px solid #f5f5f5;
-}
+.profile-step { max-width: 31rem; align-items: stretch; }
+.profile-heading h1 { margin: 0; font-family: var(--font-family-reading); font-size: 1.7rem; color: #2c2530; }
+.profile-heading p, .identity-copy, .username-section p { margin: .45rem 0 0; color: #5f5560; font-size: .9rem; }
+.identity-preview { display: flex; align-items: center; gap: 1rem; padding-bottom: 1.25rem; border-bottom: 1px solid #edebe8; }
+.avatar-link { padding: .35rem 0; border: 0; background: none; color: #5A1A74; font: inherit; font-weight: 600; cursor: pointer; }
+.username-section > span { display: block; margin-bottom: .55rem; color: #872657; font-size: .7rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.username-section { padding-top: .25rem; }

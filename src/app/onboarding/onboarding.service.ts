@@ -3,7 +3,7 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
 import {LanguageSetupRequest} from "./language-setup/language-setup.model";
-import {Learner, SetupStep} from "../models/userinfo.model";
+import {CEFRLevel, Learner, SetupStep} from "../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +20,10 @@ export class OnboardingService {
   setupLanguages(payload: LanguageSetupRequest): Observable<Learner[]> {
     const url = `${AppConstants.ONBOARDING_URL}/langs`;
     return this.http.put<Learner[]>(url, payload, {withCredentials: true});
+  }
+
+  setupLevels(levels: {language: string; cefrLevel: CEFRLevel}[]): Observable<unknown> {
+    return this.http.put(`${AppConstants.ONBOARDING_URL}/levels`, levels, {withCredentials: true});
   }
 
   saveInterests(ids: number[]): Observable<unknown> {

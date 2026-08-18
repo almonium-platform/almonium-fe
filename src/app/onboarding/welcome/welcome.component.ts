@@ -51,7 +51,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   }
 
   startOnboarding() {
-    const nextStep = SetupStep.PLAN;
+    const nextStep = SetupStep.LANGUAGES;
 
     if (isStepAfter(this.userInfo!.setupStep, this.step)) {
       this.continue.emit(nextStep);
