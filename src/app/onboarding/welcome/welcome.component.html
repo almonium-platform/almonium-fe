@@ -1,20 +1,22 @@
 <div class="card step welcome">
   <div class="left-side">
-    <app-gif-player (click)="replayGifSubject.next()" [replayTrigger]="replayGifSubject"></app-gif-player>
+    <app-gif-player
+      (click)="replayGifSubject.next()"
+      [replayTrigger]="replayGifSubject"
+      size="8rem"
+    ></app-gif-player>
   </div>
   <div class="right-side">
-    <h4 class="gradient-text"> Welcome to Almonium!</h4>
+    <h4 class="welcome-title">Welcome to Almonium</h4>
     <p>
-      We’re excited to have you here.
-      Let’s guide you through the setup.
-      Don’t worry, it will only take a minute.
+      A few quick questions, then you're set up.
     </p>
     <app-button
       label="Get Started"
       [loading$]="loading$"
       (click)="startOnboarding()"
       class="w-full"
-      appearance="gradient"
+      appearance="solid"
     ></app-button>
   </div>
 </div>

@@ -12,6 +12,8 @@ import { Subject, Subscription } from 'rxjs';
       preload="auto"
       [autoplay]="playOnLoad"
       [loop]="looped"
+      [style.width]="size"
+      [style.height]="size"
     >
       <source src="assets/gif/folding.webm" type="video/webm" />
     </video>
@@ -21,6 +23,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
   @Input() replayTrigger?: Subject<void>;
   @Input() looped = false;        // one asset; loop is controlled here
   @Input() playOnLoad = true;
+  @Input() size?: string;
 
   @ViewChild('vid', { static: true }) vid!: ElementRef<HTMLVideoElement>;
   private sub?: Subscription;

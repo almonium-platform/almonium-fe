@@ -66,7 +66,7 @@ export class ButtonComponent implements OnInit {
   @Input() label!: string;
   @Input() hoverLabel?: string;
   @Input() disabled = false;
-  @Input() appearance: 'bw' | 'gradient' | 'underline' | 'text' = 'gradient';
+  @Input() appearance: 'bw' | 'gradient' | 'solid' | 'underline' | 'text' = 'gradient';
   @Input() customClass = '';
   @Input() fontSize?: number;
   @Input() fontWeight?: number;
@@ -108,6 +108,9 @@ export class ButtonComponent implements OnInit {
     }
     if (this.appearance === 'gradient') {
       return 'gradient-button';
+    }
+    if (this.appearance === 'solid') {
+      return 'solid-button';
     }
     return '';
   }
