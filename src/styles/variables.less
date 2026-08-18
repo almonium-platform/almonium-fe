@@ -1,21 +1,44 @@
 :root {
-  // Colors
+  // Design tokens: this is the authoritative application layer. Tailwind and
+  // Taiga UI consume these values; neither defines the product palette.
+  // Brand ramp (steps 1–6 match the emblem; 7–8 are application-only).
+  --brand-raspberry: #A1264C;
+  --brand-premium: #8F2356;
+  --brand-flat-logo: #7D2060;
+  --brand-margin: #6C1D6A;
+  --brand-primary: #5A1A74;
+  --brand-hover: #48177D;
+  --brand-pressed: #3A1462;
+  --brand-ink: #2C2530;
+
+  // Semantic colours
+  --reader-text-color: #33292E;
+  --subhead-color: #5f5560;
+  --metadata-color: #a99aa8;
+  --page-ground: #F9F6F5;
+  --card-color: #fff;
+  --hairline-color: #edebe8;
+  --control-border-color: #d8cfd6;
+  --disabled-fill-color: #e8e2e6;
+  --disabled-label-color: #8b8290;
+
+  // Compatibility aliases, to be retired as components are consolidated.
   --chat-accent-color: #693651;
   --chat-bg-color: #ac5b77;
   --chat-lite: #ffd1e0;
   --pale-purple: #958ba5;
-  --lavender: #A999A8;
-  --purple-dark: #612b5e;
-  --main-bg-color: #F9F6F5;
-  --text-color: #3d3d3d;
+  --lavender: var(--metadata-color);
+  --purple-dark: var(--brand-margin);
+  --main-bg-color: var(--page-ground);
+  --text-color: var(--brand-ink);
   --danger-bg-color: #ffe3e9;
   --danger-text-color: #fa4666;
   --orange: #ff7f00;
   --warning-color: #ea6644;
-  --border-color: #edebe8;
+  --border-color: var(--hairline-color);
   --grey-color: #f0f0f0;
-  --disabled-color: #e6e5e5;
-  --disabled-text-color: #7e7e7e;
+  --disabled-color: var(--disabled-fill-color);
+  --disabled-text-color: var(--disabled-label-color);
   --waiting-color: #f0ad4e;
   --info-dark-blue: #4767cd;
   --info-light-blue: #f1f5fb;
@@ -26,17 +49,20 @@
   --success-bg-color: #E7F8F2;
   --dark-raspberry: #872657;
   // overriding tui global variables
-  --tui-background-accent-1: #83397f; /* Primary theme color */
-  --tui-background-accent-1-hover: var(--pale-purple);
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
   --tui-text-action: var(--dark-raspberry);
   --tui-text-action-hover: var(--lavender);
   --tui-radius-l: 3rem;
 
   // Gradients
-  --premium-gradient: linear-gradient(135deg, #612b5e, #83397f);
+  --premium-gradient: linear-gradient(135deg, var(--brand-premium), var(--brand-primary));
   --default-avatar-gradient: linear-gradient(to bottom left, #8b5cf6, #ec4899); /* Unused */
   // Fonts
-  --font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  --font-family-reading: 'Literata', serif;
+  --font-family-ui: 'IBM Plex Sans', sans-serif;
+  --font-family-mono: 'IBM Plex Mono', monospace;
+  --font-family: var(--font-family-ui);
   // Other
   --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
   --header-height: 4.33rem; /* 69px */

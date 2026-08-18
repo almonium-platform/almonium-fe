@@ -6,7 +6,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  --qr-code-gradient: linear-gradient(to top right, #171D7B, #793293);
+  --qr-code-gradient: var(--brand-flat-logo);
   aspect-ratio: 1 / 1; /* Enforce a square aspect ratio */
 }
 
@@ -31,13 +31,13 @@
   height: 4.75rem;
   pointer-events: none; /* Ensure logo doesn't block QR code scanning */
 
-  /* Apply the gradient to the logo */
+  /* QR codes are a monochrome context: use the flat emblem. */
   background: var(--qr-code-gradient);
-  mask-image: url('/assets/img/logo/logo.svg');
+  mask-image: url('/assets/img/logo/logo-flat.svg');
   mask-repeat: no-repeat;
   mask-size: cover;
   mask-position: center;
-  -webkit-mask-image: url('/assets/img/logo/logo.svg');
+  -webkit-mask-image: url('/assets/img/logo/logo-flat.svg');
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: cover;
   -webkit-mask-position: center;
