@@ -2,13 +2,13 @@ import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@ang
 import {Subject, takeUntil} from 'rxjs';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
-import {AvatarPickerComponent} from '../../../../../shared/profile/avatar-picker/avatar-picker.component';
+import {SettingsAvatarPickerComponent} from '../settings-avatar-picker/settings-avatar-picker.component';
 
 @Component({
   selector: 'app-manage-avatar',
   templateUrl: './manage-avatar.component.html',
   styleUrl: './manage-avatar.component.less',
-  imports: [AvatarPickerComponent],
+  imports: [SettingsAvatarPickerComponent],
 })
 export class ManageAvatarComponent implements OnInit, OnDestroy {
   private readonly userInfoService = inject(UserInfoService);

@@ -20,171 +20,145 @@
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <div class="card-container">
-    <div class="section-block card identity-card">
+  <main class="profile-layout">
+    <section class="profile-card card">
+      <div class="eyebrow">Profile</div>
+
       @if (userInfo) {
-        <app-avatar-picker [userInfo]="userInfo" variant="settings" />
-      }
-
-      <div class="identity-username">
-        <span>Username</span>
-        <app-username />
-        <p>Only used if you share a word pack.</p>
-      </div>
-
-      <div class="profile-visibility">
-        @if (!userInfo?.hidden) {
-          <button type="button" class="profile-tool" (click)="copyProfileLink()">
-            <lucide-icon name="link" [size]="18" /> Copy profile link
+        <div class="identity-row">
+          <button type="button" class="avatar-edit" (click)="profileEdit = !profileEdit" aria-label="Edit profile">
+            <app-avatar
+              [username]="userInfo.username"
+              [avatarUrl]="userInfo.avatarUrl"
+              [premium]="userInfo.premium"
+              [sizeInRem]="4.75"
+            />
+            <span class="edit-disc"><lucide-icon name="pencil" [size]="13" /></span>
           </button>
-          <button type="button" class="profile-tool" (click)="openShareProfile()">
-            <lucide-icon name="qr-code" [size]="19" /> Show QR code
-          </button>
+          <div class="identity-copy">
+            <h1>&#64;{{ userInfo.username }}</h1>
+            <p>{{ memberSince }}</p>
+            <div class="profile-actions">
+              <button type="button" class="pill-button" (click)="profileEdit = !profileEdit">
+                {{ profileEdit ? 'Done' : 'Edit' }}
+              </button>
+              @if (!userInfo.hidden) {
+                <button type="button" class="pill-button" (click)="copyProfileLink()">
+                  <lucide-icon name="link" [size]="15" /> Copy link
+                </button>
+                <button type="button" class="pill-button" (click)="openShareProfile()">
+                  <lucide-icon name="qr-code" [size]="15" /> QR
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (profileEdit) {
+          <div class="profile-editor">
+            <app-settings-avatar-picker [userInfo]="userInfo" />
+            <div class="username-field">
+              <span>Username</span>
+              <app-username />
+            </div>
+          </div>
         }
-        <app-button
-          [label]="userInfo?.hidden ? 'Unhide profile' : 'Hide profile'"
-          appearance="underline"
-          [loading$]="loadingHideProfile$"
-          (clickFunction)="toggleHidden()"
-          [hint]="hideProfileTooltip"
-          hintAppearance="dark"
-          hintDirection="bottom"
-        />
-        <ng-template #hideProfileTooltip>
-          When your profile is hidden, other users can only see your username and can't send you connection requests.
-        </ng-template>
+
+        <div class="profile-metrics" aria-label="Reading profile summary">
+          <div>
+            <strong>{{ userInfo.streak ?? 0 }}</strong>
+            <span>Day streak</span>
+          </div>
+          <div>
+            <strong>{{ userInfo.learners.length }}</strong>
+            <span>Languages</span>
+          </div>
+          <div>
+            <strong>{{ primaryLevel }}</strong>
+            <span>{{ primaryLanguage }}</span>
+          </div>
+          <div>
+            <strong>{{ userInfo.fluentLangs.length }}</strong>
+            <span>Fluent</span>
+          </div>
+        </div>
+
+        <div class="interests-section">
+          <div class="eyebrow">Interests</div>
+          @if (!interestsEdit) {
+            <div class="chips-box">
+              @for (interest of interests; track interest.id) {
+                <span tuiChip [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}</span>
+              }
+              <button type="button" class="interest-edit" (click)="editInterests()">
+                <lucide-icon [name]="interests.length ? 'pencil' : 'plus'" [size]="14" />
+                {{ interests.length ? 'Edit' : 'Add' }}
+              </button>
+            </div>
+            @if (!interests.length) {
+              <p class="empty-interests">Add a few topics so other readers know what you enjoy.</p>
+            }
+          } @else {
+            <app-interests
+              [currentInterests]="userInfo.interests"
+              (selectedInterestsChange)="onSelectedInterestsChange($event)"
+            />
+            <div class="interest-actions">
+              <button type="button" class="pill-button" (click)="cancelInterestsEdit()">Cancel</button>
+              <app-button
+                label="Save interests"
+                [loading$]="loadingInterests$"
+                (clickFunction)="saveInterests()"
+                appearance="bw"
+              />
+            </div>
+          }
+        </div>
+
+        <div class="visibility-row">
+          <div>
+            <strong>Profile is {{ userInfo.hidden ? 'hidden' : 'visible' }}</strong>
+            <p>
+              {{ userInfo.hidden
+                ? 'Only your username is visible, and readers cannot send connection requests.'
+                : 'Others can find you and send connection requests.' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="visibility-switch"
+            role="switch"
+            [class.on]="!userInfo.hidden"
+            [attr.aria-checked]="!userInfo.hidden"
+            [disabled]="hideProfileLoading"
+            (click)="toggleHidden()"
+            [attr.aria-label]="userInfo.hidden ? 'Make profile visible' : 'Hide profile'"
+          >
+            <span></span>
+          </button>
+        </div>
+      }
+    </section>
+
+    <aside class="plan-card card">
+      <div class="eyebrow">Plan</div>
+      <div class="plan-name">
+        <strong>{{ premium ? 'Premium' : 'Free' }}</strong>
+        @if (premium) {
+          <span class="plan-star" aria-label="Premium plan">★</span>
+        }
       </div>
-    </div>
-
-    <div class="section-block card">
-      <div class="title">Plan</div>
-
-      @if (!premium) {
-        <div class="row-content">
-          <div class="plan">
-            <h1 class="text free">Free</h1>
-          </div>
-          <div class="premium-feature">{{ displayedFeature }}</div>
-          <app-interactive-cta-button text="Upgrade"
-                                      class="cta"
-                                      (buttonClick)="showComparePlansPopup()"
-          ></app-interactive-cta-button>
-        </div>
-      }
-
-      <!--      here goes view for premium users-->
+      <p>{{ planSummary }}</p>
       @if (premium) {
-        <div class="row-content">
-          <div class="plan">
-            <button class="text full-gradient-btn" (click)="accessCustomerPortal()">Premium</button>
-          </div>
-          @if (userInfo?.subscription?.autoRenewal !== null) {
-            <lucide-icon
-              [name]="userInfo?.subscription?.type === PlanType.LIFETIME ? 'infinity' :
-                    userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
-              class="icon renewal"
-              tuiHintAppearance="dark"
-              tuiHintDirection="bottom"
-              [tuiHint]="renewalTooltip"
-              [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
-            >
-              <ng-template #renewalTooltip>
-                {{ this.tooltipRenewal }}
-              </ng-template>
-            </lucide-icon>
-          }
-          <lucide-icon name="star-off"
-                       class="icon downgrade"
-                       (click)="prepareCancelSubscriptionModalWrapper()"
-                       tuiHintAppearance="dark"
-                       tuiHintDirection="bottom"
-                       [tuiHint]="downgradeTooltip"
-          >
-            <ng-template #downgradeTooltip>
-              {{ this.modalMessageSubCancel }}
-            </ng-template>
-          </lucide-icon>
-          <app-button
-            [label]="'Manage'"
-            appearance="bw"
-            class="manage-btn"
-            (clickFunction)="accessCustomerPortal()"
-            hintAppearance="dark"
-            hintDirection="bottom"
-            [hint]="customerPortalTooltip"
-            [loading$]="loadingCustomerPortal$"
-          >
-          </app-button>
-          <ng-template #customerPortalTooltip>
-            Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
-          </ng-template>
-        </div>
+        <app-button
+          label="Manage plan"
+          appearance="bw"
+          [loading$]="loadingCustomerPortal$"
+          (clickFunction)="accessCustomerPortal()"
+        />
+      } @else {
+        <app-interactive-cta-button text="Upgrade" (buttonClick)="showComparePlansPopup()" />
       }
-    </div>
-
-    <!--      interests-->
-    <div class="section-block card">
-      <div class="title">Interests</div>
-
-      @if (interests.length !== 0 && !interestsEdit) {
-        <div class="chips-box">
-          @for (interest of interests; track interest) {
-            <span tuiChip
-              [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
-            </span>
-          }
-          <span tuiChip
-            class="edit-chip"
-            appearance="outline"
-            (keydown.enter)="editInterests()" tabindex="0" (click)="editInterests()"
-          >
-            <lucide-icon name="pencil"
-                         [size]="15"
-                         [strokeWidth]="1.7"
-            >
-            </lucide-icon>
-            Edit
-          </span>
-        </div>
-      }
-
-      @if (interests.length === 0 && !interestsEdit) {
-        <div class="interests">
-          <span tuiChip
-            class="edit-chip"
-            appearance="outline"
-            (keydown.enter)="editInterests()" tabindex="0" (click)="editInterests()"
-          >
-            <lucide-icon name="plus"
-                         [size]="'15'"
-                         [strokeWidth]="1.7"
-                         (click)="editInterests()"
-            >
-            </lucide-icon>
-            Add
-          </span>
-          <p class="interest-text">Why so mysterious? Share your interests with us!</p>
-        </div>
-      }
-
-      <!--      load immediately, but it's hidden-->
-      <app-interests
-        [ngStyle]="{ display: interestsEdit ? 'block' : 'none' }"
-        [currentInterests]="userInfo?.interests || []"
-        (selectedInterestsChange)="onSelectedInterestsChange($event)">
-      </app-interests>
-      @if (interestsEdit) {
-        <div>
-          <app-button
-            label="Save"
-            [loading$]="loadingInterests$"
-            [disabled]="!validateInterests()"
-            (click)="saveInterests()"
-            class="interest-button"
-            appearance="bw"
-          ></app-button>
-        </div>
-      }
-    </div>
-  </div>
+    </aside>
+  </main>
 </div>

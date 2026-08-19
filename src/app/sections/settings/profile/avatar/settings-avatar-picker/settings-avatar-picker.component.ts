@@ -1,11 +1,12 @@
 import {DOCUMENT} from '@angular/common';
-import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
+import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
-import {UserInfoService} from '../../../services/user-info.service';
-import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
-import {avatarImageUrl, avatarLetter} from '../../avatar/avatar-display';
+import {UserInfo} from '../../../../../models/userinfo.model';
+import {UserInfoService} from '../../../../../services/user-info.service';
+import {avatarImageUrl, avatarLetter} from '../../../../../shared/avatar/avatar-display';
+import {ProfileSettingsService} from '../../profile-settings.service';
 
-interface AvatarChoice {
+interface SettingsAvatarChoice {
   label: string;
   path: string;
   url: string;
@@ -13,21 +14,20 @@ interface AvatarChoice {
 }
 
 @Component({
-  selector: 'app-avatar-picker',
-  templateUrl: './avatar-picker.component.html',
-  styleUrl: './avatar-picker.component.less',
+  selector: 'app-settings-avatar-picker',
+  templateUrl: './settings-avatar-picker.component.html',
+  styleUrl: './settings-avatar-picker.component.less',
 })
-export class AvatarPickerComponent {
+export class SettingsAvatarPickerComponent {
   private readonly document = inject(DOCUMENT);
   private readonly profileSettingsService = inject(ProfileSettingsService);
   private readonly userInfoService = inject(UserInfoService);
   private readonly alertService = inject(TuiNotificationService);
 
-  @Input({required: true}) userInfo!: {avatarUrl: string | null; username: string; premium: boolean};
-  @Output() avatarChanged = new EventEmitter<string | null>();
+  @Input({required: true}) userInfo!: UserInfo;
 
   protected busyUrl: string | null | undefined;
-  protected readonly choices: AvatarChoice[] = [
+  protected readonly choices: SettingsAvatarChoice[] = [
     this.choice('Owl', 'assets/img/avatars/default/owl.png'),
     this.choice('Fox', 'assets/img/avatars/default/fox.png'),
     this.choice('Stag', 'assets/img/avatars/default/stag.png'),
@@ -44,10 +44,7 @@ export class AvatarPickerComponent {
   }
 
   protected useLetter(): void {
-    if (this.busyUrl !== undefined) {
-      return;
-    }
-    if (!this.userInfo.avatarUrl) {
+    if (this.busyUrl !== undefined || !this.userInfo.avatarUrl) {
       return;
     }
     this.busyUrl = null;
@@ -57,7 +54,7 @@ export class AvatarPickerComponent {
     });
   }
 
-  protected chooseAvatar(choice: AvatarChoice): void {
+  protected chooseAvatar(choice: SettingsAvatarChoice): void {
     if (this.busyUrl !== undefined || this.isSelected(choice)) {
       return;
     }
@@ -68,27 +65,25 @@ export class AvatarPickerComponent {
     });
   }
 
-  protected isSelected(choice: AvatarChoice): boolean {
+  protected isSelected(choice: SettingsAvatarChoice): boolean {
     return this.userInfo.avatarUrl === choice.url || this.userInfo.avatarUrl?.endsWith(choice.path) === true;
   }
 
-  protected displayChoiceUrl(choice: AvatarChoice): string {
+  protected displayChoiceUrl(choice: SettingsAvatarChoice): string {
     return this.userInfo.premium ? choice.premiumUrl : choice.url;
   }
 
-  private choice(label: string, path: string): AvatarChoice {
-    const premiumPath = path.replace('/default/', '/default/premium/');
+  private choice(label: string, path: string): SettingsAvatarChoice {
     return {
       label,
       path,
       url: new URL(path, this.document.baseURI).href,
-      premiumUrl: new URL(premiumPath, this.document.baseURI).href,
+      premiumUrl: new URL(path.replace('/default/', '/default/premium/'), this.document.baseURI).href,
     };
   }
 
   private finish(avatarUrl: string | null): void {
     this.userInfoService.updateUserInfo({avatarUrl});
-    this.avatarChanged.emit(avatarUrl);
     this.busyUrl = undefined;
   }
 

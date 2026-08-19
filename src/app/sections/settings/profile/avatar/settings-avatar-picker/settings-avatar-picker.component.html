@@ -1,0 +1,46 @@
+<section class="settings-avatar-picker" [class.member]="userInfo.premium">
+  <div class="picker-heading">
+    <h2>Choose an avatar</h2>
+    <p>Keep your letter or choose one of the Almonium drawings.</p>
+  </div>
+
+  <button
+    type="button"
+    class="current-avatar-row"
+    [class.can-reset]="userInfo.avatarUrl"
+    [disabled]="busyUrl !== undefined"
+    (click)="useLetter()"
+  >
+    <span class="current-avatar">
+      @if (userInfo.avatarUrl) {
+        <img [src]="displayAvatarUrl" alt="Current avatar" />
+      } @else {
+        <span>{{ letter }}</span>
+      }
+    </span>
+    <span class="current-description">
+      @if (userInfo.avatarUrl) {
+        Use your letter instead
+      } @else {
+        Current avatar — your letter
+      }
+    </span>
+  </button>
+
+  <div class="settings-choices" aria-label="Choose an avatar">
+    @for (choice of choices; track choice.path) {
+      <button
+        type="button"
+        class="settings-choice"
+        [class.selected]="isSelected(choice)"
+        [disabled]="busyUrl !== undefined"
+        (click)="chooseAvatar(choice)"
+        [attr.aria-label]="'Use ' + choice.label + ' avatar'"
+        [attr.aria-pressed]="isSelected(choice)"
+      >
+        <span class="animal-frame"><img [src]="displayChoiceUrl(choice)" alt="" /></span>
+        <span>{{ choice.label }}</span>
+      </button>
+    }
+  </div>
+</section>

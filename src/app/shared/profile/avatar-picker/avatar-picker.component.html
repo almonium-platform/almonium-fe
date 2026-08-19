@@ -1,79 +1,33 @@
-<section class="avatar-picker" [class.settings]="variant === 'settings'" [class.member]="userInfo.premium">
-  @if (variant === 'settings') {
-    <div class="picker-heading">
-      <h2>Choose an avatar</h2>
-      <p>Or keep your letter.</p>
-    </div>
+<section class="avatar-picker" [class.member]="userInfo.premium">
+  <span class="current-avatar onboarding-current">
+    @if (userInfo.avatarUrl) {
+      <img [src]="displayAvatarUrl" alt="Selected avatar" />
+    } @else {
+      <span>{{ letter }}</span>
+    }
+  </span>
 
+  <div class="compact-choices" aria-label="Choose an avatar">
     <button
       type="button"
-      class="current-avatar-row"
-      [class.can-reset]="userInfo.avatarUrl"
+      class="compact-choice letter-choice"
+      [class.selected]="!userInfo.avatarUrl"
+      [disabled]="busyUrl !== undefined"
       (click)="useLetter()"
-    >
-      <span class="current-avatar settings-current">
-        @if (userInfo.avatarUrl) {
-          <img [src]="displayAvatarUrl" alt="Current avatar" />
-        } @else {
-          <span>{{ letter }}</span>
-        }
-      </span>
-      <span class="current-description">
-        @if (userInfo.avatarUrl) {
-          Current avatar. Select here to return to your letter.
-        } @else {
-          Current — your letter. This is the default and it needs no replacing.
-        }
-      </span>
-    </button>
-
-    <div class="settings-choices" aria-label="Choose an avatar">
-      @for (choice of choices; track choice.path) {
-        <button
-          type="button"
-          class="settings-choice"
-          [class.selected]="isSelected(choice)"
-          [disabled]="busyUrl !== undefined"
-          (click)="chooseAvatar(choice)"
-          [attr.aria-label]="'Use ' + choice.label + ' avatar'"
-          [attr.aria-pressed]="isSelected(choice)"
-        >
-          <span class="animal-frame"><img [src]="displayChoiceUrl(choice)" alt="" /></span>
-          <span>{{ choice.label }}</span>
-        </button>
-      }
-    </div>
-  } @else {
-    <span class="current-avatar onboarding-current">
-      @if (userInfo.avatarUrl) {
-        <img [src]="displayAvatarUrl" alt="Selected avatar" />
-      } @else {
-        <span>{{ letter }}</span>
-      }
-    </span>
-
-    <div class="compact-choices" aria-label="Choose an avatar">
+      aria-label="Use letter"
+      [attr.aria-pressed]="!userInfo.avatarUrl"
+    >{{ letter }}</button>
+    @for (choice of choices; track choice.path) {
       <button
         type="button"
-        class="compact-choice letter-choice"
-        [class.selected]="!userInfo.avatarUrl"
+        class="compact-choice animal-choice"
+        [class.selected]="isSelected(choice)"
         [disabled]="busyUrl !== undefined"
-        (click)="useLetter()"
-        aria-label="Use letter"
-        [attr.aria-pressed]="!userInfo.avatarUrl"
-      >{{ letter }}</button>
-      @for (choice of choices; track choice.path) {
-        <button
-          type="button"
-          class="compact-choice animal-choice"
-          [class.selected]="isSelected(choice)"
-          [disabled]="busyUrl !== undefined"
-          (click)="chooseAvatar(choice)"
-          [attr.aria-label]="'Use ' + choice.label + ' avatar'"
-          [attr.aria-pressed]="isSelected(choice)"
-        ><img [src]="displayChoiceUrl(choice)" alt="" /></button>
-      }
-    </div>
-    <p class="picker-caption">Your letter, or one of five drawings.</p>
-  }
+        (click)="chooseAvatar(choice)"
+        [attr.aria-label]="'Use ' + choice.label + ' avatar'"
+        [attr.aria-pressed]="isSelected(choice)"
+      ><img [src]="displayChoiceUrl(choice)" alt="" /></button>
+    }
+  </div>
+  <p class="picker-caption">Your letter, or one of five drawings.</p>
 </section>
