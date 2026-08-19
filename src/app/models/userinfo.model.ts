@@ -43,7 +43,7 @@ export class UserInfo {
       updates.emailVerified ?? this.emailVerified,
       updates.hidden ?? this.hidden,
       updates.uiLang ?? this.uiLang,
-      updates.avatarUrl ?? this.avatarUrl,
+      updates.avatarUrl === undefined ? this.avatarUrl : updates.avatarUrl,
       updates.background ?? this.background,
       updates.streak ?? this.streak,
       updates.fluentLangs ?? this.fluentLangs,

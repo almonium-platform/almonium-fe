@@ -148,6 +148,20 @@ describe('UserInfoService', () => {
     expect(localStorage.saveUserInfo.calls.mostRecent().args[0].fluentLangs).toEqual([LanguageCode.DE]);
   });
 
+  it('keeps an explicit null when resetting the avatar', async () => {
+    const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    httpTesting.expectOne(AppConstants.ME_URL).flush({
+      ...serverUser,
+      avatarUrl: 'https://example.test/assets/img/avatars/default/stag.png',
+    });
+    await resultPromise;
+
+    service.updateUserInfo({avatarUrl: null});
+
+    expect(service.currentUserInfo?.avatarUrl).toBeNull();
+    expect(localStorage.saveUserInfo.calls.mostRecent().args[0].avatarUrl).toBeNull();
+  });
+
   it('normalizes partial UI preferences with safe defaults', async () => {
     const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
     httpTesting.expectOne(AppConstants.ME_URL).flush({

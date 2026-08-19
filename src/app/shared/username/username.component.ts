@@ -180,7 +180,6 @@ export class UsernameComponent implements OnInit, OnDestroy {
       this.currentUsername = username;
       this.usernameControl.markAsPristine();
       this.userInfoService.updateUserInfo({username});
-      this.alertService.open('Username updated', {appearance: 'positive'}).subscribe();
       return true;
     } catch {
       this.alertService.open('Failed to update username', {appearance: 'negative'}).subscribe();
