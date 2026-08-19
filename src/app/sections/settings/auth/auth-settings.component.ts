@@ -1,21 +1,19 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import {TuiError, TuiIcon, TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TuiError, TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
 import {TUI_VALIDATION_ERRORS} from "@taiga-ui/core/tokens";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
-import {ProviderIconComponent} from "../../../shared/modals/elements/provider-icon/provider-icon.component";
 import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
@@ -24,27 +22,20 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
-import {ButtonComponent} from "../../../shared/button/button.component";
 
 @Component({
   selector: 'app-settings',
   imports: [
     ConfirmModalComponent,
-    NgTemplateOutlet,
     AuthComponent,
-    NgClass,
     ReactiveFormsModule,
     TuiError,
     EditButtonComponent,
-    ProviderIconComponent,
     ActionModalComponent,
     SettingsTabsComponent,
-    TuiIcon,
     RecentAuthGuardComponent,
     TuiTextfieldComponent,
-    FormsModule,
     TuiInput,
-    ButtonComponent
   ],
   templateUrl: './auth-settings.component.html',
   providers: [
@@ -80,7 +71,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
   protected authMethods: AuthMethod[] = [];
-  protected authProviders: string[] = [];
 
   // email and password settings
   protected emailVerifiedTextExpanded = true;
@@ -106,12 +96,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('passwordField') passwordField!: TuiTextfieldComponent<string>;
   @ViewChild('emailField') emailField!: TuiTextfieldComponent<string>;
   @ViewChild(AuthComponent, {static: false}) authComponent!: AuthComponent;
-
-  // Provider info modal
-  protected providerInfoVisible = false;
-  protected providerInfoTitle = '';
-  protected providerInfoText = '';
-  protected providerInfoIcon = '';
 
   // email token settings
   protected tokenInfo: TokenInfo | null = null;
@@ -173,7 +157,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.settingService.populateAuthMethods().subscribe({
       next: (methods) => {
         this.authMethods = methods;
-        this.authProviders = methods.map(method => method.provider);
         this.updateLocalAuthData(methods);
       },
       error: (error) => {
@@ -227,9 +210,9 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private prepareConfirmModalForDeletion() {
-    this.modalTitle = 'Delete Account';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Delete Account';
+    this.modalTitle = 'Delete account';
+    this.modalMessage = 'This permanently deletes your account and all of its data.';
+    this.modalConfirmText = 'Delete account';
     this.modalAction = this.confirmDeletion.bind(this);
     this.useCountdown = true;
     this.isConfirmModalVisible = true;
@@ -254,49 +237,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // AUTH PROVIDERS BLOCKS
-
-  // Provider info modal
-  protected prepareAndShowProviderModal = (provider: string) => {
-    this.providerInfoText = this.getProviderInfo(provider);
-    this.providerInfoTitle = this.getFormattedProvider(provider) + " Info";
-    this.providerInfoIcon = [
-      provider === 'local' ? 'fas' : 'fab',
-      provider === 'local' ? 'fa-envelope' : 'fa-' + provider.toLowerCase()
-    ].join(' ') + ' text-lg';
-    this.providerInfoVisible = true;
-  }
-
-  protected closeProviderInfo() {
-    this.providerInfoVisible = false;
-  }
-
-  protected getProviderInfo = (provider: string) => {
-    const method = this.authMethods
-      .filter(method => method.provider.toLowerCase() === provider.toLowerCase())
-      .pop();
-
-    if (method) {
-      return `
-      <div>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Email:</strong> ${method.email}</p>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Connected At:</strong> ${this.getFormattedDate(method.createdAt)}</p>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Updated At:</strong> ${(this.getFormattedDate(method.updatedAt))}</p>
-      </div>
-    `;
-    }
-    return 'No info available';
-  }
-
-  private getFormattedDate(date: string) {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
-// Linking and unlinking social accounts
+  // Linking and unlinking social accounts
 
   // boolean checkers
   protected isProviderLinked(provider: string): boolean {
@@ -305,6 +246,30 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   protected isLastLinkedProvider(provider: string): boolean {
     return this.authMethods.length === 1 && this.isProviderLinked(provider);
+  }
+
+  protected getAuthMethod(provider: string): AuthMethod | undefined {
+    return this.authMethods.find(method => method.provider.toLowerCase() === provider.toLowerCase());
+  }
+
+  protected getProviderDetail(provider: string): string {
+    const method = this.getAuthMethod(provider);
+    if (!method) {
+      return 'Not connected';
+    }
+
+    const connectedAt = new Date(method.createdAt).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: new Date(method.createdAt).getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
+    });
+    return `${method.email} · since ${connectedAt}`;
+  }
+
+  protected getPasswordDetail(): string {
+    return this.isProviderLinked('local')
+      ? `Updated ${this.lastPasswordUpdate}`
+      : 'Not set — adds a way back in if a connected account is lost';
   }
 
   protected handleProviderWrapped = (provider: string) => () => {
@@ -345,10 +310,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private prepareUnlinkConfirmationModal(provider: string) {
-    this.modalTitle = 'Unlink account';
-    this.modalMessage = `Are you sure you want to unlink your ${this.getFormattedProvider(provider)} account?`;
-    this.modalConfirmText = 'Unlink';
+    this.modalTitle = 'Disconnect account';
+    this.modalMessage = `Are you sure you want to disconnect your ${this.getFormattedProvider(provider)} account?`;
+    this.modalConfirmText = 'Disconnect';
     this.modalAction = () => this.unlinkAuthMethod(provider);
+    this.useCountdown = false;
     this.isConfirmModalVisible = true;
   }
 
@@ -361,7 +327,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
-        this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {appearance: 'positive'}).subscribe();
+        this.alertService.open(`${this.getFormattedProvider(provider)} account disconnected`, {appearance: 'positive'}).subscribe();
         this.authMethods = this.authMethods.filter(method => method.provider.toLowerCase() !== provider.toLowerCase());
         if (reauthRequired) {
           this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {appearance: 'info'}).subscribe();
@@ -628,10 +594,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
             return;
           }
 
-          if (this.isProviderLinked('local')) {
-            this.sendEmailChangeRequest();
-          }
-          this.restoreEmailField();
+          this.sendEmailChangeRequest();
         },
         error: (error) => {
           this.alertService.open(getErrorMessage(error, 'Failed to check email availability'), {appearance: 'negative'}).subscribe();
@@ -644,7 +607,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.settingService.requestEmailChange(this.getEmailFieldValue()).subscribe({
       next: () => {
         this.alertService.open('Email change request sent!', {appearance: 'positive'}).subscribe();
-        this.emailForm.setValue({emailValue: this.userInfo?.email ?? ''});
+        this.restoreEmailField();
         this.populateAuthMethods();
         this.populateLastToken();
       },

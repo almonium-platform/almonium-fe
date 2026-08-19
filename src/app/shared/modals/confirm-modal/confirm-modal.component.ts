@@ -29,6 +29,19 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
           </div>
           <p class="text-gray-700 mb-6 mt-6 text-sm">{{ message }}</p>
+          @if (confirmationWord) {
+            <label class="block text-sm text-gray-700 mb-5">
+              Type <strong>{{ confirmationWord }}</strong> to confirm
+              <input
+                type="text"
+                class="confirmation-input"
+                [value]="confirmationValue"
+                (input)="confirmationValue = $any($event.target).value"
+                [attr.aria-label]="'Type ' + confirmationWord + ' to confirm'"
+                autocomplete="off"
+              />
+            </label>
+          }
           <div class="flex justify-between">
             <button
               (click)="onClose()"
@@ -55,22 +68,25 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() message = '';
   @Input() confirmText = '';
   @Input() useCountdown = false;
+  @Input() confirmationWord = '';
 
   @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();
 
   fadeOutAnimating = false;
   countdown = 5;
-  isButtonDisabled = true;
+  countdownDisabled = true;
+  confirmationValue = '';
   intervalId?: ReturnType<typeof setInterval>;
   closeTimeout?: ReturnType<typeof setTimeout>;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isVisible']?.currentValue === true) {
+      this.confirmationValue = '';
       if (this.useCountdown) {
         this.resetCountdown();
       } else {
-        this.isButtonDisabled = false;
+        this.countdownDisabled = false;
       }
     } else if (changes['isVisible']?.currentValue === false) {
       this.clearCountdown();
@@ -80,13 +96,13 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   resetCountdown() {
     this.clearCountdown();
     this.countdown = 5;
-    this.isButtonDisabled = true;
+    this.countdownDisabled = true;
 
     this.intervalId = setInterval(() => {
       this.countdown--;
 
       if (this.countdown === 0) {
-        this.isButtonDisabled = false;
+        this.countdownDisabled = false;
         this.clearCountdown();
       }
     }, 1000);
@@ -97,6 +113,11 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
+  }
+
+  get isButtonDisabled(): boolean {
+    return this.countdownDisabled
+      || (!!this.confirmationWord && this.confirmationValue !== this.confirmationWord);
   }
 
   onClose() {

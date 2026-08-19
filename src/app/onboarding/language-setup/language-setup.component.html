@@ -44,13 +44,16 @@
         </div>
       </form>
     } @else {
-      <div class="tui-header header-row">{{ onSecondForm ? 'Assess Your Level' : 'Add New Languages' }}</div>
+      <div class="sheet-heading">
+        <div class="tui-header header-row">{{ onSecondForm ? 'Where are you now?' : 'Add languages' }}</div>
+        <div class="sheet-step">Step {{ onSecondForm ? '2' : '1' }} of 2{{ onSecondForm ? ' · change it any time' : '' }}</div>
+      </div>
       @if (!onSecondForm) {
         <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()">
           <div class="form-group">
-            <div class="form-label">I want to learn</div>
+            <label class="form-label" for="target-language-input">Languages</label>
             <tui-textfield multi tuiChevron [ngClass]="{ 'target-disabled': atTargetLimit }">
-              <input #targetInput tuiInputChip [formControl]="targetLanguagesControl" placeholder="Start typing..."
+              <input id="target-language-input" #targetInput tuiInputChip [formControl]="targetLanguagesControl" placeholder="Type to search…"
                 (input)="onTypeTarget($event)" (keydown)="trapSeparatorsTarget($any($event))"
                 (keydown.enter)="onEnterTarget($any($event))" />
               <tui-input-chip *tuiItem />
@@ -64,19 +67,33 @@
             </tui-textfield>
             <tui-error [formControl]="targetLanguagesControl" />
           </div>
-          <app-button label="Continue" appearance="solid" class="w-full" [satisfiable]="languageForm.valid" />
+          <div class="slot-summary">
+            <span>{{ usedTargetSlots }} of {{ totalTargetSlots }} slots used</span>
+            <a routerLink="/pricing"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</a>
+          </div>
+          <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />
         </form>
       } @else {
         <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
           <div formArrayName="languages" class="cefr-rows">
             @for (i of languages.controls; track i; let idx = $index) {
               <div [formGroupName]="idx" class="cefr-language-row">
-                <span tuiChip class="cefr-lang-chip">{{ languages.at(idx).controls.language.value }}</span>
-                <app-cefr-level-selector [control]="getCefrLevelControl(idx)" [levels]="cefrLevels" />
+                <span class="language-swatch" [style.background]="getTargetLanguageColour(languages.at(idx).controls.language.value, idx)"></span>
+                <span class="cefr-language-name">{{ languages.at(idx).controls.language.value }}</span>
+                <div class="cefr-pills" [attr.aria-label]="'Level for ' + languages.at(idx).controls.language.value">
+                  @for (level of cefrLevels; track level) {
+                    <button type="button" [class.selected]="getCefrLevelControl(idx).value === level"
+                      (click)="getCefrLevelControl(idx).setValue(level)">{{ level }}</button>
+                  }
+                </div>
               </div>
             }
           </div>
-          <app-button label="Save & Continue" appearance="solid" class="w-full" [loading$]="loading$" [satisfiable]="cefrForm.valid" />
+          <p class="level-note">Not sure? Leave it at A1 — a placement check in your first session will move it.</p>
+          <div class="sheet-actions">
+            <button type="button" class="back-link" (click)="returnToLanguageSelection()">Back</button>
+            <app-button label="Start learning" appearance="solid" class="w-full" [loading$]="loading$" [disabled]="cefrForm.invalid" />
+          </div>
         </form>
       }
     }

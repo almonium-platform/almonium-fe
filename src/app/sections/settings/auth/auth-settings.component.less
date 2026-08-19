@@ -1,253 +1,129 @@
 @import '../settings.styles.less';
 
 :host {
-  --tui-background-accent-1: #5A1A74; // primary theme color, used for buttons, input fields, etc.
-  --tui-status-negative: #ac1c1c; // error field box color
-  --tui-text-negative: #ac1c1c; // error test color
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-status-negative: #ac1c1c;
+  --tui-text-negative: #ac1c1c;
   --tui-radius-m: 2rem;
 }
 
-.email-form {
-  min-width: 50%;
+button { font: inherit; }
+.base-container { gap: 1rem; }
+
+.account-layout {
   display: flex;
-  flex-direction: row;
-}
-
-.field {
-  min-width: 100%;
-}
-
-.verified-icon {
-  color: #69bd69;
-  display: flex;
-  justify-content: center;
-  margin-left: 10px;
-  margin-top: 8px;
-}
-
-.unverified-icon {
-  .verified-icon;
-  color: var(--warning-color);
-}
-
-.email-waiting {
-  .verified-icon;
-  color: #f0ad4e;
-}
-
-.providers {
-  display: flex;
-  flex-direction: row;
-}
-
-.provider-block {
-  padding: 1em;
-  border: 1px solid var(--border-color);
-  border-radius: 25px;
-  display: flex;
+  width: min(100% - 2rem, 37.5rem);
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto 2rem;
 }
 
-.action-btn {
-  width: 100%;
-  margin: 1rem 0 0 0;
-}
-
-.unlink-btn {
-  padding: 0.5em 1em;
+.account-card {
   box-sizing: border-box;
-  border-radius: 25px;
-  font-size: 14px;
-  font-weight: 550;
-  color: var(--text-color);
-  background: none;
-  text-decoration: underline;
+  padding: 1.125rem 1.25rem;
+  border-radius: 20px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
 }
 
-.unlink-btn:hover {
-  background-color: var(--grey-color);
-  text-decoration: none;
+.eyebrow {
+  margin-bottom: .75rem;
+  color: var(--dark-raspberry);
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .0875rem;
+  text-transform: uppercase;
+}
+
+.email-row,
+.method-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.email-content,
+.method-copy { min-width: 0; flex: 1; }
+.email-content { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; }
+.email-address { color: var(--brand-ink); font-family: var(--font-family-reading); font-size: 1rem; font-weight: 500; overflow-wrap: anywhere; }
+.email-form,
+.password-form { width: 100%; }
+
+.email-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--success-color);
+  cursor: default;
+  font-size: .7rem;
+}
+
+.email-status.unverified { color: var(--waiting-color); cursor: pointer; }
+.method-list { display: flex; flex-direction: column; }
+.method-row { min-height: 3.75rem; }
+.method-row + .method-row { border-top: 1px solid #f1ecef; }
+
+.method-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: .5625rem;
+  background: var(--page-ground);
+  color: #3d3d3d;
+  font-size: .9375rem;
+}
+
+.method-copy { display: flex; flex-direction: column; gap: .125rem; }
+.method-copy strong { color: var(--brand-ink); font-size: .85rem; font-weight: 500; }
+.method-copy > span { color: var(--metadata-color); font-size: .68rem; line-height: 1.4; overflow-wrap: anywhere; }
+
+.method-action {
+  min-width: 5.5rem;
+  min-height: 2rem;
+  padding: .3rem .75rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 9999px;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: .75rem;
+}
+
+.method-action:hover:not(:disabled) { border-color: var(--brand-primary); color: var(--brand-primary); }
+.method-action:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
+.method-row app-edit-button,
+.email-row app-edit-button { flex: 0 0 auto; }
+
+.delete-account-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .25rem 1.25rem 0;
+  color: var(--metadata-color);
+  font-size: .78rem;
+}
+
+.delete-account-row button {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #eccdd6;
+  background: none;
+  color: #b03a5b;
   cursor: pointer;
 }
 
-.social-buttons {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5%;
-  padding: 0;
-}
-
-.icon {
-  width: 22px;
-  height: 22px;
-  margin-right: 6px;
-  margin-top: 1px;
-}
-
-// delete account
-.danger {
-  background-color: var(--danger-bg-color);
-  color: var(--danger-text-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  flex-direction: row;
-}
-
-.danger-text {
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.btn-danger {
-  border: 1px solid var(--danger-text-color);
-  border-radius: 35px;
-  padding: 15px 30px;
-  font-size: 15px;
-  background-color: white;
-  font-weight: bold;
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-
-.btn-danger:hover {
-  background-color: var(--danger-text-color);
-  color: white;
-}
-
-.delete-icon {
-  margin-top: 1px;
-}
-
-.verify-btn {
-  color: var(--warning-color);
-  border-color: var(--warning-color);
-  display: flex;
-  gap: 0.5em;
-  margin: auto 0 auto auto;
-  align-items: center;
-  justify-content: center;
-  height: 35px;
-}
-
-.verify-btn:hover {
-  background-color: var(--warning-color);
-  color: white;
-}
-
-.status-container {
-  margin-left: 1em;
-  margin-top: 7px;
-}
-
-.status-box {
-  display: flex;
-  align-items: center;
-  border-radius: 15px;
-  padding: 0.4em 0.4em;
-}
-
-.verified-box {
-  background-color: var(--success-bg-color);
-}
-
-.status-icon {
-  color: var(--success-color);
-  font-size: 18px;
-}
-
-.status-text {
-  font-size: 10px;
-  color: var(--success-color);
-  font-weight: 650;
-  margin-left: 0.3em;
-}
-
-.unverified-box {
-  background-color: #f8f3e7;
-}
-
-.unverified-status-icon {
-  color: var(--waiting-color);
-  font-size: 16px;
-  padding-left: 5px;
-}
-
-.unverified-status-text {
-  .status-text;
-  color: var(--waiting-color);
-}
-
-.password-updated-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.1em 0.4em;
-  margin-left: 1em;
-  border-radius: 50px;
-}
-
-.password-upd-text {
-  font-size: 10px;
-}
-
-// ngClass
-.circular-icon {
-  height: 25px;
-  width: 25px;
-  padding: unset;
-  border-radius: 50%; /* Ensures the shape is a circle */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.pending-icon {
-  .circular-icon;
-  padding: 19px;
-  color: var(--waiting-color);
-  border: 1px solid var(--waiting-color);
-  font-size: 18px;
-  margin-left: auto;
-  margin-right: 0;
-}
-
-.pending-icon:hover {
-  background-color: var(--waiting-color);
-  color: white;
-}
-
-@media (max-width: 450px) {
-  .btn-danger {
-    padding: 12px 20px;
-    font-size: 14px;
-  }
-
-  .danger-text {
-    font-size: 15px;
-  }
-
-  .unlink-btn {
-    font-size: 12px;
-    padding: 0.4em 0.9em;
-  }
-
-  .action-btn {
-    font-size: 12px;
-    padding: 0.4em 0.9em;
-  }
-
-  .provider-block {
-    padding: 0.8em;
-  }
-}
-
-@media (max-height: 630px) {
-  .main-section {
-    gap: 1em;
-  }
+@media (max-width: 520px) {
+  .account-layout { width: min(100% - 1rem, 30rem); }
+  .account-card { padding-right: 1rem; padding-left: 1rem; }
+  .method-row { align-items: flex-start; padding: .75rem 0; }
+  .method-action { min-width: 4.75rem; }
+  .method-row.editing { flex-wrap: wrap; }
+  .method-row.editing .method-copy { min-width: calc(100% - 2.75rem); }
 }

@@ -29,6 +29,7 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
 import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../../services/utils.service";
+import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
 
 @Component({
   selector: 'app-lang-settings',
@@ -85,16 +86,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected targetLanguageSelectControl = new FormControl('', {nonNullable: true});
   protected colourPickerLanguage: LanguageCode | null = null;
   protected readonly cefrLevels = Object.values(CEFRLevel);
-  protected readonly languageColours = [
-    {name: 'Clay', hex: '#a66f5a'},
-    {name: 'Ochre', hex: '#9a8146'},
-    {name: 'Moss', hex: '#638565'},
-    {name: 'Teal', hex: '#49858a'},
-    {name: 'Slate', hex: '#657f9e'},
-    {name: 'Indigo', hex: '#766ca0'},
-    {name: 'Orchid', hex: '#94688f'},
-    {name: 'Rose', hex: '#a56775'},
-  ];
+  protected readonly languageColours = LANGUAGE_COLOURS;
   private langColors: Record<string, string> = {};
 
   // TL deletion modal
@@ -305,7 +297,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected openLangSetupPopup() {
     this.addTargetLangModalVisible = true;
     setTimeout(() => {
-      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', true, true);
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
     }, 50);
   }
 
@@ -359,7 +351,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   private syncLanguageColours(): void {
-    const allowedColours = new Set(this.languageColours.map((colour) => colour.hex));
+    const allowedColours = new Set<string>(this.languageColours.map((colour) => colour.hex));
     const normalizedColours = {...this.langColors};
     let changed = false;
 
