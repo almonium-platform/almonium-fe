@@ -88,7 +88,7 @@
           @if (!interestsEdit) {
             <div class="chips-box">
               @for (interest of interests; track interest.id) {
-                <span tuiChip [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}</span>
+                <span tuiChip class="interest-chip">{{ interest.name }}</span>
               }
               <button type="button" class="interest-edit" (click)="editInterests()">
                 <lucide-icon [name]="interests.length ? 'pencil' : 'plus'" [size]="14" />

@@ -18,7 +18,6 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {InterestsComponent} from "../../../shared/interests/interests.component";
 import {TuiChip} from "@taiga-ui/kit/components";
-import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
 import {Interest} from "../../../shared/interests/interest.model";
 import {ProfileSettingsService} from "./profile-settings.service";
 import {ButtonComponent} from "../../../shared/button/button.component";
@@ -44,7 +43,6 @@ import {LanguageNameService} from '../../../services/language-name.service';
     AvatarComponent,
     SettingsAvatarPickerComponent,
     InterestsComponent,
-    TuiAutoColorPipe,
     TuiChip,
     ButtonComponent,
     ShareLinkComponent,

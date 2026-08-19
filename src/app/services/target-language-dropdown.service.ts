@@ -101,4 +101,14 @@ export class TargetLanguageDropdownService {
   private getCachedLangColors(): Record<string, string> | null {
     return this.localStorageService.getLangColors();
   }
+
+  setLanguageColor(language: LanguageCode, color: string): void {
+    const colors = {...this.langColorsSubject.getValue(), [language]: color};
+    this.setLanguageColors(colors);
+  }
+
+  setLanguageColors(colors: Record<string, string>): void {
+    this.langColorsSubject.next(colors);
+    this.localStorageService.saveLangColors(colors);
+  }
 }

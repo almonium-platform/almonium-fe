@@ -1,7 +1,7 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
-import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {FormControl, FormsModule} from "@angular/forms";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
   FluentLanguageSelectorComponent
@@ -12,11 +12,10 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiIcon, TuiNotificationService, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
-import {TuiDropdownContent, TuiHintDirective} from "@taiga-ui/core/portals";
-import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch} from "@taiga-ui/kit/components";
-import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
+import {TuiIcon, TuiNotificationService} from "@taiga-ui/core/components";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
+import {AsyncPipe} from "@angular/common";
+import {TuiSwitch} from "@taiga-ui/kit/components";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
@@ -30,40 +29,22 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
 import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../../services/utils.service";
-import {CefrLevelSelectorComponent} from "../../../shared/cefr-input/cefr-level-selector.component";
-import {distinctUntilChanged} from "rxjs/operators";
-import {CefrComponent} from "../../../shared/cefr/cefr.component";
-import {NgClickOutsideDirective} from "ng-click-outside2";
-import {LucideAngularModule} from "lucide-angular";
 
 @Component({
   selector: 'app-lang-settings',
   imports: [
     FormsModule,
-    ReactiveFormsModule,
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
     EditButtonComponent,
-    TuiChip,
     AsyncPipe,
     TuiIcon,
     ConfirmModalComponent,
-    TuiAutoColorPipe,
     PremiumBadgedContentComponent,
     RecentAuthGuardComponent,
     LanguageSetupComponent,
     TuiSwitch,
-    CefrLevelSelectorComponent,
-    CefrComponent,
-    NgClickOutsideDirective,
-    LucideAngularModule,
     TuiHintDirective,
-    NgClass,
-    TuiTextfieldComponent,
-    TuiSelectDirective,
-    TuiDataListWrapperComponent,
-    TuiDropdownContent,
-    TuiTextfieldOptionsDirective
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -100,11 +81,21 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   // target languages
   protected targetLanguageNames: string[] = [];
   protected learners: Learner[] = [];
-  protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
-  protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
   protected targetLanguageSelectControl = new FormControl('', {nonNullable: true});
-  protected showTargetLangDropdown = false;
+  protected colourPickerLanguage: LanguageCode | null = null;
+  protected readonly cefrLevels = Object.values(CEFRLevel);
+  protected readonly languageColours = [
+    {name: 'Clay', hex: '#a66f5a'},
+    {name: 'Ochre', hex: '#9a8146'},
+    {name: 'Moss', hex: '#638565'},
+    {name: 'Teal', hex: '#49858a'},
+    {name: 'Slate', hex: '#657f9e'},
+    {name: 'Indigo', hex: '#766ca0'},
+    {name: 'Orchid', hex: '#94688f'},
+    {name: 'Rose', hex: '#a56775'},
+  ];
+  private langColors: Record<string, string> = {};
 
   // TL deletion modal
   protected isConfirmTargetLangDeletionModalVisible = false;
@@ -142,15 +133,11 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.cefrFormControl.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((newValue) => {
-        if (!newValue) return;
-        this.saveCefrLevelToServer(newValue);
-        this.cefrEditable = false;
+    this.targetLanguageDropdownService.langColors$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((colors) => {
+        this.langColors = colors;
+        this.syncLanguageColours();
       });
   }
 
@@ -170,49 +157,26 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
         this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
         this.learners = info.learners;
+        this.syncLanguageColours();
         this.updateFluentEnabled();
-        this.patchCefrControlFromCurrentLearner();
       }
     });
   }
 
-  private patchCefrControlFromCurrentLearner(): void {
-    const learner = this.currentLearner;
-    if (!learner) {
-      this.cefrFormControl.patchValue(null, {emitEvent: false});
-      return;
-    }
-    this.cefrFormControl.patchValue(
-      learner.selfReportedLevel,
-      {emitEvent: false} // so we don’t fire the .valueChanges subscription immediately
-    );
-  }
+  protected onCefrLevelChange(learner: Learner, newValue: CEFRLevel): void {
+    const oldValue = learner.selfReportedLevel;
+    learner.selfReportedLevel = newValue;
 
-  private saveCefrLevelToServer(newValue: CEFRLevel): void {
-    const oldValue = this.currentLearner.selfReportedLevel;
-    this.currentLearner.selfReportedLevel = newValue;
-
-    this.languageApiService.updateLearner(this.currentLearner.language, {level: newValue}).subscribe({
+    this.languageApiService.updateLearner(learner.language, {level: newValue}).subscribe({
       next: () => {
         this.userInfoService.updateUserInfo({learners: this.learners});
       },
       error: (err) => {
         logger.error('Failed to update CEFR:', err);
         this.alertService.open('Failed to update CEFR level', {appearance: 'negative'}).subscribe();
-        this.currentLearner.selfReportedLevel = oldValue;
+        learner.selfReportedLevel = oldValue;
       },
     });
-  }
-
-  get currentLearner(): Learner {
-    const selectedLanguageName = this.targetLanguageSelectControl.value;
-    const selectedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, selectedLanguageName);
-
-    const learner = this.learners.find((learner) => learner.language === selectedLanguageCode);
-    if (!learner) {
-      throw new Error(`Learner not found for ${selectedLanguageCode}`);
-    }
-    return learner;
   }
 
   private validateFluentLanguages() {
@@ -275,12 +239,13 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
 
   // TARGET
-  protected deleteTargetLang() {
+  protected deleteTargetLang(learner: Learner) {
     this.restoreFluent();
     if (this.learners.length === 1) {
       logger.error("This should not happen: trying to delete the last target language");
       return;
     }
+    this.targetLanguageSelectControl.setValue(this.getLanguageName(learner.language));
     this.recentAuthGuardService.guardAction(() => {
       this.prepareTargetLangDeletionModal();
     });
@@ -344,61 +309,79 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }, 50);
   }
 
-  protected activeToggleDisabled(): boolean {
-    return this.currentLearner.active && this.getActiveLearnersCount() === 1;
+  protected activeToggleDisabled(learner: Learner): boolean {
+    return learner.active && this.getActiveLearnersCount() === 1;
   }
 
   protected getActiveLearnersCount(): number {
     return this.learners.filter((learner) => learner.active).length;
   }
 
-  protected onToggleActiveStatus(active: boolean, languageCode: LanguageCode): void {
+  protected onToggleActiveStatus(active: boolean, learner: Learner): void {
     if (!active && this.getActiveLearnersCount() === 1) {
       this.alertService.open('You must have at least one active target language', {appearance: 'negative'}).subscribe();
       return;
     }
 
-    this.currentLearner.active = active;
+    learner.active = active;
 
-    this.languageApiService.updateLearner(languageCode, {active: active}).subscribe({
+    this.languageApiService.updateLearner(learner.language, {active: active}).subscribe({
       next: () => {
         this.userInfoService.updateUserInfo({learners: this.learners});
         if (!active) {
-          this.targetLanguageDropdownService.removeTargetLanguage(languageCode);
+          this.targetLanguageDropdownService.removeTargetLanguage(learner.language);
         } else {
           this.targetLanguageDropdownService.initializeLanguages(this.userInfo!);
         }
       },
       error: (err) => {
         this.alertService.open(getErrorMessage(err, 'Failed to update active status'), {appearance: 'negative'}).subscribe();
-        this.currentLearner.active = !active;
+        learner.active = !active;
       },
     });
   }
 
-  protected handleClickOutsideCefrSelector() {
-    if (this.cefrEditable) {
-      this.cefrEditable = false;
+  protected getLanguageName(languageCode: LanguageCode): string {
+    return this.languageNameService.mapLanguageCodesToNames(this.languages, [languageCode])[0] ?? languageCode;
+  }
+
+  protected getLanguageColor(languageCode: LanguageCode, index: number): string {
+    return this.langColors[languageCode] ?? this.languageColours[index % this.languageColours.length].hex;
+  }
+
+  protected toggleColourPicker(languageCode: LanguageCode): void {
+    this.colourPickerLanguage = this.colourPickerLanguage === languageCode ? null : languageCode;
+  }
+
+  protected selectLanguageColour(languageCode: LanguageCode, colour: string): void {
+    this.targetLanguageDropdownService.setLanguageColor(languageCode, colour);
+    this.colourPickerLanguage = null;
+  }
+
+  private syncLanguageColours(): void {
+    const allowedColours = new Set(this.languageColours.map((colour) => colour.hex));
+    const normalizedColours = {...this.langColors};
+    let changed = false;
+
+    this.learners.forEach((learner, index) => {
+      if (!allowedColours.has(normalizedColours[learner.language])) {
+        normalizedColours[learner.language] = this.languageColours[index % this.languageColours.length].hex;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      this.targetLanguageDropdownService.setLanguageColors(normalizedColours);
     }
   }
 
-  protected clickOnCefrBadge() {
-    setTimeout(() => {
-      this.cefrEditable = true;
-    }, 0);
-  }
-
-  protected getActiveToggleTooltip(): string {
-    if (this.getActiveLearnersCount() === 1 && this.currentLearner.active) {
+  protected getActiveToggleTooltip(learner: Learner): string {
+    if (this.getActiveLearnersCount() === 1 && learner.active) {
       return 'You must have at least one active target language';
     }
-    if (this.currentLearner.active) {
+    if (learner.active) {
       return 'Deactivating language removes it from the navbar dropdown';
     }
     return 'Activating language adds it to the navbar dropdown';
-  }
-
-  get isDeleteTargetLangButtonVisible() {
-    return this.learners.filter((learner) => learner.active).length > 1;
   }
 }

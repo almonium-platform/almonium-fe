@@ -1,5 +1,4 @@
-import {TuiTabs} from "@taiga-ui/kit/components";
-import {Component, WritableSignal} from '@angular/core';
+import {Component} from '@angular/core';
 import {RouterLink, RouterLinkActive} from "@angular/router";
 
 @Component({
@@ -7,15 +6,8 @@ import {RouterLink, RouterLinkActive} from "@angular/router";
   imports: [
     RouterLink,
     RouterLinkActive,
-    TuiTabs
   ],
   templateUrl: './settings-tabs.component.html',
   styleUrl: './settings-tabs.component.less'
 })
-export class SettingsTabsComponent {
-  activeItemIndex: number | WritableSignal<number>;
-
-  constructor() {
-    this.activeItemIndex = 0;
-  }
-}
+export class SettingsTabsComponent {}

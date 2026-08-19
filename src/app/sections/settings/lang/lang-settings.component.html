@@ -17,11 +17,11 @@
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <div class="">
-    <div class="section-block card">
-      <div class="title">I Know</div>
+  <main class="learning-layout">
+    <section class="known-card card">
+      <div class="known-copy">
+        <div class="eyebrow">I Know</div>
 
-      <div class="row-content">
         @if (fluentEditable) {
           <app-fluent-language-selector
             class="fluent-language-selector"
@@ -29,137 +29,120 @@
             [maxLanguages]="userInfo?.subscription?.getMaxFluentLanguages() ?? 3"
             [size]="'m'"
             [selectedLanguages]="currentFluentLanguages"
-            (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
-        }
-
-        @if (!fluentEditable) {
-          <div class="chips-box">
-            @for (language of currentFluentLanguages; track language) {
-              <span tuiChip
-                [style.background-color]="language | tuiAutoColor">{{ language }}
-              </span>
-            }
-          </div>
-        }
-
-        <app-edit-button
-          class="edit-element"
-          [disabled]="(fluentEnabled$ | async) !== true"
-          [label]="'Save'"
-          [editable]="fluentEditable"
-          [loading$]="loading$"
-          (clickFunction)="onFluentEdit()">
-        </app-edit-button>
-      </div>
-    </div>
-
-    <div class="section-block card">
-      <div class="title">I'm Learning</div>
-
-      <div class="row-content target-lang-head">
-        @if (showTargetLangDropdown) {
-          <tui-textfield
-            tuiTextfieldSize="s"
-            class="language-select"
-            (clickOutside)="(showTargetLangDropdown = false)"
-          >
-            <input
-              tuiSelect
-              [formControl]="targetLanguageSelectControl"
-            />
-
-            <tui-data-list-wrapper
-              new
-              *tuiDropdown
-              [items]="targetLanguageNames"
-            >
-            </tui-data-list-wrapper>
-          </tui-textfield>
+            (selectedFluentLanguages)="onFluentLanguagesSelected($event)">
+          </app-fluent-language-selector>
         } @else {
-          <div class="target-lang-chip"
-               tabindex="0"
-               (keydown.enter)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
-               (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
-               [ngClass]="targetLanguageNames.length > 1 ? 'cursor-pointer': ''"
-          >
-            <span tuiChip
-              [style.background-color]="getCurrentTargetLanguageName() | tuiAutoColor">{{ getCurrentTargetLanguageName() }}
-            </span>
-
-            @if (targetLanguageNames.length > 1) {
-              <p class="and-more">+{{ targetLanguageNames.length - 1 }} more</p>
+          <div class="known-languages">
+            @for (language of currentFluentLanguages; track language) {
+              <span>{{ language }}</span>
             }
           </div>
         }
-        <div class="edit-element">
+      </div>
+
+      <app-edit-button
+        class="edit-language"
+        [disabled]="(fluentEnabled$ | async) !== true"
+        [label]="'Save'"
+        [editable]="fluentEditable"
+        [loading$]="loading$"
+        (clickFunction)="onFluentEdit()">
+      </app-edit-button>
+    </section>
+
+    <section class="learning-card card">
+      <div class="eyebrow">I'm Learning</div>
+
+      <div class="learner-list">
+        @for (learner of learners; track learner.id; let index = $index) {
+          <div class="learner-record">
+            <div class="learner-row">
+              <button
+                type="button"
+                class="colour-trigger"
+                [style.background]="getLanguageColor(learner.language, index)"
+                [class.open]="colourPickerLanguage === learner.language"
+                (click)="toggleColourPicker(learner.language)"
+                [attr.aria-expanded]="colourPickerLanguage === learner.language"
+                [attr.aria-label]="'Choose colour for ' + getLanguageName(learner.language)">
+              </button>
+
+              <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
+
+              <div class="learner-controls">
+                <label class="level-select" [attr.aria-label]="'Level for ' + getLanguageName(learner.language)">
+                  <select
+                    [value]="learner.selfReportedLevel"
+                    (change)="onCefrLevelChange(learner, $any($event.target).value)">
+                    @for (level of cefrLevels; track level) {
+                      <option [value]="level">{{ level }}</option>
+                    }
+                  </select>
+                </label>
+
+                <div
+                  tuiHintAppearance="dark"
+                  tuiHintDirection="bottom"
+                  tuiHint
+                  [tuiHint]="getActiveToggleTooltip(learner)">
+                  <input
+                    tuiSwitch
+                    type="checkbox"
+                    [ngModel]="learner.active"
+                    [disabled]="activeToggleDisabled(learner)"
+                    (ngModelChange)="onToggleActiveStatus($event, learner)"
+                    [showIcons]="true"
+                    [attr.aria-label]="(learner.active ? 'Deactivate ' : 'Activate ') + getLanguageName(learner.language)"
+                  />
+                </div>
+
+                @if (learners.length > 1) {
+                  <button
+                    type="button"
+                    class="delete-language"
+                    (click)="deleteTargetLang(learner)"
+                    [attr.aria-label]="'Delete ' + getLanguageName(learner.language)">
+                    <tui-icon icon="@tui.trash-2" />
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (colourPickerLanguage === learner.language) {
+              <div class="colour-picker" aria-label="Language colour">
+                <div class="colour-title">Colour</div>
+                <div class="colour-grid">
+                  @for (colour of languageColours; track colour.hex) {
+                    <button
+                      type="button"
+                      [style.background]="colour.hex"
+                      [class.selected]="getLanguageColor(learner.language, index) === colour.hex"
+                      (click)="selectLanguageColour(learner.language, colour.hex)"
+                      [attr.aria-label]="colour.name">
+                    </button>
+                  }
+                </div>
+                <div class="colour-names">clay · ochre · moss · teal · slate · indigo · orchid · rose</div>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="add-language-row">
+          <span class="empty-colour"></span>
+          <span>Another language</span>
           <app-premium-badged-content
             [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
-            [badgeText]="'Premium'"
+            [badgeText]="'Members'"
             [showIcon]="false"
-            [labelPosition]="{ top: '-1.25rem', right: '-0.5rem' }"
-            [originalClickHandler]="openLangSetupPopup.bind(this)"
-          >
-            <button
-              class="secondary-outline-button edit-btn circular-icon">
-              <i class="fa-regular fa-plus text-base"></i>
+            [labelPosition]="{ top: '-1.15rem', right: '-0.4rem' }"
+            [originalClickHandler]="openLangSetupPopup.bind(this)">
+            <button type="button" class="add-language" aria-label="Add another language">
+              <tui-icon icon="@tui.plus" />
             </button>
           </app-premium-badged-content>
         </div>
       </div>
-      <div class="row-container lang-settings">
-        <div class="column">
-          <h4>Level</h4>
-          <div class="cefr-block">
-            @if (cefrEditable) {
-              <app-cefr-level-selector
-                [openOnInit]="true"
-                [control]="cefrFormControl"
-                (clickOutside)="handleClickOutsideCefrSelector()"
-              ></app-cefr-level-selector>
-            } @else {
-              <app-cefr [level]="currentLearner.selfReportedLevel" (click)="clickOnCefrBadge()"
-                        class="cefr-btn"></app-cefr>
-            }
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="column">
-          <h4>Active</h4>
-          <div
-            tuiHintAppearance="dark"
-            tuiHintDirection="bottom"
-            tuiHint
-            [tuiHint]="tooltipTemplate"
-          >
-            <input
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="currentLearner.active"
-              [disabled]="activeToggleDisabled()"
-              (ngModelChange)="onToggleActiveStatus($event, currentLearner.language)"
-              [showIcons]="true"
-            />
-          </div>
-          <ng-template #tooltipTemplate>
-            <div [innerHTML]="getActiveToggleTooltip()"></div>
-          </ng-template>
-        </div>
-      </div>
-    </div>
-
-    @if (isDeleteTargetLangButtonVisible) {
-      <div class="danger section-block">
-        <span class="danger-text">Danger Zone</span>
-        <button class="btn btn-danger" (click)="deleteTargetLang()">
-          <tui-icon
-            icon="@tui.trash-2"
-            class="delete-icon"
-            [style.height.px]="18"
-            [style.width.px]="18"
-          />
-          Delete {{ getCurrentTargetLanguageName() }}
-        </button>
-      </div>
-    }
-  </div>
+    </section>
+  </main>
 </div>

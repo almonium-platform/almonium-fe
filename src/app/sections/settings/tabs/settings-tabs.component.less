@@ -1,9 +1,33 @@
-.tabs-wrapper {
-  background-color: var(--main-bg-color); /* Same as the desired background */
+.settings-tabs {
+  display: flex;
+  width: min(100% - 2rem, 56.25rem);
+  gap: 1.625rem;
+  overflow-x: auto;
+  margin: 0 auto;
+  border-bottom: 1px solid #e6dfdb;
+  scrollbar-width: none;
 }
 
-.settings-tabs {
-  background-color: var(--main-bg-color);
-  justify-content: center;
-  margin: 0 auto;
+.settings-tabs::-webkit-scrollbar { display: none; }
+
+.settings-tabs a {
+  flex: 0 0 auto;
+  padding: 0 0 .625rem;
+  border-bottom: 2px solid transparent;
+  color: var(--metadata-color);
+  font-family: var(--font-family-reading);
+  font-size: .9375rem;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.settings-tabs a:hover { color: var(--brand-primary); }
+.settings-tabs a.active {
+  border-bottom-color: var(--brand-primary);
+  color: #520f6a;
+}
+
+@media (max-width: 520px) {
+  .settings-tabs { width: min(100% - 1rem, 30rem); gap: 1.25rem; }
 }
