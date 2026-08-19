@@ -1,162 +1,30 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
-import {FileUploadComponent} from "../../../../../shared/file-upload/file-upload.component";
-import {FirebaseService} from "../firebase.service";
-import {ProfileSettingsService} from "../../profile-settings.service";
-import {UserInfoService} from "../../../../../services/user-info.service";
-import {TuiNotificationService} from "@taiga-ui/core/components";
-import {TuiBadge, TuiBadgedContentComponent, TuiBadgedContentDirective} from "@taiga-ui/kit/components";
-import {NgClass} from "@angular/common";
-import {Avatar} from "../avatar.model";
-import {UserInfo} from "../../../../../models/userinfo.model";
-import {Subject, takeUntil} from "rxjs";
-import {AvatarComponent} from "../../../../../shared/avatar/avatar.component";
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Subject, takeUntil} from 'rxjs';
+import {UserInfo} from '../../../../../models/userinfo.model';
+import {UserInfoService} from '../../../../../services/user-info.service';
+import {AvatarPickerComponent} from '../../../../../shared/profile/avatar-picker/avatar-picker.component';
 
 @Component({
   selector: 'app-manage-avatar',
   templateUrl: './manage-avatar.component.html',
-  imports: [
-    FileUploadComponent,
-    TuiBadgedContentComponent,
-    TuiBadge,
-    TuiBadgedContentDirective,
-    AvatarComponent,
-    NgClass
-  ],
-  styleUrls: ['./manage-avatar.component.less']
+  styleUrl: './manage-avatar.component.less',
+  imports: [AvatarPickerComponent],
 })
 export class ManageAvatarComponent implements OnInit, OnDestroy {
-  private userInfoService = inject(UserInfoService);
-  private fileUploadService = inject(FirebaseService);
-  private profileSettingsService = inject(ProfileSettingsService);
-  private alertService = inject(TuiNotificationService);
-
-  @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<unknown>;
-
-  private readonly FIREBASE_AVATAR_URL_PATH = 'avatars/users';
-  private readonly FIREBASE_DEFAULT_URL_PATH = this.FIREBASE_AVATAR_URL_PATH + '/default';
-
-  protected userInfo: UserInfo | null = null;
+  private readonly userInfoService = inject(UserInfoService);
   private readonly destroy$ = new Subject<void>();
 
-  defaultAvatars: string[] = [];
-  customAvatars: Avatar[] = [];
-  isUpdated = false;
-  isReset = false;
-  deletedAvatarId: string | null = null;
+  @ViewChild('manageAvatar', {static: true}) content!: TemplateRef<unknown>;
+  protected userInfo: UserInfo | null = null;
 
-  ngOnInit() {
-    void this.loadDefaultAvatars().then();
-    this.loadCustomAvatars();
-    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
-      this.userInfo = info;
-    });
+  ngOnInit(): void {
+    this.userInfoService.userInfo$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(userInfo => this.userInfo = userInfo);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  protected async onFileUploaded(file: File): Promise<void> {
-    try {
-      const filePath = await this.fileUploadService.uploadFile(file, this.FIREBASE_AVATAR_URL_PATH);
-      this.profileSettingsService.addAndSetNewAvatar(filePath).subscribe({
-        next: () => {
-          this.userInfoService.updateUserInfo({avatarUrl: filePath});
-          this.playUpdatedAnimation();
-          this.loadCustomAvatars();
-          this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
-        },
-        error: () => {
-          this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
-        }
-      });
-    } catch {
-      this.alertService.open('Failed to upload avatar', {appearance: 'negative'}).subscribe();
-    }
-  }
-
-  protected deleteCustomAvatar(id: string) {
-    const currentAvatarUrl = this.userInfo?.avatarUrl;
-    this.deletedAvatarId = id;
-    this.profileSettingsService.deleteCustomAvatar(id).subscribe({
-      next: () => {
-        const deletedUrl = this.customAvatars.find(avatar => avatar.id === id)?.url
-        setTimeout(() => this.deletedAvatarId = null, 500);
-        if (currentAvatarUrl == deletedUrl) {
-          this.playAvatarResetAnimation();
-          this.userInfoService.updateUserInfo({avatarUrl: ''});
-        }
-        this.loadCustomAvatars();
-        this.alertService.open('Avatar deleted', {appearance: 'positive'}).subscribe();
-      }, error: () => {
-        this.alertService.open('Failed to delete avatar', {appearance: 'negative'}).subscribe();
-      }
-    });
-  }
-
-  protected chooseDefaultAvatar(url: string) {
-    this.profileSettingsService.chooseDefaultAvatar(url).subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({avatarUrl: url});
-        this.playUpdatedAnimation();
-        this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
-      }, error: () => {
-        this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
-      }
-    })
-  }
-
-  protected chooseAnotherCustomAvatar(id: string) {
-    this.profileSettingsService.chooseExistingCustomAvatar(id).subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({avatarUrl: this.customAvatars.find(avatar => avatar.id === id)?.url});
-        this.playUpdatedAnimation();
-        this.alertService.open('Profile picture updated', {appearance: 'positive'}).subscribe();
-      }, error: () => {
-        this.alertService.open('Failed to set new avatar', {appearance: 'negative'}).subscribe();
-      }
-    });
-  }
-
-  protected deleteCurrentAvatar() {
-    this.profileSettingsService.resetAvatar().subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({avatarUrl: ''});
-        this.playAvatarResetAnimation();
-        this.alertService.open('Profile picture deleted', {appearance: 'positive'}).subscribe();
-      }, error: () => {
-        this.alertService.open('Failed to delete avatar', {appearance: 'negative'}).subscribe();
-      }
-    });
-  }
-
-  private loadCustomAvatars() {
-    return this.profileSettingsService.getAvatars().subscribe({
-      next: (avatars) => {
-        this.customAvatars = avatars;
-      }, error: () => {
-        this.alertService.open('Failed to load custom avatars', {appearance: 'negative'}).subscribe();
-      }
-    });
-  }
-
-  private async loadDefaultAvatars() {
-    try {
-      // Fetch the default avatars from Firebase
-      this.defaultAvatars = await this.fileUploadService.getDefaultAvatars(this.FIREBASE_DEFAULT_URL_PATH);
-    } catch {
-      this.alertService.open('Failed to load default avatars', {label: 'Error'}).subscribe();
-    }
-  }
-
-  private playAvatarResetAnimation() {
-    this.isReset = true;
-    setTimeout(() => this.isReset = false, 1000);
-  }
-
-  private playUpdatedAnimation() {
-    this.isUpdated = true;
-    setTimeout(() => this.isUpdated = false, 1000);
   }
 }

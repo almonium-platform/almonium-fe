@@ -1,16 +1,16 @@
 <div class="card step profile-step">
   <div class="profile-heading">
     <h1>Make it yours</h1>
-    <p>Both of these are already set. Change them now or later in settings.</p>
+    <p>Both are already set — continue to keep them.</p>
   </div>
 
   @if (userInfo) {
-    <app-onboarding-avatar-picker [userInfo]="userInfo" />
+    <app-avatar-picker [userInfo]="userInfo" />
   }
 
   <div class="username-section">
     <span>Username</span>
-    <div class="username-field"><app-username [showInfo]="false" /></div>
+    <app-username />
     <p>Only used if you share a word pack.</p>
   </div>
 

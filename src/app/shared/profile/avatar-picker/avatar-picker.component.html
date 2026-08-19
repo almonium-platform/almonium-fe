@@ -1,0 +1,79 @@
+<section class="avatar-picker" [class.settings]="variant === 'settings'">
+  @if (variant === 'settings') {
+    <div class="picker-heading">
+      <h2>Choose an avatar</h2>
+      <p>Or keep your initials.</p>
+    </div>
+
+    <button
+      type="button"
+      class="current-avatar-row"
+      [class.can-reset]="userInfo.avatarUrl"
+      (click)="useInitials()"
+    >
+      <span class="current-avatar settings-current">
+        @if (userInfo.avatarUrl) {
+          <img [src]="userInfo.avatarUrl" alt="Current avatar" />
+        } @else {
+          <span>{{ initials }}</span>
+        }
+      </span>
+      <span class="current-description">
+        @if (userInfo.avatarUrl) {
+          Current avatar. Select here to return to your initials.
+        } @else {
+          Current — initials on your plum. This is the default and it needs no replacing.
+        }
+      </span>
+    </button>
+
+    <div class="settings-choices" aria-label="Choose an avatar">
+      @for (choice of choices; track choice.path) {
+        <button
+          type="button"
+          class="settings-choice"
+          [class.selected]="isSelected(choice)"
+          [disabled]="busyUrl !== undefined"
+          (click)="chooseAvatar(choice)"
+          [attr.aria-label]="'Use ' + choice.label + ' avatar'"
+          [attr.aria-pressed]="isSelected(choice)"
+        >
+          <span class="animal-frame"><img [src]="choice.url" alt="" /></span>
+          <span>{{ choice.label }}</span>
+        </button>
+      }
+    </div>
+  } @else {
+    <span class="current-avatar onboarding-current">
+      @if (userInfo.avatarUrl) {
+        <img [src]="userInfo.avatarUrl" alt="Selected avatar" />
+      } @else {
+        <span>{{ initials }}</span>
+      }
+    </span>
+
+    <div class="compact-choices" aria-label="Choose an avatar">
+      <button
+        type="button"
+        class="compact-choice initials-choice"
+        [class.selected]="!userInfo.avatarUrl"
+        [disabled]="busyUrl !== undefined"
+        (click)="useInitials()"
+        aria-label="Use initials"
+        [attr.aria-pressed]="!userInfo.avatarUrl"
+      >{{ initials }}</button>
+      @for (choice of choices; track choice.path) {
+        <button
+          type="button"
+          class="compact-choice animal-choice"
+          [class.selected]="isSelected(choice)"
+          [disabled]="busyUrl !== undefined"
+          (click)="chooseAvatar(choice)"
+          [attr.aria-label]="'Use ' + choice.label + ' avatar'"
+          [attr.aria-pressed]="isSelected(choice)"
+        ><img [src]="choice.url" alt="" /></button>
+      }
+    </div>
+    <p class="picker-caption">Your initials, or one of five drawings.</p>
+  }
+</section>

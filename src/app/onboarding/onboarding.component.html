@@ -2,6 +2,7 @@
 
 <div class="top-container">
 
+  @if (showProgressStepper) {
   <div class="stepper-container card">
     <!--    MOBILE-->
     @if (isMobile) {
@@ -16,9 +17,9 @@
           size="s"
           class="progress"
           tuiProgressBar
-          [max]="steps.length"
-          [segments]="steps.length"
-          [value]="activeStepIndex + 1"
+          [max]="progressSteps.length"
+          [segments]="progressSteps.length"
+          [value]="progressStepIndex + 1"
         ></progress>
         <lucide-icon
           [ngClass]="{ disabled: forwardDisabled() }"
@@ -31,15 +32,15 @@
 
     @if (!isMobile) {
       <tui-stepper
-        [activeItemIndex]="activeStepIndex"
+        [activeItemIndex]="progressStepIndex"
         [tuiTextfieldSize]="'l'"
       >
-        @for (s of steps; track s; let i = $index) {
+        @for (s of progressSteps; track s) {
           <button
             tuiStep
             type="button"
-            [disabled]="!canNavigateTo(i)"
-            (click)="goToStep(i)"
+            [disabled]="!canNavigateTo(steps.indexOf(s))"
+            (click)="goToStep(steps.indexOf(s))"
           >
             {{ s.charAt(0) + s.slice(1).toLowerCase() }}
           </button>
@@ -47,6 +48,7 @@
       </tui-stepper>
     }
   </div>
+  }
 
   <div class="step-content">
 

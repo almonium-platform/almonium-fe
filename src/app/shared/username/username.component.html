@@ -1,65 +1,25 @@
-<div class="row-content">
-  @if (!usernameEditable) {
-    <div
-      [ngClass]="userInfo?.premium ? 'premium-text' : 'gradient-text'"
-      [style.font-size]="usernameFontSize"
-      class="username-label flex items-center"
-    >&#64;{{ userInfo?.username }}
-    </div>
+<form (ngSubmit)="onSubmit()" class="username-editor">
+  <div class="username-control" [class.invalid]="usernameControl.touched && usernameControl.invalid">
+    <input
+      type="text"
+      [formControl]="usernameControl"
+      (blur)="onSubmit()"
+      autocomplete="username"
+      autocapitalize="none"
+      spellcheck="false"
+      maxlength="25"
+      aria-label="Username"
+    />
+    @if (availabilityText) {
+      <span
+        class="availability"
+        [class.available]="availabilityText === 'available'"
+        [class.taken]="availabilityText === 'taken'"
+        aria-live="polite"
+      >{{ isSaving ? 'saving' : availabilityText }}</span>
+    }
+  </div>
+  @if (errorText) {
+    <p class="username-error" aria-live="polite">{{ errorText }}</p>
   }
-
-  @if (usernameEditable) {
-    <form
-      [formGroup]="usernameForm"
-      class="username-form"
-      (ngSubmit)="onUsernameEditClick()"
-    >
-      <tui-textfield
-        #username
-        tuiTextfieldSize="m"
-      >
-        <input
-          tuiInput
-          formControlName="usernameValue"
-          placeholder="Username"
-          [readOnly]="!usernameEditable"
-          maxlength="25"
-        />
-      </tui-textfield>
-      @if (isLoading) {
-        <div>Checking availability...</div>
-      }
-      <tui-error
-        formControlName="usernameValue"
-      ></tui-error>
-    </form>
-  }
-  @if (showInfo) {
-    <lucide-icon
-      name="info"
-      class="info-btn"
-      tuiHintAppearance="dark"
-      tuiHintDirection="top"
-      size="30"
-      [strokeWidth]="1.5"
-      [tuiHint]="usernameTooltip"
-    >
-      <ng-template #usernameTooltip>
-        <div [innerHTML]="tooltipUsername"></div>
-      </ng-template>
-    </lucide-icon>
-  }
-
-  <app-edit-button
-    class="edit-element"
-    [disabled]="
-      (usernameEditable && !usernameForm.valid)
-      || isLoading
-    "
-    [label]="'Change'"
-    [editable]="usernameEditable"
-    [loading$]="loading$"
-    (clickFunction)="onUsernameEditClick()"
-  >
-  </app-edit-button>
-</div>
+</form>

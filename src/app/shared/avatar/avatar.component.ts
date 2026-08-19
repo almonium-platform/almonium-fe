@@ -9,7 +9,7 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
     <span [tuiAvatar]="initials"
       [size]="size"
       [tuiSkeleton]="loading"
-      [style.background]="!avatarUrl ? 'var(--default-avatar-gradient)' : null"
+      [style.background]="!avatarUrl ? 'var(--avatar-gradient)' : null"
       [style.color]="'white'"
       [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       class="cursor-pointer"

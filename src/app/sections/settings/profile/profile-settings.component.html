@@ -20,68 +20,40 @@
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <!--profile block  -->
   <div class="card-container">
+    <div class="section-block card identity-card">
+      @if (userInfo) {
+        <app-avatar-picker [userInfo]="userInfo" variant="settings" />
+      }
 
-    <div class="section-block card">
-      <div class="title">Profile</div>
-      <div class="row-content">
-        @if (userInfo) {
-          <app-avatar-settings
-            class="pt-3 pb-3"
-            [userInfo]="userInfo"
-          ></app-avatar-settings>
-        }
-        <div class="flex flex-col justify-center items-center ml-auto gap-2">
-          @if (!userInfo?.hidden) {
-            <div class="flex flex-col gap-2">
-              <lucide-icon name="link"
-                           class="share-icon"
-                           (click)="copyProfileLink()"
-                           [size]="30"
-              ></lucide-icon>
-              <lucide-icon name="qr-code"
-                           class="share-icon"
-                           (click)="openShareProfile()"
-                           [size]="34"
-              ></lucide-icon>
-            </div>
-          }
-          <app-button
-            [label]="userInfo?.hidden ? 'Hidden' : 'Hide'"
-            [hoverLabel]="userInfo?.hidden ? 'Unhide' : undefined"
-            [appearance]="'underline'"
-            [loading$]="loadingHideProfile$"
-            [style.margin-left]="'auto'"
-            [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
-            [gap]="(userInfo?.hidden ? '0.3rem' : '0')"
-            [reverse]="userInfo?.hidden"
-            [customClass]="userInfo?.hidden ? '' : ''"
-            (clickFunction)="toggleHidden()"
-            [hint]="hideProfileTooltip"
-            hintAppearance="dark"
-            hintDirection="bottom"
-          >
-            @if (userInfo?.hidden) {
-              <lucide-icon
-                [name]="'venetian-mask'"
-                [strokeWidth]="1"
-                [size]="34"
-              ></lucide-icon>
-            }
-
-          </app-button>
-          <ng-template #hideProfileTooltip>
-            When your profile is hidden, other users can only see your username and can't send you connection
-            requests.
-          </ng-template>
-        </div>
+      <div class="identity-username">
+        <span>Username</span>
+        <app-username />
+        <p>Only used if you share a word pack.</p>
       </div>
-    </div>
 
-    <div class="section-block card">
-      <div class="title">Username</div>
-      <app-username></app-username>
+      <div class="profile-visibility">
+        @if (!userInfo?.hidden) {
+          <button type="button" class="profile-tool" (click)="copyProfileLink()">
+            <lucide-icon name="link" [size]="18" /> Copy profile link
+          </button>
+          <button type="button" class="profile-tool" (click)="openShareProfile()">
+            <lucide-icon name="qr-code" [size]="19" /> Show QR code
+          </button>
+        }
+        <app-button
+          [label]="userInfo?.hidden ? 'Unhide profile' : 'Hide profile'"
+          appearance="underline"
+          [loading$]="loadingHideProfile$"
+          (clickFunction)="toggleHidden()"
+          [hint]="hideProfileTooltip"
+          hintAppearance="dark"
+          hintDirection="bottom"
+        />
+        <ng-template #hideProfileTooltip>
+          When your profile is hidden, other users can only see your username and can't send you connection requests.
+        </ng-template>
+      </div>
     </div>
 
     <div class="section-block card">

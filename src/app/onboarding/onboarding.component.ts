@@ -59,6 +59,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     SetupStep.PROFILE,
     SetupStep.GREETING,
   ];
+  readonly progressSteps: SetupStep[] = [
+    SetupStep.LANGUAGES,
+    SetupStep.LEVEL,
+    SetupStep.INTERESTS,
+    SetupStep.PROFILE,
+  ];
 
   ngOnInit() {
     this.userInfoService.userInfo$.pipe(
@@ -103,6 +109,14 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   protected get activeStepIndex(): number {
     return this.steps.indexOf(this.activeStep);
+  }
+
+  protected get progressStepIndex(): number {
+    return this.progressSteps.indexOf(this.activeStep);
+  }
+
+  protected get showProgressStepper(): boolean {
+    return this.progressStepIndex >= 0;
   }
 
   protected updateActiveStep(step: SetupStep): void {

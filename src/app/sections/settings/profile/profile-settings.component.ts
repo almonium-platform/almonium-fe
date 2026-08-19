@@ -18,7 +18,7 @@ import {UrlService} from "../../../services/url.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UsernameComponent} from "../../../shared/username/username.component";
-import {AvatarSettingsComponent} from "../../../shared/avatar/settings/avatar-settings.component";
+import {AvatarPickerComponent} from '../../../shared/profile/avatar-picker/avatar-picker.component';
 import {InterestsComponent} from "../../../shared/interests/interests.component";
 import {TuiChip} from "@taiga-ui/kit/components";
 import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
@@ -41,7 +41,7 @@ import {getErrorMessage} from '../../../shared/http-error';
     RecentAuthGuardComponent,
     ReactiveFormsModule,
     UsernameComponent,
-    AvatarSettingsComponent,
+    AvatarPickerComponent,
     InterestsComponent,
     TuiAutoColorPipe,
     TuiChip,

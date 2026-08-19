@@ -24,6 +24,61 @@
   align-items: center;
 }
 
+.identity-card {
+  width: 470px;
+  padding: 30px 32px;
+  gap: 18px;
+  border-radius: 28px;
+}
+
+.identity-username {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 2px;
+}
+
+.identity-username > span {
+  color: var(--dark-raspberry);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.identity-username p {
+  margin: 0;
+  color: #7e7e7e;
+  font-size: 12px;
+}
+
+.profile-visibility {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .55rem .75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline-color);
+}
+
+.profile-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .45rem .7rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 9999px;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: .75rem;
+}
+
+.profile-tool:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
 // buttons
 .cta {
   display: flex;
@@ -91,23 +146,6 @@
   cursor: pointer;
 }
 
-.share-icon {
-  cursor: pointer;
-  margin-left: auto;
-  color: var(--tui-background-accent-1);
-  border-radius: .7rem;
-  padding: .2rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.share-icon:hover {
-  background-color: #fde2f0;
-}
-
 .hidden-btn {
   height: 1rem;
   gap: 1rem;
@@ -118,4 +156,11 @@
   font-style: italic;
   padding: .2rem;
   margin: 0 auto;
+}
+
+@media (max-width: 520px) {
+  .identity-card {
+    width: calc(100vw - 2rem);
+    padding: 24px 20px;
+  }
 }

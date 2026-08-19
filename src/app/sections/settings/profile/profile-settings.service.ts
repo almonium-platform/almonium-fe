@@ -2,7 +2,6 @@ import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../../../app.constants";
-import {Avatar} from "./avatar/avatar.model";
 import {UIPreferences} from "../../../models/userinfo.model";
 
 @Injectable({
@@ -13,47 +12,12 @@ export class ProfileSettingsService {
 
 
   /**
-   * Get all avatars for the current user
-   */
-  getAvatars(): Observable<Avatar[]> {
-    const url = `${AppConstants.AVATARS_URL}`;
-    return this.http.get<Avatar[]>(url, {withCredentials: true});
-  }
-
-  /**
-   * Add and set a new avatar for the current user
-   * @param avatarUrl of the new avatar
-   */
-  addAndSetNewAvatar(avatarUrl: string): Observable<unknown> {
-    const url = `${AppConstants.AVATARS_URL}`;
-    return this.http.post(url, {avatarUrl}, {withCredentials: true});
-  }
-
-  /**
-   * Choose another existing custom avatar as the active one
-   * @param avatarId ID of the avatar to be set as active
-   */
-  chooseExistingCustomAvatar(avatarId: string): Observable<unknown> {
-    const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
-    return this.http.patch(url, {}, {withCredentials: true});
-  }
-
-  /**
    * Choose a default avatar for the current user
    * @param avatarUrl URL of the default avatar to be set
    */
   chooseDefaultAvatar(avatarUrl: string): Observable<unknown> {
     const url = `${AppConstants.AVATARS_URL}/default`;
     return this.http.patch(url, {avatarUrl}, {withCredentials: true});
-  }
-
-  /**
-   * Delete an avatar by its ID
-   * @param avatarId ID of the avatar to delete
-   */
-  deleteCustomAvatar(avatarId: string): Observable<unknown> {
-    const url = `${AppConstants.AVATARS_URL}/${avatarId}`;
-    return this.http.delete(url, {withCredentials: true});
   }
 
   /**
