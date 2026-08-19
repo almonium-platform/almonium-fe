@@ -141,41 +141,87 @@ tui-data-list button[tuiOption].context-button {
 .gradient-button {
   width: 100%; // Make the button take the full width of its container
   display: block;
+  min-height: 44px;
   font-size: 16px;
   padding: 1.1rem 1.5rem;
-  background: linear-gradient(to right, #5A1A74, #8F2356);
+  background: var(--premium-gradient);
   color: white; // Equivalent to test-white
   font-weight: bold; // Equivalent to font-bold
+  border: 0;
   border-radius: 9999px; // Equivalent to rounded-full
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 2px 8px rgba(72, 23, 125, .26);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.gradient-button:hover {
-  opacity: 0.75;
+.gradient-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 6px 16px rgba(72, 23, 125, .28), 0 2px 4px rgba(72, 23, 125, .16);
+}
+
+.gradient-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, .3);
 }
 
 .gradient-button:disabled {
-  opacity: 0.75;
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
   cursor: not-allowed;
+  opacity: 1;
+  transform: none;
 }
 
 .solid-button {
   width: 100%;
   display: block;
+  min-height: 44px;
   font-size: 16px;
   padding: 1.1rem 1.5rem;
   background: var(--brand-primary);
   color: white;
   font-weight: bold;
+  border: 0;
   border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(72, 23, 125, .2);
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
-.solid-button:hover {
+.solid-button:hover:not(:disabled) {
   background: var(--brand-hover);
+  box-shadow: 0 6px 16px rgba(72, 23, 125, .28), 0 2px 4px rgba(72, 23, 125, .16);
+  transform: translateY(-1px);
+}
+
+.solid-button:active:not(:disabled) {
+  background: var(--brand-pressed);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, .3);
+  transform: translateY(1px);
+}
+
+.solid-button.incomplete-button,
+.solid-button.incomplete-button:hover,
+.solid-button.incomplete-button:active {
+  background: transparent;
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  box-shadow: none;
+  transform: none;
 }
 
 .solid-button:disabled {
-  opacity: 0.75;
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
   cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+
+.gradient-button:focus-visible,
+.solid-button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
 }
 
 .secondary-outline-button {

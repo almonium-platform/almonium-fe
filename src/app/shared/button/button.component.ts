@@ -12,6 +12,7 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
     <button
       (click)="onClick()"
       [disabled]="isDisabled"
+      [attr.aria-disabled]="!satisfiable || null"
       [type]="type"
       [tuiSkeleton]="!!skeleton"
       class="relative flex items-center justify-center w-full base"
@@ -66,7 +67,8 @@ export class ButtonComponent implements OnInit {
   @Input() label!: string;
   @Input() hoverLabel?: string;
   @Input() disabled = false;
-  @Input() appearance: 'bw' | 'gradient' | 'solid' | 'underline' | 'text' = 'gradient';
+  @Input() satisfiable = true;
+  @Input() appearance: 'bw' | 'gradient' | 'solid' | 'underline' | 'text' = 'solid';
   @Input() customClass = '';
   @Input() fontSize?: number;
   @Input() fontWeight?: number;
@@ -110,7 +112,7 @@ export class ButtonComponent implements OnInit {
       return 'gradient-button';
     }
     if (this.appearance === 'solid') {
-      return 'solid-button';
+      return this.satisfiable ? 'solid-button' : 'solid-button incomplete-button';
     }
     return '';
   }

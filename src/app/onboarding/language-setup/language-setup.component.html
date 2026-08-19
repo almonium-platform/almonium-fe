@@ -39,7 +39,7 @@
 
         <tui-error [formControl]="targetLanguagesControl" />
         <div class="step-actions">
-          <app-button label="Continue" appearance="solid" [disabled]="languageForm.invalid" [loading$]="loading$" />
+          <app-button label="Continue" appearance="solid" [satisfiable]="languageForm.valid" [loading$]="loading$" />
           <button type="button" class="back-link" (click)="back.emit()">Back</button>
         </div>
       </form>
@@ -64,7 +64,7 @@
             </tui-textfield>
             <tui-error [formControl]="targetLanguagesControl" />
           </div>
-          <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />
+          <app-button label="Continue" appearance="solid" class="w-full" [satisfiable]="languageForm.valid" />
         </form>
       } @else {
         <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
@@ -76,7 +76,7 @@
               </div>
             }
           </div>
-          <app-button label="Save & Continue" appearance="solid" class="w-full" [loading$]="loading$" [disabled]="cefrForm.invalid" />
+          <app-button label="Save & Continue" appearance="solid" class="w-full" [loading$]="loading$" [satisfiable]="cefrForm.valid" />
         </form>
       }
     }
