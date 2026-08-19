@@ -57,24 +57,26 @@
       ></app-welcome>
     }
 
-    <app-language-setup #languageSetupComponent (continue)="updateActiveStep($event)"></app-language-setup>
+    <app-language-setup #languageSetupComponent (continue)="updateActiveStep($event)" (back)="goBack()"></app-language-setup>
     @if (activeStep === SetupStep.LANGUAGES && languageSetupComponent.content) {
       <ng-container *ngTemplateOutlet="languageSetupComponent.content"></ng-container>
     }
 
     @if (activeStep === SetupStep.LEVEL) {
-      <app-level-setup (continue)="updateActiveStep($event)" />
+      <app-level-setup (continue)="updateActiveStep($event)" (back)="goBack()" />
     }
 
     @if (activeStep === SetupStep.PROFILE) {
       <app-profile-setup
         (continue)="updateActiveStep($event)"
+        (back)="goBack()"
       ></app-profile-setup>
     }
 
     @if (activeStep === SetupStep.INTERESTS) {
       <app-interests-setup
         [currentInterests]="userInfo?.interests ?? []"
+        (back)="goBack()"
       ></app-interests-setup>
     }
 

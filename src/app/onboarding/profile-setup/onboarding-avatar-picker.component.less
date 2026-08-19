@@ -1,9 +1,6 @@
-.avatar-preview { position: relative; display: inline-flex; }
-.avatar-preview > button { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border: 1px solid #d8cfd6; border-radius: 50%; background: #fff; color: #5A1A74; cursor: pointer; }
-.avatar-picker { padding: .5rem; max-width: 28rem; }
-.avatar-picker h1 { margin: 0; font-family: var(--font-family-reading); color: #2c2530; }
-.avatar-picker p { color: #5f5560; }
-.avatar-choices { display: flex; flex-wrap: wrap; gap: .75rem; }
-.avatar-choice { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .5rem; border: 1px solid #edebe8; border-radius: .85rem; background: #fff; color: #5f5560; cursor: pointer; }
-.avatar-choice.selected, .avatar-choice:hover { border-color: #5A1A74; background: #faf6fb; }
-.avatar-choice span { font-size: .75rem; }
+.avatar-setup { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding-bottom: 1.25rem; border-bottom: 1px solid #edebe8; }
+.avatar-choices { display: flex; flex-wrap: wrap; justify-content: center; gap: .65rem; }
+.avatar-choice { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; padding: 0; border: 1px dashed #c9b6d6; border-radius: 50%; background: #f9f6f5; cursor: pointer; }
+.avatar-choice.selected { border: 2px solid #5A1A74; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5A1A74; }
+.avatar-setup p { margin: 0; color: #7e7e7e; font-size: .75rem; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }

@@ -7,6 +7,7 @@ import {OnboardingService} from '../onboarding.service';
 import {SetupStep, UserInfo} from '../../models/userinfo.model';
 import {ButtonComponent} from '../../shared/button/button.component';
 import {logger} from '../../shared/logger';
+import {LanguageNameService} from '../../services/language-name.service';
 
 @Component({
   selector: 'app-onboarding-greeting',
@@ -19,10 +20,20 @@ export class GreetingComponent implements OnInit, OnDestroy {
   private readonly userInfoService = inject(UserInfoService);
   private readonly router = inject(Router);
   private readonly alertService = inject(TuiNotificationService);
+  private readonly languageNameService = inject(LanguageNameService);
   private readonly destroy$ = new Subject<void>();
   private readonly loadingSubject$ = new BehaviorSubject(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
   protected userInfo: UserInfo | null = null;
+
+  protected get setupSummary(): string {
+    const learner = this.userInfo?.learners[0];
+    const language = learner ? this.languageNameService.getLanguageName(learner.language) : 'Your language';
+    const level = learner?.selfReportedLevel ?? 'B1';
+    const interestCount = this.userInfo?.interests.length ?? 0;
+    const interests = `${interestCount} ${interestCount === 1 ? 'interest' : 'interests'}`;
+    return `${language}, ${level}, ${interests}. You can change any of it later.`;
+  }
 
   ngOnInit(): void {
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(userInfo => this.userInfo = userInfo);

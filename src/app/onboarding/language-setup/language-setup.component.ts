@@ -100,6 +100,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly step = SetupStep.LANGUAGES;
 
   @Output() continue = new EventEmitter<SetupStep>();
+  @Output() back = new EventEmitter<void>();
   @Input() embeddedMode = false;
 
   protected onSecondForm = false;
@@ -670,7 +671,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   protected get visibleTargetLanguages(): Language[] {
-    const languages = [...this.specialTargetLanguages, ...this.otherTargetLanguages];
+    const languages = this.orderTargetLanguages([...this.specialTargetLanguages, ...this.otherTargetLanguages]);
     return this.showAllLanguages ? languages : languages.slice(0, 6);
   }
 
@@ -702,10 +703,39 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     return specialFeatures?.length ? specialFeatures.join(' · ') : 'Core features';
   }
 
+  protected hasSpecialFeatures(language: Language): boolean {
+    return this.languageFeatures[language.code]?.length > 0;
+  }
+
+  protected selectedLanguageExplanation(): string {
+    const selectedLanguage = this.visibleTargetLanguages.find(language => this.isTargetSelected(language.name));
+    if (!selectedLanguage) {
+      return 'Choose a language to see what it adds to your reading tools.';
+    }
+    const features = this.languageFeatures[selectedLanguage.code];
+    return features?.length
+      ? `${selectedLanguage.name} adds ${features.join(', ').toLowerCase()}.`
+      : `${selectedLanguage.name} includes all the core reading tools.`;
+  }
+
   private detectNativeLanguage(languages: Language[]): string[] {
     const locale = typeof navigator === 'undefined' ? '' : navigator.language.split('-')[0].toUpperCase();
     const detected = languages.find(language => language.code === locale)?.name;
     const fallback = languages.find(language => language.code === 'EN')?.name;
     return detected ? [detected] : fallback ? [fallback] : [];
+  }
+
+  private readonly preferredTargetLanguageCodes = ['DE', 'EN', 'FR', 'ES', 'PL'];
+
+  private orderTargetLanguages(languages: Language[]): Language[] {
+    return [...languages].sort((left, right) => {
+      const leftIndex = this.preferredTargetLanguageCodes.indexOf(left.code);
+      const rightIndex = this.preferredTargetLanguageCodes.indexOf(right.code);
+      if (leftIndex !== -1 || rightIndex !== -1) {
+        return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex)
+          - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
+      }
+      return left.name.localeCompare(right.name);
+    });
   }
 }

@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, Input, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
 import {SetupStep} from "../../models/userinfo.model";
@@ -26,6 +26,7 @@ export class InterestsSetupComponent {
   private userInfoService = inject(UserInfoService);
 
   @Input() currentInterests: Interest[] = [];
+  @Output() back = new EventEmitter<void>();
   protected selectedInterests: Interest[] = [];
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
@@ -38,7 +39,7 @@ export class InterestsSetupComponent {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.userInfoService.updateUserInfo({setupStep: SetupStep.COMPLETED});
+          this.userInfoService.updateUserInfo({setupStep: SetupStep.PROFILE});
         },
         error: (error) => {
           logger.error('Failed to save interests', error);

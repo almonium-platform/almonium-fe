@@ -1,6 +1,6 @@
 import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
+import {Observable, shareReplay} from "rxjs";
 import {AppConstants} from "../app.constants";
 import {Interest} from "../shared/interests/interest.model";
 import {expectArray, expectEnum} from '../shared/runtime-validation';
@@ -12,11 +12,13 @@ import {map} from 'rxjs/operators';
 })
 export class StaticInfoService {
   private http = inject(HttpClient);
+  private readonly interests$ = this.http.get<Interest[]>(`${AppConstants.INFO_URL}/interests`).pipe(
+    shareReplay({bufferSize: 1, refCount: false}),
+  );
 
 
   getInterests(): Observable<Interest[]> {
-    const url = `${AppConstants.INFO_URL}/interests`;
-    return this.http.get<Interest[]>(url);
+    return this.interests$;
   }
 
   getSupportedLanguages(): Observable<string[]> {

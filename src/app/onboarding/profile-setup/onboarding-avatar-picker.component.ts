@@ -1,34 +1,27 @@
-import {Component, Input, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Component, Input, OnInit, inject} from '@angular/core';
 import {AvatarComponent} from '../../shared/avatar/avatar.component';
-import {PopupTemplateStateService} from '../../shared/modals/popup-template/popup-template-state.service';
 import {FirebaseService} from '../../sections/settings/profile/avatar/firebase.service';
 import {ProfileSettingsService} from '../../sections/settings/profile/profile-settings.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {TuiNotificationService} from '@taiga-ui/core/components';
-import {LucideAngularModule} from 'lucide-angular';
 
 @Component({
   selector: 'app-onboarding-avatar-picker',
-  imports: [AvatarComponent, LucideAngularModule],
+  imports: [AvatarComponent],
   templateUrl: './onboarding-avatar-picker.component.html',
   styleUrl: './onboarding-avatar-picker.component.less',
 })
-export class OnboardingAvatarPickerComponent {
-  private readonly popupTemplateState = inject(PopupTemplateStateService);
+export class OnboardingAvatarPickerComponent implements OnInit {
   private readonly firebaseService = inject(FirebaseService);
   private readonly profileSettingsService = inject(ProfileSettingsService);
   private readonly userInfoService = inject(UserInfoService);
   private readonly alertService = inject(TuiNotificationService);
 
   @Input({required: true}) userInfo!: {avatarUrl: string | null; username: string; premium: boolean};
-  @ViewChild('avatarPicker', {static: true}) content!: TemplateRef<unknown>;
   protected defaultAvatars: string[] = [];
 
-  open(): void {
-    this.popupTemplateState.open(this.content, 'avatar');
-    if (!this.defaultAvatars.length) {
-      void this.loadDefaultAvatars();
-    }
+  ngOnInit(): void {
+    void this.loadDefaultAvatars();
   }
 
   protected useInitials(): void {
@@ -55,6 +48,5 @@ export class OnboardingAvatarPickerComponent {
 
   private finish(avatarUrl: string | null): void {
     this.userInfoService.updateUserInfo({avatarUrl});
-    this.popupTemplateState.close();
   }
 }

@@ -1,24 +1,21 @@
 <div class="card step profile-step">
   <div class="profile-heading">
     <h1>Make it yours</h1>
-    <p>Both of these are already set. Change them now or later in settings.</p>
+    <p>Both are already set — continue to keep them.</p>
   </div>
 
   @if (userInfo) {
-    <div class="identity-preview">
-      <app-onboarding-avatar-picker #avatarPicker [userInfo]="userInfo" />
-      <div>
-        <p class="identity-copy">Your initials, on your plum — or choose an animal.</p>
-        <button type="button" class="avatar-link" (click)="avatarPicker.open()">Choose avatar</button>
-      </div>
-    </div>
+    <app-onboarding-avatar-picker [userInfo]="userInfo" />
   }
 
   <div class="username-section">
     <span>Username</span>
-    <app-username />
+    <div class="username-field"><app-username /></div>
     <p>Only used if you share a word pack.</p>
   </div>
 
-  <app-button label="Continue" (click)="submit()" appearance="solid" class="w-full" [loading$]="loading$" />
+  <div class="step-actions">
+    <app-button label="Continue" (click)="submit()" appearance="solid" [loading$]="loading$" />
+    <button type="button" class="back-link" (click)="back.emit()">Back</button>
+  </div>
 </div>

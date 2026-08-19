@@ -28,6 +28,7 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly step = SetupStep.PROFILE;
   @Output() continue = new EventEmitter<SetupStep>();
+  @Output() back = new EventEmitter<void>();
   protected userInfo: UserInfo | null = null;
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);

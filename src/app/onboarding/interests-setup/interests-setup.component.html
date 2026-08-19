@@ -9,13 +9,8 @@
     (selectedInterestsChange)="onSelectedInterestsChange($event)">
   </app-interests>
 
-  <app-button
-    label="Start reading"
-    (click)="submit()"
-    appearance="gradient"
-    class="w-full"
-    [loading$]="loading$"
-    [disabled]="selectedInterests.length < 3"
-  >
-  </app-button>
+  <div class="step-actions">
+    <app-button label="Continue" (click)="submit()" appearance="solid" [loading$]="loading$" />
+    <button type="button" class="back-link" (click)="back.emit()">Back</button>
+  </div>
 </div>

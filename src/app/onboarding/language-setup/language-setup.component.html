@@ -1,51 +1,48 @@
 <ng-template #langSetup>
   <div class="card step language-step">
     @if (!embeddedMode) {
-      <div class="tui-header header-row">What would you like to read?</div>
-      <p class="step-description">Choose a language to start with. You can add another later.</p>
+      <div class="step-kicker">Step 2 of 5</div>
+      <div class="tui-header header-row">What are you learning?</div>
+      <p class="step-description">Pick one to begin. You can add more later.</p>
 
       <form [formGroup]="languageForm" (ngSubmit)="submitOnboardingLanguageForm()">
         <div class="language-grid">
           @for (language of visibleTargetLanguages; track language.code) {
-            <button
-              type="button"
-              class="language-card"
-              [class.selected]="isTargetSelected(language.name)"
-              [disabled]="atTargetLimit && !isTargetSelected(language.name)"
-              (click)="toggleTarget(language.name)"
-            >
+            <button type="button" class="language-card" [class.selected]="isTargetSelected(language.name)"
+              [disabled]="atTargetLimit && !isTargetSelected(language.name)" (click)="toggleTarget(language.name)">
+              <span class="language-card-top"><span class="language-code">{{ language.code }}</span></span>
               <span class="language-name">{{ language.name }}</span>
-              <span class="language-features">{{ featuresFor(language) }}</span>
+              <span class="language-features" [class.special-features]="hasSpecialFeatures(language)">{{ featuresFor(language) }}</span>
             </button>
           }
           @if (!showAllLanguages && remainingLanguageCount > 0) {
             <button type="button" class="language-card another-language" (click)="showAllLanguages = true">
               <span class="language-name">Another language</span>
-              <span class="language-features">{{ remainingLanguageCount }} more available</span>
+              <span class="language-features">Search all</span>
             </button>
           }
         </div>
 
-        <div class="native-language">
-          Reading from {{ detectedNativeLanguage }} — detected
-          <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">change</button>
-        </div>
+        <p class="native-language">
+          Reading from <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">{{ detectedNativeLanguage }}</button>
+          — detected, <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">change it</button>
+        </p>
         @if (showNativeLanguageNote) {
           <p class="native-note">You can update your reading languages later in Settings.</p>
         }
 
-        <tui-error [formControl]="targetLanguagesControl" />
-        @if (targetMaxLanguages === 1) {
-          <p class="plan-limit">Free covers one language at a time. <a href="/pricing">See plans</a></p>
-        }
+        <div class="language-explanation">
+          <p>{{ selectedLanguageExplanation() }}</p>
+          @if (targetMaxLanguages === 1) {
+            <p>Free covers one language at a time. <a href="/pricing">See plans</a></p>
+          }
+        </div>
 
-        <app-button
-          label="Continue"
-          appearance="solid"
-          class="w-full"
-          [disabled]="languageForm.invalid"
-          [loading$]="loading$"
-        />
+        <tui-error [formControl]="targetLanguagesControl" />
+        <div class="step-actions">
+          <app-button label="Continue" appearance="solid" [disabled]="languageForm.invalid" [loading$]="loading$" />
+          <button type="button" class="back-link" (click)="back.emit()">Back</button>
+        </div>
       </form>
     } @else {
       <div class="tui-header header-row">{{ onSecondForm ? 'Assess Your Level' : 'Add New Languages' }}</div>

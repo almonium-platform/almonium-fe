@@ -13,5 +13,8 @@
       </div>
     </div>
   }
-  <app-button label="Continue" appearance="solid" class="w-full" [loading$]="loading$" (click)="submit()" />
+  <div class="step-actions">
+    <app-button label="Continue" appearance="solid" [loading$]="loading$" (click)="submit()" />
+    <button type="button" class="back-link" (click)="back.emit()">Back</button>
+  </div>
 </div>

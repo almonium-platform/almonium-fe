@@ -1,23 +1,16 @@
-<ng-template #avatarPicker>
-  <div class="avatar-picker">
-    <h1>Choose an avatar</h1>
-    <p>Keep your initials or choose one of Almonium's animals.</p>
-    <div class="avatar-choices">
-      <button type="button" class="avatar-choice" [class.selected]="!userInfo.avatarUrl" (click)="useInitials()">
-        <app-avatar [avatarUrl]="null" [username]="userInfo.username" size="xl" />
-        <span>Initials</span>
+<div class="avatar-setup">
+  <app-avatar [avatarUrl]="userInfo.avatarUrl" [username]="userInfo.username" size="xxl" [sizeInRem]="5" />
+  <div class="avatar-choices" aria-label="Choose an avatar">
+    <button type="button" class="avatar-choice" [class.selected]="!userInfo.avatarUrl" (click)="useInitials()">
+      <app-avatar [avatarUrl]="null" [username]="userInfo.username" size="m" />
+      <span class="sr-only">Use initials</span>
+    </button>
+    @for (avatarUrl of defaultAvatars; track avatarUrl) {
+      <button type="button" class="avatar-choice" [class.selected]="avatarUrl === userInfo.avatarUrl" (click)="chooseAvatar(avatarUrl)">
+        <app-avatar [avatarUrl]="avatarUrl" [username]="userInfo.username" size="m" />
+        <span class="sr-only">Choose animal avatar</span>
       </button>
-      @for (avatarUrl of defaultAvatars; track avatarUrl) {
-        <button type="button" class="avatar-choice" [class.selected]="avatarUrl === userInfo.avatarUrl" (click)="chooseAvatar(avatarUrl)">
-          <app-avatar [avatarUrl]="avatarUrl" [username]="userInfo.username" size="xl" />
-          <span>Animal</span>
-        </button>
-      }
-    </div>
+    }
   </div>
-</ng-template>
-
-<div class="avatar-preview">
-  <app-avatar [avatarUrl]="userInfo.avatarUrl" [username]="userInfo.username" size="xl" />
-  <button type="button" aria-label="Change avatar" (click)="open()"><lucide-icon name="pencil" [size]="15" /></button>
+  <p>Your initials, or one of five drawings.</p>
 </div>

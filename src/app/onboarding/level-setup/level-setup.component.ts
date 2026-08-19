@@ -33,6 +33,7 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject(false);
 
   @Output() continue = new EventEmitter<SetupStep>();
+  @Output() back = new EventEmitter<void>();
   protected readonly levels = Object.entries(LEVEL_COPY) as [CEFRLevel, string][];
   protected readonly levelControls = new Map<string, FormControl<CEFRLevel>>();
   protected readonly loading$ = this.loadingSubject$.asObservable();

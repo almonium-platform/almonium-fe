@@ -24,6 +24,7 @@ export class InterestsComponent implements OnInit {
 
   protected interests: Interest[] = [];
   protected loading = true;
+  protected readonly skeletonItems = Array.from({length: 12});
   @Input() currentInterests: Interest[] = [];
   @Output() selectedInterestsChange = new EventEmitter<Interest[]>(); // Emit selected interests
 
@@ -38,17 +39,15 @@ export class InterestsComponent implements OnInit {
   ngOnInit() {
     this.staticInfoService.getInterests().subscribe({
       next: (interests) => {
-        setTimeout(() => {
-          this.interests = interests.filter(interest => this.curatedInterestNames.has(interest.name));
-          this.loading = false;
-          this.currentInterests.forEach((selectedInterest) => {
-            const interest = this.interests.find((i) => i.name === selectedInterest.name);
-            if (interest) {
-              interest.selected = true;
-            }
-          });
-          this.onInterestChange();
-        }, 500);
+        this.interests = interests.filter(interest => this.curatedInterestNames.has(interest.name));
+        this.loading = false;
+        this.currentInterests.forEach((selectedInterest) => {
+          const interest = this.interests.find((i) => i.name === selectedInterest.name);
+          if (interest) {
+            interest.selected = true;
+          }
+        });
+        this.onInterestChange();
       },
       error: (error) => {
         logger.error('Failed to get interests', error);

@@ -2,7 +2,7 @@
   <img src="assets/img/almo/empty.png" alt="Almo, ready to read with you" />
   <div>
     <h1>You're all set, {{ userInfo?.username }}.</h1>
-    <p>I'm Almo. Let's find something good to read.</p>
+    <p>{{ setupSummary }}</p>
   </div>
   <app-button label="Start reading" appearance="solid" class="w-full" [loading$]="loading$" (click)="startReading()" />
 </div>
