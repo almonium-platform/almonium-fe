@@ -10,23 +10,68 @@
 }
 
 .stepper-container {
-  width: 500px;
+  width: 35.5rem;
   max-width: calc(100vw - 2rem);
-  padding: 0.8rem 0.85rem;
+  padding: .65rem 1rem;
   margin-top: 2rem;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: .5rem;
   box-sizing: border-box;
 }
 
-.stepper-container .mobile {
-  display: inline-flex;
+.setup-progress {
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0 1.5rem;
+  width: 100%;
+  gap: .45rem;
+}
+
+.progress-step {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+  padding: .15rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--metadata-color);
+  font: inherit;
+  font-size: .875rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.progress-step:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.progress-step.active {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
+.progress-step.complete {
+  color: var(--subhead-color);
+}
+
+.progress-marker {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: var(--page-ground);
+  font-size: .6875rem;
+  font-weight: 700;
+}
+
+.progress-separator {
+  color: var(--control-border-color);
 }
 
 .step-content {
@@ -36,10 +81,6 @@
   display: flex;
   justify-content: center;
   width: 100%;
-}
-
-.progress {
-  min-width: 15rem;
 }
 
 .card.step.upgraded {
@@ -54,43 +95,23 @@
   width: fit-content;
 }
 
-.stepper-container.card tui-stepper {
-  --tui-text-primary: var(--tui-background-accent-1);
-  --tui-text-action: var(--text-color);
-  --tui-text-action-hover: var(--lavender);
-  --tui-background-neutral-1-hover: var(--lavender);
-  font-size: 1rem;
-}
+@media (max-width: 520px) {
+  .stepper-container {
+    padding-inline: .65rem;
+  }
 
-.stepper-container.card tui-stepper:hover {
-  --tui-text-action-hover: var(--brand-ink);
-}
+  .setup-progress {
+    gap: .3rem;
+  }
 
+  .progress-step {
+    gap: .25rem;
+    font-size: .72rem;
+  }
 
-// TODO to base
-.header-icon {
-  display: flex;
-  vertical-align: middle;
-  cursor: pointer;
-  color: var(--tui-background-accent-1);
-  border-radius: 50%;
-}
-
-.navigate-icon {
-  .header-icon;
-}
-
-.navigate-icon.disabled {
-  opacity: 0.5;
-  color: var(--disabled-text-color);
-}
-
-.navigate-icon.disabled:hover {
-  background-color: transparent;
-  color: var(--disabled-text-color);
-}
-
-.navigate-icon:hover {
-  background-color: var(--tui-background-accent-1);
-  color: white;
+  .progress-marker {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-basis: 1.1rem;
+  }
 }

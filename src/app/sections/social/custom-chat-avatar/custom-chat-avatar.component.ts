@@ -1,8 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import {Subscription} from 'rxjs';
-import {filter} from 'rxjs/operators';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
+import {avatarLetter} from '../../../shared/avatar/avatar-display';
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -13,9 +13,8 @@ import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angula
   styleUrl: './custom-chat-avatar.component.less',
 })
 export class CustomChatAvatarComponent
-  implements OnChanges, OnInit, OnChanges, AfterViewInit, OnDestroy {
+  implements OnChanges, OnInit, AfterViewInit, OnDestroy {
   private chatClientService = inject(ChatClientService);
-  private ngZone = inject(NgZone);
   private cdRef = inject(ChangeDetectorRef);
 
   /**
@@ -43,18 +42,12 @@ export class CustomChatAvatarComponent
    */
   @Input() type: AvatarType | undefined;
   /**
-   * If a channel avatar is displayed, and if the channel has exactly two members a green dot is displayed if the other member is online. Set this flag to `false` to turn off this behavior.
-   */
-  @Input() showOnlineIndicator = true;
-  /**
    * If channel/user image isn't provided the initials of the name of the channel/user is shown instead, you can choose how the initals should be computed
    */
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
   isError = false;
-  isOnline = false;
-  private isOnlineSubscription?: Subscription;
   initials = '';
   fallbackChannelImage: string | undefined;
   private userId?: string;
@@ -69,7 +62,6 @@ export class CustomChatAvatarComponent
           if (this.type || this.channel || this.name) {
             this.setInitials();
             this.setFallbackChannelImage();
-            this.updateIsOnlineSubscription();
           }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
@@ -80,9 +72,6 @@ export class CustomChatAvatarComponent
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['channel']) {
-      this.updateIsOnlineSubscription();
-    }
     if (changes['type'] || changes['name'] || changes['channel']) {
       this.setInitials();
     }
@@ -94,7 +83,6 @@ export class CustomChatAvatarComponent
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
-    this.isOnlineSubscription?.unsubscribe();
   }
 
   private setFallbackChannelImage() {
@@ -127,38 +115,7 @@ export class CustomChatAvatarComponent
       }
     }
 
-    const words = result.split(' ');
-    let initials: string;
-    if (this.initialsType === 'first-letter-of-each-word') {
-      initials = words.map((w) => w.charAt(0) || '').join('');
-    } else {
-      initials = words[0].charAt(0) || '';
-    }
-    this.initials = initials;
-  }
-
-  private updateIsOnlineSubscription() {
-    this.isOnlineSubscription?.unsubscribe();
-    this.isOnlineSubscription = undefined;
-    if (this.channel) {
-      const otherMember = this.getOtherMemberIfOneToOneChannel();
-      if (otherMember) {
-        this.isOnline = otherMember.online ?? false;
-        this.isOnlineSubscription = this.chatClientService.events$
-          .pipe(filter((e) => e.eventType === 'user.presence.changed'))
-          .subscribe((event) => {
-            if (event.event.user?.id === otherMember.id) {
-              this.ngZone.run(() => {
-                this.isOnline = event.event.user?.online ?? false;
-              });
-            }
-          });
-      } else {
-        this.isOnline = false;
-      }
-    } else {
-      this.isOnline = false;
-    }
+    this.initials = this.type === 'channel' && result === '#' ? '#' : avatarLetter(result);
   }
 
   ngAfterViewInit(): void {

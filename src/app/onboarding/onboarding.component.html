@@ -4,49 +4,26 @@
 
   @if (showProgressStepper) {
   <div class="stepper-container card">
-    <!--    MOBILE-->
-    @if (isMobile) {
-      <div class="mobile">
-        <lucide-icon
-          [ngClass]="{ disabled: backDisabled() }"
-          class="navigate-icon"
-          name="chevron-left"
-          (click)="goBack()"
-        ></lucide-icon>
-        <progress
-          size="s"
-          class="progress"
-          tuiProgressBar
-          [max]="progressSteps.length"
-          [segments]="progressSteps.length"
-          [value]="progressStepIndex + 1"
-        ></progress>
-        <lucide-icon
-          [ngClass]="{ disabled: forwardDisabled() }"
-          class="navigate-icon"
-          name="chevron-right"
-          (click)="goForward()"
-        ></lucide-icon>
-      </div>
-    }
-
-    @if (!isMobile) {
-      <tui-stepper
-        [activeItemIndex]="progressStepIndex"
-        [tuiTextfieldSize]="'l'"
-      >
-        @for (s of progressSteps; track s) {
-          <button
-            tuiStep
-            type="button"
-            [disabled]="!canNavigateTo(steps.indexOf(s))"
-            (click)="goToStep(steps.indexOf(s))"
-          >
-            {{ s.charAt(0) + s.slice(1).toLowerCase() }}
-          </button>
+    <nav class="setup-progress" aria-label="Profile setup progress">
+      @for (step of progressSteps; track step; let last = $last) {
+        <button
+          type="button"
+          class="progress-step"
+          [class.active]="step === activeStep"
+          [class.complete]="isProgressStepComplete(step)"
+          [disabled]="!canNavigateTo(steps.indexOf(step))"
+          (click)="goToProgressStep(step)"
+        >
+          <span class="progress-marker">
+            {{ isProgressStepComplete(step) ? '✓' : progressStepNumber(step) }}
+          </span>
+          <span>{{ progressStepLabel(step) }}</span>
+        </button>
+        @if (!last) {
+          <span class="progress-separator" aria-hidden="true">·</span>
         }
-      </tui-stepper>
-    }
+      }
+    </nav>
   </div>
   }
 

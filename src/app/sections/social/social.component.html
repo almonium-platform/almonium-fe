@@ -109,6 +109,7 @@
                 <div class="user-tile card">
                   <app-avatar [avatarUrl]="friend.avatarUrl"
                               [username]="friend.username"
+                              [premium]="friend.premium"
                               [size]="'m'"
                   ></app-avatar>
                   <p class="username">{{ friend.username }}</p>
@@ -174,6 +175,7 @@
             <div class="user-tile card">
               <app-avatar [avatarUrl]="friend.avatarUrl"
                           [username]="friend.username"
+                          [premium]="friend.premium"
                           [size]="'m'"
               ></app-avatar>
               <p class="username">{{ friend.username }}</p>
@@ -409,7 +411,6 @@
                   [imageUrl]="imageUrl"
                   [location]="location"
                   [tuiDropdownManual]="shouldShowDropdown(channel, location)"
-                  [showOnlineIndicator]="true"
                   [tuiDropdown]="dropdownTemplate"
                   (click)="openUser(location)"
                 >

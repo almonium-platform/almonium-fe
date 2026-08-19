@@ -103,7 +103,7 @@
           class="profile-circle"
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
-          [outline]="userInfo?.premium ?? false"
+          [premium]="userInfo?.premium ?? false"
           size="m"
           [sizeInRem]=3
         >
@@ -165,7 +165,7 @@
         <app-avatar
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
-          [outline]="userInfo?.premium ?? false"
+          [premium]="userInfo?.premium ?? false"
           class="mr-3 cursor-pointer"
           size="m"
           (click)="openChangeAvatarPopup()"

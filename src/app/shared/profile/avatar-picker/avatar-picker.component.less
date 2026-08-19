@@ -26,8 +26,8 @@ button {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  background: var(--avatar-gradient);
-  color: white;
+  background: var(--control-border-color);
+  color: var(--subhead-color);
   font-family: var(--font-family-reading);
   font-weight: 600;
 }
@@ -43,7 +43,7 @@ button {
 .onboarding-current {
   width: 5.125rem;
   height: 5.125rem;
-  font-size: 1.75rem;
+  font-size: 2.8125rem;
 }
 
 .compact-choices {
@@ -60,25 +60,29 @@ button {
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  border: 1px dashed #c9b6d6;
-  background: var(--page-ground);
+  border: 0;
+  background: var(--control-border-color);
   color: var(--metadata-color);
   cursor: pointer;
 }
 
-.initials-choice {
-  border: 0;
-  background: var(--avatar-gradient);
-  color: white;
+.letter-choice {
+  background: var(--control-border-color);
+  color: var(--subhead-color);
   font-family: var(--font-family-reading);
-  font-size: .875rem;
+  font-size: 1.375rem;
   font-weight: 600;
 }
 
 .compact-choice.selected {
-  border-style: solid;
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+.avatar-picker.member .current-avatar,
+.avatar-picker.member .compact-choice,
+.avatar-picker.member .animal-frame {
+  background: var(--premium-gradient);
+  color: var(--page-ground);
 }
 
 .compact-choice:disabled,
@@ -133,7 +137,7 @@ button {
 .settings-current {
   width: 3.875rem;
   height: 3.875rem;
-  font-size: 1.375rem;
+  font-size: 2.125rem;
 }
 
 .current-description {
@@ -166,14 +170,13 @@ button {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  border: 1px dashed #c9b6d6;
-  background: var(--page-ground);
+  border: 0;
+  background: var(--control-border-color);
 }
 
-.settings-choice.selected .animal-frame {
-  border-style: solid;
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--brand-primary);
+.settings-choice.selected {
+  color: var(--brand-primary);
+  font-weight: 700;
 }
 
 @media (max-width: 520px) {

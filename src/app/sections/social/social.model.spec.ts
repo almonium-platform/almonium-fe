@@ -3,8 +3,8 @@ import {parsePublicUserProfiles, parseRelatedUserProfiles} from './social.model'
 
 describe('social API validation', () => {
   it('parses user search results from the backend contract', () => {
-    expect(parsePublicUserProfiles([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png'}]))
-      .toEqual([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png'}]);
+    expect(parsePublicUserProfiles([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true}]))
+      .toEqual([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true}]);
   });
 
   it('rejects an unknown relationship status', () => {

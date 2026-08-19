@@ -1,18 +1,23 @@
 import {RelationshipStatus} from '../../shared/relationship.model';
-import {expectArray, expectEnum, expectRecord, expectString} from '../../shared/runtime-validation';
+import {
+  expectArray,
+  expectBoolean,
+  expectEnum,
+  expectNullableString,
+  expectRecord,
+  expectString,
+} from '../../shared/runtime-validation';
 
 export {RelationshipAction, RelationshipStatus} from '../../shared/relationship.model';
 
 export interface PublicUserProfile {
   id: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
+  premium: boolean;
 }
 
-export interface RelatedUserProfile {
-  id: string;
-  username: string;
-  avatarUrl: string;
+export interface RelatedUserProfile extends PublicUserProfile {
   relationshipId: string;
   relationshipStatus: RelationshipStatus;
 }
@@ -41,6 +46,7 @@ function parsePublicUserProfile(value: unknown, path: string): PublicUserProfile
   return {
     id: expectString(profile['id'], `${path}.id`),
     username: expectString(profile['username'], `${path}.username`),
-    avatarUrl: expectString(profile['avatarUrl'], `${path}.avatarUrl`),
+    avatarUrl: expectNullableString(profile['avatarUrl'], `${path}.avatarUrl`),
+    premium: expectBoolean(profile['premium'], `${path}.premium`),
   };
 }

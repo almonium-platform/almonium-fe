@@ -1,10 +1,8 @@
 import {logger} from "../shared/logger";
-import {TuiInput} from "@taiga-ui/core/components";
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import {TuiProgress, TuiStepper} from "@taiga-ui/kit/components";
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
-import {NgClass, NgTemplateOutlet} from "@angular/common";
+import {NgTemplateOutlet} from "@angular/common";
 import {LanguageSetupComponent} from "./language-setup/language-setup.component";
 import {Subject, takeUntil} from "rxjs";
 import {SetupStep, UserInfo} from "../models/userinfo.model";
@@ -12,25 +10,18 @@ import {Router} from "@angular/router";
 import {WelcomeComponent} from "./welcome/welcome.component";
 import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
-import {LucideAngularModule} from "lucide-angular";
-import {ViewportService} from "../services/viewport.service";
 import {LevelSetupComponent} from './level-setup/level-setup.component';
 import {GreetingComponent} from './greeting/greeting.component';
 
 @Component({
   selector: 'app-onboarding',
   imports: [
-    TuiStepper,
     ParticlesComponent,
-    TuiProgress,
     LanguageSetupComponent,
     WelcomeComponent,
     NgTemplateOutlet,
     ProfileSetupComponent,
     InterestsSetupComponent,
-    TuiInput,
-    LucideAngularModule,
-    NgClass,
     LevelSetupComponent,
     GreetingComponent,
   ],
@@ -41,14 +32,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   private userInfoService = inject(UserInfoService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
-  private viewportService = inject(ViewportService);
 
   protected readonly SetupStep = SetupStep;
   private readonly destroy$ = new Subject<void>();// @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   userInfo: UserInfo | null = null;
 
-  protected isMobile = false;
   activeStep: SetupStep = SetupStep.WELCOME; // Active step in the stepper
   storedStep: SetupStep = SetupStep.WELCOME; // Step stored in the backend
   steps: SetupStep[] = [
@@ -82,13 +71,6 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.viewportService.setCustomWidth(768);
-    this.viewportService.isMobile$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((isMobile: boolean) => {
-        this.isMobile = isMobile;
-        this.cdr.detectChanges();
-      });
   }
 
   ngOnDestroy() {
@@ -105,6 +87,22 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     if (this.canNavigateTo(stepIndex)) {
       this.activeStep = this.steps[stepIndex];
     }
+  }
+
+  protected goToProgressStep(step: SetupStep): void {
+    this.goToStep(this.steps.indexOf(step));
+  }
+
+  protected progressStepLabel(step: SetupStep): string {
+    return step.charAt(0) + step.slice(1).toLowerCase();
+  }
+
+  protected progressStepNumber(step: SetupStep): number {
+    return this.progressSteps.indexOf(step) + 1;
+  }
+
+  protected isProgressStepComplete(step: SetupStep): boolean {
+    return this.progressSteps.indexOf(step) < this.progressStepIndex;
   }
 
   protected get activeStepIndex(): number {

@@ -3,11 +3,13 @@ import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfoService} from '../../../services/user-info.service';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
+import {avatarImageUrl, avatarLetter} from '../../avatar/avatar-display';
 
 interface AvatarChoice {
   label: string;
   path: string;
   url: string;
+  premiumUrl: string;
 }
 
 @Component({
@@ -21,7 +23,7 @@ export class AvatarPickerComponent {
   private readonly userInfoService = inject(UserInfoService);
   private readonly alertService = inject(TuiNotificationService);
 
-  @Input({required: true}) userInfo!: {avatarUrl: string | null; username: string};
+  @Input({required: true}) userInfo!: {avatarUrl: string | null; username: string; premium: boolean};
   @Input() variant: 'onboarding' | 'settings' = 'onboarding';
   @Output() avatarChanged = new EventEmitter<string | null>();
 
@@ -34,12 +36,19 @@ export class AvatarPickerComponent {
     this.choice('Hare', 'assets/img/avatars/default/rabbit.png'),
   ];
 
-  protected get initials(): string {
-    return this.userInfo.username.slice(0, 2).toUpperCase();
+  protected get letter(): string {
+    return avatarLetter(this.userInfo.username);
   }
 
-  protected useInitials(): void {
-    if (this.busyUrl !== undefined || !this.userInfo.avatarUrl) {
+  protected get displayAvatarUrl(): string | null {
+    return avatarImageUrl(this.userInfo.avatarUrl, this.userInfo.premium);
+  }
+
+  protected useLetter(): void {
+    if (this.busyUrl !== undefined) {
+      return;
+    }
+    if (!this.userInfo.avatarUrl) {
       return;
     }
     this.busyUrl = null;
@@ -64,8 +73,18 @@ export class AvatarPickerComponent {
     return this.userInfo.avatarUrl === choice.url || this.userInfo.avatarUrl?.endsWith(choice.path) === true;
   }
 
+  protected displayChoiceUrl(choice: AvatarChoice): string {
+    return this.userInfo.premium ? choice.premiumUrl : choice.url;
+  }
+
   private choice(label: string, path: string): AvatarChoice {
-    return {label, path, url: new URL(path, this.document.baseURI).href};
+    const premiumPath = path.replace('/default/', '/default/premium/');
+    return {
+      label,
+      path,
+      url: new URL(path, this.document.baseURI).href,
+      premiumUrl: new URL(premiumPath, this.document.baseURI).href,
+    };
   }
 
   private finish(avatarUrl: string | null): void {

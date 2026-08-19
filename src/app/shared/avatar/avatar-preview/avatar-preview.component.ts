@@ -13,7 +13,7 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
     <app-avatar
       [avatarUrl]="avatarUrl"
       [username]="username"
-      [outline]="outline"
+      [premium]="premium"
       [size]="size"
       [sizeInRem]="sizeInRem"
       [loading]="loading"
@@ -57,7 +57,7 @@ export class AvatarPreviewComponent implements OnDestroy {
 
   @Input() avatarUrl: string | null = null;
   @Input() username: string | null = null;
-  @Input() outline = false; // todo: rename to premium
+  @Input() premium = false;
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
   @Input() loading = false;
