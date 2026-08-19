@@ -18,7 +18,7 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
           fill="none"
           viewBox="0 0 24 24"
           stroke-width="1.5"
-          stroke="black"
+          stroke="var(--brand-ink)"
           [ngClass]="isOutside ? 'size-8' : 'size-6'"
         >
           <path

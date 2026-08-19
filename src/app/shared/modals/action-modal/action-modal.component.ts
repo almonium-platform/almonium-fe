@@ -10,7 +10,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   ],
   template: `
     @if (isVisible) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.50)]">
         <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative motion-preset-slide-up-sm">
           <app-dismiss-button (closed)="onClose()"></app-dismiss-button>
           <div class="flex items-center mb-4 flex-row">
@@ -27,13 +27,13 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             </button>
             @if (secondaryActionText) {
               <button (click)="onConfirmTwo()"
-                      class="bg-white border border-black text-black px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
+                      class="bg-white border-[var(--brand-ink)] text-[var(--brand-ink)] px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
                 {{ secondaryActionText }}
               </button>
             }
             @if (primaryActionText) {
               <button (click)="onConfirmOne()"
-                      class="bg-black text-white px-4 py-2 font-bold rounded-3xl hover:bg-gray-800">
+                      class="bg-[var(--brand-ink)] text-white px-4 py-2 font-bold rounded-3xl hover:bg-[var(--brand-pressed)]">
                 {{ primaryActionText }}
               </button>
             }

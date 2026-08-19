@@ -46,12 +46,12 @@ import {Subject, takeUntil} from "rxjs";
       .embedded {
         border-radius: 1rem;
         width: fit-content;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(44, 37, 48, 0.1), 0 4px 6px -4px rgba(44, 37, 48, 0.1);
         max-width: min(48rem, 95%);
       }
 
       .bg-overlay {
-        background-color: rgba(0, 0, 0, 0); /* Initial transparent state */
+          background-color: transparent; /* Initial transparent state */
         transition: background-color 0.4s ease;
       }
 
@@ -65,19 +65,19 @@ import {Subject, takeUntil} from "rxjs";
 
       @keyframes fadeInBackground {
         from {
-          background-color: rgba(0, 0, 0, 0);
+          background-color: transparent;
         }
         to {
-          background-color: rgba(0, 0, 0, 0.80); /* Final dark state */
+          background-color: rgba(44, 37, 48, 0.80); /* Final dark state */
         }
       }
 
       @keyframes fadeOutBackground {
         from {
-          background-color: rgba(0, 0, 0, 0.80);
+          background-color: rgba(44, 37, 48, 0.80);
         }
         to {
-          background-color: rgba(0, 0, 0, 0); /* Back to transparent */
+          background-color: transparent; /* Back to transparent */
         }
       }
 

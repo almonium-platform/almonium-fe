@@ -101,7 +101,7 @@ export class ButtonComponent implements OnInit {
 
   get class() {
     if (this.appearance === 'bw') {
-      return 'black-n-white-button';
+      return 'secondary-outline-button';
     }
     if (this.appearance === 'underline') {
       return 'underline-button';

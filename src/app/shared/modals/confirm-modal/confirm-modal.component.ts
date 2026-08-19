@@ -10,7 +10,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   template: `
     @if (isVisible) {
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.75)]"
       >
         <div
           [class.fade-slide-in]="isVisible"
