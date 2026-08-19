@@ -1,8 +1,117 @@
 <app-manage-avatar></app-manage-avatar>
 
 <nav class="navbar">
-  <div class="navbar-content">
-  <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
+  <div class="navbar-content" [style.--language-color]="getLanguageColor(currentLanguage)">
+    <div #langDropdown class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
+      <div class="language-switcher">
+        <button
+          type="button"
+          class="language-crest"
+          [class.has-stack]="hasLanguageChoices"
+          [class.teach-stack]="showCrestHint && hasLanguageChoices"
+          [class.is-open]="isLanguageDropdownOpen"
+          [disabled]="!hasLanguageChoices"
+          [attr.aria-expanded]="hasLanguageChoices ? isLanguageDropdownOpen : null"
+          [attr.aria-haspopup]="hasLanguageChoices ? 'listbox' : null"
+          [attr.aria-label]="languageCrestLabel"
+          [ngStyle]="getLanguageStyles(currentLanguage)"
+          (click)="toggleLanguageDropdown()"
+          (keydown)="handleKeydown($event)">
+          @if (stackLanguages[1]; as thirdLanguage) {
+            <span class="crest-layer crest-layer-back" aria-hidden="true"
+                  [style.--crest-color]="getLanguageColor(thirdLanguage)"></span>
+          }
+          @if (stackLanguages[0]; as secondLanguage) {
+            <span class="crest-layer crest-layer-middle" aria-hidden="true"
+                  [style.--crest-color]="getLanguageColor(secondLanguage)"></span>
+          }
+          <span class="crest-face">{{ currentLanguage }}</span>
+        </button>
+
+        @if (isLanguageDropdownOpen) {
+          <div class="language-popover" (keydown)="handleKeydown($event)">
+            <div class="language-popover-current">
+              <span class="language-code active" [ngStyle]="getLanguageStyles(currentLanguage)">
+                {{ currentLanguage }}
+              </span>
+              <span>now studying</span>
+            </div>
+
+            @if (usesSearchableLanguageMenu) {
+              <label class="language-search">
+                <lucide-icon name="search" [size]="14" [strokeWidth]="1.5"></lucide-icon>
+                <input
+                  #languageSearchInput
+                  type="search"
+                  autocomplete="off"
+                  placeholder="Type a language or code"
+                  aria-label="Search learning languages"
+                  [(ngModel)]="languageSearch"
+                  (ngModelChange)="onLanguageSearchChange()">
+                <kbd>{{ shortcutModifier }}L</kbd>
+              </label>
+
+              @if (!languageSearch) {
+                <div class="language-section-label">Recent</div>
+                <div class="recent-languages" aria-label="Recently used languages">
+                  @for (lang of recentLanguageOptions; track lang) {
+                    <button type="button" class="language-code"
+                            [ngStyle]="getLanguageStyles(lang)"
+                            [attr.aria-label]="'Switch to ' + getLanguageName(lang)"
+                            (click)="changeLanguage(lang)">
+                      {{ lang }}
+                    </button>
+                  }
+                </div>
+                <div class="language-divider"></div>
+              }
+
+              <div class="language-section-label">All {{ targetLanguages.length }}</div>
+            }
+
+            <div class="language-options" role="listbox" aria-label="Learning languages">
+              @for (lang of displayedLanguages; track lang; let i = $index) {
+                <button
+                  #dropdownItem
+                  type="button"
+                  role="option"
+                  class="language-option"
+                  [class.active]="lang === currentLanguage"
+                  [class.focused]="i === focusedLangIndex"
+                  [attr.aria-selected]="lang === currentLanguage"
+                  (click)="changeLanguage(lang)">
+                  <span class="language-code" [ngStyle]="getLanguageStyles(lang)">{{ lang }}</span>
+                  <span class="language-name">{{ getLanguageName(lang) }}</span>
+                  @if (getLanguageLevel(lang); as level) {
+                    <span class="language-level">{{ level }}</span>
+                  }
+                  @if (i < 9) {
+                    <kbd class="language-number-shortcut">{{ shortcutModifier }}{{ i + 1 }}</kbd>
+                  }
+                </button>
+              } @empty {
+                <p class="language-empty">No learning languages match “{{ languageSearch }}”.</p>
+              }
+            </div>
+
+            @if (!usesSearchableLanguageMenu) {
+              <div class="language-divider"></div>
+              <button type="button" class="add-language" (click)="openLanguageSettings()">
+                <span aria-hidden="true">+</span>
+                <span>Add a language</span>
+              </button>
+            }
+
+            <p class="language-shortcut-hint">
+              <span>{{ shortcutModifier }}L opens</span>
+              <span>{{ shortcutModifier }}1–9 switches</span>
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
       <app-gif-player [replayTrigger]="replayGifSubject" class="app-icon"></app-gif-player>
     </div>
 
@@ -44,36 +153,6 @@
     }
 
     <div class="nav-actions">
-      <div class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
-        <div class="relative lang-dropdown">
-          <button (click)="toggleLanguageDropdown()" class="badge-btn text-lg"
-                  [ngStyle]="getButtonStyles(currentLanguage)">
-            {{ currentLanguage }}
-          </button>
-          <!-- Dropdown Menu (direct continuation of the button) -->
-
-          @if (isLanguageDropdownOpen) {
-            <div
-              tabindex="0"
-              class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
-              (keydown)="handleKeydown($event)">
-              <div class="py-1">
-                @for (lang of filteredLanguages; track lang; let i = $index) {
-                  <button
-                    #dropdownItem
-                    tabindex="0"
-                    [ngStyle]="getButtonStylesDropDown(lang)"
-                    [class.focused]="i === focusedLangIndex"
-                    (click)="changeLanguage(lang)"
-                    class="lang-option block w-full px-4 py-2 text-center text-sm text-gray-700 hover:bg-pink-100">
-                    {{ lang }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
       @for (item of navbarItems; track item.name) {
         @if (item.enabled) {
           <div class="icon-badge relative" (keydown.enter)="item.action()" tabindex="0" (click)="item.action()">

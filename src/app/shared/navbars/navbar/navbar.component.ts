@@ -31,6 +31,11 @@ import {TimerComponent} from "./timer/timer.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
 import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit/components";
+import {LanguageNameService} from "../../../services/language-name.service";
+
+const RECENT_LANGUAGES_KEY = 'recent_target_languages';
+const LANGUAGE_CREST_SESSIONS_KEY = 'language_crest_hint_sessions';
+const LANGUAGE_CREST_SESSION_KEY = 'language_crest_hint_seen';
 
 @Component({
   selector: 'app-navbar',
@@ -74,12 +79,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private firebaseNotificationService = inject(FirebaseNotificationService);
   private alertService = inject(TuiNotificationService);
   private localStorageService = inject(LocalStorageService);
+  private languageNameService = inject(LanguageNameService);
 
   private readonly destroy$ = new Subject<void>();
 
   @Input() currentRoute = '';
   @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef<HTMLButtonElement>>; // Get all dropdown buttons
   @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef<HTMLElement>; // Reference to the dropdown
+  @ViewChild('languageSearchInput') languageSearchInput?: ElementRef<HTMLInputElement>;
   @ViewChild(ManageAvatarComponent, {static: false}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
@@ -97,7 +104,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected currentLanguage!: LanguageCode;
   protected focusedLangIndex = -1; // Index of the currently focused dropdown item
   protected filteredLanguages: LanguageCode[] = [];
-  private targetLanguages: LanguageCode[] = [];
+  protected targetLanguages: LanguageCode[] = [];
+  protected languageSearch = '';
+  protected recentLanguages = this.localStorageService.getItem<LanguageCode[]>(RECENT_LANGUAGES_KEY) ?? [];
+  protected showCrestHint = false;
 
   private langColors: Record<string, string> = {};
 
@@ -110,6 +120,49 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected unreadNotificationsCount = 0;
 
   protected notifications: Notification[] = [];
+
+  protected get hasLanguageChoices(): boolean {
+    return this.targetLanguages.length > 1;
+  }
+
+  protected get usesSearchableLanguageMenu(): boolean {
+    return this.targetLanguages.length > 8;
+  }
+
+  protected get stackLanguages(): LanguageCode[] {
+    return this.targetLanguages.filter(language => language !== this.currentLanguage).slice(0, 2);
+  }
+
+  protected get displayedLanguages(): LanguageCode[] {
+    if (!this.usesSearchableLanguageMenu) {
+      return this.filteredLanguages;
+    }
+
+    const query = this.languageSearch.trim().toLocaleLowerCase();
+    if (!query) return this.targetLanguages;
+
+    return this.targetLanguages.filter(language =>
+      language.toLocaleLowerCase().includes(query)
+      || this.getLanguageName(language).toLocaleLowerCase().includes(query)
+    );
+  }
+
+  protected get recentLanguageOptions(): LanguageCode[] {
+    return [...new Set([...this.recentLanguages, ...this.targetLanguages])]
+      .filter(language => language !== this.currentLanguage)
+      .slice(0, 4);
+  }
+
+  protected get languageCrestLabel(): string {
+    const languageName = this.getLanguageName(this.currentLanguage);
+    return this.hasLanguageChoices
+      ? `${languageName}, current learning language. Choose another language`
+      : `${languageName}, current learning language`;
+  }
+
+  protected get shortcutModifier(): string {
+    return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
+  }
 
   get navbarItems() {
     return [
@@ -138,6 +191,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.initializeCrestHint();
+
     this.chatUnreadService.getUnreadCount().pipe(takeUntil(this.destroy$)).subscribe((count) => {
       this.hasUnreadMessages = count > 0;
       this.cdr.detectChanges();
@@ -167,6 +222,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((targetLanguages) => {
         this.targetLanguages = targetLanguages;
+        this.recentLanguages = this.recentLanguages.filter(language => targetLanguages.includes(language));
         this.cdr.markForCheck();
       });
 
@@ -216,64 +272,92 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   // LANGUAGE DROPDOWN
-  // Shortcut Listener for "Alt + A"
   @HostListener('window:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent): void {
-    if (event.ctrlKey && event.key === 'j') {
+    if (!this.hasLanguageChoices || this.isEditableTarget(event.target)) return;
+
+    const modifierPressed = event.metaKey || event.ctrlKey;
+    if (modifierPressed && event.key.toLocaleLowerCase() === 'l') {
       event.preventDefault();
-      this.changeToNextLanguage();
+      this.openLanguageDropdown();
+      return;
+    }
+
+    if (modifierPressed && /^[1-9]$/.test(event.key)) {
+      const language = this.displayedLanguages[Number(event.key) - 1];
+      if (language) {
+        event.preventDefault();
+        this.changeLanguage(language);
+      }
     }
   }
 
   changeToNextLanguage(): void {
+    if (!this.targetLanguages.length) return;
     const currentIndex = this.targetLanguages.indexOf(this.currentLanguage);
     const nextIndex = (currentIndex + 1) % this.targetLanguages.length;
     this.changeLanguage(this.targetLanguages[nextIndex]);
   }
 
   toggleLanguageDropdown(): void {
+    if (!this.hasLanguageChoices) return;
     this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
-
-    // If dropdown is opening, set focus to the first dropdown item
     if (this.isLanguageDropdownOpen) {
-      this.cdr.detectChanges(); // Trigger change detection to ensure dropdown is rendered
-      setTimeout(() => {
-        this.focusedLangIndex = 0;
-        this.focusOnItem(this.focusedLangIndex); // Focus the first item
-      }, 0);
+      this.focusDropdownEntry();
     } else {
-      this.focusedLangIndex = -1; // Reset focus index when closed
+      this.resetLanguageDropdown();
     }
+  }
+
+  private openLanguageDropdown(): void {
+    this.isLanguageDropdownOpen = true;
+    this.focusDropdownEntry();
+  }
+
+  private focusDropdownEntry(): void {
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      if (this.usesSearchableLanguageMenu) {
+        this.languageSearchInput?.nativeElement.focus();
+        this.focusedLangIndex = -1;
+      } else {
+        this.focusedLangIndex = 0;
+        this.focusOnItem(0);
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: MouseEvent): void {
-    // Use a small timeout to ensure dropdown click is not detected as outside click
     setTimeout(() => {
       if (this.isLanguageDropdownOpen && this.langDropdown && event.target instanceof Node && !this.langDropdown.nativeElement.contains(event.target)) {
-        this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
-        this.cdr.detectChanges(); // Trigger change detection to update the view
+        this.closeDropdown();
+        this.cdr.detectChanges();
       }
     }, 50);
   }
 
-  // Keyboard navigation for dropdown
   handleKeydown(event: KeyboardEvent): void {
     if (this.isLanguageDropdownOpen) {
+      const languages = this.displayedLanguages;
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
-          this.focusedLangIndex = (this.focusedLangIndex + 1) % this.filteredLanguages.length; // Move down in the filtered list
+          if (!languages.length) return;
+          this.focusedLangIndex = (this.focusedLangIndex + 1) % languages.length;
           this.focusOnItem(this.focusedLangIndex);
           break;
         case 'ArrowUp':
           event.preventDefault();
-          this.focusedLangIndex = (this.focusedLangIndex - 1 + this.filteredLanguages.length) % this.filteredLanguages.length; // Move up in the filtered list
+          if (!languages.length) return;
+          this.focusedLangIndex = (this.focusedLangIndex - 1 + languages.length) % languages.length;
           this.focusOnItem(this.focusedLangIndex);
           break;
         case 'Enter':
-          event.preventDefault();
-          this.selectLanguage(this.focusedLangIndex);
+          if (this.focusedLangIndex >= 0) {
+            event.preventDefault();
+            this.changeLanguage(languages[this.focusedLangIndex]);
+          }
           break;
         case 'Escape':
           event.preventDefault();
@@ -281,63 +365,80 @@ export class NavbarComponent implements OnInit, OnDestroy {
           break;
       }
     } else if (event.key === 'ArrowDown') {
-      // Open dropdown and directly focus on the first dropdown item when pressing ArrowDown on the main button
       event.preventDefault();
-      this.isLanguageDropdownOpen = true; // Open the dropdown
-      this.cdr.detectChanges(); // Ensure the dropdown items are rendered
-      this.focusedLangIndex = 0; // Focus the first item
-      this.focusOnItem(this.focusedLangIndex); // Set focus to the first dropdown item
+      this.openLanguageDropdown();
     }
   }
 
   focusOnItem(index: number): void {
-    const items = this.dropdownItems.toArray();
-    if (items[index]) {
-      items[index].nativeElement.focus(); // Set focus to the specific item
-    }
+    this.dropdownItems.toArray()[index]?.nativeElement.focus();
   }
 
   changeLanguage(lang: LanguageCode): void {
+    if (!lang) return;
+    const previousLanguage = this.currentLanguage;
     this.currentLanguage = lang;
-    this.isLanguageDropdownOpen = false;
-    this.focusedLangIndex = -1;
+    this.recentLanguages = [previousLanguage, lang, ...this.recentLanguages]
+      .filter((language, index, languages) => language && languages.indexOf(language) === index)
+      .slice(0, 4);
+    this.localStorageService.saveItem(RECENT_LANGUAGES_KEY, this.recentLanguages);
+    this.closeDropdown();
     this.targetLanguageDropdownService.setCurrentLanguage(lang);
   }
 
-  // dynamic styles
-  getButtonStyles(language: string): { color: string, border: string } {
-    const color = this.langColors[language] || 'var(--purple-dark)';
-    return {color: color, border: `1px solid ${color}`};
+  protected getLanguageColor(language: string): string {
+    return this.langColors[language] || '#7A6BB8';
   }
 
-  getButtonStylesDropDown(language: string): { color: string, border: string } {
-    let color = this.langColors[language];
-    color = color ? this.dullColor(color, 0.5) : 'var(--lavender)';
-    return {color: color, border: `1px solid ${color}`};
+  protected getLanguageStyles(language: string): Record<string, string> {
+    return {'--crest-color': this.getLanguageColor(language)};
   }
 
-  private dullColor(hex: string, amount: number): string {
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-
-    r = Math.min(255, Math.floor(r + (255 - r) * amount));
-    g = Math.min(255, Math.floor(g + (255 - g) * amount));
-    b = Math.min(255, Math.floor(b + (255 - b) * amount));
-
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  protected getLanguageName(language: LanguageCode): string {
+    return this.languageNameService.getLanguageName(language);
   }
 
-  // Handling popovers and dropdowns
-  selectLanguage(index: number): void {
-    if (index >= 0 && index < this.filteredLanguages.length) {
-      this.changeLanguage(this.filteredLanguages[index]);
-    }
+  protected getLanguageLevel(language: LanguageCode): string | null {
+    return this.userInfo?.learners.find(learner => learner.language === language)?.selfReportedLevel ?? null;
+  }
+
+  protected onLanguageSearchChange(): void {
+    this.focusedLangIndex = -1;
+  }
+
+  protected openLanguageSettings(): void {
+    this.closeDropdown();
+    void this.router.navigate(['/settings/lang']);
   }
 
   closeDropdown(): void {
     this.isLanguageDropdownOpen = false;
+    this.resetLanguageDropdown();
+  }
+
+  private resetLanguageDropdown(): void {
     this.focusedLangIndex = -1;
+    this.languageSearch = '';
+  }
+
+  private isEditableTarget(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement
+      && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  }
+
+  private initializeCrestHint(): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      if (window.sessionStorage.getItem(LANGUAGE_CREST_SESSION_KEY)) return;
+
+      const sessionCount = this.localStorageService.getItem<number>(LANGUAGE_CREST_SESSIONS_KEY) ?? 0;
+      this.showCrestHint = sessionCount < 2;
+      this.localStorageService.saveItem(LANGUAGE_CREST_SESSIONS_KEY, sessionCount + 1);
+      window.sessionStorage.setItem(LANGUAGE_CREST_SESSION_KEY, 'true');
+    } catch {
+      this.showCrestHint = false;
+    }
   }
 
   langsOnClickOutside() {
