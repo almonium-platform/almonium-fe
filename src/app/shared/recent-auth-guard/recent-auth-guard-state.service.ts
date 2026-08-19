@@ -11,4 +11,8 @@ export class RecentAuthGuardStateService {
   open() {
     this.recentAuthState.next({visible: true});
   }
+
+  close() {
+    this.recentAuthState.next({visible: false});
+  }
 }

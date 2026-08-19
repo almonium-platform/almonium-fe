@@ -11,6 +11,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     @if (isVisible) {
       <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.75)]"
+        (pointerdown)="onBackdropPointerDown($event)"
       >
         <div
           [class.fade-slide-in]="isVisible"
@@ -118,6 +119,12 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   get isButtonDisabled(): boolean {
     return this.countdownDisabled
       || (!!this.confirmationWord && this.confirmationValue !== this.confirmationWord);
+  }
+
+  onBackdropPointerDown(event: PointerEvent) {
+    if (event.target === event.currentTarget) {
+      this.onClose();
+    }
   }
 
   onClose() {

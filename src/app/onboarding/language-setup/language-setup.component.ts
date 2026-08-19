@@ -32,7 +32,7 @@ import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
 import {CEFRLevel, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
-import {TargetLanguageWithProficiency} from "./language-setup.model";
+import {reconcileSubmittedLearnerLevels, TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../services/utils.service";
 import {TuiItem} from "@taiga-ui/cdk/directives";
@@ -109,7 +109,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   protected showAllLanguages = false;
   protected showNativeLanguageNote = false;
 
-  private userInfo: UserInfo | null = null;
+  protected userInfo: UserInfo | null = null;
   languageForm: FormGroup;
   supportedLanguages: Language[] = [];
   availableTargetLanguages: Language[] = [];
@@ -552,6 +552,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
       next: (learners: Learner[]) => {
+        const reconciledLearners = reconcileSubmittedLearnerLevels(learners, payload);
         const colours = {...this.languageColours};
         payload.forEach((target, index) => {
           colours[target.language] ??= LANGUAGE_COLOURS[
@@ -559,11 +560,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           ].hex;
         });
         this.targetLanguageDropdownService.setLanguageColors(colours);
-        this.popupTemplateStateService.close();
-        setTimeout(() => {
-          // if no delay, for a split second, until popup is truly closed, user sees too many entries on second step
-          this.userInfoService.updateUserInfo({learners: learners});
-        }, 200);
+        this.popupTemplateStateService.closeImmediately();
+        this.userInfoService.updateUserInfo({learners: reconciledLearners});
+        this.userInfoService.fetchUserInfoFromServer().subscribe();
         this.alertService.open('New target language added to your profile!', {appearance: 'positive'}).subscribe();
       },
       error: (error) => {

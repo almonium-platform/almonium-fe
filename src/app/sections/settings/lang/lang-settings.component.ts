@@ -162,6 +162,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.languageApiService.updateLearner(learner.language, {level: newValue}).subscribe({
       next: () => {
         this.userInfoService.updateUserInfo({learners: this.learners});
+        this.userInfoService.fetchUserInfoFromServer().subscribe();
       },
       error: (err) => {
         logger.error('Failed to update CEFR:', err);
@@ -297,7 +298,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected openLangSetupPopup() {
     this.addTargetLangModalVisible = true;
     setTimeout(() => {
-      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang');
     }, 50);
   }
 

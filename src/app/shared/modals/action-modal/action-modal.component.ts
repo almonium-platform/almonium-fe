@@ -10,7 +10,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   ],
   template: `
     @if (isVisible) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.50)]">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.50)]" (pointerdown)="onBackdropPointerDown($event)">
         <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative motion-preset-slide-up-sm">
           <app-dismiss-button (closed)="onClose()"></app-dismiss-button>
           <div class="flex items-center mb-4 flex-row">
@@ -57,6 +57,12 @@ export class ActionModalComponent {
 
   onClose() {
     this.closed.emit();
+  }
+
+  onBackdropPointerDown(event: PointerEvent) {
+    if (event.target === event.currentTarget) {
+      this.onClose();
+    }
   }
 
   onConfirmOne() {

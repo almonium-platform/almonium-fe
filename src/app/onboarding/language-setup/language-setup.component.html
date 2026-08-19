@@ -69,7 +69,9 @@
           </div>
           <div class="slot-summary">
             <span>{{ usedTargetSlots }} of {{ totalTargetSlots }} slots used</span>
-            <a routerLink="/pricing"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</a>
+            @if (!userInfo?.premium) {
+              <a routerLink="/pricing"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</a>
+            }
           </div>
           <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />
         </form>
