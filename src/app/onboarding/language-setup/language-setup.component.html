@@ -18,7 +18,7 @@
           @if (!showAllLanguages && remainingLanguageCount > 0) {
             <button type="button" class="language-card another-language" (click)="showAllLanguages = true">
               <span class="language-name">Another language</span>
-              <span class="language-features">Search all</span>
+              <span class="language-features">Search all {{ supportedLanguages.length }} languages</span>
             </button>
           }
         </div>

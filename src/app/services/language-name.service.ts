@@ -9,6 +9,8 @@ import {LanguageCode} from "../models/language.enum";
   providedIn: 'root',
 })
 export class LanguageNameService {
+  private readonly macrolanguageSuffix = /\s+\(macrolanguage\)$/i;
+
   /**
    * Converts a language code (e.g., 'EN') into its full language name (e.g., 'English').
    * @param code Language code to transform.
@@ -29,7 +31,11 @@ export class LanguageNameService {
     }
 
     // Return the name if found, otherwise return the code in uppercase as a fallback
-    return name ?? code.toUpperCase();
+    return this.toDisplayName(name ?? code.toUpperCase());
+  }
+
+  private toDisplayName(name: string): string {
+    return name.replace(this.macrolanguageSuffix, '');
   }
 
   getLanguageNames(codes: string[]): string[] {
@@ -63,14 +69,16 @@ export class LanguageNameService {
    */
   getLanguageCode(name: string): LanguageCode | null {
     let code: string | null = null;
+    const lookupName = name.replace(this.macrolanguageSuffix, '').trim();
 
     // First, try to find a 2-letter code using iso6391
-    const code2 = iso6391.getCode(name);
+    const code2 = iso6391.getCode(lookupName);
     if (code2) {
       code = code2.toUpperCase();
     } else {
       // If not found, try to find a 3-letter code using iso6393
-      const language = iso6393.find((lang) => lang.name.toLowerCase() === name.toLowerCase());
+      const language = iso6393.find((lang) =>
+        this.toDisplayName(lang.name).toLowerCase() === lookupName.toLowerCase());
       if (language) {
         code = language.iso6393.toUpperCase();
       }
