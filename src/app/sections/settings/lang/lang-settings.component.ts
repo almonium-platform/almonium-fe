@@ -298,7 +298,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected openLangSetupPopup() {
     this.addTargetLangModalVisible = true;
     setTimeout(() => {
-      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang');
+      // Taiga renders the language picker in a document-level portal, which the
+      // popup's click-outside directive would otherwise treat as a dismissal.
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
     }, 50);
   }
 
