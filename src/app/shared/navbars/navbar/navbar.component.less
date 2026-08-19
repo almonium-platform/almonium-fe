@@ -358,6 +358,17 @@
   display: flex;
   align-items: center;
   order: 3;
+
+  &:focus-visible {
+    outline: 2px solid var(--brand-margin);
+    outline-offset: 2px;
+    border-radius: 50%;
+  }
+}
+
+.profile-popover {
+  border: 0;
+  box-shadow: 0 12px 32px rgba(44, 37, 48, .18), 0 2px 8px rgba(44, 37, 48, .1);
 }
 
 .profile-circle {
@@ -377,7 +388,7 @@
 .user-details {
   display: flex;
   align-items: center;
-  padding: .5rem 0;
+  padding: .8rem .15rem .65rem;
 }
 
 .user-info {

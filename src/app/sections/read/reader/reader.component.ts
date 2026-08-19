@@ -832,6 +832,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
+  protected onContentHover(event: Event): void {
+    const content = this.readerContentRef?.nativeElement;
+    if (!content || this.currentParallelMode !== 'side') return;
+    const segment = event.target instanceof Element ? event.target.closest<HTMLElement>('.sbs-segment') : null;
+    content.querySelectorAll('.sbs-segment.is-current').forEach(item => item.classList.remove('is-current'));
+    const pair = segment?.dataset['pair'];
+    if (!pair || !/^\d+$/.test(pair)) return;
+    content.querySelectorAll<HTMLElement>(`.sbs-segment[data-pair="${pair}"]`).forEach(item => item.classList.add('is-current'));
+  }
+
   @HostListener('document:click', ['$event'])
   protected closeChapterNavigation(event: MouseEvent): void {
     const target = event.target;

@@ -5,3 +5,45 @@
 @import "styles/shared-styles.less";
 @import "@flaticon/flaticon-uicons/css/all/all.css";
 @import "overlayscrollbars/styles/overlayscrollbars.css";
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+}
+
+html[data-theme='dark'] {
+  --page-ground: #1f1b21;
+  --card-color: #2c2730;
+  --hairline-color: #443d47;
+  --control-border-color: #5a515d;
+  --reader-text-color: #eee8ed;
+  --subhead-color: #c5bac5;
+  --metadata-color: #a99eaa;
+  --main-bg-color: var(--page-ground);
+  --text-color: #f3edf2;
+  --border-color: var(--hairline-color);
+  --gray-bg: #29242c;
+  --grey-color: #353039;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme='system'] {
+    --page-ground: #1f1b21;
+    --card-color: #2c2730;
+    --hairline-color: #443d47;
+    --control-border-color: #5a515d;
+    --reader-text-color: #eee8ed;
+    --subhead-color: #c5bac5;
+    --metadata-color: #a99eaa;
+    --main-bg-color: var(--page-ground);
+    --text-color: #f3edf2;
+    --border-color: var(--hairline-color);
+    --gray-bg: #29242c;
+    --grey-color: #353039;
+  }
+}

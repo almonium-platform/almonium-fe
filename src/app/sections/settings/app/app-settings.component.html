@@ -1,59 +1,65 @@
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <div class="">
-    <!-- Navbar Settings -->
+  <div class="settings-grid">
+    <div class="section-block card">
+      <div class="title">Appearance</div>
+      <div class="setting-line stacked">
+        <span>Theme</span>
+        <div class="segmented" role="group" aria-label="Theme">
+          @for (theme of ['light', 'dark', 'system']; track theme) {
+            <button type="button" [class.active]="appearance === theme" (click)="appearance = $any(theme); saveLocalPreferences()">{{ theme }}</button>
+          }
+        </div>
+      </div>
+      <label class="setting-line">
+        <span><strong>Reduce motion</strong><small>Minimise decorative animation and transitions.</small></span>
+        <input tuiSwitch type="checkbox" [(ngModel)]="reduceMotion" (ngModelChange)="saveLocalPreferences()" [showIcons]="true" />
+      </label>
+      <label class="setting-line stacked">
+        <span><strong>App language</strong><small>The interface is currently available in English.</small></span>
+        <select disabled aria-label="App language"><option>English</option></select>
+      </label>
+    </div>
+
+    <div class="section-block card">
+      <div class="title">Reminders</div>
+      <label class="setting-line">
+        <span><strong>Daily review nudge</strong><small>Remind me only when a review is due.</small></span>
+        <input tuiSwitch type="checkbox" [(ngModel)]="dailyReview" (ngModelChange)="saveLocalPreferences()" [showIcons]="true" />
+      </label>
+      @if (dailyReview) {
+        <label class="setting-line"><span>Reminder time</span><input class="time-input" type="time" [(ngModel)]="dailyReviewTime" (ngModelChange)="saveLocalPreferences()" /></label>
+      }
+      <label class="setting-line">
+        <span><strong>Weekly email</strong><small>A short recap of your learning week.</small></span>
+        <input tuiSwitch type="checkbox" [(ngModel)]="weeklyEmail" (ngModelChange)="saveLocalPreferences()" [showIcons]="true" />
+      </label>
+    </div>
+
     <div class="section-block card">
       <div class="title">Navbar</div>
-      <div class="row-container">
-        @for (column of navbarColumns; track column) {
-          <div class="column">
-            @for (item of column; track item) {
-              <div class="line">
-                <span>{{ item | titlecase }}</span>
-                <input
-                  tuiSwitch
-                  type="checkbox"
-                  [ngModel]="uiPreferences.navbar[item]"
-                  (ngModelChange)="onPreferenceChange(item, $event)"
-                  [showIcons]="true"
-                />
-              </div>
-            }
-          </div>
-        }
+      <div class="setting-line locked"><span><strong>Read</strong><small>Always shown</small></span><input tuiSwitch type="checkbox" [ngModel]="true" disabled [showIcons]="true" /></div>
+      <div class="setting-line locked"><span><strong>Review</strong><small>Always shown</small></span><input tuiSwitch type="checkbox" [ngModel]="true" disabled [showIcons]="true" /></div>
+      @for (item of primaryNavItems; track item) {
+        <label class="setting-line"><strong>{{ item === 'play' ? 'Play' : item === 'write' ? 'Write' : 'Discover' }}</strong><input tuiSwitch type="checkbox" [ngModel]="uiPreferences.navbar[item]" (ngModelChange)="onPreferenceChange(item, $event)" [showIcons]="true" /></label>
+      }
+      <div class="group-label">Utilities <span>{{ utilityNavEnabledCount }}/3 shown</span></div>
+      @for (item of utilityNavItems; track item) {
+        <label class="setting-line"><strong>{{ item === 'social' ? 'Social' : item === 'timer' ? 'Timer' : 'Notifications' }}</strong><input tuiSwitch type="checkbox" [ngModel]="uiPreferences.navbar[item]" (ngModelChange)="onPreferenceChange(item, $event)" [showIcons]="true" /></label>
+      }
+    </div>
+
+    <div class="section-block card">
+      <div class="title">Data &amp; storage</div>
+      <div class="data-action">
+        <span><strong>Offline books</strong><small>Remove downloaded book content and saved reading positions.</small></span>
+        <app-button appearance="bw" label="Clear offline books" width="fit" (click)="clearOfflineBooks()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.trash"/></app-button>
       </div>
-    </div>
-
-    <div class="section-block card">
-      <div class="title">App</div>
-
-      <app-button
-        appearance="bw"
-        label="Clear Cache"
-        gap="1rem"
-        width="fit"
-        (click)="clearLocalStorage()"
-        [loading$]="loading$"
-        [hint]="clearCacheHint"
-        hintAppearance="dark"
-        hintDirection="bottom"
-      >
-        <ng-template #clearCacheHint>
-          Remove cached data from local storage and reload fresh data.
-          Use this if something looks outdated or incorrect.
-        </ng-template>
-
-        <tui-icon
-          [style.width.px]="16"
-          [style.height.px]="16"
-          icon="@tui.fa.solid.screwdriver-wrench"/>
-      </app-button>
-    </div>
-
-    <!-- Profile Menu Settings -->
-    <div class="section-block card">
-      <div class="title">Profile Menu</div>
+      <div class="data-action">
+        <span><strong>Refresh app data</strong><small>Reload account and language data without changing your preferences.</small></span>
+        <app-button appearance="bw" label="Refresh" width="fit" (click)="reloadCachedAppData()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.rotate"/></app-button>
+      </div>
     </div>
   </div>
 </div>

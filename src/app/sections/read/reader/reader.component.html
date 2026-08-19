@@ -2,6 +2,7 @@
 
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
+     (focus)="onContentHover($event)"
      (keydown.arrowleft)="prevPage()"
      (keydown.arrowright)="nextPage()"
      tabindex="0"
@@ -25,7 +26,16 @@
          class="reader-content-wrapper"
          [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
          (scroll)="onWrapperScroll($event)"
+         (focus)="onContentHover($event)"
     >
+      @if (chapterNav.length > 0 && !isParallelViewActive) {
+        <nav class="content-map" aria-label="Contents">
+          <span>Contents</span>
+          @for (chapter of chapterNav; track chapter; let i = $index) {
+            <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
+          }
+        </nav>
+      }
       <!-- Content Area - PASS MODE TO PIPE -->
       <div #readerContent
            tabindex="-1"
@@ -36,6 +46,9 @@
               targetLang: targetLangCode,
               fluentLang: fluentLangCode} | bookHtml"
            (click)="onContentClick($event)"
+           (mouseover)="onContentHover($event)"
+           (focus)="onContentHover($event)"
+           (focusin)="onContentHover($event)"
            (keydown.enter)="onContentClick($event)">
       </div>
     </div>
@@ -47,7 +60,7 @@
       <div class="pagination-center-area">
         <!-- Table of Contents Dropdown -->
         @if (chapterNav.length > 0) {
-          <div class="chapter-nav-container">
+          <div class="chapter-nav-container mobile-content-map">
             <lucide-icon
               #tocDropdown="tuiDropdown"
               #tocTrigger

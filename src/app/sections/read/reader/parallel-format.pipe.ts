@@ -2,8 +2,6 @@ import {Pipe, PipeTransform} from '@angular/core';
 import {ParallelMode} from '../parallel-mode.type';
 import {sanitizeBookHtml} from './book-html-sanitizer';
 
-const SIDE_BY_SIDE_COLORS = ['#f0f8ff', '#fff0f5', '#f5fffa', '#fafad2'];
-
 export interface ParallelFormatOptions {
   mode: ParallelMode | null;
   targetLang: string | null;
@@ -28,11 +26,10 @@ export class ParallelFormatPipe implements PipeTransform {
     // --- SIDE-BY-SIDE MODE ---
     if (mode === 'side') {
       const blocks = doc.querySelectorAll('p, h2, div.poem'); // Find all structural blocks
+      let segmentIndex = 0;
       blocks.forEach(block => {
         const mainColumnBlock = block.cloneNode() as HTMLElement;
         const secondaryColumnBlock = block.cloneNode() as HTMLElement;
-        let segmentIndex = 0;
-
         // Iterate through all child nodes (elements, text nodes, etc.)
         block.childNodes.forEach(node => {
           // If the node is a seg-pair, we process it
@@ -42,16 +39,19 @@ export class ParallelFormatPipe implements PipeTransform {
             const fluentSegment = this.findSegment(segPair, fluentLang);
 
             if (targetSegment && fluentSegment) {
-              const colorClass = `sbs-color-${(segmentIndex % SIDE_BY_SIDE_COLORS.length) + 1}`;
-              segmentIndex++;
+              const pairIndex = segmentIndex++;
 
               // Create new, clean segments
               const newTarget = document.createElement('span');
-              newTarget.className = `sbs-segment ${colorClass}`;
+              newTarget.className = 'sbs-segment';
+              newTarget.dataset['pair'] = `${pairIndex}`;
+              newTarget.setAttribute('tabindex', '0');
               newTarget.append(...Array.from(targetSegment.childNodes, node => node.cloneNode(true)));
 
               const newFluent = document.createElement('span');
-              newFluent.className = `sbs-segment ${colorClass}`;
+              newFluent.className = 'sbs-segment';
+              newFluent.dataset['pair'] = `${pairIndex}`;
+              newFluent.setAttribute('tabindex', '0');
               newFluent.append(...Array.from(fluentSegment.childNodes, node => node.cloneNode(true)));
 
               mainColumnBlock.appendChild(newTarget);

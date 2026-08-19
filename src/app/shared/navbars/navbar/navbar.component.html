@@ -29,7 +29,7 @@
         </button>
 
         @if (isLanguageDropdownOpen) {
-          <div class="language-popover" (keydown)="handleKeydown($event)">
+          <div class="language-popover" tabindex="-1" (keydown)="handleKeydown($event)">
             <div class="language-popover-current">
               <span class="language-code active" [ngStyle]="getLanguageStyles(currentLanguage)">
                 {{ currentLanguage }}
@@ -125,22 +125,8 @@
             Discover
           </a>
         }
-        @if (this.uiPreferences.navbar.review) {
-          <a
-            routerLink="/review"
-            class="nav-link ml-8 section"
-            [ngClass]="{'active-link': currentRoute === '/review'}">
-            Review
-          </a>
-        }
-        @if (this.uiPreferences.navbar.read) {
-          <a
-            routerLink="/read"
-            class="nav-link ml-8 section"
-            [ngClass]="{'active-link': currentRoute === '/read'}">
-            Read
-          </a>
-        }
+        <a routerLink="/review" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/review'}">Review</a>
+        <a routerLink="/read" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/read'}">Read</a>
         @if (this.uiPreferences.navbar.play) {
           <a
             routerLink="/play"
@@ -176,7 +162,7 @@
       }
 
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" (keydown.enter)="toggleProfilePopover()" tabindex="0" (click)="toggleProfilePopover()"
+      <div class="user-profile relative" role="button" aria-label="Open profile menu" [attr.aria-expanded]="isProfilePopoverOpen" (keydown.enter)="toggleProfilePopover()" (keydown.space)="toggleProfilePopover(); $event.preventDefault()" tabindex="0" (click)="toggleProfilePopover()"
            (clickOutside)="profileOnClickOutside()">
         <app-avatar
           class="profile-circle"
@@ -212,18 +198,8 @@
             <span>Discover</span>
           </a>
         }
-        @if (uiPreferences.navbar.review) {
-          <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Review</span>
-          </a>
-        }
-        @if (uiPreferences.navbar.read) {
-          <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Read</span>
-          </a>
-        }
+        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span>Review</span></a>
+        <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span>Read</span></a>
         @if (uiPreferences.navbar.play) {
           <a routerLink="/play" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
@@ -237,20 +213,9 @@
 
 @if (isProfilePopoverOpen) {
   <div
-    class="popover-menu menu2 right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+    class="popover-menu profile-popover menu2 right-4 max-w-xs rounded-lg shadow-lg">
     <div class="menu-section">
-      <div class="user-details flex items-center">
-        <!-- Profile Picture -->
-        <app-avatar
-          [avatarUrl]="userInfo?.avatarUrl ?? null"
-          [username]="userInfo?.username ?? null"
-          [premium]="userInfo?.premium ?? false"
-          class="mr-3 cursor-pointer"
-          size="m"
-          (click)="openChangeAvatarPopup()"
-        >
-        </app-avatar>
-        <!-- User Info -->
+      <div class="user-details">
         <div class="user-info overflow-hidden flex flex-col gap-0.5">
           <span class="font-semibold truncate block username">{{ userInfo?.username || 'Anonymous Learner' }}</span>
           <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
@@ -262,6 +227,10 @@
         <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
           <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
           <span>Settings</span>
+        </a>
+        <a routerLink="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
+          <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
+          <span>Membership</span>
         </a>
         <div class="separator"></div>
         <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">

@@ -49,4 +49,15 @@ describe('ParallelFormatPipe', () => {
 
     expect(() => pipe.transform(html, options)).not.toThrow();
   });
+
+  it('assigns one shared and globally unique id to each side-by-side pair', () => {
+    const options: ParallelFormatOptions = {mode: 'side', targetLang: 'uk', fluentLang: 'en'};
+    const pair = (uk: string, en: string) => `<span class="seg-pair"><span class="segment" lang="uk">${uk}</span><span class="segment" lang="en">${en}</span></span>`;
+    const result = pipe.transform(`<p>${pair('Один', 'One')}</p><p>${pair('Два', 'Two')}</p>`, options);
+    const document = new DOMParser().parseFromString(result, 'text/html');
+    const ids = Array.from(document.querySelectorAll<HTMLElement>('.sbs-segment')).map(segment => segment.dataset['pair']);
+
+    expect(ids).toEqual(['0', '0', '1', '1']);
+    expect(document.querySelector('.sbs-color-1')).toBeNull();
+  });
 });

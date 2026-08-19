@@ -4,51 +4,36 @@ import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {Router, RouterLink} from "@angular/router";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {FormControl, FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {
-  TuiDataListWrapperComponent,
-  TuiProgressCircle,
-  TuiSelect
-} from "@taiga-ui/kit/components";
-import {TuiChevron, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
-import {BehaviorSubject, combineLatestWith, debounceTime, forkJoin, of, Subject, take} from "rxjs";
-import {catchError, distinctUntilChanged, filter, finalize, map, switchMap, takeUntil, tap} from "rxjs/operators";
-import {CEFRLevel, UserInfo} from "../../models/userinfo.model";
-import {CefrLevelSelectorComponent} from "../../shared/cefr-input/cefr-level-selector.component";
+import {FormControl, ReactiveFormsModule} from "@angular/forms";
+import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
+import {BehaviorSubject, debounceTime, forkJoin, of, Subject, take} from "rxjs";
+import {catchError, distinctUntilChanged, filter, finalize, switchMap, takeUntil, tap} from "rxjs/operators";
+import {CEFRLevel} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
-import {TuiCheckbox, TuiNotificationService, TuiOption, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
-import {TuiDropdownContent, TuiDropdownContext, TuiDropdownDirective, TuiHintDirective} from "@taiga-ui/core/portals";
-import {InfoIconComponent} from "../../shared/info-button/info-button.component";
-import {AsyncPipe} from "@angular/common";
-import {ParallelTranslationComponent} from "./parallel-translation/parallel-translation.component";
+import {TuiNotificationService, TuiOption, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
+import {TuiDropdownContext, TuiDropdownDirective} from "@taiga-ui/core/portals";
+import {AsyncPipe, NgStyle} from "@angular/common";
 import {BookCoverComponent} from './book-cover/book-cover.component';
 import {BookImport, BookImportQuota, BookImportStatus} from './book-import.model';
 import {PaywallComponent} from '../../shared/paywall/paywall.component';
 import {PopupTemplateStateService} from '../../shared/modals/popup-template/popup-template-state.service';
+import {LocalStorageService} from '../../services/local-storage.service';
+
+type ShelfViewMode = 'covers' | 'spines';
 
 @Component({
   selector: 'app-read',
   imports: [
     RouterLink,
     ReactiveFormsModule,
-    TuiProgressCircle,
-    TuiDataListWrapperComponent,
-    CefrLevelSelectorComponent,
     SharedLucideIconsModule,
     TuiDataListDropdownManager,
-    TuiHintDirective,
-    FormsModule,
-    TuiCheckbox,
-    InfoIconComponent,
     AsyncPipe,
+    NgStyle,
     TuiSkeleton,
-    ParallelTranslationComponent,
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
-    TuiChevron,
-    TuiDropdownContent,
-    TuiSelect,
     TuiDropdownContext,
     TuiDropdownDirective,
     TuiOption,
@@ -65,12 +50,11 @@ export class ReadComponent implements OnInit, OnDestroy {
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
   private popupTemplateStateService = inject(PopupTemplateStateService);
+  private localStorageService = inject(LocalStorageService);
 
   @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
 
   private readonly destroy$ = new Subject<void>();
-  sortOrder: 'asc' | 'desc' = 'desc';
-
   filteredBooks: Book[] = [];
   protected allBooks: Book[] = [];
   protected continueReading: Book[] = [];
@@ -81,17 +65,17 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected readonly importStatus = BookImportStatus;
 
   titleFormControl = new FormControl<string>('');
-  sortParameters: string[] = ['Level', 'Year'];
-  sortControl = new FormControl<string>('Level');
+  sortParameters: string[] = ['Best rated first', 'Newest first', 'Oldest first', 'Level: low to high', 'Level: high to low'];
+  sortControl = new FormControl<string>('Best rated first');
 
-  cefrLevels: CEFRLevel[] = Object.values(CEFRLevel);
-  cefrLevelControl = new FormControl<CEFRLevel>(CEFRLevel.A1);
+  cefrLevels: (CEFRLevel | 'Any level')[] = ['Any level', ...Object.values(CEFRLevel)];
+  cefrLevelControl = new FormControl<CEFRLevel | 'Any level'>('Any level');
 
   selectedBook: Book | null = null;
-  filterByCefrToggle = false;
   parallelTranslationToggle = false;
-  sortToggle = false;
   includeTranslationsToggle = false;
+  protected libraryView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_library_view') ?? 'covers';
+  protected privateView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_private_view') ?? 'spines';
 
   loadingSubject$ = new BehaviorSubject<boolean>(false);
   loading$ = this.loadingSubject$.asObservable();
@@ -104,7 +88,6 @@ export class ReadComponent implements OnInit, OnDestroy {
       if (this.isAuthenticated) this.loadPrivateLibrary();
     });
     this.listenToBookSearch();
-    this.syncCefrLevel();
     this.listenToSortChanges();
     this.listenToCefrLevelChanges();
   }
@@ -124,11 +107,10 @@ export class ReadComponent implements OnInit, OnDestroy {
       books = books.filter(book => book.title.toLowerCase().includes(searchTerm));
     }
 
-    // Apply CEFR filter if active
-    if (this.filterByCefrToggle) {
+    if (this.cefrLevelControl.value !== 'Any level') {
       books = books.filter(book => {
         const bookLevel = this.cefrLevelToNumber(book.cefrLevel);
-        const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value ?? CEFRLevel.B1);  // Handling null values
+        const selectedLevelNum = this.cefrLevelToNumber(this.cefrLevelControl.value ?? CEFRLevel.B1);
 
         return selectedLevelNum === bookLevel;
       });
@@ -138,10 +120,8 @@ export class ReadComponent implements OnInit, OnDestroy {
       books = books.filter(book => book.hasParallelTranslation);
     }
 
-    // Apply sorting
-    if (this.sortToggle) {
-      this.sortBooks(books);
-    }
+    books = [...books];
+    this.sortBooks(books);
 
     // Apply the filtered books to the component
     this.filteredBooks = books;
@@ -152,15 +132,6 @@ export class ReadComponent implements OnInit, OnDestroy {
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(() => this.applyFiltersAndSort());
-  }
-
-  sortIconName(): string {
-    return this.sortOrder === 'asc' ? 'arrow-up' : 'arrow-down';
-  }
-
-  toggleSortOrder() {
-    this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    this.applyFiltersAndSort();
   }
 
   private listenToCefrLevelChanges() {
@@ -271,15 +242,12 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   private sortBooks(books: Book[]) {
     const sortBy = this.sortControl.value;
-    const factor = this.sortOrder === 'asc' ? 1 : -1;
 
     books.sort((a, b) => {
-      if (sortBy === 'Year') {
-        return factor * (a.publicationYear - b.publicationYear);
-      }
-      if (sortBy === 'Level') {
-        return factor * (this.cefrLevelToNumber(a.cefrLevel) - this.cefrLevelToNumber(b.cefrLevel));
-      }
+      if (sortBy === 'Newest first') return b.publicationYear - a.publicationYear;
+      if (sortBy === 'Oldest first') return a.publicationYear - b.publicationYear;
+      if (sortBy === 'Level: low to high') return this.cefrLevelToNumber(a.cefrLevel) - this.cefrLevelToNumber(b.cefrLevel);
+      if (sortBy === 'Level: high to low') return this.cefrLevelToNumber(b.cefrLevel) - this.cefrLevelToNumber(a.cefrLevel);
       return 0;
     });
   }
@@ -287,26 +255,6 @@ export class ReadComponent implements OnInit, OnDestroy {
   private cefrLevelToNumber(level: string): number {
     const cefrMap: Record<string, number> = {A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6};
     return cefrMap[level] || 0;
-  }
-
-  // Synchronize CEFR level from user data
-  private syncCefrLevel() {
-    this.userInfoService.userInfo$
-      .pipe(
-        filter((info): info is UserInfo => !!info),
-        combineLatestWith(this.targetLanguageDropdownService.currentLanguage$),
-        takeUntil(this.destroy$),
-        map(([userInfo, targetLang]): CEFRLevel => {
-          if (!userInfo.learners) return CEFRLevel.B1;
-          const learner = userInfo.learners.find(learner => learner.language === targetLang);
-          return learner?.selfReportedLevel ?? CEFRLevel.B1;
-        })
-      )
-      .subscribe((level: CEFRLevel) => {
-        this.cefrLevelControl.setValue(level); // Sync CEFR Level Control
-        this.applyFiltersAndSort(); // Trigger filter immediately
-        logger.debug('Set default sorting by CEFR Level:', level);
-      });
   }
 
   onRightClick(event: MouseEvent, book: Book): void {
@@ -332,16 +280,6 @@ export class ReadComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSortChange($event: boolean) {
-    this.sortToggle = $event;
-    this.applyFiltersAndSort();
-  }
-
-  onFilterByCefrChange($event: boolean) {
-    this.filterByCefrToggle = $event;
-    this.applyFiltersAndSort();
-  }
-
   onIncludeTranslationsChange($event: boolean) {
     this.includeTranslationsToggle = $event;
     this.refreshBooks();
@@ -350,5 +288,52 @@ export class ReadComponent implements OnInit, OnDestroy {
   onParallelTranslationChange($event: boolean) {
     this.parallelTranslationToggle = $event;
     this.applyFiltersAndSort();
+  }
+
+  protected setShelfView(shelf: 'library' | 'private', view: ShelfViewMode): void {
+    if (shelf === 'library') {
+      this.libraryView = view;
+      this.localStorageService.saveItem('read_library_view', view);
+    } else {
+      this.privateView = view;
+      this.localStorageService.saveItem('read_private_view', view);
+    }
+  }
+
+  protected get continueBooks(): Book[] {
+    return this.continueReading.slice(0, 3);
+  }
+
+  protected get shelfBooks(): Book[] {
+    const continuing = new Set(this.continueBooks.map(book => book.id));
+    return this.filteredBooks.filter(book => !continuing.has(book.id));
+  }
+
+  protected clearFilters(): void {
+    this.titleFormControl.setValue('');
+    this.cefrLevelControl.setValue('Any level');
+    this.parallelTranslationToggle = false;
+    if (this.includeTranslationsToggle) {
+      this.includeTranslationsToggle = false;
+      this.refreshBooks();
+    } else {
+      this.applyFiltersAndSort();
+    }
+  }
+
+  protected spineStyle(id: string, wordCount: number): Record<string, string> {
+    let hash = 0;
+    for (const char of id) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+    const hues = [332, 286, 258, 221, 194, 28, 12];
+    const hue = hues[Math.abs(hash) % hues.length];
+    const width = 34 + Math.abs(hash >> 3) % 33;
+    const height = 142 + Math.min(32, Math.max(0, Math.round(wordCount / 3500)));
+    return {'--spine-hue': `${hue}`, '--spine-width': `${width}px`, '--spine-height': `${height}px`};
+  }
+
+  protected showSpineAuthor(id: string): boolean {
+    let hash = 0;
+    for (const char of id) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+    return 34 + Math.abs(hash >> 3) % 33 >= 44;
   }
 }

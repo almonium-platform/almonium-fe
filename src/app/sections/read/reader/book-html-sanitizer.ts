@@ -58,6 +58,7 @@ export function sanitizeBookHtml(value: string): string {
   return DOMPurify.sanitize(value, {
     ALLOWED_TAGS: [...BOOK_HTML_TAGS],
     ALLOWED_ATTR: [...BOOK_HTML_ATTRIBUTES],
+    ADD_ATTR: ['data-pair'],
     ALLOW_ARIA_ATTR: false,
     ALLOW_DATA_ATTR: false,
   });

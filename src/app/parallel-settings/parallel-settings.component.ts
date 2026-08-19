@@ -32,17 +32,17 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
     { // Index 0: Side By Side
       imageSrc: 'assets/img/icons/side.svg', // Replace with actual path
       altText: 'Side by Side View',
-      explanation: 'Displays the original text and its translation in separate columns, side-by-side. Be careful not to only read the version you understand.'
+      explanation: 'Original and translation in aligned columns. Hover a sentence to match the pair.'
     },
     { // Index 1: Overlay
       imageSrc: 'assets/img/icons/overlay.svg', // Replace with actual path
       altText: 'Overlay View',
-      explanation: 'Shows the original text. Click on a sentence or segment to reveal its translation in a popup or overlay.'
+      explanation: 'Tap a sentence to reveal its translation directly underneath.'
     },
     { // Index 2: Inline
       imageSrc: 'assets/img/icons/inline.svg', // Replace with actual path
       altText: 'Inline View',
-      explanation: 'Interleaves the original text and its translation segment by segment, one after the other.'
+      explanation: 'Translation follows each original sentence in smaller grey text.'
     }
   ];
 

@@ -67,6 +67,24 @@
   }
 }
 
+.content-map {
+  position: absolute;
+  top: 2rem;
+  left: max(1rem, calc(50% - 620px));
+  display: flex;
+  width: 180px;
+  max-height: calc(100% - 4rem);
+  flex-direction: column;
+  gap: .15rem;
+  overflow-y: auto;
+
+  > span { margin-bottom: .35rem; color: var(--metadata-color); font: 700 .68rem/1 var(--font-family-ui); letter-spacing: .08em; text-transform: uppercase; }
+  button { padding: .35rem 0; overflow: hidden; border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: .78rem/1.25 var(--font-family-ui); text-align: left; text-overflow: ellipsis; }
+  button:hover, button:focus-visible { color: var(--brand-margin); text-decoration: underline; }
+}
+
+.mobile-content-map { display: none; }
+
 .reader-content {
   font-size: 20px;
   line-height: 1.6;
@@ -151,12 +169,12 @@
   &.mode-inline {
     ::ng-deep {
       .fluent-segment-inline .segment {
-        color: white;
-        background: #621567;
-        border-radius: 12px;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.95em;
-        margin: 0 0.3em;
+        color: var(--subhead-color);
+        background: transparent;
+        padding: 0;
+        font-size: .85em;
+        font-style: normal;
+        margin: 0 .25em;
         display: inline-block;
       }
     }
@@ -172,9 +190,8 @@
         border-radius: 4px;
 
         &:hover {
-          background-color: #e7f3ff;
           text-decoration: underline;
-          text-decoration-color: var(--info-dark-blue);
+          text-decoration-color: var(--metadata-color);
         }
       }
 
@@ -185,15 +202,15 @@
 
       // 3. When the wrapper is made visible by the script, style the segment inside it
       .fluent-segment-overlay.is-visible {
-        display: inline; // Show the wrapper
+        display: block;
+        margin: .2rem 0 .45rem 1.5rem;
 
         .segment { // Style the fluent segment inside
-          color: white;
-          background: #621567;
-          border-radius: 12px;
-          padding: 0.2rem 0.5rem;
-          font-size: 0.95em;
-          margin: 0 0.3em;
+          color: var(--subhead-color);
+          background: transparent;
+          padding: 0;
+          font-size: .85em;
+          font-style: normal;
         }
       }
     }
@@ -204,12 +221,12 @@
       // Target the fluent segment inside the wrapper our pipe creates
       .fluent-segment-inline .segment {
         // --- These are the styles from your original span.ukr ---
-        color: white;
-        background: #621567;
-        border-radius: 12px;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.95em;
-        margin: 0 0.3em;
+        color: var(--subhead-color);
+        background: transparent;
+        padding: 0;
+        font-size: .85em;
+        font-style: normal;
+        margin: 0 .25em;
         display: inline; // Use 'inline' for natural text flow
 
         // Keep the subtle spacing from your original design
@@ -220,30 +237,6 @@
         &::after {
           margin-left: 0.1em;
         }
-      }
-    }
-  }
-
-  ::ng-deep span.segment + span.segment {
-    color: white;
-    background: #621567;
-    border-radius: 12px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.95em;
-    margin: 0 0.3em;
-    display: inline;
-
-    &[hidden] {
-      display: none !important;
-    }
-
-    &:not([hidden]) {
-      &::before {
-        margin-right: 0.1em;
-      }
-
-      &::after {
-        margin-left: 0.1em;
       }
     }
   }
@@ -306,25 +299,14 @@
         display: inline;
         margin-right: 0.2em;
         line-height: inherit;
-        border-radius: 3px;
-        padding: 1px 3px;
+        border-radius: 2px;
+        padding: 1px 2px;
+        transition: background-color .12s ease;
       }
 
-      // Segment color variants
-      .sbs-segment.sbs-color-1 {
-        background-color: #f0f8ff;
-      }
-
-      .sbs-segment.sbs-color-2 {
-        background-color: #fff0f5;
-      }
-
-      .sbs-segment.sbs-color-3 {
-        background-color: #f5fffa;
-      }
-
-      .sbs-segment.sbs-color-4 {
-        background-color: #fafad2;
+      .sbs-segment.is-current, .sbs-segment:focus-visible {
+        background-color: var(--hairline-color);
+        outline: 1px solid var(--metadata-color);
       }
 
       // Ensure consistent spacing under blocks
@@ -430,4 +412,9 @@
 
 .icon {
   cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .content-map { display: none; }
+  .mobile-content-map { display: block; }
 }

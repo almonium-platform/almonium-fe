@@ -5,7 +5,6 @@ import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
 import {DEFAULT_UI_PREFERENCES, UIPreferences} from "../../../models/userinfo.model";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
-import {TitleCasePipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
 import {TuiIcon, TuiNotificationService} from "@taiga-ui/core/components";
@@ -23,12 +22,12 @@ import {catchError} from "rxjs/operators";
     SettingsTabsComponent,
     TuiSwitch,
     FormsModule,
-    TitleCasePipe,
     TuiIcon,
     ButtonComponent
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
+  private static readonly APP_PREFERENCES_KEY = 'app_preferences';
   private profileSettingsService = inject(ProfileSettingsService);
   private userInfoService = inject(UserInfoService);
   private localStorageService = inject(LocalStorageService);
@@ -41,33 +40,42 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
-  navbarColumns: [(keyof UIPreferences["navbar"])[], (keyof UIPreferences["navbar"])[]] = [[], []];
+  uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
+  protected appearance: 'light' | 'dark' | 'system' = 'system';
+  protected reduceMotion = false;
+  protected dailyReview = false;
+  protected dailyReviewTime = '19:00';
+  protected weeklyEmail = false;
+  protected readonly primaryNavItems: (keyof UIPreferences['navbar'])[] = ['discover', 'play', 'write'];
+  protected readonly utilityNavItems: (keyof UIPreferences['navbar'])[] = ['social', 'timer', 'notifications'];
 
   ngOnInit(): void {
+    const localPreferences = this.localStorageService.getItem<{
+      appearance?: 'light' | 'dark' | 'system';
+      reduceMotion?: boolean;
+      dailyReview?: boolean;
+      dailyReviewTime?: string;
+      weeklyEmail?: boolean;
+    }>(AppSettingsComponent.APP_PREFERENCES_KEY);
+    this.appearance = localPreferences?.appearance ?? 'system';
+    this.reduceMotion = localPreferences?.reduceMotion ?? false;
+    this.dailyReview = localPreferences?.dailyReview ?? false;
+    this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
+    this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
+    this.applyAppearancePreferences();
+
     this.userInfoService.userInfo$
       .pipe(take(1)) // Only listen to the first emission
       .subscribe((userInfo) => {
         if (userInfo) {
-          this.uiPreferences = {...userInfo.uiPreferences};
-          this.computeColumns();
+          this.uiPreferences = structuredClone(userInfo.uiPreferences);
         }
       });
-  }
-
-  private computeColumns(): void {
-    const navbarKeys = this.getKeys(this.uiPreferences.navbar);
-    this.navbarColumns = this.splitIntoColumns(navbarKeys);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  splitIntoColumns<T>(items: T[]): [T[], T[]] {
-    const middleIndex = Math.ceil(items.length / 2);
-    return [items.slice(0, middleIndex), items.slice(middleIndex)];
   }
 
   protected onPreferenceChange(
@@ -92,14 +100,54 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     return Object.keys(obj) as (keyof T)[];
   }
 
-  protected clearLocalStorage() {
+  protected get utilityNavEnabledCount(): number {
+    return this.utilityNavItems.filter(item => this.uiPreferences.navbar[item]).length;
+  }
+
+  protected saveLocalPreferences(): void {
+    this.localStorageService.saveItem(AppSettingsComponent.APP_PREFERENCES_KEY, {
+      appearance: this.appearance,
+      reduceMotion: this.reduceMotion,
+      dailyReview: this.dailyReview,
+      dailyReviewTime: this.dailyReviewTime,
+      weeklyEmail: this.weeklyEmail,
+    });
+    this.applyAppearancePreferences();
+  }
+
+  private applyAppearancePreferences(): void {
+    const root = document.documentElement;
+    root.dataset['theme'] = this.appearance;
+    root.classList.toggle('reduce-motion', this.reduceMotion);
+    root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
+  }
+
+  protected clearOfflineBooks() {
     this.loadingSubject$.next(true); // Show loading indicator
 
-    // Clear everything first
+    this.localStorageService.clearReaderPositions();
+    const cacheClear$ = typeof caches === 'undefined'
+      ? Promise.resolve()
+      : caches.keys().then(names => Promise.all(
+        names.filter(name => /book|read|content/i.test(name)).map(name => caches.delete(name)),
+      )).then(() => undefined);
+
+    void cacheClear$.then(() => {
+      this.loadingSubject$.next(false);
+      this.alertService.open('Offline books cleared', {appearance: 'positive'}).subscribe();
+    }).catch(error => {
+      this.loadingSubject$.next(false);
+      logger.error('Failed to clear offline books:', error);
+      this.alertService.open('Failed to clear offline books', {appearance: 'negative'}).subscribe();
+    });
+  }
+
+  protected reloadCachedAppData() {
+    this.loadingSubject$.next(true);
+
     this.userInfoService.clearUserInfo();
     this.supportedLanguagesService.clearSupportedLanguages();
     this.targetLanguageDropdownService.clearTargetAndCurrentLanguages();
-    this.localStorageService.clearAllData();
 
     // Create observables for fetching BOTH user info and supported languages
     const userInfoFetch$ = this.userInfoService.fetchUserInfoFromServer().pipe(

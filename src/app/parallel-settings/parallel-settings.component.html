@@ -12,8 +12,8 @@
           [(activeItemIndex)]="modeSelectedIndex"
           (activeItemIndexChange)="onModeIndexChange($event)"
         >
-          <button type="button" class="btn-text">Side By Side</button>
-          <button type="button" class="btn-text">Overlay</button>
+          <button type="button" class="btn-text">Side by side</button>
+          <button type="button" class="btn-text">On demand</button>
           <button type="button" class="btn-text">Inline</button>
         </tui-segmented>
 
@@ -21,6 +21,7 @@
         <div class="explain-container">
           <img [src]="currentModeConfig.imageSrc" [alt]="currentModeConfig.altText"/>
           <div class="text-container">{{ currentModeConfig.explanation }}</div>
+          <p class="reading-note">Read the original first. Use the translation to check, not to skip.</p>
         </div>
       </div>
     </div>
