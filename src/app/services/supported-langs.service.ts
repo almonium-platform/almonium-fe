@@ -29,8 +29,13 @@ export class SupportedLanguagesService {
     const cachedLanguages = this.localStorageService.getSupportedLanguages();
 
     if (cachedLanguages) {
-      // If we have cached data, use it
-      this.supportedLanguagesSubject.next(cachedLanguages);
+      // Refresh names so cached data also gets current display normalization.
+      const normalizedLanguages = cachedLanguages.map(language => ({
+        ...language,
+        name: this.languageNameService.getLanguageName(language.code),
+      }));
+      this.supportedLanguagesSubject.next(normalizedLanguages);
+      this.localStorageService.saveSupportedLanguages(normalizedLanguages);
     } else {
       // If no cached data, fetch from server
       this.getAllSupportedLanguages().subscribe({

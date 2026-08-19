@@ -1,10 +1,13 @@
 @import "../onboarding.styles.less";
 
-.profile-step { max-width: 31rem; align-items: stretch; }
-.profile-heading h1 { margin: 0; font-family: var(--font-family-reading); font-size: 1.7rem; color: #2c2530; }
-.profile-heading p, .username-section p { margin: .45rem 0 0; color: #5f5560; font-size: .9rem; }
-.username-section > span { display: block; margin-bottom: .55rem; color: #872657; font-size: .7rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
-.username-field { padding: .65rem .85rem; border: 1px solid #d8cfd6; border-radius: .9rem; }
+.profile-step { width: 470px; max-width: 100%; align-items: stretch; gap: 6px; padding: 30px 32px; border-radius: 28px; }
+.profile-heading h1 { margin: 0; font-family: var(--font-family-reading); font-size: 26px; font-weight: 600; color: #2c2530; }
+.profile-heading p { margin: 0 0 20px; color: #5f5560; font-size: 14px; line-height: 1.55; }
+.username-section { display: flex; flex-direction: column; gap: 7px; padding: 20px 0 0; }
+.username-section > span { display: block; color: #872657; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; }
+.username-section p { margin: 0; color: #7e7e7e; font-size: 12.5px; }
+.username-field { padding: 13px 15px; border: 1px solid #d8cfd6; border-radius: 14px; }
 .step-actions { display: flex; align-items: center; gap: 1rem; width: 100%; }
+.profile-step .step-actions { margin-top: 26px; }
 .step-actions app-button { flex: 1; }
 .back-link { border: 0; background: none; color: #7e7e7e; cursor: pointer; font: inherit; font-size: .9rem; }

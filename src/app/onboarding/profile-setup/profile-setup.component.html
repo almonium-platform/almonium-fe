@@ -1,7 +1,7 @@
 <div class="card step profile-step">
   <div class="profile-heading">
     <h1>Make it yours</h1>
-    <p>Both are already set — continue to keep them.</p>
+    <p>Both of these are already set. Change them now or later in settings.</p>
   </div>
 
   @if (userInfo) {
@@ -10,7 +10,7 @@
 
   <div class="username-section">
     <span>Username</span>
-    <div class="username-field"><app-username /></div>
+    <div class="username-field"><app-username [showInfo]="false" /></div>
     <p>Only used if you share a word pack.</p>
   </div>
 

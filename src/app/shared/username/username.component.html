@@ -34,20 +34,21 @@
       ></tui-error>
     </form>
   }
-  <!--todo replace with app-info-icon-->
-  <lucide-icon
-    name="info"
-    class="info-btn"
-    tuiHintAppearance="dark"
-    tuiHintDirection="top"
-    size="30"
-    [strokeWidth]="1.5"
-    [tuiHint]="usernameTooltip"
-  >
-    <ng-template #usernameTooltip>
-      <div [innerHTML]="tooltipUsername"></div>
-    </ng-template>
-  </lucide-icon>
+  @if (showInfo) {
+    <lucide-icon
+      name="info"
+      class="info-btn"
+      tuiHintAppearance="dark"
+      tuiHintDirection="top"
+      size="30"
+      [strokeWidth]="1.5"
+      [tuiHint]="usernameTooltip"
+    >
+      <ng-template #usernameTooltip>
+        <div [innerHTML]="tooltipUsername"></div>
+      </ng-template>
+    </lucide-icon>
+  }
 
   <app-edit-button
     class="edit-element"

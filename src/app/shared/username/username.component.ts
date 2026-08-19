@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -44,6 +44,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   usernameFontSize = '1.3rem';
+  @Input() showInfo = true;
 
   userInfo: UserInfo | null = null;
   usernameEditable = false;
