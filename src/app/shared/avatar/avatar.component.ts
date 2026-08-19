@@ -26,6 +26,10 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
     TuiSkeleton
   ],
   styles: [`
+    :host [tuiAvatar]._initials::before {
+      font: inherit;
+    }
+
     :host img {
       width: 100%;
       height: 100%;
