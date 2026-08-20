@@ -91,7 +91,7 @@
 
 .crest-face {
   align-items: center;
-  background: var(--main-bg-color, #fff);
+  background: var(--main-bg-color);
   display: flex;
   font-family: var(--font-family-mono), 'IBM Plex Mono', monospace;
   font-size: 14px;
@@ -122,7 +122,7 @@
 .language-crest.has-stack:focus-visible,
 .language-crest.is-open {
   .crest-face {
-    background: color-mix(in srgb, var(--crest-color) 8%, white);
+    background: color-mix(in srgb, var(--crest-color) 14%, var(--nested-color));
   }
 
   .crest-layer-middle {
@@ -161,10 +161,10 @@
 }
 
 .language-popover {
-  background: #fff;
-  border: 1px solid #f1ecef;
+  background: var(--overlay-color);
+  border: 1px solid var(--hairline-color);
   border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(44, 37, 48, .12);
+  box-shadow: var(--overlay-shadow);
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -177,7 +177,7 @@
 
 .language-popover-current {
   align-items: center;
-  color: #a99aa8;
+  color: var(--metadata-color);
   display: flex;
   font-family: var(--font-family-reading), 'Literata', serif;
   font-size: 14px;
@@ -188,7 +188,7 @@
 .language-code {
   --crest-color: #7A6BB8;
   align-items: center;
-  background: #fff;
+  background: var(--nested-color);
   border: 1.5px solid var(--crest-color);
   border-radius: 8px;
   color: var(--crest-color);
@@ -202,7 +202,7 @@
   letter-spacing: .04em;
 
   &.active {
-    background: color-mix(in srgb, var(--crest-color) 9%, white);
+    background: color-mix(in srgb, var(--crest-color) 18%, var(--nested-color));
   }
 }
 
@@ -220,7 +220,7 @@
   background: transparent;
   border: 0;
   border-radius: 10px;
-  color: #2c2530;
+  color: var(--text-color);
   cursor: pointer;
   display: flex;
   gap: 11px;
@@ -232,12 +232,12 @@
   &:hover,
   &:focus-visible,
   &.focused {
-    background: #faf6fb;
+    background: var(--state-hover);
     outline: none;
   }
 
   &.active {
-    background: #f9f6f5;
+    background: var(--state-selected);
   }
 }
 
@@ -251,7 +251,7 @@
 .language-number-shortcut,
 .language-shortcut-hint,
 .language-search kbd {
-  color: #a99aa8;
+  color: var(--metadata-color);
   font-family: var(--font-family-mono), 'IBM Plex Mono', monospace;
   font-size: 10px;
 }
@@ -263,9 +263,9 @@
 
 .language-search {
   align-items: center;
-  background: #f9f6f5;
+  background: var(--nested-color);
   border-radius: 9px;
-  color: #a99aa8;
+  color: var(--metadata-color);
   display: flex;
   gap: 7px;
   padding: 7px 9px;
@@ -273,7 +273,7 @@
   input {
     background: transparent;
     border: 0;
-    color: #2c2530;
+    color: var(--text-color);
     flex: 1;
     font-family: var(--font-family-ui), 'IBM Plex Sans', sans-serif;
     font-size: 12.5px;
@@ -281,13 +281,13 @@
     outline: none;
 
     &::placeholder {
-      color: #a99aa8;
+      color: var(--metadata-color);
     }
   }
 }
 
 .language-section-label {
-  color: #a99aa8;
+  color: var(--metadata-color);
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -306,7 +306,7 @@
 }
 
 .language-divider {
-  background: #f1ecef;
+  background: var(--hairline-color);
   height: 1px;
   margin: 2px 0;
 }
@@ -316,7 +316,7 @@
   background: transparent;
   border: 0;
   border-radius: 10px;
-  color: #5f5560;
+  color: var(--subhead-color);
   cursor: pointer;
   display: flex;
   font-size: 13px;
@@ -325,15 +325,15 @@
 
   &:hover,
   &:focus-visible {
-    background: #faf6fb;
+    background: var(--state-hover);
     outline: none;
   }
 
   span:first-child {
     align-items: center;
-    border: 1px dashed #d8cfd6;
+    border: 1px dashed var(--control-border-color);
     border-radius: 8px;
-    color: #a99aa8;
+    color: var(--metadata-color);
     display: flex;
     flex: 0 0 40px;
     height: 28px;
@@ -348,7 +348,7 @@
 }
 
 .language-empty {
-  color: #7e7e7e;
+  color: var(--metadata-color);
   font-size: 12.5px;
   margin: 5px 4px;
 }

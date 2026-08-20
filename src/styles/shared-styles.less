@@ -4,19 +4,19 @@
 }
 
 .os-scrollbar-track {
-  background: #E5E5E5;
+  background: var(--nested-color);
 }
 
 .os-scrollbar-track:hover {
-  background: #D3D3D3;
+  background: var(--control-border-color);
 }
 
 .os-scrollbar-handle {
-  background: #9A9A9A;
+  background: var(--metadata-color);
 }
 
 .os-scrollbar-handle:hover {
-  background: #6E6E6E;
+  background: var(--subhead-color);
 }
 
 .scrollable ::-webkit-scrollbar {
@@ -26,7 +26,7 @@
 
 /* Scrollbar track */
 .scrollable ::-webkit-scrollbar-track {
-  background: white;
+  background: var(--nested-color);
 }
 
 /* Scrollbar thumb */
@@ -145,7 +145,7 @@ tui-data-list button[tuiOption].context-button {
   font-size: 16px;
   padding: 1.1rem 1.5rem;
   background: var(--premium-gradient);
-  color: white; // Equivalent to test-white
+  color: var(--on-brand-color);
   font-weight: bold; // Equivalent to font-bold
   border: 0;
   border-radius: 9999px; // Equivalent to rounded-full
@@ -179,7 +179,7 @@ tui-data-list button[tuiOption].context-button {
   font-size: 16px;
   padding: 1.1rem 1.5rem;
   background: var(--brand-primary);
-  color: white;
+  color: var(--on-brand-color);
   font-weight: bold;
   border: 0;
   border-radius: 9999px;
@@ -235,8 +235,8 @@ tui-data-list button[tuiOption].context-button {
 }
 
 .secondary-outline-button:hover {
-  background-color: var(--text-color);
-  color: white;
+  background-color: var(--state-hover);
+  color: var(--text-color);
 }
 
 .secondary-outline-button:disabled {
@@ -278,24 +278,25 @@ tui-data-list button[tuiOption].context-button {
 }
 
 .edit-btn {
-  background-color: white;
+  background-color: var(--card-color);
   height: 40px;
   color: var(--text-color);
   border-color: var(--text-color);
 }
 
 .edit-btn:hover {
-  background-color: var(--text-color);
+  background-color: var(--state-hover);
   height: 40px;
-  color: white;
+  color: var(--text-color);
   border-color: var(--text-color);
 }
 
 // containers
 .card {
   box-shadow: var(--box-shadow);
+  border: 1px solid var(--hairline-color);
   border-radius: 35px;
-  background-color: white;
+  background-color: var(--card-color);
   z-index: 1;
 }
 
@@ -332,8 +333,8 @@ tui-data-list button[tuiOption].context-button {
   display: inline-block;
   padding: 0 4px;
   border-radius: 4px;
-  border: 1px solid var(--brand-ink);
-  color: var(--brand-ink);
+  border: 1px solid var(--brand-margin);
+  color: var(--brand-margin);
   font-weight: 550;
   font-size: 0.55rem;
   line-height: 1.5;

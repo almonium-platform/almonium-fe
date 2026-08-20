@@ -1,7 +1,7 @@
 .auth-body {
-  --tui-background-accent-1: #5A1A74; // primary theme color, used for buttons, input fields, etc.
-  --tui-status-negative: #ac1c1c; // error field box color
-  --tui-text-negative: #ac1c1c; // error test color
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-status-negative: var(--danger-text-color);
+  --tui-text-negative: var(--danger-text-color);
   --tui-radius-l: 2rem;
 }
 
@@ -54,7 +54,7 @@ button[tuiButton] {
     font-weight: 600;
     cursor: pointer;
     padding: 0.5rem 1rem; /* Adjust padding to your preference */
-    color: #8F2356;
+    color: var(--dark-raspberry);
     opacity: 0.7; /* Reduced opacity for inactive spans */
     border-radius: 20px; /* Add border-radius for better contour */
     transition: all 0.3s ease; /* Smooth transition for hover/active state */
@@ -63,15 +63,15 @@ button[tuiButton] {
 
     &.active {
       font-weight: 700;
-      color: #5A1A74;
+      color: var(--brand-margin);
       opacity: 1; /* Full opacity for active spans */
-      border-color: #5A1A74; /* Highlight active option with a border */
+      border-color: var(--brand-margin);
       //box-shadow: 0px 1px 10px rgba(90, 26, 116, 0.2); /* Subtle shadow for depth */
     }
 
     &:hover {
       opacity: 1; /* Hover state to make it clearer */
-      border-color: #8F2356; /* Hover color matching the active state */
+      border-color: var(--dark-raspberry);
     }
   }
 }
@@ -91,7 +91,7 @@ button[tuiButton] {
 }
 
 .agree-with-terms {
-  color: #8c838f;
+  color: var(--metadata-color);
   font-size: 12px;
   word-wrap: break-word;
   white-space: normal;
@@ -101,7 +101,7 @@ button[tuiButton] {
 }
 
 .agree-with-terms a {
-  color: #5A1A74; /* Different color for hyperlinks */
+  color: var(--brand-margin);
   font-weight: bold; /* Make hyperlinks bold */
   text-decoration: underline; /* Underline hyperlinks */
 }
@@ -120,10 +120,17 @@ button[tuiButton] {
 }
 
 .title {
+  display: block;
   width: 12rem;
   margin-left: .2rem;
   position: relative;
   z-index: 1;
+  color: var(--wordmark-color);
+  font-family: var(--font-family-reading);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .logo {

@@ -2,15 +2,15 @@
 :host {
   --font-family: var(--font-family-reading);
   --text-color: var(--reader-text-color);
-  --background-color: #f9f9f9; // Reader background
-  --main-bg-color: #fff; // App background
-  --button-bg: #eee;
-  --button-hover-bg: #ddd;
-  --button-disabled-bg: #f5f5f5;
-  --button-disabled-color: #aaa;
-  --error-color: #d9534f;
-  --slider-track-bg: #ddd;
-  --slider-thumb-bg: #888;
+  --background-color: var(--card-color); // Reader page surface
+  --main-bg-color: var(--page-ground); // App ground
+  --button-bg: var(--nested-color);
+  --button-hover-bg: var(--state-hover);
+  --button-disabled-bg: var(--disabled-fill-color);
+  --button-disabled-color: var(--disabled-label-color);
+  --error-color: var(--danger-text-color);
+  --slider-track-bg: var(--control-border-color);
+  --slider-thumb-bg: var(--metadata-color);
 
   display: flex;
   flex-direction: column;

@@ -47,7 +47,7 @@
 .app-icon {
   height: 50px;
   width: 50px;
-  background-color: #ffffff;
+  background-color: var(--card-color);
   border-radius: 50%;
   padding: 7px;
   box-shadow: var(--box-shadow);
@@ -62,9 +62,9 @@ a.nav-link {
 }
 
 .nav-link.active-link {
-  color: #520f6a;
+  color: var(--brand-margin);
   padding: 0.2em 0;
-  border-bottom: #520f6a 1px solid;
+  border-bottom: var(--brand-margin) 1px solid;
 }
 
 .nav-actions {
@@ -77,12 +77,12 @@ a.nav-link {
 }
 
 .popover-menu {
-  background: #ffffff;
+  background: var(--overlay-color);
   padding: 0.5rem 0;
-  box-shadow: 0 4px 8px rgba(44, 37, 48, 0.15);
+  box-shadow: var(--overlay-shadow);
   z-index: 10;
   border-radius: 25px;
-  border: 1px solid #ff9393;
+  border: 1px solid var(--hairline-color);
   position: fixed;
   min-width: fit-content;
   top: 6em;

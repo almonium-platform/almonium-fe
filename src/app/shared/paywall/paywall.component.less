@@ -23,7 +23,7 @@
 
 .billing-toggle {
   display: flex;
-  background: #ede5e3;
+  background: var(--nested-color);
   border-radius: 12px;
   padding: 4px;
   gap: 2px;
@@ -39,14 +39,14 @@
   padding: 10px 20px;
   border-radius: 9px;
   background: transparent;
-  color: #6b6168;
+  color: var(--subhead-color);
   transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
 .billing-toggle button[aria-pressed='true'] {
-  background: #fff;
-  color: #2b2226;
-  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
+  background: var(--state-selected);
+  color: var(--brand-margin);
+  box-shadow: none;
 }
 
 .billing-toggle .chip {
@@ -56,14 +56,14 @@
   padding: 3px 7px;
   border-radius: 5px;
   white-space: nowrap;
-  background: #ded3d0;
-  color: #6b6168;
+  background: var(--control-border-color);
+  color: var(--subhead-color);
   transition: background 180ms ease, color 180ms ease;
 }
 
 .billing-toggle button[aria-pressed='true'] .chip {
-  background: #6e2b5e;
-  color: #fff;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
 }
 
 .cards {
@@ -85,6 +85,8 @@
 .plan-section.premium {
   position: relative;
   overflow: hidden;
+  background: var(--card-color);
+  border: 1px solid var(--hairline-color);
 }
 
 .shining-effect {
@@ -146,7 +148,7 @@
 .plan-section.free {
   border-radius: 25px;
   border: 1px solid var(--border-color);
-  background-color: white !important;
+  background-color: var(--card-color) !important;
 }
 
 .header h1 {

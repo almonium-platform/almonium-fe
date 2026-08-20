@@ -6,7 +6,7 @@
 
 .white-card {
   border-radius: 20px;
-  background-color: #ffffff;
+  background-color: var(--card-color);
   width: 100%;
   height: 100%;
 }
@@ -16,7 +16,7 @@
   padding: 3em 1em 1em;
   width: 90%;
   margin: 0 auto; /* Center the element horizontally */
-  color: #010323;
+  color: var(--text-color);
   box-sizing: border-box;
   transition: border-color 0.3s ease; /* Smooth transition for border color */
 }
@@ -37,11 +37,13 @@
 }
 
 .input-group:focus-within {
-  border-color: #0a1067;
+  border-color: var(--brand-margin);
 }
 
 .autocomplete-list {
-  background-color: #fff;
+  background-color: var(--overlay-color);
+  border: 1px solid var(--hairline-color);
+  box-shadow: var(--overlay-shadow);
   border-top: none;
   font-size: 3em;
   text-align: center;
@@ -55,13 +57,13 @@
 .autocomplete-item {
   padding: 0.5em;
   list-style: none;
-  color: #0a1067;
+  color: var(--text-color);
   transition: background-color 0.2s ease; /* Smooth transition for hover effect */
 }
 
 .autocomplete-item:hover, .autocomplete-item-focused {
-  background-color: #647db3; /* Blue background on hover */
-  color: #fff; /* White test on hover */
+  background-color: var(--state-selected);
+  color: var(--brand-margin);
 }
 
 /* Media Queries for Mobile Devices */
@@ -108,7 +110,7 @@
 
 .frequency-display {
   padding: 0.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid var(--control-border-color);
   width: fit-content;
   margin: 2em auto;
   border-radius: 30px;
@@ -117,7 +119,7 @@
 .frequency-description {
   display: flex;
   flex-direction: column;
-  color: #444;
+  color: var(--subhead-color);
   text-align: left;
 }
 

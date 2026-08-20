@@ -13,6 +13,7 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {catchError} from "rxjs/operators";
+import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 
 @Component({
   selector: 'app-app-settings',
@@ -34,6 +35,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private supportedLanguagesService = inject(SupportedLanguagesService);
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private alertService = inject(TuiNotificationService);
+  private taigaDarkMode = inject(TUI_DARK_MODE);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -120,6 +122,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     root.dataset['theme'] = this.appearance;
     root.classList.toggle('reduce-motion', this.reduceMotion);
     root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
+    this.taigaDarkMode.set(this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
   }
 
   protected clearOfflineBooks() {

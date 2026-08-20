@@ -16,6 +16,7 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {LocalStorageService} from './services/local-storage.service';
+import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 
 // Declare gtag function to make TypeScript aware of it globally
 declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
@@ -37,6 +38,8 @@ export class AppComponent implements OnInit {
   private userInfoService = inject(UserInfoService);
   private destroyRef = inject(DestroyRef);
   private localStorageService = inject(LocalStorageService);
+  private taigaDarkMode = inject(TUI_DARK_MODE);
+  private systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
 
   title = 'almonium-fe';
   protected showNavbar = false;
@@ -62,11 +65,16 @@ export class AppComponent implements OnInit {
 
   constructor() {
     this.applyDisplayPreferences();
+    const syncSystemTheme = () => this.applyDisplayPreferences();
+    this.systemTheme.addEventListener('change', syncSystemTheme);
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
     this.timerMonitorService.startMonitoring();
-    this.destroyRef.onDestroy(() => this.timerMonitorService.stopMonitoring());
+    this.destroyRef.onDestroy(() => {
+      this.timerMonitorService.stopMonitoring();
+      this.systemTheme.removeEventListener('change', syncSystemTheme);
+    });
   }
 
   private applyDisplayPreferences(): void {
@@ -75,6 +83,7 @@ export class AppComponent implements OnInit {
     root.dataset['theme'] = preferences?.appearance ?? 'system';
     root.classList.toggle('reduce-motion', preferences?.reduceMotion ?? false);
     root.style.colorScheme = preferences?.appearance === 'dark' ? 'dark' : preferences?.appearance === 'light' ? 'light' : 'light dark';
+    this.taigaDarkMode.set(preferences?.appearance === 'dark' || (preferences?.appearance !== 'light' && this.systemTheme.matches));
   }
 
   ngOnInit(): void {

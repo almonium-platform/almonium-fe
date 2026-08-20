@@ -6,23 +6,23 @@
 .header-actions { display: flex; align-items: center; gap: .65rem; }
 .quota, .premium-pill { padding: .3rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
 .quota { border: 1px solid var(--border-color); color: var(--disabled-text-color); }
-.premium-pill { background: var(--premium-gradient); color: white; text-transform: uppercase; }
-.import-book-action, .empty-state button { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.65rem; padding: .65rem .9rem; border: 0; border-radius: 999px; background: var(--brand-ink); color: white; cursor: pointer; font: inherit; font-weight: 700; }
-.filter-bar { position: sticky; z-index: 5; top: var(--header-height); display: flex; align-items: center; gap: .55rem; width: min(100%, 76rem); min-height: 44px; margin: -1.1rem auto 0; padding: .35rem; border: 1px solid var(--border-color); border-radius: .9rem; background: rgba(249, 246, 245, .96); backdrop-filter: blur(10px); }
+.premium-pill { background: var(--premium-gradient); color: #FDF4F8; text-transform: uppercase; }
+.import-book-action, .empty-state button { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.65rem; padding: .65rem .9rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-weight: 700; }
+.filter-bar { position: sticky; z-index: 5; top: var(--header-height); display: flex; align-items: center; gap: .55rem; width: min(100%, 76rem); min-height: 44px; margin: -1.1rem auto 0; padding: .35rem; border: 1px solid var(--border-color); border-radius: .9rem; background: color-mix(in srgb, var(--card-color) 96%, transparent); backdrop-filter: blur(10px); }
 .search-input { flex: 1 1 14rem; min-width: 11rem; }
 .native-select select { min-height: 2.5rem; padding: 0 2rem 0 .7rem; border: 1px solid var(--control-border-color); border-radius: .7rem; background: var(--card-color); color: var(--text-color); font: inherit; }
 .sort-select select { max-width: 11rem; }
 .filter-chip { min-height: 2.35rem; padding: 0 .7rem; border: 1px solid var(--control-border-color); border-radius: 999px; background: transparent; color: var(--text-color); cursor: pointer; white-space: nowrap; }
-.filter-chip.active { border-color: var(--brand-margin); background: var(--brand-ink); color: white; }
+.filter-chip.active { border-color: var(--brand-margin); background: var(--state-selected); color: var(--brand-margin); }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
 .section-heading h2, .section-heading p { margin: 0; }
 .section-heading h2 { font-size: clamp(1.35rem, 2.5vw, 1.8rem); }
 .section-heading p { margin-top: .25rem; color: var(--disabled-text-color); font-size: .85rem; }
 .view-toggle { display: flex; padding: .15rem; border: 1px solid var(--control-border-color); border-radius: .65rem; }
 .view-toggle button { padding: .35rem .55rem; border: 0; border-radius: .48rem; background: transparent; color: var(--disabled-text-color); cursor: pointer; font: inherit; font-size: .78rem; }
-.view-toggle button.active { background: var(--brand-ink); color: white; }
+.view-toggle button.active { background: var(--state-selected); color: var(--brand-margin); }
 .continue-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
-.continue-card { position: relative; display: flex; align-items: center; gap: .8rem; min-width: 0; min-height: 6.2rem; padding: .75rem; overflow: hidden; border: 1px solid var(--border-color); border-radius: .85rem; background: var(--card-color); color: var(--text-color); text-decoration: none; }
+.continue-card { position: relative; display: flex; align-items: center; gap: .8rem; min-width: 0; min-height: 6.2rem; padding: .75rem; overflow: hidden; border: 1px solid var(--border-color); border-radius: .85rem; background: var(--card-color); color: var(--text-color); text-decoration: none; box-shadow: var(--box-shadow); }
 .continue-card app-book-cover { display: block; flex: 0 0 3.25rem; height: 4.6rem; overflow: hidden; border-radius: .25rem; }
 .continue-copy { display: flex; min-width: 0; flex-direction: column; gap: .2rem; }
 .continue-copy strong, .continue-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -37,13 +37,14 @@
 .spine-title { font-family: var(--font-family-reading); font-size: .78rem; font-weight: 700; }
 .spine-author { margin-top: auto; font-size: .58rem; opacity: .78; }
 .spine-status { position: absolute; right: 2px; bottom: 3px; left: 2px; padding: 2px; overflow: hidden; background: rgba(44, 37, 48, .72); font-size: .52rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 50%; display: none; min-width: 11rem; padding: .55rem .65rem; border-radius: .55rem; background: var(--brand-ink); color: white; box-shadow: var(--box-shadow); transform: translateX(-50%); }
+.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 50%; display: none; min-width: 11rem; padding: .55rem .65rem; border: 1px solid var(--hairline-color); border-radius: .55rem; background: var(--overlay-color); color: var(--text-color); box-shadow: var(--overlay-shadow); transform: translateX(-50%); }
 .hover-label strong, .hover-label small { display: block; }
 .hover-label small { margin-top: .15rem; opacity: .75; }
 .shelf-book:hover .hover-label, .shelf-book:focus-visible .hover-label { display: block; }
 .cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem 0 1rem; border: 0; background: none; }
 .cover-book, .private-cover { display: flex; flex: 0 0 8.5rem; width: 8.5rem; flex-direction: column; gap: .45rem; color: var(--text-color); text-decoration: none; }
 .cover-book app-book-cover { display: block; width: 8.5rem; height: 12.2rem; overflow: hidden; border-radius: .45rem; }
+.continue-card app-book-cover, .cover-book app-book-cover { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35); }
 .cover-book > span { display: flex; min-width: 0; flex-direction: column; }
 .cover-book strong, .cover-book small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cover-book small { color: var(--disabled-text-color); }

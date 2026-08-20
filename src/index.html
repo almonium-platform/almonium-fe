@@ -6,6 +6,20 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="assets/img/logo/logo-flat.svg">
+  <script>
+    (() => {
+      try {
+        const preferences = JSON.parse(localStorage.getItem('app_preferences') || '{}');
+        const theme = ['light', 'dark', 'system'].includes(preferences.appearance) ? preferences.appearance : 'system';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.classList.toggle('reduce-motion', Boolean(preferences.reduceMotion));
+        document.documentElement.style.colorScheme = theme === 'system' ? 'light dark' : theme;
+      } catch {
+        document.documentElement.dataset.theme = 'system';
+        document.documentElement.style.colorScheme = 'light dark';
+      }
+    })();
+  </script>
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-726SZFQZWB"></script>
   <script>
