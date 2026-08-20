@@ -481,11 +481,14 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
     this.targetLanguagesControl.setValue([...current, item]);
 
-    // clear typed text
-    queueMicrotask(() => {
-      if (this.targetInput?.nativeElement) {
-        this.targetInput.nativeElement.value = '';
+    // Clear the textfield after Taiga UI finishes handling the option click.
+    setTimeout(() => {
+      const input = this.targetInput?.nativeElement;
+      if (!input) {
+        return;
       }
+      input.value = '';
+      input.dispatchEvent(new Event('input', {bubbles: true}));
     });
     this.targetSearch$.next('');
   }
