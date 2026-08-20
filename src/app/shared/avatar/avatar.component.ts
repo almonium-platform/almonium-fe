@@ -7,7 +7,7 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
 @Component({
   selector: 'app-avatar',
   template: `
-    <span [tuiAvatar]="letter"
+    <span [tuiAvatar]="displayAvatarUrl ? null : letter"
       [size]="size"
       [tuiSkeleton]="loading"
       [style.background]="discBackground"
