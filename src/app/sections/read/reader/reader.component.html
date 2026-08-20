@@ -60,21 +60,21 @@
       <div class="pagination-center-area">
         <!-- Table of Contents Dropdown -->
         @if (chapterNav.length > 0) {
-          <div class="chapter-nav-container mobile-content-map">
-            <lucide-icon
+          <div class="chapter-nav-container mobile-content-map" [class.parallel-content-map]="isParallelViewActive">
+            <button
+              type="button"
               #tocDropdown="tuiDropdown"
               #tocTrigger
               (click)="toggleChapterNavigation(tocDropdown)"
               (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
               [tuiDropdown]="tocDropdownContent"
-              name="table-of-contents"
-              size="26"
-              strokeWidth="1.75"
-              class="icon"
-              title="Table of Contents"
+              class="chapter-nav-trigger"
+              aria-label="Open chapter navigation"
+              title="Chapters"
               tuiDropdown
             >
-            </lucide-icon>
+              <lucide-icon name="table-of-contents" size="26" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+            </button>
             <!-- Dropdown Content Template -->
             <ng-template #tocDropdownContent>
               <tui-data-list role="menu">

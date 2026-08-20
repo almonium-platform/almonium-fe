@@ -1,4 +1,5 @@
 import {ReaderDomService} from './reader-dom.service';
+import {sanitizeBookHtml} from './book-html-sanitizer';
 
 describe('ReaderDomService', () => {
   const service = new ReaderDomService();
@@ -104,5 +105,19 @@ describe('ReaderDomService', () => {
       index: 0,
     }]);
     expect(service.findChapter(content, 'chapter-1')).toBe(content.querySelector<HTMLElement>('#chapter-1'));
+  });
+
+  it('preserves and discovers the published-book chapter contract', () => {
+    const content = document.createElement('div');
+    content.innerHTML = sanitizeBookHtml(`
+      <section class="chapter"><h2 class="chapter-title" id="chapter-0">Opening</h2><p>Text</p></section>
+      <section class="chapter"><h2 class="chapter-title" id="chapter-1">The road</h2><p>More text</p></section>
+    `);
+
+    expect(service.measureChapters(content, 'EN').map(chapter => ({title: chapter.title, elementId: chapter.elementId}))).toEqual([
+      {title: 'Opening', elementId: 'chapter-0'},
+      {title: 'The road', elementId: 'chapter-1'},
+    ]);
+    expect(content.querySelectorAll('section.chapter > h2.chapter-title[id]').length).toBe(2);
   });
 });
