@@ -54,11 +54,11 @@
       <div class="title">Data &amp; storage</div>
       <div class="data-action">
         <span><strong>Offline books</strong><small>Remove downloaded book content and saved reading positions.</small></span>
-        <app-button appearance="bw" label="Clear offline books" width="fit" (click)="clearOfflineBooks()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.trash"/></app-button>
+        <app-button appearance="bw" label="Clear offline books" width="fit" gap=".5rem" (click)="clearOfflineBooks()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.trash"/></app-button>
       </div>
       <div class="data-action">
         <span><strong>Refresh app data</strong><small>Reload account and language data without changing your preferences.</small></span>
-        <app-button appearance="bw" label="Refresh" width="fit" (click)="reloadCachedAppData()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.rotate"/></app-button>
+        <app-button appearance="bw" label="Refresh" width="fit" gap=".5rem" (click)="reloadCachedAppData()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.rotate"/></app-button>
       </div>
     </div>
   </div>

@@ -218,23 +218,23 @@
       <div class="user-details">
         <div class="user-info overflow-hidden flex flex-col gap-0.5">
           <span class="font-semibold truncate block username">{{ userInfo?.username || 'Anonymous Learner' }}</span>
-          <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+          <p class="user-email truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
         </div>
       </div>
       <div class="separator"></div>
       <!-- Menu Items -->
       <div class="menu-items p-2">
-        <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
+        <a routerLink="/settings" class="menu-item flex items-center">
+          <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
           <span>Settings</span>
         </a>
-        <a routerLink="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
+        <a routerLink="/pricing" class="menu-item flex items-center">
+          <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
           <span>Membership</span>
         </a>
         <div class="separator"></div>
-        <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
+        <a routerLink="/logout" class="menu-item flex items-center">
+          <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
           <span>Logout</span>
         </a>
       </div>

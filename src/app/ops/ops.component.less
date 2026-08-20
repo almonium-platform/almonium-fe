@@ -1,11 +1,11 @@
 .ops-page {
-  --ops-ink: #312d35;
-  --ops-muted: #77717b;
-  --ops-border: #e9e3e7;
-  --ops-surface: #ffffff;
-  --ops-soft: #fbf8fa;
-  --ops-accent: #83397f;
-  --ops-danger: #b43b56;
+  --ops-ink: var(--text-color);
+  --ops-muted: var(--subhead-color);
+  --ops-border: var(--hairline-color);
+  --ops-surface: var(--card-color);
+  --ops-soft: var(--nested-color);
+  --ops-accent: var(--brand-margin);
+  --ops-danger: var(--danger-text-color);
   max-width: 1080px;
   margin: 0 auto;
   padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 4vw, 2.5rem) 4rem;
@@ -53,9 +53,9 @@
 .ops-page__badge {
   flex: 0 0 auto;
   padding: .45rem .7rem;
-  border: 1px solid #ead7e8;
+  border: 1px solid color-mix(in srgb, var(--ops-accent) 28%, var(--ops-border));
   border-radius: 999px;
-  background: #fcf4fb;
+  background: color-mix(in srgb, var(--ops-accent) 10%, var(--ops-surface));
   color: var(--ops-accent);
   font-family: Arial, Helvetica, sans-serif;
   font-size: .7rem;
@@ -77,7 +77,7 @@
   border: 1px solid var(--ops-border);
   border-radius: 1.25rem;
   background: var(--ops-surface);
-  box-shadow: 0 12px 32px rgba(49, 45, 53, .06);
+  box-shadow: var(--box-shadow);
 }
 
 .ops-card--lookup {
@@ -102,7 +102,7 @@
   height: 1.75rem;
   place-items: center;
   border-radius: .55rem;
-  background: #f6eaf5;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
   color: var(--ops-accent);
   font-family: Arial, Helvetica, sans-serif;
   font-size: .7rem;
@@ -110,8 +110,8 @@
 }
 
 .ops-card--grant .ops-card__step {
-  background: #fff4dd;
-  color: #9a691d;
+  background: color-mix(in srgb, #d5a34a 16%, var(--ops-surface));
+  color: color-mix(in srgb, #d5a34a 72%, var(--ops-ink));
 }
 
 .ops-card h2 {
@@ -162,10 +162,10 @@
   width: 100%;
   min-height: 2.8rem;
   padding: .7rem .8rem;
-  border: 1px solid #dcd6dc;
+  border: 1px solid var(--control-border-color);
   border-radius: .65rem;
   outline: none;
-  background: #fff;
+  background: var(--ops-soft);
   color: var(--ops-ink);
   font: inherit;
   font-size: .88rem;
@@ -175,12 +175,12 @@
 }
 
 .ops-form__field input::placeholder {
-  color: #aaa3ab;
+  color: var(--metadata-color);
 }
 
 .ops-form__field input:hover,
 .ops-form__field select:hover {
-  border-color: #b9aeb9;
+  border-color: var(--ops-muted);
 }
 
 .ops-form__field input:focus,
@@ -192,7 +192,7 @@
 .ops-form__field input:disabled,
 .ops-form__field select:disabled {
   cursor: not-allowed;
-  background: #f5f3f5;
+  background: var(--disabled-fill-color);
 }
 
 .ops-form__actions {
@@ -216,22 +216,22 @@
 
 .ops-button--primary {
   background: var(--ops-accent);
-  color: #fff;
+  color: var(--on-brand-color);
 }
 
 .ops-button--primary:hover:not(:disabled) {
-  background: #6f2f6c;
+  background: var(--brand-hover);
 }
 
 .ops-button--danger {
-  border-color: #e4bcc6;
-  background: #fff;
+  border-color: color-mix(in srgb, var(--ops-danger) 45%, var(--ops-border));
+  background: var(--ops-surface);
   color: var(--ops-danger);
 }
 
 .ops-button--danger:hover:not(:disabled) {
   border-color: var(--ops-danger);
-  background: #fff3f5;
+  background: var(--danger-bg-color);
 }
 
 .ops-button:disabled {
@@ -303,7 +303,7 @@
 .ops-summary__entitlement strong {
   padding: .3rem .55rem;
   border-radius: .4rem;
-  background: #f0e3ef;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
   color: var(--ops-accent);
   font-size: .7rem;
   letter-spacing: .04em;
@@ -317,8 +317,8 @@
 }
 
 .ops-summary__grant--active {
-  border: 1px solid #d3e9df;
-  background: #f1faf6;
+  border: 1px solid color-mix(in srgb, var(--success-color) 35%, var(--ops-border));
+  background: var(--success-bg-color);
 }
 
 .ops-summary__grant--active > div {
@@ -329,14 +329,14 @@
 }
 
 .ops-summary__grant--active strong {
-  color: #177b5b;
+  color: var(--success-color);
   font-size: .74rem;
   text-transform: uppercase;
 }
 
 .ops-summary__grant p {
   margin: .4rem 0 0;
-  color: #54766a;
+  color: var(--ops-muted);
   font-size: .74rem;
 }
 
@@ -344,7 +344,7 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  background: #f3f1f3;
+  background: var(--disabled-fill-color);
   color: var(--ops-muted);
   font-size: .74rem;
 }
@@ -354,7 +354,7 @@
   height: .45rem;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: #9d969f;
+  background: var(--disabled-label-color);
 }
 
 @media (max-width: 760px) {

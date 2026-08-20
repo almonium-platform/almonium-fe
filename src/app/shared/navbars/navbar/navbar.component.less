@@ -367,8 +367,56 @@
 }
 
 .profile-popover {
-  border: 0;
-  box-shadow: 0 12px 32px rgba(44, 37, 48, .18), 0 2px 8px rgba(44, 37, 48, .1);
+  width: min(13.5rem, calc(100vw - 2rem));
+  padding: .65rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 1.5rem;
+  box-shadow: var(--overlay-shadow);
+
+  .menu-section {
+    padding: 0;
+  }
+
+  .user-details {
+    padding: .65rem .75rem .7rem;
+  }
+
+  .menu-items {
+    gap: .2rem;
+    padding: .25rem 0;
+  }
+
+  .menu-item {
+    gap: .7rem;
+    min-height: 2.5rem;
+    padding: .55rem .7rem;
+    border-radius: .65rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 150ms ease, color 150ms ease;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--state-hover);
+      color: var(--brand-margin);
+      outline: none;
+    }
+
+    lucide-icon {
+      flex: 0 0 auto;
+      color: var(--metadata-color);
+    }
+
+    &:hover lucide-icon,
+    &:focus-visible lucide-icon {
+      color: currentColor;
+    }
+  }
+
+  .separator {
+    background: var(--hairline-color);
+    margin: .15rem 0;
+  }
 }
 
 .profile-circle {
@@ -403,6 +451,12 @@
   line-height: 1.5;
 }
 
+.user-email {
+  margin: .15rem 0 0;
+  color: var(--metadata-color);
+  font-size: .875rem;
+}
+
 .menu-items {
   display: flex;
   flex-direction: column;
@@ -418,14 +472,14 @@
 }
 
 .menu-item {
-  color: #333;
+  color: var(--text-color);
   min-width: 5rem;
 }
 
 .separator {
   width: 100%;
   padding-top: 1px;
-  background: #eaeaea;
+  background: var(--hairline-color);
   margin: .2rem 0;
 }
 

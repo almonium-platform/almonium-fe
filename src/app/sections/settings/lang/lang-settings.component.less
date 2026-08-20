@@ -53,7 +53,7 @@ select { font: inherit; }
 .known-languages span {
   padding: .375rem .8125rem;
   border-radius: 9999px;
-  background: #f1ecef;
+  background: var(--nested-color);
   color: var(--subhead-color);
   font-size: .8125rem;
 }
@@ -65,7 +65,7 @@ select { font: inherit; }
 .learner-list { margin-top: .875rem; }
 
 .learner-record + .learner-record,
-.add-language-row { border-top: 1px solid #f1ecef; }
+.add-language-row { border-top: 1px solid var(--hairline-color); }
 
 .learner-row,
 .add-language-row {
@@ -85,14 +85,14 @@ select { font: inherit; }
 
 .colour-trigger {
   border: 0;
-  box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px #e6dfdb;
+  box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--control-border-color);
   cursor: pointer;
 }
 
 .colour-trigger:hover,
 .colour-trigger.open { box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--brand-primary); }
 
-.empty-colour { border: 1px dashed var(--control-border-color); background: #f6f2f4; }
+.empty-colour { border: 1px dashed var(--control-border-color); background: var(--nested-color); }
 
 .language-name,
 .add-language-row > span:nth-child(2) {
@@ -126,7 +126,7 @@ select { font: inherit; }
   border-radius: .5625rem;
   outline: none;
   background: var(--card-color);
-  color: #3d3d3d;
+  color: var(--text-color);
   cursor: pointer;
   font-family: var(--font-family-mono);
   font-size: .75rem;
@@ -162,7 +162,8 @@ select { font: inherit; }
   padding: 1rem;
   border-radius: 1rem;
   background: var(--page-ground);
-  box-shadow: 0 6px 20px rgba(44, 37, 48, .1);
+  border: 1px solid var(--hairline-color);
+  box-shadow: var(--overlay-shadow);
 }
 
 .colour-title,
