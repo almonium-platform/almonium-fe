@@ -1,7 +1,7 @@
 # Design-system implementation plan
 
-Source documents: `Almonium Constitution - Standalone.html` and `Almonium
-Action Items - Standalone.html` (both added 2026-08-18). This plan turns their
+Source documents: `Almonium Constitution.html` and `Almonium
+Action Items.html`. This plan turns their
 rules into sequenced, repository-scoped work; it does not replace them.
 
 ## Decision: token layer

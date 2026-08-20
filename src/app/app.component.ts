@@ -6,7 +6,7 @@ import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {UrlService} from "./services/url.service";
-import {StreamI18nService} from "stream-chat-angular";
+import {StreamI18nService, ThemeService} from "stream-chat-angular";
 import {EN_CODE, STREAM_CHAT_TRANSLATIONS} from "./sections/social/i18n";
 import {FirebaseNotificationService} from "./services/firebase-notification.service";
 import {filter} from "rxjs";
@@ -39,6 +39,7 @@ export class AppComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private localStorageService = inject(LocalStorageService);
   private taigaDarkMode = inject(TUI_DARK_MODE);
+  private streamThemeService = inject(ThemeService);
   private systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
 
   title = 'almonium-fe';
@@ -80,10 +81,12 @@ export class AppComponent implements OnInit {
   private applyDisplayPreferences(): void {
     const preferences = this.localStorageService.getItem<{appearance?: 'light' | 'dark' | 'system'; reduceMotion?: boolean}>('app_preferences');
     const root = document.documentElement;
+    const isDark = preferences?.appearance === 'dark' || (preferences?.appearance !== 'light' && this.systemTheme.matches);
     root.dataset['theme'] = preferences?.appearance ?? 'system';
     root.classList.toggle('reduce-motion', preferences?.reduceMotion ?? false);
     root.style.colorScheme = preferences?.appearance === 'dark' ? 'dark' : preferences?.appearance === 'light' ? 'light' : 'light dark';
-    this.taigaDarkMode.set(preferences?.appearance === 'dark' || (preferences?.appearance !== 'light' && this.systemTheme.matches));
+    this.taigaDarkMode.set(isDark);
+    this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
   }
 
   ngOnInit(): void {

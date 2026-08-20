@@ -14,6 +14,7 @@ import {SupportedLanguagesService} from "../../../services/supported-langs.servi
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {catchError} from "rxjs/operators";
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
+import {ThemeService} from 'stream-chat-angular';
 
 @Component({
   selector: 'app-app-settings',
@@ -36,6 +37,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private alertService = inject(TuiNotificationService);
   private taigaDarkMode = inject(TUI_DARK_MODE);
+  private streamThemeService = inject(ThemeService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -119,10 +121,12 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
   private applyAppearancePreferences(): void {
     const root = document.documentElement;
+    const isDark = this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     root.dataset['theme'] = this.appearance;
     root.classList.toggle('reduce-motion', this.reduceMotion);
     root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
-    this.taigaDarkMode.set(this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
+    this.taigaDarkMode.set(isDark);
+    this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
   }
 
   protected clearOfflineBooks() {
