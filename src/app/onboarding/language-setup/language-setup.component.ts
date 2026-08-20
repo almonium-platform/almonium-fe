@@ -152,6 +152,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   @ViewChild('targetInput', {static: true}) targetInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(TuiInputChipDirective) targetInputChip?: TuiInputChipDirective<string>;
 
   private allowedTarget = new Set<string>();
   protected targetMaxLanguages = 1;
@@ -479,17 +480,13 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     const current = this.targetLanguagesControl.value ?? [];
     if (current.includes(item) || current.length >= this.targetMaxLanguages) return;
 
-    this.targetLanguagesControl.setValue([...current, item]);
-
-    // Clear the textfield after Taiga UI finishes handling the option click.
-    setTimeout(() => {
-      const input = this.targetInput?.nativeElement;
-      if (!input) {
-        return;
-      }
-      input.value = '';
-      input.dispatchEvent(new Event('input', {bubbles: true}));
-    });
+    const next = [...current, item];
+    if (this.targetInputChip) {
+      // Use Taiga UI's accessor so its internal textfield value is cleared too.
+      this.targetInputChip.setValue(next);
+    } else {
+      this.targetLanguagesControl.setValue(next);
+    }
     this.targetSearch$.next('');
   }
 
