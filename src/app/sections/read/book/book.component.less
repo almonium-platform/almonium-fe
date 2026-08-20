@@ -127,18 +127,18 @@
 
   &:hover:not(.edit-chip--no-hover) { /* Target only hoverable ones */
     background-color: var(--text-color);
-    color: white !important; /* Use important if needed to override tui */
+    color: var(--on-brand-color) !important;
     border-color: var(--text-color);
     cursor: pointer;
 
     /* Target potential inner text elements if needed */
 
     .inner-text {
-      color: white !important;
+      color: var(--on-brand-color) !important;
     }
 
     lucide-icon {
-      stroke: white !important; /* Assuming lucide uses stroke */
+      stroke: var(--on-brand-color) !important;
     }
   }
 }

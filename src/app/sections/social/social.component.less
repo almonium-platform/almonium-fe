@@ -28,7 +28,7 @@
     width: 100%;
     height: 100%;
     border-radius: 0 2rem 0 0; /* Only top corners are rounded */
-    background-color: white;
+    background-color: var(--card-color);
     border-top: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
   }
@@ -60,7 +60,7 @@
   .chats-container {
     display: flex;
     flex-direction: column;
-    background-color: white;
+    background-color: var(--card-color);
     border-radius: 0 0 0 0; /* Only top-right corner is rounded */
     border-top: 1px solid var(--border-color);
     width: 100%;
@@ -343,7 +343,7 @@
 // read icon on my messages
 ::ng-deep .str-chat__message.str-chat__message--me {
   .str-chat__icon {
-    color: white;
+    color: var(--text-color);
   }
 }
 
@@ -355,7 +355,7 @@
 
 // interlocutor's messages color
 ::ng-deep .str-chat__message .str-chat__message-bubble {
-  background-color: white;
+  background-color: var(--card-color);
 }
 
 // main chat background
@@ -365,7 +365,7 @@
 
 // input field color
 ::ng-deep .str-chat__message-input {
-  background-color: white;
+  background-color: var(--card-color);
 }
 
 // input field text color
@@ -380,7 +380,7 @@
 
 // default, right chat window header
 ::ng-deep .str-chat__channel-header {
-  background-color: white;
+  background-color: var(--card-color);
   color: var(--reader-text-color);
   gap: 0;
 
@@ -416,14 +416,14 @@
   &-messenger--active {
     // selected chat preview
     background-color: var(--chat-accent-color);
-    color: white;
+    color: var(--text-color);
 
     .muted-icon {
-      color: white;
+      color: var(--text-color);
     }
 
     .str-chat__channel-preview-unread-badge {
-      background: white !important;
+      background: var(--text-color) !important;
       color: var(--chat-accent-color) !important;
     }
 
@@ -433,11 +433,11 @@
     }
 
     .str-chat__icon {
-      color: white;
+      color: var(--text-color);
     }
 
     .str-chat__channel-preview-messenger--time {
-      color: white;
+      color: var(--text-color);
     }
 
     .online-indicator-buffer {
@@ -445,7 +445,7 @@
     }
 
     .str-chat__avatar--online-indicator {
-      background-color: white !important;
+      background-color: var(--text-color) !important;
     }
   }
 
@@ -460,20 +460,20 @@
 
 // message reactions container
 ::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
-  background-color: white;
+  background-color: var(--card-color);
 }
 
 ::ng-deep .str-chat__message .str-chat__message-metadata, .str-chat__message .str-chat__custom-message-metadata {
-  color: white;
+  color: var(--text-color);
 }
 
 // in chat window, separator lines for timeline
 ::ng-deep .str-chat__date-separator {
-  color: white;
+  color: var(--text-color);
 }
 
 ::ng-deep .str-chat__date-separator-line {
-  background-color: white;
+  background-color: var(--text-color);
 }
 
 // You have no channels currently, No chats here yet...
@@ -518,17 +518,17 @@
 // unread messages indicator
 ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
   padding: 0 6px;
-  color: white;
+  color: var(--text-color);
   font-weight: 550;
 }
 
 // chat window, unread messages notification
 ::ng-deep .str-chat__unread-messages-notification button {
-  color: white;
+  color: var(--text-color);
   background-color: var(--chat-accent-color);
 
   .str-chat__icon {
-    color: white;
+    color: var(--text-color);
   }
 }
 
@@ -538,7 +538,7 @@
   display: flex;
   align-items: center;
   text-align: center;
-  color: white;
+  color: var(--text-color);
   position: relative;
   margin: 1rem 0;
   background-color: transparent;
@@ -550,7 +550,7 @@
   flex: none;
   width: 38%;
   height: var(--str-chat__spacing-px);
-  background-color: white;
+  background-color: var(--text-color);
 }
 
 ::ng-deep .str-chat__unread-messages-separator::before {
