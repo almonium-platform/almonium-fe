@@ -67,13 +67,26 @@
   }
 }
 
+.reader-reading-layout {
+  width: min(100%, 800px);
+  margin: 0 auto;
+
+  &.has-content-map {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 800px);
+    width: min(calc(100% - 2rem), 1020px);
+    gap: 40px;
+  }
+}
+
+.reader-content-wrapper.mode-side .reader-reading-layout { width: 100%; }
+
 .content-map {
-  position: absolute;
-  top: 2rem;
-  left: max(1rem, calc(50% - 620px));
+  position: sticky;
+  top: 1rem;
   display: flex;
-  width: 180px;
-  max-height: calc(100% - 4rem);
+  max-height: calc(100vh - var(--header-height) - 5rem);
+  align-self: start;
   flex-direction: column;
   gap: .15rem;
   overflow-y: auto;
@@ -91,7 +104,8 @@
   line-height: 1.6;
   padding: 0 2rem;
   max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   box-sizing: border-box;
   overflow-x: hidden;
 
@@ -428,4 +442,5 @@
 @media (max-width: 1280px) {
   .content-map { display: none; }
   .mobile-content-map { display: block; }
+  .reader-reading-layout.has-content-map { display: block; width: min(100%, 800px); }
 }

@@ -87,6 +87,10 @@ describe('ReaderComponent', () => {
     };
     const chapterButtons = host.querySelectorAll<HTMLButtonElement>('.content-map button');
     expect(chapterButtons.length).toBe(2);
+    const readingLayout = host.querySelector('.reader-reading-layout');
+    expect(readingLayout?.classList.contains('has-content-map')).toBeTrue();
+    expect(readingLayout?.querySelector(':scope > .content-map')).not.toBeNull();
+    expect(readingLayout?.querySelector(':scope > .reader-content')).not.toBeNull();
     const selectChapter = spyOn(component, 'selectChapter');
     chapterButtons[1].click();
     expect(selectChapter).toHaveBeenCalledOnceWith(1);
@@ -98,6 +102,6 @@ describe('ReaderComponent', () => {
     const trigger = host.querySelector<HTMLButtonElement>('[aria-label="Open chapter navigation"]');
     expect(host.querySelector('.content-map')).toBeNull();
     expect(trigger).not.toBeNull();
-    expect(trigger.closest('.chapter-nav-container')?.classList.contains('parallel-content-map')).toBeTrue();
+    expect(trigger?.closest('.chapter-nav-container')?.classList.contains('parallel-content-map')).toBeTrue();
   });
 });

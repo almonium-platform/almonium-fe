@@ -28,28 +28,30 @@
          (scroll)="onWrapperScroll($event)"
          (focus)="onContentHover($event)"
     >
-      @if (chapterNav.length > 0 && !isParallelViewActive) {
-        <nav class="content-map" aria-label="Contents">
-          <span>Contents</span>
-          @for (chapter of chapterNav; track chapter; let i = $index) {
-            <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
-          }
-        </nav>
-      }
-      <!-- Content Area - PASS MODE TO PIPE -->
-      <div #readerContent
-           tabindex="-1"
-           class="reader-content"
-           [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
-           [innerHTML]="bookHtmlContent | parallelFormat:{
-              mode: isParallelViewActive ? currentParallelMode : null,
-              targetLang: targetLangCode,
-              fluentLang: fluentLangCode} | bookHtml"
-           (click)="onContentClick($event)"
-           (mouseover)="onContentHover($event)"
-           (focus)="onContentHover($event)"
-           (focusin)="onContentHover($event)"
-           (keydown.enter)="onContentClick($event)">
+      <div class="reader-reading-layout" [class.has-content-map]="chapterNav.length > 0 && !isParallelViewActive">
+        @if (chapterNav.length > 0 && !isParallelViewActive) {
+          <nav class="content-map" aria-label="Contents">
+            <span>Contents</span>
+            @for (chapter of chapterNav; track chapter; let i = $index) {
+              <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
+            }
+          </nav>
+        }
+        <!-- Content Area - PASS MODE TO PIPE -->
+        <div #readerContent
+             tabindex="-1"
+             class="reader-content"
+             [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+             [innerHTML]="bookHtmlContent | parallelFormat:{
+                mode: isParallelViewActive ? currentParallelMode : null,
+                targetLang: targetLangCode,
+                fluentLang: fluentLangCode} | bookHtml"
+             (click)="onContentClick($event)"
+             (mouseover)="onContentHover($event)"
+             (focus)="onContentHover($event)"
+             (focusin)="onContentHover($event)"
+             (keydown.enter)="onContentClick($event)">
+        </div>
       </div>
     </div>
   }
