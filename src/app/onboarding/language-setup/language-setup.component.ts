@@ -15,9 +15,7 @@ import {
 } from '@angular/forms';
 import {TuiInputChip, TuiInputChipDirective} from '@taiga-ui/kit/components';
 import {TuiChevron} from '@taiga-ui/kit/directives';
-import {TuiHideSelectedPipe} from '@taiga-ui/kit/pipes';
 import {TuiDataList, TuiDataListComponent, TuiError, TuiNotificationService, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
-import {TuiFilterByInputPipe} from '@taiga-ui/core/pipes';
 import {TuiDropdownContent} from '@taiga-ui/core/portals';
 import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
 import {BehaviorSubject, finalize, Observable, of, Subject, takeUntil} from 'rxjs';
@@ -78,8 +76,6 @@ type CefrFormGroup = FormGroup<{
     TuiDataListComponent,
     TuiDataList,
     FormsModule,
-    TuiHideSelectedPipe,
-    TuiFilterByInputPipe,
     NgClass,
     RouterLink,
   ]

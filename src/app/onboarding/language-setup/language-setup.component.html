@@ -57,9 +57,12 @@
                 (input)="onTypeTarget($event)" (keydown)="trapSeparatorsTarget($any($event))"
                 (keydown.enter)="onEnterTarget($any($event))" />
               <tui-input-chip *tuiItem />
-              @if (filteredTargetLanguages$ | async) {
+              @if (filteredTargetLanguages$ | async; as groups) {
                 <tui-data-list *tuiDropdown>
-                  @for (name of otherTargetLanguageNames | tuiHideSelected | tuiFilterByInput; track name) {
+                  @for (name of groups[0]; track name) {
+                    <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
+                  }
+                  @for (name of groups[1]; track name) {
                     <button type="button" tuiOption (click)="onPickTarget(name)">{{ name }}</button>
                   }
                 </tui-data-list>
