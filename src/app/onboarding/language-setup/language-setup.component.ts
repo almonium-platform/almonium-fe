@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -151,8 +151,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  @ViewChild('targetInput', {static: true}) targetInput!: ElementRef<HTMLInputElement>;
-  @ViewChild(TuiInputChipDirective) targetInputChip?: TuiInputChipDirective<string>;
+  // NOTE: `content` (the #langSetup ng-template) is only ever instantiated by a
+  // *different* component via ngTemplateOutlet (PopupTemplateComponent / OnboardingComponent),
+  // so @ViewChild on this component can never see elements inside it. Any reference to the
+  // input must come from a local template variable passed in from the template itself.
 
   private allowedTarget = new Set<string>();
   protected targetMaxLanguages = 1;
@@ -471,21 +473,26 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     e.stopPropagation();
     const groups = this._lastTargetFilteredGroups ?? [[], []]; // keep last if you store it
     const first = [...groups[0], ...groups[1]][0];
-    if (first) this.onPickTarget(first);
+    if (first) this.onPickTarget(first, e.target as HTMLInputElement);
   }
 
-  onPickTarget(item?: string): void {
+  // `inputEl` must come from a local template variable (e.g. `#targetInput`), not @ViewChild:
+  // this component's markup is only ever rendered elsewhere via ngTemplateOutlet, so @ViewChild
+  // can never resolve elements from it.
+  onPickTarget(item?: string, inputEl?: HTMLInputElement): void {
     if (!item || !this.allowedTarget.has(item)) return;
 
     const current = this.targetLanguagesControl.value ?? [];
     if (current.includes(item) || current.length >= this.targetMaxLanguages) return;
 
-    const next = [...current, item];
-    if (this.targetInputChip) {
-      // Use Taiga UI's accessor so its internal textfield value is cleared too.
-      this.targetInputChip.setValue(next);
-    } else {
-      this.targetLanguagesControl.setValue(next);
+    this.targetLanguagesControl.setValue([...current, item]);
+
+    // Taiga UI's textfield tracks the typed search text as separate internal state
+    // (only synced from the native input's own 'input' event), so clearing the
+    // FormControl value alone doesn't clear what's still shown in the box.
+    if (inputEl) {
+      inputEl.value = '';
+      inputEl.dispatchEvent(new Event('input', {bubbles: true}));
     }
     this.targetSearch$.next('');
   }
