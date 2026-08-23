@@ -15,6 +15,7 @@ export class AppConstants {
   // CARDS
   public static CARDS_URL = AppConstants.API_URL + '/cards';
   public static CARDS_IN_LANG = AppConstants.CARDS_URL + '/lang';
+  public static REVIEW_URL = AppConstants.API_URL + '/review';
 
   // PROFILE TODO cleanup
   public static AVATARS_URL = AppConstants.API_URL + '/profiles/me/avatars';

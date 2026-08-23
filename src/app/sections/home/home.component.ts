@@ -11,6 +11,7 @@ import {UserInfoService} from '../../services/user-info.service';
 import {BookCoverComponent} from '../read/book-cover/book-cover.component';
 import {Book, BookshelfView} from '../read/book.model';
 import {ReadService} from '../read/read.service';
+import {ReviewService} from '../review/review.service';
 
 const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorites: []};
 
@@ -25,6 +26,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly readService = inject(ReadService);
   private readonly cardService = inject(CardService);
+  private readonly reviewService = inject(ReviewService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
@@ -34,6 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected cards: CardDto[] = [];
   protected loading = true;
   protected loadError = false;
+  protected reviewDueCount = 0;
   protected readonly today = new Intl.DateTimeFormat(undefined, {
     weekday: 'long',
     day: 'numeric',
@@ -67,12 +70,19 @@ export class HomeComponent implements OnInit, OnDestroy {
               return of([] as CardDto[]);
             }),
           ),
+          review: this.reviewService.getSummary(language).pipe(
+            catchError(() => {
+              this.loadError = true;
+              return of(null);
+            }),
+          ),
         });
       }),
       takeUntil(this.destroy$),
-    ).subscribe(({shelf, cards}) => {
+    ).subscribe(({shelf, cards, review}) => {
       this.shelf = shelf;
       this.cards = cards;
+      this.reviewDueCount = review?.dueCount ?? 0;
       this.loading = false;
     });
 
@@ -99,7 +109,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   protected get reviewCount(): number {
-    return this.cards.filter(card => card.activeLearning !== false).length;
+    return this.reviewDueCount;
   }
 
   protected get shelfBooks(): Book[] {
