@@ -47,6 +47,8 @@
                 targetLang: targetLangCode,
                 fluentLang: fluentLangCode} | bookHtml"
              (click)="onContentClick($event)"
+             (mouseup)="captureLookupSelection()"
+             (touchend)="captureLookupSelection()"
              (mouseover)="onContentHover($event)"
              (focus)="onContentHover($event)"
              (focusin)="onContentHover($event)"
@@ -54,6 +56,13 @@
         </div>
       </div>
     </div>
+    @if (selectedLookupText) {
+      <aside class="selection-lookup" aria-live="polite">
+        <span><strong>{{ selectedLookupText }}</strong><small>Keep it with this sentence in Discover</small></span>
+        <button type="button" (click)="openSelectionInDiscover()">Look up</button>
+        <button type="button" class="dismiss" aria-label="Dismiss word lookup" (click)="dismissLookupSelection()">×</button>
+      </aside>
+    }
   }
 
   <!-- Pagination/Navigation Controls -->

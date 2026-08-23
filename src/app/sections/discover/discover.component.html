@@ -1,52 +1,125 @@
-@if (popupOptions.length > 0) {
-  <app-diacritic-popup
-    [options]="popupOptions"
-    [position]="popupPosition"
-    [focusedIndex]="diacriticPopupFocusIndex"
-    (optionSelected)="selectDiacritic($event)"
-  >
-  </app-diacritic-popup>
-}
+<main class="discover-page">
+  <section class="discover-intro" aria-labelledby="discover-title">
+    <p class="eyebrow">Discover · {{ currentLanguage }}</p>
+    <h1 id="discover-title">Look up a word, or paste the sentence it was in</h1>
+    <p>The sentence is worth pasting. It gives a kept word its context and lets review bring it back the way you met it.</p>
+  </section>
 
-<div class="base-container">
-  <div class="white-card">
-    <div class="input-group">
-      <div
-        #searchInput
-        contenteditable="true"
-        class="search-input"
-        [(ngModel)]="searchText"
-        (input)="onSearchChange()"
-        (keydown)="handleKeydown($event)"
-       >
-      </div>
+  <form class="search-card" (ngSubmit)="submitSearch()">
+    <label for="discover-search">Word or sentence</label>
+    <div class="search-row">
+      <textarea id="discover-search" name="search" [(ngModel)]="searchText" rows="2" maxlength="500"
+                placeholder="die Ausgabe — or paste the whole sentence"></textarea>
+      <button class="primary-action" type="submit" [disabled]="loading || !searchText.trim()">
+        {{ loading ? 'Opening…' : 'Look up' }}
+      </button>
     </div>
-    @if (filteredOptions.length > 0) {
-      <ul class="autocomplete-list">
-        @for (option of filteredOptions; track option; let i = $index) {
-          <li
-            (keydown.enter)="onOptionSelected(option)" tabindex="0" (click)="onOptionSelected(option)"
-            class="autocomplete-item"
-            [class.autocomplete-item-focused]="isOptionFocused(i)"
-          >
-            {{ option }}
-          </li>
+    <div class="diacritics" aria-label="Insert a character">
+      <span>Characters</span>
+      @for (character of diacritics; track character) {
+        <button type="button" (click)="insertDiacritic(character)">{{ character }}</button>
+      }
+    </div>
+  </form>
+
+  @if (sentenceTokens.length > 1) {
+    <section class="sentence-card" aria-labelledby="sentence-title">
+      <p class="eyebrow" id="sentence-title">Your sentence</p>
+      <p class="sentence-copy">
+        @for (token of sentenceTokens; track $index) {
+          <button type="button" [class.active]="lookup?.entry?.toLocaleLowerCase() === token.toLocaleLowerCase()"
+                  (click)="lookupWord(token)">{{ token }}</button>
         }
-      </ul>
-    }
-    @if (submitted && frequency > 0) {
-      <div class="frequency-display flex items-center">
-        <div
-          [style.background-image]="getGaussianGradient(frequency)"
-          class="custom-2 freq-badge inline-flex items-center justify-center h-10 w-10 rounded-full text-white font-bold text-lg mr-4"
-        >
-          {{ frequency }}
+      </p>
+      <small>Tap a word to open its sheet. The whole sentence will be kept as context.</small>
+    </section>
+  }
+
+  @if (loading) {
+    <section class="loading-card" aria-live="polite"><span class="unfold-mark" aria-hidden="true">✦</span> Opening the entry…</section>
+  }
+  @if (errorMessage) {
+    <section class="message error" role="alert">{{ errorMessage }}</section>
+  }
+
+  @if (lookup && !loading) {
+    <article class="word-sheet" aria-labelledby="entry-title">
+      <header class="entry-header">
+        <div>
+          <p class="eyebrow">{{ lookup.language }} · {{ selectedSense?.partOfSpeech || 'word' }}</p>
+          <h2 id="entry-title">{{ selectedSense?.headword || lookup.entry }}</h2>
+          @if (selectedSense?.transcription) { <p class="transcription">[{{ selectedSense?.transcription }}]</p> }
         </div>
-        <div class="frequency-description text-lg">
-          <span class="font-bold">{{ getFrequencyLabel(frequency) }}</span>
-          <span class="text-xs">{{ getFrequencyDescription(frequency) }}</span>
+        @if (lookup.frequency) {
+          <aside class="frequency" aria-label="Corpus frequency">
+            <strong>{{ lookup.frequency.band }}</strong>
+            <span>Relative corpus score {{ lookup.frequency.score }}</span>
+            <small>{{ lookup.frequency.provenance }}</small>
+          </aside>
+        } @else {
+          <aside class="frequency unavailable"><strong>Frequency unavailable</strong><span>No corpus evidence was returned.</span></aside>
+        }
+      </header>
+
+      <section class="senses" aria-labelledby="senses-title">
+        <p class="eyebrow" id="senses-title">Senses</p>
+        @if (lookup.senses.length) {
+          @for (sense of lookup.senses; track sense.index; let i = $index) {
+            <button type="button" class="sense-card" [class.selected]="selectedSenseIndex === i" (click)="selectSense(i)">
+              <span class="sense-number">{{ sense.index }}</span>
+              <span class="sense-body">
+                <strong>{{ sense.translations.join(', ') || 'Meaning not supplied' }}</strong>
+                <small>{{ sense.headword }}@if (sense.partOfSpeech) { · {{ sense.partOfSpeech }} }</small>
+              </span>
+              <span class="sense-choice">{{ selectedSenseIndex === i ? 'Selected' : 'Choose' }}</span>
+            </button>
+          }
+        } @else {
+          <div class="empty-sense">
+            <strong>No structured dictionary sense is available yet.</strong>
+            <span>You can still name the meaning and keep the word; the missing lexical enrichment is tracked separately.</span>
+          </div>
+        }
+      </section>
+
+      @if (lookup.sourceContext) {
+        <blockquote><span class="eyebrow">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
+      }
+
+      <section class="keep-panel" aria-labelledby="keep-title">
+        <div>
+          <p class="eyebrow" id="keep-title">Keep it</p>
+          <h3>What do you want from this word?</h3>
         </div>
-      </div>
-    }
-  </div>
-</div>
+        <div class="intent-grid">
+          @for (option of intentOptions; track option.value) {
+            <label [class.selected]="selectedIntents.has(option.value)">
+              <input type="checkbox" [checked]="selectedIntents.has(option.value)" [disabled]="option.value === 'UNDERSTAND'"
+                     (change)="toggleIntent(option.value)" />
+              <span><strong>{{ option.label }}</strong><small>{{ option.detail }}</small></span>
+            </label>
+          }
+        </div>
+        <label class="meaning-field" for="discover-meaning">
+          Meaning for review
+          <input id="discover-meaning" [(ngModel)]="meaning" [ngModelOptions]="{standalone: true}"
+                 placeholder="Add the meaning you want to remember" />
+        </label>
+        @if (signedIn) {
+          <button type="button" class="keep-action" [class.kept]="saved" [disabled]="saving || saved || !meaning.trim()" (click)="keepWord()">
+            {{ saved ? 'Kept' : saving ? 'Keeping…' : 'Keep the word' }}
+          </button>
+          <p class="save-note">It stays on this sheet and enters Review immediately.</p>
+        } @else {
+          <div class="signup-callout">
+            <div><strong>Keep this word and it comes back until you know it</strong><span>Looking words up stays public. An account is only needed to remember them.</span></div>
+            <a routerLink="/auth">Keep it — free</a>
+          </div>
+        }
+        @if (saveError) { <p class="message error" role="alert">{{ saveError }}</p> }
+      </section>
+
+      <footer class="entry-footer">@if (lookup.provider) { Dictionary provider: {{ lookup.provider }} · }Lexical roots, family links, examples and entry provenance are not available in this iteration.</footer>
+    </article>
+  }
+</main>

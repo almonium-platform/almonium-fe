@@ -9,7 +9,7 @@ import {catchError, debounceTime, distinctUntilChanged, takeUntil, throttleTime}
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
@@ -58,6 +58,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private cdRef = inject(ChangeDetectorRef);
   private readService = inject(ReadService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private ngZone = inject(NgZone);
   private parallelModeService = inject(ParallelModeService);
   private popupTemplateStateService = inject(PopupTemplateStateService);
@@ -123,6 +124,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
   protected targetLangCode: string | null = null; // Language of the book being read
+  protected selectedLookupText = '';
+  private selectedLookupContext = '';
 
   private isSyncingHeights = false;
 
@@ -189,6 +192,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.chapterNav = [];
     this.hasMeasuredChapters = false;
     this.parallelVersions = [];
+    this.selectedLookupText = '';
+    this.selectedLookupContext = '';
     this.cdRef.markForCheck();
   }
 
@@ -277,6 +282,34 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       return;
     }
     this.readerDom.toggleOverlayTranslation(this.readerContentRef.nativeElement, event.target);
+  }
+
+  protected captureLookupSelection(): void {
+    const selection = window.getSelection();
+    const content = this.readerContentRef?.nativeElement;
+    if (!selection || selection.isCollapsed || !content || !selection.anchorNode || !content.contains(selection.anchorNode)) {
+      return;
+    }
+    const text = selection.toString().trim().replace(/\s+/g, ' ');
+    if (!text || text.length > 80) return;
+    const sourceElement = selection.anchorNode.parentElement?.closest('p, li, blockquote, div');
+    this.selectedLookupText = text;
+    this.selectedLookupContext = sourceElement?.textContent?.trim().replace(/\s+/g, ' ').slice(0, 500) ?? text;
+    this.cdRef.markForCheck();
+  }
+
+  protected openSelectionInDiscover(): void {
+    if (!this.selectedLookupText) return;
+    void this.router.navigate(['/discover'], {
+      queryParams: {text: this.selectedLookupText, context: this.selectedLookupContext},
+    });
+  }
+
+  protected dismissLookupSelection(): void {
+    this.selectedLookupText = '';
+    this.selectedLookupContext = '';
+    window.getSelection()?.removeAllRanges();
+    this.cdRef.markForCheck();
   }
 
   // Specific handler for load errors

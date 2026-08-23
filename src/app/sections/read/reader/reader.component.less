@@ -35,6 +35,33 @@
   height: 100%; // Ensure it fills parent if parent has height
 }
 
+.selection-lookup {
+  position: absolute;
+  z-index: 5;
+  right: 1rem;
+  bottom: 5.4rem;
+  left: 1rem;
+  display: flex;
+  width: min(calc(100% - 2rem), 520px);
+  min-height: 64px;
+  align-items: center;
+  gap: .8rem;
+  margin: 0 auto;
+  padding: .7rem .8rem .7rem 1rem;
+  border-radius: 18px;
+  background: var(--brand-ink);
+  box-shadow: var(--overlay-shadow);
+  color: var(--page-ground);
+  font-family: var(--font-family-ui);
+  user-select: none;
+
+  span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+  strong { overflow: hidden; font-family: var(--font-family-reading); text-overflow: ellipsis; white-space: nowrap; }
+  small { color: #c9c0cc; font-size: .72rem; }
+  button { min-height: 42px; padding: 0 1rem; border: 0; border-radius: 999px; background: #e0c4ee; color: var(--brand-ink); cursor: pointer; font-weight: 600; }
+  button.dismiss { min-width: 42px; padding: 0; background: transparent; color: #c9c0cc; font-size: 1.4rem; }
+}
+
 // --- Loading & Error ---
 .loading-indicator,
 .error-message {

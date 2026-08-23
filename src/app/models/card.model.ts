@@ -33,6 +33,31 @@ export interface CardDto {
   irregularPlural?: boolean;
   irregularSpelling?: boolean;
   falseFriend?: boolean;
+  normalizedForm?: string;
+  lemma?: string;
+  itemType?: LearningItemType;
+  partOfSpeech?: string;
+  selectedSense?: string;
+  sourceContext?: string;
+  learningIntents?: LearningIntent[];
+}
+
+export type LearningIntent = 'UNDERSTAND' | 'PRODUCE' | 'PRONOUNCE' | 'DISAMBIGUATE' | 'CHUNK';
+export type LearningItemType = 'WORD' | 'PHRASE' | 'CHUNK' | 'TEMPLATE';
+
+export interface CardCreationDto {
+  entry: string;
+  language: string;
+  translations: {translation: string}[];
+  partOfSpeech?: string;
+  selectedSense?: string;
+  sourceContext?: string;
+  learningIntents: LearningIntent[];
+  itemType: LearningItemType;
+  examples: {example: string; translation: string}[];
+  activeLearning: boolean;
+  learnt: boolean;
+  priority: number;
 }
 
 export function parseCards(value: unknown): CardDto[] {
@@ -49,7 +74,7 @@ export function parseCards(value: unknown): CardDto[] {
         };
       }),
     };
-    const optionalStrings = ['id', 'publicId', 'userId', 'notes', 'createdAt', 'updatedAt'] as const;
+    const optionalStrings = ['id', 'publicId', 'userId', 'notes', 'createdAt', 'updatedAt', 'normalizedForm', 'lemma', 'partOfSpeech', 'selectedSense', 'sourceContext'] as const;
     optionalStrings.forEach(key => {
       if (card[key] !== undefined && card[key] !== null) {
         parsed[key] = expectString(card[key], `cards[${index}].${key}`);
@@ -70,6 +95,13 @@ export function parseCards(value: unknown): CardDto[] {
           translation: expectString(item['translation'], `cards[${index}].examples[${exampleIndex}].translation`),
         };
       });
+    }
+    if (card['itemType'] !== undefined && card['itemType'] !== null) {
+      parsed.itemType = expectString(card['itemType'], `cards[${index}].itemType`) as LearningItemType;
+    }
+    if (card['learningIntents'] !== undefined && card['learningIntents'] !== null) {
+      parsed.learningIntents = expectArray(card['learningIntents'], `cards[${index}].learningIntents`)
+        .map((intent, intentIndex) => expectString(intent, `cards[${index}].learningIntents[${intentIndex}]`) as LearningIntent);
     }
     const optionalNumbers = ['iteration', 'priority'] as const;
     optionalNumbers.forEach(key => {
