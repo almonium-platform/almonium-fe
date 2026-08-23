@@ -26,6 +26,7 @@ export const routes: Routes = [
       {path: 'my-books/:id', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
       {path: 'reader/private/:id', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
       {path: 'social', loadComponent: () => import('./sections/social/social.component').then(m => m.SocialComponent)},
+      {path: 'membership', loadComponent: () => import('./sections/membership/membership.component').then(m => m.MembershipComponent)},
       {
         path: 'settings',
         loadChildren:

@@ -1,21 +1,7 @@
-<!--content for popups-->
-<app-paywall></app-paywall>
-<app-recent-auth-guard></app-recent-auth-guard>
-
 @if (userInfo) {
   <app-share-link [link]="getProfileLink()"
                   title="Share Your Profile"></app-share-link>
 }
-
-<app-confirm-modal
-  [isVisible]="isConfirmModalVisible"
-  [title]="modalTitle"
-  [message]="modalMessage"
-  [confirmText]="modalConfirmText"
-  (confirm)="cancelSubscription()"
-  (closed)="closeModal()"
-  [useCountdown]="useCountdown">
-</app-confirm-modal>
 
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
@@ -151,16 +137,10 @@
         }
       </div>
       <p>{{ planSummary }}</p>
-      @if (premium) {
-        <app-button
-          label="Manage plan"
-          appearance="bw"
-          [loading$]="loadingCustomerPortal$"
-          (clickFunction)="accessCustomerPortal()"
-        />
-      } @else {
-        <app-interactive-cta-button text="Upgrade" (buttonClick)="showComparePlansPopup()" />
-      }
+      <a class="plan-link" routerLink="/membership">
+        {{ premium ? 'View membership' : 'View limits and upgrade' }}
+        <lucide-icon name="chevron-right" [size]="15" />
+      </a>
     </aside>
   </main>
 </div>

@@ -1,0 +1,111 @@
+<main class="membership-page">
+  @if (userInfo) {
+    @if (!premium) {
+      <section class="membership-shell free-membership" aria-labelledby="membership-title">
+        <div class="current-plan panel">
+          <div class="plan-heading">
+            <div>
+              <span class="eyebrow">Membership</span>
+              <h1 id="membership-title">You're on Free</h1>
+            </div>
+            <div class="billing-toggle" role="group" aria-label="Billing period">
+              <button type="button" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
+              <button type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Yearly <span>· 2 months free</span></button>
+            </div>
+          </div>
+
+          <div class="usage-block">
+            <p>Where you are against the free limits</p>
+            <div class="usage-row">
+              <div><span>Saved words</span><code>{{ savedWords === null ? '—' : savedWords }} / 100</code></div>
+              <progress [value]="usagePercent(savedWords, 100)" max="100">{{ usagePercent(savedWords, 100) }}%</progress>
+            </div>
+            <div class="usage-row">
+              <div><span>Target languages</span><code>{{ targetLanguagesUsed }} / {{ targetLanguageLimit }}</code></div>
+              <progress [value]="usagePercent(targetLanguagesUsed, targetLanguageLimit)" max="100">{{ usagePercent(targetLanguagesUsed, targetLanguageLimit) }}%</progress>
+            </div>
+            <div class="usage-row">
+              <div><span>Fluent languages</span><code>{{ fluentLanguagesUsed }} / {{ fluentLanguageLimit }}</code></div>
+              <progress [value]="usagePercent(fluentLanguagesUsed, fluentLanguageLimit)" max="100">{{ usagePercent(fluentLanguagesUsed, fluentLanguageLimit) }}%</progress>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-panel panel">
+          <div class="premium-heading">
+            <h2>Premium</h2>
+            <span>everything in Free, plus</span>
+          </div>
+          <div class="feature-grid">
+            @for (feature of premiumFeatures; track feature) {
+              <span>{{ feature }}</span>
+            }
+          </div>
+          <div class="divider"></div>
+          <div class="offer-row">
+            <div class="offer-copy">
+              @if (offerPrice !== null) {
+                <div class="price">
+                  @if (founderOfferAvailable && publicPrice !== offerPrice) {
+                    <s>${{ publicPrice }}</s>
+                  }
+                  <strong>${{ offerPrice }}</strong>
+                  <span>/ {{ billingPeriod === 'monthly' ? 'month' : 'year' }}</span>
+                </div>
+              } @else {
+                <div class="price-loading">Loading current price…</div>
+              }
+              @if (founderOfferAvailable) {
+                <p>Founding price, locked for as long as you stay subscribed.</p>
+                <code>{{ founderRemaining }} founding {{ founderRemaining === 1 ? 'place' : 'places' }} left</code>
+              }
+            </div>
+            <button class="premium-action" type="button" [disabled]="!selectedPlan || actionLoading$.value" (click)="becomeMember()">
+              {{ actionLoading$.value ? 'Opening checkout…' : 'Become a member' }}
+            </button>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <section class="membership-shell paid-membership" aria-labelledby="membership-title">
+        <div class="current-plan panel paid-summary">
+          <span class="eyebrow">Membership</span>
+          <div class="member-title">
+            <h1 id="membership-title">{{ membershipTitle }}</h1>
+            <span class="premium-star" aria-label="Premium membership"><img src="assets/img/icons/premium-star.svg" alt="" /></span>
+          </div>
+
+          <dl class="membership-details">
+            <div><dt>Plan</dt><dd>{{ subscription?.name }}</dd></div>
+            <div><dt>Status</dt><dd>{{ renewalLabel }}</dd></div>
+            <div><dt>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
+          </dl>
+
+          <button class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
+            {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage plan, card and invoices' }}
+          </button>
+        </div>
+
+        <div class="membership-usage">
+          <p>What's running on it</p>
+          <dl>
+            <div><dt>Saved words</dt><dd>{{ savedWords === null ? '—' : savedWords }} · unlimited</dd></div>
+            @if (importQuota) {
+              <div><dt>Book imports</dt><dd>{{ importQuota.used }} / {{ importQuota.limit < 0 ? 'unlimited' : importQuota.limit }} this month</dd></div>
+            }
+            <div><dt>Target languages</dt><dd>{{ targetLanguagesUsed }}</dd></div>
+            <div><dt>Fluent languages</dt><dd>{{ fluentLanguagesUsed }}</dd></div>
+          </dl>
+        </div>
+
+        @if (subscription?.autoRenewal === false && subscription?.type !== 'LIFETIME') {
+          <div class="membership-note">
+            Your premium access stays active until {{ renewalLabel.replace('Access ends ', '') }}. You can restart it from Paddle before then.
+          </div>
+        }
+      </section>
+    }
+  } @else {
+    <section class="membership-shell loading-state" aria-live="polite">Loading your membership…</section>
+  }
+</main>
