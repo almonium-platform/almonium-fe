@@ -49,10 +49,17 @@ export class QRCodeComponent implements OnInit {
     });
   }
 
-  protected redirect() {
+  protected redirect(): void {
+    const target = new URL(this.linkToEncode, window.location.origin);
+
     this.popupTemplateStateService.closeImmediately();
     setTimeout(() => {
-      void this.router.navigate([this.linkToEncode]).then();
+      if (target.origin === window.location.origin) {
+        void this.router.navigateByUrl(`${target.pathname}${target.search}${target.hash}`);
+        return;
+      }
+
+      window.location.assign(target.href);
     }, 0);
   }
 }
