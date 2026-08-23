@@ -1,49 +1,110 @@
 @import '../navbar-base.less';
 
-.spacer {
-  flex-grow: 1; /* Pushes other items to the right */
+.public-brand {
+  gap: .2rem;
+  color: var(--text-color);
 }
 
-.menu-section {
+.wordmark {
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.public-links {
   display: flex;
-  flex-direction: column;
-  padding: 0 1rem;
+  gap: 1.5rem;
+  margin-left: auto;
 }
 
-.user-info span, .user-info p {
-  display: block;
-  text-overflow: ellipsis;
-  overflow: hidden;
+.section {
+  margin-left: 0;
+}
+
+.nav-actions {
+  flex-grow: 0;
+  margin-left: 1.5rem;
+}
+
+.auth-btn {
+  border: 1.5px solid var(--text-color);
+  border-radius: 999px;
+  color: var(--text-color);
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-left: .6rem;
+  padding: .65rem 1.25rem;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--text-color);
+    color: var(--main-bg-color);
+  }
+}
+
+.menu-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: .6rem;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: .45rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: 2px solid var(--brand-margin);
+  }
+}
+
+.public-popover {
+  left: 1rem;
+  right: 1rem;
+  top: calc(var(--header-height) + .5rem);
+  padding: .5rem;
 }
 
 .menu-items {
   display: flex;
   flex-direction: column;
-  padding: 0.5rem 0;
-}
-
-.menu-item img {
-  transition: transform 0.2s;
-}
-
-.menu-item:hover img {
-  transform: scale(1.05);
+  gap: .15rem;
 }
 
 .menu-item {
+  border-radius: .65rem;
   color: var(--text-color);
-  min-width: 100px;
+  padding: .7rem .85rem;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    color: var(--brand-margin);
+    outline: none;
+  }
 }
 
-.separator {
-  width: 100%;
-  height: 1px;
-  background: var(--hairline-color);
-}
+@media (max-width: 690px) {
+  .navbar-content {
+    padding-inline: .7rem;
+  }
 
-.auth-btn {
-  width: 6em;
-  height: 3em;
-  margin-right: 1em;
-  font-size: 14px;
+  .app-icon {
+    margin-left: 0;
+  }
+
+  .auth-btn {
+    margin-left: 0;
+    padding-inline: 1rem;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
 }

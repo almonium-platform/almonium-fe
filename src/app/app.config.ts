@@ -7,7 +7,7 @@ import {
   provideAppInitializer,
   provideZoneChangeDetection
 } from '@angular/core';
-import {provideRouter} from '@angular/router';
+import {provideRouter, withInMemoryScrolling} from '@angular/router';
 import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
@@ -42,7 +42,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({eventCoalescing: true}),
     importProvidersFrom(TranslateModule.forRoot({defaultLanguage: EN_CODE})),
 
-    provideRouter(routes),
+    provideRouter(routes, withInMemoryScrolling({anchorScrolling: 'enabled'})),
 
     // Firebase
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),

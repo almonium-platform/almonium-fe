@@ -7,14 +7,11 @@
 * { box-sizing: border-box; }
 a { color: inherit; text-decoration: none; }
 .container { width: min(100% - 64px, 1056px); margin-inline: auto; }
-.site-header { border-bottom: 3px solid #6c7fa8; background: rgba(249, 246, 245, .96); }
-.header-inner, .footer-inner { display: flex; align-items: center; }
-.header-inner { min-height: 70px; gap: 32px; }
+.footer-inner { display: flex; align-items: center; }
 .brand { display: inline-flex; align-items: center; gap: 12px; font: 600 22px/1 var(--font-family-reading); }
 .brand img { display: block; width: 31px; height: 31px; }
-.header-inner nav, .footer-inner nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
-.header-inner nav > a:not(.button) { color: var(--copy); font-size: 14px; font-weight: 500; }
-.header-inner nav > a:hover, footer a:hover { color: var(--berry); }
+.footer-inner nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
+footer a:hover { color: var(--berry); }
 .button { display: inline-flex; width: fit-content; align-items: center; justify-content: center; border: 0; border-radius: 999px; padding: 15px 32px; font: 600 16px/1.2 var(--font-family-ui); transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease; }
 .button:hover { transform: translateY(-1px); }
 .button:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #c9a8c4; outline-offset: 3px; }
@@ -121,8 +118,7 @@ footer { background: #2c2530; color: #f9f6f5; } .footer-inner { min-height: 104p
 }
 @media (max-width: 700px) {
   .container { width: min(100% - 36px, 1056px); }
-  .header-inner { min-height: 62px; } .brand { font-size: 19px; } .brand img { width: 27px; height: 27px; }
-  .header-inner nav > a:not(.button) { display: none; } .button-small { padding: 7px 17px; }
+  .brand { font-size: 19px; } .brand img { width: 27px; height: 27px; }
   .hero { padding-block: 50px 70px; } .hero-copy > p { font-size: 17px; } .cta-row { align-items: flex-start; flex-direction: column; }
   .reader-demo { margin-top: 38px; } .reader-columns { grid-template-columns: 1fr; } .reader-columns article { padding: 27px 25px 32px; } .reader-columns article + article { border-top: 1px solid var(--line); border-left: 0; } .reader-columns .faded { display: none; } .word-chip { top: 47%; }
   .try-inner, .split, .review-grid, .founder, .pricing-grid { grid-template-columns: 1fr; } .try-inner { gap: 28px; } .lookup-row { align-items: stretch; flex-direction: column; } .lookup-row .button { width: 100%; }

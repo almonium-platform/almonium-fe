@@ -4,7 +4,7 @@
   background-color: var(--main-bg-color);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 20;
 }
 
 .section {
@@ -20,15 +20,16 @@
   justify-content: flex-start;
   width: 100%;
   align-items: center;
-  padding: .8rem .6rem .9rem 0;
+  min-height: var(--header-height);
+  padding: .55rem 1rem;
 }
 
 .navbar-content::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 90px;
-  right: 30px;
+  left: 0;
+  right: 0;
   height: 1px;
   background-color: var(--border-color);
 }
@@ -36,8 +37,8 @@
 .logo-container {
   display: flex;
   align-items: center;
-  margin-left: .5rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .spacer {
@@ -45,17 +46,17 @@
 }
 
 .app-icon {
-  height: 50px;
-  width: 50px;
+  height: 32px;
+  width: 32px;
   background: center / contain no-repeat var(--brand-flat-logo-image);
-  flex: 0 0 50px;
-  margin: 0 .75rem;
+  flex: 0 0 32px;
+  margin: 0 .55rem;
 }
 
 a.nav-link {
-  font-size: 1.8em;
+  font-size: 1rem;
   font-family: var(--font-family-reading);
-  margin-left: 10px;
+  margin-left: 0;
   color: var(--text-color);
 }
 

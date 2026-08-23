@@ -1,9 +1,7 @@
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
-import {FormsModule} from "@angular/forms";
 import {NgClass} from "@angular/common";
-import {Router, RouterLink} from "@angular/router";
+import {RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
-import {ButtonComponent} from "../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
 
 @Component({
@@ -11,16 +9,13 @@ import {LucideAngularModule} from "lucide-angular";
   templateUrl: './navbar-public.component.html',
   styleUrls: ['./navbar-public.component.less'],
   imports: [
-    FormsModule,
     NgClass,
     NgClickOutsideDirective,
     RouterLink,
-    ButtonComponent,
     LucideAngularModule
   ]
 })
 export class NavbarPublicComponent implements OnInit, OnDestroy {
-  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   @Input() currentRoute = '';
@@ -43,15 +38,7 @@ export class NavbarPublicComponent implements OnInit, OnDestroy {
   }
 
   toggleDiscoverMenu(): void {
-    if (this.isMobile) {
-      this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
-    } else {
-      this.navigateToRoot();
-    }
-  }
-
-  navigateToRoot() {
-    void this.router.navigate(['/']).then();
+    this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
   }
 
   discoverOnClickOutside() {

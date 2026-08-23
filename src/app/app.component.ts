@@ -117,7 +117,7 @@ export class AppComponent implements OnInit {
       const isMobile = window.innerWidth <= 640;
 
       // Hide navbar if route matches or starts with excluded paths
-      this.showNavbar = clearedUrl !== '/' && !(
+      this.showNavbar = !(
         this.noNavbarRoutes.some(route => clearedUrl.startsWith(route)) ||
         (isMobile && this.noNavbarOnMobileRoutes.includes(clearedUrl))
       );
