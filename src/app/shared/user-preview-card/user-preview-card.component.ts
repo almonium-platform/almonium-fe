@@ -1,17 +1,14 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject} from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
 import {AvatarComponent} from "../avatar/avatar.component";
-import {ButtonComponent} from "../button/button.component";
 import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {TuiDataListComponent, TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
 import {TuiDropdownDirective, TuiDropdownOptionsDirective} from "@taiga-ui/core/portals";
-import {TuiChip} from "@taiga-ui/kit/components";
 import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
-import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
@@ -24,17 +21,17 @@ import {UserInfo} from "../../models/userinfo.model";
 import {ChatClientService} from "stream-chat-angular";
 import {Router} from "@angular/router";
 import {RelationshipAction} from "../relationship.model";
-import {NgClass} from "@angular/common";
+import {LanguageNameService} from "../../services/language-name.service";
+import {TargetLanguageWithProficiency} from "../../onboarding/language-setup/language-setup.model";
+import {sharedItemsFirst} from './user-preview-card-display';
+import {AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'app-user-preview-card',
   imports: [
     AvatarComponent,
-    ButtonComponent,
     SharedLucideIconsModule,
     ReactiveFormsModule,
-    TuiAutoColorPipe,
-    TuiChip,
     TuiDataListComponent,
     TuiDataListDropdownManager,
     TuiDropdownDirective,
@@ -42,8 +39,8 @@ import {NgClass} from "@angular/common";
     TuiDropdownOptionsDirective,
     ConfirmModalComponent,
     TuiSkeleton,
-    NgClass,
-    TuiOption
+    TuiOption,
+    AsyncPipe,
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'
@@ -55,6 +52,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatClientService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
+  private languageNameService = inject(LanguageNameService);
 
   @Input() userId!: string;
   @Input() publicProfile: UserProfileInfo | null = null;
@@ -62,8 +60,8 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   @Output() closed = new EventEmitter<void>();
   // constant to store how many interests to display
   protected readonly MAX_INTERESTS = 4;
-  protected readonly MAX_TARGET_LANGS = 4;
-  protected readonly MAX_FLUENT_LANGS = 4;
+  protected readonly MAX_TARGET_LANGS = 3;
+  protected readonly SIGNIFICANT_STREAK = 30;
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
 
@@ -81,10 +79,14 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   private dropdownOpen = false;
+  private authenticatedPerspectiveFor: string | null = null;
+  protected targetLanguagesExpanded = false;
+  protected interestsExpanded = false;
 
-  protected buttonConfig: {label: string; icon: string; action: () => void} = {
+  protected buttonConfig: {label: string; icon: string; appearance: 'primary' | 'secondary'; action: () => void} = {
     label: '',
     icon: '',
+    appearance: 'primary',
     action: () => undefined,
   };
 
@@ -108,6 +110,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         return;
       }
       this.userInfo = info;
+      this.loadAuthenticatedProfilePerspective();
       const userId = this.userInfo.id;
       const userToken = this.userInfoService.streamChatToken;
       if (!userToken) {
@@ -123,6 +126,29 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
       void this.chatService.init(environment.streamChatApiKey, user, userToken);
     });
+  }
+
+  private loadAuthenticatedProfilePerspective(): void {
+    if (!this.publicProfile
+      || !this.userInfo
+      || this.userInfo.id === this.publicProfile.id
+      || this.authenticatedPerspectiveFor === this.publicProfile.id) {
+      return;
+    }
+
+    this.authenticatedPerspectiveFor = this.publicProfile.id;
+    this.userService.getUserProfile(this.publicProfile.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: profile => {
+          this.userProfileInfo = profile;
+          this.setButtonConfig();
+        },
+        error: error => {
+          this.authenticatedPerspectiveFor = null;
+          logger.warn('Could not load the authenticated profile perspective', error);
+        },
+      });
   }
 
   private populateUserProfileInfo() {
@@ -150,6 +176,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         this.buttonConfig = {
           label: 'Message',
           icon: 'message-circle',
+          appearance: 'secondary',
           action: this.openChat.bind(this),
         };
         break;
@@ -157,6 +184,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         this.buttonConfig = {
           label: 'Accept Request',
           icon: 'user-round-plus',
+          appearance: 'primary',
           action: this.acceptFriendRequest.bind(this),
         };
         break;
@@ -164,6 +192,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         this.buttonConfig = {
           label: 'Cancel Request',
           icon: 'x',
+          appearance: 'secondary',
           action: this.cancelFriendRequest.bind(this),
         };
         break;
@@ -171,14 +200,16 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         if (this.userProfileInfo.acceptsRequests) {
           logger.debug('User accepts requests');
           this.buttonConfig = {
-            label: 'Send Request',
+            label: 'Add friend',
             icon: 'user-round-plus',
+            appearance: 'primary',
             action: this.sendFriendRequest.bind(this),
           };
         } else {
           this.buttonConfig = {
             label: '',
             icon: '',
+            appearance: 'primary',
             action: () => undefined,
           };
         }
@@ -187,6 +218,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         this.buttonConfig = {
           label: '',
           icon: '',
+          appearance: 'primary',
           action: () => undefined,
         };
     }
@@ -199,9 +231,71 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     }
     return date.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  protected get fluentLanguages(): string {
+    return this.languageNameService.getLanguageNames(this.userProfileInfo?.fluentLangs ?? []).join(', ');
+  }
+
+  protected get targetLanguages(): TargetLanguageWithProficiency[] {
+    const targetLanguages = this.userProfileInfo?.targetLangs ?? [];
+    return sharedItemsFirst(targetLanguages, target => this.isSharedTargetLanguage(target.language));
+  }
+
+  protected get interests(): string[] {
+    const interests = this.userProfileInfo?.interests ?? [];
+    return sharedItemsFirst(interests, interest => this.isSharedInterest(interest));
+  }
+
+  protected languageName(code: string): string {
+    return this.languageNameService.getLanguageName(code);
+  }
+
+  protected isSharedTargetLanguage(code: string): boolean {
+    return new Set<string>(this.userInfo?.targetLangs ?? []).has(code);
+  }
+
+  protected isSharedInterest(interest: string): boolean {
+    const normalizedInterest = interest.trim().toLocaleLowerCase();
+    return this.userInfo?.interests.some(viewerInterest =>
+      viewerInterest.name.trim().toLocaleLowerCase() === normalizedInterest) ?? false;
+  }
+
+  protected get connectionSummary(): string | null {
+    const sharedLanguage = this.targetLanguages.find(target => this.isSharedTargetLanguage(target.language));
+    if (sharedLanguage) {
+      return `Learning ${this.languageName(sharedLanguage.language)}, like you`;
+    }
+
+    const sharedInterest = this.interests.find(interest => this.isSharedInterest(interest));
+    return sharedInterest ? `Also interested in ${sharedInterest}` : null;
+  }
+
+  protected get canManageRelationship(): boolean {
+    return !!this.userInfo && this.userInfo.id !== this.userProfileInfo?.id;
+  }
+
+  protected get canUseRelationshipAction(): boolean {
+    return !!this.userProfileInfo && this.userInfo?.id !== this.userProfileInfo.id;
+  }
+
+  protected showMore(section: 'languages' | 'interests'): void {
+    if (!this.userProfileInfo) {
+      return;
+    }
+
+    if (this.publicProfile) {
+      if (section === 'languages') {
+        this.targetLanguagesExpanded = true;
+      } else {
+        this.interestsExpanded = true;
+      }
+      return;
+    }
+
+    void this.router.navigate(['/users', this.userProfileInfo.username]);
   }
 
   protected prepareUnfriendModal() {
@@ -401,6 +495,13 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const userProfileId = this.userProfileInfo?.id;
     if (!userProfileId) {
       logger.error('No user profile id');
+      return;
+    }
+
+    if (!this.userInfo) {
+      void this.router.navigate(['/auth'], {
+        queryParams: {returnUrl: `/users/${this.userProfileInfo?.username ?? userProfileId}`},
+      });
       return;
     }
 

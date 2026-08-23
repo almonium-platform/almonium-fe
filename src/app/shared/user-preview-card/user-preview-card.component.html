@@ -8,201 +8,162 @@
   [useCountdown]="false">
 </app-confirm-modal>
 
-<div class="preview-card" (mouseleave)="onMouseLeave()" [ngClass]="publicProfile ? 'card' : ''">
-  @if (userProfileInfo) {
-    <div>
-      <div class="first-row">
-        <app-avatar [username]="userProfileInfo.username"
-                    [avatarUrl]="userProfileInfo.avatarUrl"
-                    [premium]="userProfileInfo.isPremium"
-                    size="m"
-        ></app-avatar>
-        <div class="right-hand">
-          <p class="username">{{ userProfileInfo.username }}</p>
-          <p class="member-since">{{ formatDate(userProfileInfo.registeredAt) }}</p>
+<article class="preview-card" (mouseleave)="onMouseLeave()">
+  @if (userProfileInfo; as profile) {
+    <header class="profile-header">
+      <app-avatar
+        [username]="profile.username"
+        [avatarUrl]="profile.avatarUrl"
+        [premium]="profile.isPremium"
+        [sizeInRem]="3.25"
+      ></app-avatar>
+
+      <div class="identity">
+        <div class="username-row">
+          <h2>{{ profile.username }}</h2>
+          @if (profile.isPremium) {
+            <span class="premium-mark" title="Member" aria-label="Member"></span>
+          }
         </div>
-        @if (!publicProfile) {
-          <lucide-icon name="ellipsis-vertical"
-                       class="ml-auto cursor-pointer"
-                       [size]="20"
-                       #friendDropdown="tuiDropdown"
-                       tuiDropdown
-                       (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
-                       [tuiDropdown]="friendDropdownTemplate"
-                       tuiDropdownAlign="end"
-                       (click)="friendDropdown.toggle(true)"
-          >
-            <ng-template #friendDropdownTemplate>
-              <tui-data-list
-                role="menu"
-                tuiDataListDropdownManager
-                class="context-menu">
-                @if (userProfileInfo.relationshipStatus === 'FRIENDS') {
-                  <button tuiOption
-                    type="button"
-                    class="context-button negative"
-                    (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
-                  >
-                    <lucide-icon name="user-round-x"
-                                 class="chat-icon negative"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Unfriend
-                  </button>
-                }
-                @if (userProfileInfo.relationshipStatus === 'BLOCKED') {
-                  <button tuiOption
-                    type="button"
-                    class="context-button negative"
-                    (click)="unblock(); friendDropdown.toggle(false)"
-                  >
-                    <lucide-icon name="handshake"
-                                 class="chat-icon negative"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Unblock
-                  </button>
-                } @else {
-                  <button tuiOption
-                    type="button"
-                    class="context-button negative"
-                    (click)="prepareBlockModal(); friendDropdown.toggle(false)"
-                  >
-                    <lucide-icon name="ban"
-                                 class="chat-icon negative"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Block
-                  </button>
-                }
-              </tui-data-list>
-            </ng-template>
-          </lucide-icon>
+        @if (connectionSummary; as summary) {
+          <p class="connection-summary">{{ summary }}</p>
+        }
+      </div>
+
+      @if (canManageRelationship) {
+        <button
+          type="button"
+          class="overflow-trigger"
+          aria-label="Profile actions"
+          #friendDropdown="tuiDropdown"
+          tuiDropdown
+          (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
+          [tuiDropdown]="friendDropdownTemplate"
+          tuiDropdownAlign="end"
+          (click)="friendDropdown.toggle(true)"
+        >
+          <lucide-icon name="ellipsis-vertical" [size]="19"></lucide-icon>
+        </button>
+
+        <ng-template #friendDropdownTemplate>
+          <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
+            @if (profile.relationshipStatus === 'FRIENDS') {
+              <button
+                tuiOption
+                type="button"
+                class="context-button negative"
+                (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
+              >
+                <lucide-icon name="user-round-x" class="chat-icon negative" [size]="18"></lucide-icon>
+                Unfriend
+              </button>
+            }
+            @if (profile.relationshipStatus === 'BLOCKED') {
+              <button
+                tuiOption
+                type="button"
+                class="context-button negative"
+                (click)="unblock(); friendDropdown.toggle(false)"
+              >
+                <lucide-icon name="handshake" class="chat-icon negative" [size]="18"></lucide-icon>
+                Unblock
+              </button>
+            } @else {
+              <button
+                tuiOption
+                type="button"
+                class="context-button negative"
+                (click)="prepareBlockModal(); friendDropdown.toggle(false)"
+              >
+                <lucide-icon name="ban" class="chat-icon negative" [size]="18"></lucide-icon>
+                Block
+              </button>
+            }
+          </tui-data-list>
+        </ng-template>
+      }
+    </header>
+
+    @if (!profile.hidden) {
+      <div class="language-details">
+        @if (fluentLanguages) {
+          <div class="detail-row speaks-row">
+            <span class="section-label">Speaks</span>
+            <span class="fluent-languages">{{ fluentLanguages }}</span>
+          </div>
         }
 
+        @if (targetLanguages.length) {
+          <div class="detail-row">
+            <span class="section-label">Learning</span>
+            <div class="chip-list">
+              @for (target of targetLanguages.slice(0, targetLanguagesExpanded ? targetLanguages.length : MAX_TARGET_LANGS); track target.language) {
+                <span class="profile-chip language-chip" [class.shared]="isSharedTargetLanguage(target.language)">
+                  {{ languageName(target.language) }}
+                  <span class="level">{{ target.cefrLevel }}</span>
+                </span>
+              }
+              @if (!targetLanguagesExpanded && targetLanguages.length > MAX_TARGET_LANGS) {
+                <button type="button" class="more-link" (click)="showMore('languages')">
+                  +{{ targetLanguages.length - MAX_TARGET_LANGS }}
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
 
-      @if (!userProfileInfo.hidden) {
+      @if (interests.length) {
         <div class="separator"></div>
-
-        <div class="sections">
-          <section class="fluent">
-            Fluent in
-            @for (fluent of userProfileInfo.fluentLangs.slice(0, MAX_FLUENT_LANGS); track fluent) {
-              <label
-                tuiChip
-                size="xs"
-                appearance="neutral"
-                class="language-chip"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
-                {{ fluent }}
-              </label>
-            }
-            @if (userProfileInfo.fluentLangs.length > MAX_FLUENT_LANGS) {
-              <label
-                tuiChip
-                size="xxs"
-                appearance="neutral"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
-                +{{ userProfileInfo.fluentLangs.length - MAX_FLUENT_LANGS }} more
-              </label>
-            }
-          </section>
-          <section class="target">
-            Learning
-            @for (target of userProfileInfo.targetLangs.slice(0, MAX_TARGET_LANGS); track target) {
-              <label
-                tuiChip
-                size="xs"
-                appearance="neutral"
-                class="language-chip target-language"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
-                {{ target.language }}
-                <p class="inner-text">{{ target.cefrLevel }}</p>
-              </label>
-            }
-            @if (userProfileInfo.targetLangs.length > MAX_TARGET_LANGS) {
-              <label
-                tuiChip
-                size="xs"
-                appearance="neutral"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
-                +{{ userProfileInfo.targetLangs.length - MAX_TARGET_LANGS }} more
-              </label>
-            }
-          </section>
-          <div class="separator"></div>
-          <section class="likes">
-            Likes
-            @for (interest of userProfileInfo.interests.slice(0, MAX_INTERESTS); track interest) {
-              <label
-                tuiChip
-                size="xxs"
-                appearance="neutral"
-                [style.background-color]="interest | tuiAutoColor"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
+        <section class="interests-section">
+          <span class="section-label">Likes</span>
+          <div class="chip-list">
+            @for (interest of interests.slice(0, interestsExpanded ? interests.length : MAX_INTERESTS); track interest) {
+              <span class="profile-chip interest-chip" [class.shared]="isSharedInterest(interest)">
                 {{ interest }}
-              </label>
+              </span>
             }
-            @if (userProfileInfo.interests.length > MAX_INTERESTS) {
-              <label
-                tuiChip
-                size="xxs"
-                appearance="neutral"
-              >
-                <input
-                  hidden
-                  type="checkbox"
-                />
-                +{{ userProfileInfo.interests.length - MAX_INTERESTS }} more
-              </label>
+            @if (!interestsExpanded && interests.length > MAX_INTERESTS) {
+              <button type="button" class="more-link" (click)="showMore('interests')">
+                +{{ interests.length - MAX_INTERESTS }}
+              </button>
             }
-          </section>
-        </div>
+          </div>
+        </section>
       }
+    } @else {
+      <p class="private-profile">This profile is private.</p>
+    }
 
-      @if (!publicProfile && buttonConfig.label) {
-        <app-button
-          [label]="buttonConfig.label"
-          appearance="bw"
-          gap=".4rem"
-          [loading$]="loading$"
-          (clickFunction)="buttonConfig.action()"
-        >
-          <lucide-icon
-            [name]="buttonConfig.icon"
-            size="14"
-          ></lucide-icon>
-        </app-button>
-      }
-    </div>
-  } @else {
-    <div class="first-row">
-      <app-avatar size="m" [loading]="true"></app-avatar>
-      <div class="right-hand">
-        <p class="username" [tuiSkeleton]="true">f</p>
-        <p class="member-since" [tuiSkeleton]="true">f</p>
+    <footer class="profile-footer">
+      <div class="profile-metadata">
+        <span>Joined {{ formatDate(profile.registeredAt) }}</span>
+        @if (!profile.hidden && profile.loginStreak >= SIGNIFICANT_STREAK) {
+          <span>{{ profile.loginStreak }} day streak</span>
+        }
       </div>
-    </div>
+
+      @if (canUseRelationshipAction && buttonConfig.label) {
+        <button
+          type="button"
+          class="relationship-action"
+          [class.primary]="buttonConfig.appearance === 'primary'"
+          [class.secondary]="buttonConfig.appearance === 'secondary'"
+          [disabled]="loading$ | async"
+          (click)="buttonConfig.action()"
+        >
+          <lucide-icon [name]="buttonConfig.icon" [size]="14"></lucide-icon>
+          {{ buttonConfig.label }}
+        </button>
+      }
+    </footer>
+  } @else {
+    <header class="profile-header loading-profile">
+      <app-avatar [sizeInRem]="3.25" [loading]="true"></app-avatar>
+      <div class="identity">
+        <span class="loading-line title" [tuiSkeleton]="true">Loading username</span>
+        <span class="loading-line" [tuiSkeleton]="true">Loading profile</span>
+      </div>
+    </header>
   }
-</div>
+</article>
