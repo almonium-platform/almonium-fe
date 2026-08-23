@@ -1,1 +1,120 @@
-<app-not-ready></app-not-ready>
+<div class="landing-page">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" routerLink="/" aria-label="Almonium home"><img src="/assets/img/logo/logo.svg" alt=""><span>Almonium</span></a>
+      <nav aria-label="Main navigation">
+        <a href="#books">Books</a><a href="#pricing">Pricing</a><a href="#founder">Who built it</a>
+        <a class="button button-outline button-small" routerLink="/auth">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <div class="hero-copy">
+        <h1>Read anything.<br>Keep every word.</h1>
+        <p>Almonium turns the books you read into the vocabulary you actually use. Read in your target language with the translation beside it, tap any word to understand it, and let Almonium remember it until you can use it yourself.</p>
+        <div class="cta-row">
+          <a class="button button-primary" routerLink="/read">Start reading, no account needed</a>
+          <span>Free forever for reading.<br>Nine books, four language pairs.</span>
+        </div>
+      </div>
+      <div class="reader-demo" aria-label="Preview of the parallel reader">
+        <div class="demo-bar"><i></i><i></i><i></i><span>Die Verwandlung</span><small>DE &nbsp;/&nbsp; EN</small></div>
+        <div class="reader-columns">
+          <article lang="de">
+            <span class="eyebrow">Deutsch</span>
+            <p>Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett zu einem ungeheuren Ungeziefer <mark>verwandelt</mark>.</p>
+            <p>Er lag auf seinem panzerartig harten Rücken und sah, wenn er den Kopf ein wenig hob, seinen gewölbten, braunen Bauch.</p>
+            <p class="faded">Seine vielen, im Vergleich zu seinem sonstigen Umfang kläglich dünnen Beine flimmerten ihm hilflos vor den Augen.</p>
+          </article>
+          <article lang="en">
+            <span class="eyebrow">English</span>
+            <p>When Gregor Samsa woke one morning from uneasy dreams, he found himself <mark>transformed</mark> in his bed into a monstrous insect.</p>
+            <p>He lay on his armour-like back and, if he lifted his head a little, could see his domed brown belly.</p>
+            <p class="faded">His many legs, pitifully thin compared with the rest of him, waved helplessly before his eyes.</p>
+          </article>
+        </div>
+        <span class="word-chip">verwandelt &nbsp;·&nbsp; transformed</span>
+      </div>
+    </section>
+
+    <section class="try-band">
+      <div class="container try-inner">
+        <div><span class="eyebrow">Try it now</span><h2>Paste a German sentence.</h2><p>No sign-up, no email.</p></div>
+        <div class="lookup">
+          <div class="lookup-row"><span lang="de">Er hatte das Zimmer nicht verlassen wollen.</span><a class="button button-primary button-compact" routerLink="/discover">Look up</a></div>
+          <small>The full word sheet opens on the page. Saving is the only thing that needs an account.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container" id="books">
+      <div class="section-heading"><span class="eyebrow">The shelf</span><h2>Books, side by side</h2><p>Every book is aligned paragraph by paragraph, so the translation never drifts out of step. Read the whole thing free, in your browser, without an account.</p></div>
+      <div class="shelf">
+        <a class="book book-ink" routerLink="/read"><small>Kafka</small><strong>Die Verwand&shy;lung</strong><span>DE / UA</span></a>
+        <a class="book book-purple" routerLink="/read"><small>Shelley</small><strong>Franken&shy;stein</strong><span>EN / UA</span></a>
+        <a class="book book-berry" routerLink="/read"><small>Doyle</small><strong>Sherlock Holmes</strong><span>EN / DE</span></a>
+        <a class="book book-plum" routerLink="/read"><small>Fontane</small><strong>Effi Briest</strong><span>DE / EN</span></a>
+        <div class="shelf-action"><p>Each cover opens the full public reader. Nothing is behind a wall.</p><a class="button button-outline button-compact" routerLink="/read">Browse all books</a></div>
+      </div>
+    </section>
+
+    <section class="section section-white">
+      <div class="container split">
+        <div class="section-heading"><span class="eyebrow">Discover</span><h2>Tap a word. Understand it properly.</h2><p>Not a dictionary dump. Almonium shows the sense that fits this sentence, how common the word is, how it sounds, and which words it usually travels with.</p><p>Speak more than one language? See the meaning in all of them. Sometimes Ukrainian catches a nuance that English flattens.</p></div>
+        <div class="word-sheet" aria-label="Preview of a word definition">
+          <div class="word-sheet-top"><span class="eyebrow">From Die Verwandlung</span><span>×</span></div>
+          <h3>verlassen <small>/fɛɐ̯ˈlasn̩/</small></h3><p class="translation">to leave · залишати</p>
+          <div class="meaning"><span>1</span><p><strong>to leave a place or person</strong><br>Er hatte das Zimmer nicht <mark>verlassen</mark>.</p></div>
+          <div class="word-meta"><span>Common word</span><span>verb · irregular</span></div><a class="save-word" routerLink="/auth">Save this word</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section review-section">
+      <div class="container">
+        <div class="section-heading review-heading"><span class="eyebrow">Review</span><h2>Most apps say “wrong.” Almonium says which word you were thinking of.</h2><p>If you answer with the meaning of a different word you are learning, Almonium recognises it, shows you both, and schedules the two together until you stop mixing them up.</p><p>It also rewords the answer every time, so you learn the word instead of memorising the shape of the card.</p></div>
+        <div class="review-grid">
+          <div class="review-card"><span class="eyebrow">Active recall</span><p>What does <strong>verlassen</strong> mean here?</p><div class="answer">to hand over <span>↵</span></div><small>Answer in English or Ukrainian</small></div>
+          <div class="confusion-card"><span class="eyebrow">What it looks like</span><h3>verlassen</h3><div class="answer">to hand over</div><div class="feedback"><strong>verlassen</strong> means to leave. You were thinking of <strong>überlassen</strong>, to hand over.<hr><div><span><b>verlassen</b><br>to leave a place</span><span><b>überlassen</b><br>to leave something to someone</span></div></div><small>Both are now scheduled together.</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container split split-reverse">
+      <div class="story-card" aria-label="End of session story preview"><span class="eyebrow">Your five-minute story</span><h3>Ein unerwarteter Abschied</h3><p>Clara wollte das Haus nicht <mark>verlassen</mark>. Der Schlüssel lag noch auf dem Tisch, neben dem Brief, den ihr Bruder ihr <mark>überlassen</mark> hatte.</p><div><span>3 words revisited</span><span>2 min read</span></div></div>
+      <div class="section-heading"><span class="eyebrow">The dessert</span><h2>Finish with a story built from what you missed</h2><p>Every review session ends with a short piece of writing that quietly uses the words you just got wrong, in new sentences, at your level.</p></div>
+    </section>
+
+    <section class="section section-white">
+      <div class="container split packs-split">
+        <div class="section-heading"><span class="eyebrow">Packs</span><h2>Words are better shared</h2><p>Send a word, a phrase, or a whole list from a chapter you just read. Your friend can open it, read the context you saved, and keep the ones they want. They do not need an account to look.</p></div>
+        <div class="pack-card"><span class="eyebrow">Yevhenii shared a pack</span><h3>Chapter one · 8 words</h3><div><span>verlassen</span><span>ungeheuer</span><span>allmählich</span></div><a class="button button-primary button-compact" routerLink="/discover">Preview pack</a></div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-heading"><span class="eyebrow">The difference</span><h2>What Almonium does that other tools do not</h2></div>
+      <div class="difference-grid"><article><span>01</span>Shows a word’s meaning in every language you already speak, not just one</article><article><span>02</span>Knows the difference between understanding a word and being able to use it</article><article><span>03</span>Notices which words you confuse with each other</article><article><span>04</span>Gives you the same book at the level you can actually read</article><article><span>05</span>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
+    </section>
+
+    <section class="section section-white" id="founder">
+      <div class="container founder"><div class="founder-photo" aria-label="Portrait placeholder"><span>YK</span></div><div><span class="eyebrow">Who built this</span><blockquote>I took my English to C2 on my own, using about a dozen disconnected tools. Then I started German and hit the same wall. A dictionary that does not know what I am reading, flashcards that do not know what I understood, a reader that forgets everything the moment I close it.</blockquote><blockquote>Almonium is the tool I wanted. I use it every day.</blockquote><p>— Yevhenii, Kyiv</p></div></div>
+    </section>
+
+    <section class="section container" id="pricing">
+      <div class="section-heading"><span class="eyebrow">Pricing</span><h2>Reading is free, and stays free</h2><p>Paying covers the parts that cost something every time you use them.</p></div>
+      <div class="pricing-grid">
+        <article><span class="eyebrow">Free</span><h3>€0</h3><p>Read every book, look up any word, keep 100 words. One language, unlimited review, confusion feedback included.</p><a class="button button-outline button-compact" routerLink="/read">Start reading</a></article>
+        <article><span class="eyebrow">Premium</span><h3>$12 <small>/ month</small></h3><p>Everything unlimited, synced across devices, every level-adapted edition, ten hours of audio, three of your own books a month.</p><a class="button button-primary button-compact" routerLink="/pricing">Go Premium</a></article>
+        <article class="founding-plan"><span class="eyebrow">Founding member</span><h3>$8 <small>/ month</small></h3><p>Everything in Premium, at a price that never rises while you stay subscribed. Fifty places, and 38 are left.</p><a class="button button-primary button-compact" routerLink="/pricing">Take a place</a></article>
+      </div>
+      <p class="pricing-note">Prices in Ukraine, Central Europe, Latin America and South-East Asia are set lower to match local purchasing power. Cancel from your account page at any time.</p>
+    </section>
+
+    <section class="final-cta"><h2>Start with one page of a book.</h2><a class="button button-primary" routerLink="/read">Start reading, no account needed</a></section>
+  </main>
+
+  <footer><div class="container footer-inner"><a class="brand brand-light" routerLink="/"><img src="/assets/img/logo/logo.svg" alt=""><span>Almonium</span></a><p>Read anything. Keep every word.</p><nav aria-label="Footer navigation"><a href="#books">Books</a><a href="#pricing">Pricing</a><a routerLink="/terms-of-use">Terms</a><a routerLink="/privacy-policy">Privacy</a></nav></div></footer>
+</div>
