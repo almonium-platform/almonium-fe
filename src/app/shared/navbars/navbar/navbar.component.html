@@ -1,7 +1,11 @@
 <app-manage-avatar></app-manage-avatar>
 
 <nav class="navbar">
-  <div class="navbar-content" [style.--language-color]="getLanguageColor(currentLanguage)">
+  <div class="navbar-content">
+    <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
+      <span class="app-icon" role="img" aria-label="Almonium"></span>
+    </div>
+
     <div #langDropdown class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
       <div class="language-switcher">
         <button
@@ -111,9 +115,7 @@
       </div>
     </div>
 
-    <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
-      <span class="app-icon" role="img" aria-label="Almonium"></span>
-    </div>
+    <span class="navbar-divider" aria-hidden="true"></span>
 
     @if (!isMobile) {
       <div>

@@ -18,6 +18,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {LocalStorageService} from './services/local-storage.service';
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 import {applyThemeAssets} from './services/theme-assets';
+import {applyMotionPreference, resolveReducedMotion} from './services/motion-preference';
 
 // Declare gtag function to make TypeScript aware of it globally
 declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
@@ -42,6 +43,7 @@ export class AppComponent implements OnInit {
   private taigaDarkMode = inject(TUI_DARK_MODE);
   private streamThemeService = inject(ThemeService);
   private systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+  private systemMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   title = 'almonium-fe';
   protected showNavbar = false;
@@ -69,6 +71,7 @@ export class AppComponent implements OnInit {
     this.applyDisplayPreferences();
     const syncSystemTheme = () => this.applyDisplayPreferences();
     this.systemTheme.addEventListener('change', syncSystemTheme);
+    this.systemMotion.addEventListener('change', syncSystemTheme);
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
@@ -76,6 +79,7 @@ export class AppComponent implements OnInit {
     this.destroyRef.onDestroy(() => {
       this.timerMonitorService.stopMonitoring();
       this.systemTheme.removeEventListener('change', syncSystemTheme);
+      this.systemMotion.removeEventListener('change', syncSystemTheme);
     });
   }
 
@@ -84,7 +88,7 @@ export class AppComponent implements OnInit {
     const root = document.documentElement;
     const isDark = preferences?.appearance === 'dark' || (preferences?.appearance !== 'light' && this.systemTheme.matches);
     root.dataset['theme'] = preferences?.appearance ?? 'system';
-    root.classList.toggle('reduce-motion', preferences?.reduceMotion ?? false);
+    applyMotionPreference(root, resolveReducedMotion(preferences, this.systemMotion));
     root.style.colorScheme = preferences?.appearance === 'dark' ? 'dark' : preferences?.appearance === 'light' ? 'light' : 'light dark';
     this.taigaDarkMode.set(isDark);
     this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');

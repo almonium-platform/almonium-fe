@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
+import {isReducedMotion} from '../../services/motion-preference';
 
 @Component({
   selector: 'app-gif-player',
@@ -10,8 +11,8 @@ import { Subject, Subscription } from 'rxjs';
       playsinline
       muted
       preload="auto"
-      [autoplay]="playOnLoad"
-      [loop]="looped"
+      [autoplay]="playOnLoad && !reducedMotion"
+      [loop]="looped && !reducedMotion"
       [style.width]="size"
       [style.height]="size"
     >
@@ -27,11 +28,16 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
 
   @ViewChild('vid', { static: true }) vid!: ElementRef<HTMLVideoElement>;
   private sub?: Subscription;
+  protected readonly reducedMotion = isReducedMotion();
   private readonly endedListener = () => {
     if (!this.looped) this.freezeLastFrame();
   };
   private readonly loadedMetadataListener = () => {
-    this.vid.nativeElement.play().catch(() => undefined);
+    if (this.reducedMotion) {
+      this.freezeLastFrame();
+    } else {
+      this.vid.nativeElement.play().catch(() => undefined);
+    }
   };
 
   ngOnInit() {
@@ -43,7 +49,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
     }
 
     // if autoplay + not looped and you want it to rest on last frame on first load
-    if (this.playOnLoad && !this.looped) {
+    if (this.reducedMotion || (this.playOnLoad && !this.looped)) {
       this.vid.nativeElement.addEventListener('loadedmetadata', this.loadedMetadataListener);
     }
   }
@@ -55,6 +61,7 @@ export class GifPlayerComponent implements OnInit, OnDestroy {
   }
 
   replay() {
+    if (this.reducedMotion) return;
     const v = this.vid.nativeElement;
     v.pause();
     // if previously frozen at end, jump to start

@@ -3,13 +3,12 @@ import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfoService} from '../../../services/user-info.service';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
-import {avatarImageUrl, avatarLetter} from '../../avatar/avatar-display';
+import {avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../avatar/avatar-display';
 
 interface AvatarChoice {
   label: string;
   path: string;
   url: string;
-  premiumUrl: string;
 }
 
 @Component({
@@ -40,7 +39,15 @@ export class AvatarPickerComponent {
   }
 
   protected get displayAvatarUrl(): string | null {
-    return avatarImageUrl(this.userInfo.avatarUrl, this.userInfo.premium);
+    return avatarImageUrl(this.userInfo.avatarUrl);
+  }
+
+  protected get currentAvatarMask(): string | null {
+    return this.userInfo.avatarUrl ? this.mask(this.userInfo.avatarUrl) : null;
+  }
+
+  protected get premiumCurrentAvatar(): boolean {
+    return this.userInfo.premium && isDefaultAvatar(this.userInfo.avatarUrl);
   }
 
   protected useLetter(): void {
@@ -73,17 +80,23 @@ export class AvatarPickerComponent {
   }
 
   protected displayChoiceUrl(choice: AvatarChoice): string {
-    return this.userInfo.premium ? choice.premiumUrl : choice.url;
+    return choice.url;
+  }
+
+  protected choiceMask(choice: AvatarChoice): string {
+    return this.mask(choice.url);
   }
 
   private choice(label: string, path: string): AvatarChoice {
-    const premiumPath = path.replace('/default/', '/default/premium/');
     return {
       label,
       path,
       url: new URL(path, this.document.baseURI).href,
-      premiumUrl: new URL(premiumPath, this.document.baseURI).href,
     };
+  }
+
+  private mask(url: string): string {
+    return `url("${url}")`;
   }
 
   private finish(avatarUrl: string | null): void {

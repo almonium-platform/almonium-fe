@@ -25,17 +25,29 @@ button {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  background: var(--control-border-color);
+  background: var(--avatar-ground);
   color: var(--subhead-color);
   font-family: var(--font-family-reading);
   font-weight: 600;
 }
 
 .current-avatar img,
-.compact-choice img {
+.compact-choice img,
+.gradient-artwork {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.gradient-artwork {
+  display: block;
+  background: var(--premium-gradient);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
 }
 
 .onboarding-current {
@@ -59,13 +71,13 @@ button {
   height: 2.5rem;
   padding: 0;
   border: 0;
-  background: var(--control-border-color);
+  background: var(--avatar-ground);
   color: var(--metadata-color);
   cursor: pointer;
 }
 
 .letter-choice {
-  background: var(--control-border-color);
+  background: var(--avatar-ground);
   color: var(--subhead-color);
   font-family: var(--font-family-reading);
   font-size: 1.375rem;
@@ -78,8 +90,15 @@ button {
 
 .avatar-picker.member .current-avatar,
 .avatar-picker.member .compact-choice {
+  background: var(--avatar-ground);
+}
+
+.avatar-picker.member .letter-choice > span,
+.avatar-picker.member .current-avatar > span:not(.gradient-artwork) {
   background: var(--premium-gradient);
-  color: var(--page-ground);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
 }
 
 .compact-choice:disabled {

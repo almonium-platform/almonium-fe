@@ -10,11 +10,6 @@ export function isDefaultAvatar(avatarUrl: string | null | undefined): boolean {
 
 export function avatarImageUrl(
   avatarUrl: string | null | undefined,
-  premium: boolean,
 ): string | null {
-  if (!avatarUrl || !premium || !isDefaultAvatar(avatarUrl)) {
-    return avatarUrl ?? null;
-  }
-
-  return avatarUrl.replace('/assets/img/avatars/default/', '/assets/img/avatars/default/premium/');
+  return avatarUrl ?? null;
 }

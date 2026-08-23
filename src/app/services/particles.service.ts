@@ -5,6 +5,7 @@ import {IParticlesProps, NgParticlesService} from '@tsparticles/angular';
 import {loadFull} from 'tsparticles';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {catchError, switchMap, tap} from 'rxjs/operators';
+import {isReducedMotion} from './motion-preference';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,11 @@ export class ParticlesService {
   particlesOptions$: Observable<IParticlesProps | undefined> = this.particlesOptionsSubject.asObservable();
 
   initializeParticles(): void {
+    if (isReducedMotion()) {
+      this.particlesOptionsSubject.next(undefined);
+      return;
+    }
+
     this.http.get<IParticlesProps>('/assets/particles-options.json').pipe(
       tap((options) => {
         const dynamicColor = this.getDynamicColor();

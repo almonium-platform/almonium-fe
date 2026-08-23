@@ -16,6 +16,7 @@ import {catchError} from "rxjs/operators";
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 import {ThemeService} from 'stream-chat-angular';
 import {applyThemeAssets} from '../../../services/theme-assets';
+import {applyMotionPreference, resolveReducedMotion} from '../../../services/motion-preference';
 
 @Component({
   selector: 'app-app-settings',
@@ -63,7 +64,10 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
       weeklyEmail?: boolean;
     }>(AppSettingsComponent.APP_PREFERENCES_KEY);
     this.appearance = localPreferences?.appearance ?? 'system';
-    this.reduceMotion = localPreferences?.reduceMotion ?? false;
+    this.reduceMotion = resolveReducedMotion(
+      localPreferences,
+      window.matchMedia('(prefers-reduced-motion: reduce)'),
+    );
     this.dailyReview = localPreferences?.dailyReview ?? false;
     this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
     this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
@@ -124,7 +128,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     const root = document.documentElement;
     const isDark = this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     root.dataset['theme'] = this.appearance;
-    root.classList.toggle('reduce-motion', this.reduceMotion);
+    applyMotionPreference(root, this.reduceMotion);
     root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
     this.taigaDarkMode.set(isDark);
     this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');

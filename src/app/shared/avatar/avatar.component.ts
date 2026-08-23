@@ -11,12 +11,14 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       [size]="size"
       [tuiSkeleton]="loading"
       [style.background]="discBackground"
-      [style.color]="premium ? 'var(--page-ground)' : 'var(--subhead-color)'"
       [style.font-size]="letterFontSize"
       [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
-      class="cursor-pointer"
+      [class.premium-letter]="premium && !avatarUrl"
+      class="cursor-pointer avatar-disc"
     >
-      @if (displayAvatarUrl) {
+      @if (premiumDefaultAvatar) {
+        <span class="premium-artwork" [style.mask-image]="artworkMask" [style.-webkit-mask-image]="artworkMask"></span>
+      } @else if (displayAvatarUrl) {
         <img [src]="displayAvatarUrl" alt="" />
       }
     </span>
@@ -35,6 +37,29 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       height: 100%;
       object-fit: contain;
     }
+
+    :host .premium-artwork {
+      width: 100%;
+      height: 100%;
+      background: var(--premium-gradient);
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+    }
+
+    :host .premium-letter {
+      color: transparent;
+    }
+
+    :host .premium-letter::before {
+      background: var(--premium-gradient);
+      background-clip: text;
+      color: transparent;
+      -webkit-background-clip: text;
+    }
   `],
 })
 export class AvatarComponent {
@@ -50,7 +75,15 @@ export class AvatarComponent {
   }
 
   get displayAvatarUrl(): string | null {
-    return avatarImageUrl(this.avatarUrl, this.premium);
+    return avatarImageUrl(this.avatarUrl);
+  }
+
+  get premiumDefaultAvatar(): boolean {
+    return this.premium && isDefaultAvatar(this.avatarUrl);
+  }
+
+  get artworkMask(): string | null {
+    return this.avatarUrl ? `url("${this.avatarUrl}")` : null;
   }
 
   get discBackground(): string | null {
@@ -58,7 +91,7 @@ export class AvatarComponent {
       return null;
     }
 
-    return this.premium ? 'var(--premium-gradient)' : 'var(--control-border-color)';
+    return 'var(--avatar-ground)';
   }
 
   get letterFontSize(): string {

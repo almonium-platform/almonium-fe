@@ -15,7 +15,6 @@
 .lang-dropdown {
   flex: 0 0 56px;
   align-self: stretch;
-  margin-left: 1rem;
   position: relative;
   z-index: 3;
 }
@@ -29,18 +28,6 @@
 ::ng-deep .t-badge_top {
   top: 2px !important;
   right: 2px !important;
-}
-
-.navbar-content::before {
-  background: var(--language-color, #7A6BB8);
-  content: '';
-  height: 3px;
-  left: 0;
-  pointer-events: none;
-  position: absolute;
-  right: 0;
-  top: 0;
-  transition: background-color 180ms ease;
 }
 
 .language-switcher {
@@ -154,10 +141,12 @@
   35%, 70% { top: 16px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .language-crest.teach-stack .crest-layer {
-    animation: none;
-  }
+.navbar-divider {
+  align-self: center;
+  background: var(--hairline-color);
+  height: 1.5rem;
+  margin: 0 .4rem 0 .15rem;
+  width: 1px;
 }
 
 .language-popover {

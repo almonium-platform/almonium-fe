@@ -3,14 +3,13 @@ import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
-import {avatarImageUrl, avatarLetter} from '../../../../../shared/avatar/avatar-display';
+import {avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../../../../shared/avatar/avatar-display';
 import {ProfileSettingsService} from '../../profile-settings.service';
 
 interface SettingsAvatarChoice {
   label: string;
   path: string;
   url: string;
-  premiumUrl: string;
 }
 
 @Component({
@@ -40,7 +39,15 @@ export class SettingsAvatarPickerComponent {
   }
 
   protected get displayAvatarUrl(): string | null {
-    return avatarImageUrl(this.userInfo.avatarUrl, this.userInfo.premium);
+    return avatarImageUrl(this.userInfo.avatarUrl);
+  }
+
+  protected get currentAvatarMask(): string | null {
+    return this.userInfo.avatarUrl ? this.mask(this.userInfo.avatarUrl) : null;
+  }
+
+  protected get premiumCurrentAvatar(): boolean {
+    return this.userInfo.premium && isDefaultAvatar(this.userInfo.avatarUrl);
   }
 
   protected useLetter(): void {
@@ -70,7 +77,11 @@ export class SettingsAvatarPickerComponent {
   }
 
   protected displayChoiceUrl(choice: SettingsAvatarChoice): string {
-    return this.userInfo.premium ? choice.premiumUrl : choice.url;
+    return choice.url;
+  }
+
+  protected choiceMask(choice: SettingsAvatarChoice): string {
+    return this.mask(choice.url);
   }
 
   private choice(label: string, path: string): SettingsAvatarChoice {
@@ -78,8 +89,11 @@ export class SettingsAvatarPickerComponent {
       label,
       path,
       url: new URL(path, this.document.baseURI).href,
-      premiumUrl: new URL(path.replace('/default/', '/default/premium/'), this.document.baseURI).href,
     };
+  }
+
+  private mask(url: string): string {
+    return `url("${url}")`;
   }
 
   private finish(avatarUrl: string | null): void {

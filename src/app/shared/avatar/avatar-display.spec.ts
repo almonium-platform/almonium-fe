@@ -12,18 +12,16 @@ describe('avatar display', () => {
     expect(avatarLetter(null)).toBe('·');
   });
 
-  it('uses the cream engraving for a member default animal', () => {
+  it('uses the same drawing file for every tier', () => {
     const freeUrl = 'https://example.test/assets/img/avatars/default/stag.png';
 
     expect(isDefaultAvatar(freeUrl)).toBeTrue();
-    expect(avatarImageUrl(freeUrl, false)).toBe(freeUrl);
-    expect(avatarImageUrl(freeUrl, true))
-      .toBe('https://example.test/assets/img/avatars/default/premium/stag.png');
+    expect(avatarImageUrl(freeUrl)).toBe(freeUrl);
   });
 
   it('does not rewrite uploaded avatars', () => {
     const uploadedUrl = 'https://cdn.example.test/avatar.png';
     expect(isDefaultAvatar(uploadedUrl)).toBeFalse();
-    expect(avatarImageUrl(uploadedUrl, true)).toBe(uploadedUrl);
+    expect(avatarImageUrl(uploadedUrl)).toBe(uploadedUrl);
   });
 });

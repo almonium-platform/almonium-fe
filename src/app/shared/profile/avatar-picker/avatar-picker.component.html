@@ -1,7 +1,11 @@
 <section class="avatar-picker" [class.member]="userInfo.premium">
   <span class="current-avatar onboarding-current">
     @if (userInfo.avatarUrl) {
-      <img [src]="displayAvatarUrl" alt="Selected avatar" />
+      @if (premiumCurrentAvatar) {
+        <span class="gradient-artwork" [style.mask-image]="currentAvatarMask" [style.-webkit-mask-image]="currentAvatarMask" role="img" aria-label="Selected avatar"></span>
+      } @else {
+        <img [src]="displayAvatarUrl" alt="Selected avatar" />
+      }
     } @else {
       <span>{{ letter }}</span>
     }
@@ -16,7 +20,7 @@
       (click)="useLetter()"
       aria-label="Use letter"
       [attr.aria-pressed]="!userInfo.avatarUrl"
-    >{{ letter }}</button>
+    ><span>{{ letter }}</span></button>
     @for (choice of choices; track choice.path) {
       <button
         type="button"
@@ -26,7 +30,13 @@
         (click)="chooseAvatar(choice)"
         [attr.aria-label]="'Use ' + choice.label + ' avatar'"
         [attr.aria-pressed]="isSelected(choice)"
-      ><img [src]="displayChoiceUrl(choice)" alt="" /></button>
+      >
+        @if (userInfo.premium) {
+          <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+        } @else {
+          <img [src]="displayChoiceUrl(choice)" alt="" />
+        }
+      </button>
     }
   </div>
   <p class="picker-caption">Your letter, or one of five drawings.</p>

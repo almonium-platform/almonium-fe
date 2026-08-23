@@ -13,9 +13,13 @@
   >
     <span class="current-avatar">
       @if (userInfo.avatarUrl) {
-        <img [src]="displayAvatarUrl" alt="Current avatar" />
+        @if (premiumCurrentAvatar) {
+          <span class="gradient-artwork" [style.mask-image]="currentAvatarMask" [style.-webkit-mask-image]="currentAvatarMask" role="img" aria-label="Current avatar"></span>
+        } @else {
+          <img [src]="displayAvatarUrl" alt="Current avatar" />
+        }
       } @else {
-        <span>{{ letter }}</span>
+        <span class="avatar-letter">{{ letter }}</span>
       }
     </span>
     <span class="current-description">
@@ -38,7 +42,13 @@
         [attr.aria-label]="'Use ' + choice.label + ' avatar'"
         [attr.aria-pressed]="isSelected(choice)"
       >
-        <span class="animal-frame"><img [src]="displayChoiceUrl(choice)" alt="" /></span>
+        <span class="animal-frame">
+          @if (userInfo.premium) {
+            <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+          } @else {
+            <img [src]="displayChoiceUrl(choice)" alt="" />
+          }
+        </span>
         <span>{{ choice.label }}</span>
       </button>
     }
