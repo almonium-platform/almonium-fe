@@ -17,7 +17,7 @@ export {RelationshipStatus} from '../relationship.model';
 export interface UserProfileInfo {
   id: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
   registeredAt: string;
   isPremium: boolean;
   hidden: boolean;
@@ -32,19 +32,22 @@ export interface UserProfileInfo {
 
 export function parseUserProfileInfo(value: unknown): UserProfileInfo {
   const profile = expectRecord(value, 'user profile');
+  const hidden = expectBoolean(profile['hidden'], 'user profile.hidden');
   return {
     id: expectString(profile['id'], 'user profile.id'),
     username: expectString(profile['username'], 'user profile.username'),
-    avatarUrl: expectString(profile['avatarUrl'], 'user profile.avatarUrl'),
+    avatarUrl: expectNullableString(profile['avatarUrl'], 'user profile.avatarUrl'),
     registeredAt: expectString(profile['registeredAt'], 'user profile.registeredAt'),
-    isPremium: expectBoolean(profile['isPremium'], 'user profile.isPremium'),
-    hidden: expectBoolean(profile['hidden'], 'user profile.hidden'),
-    interests: expectArray(profile['interests'], 'user profile.interests')
+    isPremium: expectBoolean(profile['premium'], 'user profile.premium'),
+    hidden,
+    interests: expectProfileDetailArray(profile['interests'], 'user profile.interests', hidden)
       .map((interest, index) => expectString(interest, `user profile.interests[${index}]`)),
-    loginStreak: expectNumber(profile['loginStreak'], 'user profile.loginStreak'),
-    fluentLangs: expectArray(profile['fluentLangs'], 'user profile.fluentLangs')
+    loginStreak: profile['loginStreak'] === undefined && hidden
+      ? 0
+      : expectNumber(profile['loginStreak'], 'user profile.loginStreak'),
+    fluentLangs: expectProfileDetailArray(profile['fluentLangs'], 'user profile.fluentLangs', hidden)
       .map((language, index) => expectEnum(language, Object.values(LanguageCode), `user profile.fluentLangs[${index}]`)),
-    targetLangs: expectArray(profile['targetLangs'], 'user profile.targetLangs').map((target, index) => {
+    targetLangs: expectProfileDetailArray(profile['targetLangs'], 'user profile.targetLangs', hidden).map((target, index) => {
       const targetLanguage = expectRecord(target, `user profile.targetLangs[${index}]`);
       return {
         language: expectEnum(
@@ -69,4 +72,8 @@ export function parseUserProfileInfo(value: unknown): UserProfileInfo {
       ? null
       : expectBoolean(profile['acceptsRequests'], 'user profile.acceptsRequests'),
   };
+}
+
+function expectProfileDetailArray(value: unknown, path: string, hidden: boolean): unknown[] {
+  return value === undefined && hidden ? [] : expectArray(value, path);
 }
