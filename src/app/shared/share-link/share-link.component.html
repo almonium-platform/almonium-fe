@@ -13,14 +13,16 @@
         (click)="copy()"
         readonly
       />
-      <tui-icon
-        [iconStart]="showCopied ? '@tui.check' : '@tui.copy'"
-        size="xl"
-        tuiBadge
-        tuiSlot="top"
-        class="hover:opacity-80 cursor-pointer"
+      <button
+        type="button"
+        class="copy-action"
+        [class.copied]="showCopied"
+        [attr.aria-label]="showCopied ? 'Profile link copied' : 'Copy profile link'"
         (click)="copy()"
-      ></tui-icon>
+      >
+        <tui-icon [icon]="showCopied ? '@tui.check' : '@tui.copy'"></tui-icon>
+        <span aria-live="polite">{{ showCopied ? 'Copied' : 'Copy' }}</span>
+      </button>
     </div>
   </div>
 </ng-template>

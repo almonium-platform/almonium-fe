@@ -15,27 +15,77 @@
 .share-link-container {
   display: flex;
   align-items: center;
-  background-color: var(--gray-bg);
-  border: 1px solid var(--gray);
-  padding: 0.5rem;
-  width: 20rem;
+  gap: .5rem;
+  width: min(20rem, calc(100vw - 5rem));
+  padding: .375rem;
+  border: 1px solid var(--control-border-color);
   border-radius: 99px;
+  background-color: var(--nested-color);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.share-link-container:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
 }
 
 .share-link-input {
+  min-width: 0;
   flex: 1;
   border: none;
   background-color: transparent;
-  color: var(--disabled-text-color);
-  font-size: 1rem;
+  color: var(--subhead-color);
+  font-family: var(--font-family-ui);
+  font-size: .875rem;
   outline: none;
-  padding: 0.25rem;
+  padding: .375rem .25rem .375rem .625rem;
+  cursor: pointer;
+}
+
+.copy-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 2.25rem;
+  padding: .45rem .75rem;
+  border: 0;
+  border-radius: 99px;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  cursor: pointer;
+  font: 600 .75rem/1 var(--font-family-ui);
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.copy-action:hover {
+  background: var(--brand-hover);
+}
+
+.copy-action:active {
+  background: var(--brand-pressed);
+  transform: translateY(1px);
+}
+
+.copy-action:focus-visible {
+  outline: 2px solid var(--brand-margin);
+  outline-offset: 2px;
+}
+
+.copy-action.copied {
+  background: var(--success-color);
+}
+
+.copy-action tui-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 .separator {
   width: 90%;
   height: 1px;
-  background: var(--gray);
+  background: var(--hairline-color);
   margin: .2rem 0;
 }
 
