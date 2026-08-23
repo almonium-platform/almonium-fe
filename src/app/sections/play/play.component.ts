@@ -1,27 +1,84 @@
-import {Component} from '@angular/core';
-import {RouterLink} from "@angular/router";
+import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {combineLatest, of, Subject} from 'rxjs';
+import {catchError, switchMap, takeUntil} from 'rxjs/operators';
+import {CardDto} from '../../models/card.model';
+import {LanguageCode} from '../../models/language.enum';
+import {CardService} from '../../services/card.service';
+import {LanguageNameService} from '../../services/language-name.service';
+import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
+import {UserInfoService} from '../../services/user-info.service';
 
 @Component({
   selector: 'app-play',
   templateUrl: './play.component.html',
-  imports: [
-    RouterLink,
-  ],
-  styleUrls: ['./play.component.less']
+  imports: [RouterLink],
+  styleUrls: ['./play.component.less'],
 })
-export class PlayComponent {
-  filter = 'all';
+export class PlayComponent implements OnInit, OnDestroy {
+  private readonly userInfoService = inject(UserInfoService);
+  private readonly languageService = inject(TargetLanguageDropdownService);
+  private readonly languageNames = inject(LanguageNameService);
+  private readonly cardService = inject(CardService);
+  private readonly destroy$ = new Subject<void>();
 
-  filterGames(filter: string) {
-    this.filter = filter;
+  protected selectedLanguage = LanguageCode.EN;
+  protected cards: CardDto[] = [];
+  protected signedIn = false;
+  protected loading = true;
+  protected loadError = false;
+
+  ngOnInit(): void {
+    combineLatest([
+      this.userInfoService.loadUserInfo(),
+      this.languageService.currentLanguage$,
+    ]).pipe(
+      switchMap(([user, language]) => {
+        this.signedIn = user !== null;
+        this.selectedLanguage = language;
+        this.loading = this.signedIn;
+        this.loadError = false;
+
+        if (!user) {
+          return of([] as CardDto[]);
+        }
+
+        return this.cardService.getCardsInLanguage(language).pipe(
+          catchError(() => {
+            this.loadError = true;
+            return of([] as CardDto[]);
+          }),
+        );
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(cards => {
+      this.cards = cards;
+      this.loading = false;
+    });
   }
 
-  isGameVisible(gameType: string): boolean {
-    // Show all play if 'all' is selected
-    if (this.filter === 'all') {
-      return true;
-    }
-    // Show play based on filter
-    return this.filter === gameType;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  protected get languageName(): string {
+    return this.languageNames.getLanguageName(this.selectedLanguage);
+  }
+
+  protected get deckWordCount(): number {
+    return this.cards.filter(card => card.activeLearning !== false).length;
+  }
+
+  protected get headline(): string {
+    if (this.loading) return 'Another way through your words';
+    if (this.deckWordCount === 0) return 'Put your vocabulary into play';
+    return `Another way through the same ${this.deckWordCount} ${this.deckWordCount === 1 ? 'word' : 'words'}`;
+  }
+
+  protected get crosswordAction(): string {
+    return this.deckWordCount > 0
+      ? `Start a ${this.deckWordCount}-word grid`
+      : 'Start a grid';
   }
 }

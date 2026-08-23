@@ -1,92 +1,63 @@
-<div class="base-container">
-  <div class="filters">
-    <div class="game-picker" role="group" aria-label="Game type">
-      <button type="button"
-              [attr.aria-pressed]="filter === 'all'"
-              (click)="filterGames('all')">
-        All
-      </button>
-      <button type="button"
-              [attr.aria-pressed]="filter === 'solo'"
-              (click)="filterGames('solo')">
-        Solo
-      </button>
-      <button type="button"
-              [attr.aria-pressed]="filter === 'pvp'"
-              (click)="filterGames('pvp')">
-        PvP
-      </button>
+<main class="play-shell">
+  <header class="play-intro">
+    <p class="eyebrow">Play</p>
+    <h1>{{ headline }}</h1>
+    @if (signedIn) {
+      <p>These games use your {{ languageName }} vocabulary in different ways. Nothing here is required, and nothing expires.</p>
+    } @else {
+      <p>Turn words you keep while reading into short retrieval games. Sign in to play with your own deck.</p>
+    }
+  </header>
+
+  <section class="featured-game" aria-labelledby="crossword-title">
+    <div class="crossword-mark" aria-hidden="true">
+      <span class="cell cell-1"></span><span class="cell cell-2"></span><span class="cell cell-3"></span>
+      <span class="cell cell-4 accent"></span><span class="cell cell-5"></span><span class="cell cell-6"></span>
+      <span class="cell cell-7"></span><span class="cell cell-8"></span><span class="cell cell-9 accent"></span>
+      <span class="cell cell-10"></span><span class="cell cell-11"></span><span class="cell cell-12"></span>
+      <span class="cell cell-13"></span>
     </div>
-  </div>
-  <!-- Game Cards -->
-  <div class="games-container"
-  >
-    <!-- Ladder (Solo) -->
-    @if (isGameVisible('solo')) {
-      <a
-        routerLink="/play/ladder"
-        class="game-card ladder-card solo-game">
-        <div class="game-img ladder-img">
-          <img alt="Ladder image" src="/assets/img/games/ladder.png" height="1024" width="1024"/>
-        </div>
-        <div class="description-section">
-          <div class="title">Ladder</div>
-          <div class="description">
-            Almo will challenge your knowledge with words of decreasing frequency. How far can you climb?
-          </div>
-        </div>
-      </a>
-    }
+    <div class="featured-copy">
+      <div class="game-meta"><span class="intent">Produce</span><span>about 6 minutes · uses your deck</span></div>
+      <h2 id="crossword-title">Crossword</h2>
+      <p>Read a definition and spell the word. The grid is built from vocabulary you chose to learn—the one thing a flashcard rarely asks you to do.</p>
+      <div class="featured-actions">
+        <a class="primary-action" routerLink="/play/crossword">{{ crosswordAction }}</a>
+        @if (loading) {
+          <span class="status-note" aria-live="polite">Loading your deck…</span>
+        } @else if (signedIn && deckWordCount === 0) {
+          <a class="text-action" routerLink="/discover">Keep a few words first</a>
+        }
+      </div>
+    </div>
+  </section>
 
-    <!-- Crosswords (Solo) -->
-    @if (isGameVisible('solo')) {
-      <a
-        routerLink="/play/crossword"
-        class="game-card crossword-card solo-game">
-        <div class="game-img">
-          <img alt="Crossword image" src="/assets/img/games/crossword.png" height="1024" width="1024"/>
-        </div>
-        <div class="description-section">
-          <div class="title">Crossword</div>
-          <div class="description">
-            Solve crosswords dynamically generated from your personal card deck.
-          </div>
-        </div>
-      </a>
-    }
+  <section class="game-group" aria-labelledby="deck-games-title">
+    <h2 class="section-label" id="deck-games-title">Also from your deck</h2>
 
-    <!-- Higher or Lower (pvp) -->
-    @if (isGameVisible('pvp')) {
-      <a
-        routerLink="/play/higher-lower"
-        class="game-card hilo-card pvp-game">
-        <div class="game-img arrows-img">
-          <img alt="Arrows image" src="/assets/img/games/arrows.png" height="639" width="842"/>
-        </div>
-        <div class="description-section">
-          <div class="title">Higher or Lower</div>
-          <div class="description">
-            One player guesses the frequency of a word, while the other must decide if it’s higher or lower.
-          </div>
-        </div>
-      </a>
-    }
+    <article class="game-row">
+      <div class="game-name"><h3>Duel</h3><p>Recall · two players</p></div>
+      <p class="game-description">Your deck against a friend’s. You answer from theirs, they answer from yours, and missed words get another chance to stick.</p>
+      <div class="game-action"><a class="secondary-action" routerLink="/play/duel">Invite someone</a><small>Two learners, one shared round</small></div>
+    </article>
 
-    <!-- Duel (pvp) -->
-    @if (isGameVisible('pvp')) {
-      <a
-        routerLink="/play/duel"
-        class="game-card duel-card pvp-game">
-        <div class="game-img">
-          <img alt="Hands image" src="/assets/img/games/hands.png" height="1024" width="1024"/>
-        </div>
-        <div class="description-section">
-          <div class="title">Duel</div>
-          <div class="description">
-            Face off against a friend with your own deck of words. Who will outsmart the other to claim victory?
-          </div>
-        </div>
-      </a>
-    }
-  </div>
-</div>
+    <article class="game-row">
+      <div class="game-name"><h3>Ladder</h3><p>Disambiguate · solo</p></div>
+      <p class="game-description">Words of falling frequency until you stop recognising them. Start inside your deck and keep going to find the edge of your reading range.</p>
+      <div class="game-action"><a class="secondary-action" routerLink="/play/ladder">Climb</a><small>Your next rung waits</small></div>
+    </article>
+  </section>
+
+  <section class="game-group outside-deck" aria-labelledby="outside-games-title">
+    <h2 class="section-label" id="outside-games-title">Not from your deck</h2>
+    <article class="game-row quiet-game">
+      <div class="game-name"><h3>Higher or Lower</h3><p>Frequency intuition</p></div>
+      <p class="game-description">Guess which of two {{ languageName }} words is more common. It teaches you about the language, but a round changes nothing in your deck.</p>
+      <div class="game-action"><a class="text-action" routerLink="/play/higher-lower">Play anyway <span aria-hidden="true">→</span></a></div>
+    </article>
+  </section>
+
+  @if (loadError) {
+    <p class="load-note" role="status">Your deck count couldn’t be loaded. Every game is still available.</p>
+  }
+</main>
