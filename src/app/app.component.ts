@@ -17,6 +17,7 @@ import {UserInfoService} from "./services/user-info.service";
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {LocalStorageService} from './services/local-storage.service';
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
+import {applyThemeAssets} from './services/theme-assets';
 
 // Declare gtag function to make TypeScript aware of it globally
 declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
@@ -87,6 +88,7 @@ export class AppComponent implements OnInit {
     root.style.colorScheme = preferences?.appearance === 'dark' ? 'dark' : preferences?.appearance === 'light' ? 'light' : 'light dark';
     this.taigaDarkMode.set(isDark);
     this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
+    applyThemeAssets(isDark);
   }
 
   ngOnInit(): void {

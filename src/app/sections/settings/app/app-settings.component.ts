@@ -15,6 +15,7 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
 import {catchError} from "rxjs/operators";
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 import {ThemeService} from 'stream-chat-angular';
+import {applyThemeAssets} from '../../../services/theme-assets';
 
 @Component({
   selector: 'app-app-settings',
@@ -127,6 +128,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
     this.taigaDarkMode.set(isDark);
     this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
+    applyThemeAssets(isDark);
   }
 
   protected clearOfflineBooks() {

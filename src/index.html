@@ -5,7 +5,7 @@
   <title>Almonium</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/svg+xml" href="assets/img/logo/logo-flat.svg">
+  <link id="app-favicon" rel="icon" type="image/svg+xml" href="assets/img/logo/logo-flat.svg">
   <script>
     (() => {
       try {
@@ -14,9 +14,16 @@
         document.documentElement.dataset.theme = theme;
         document.documentElement.classList.toggle('reduce-motion', Boolean(preferences.reduceMotion));
         document.documentElement.style.colorScheme = theme === 'system' ? 'light dark' : theme;
+        const isDark = theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.querySelector('#app-favicon').href = isDark
+          ? 'assets/img/logo/logo-flat-tint.svg'
+          : 'assets/img/logo/logo-flat.svg';
       } catch {
         document.documentElement.dataset.theme = 'system';
         document.documentElement.style.colorScheme = 'light dark';
+        if (matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.querySelector('#app-favicon').href = 'assets/img/logo/logo-flat-tint.svg';
+        }
       }
     })();
   </script>

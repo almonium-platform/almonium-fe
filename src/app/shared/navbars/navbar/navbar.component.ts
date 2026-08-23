@@ -14,7 +14,6 @@ import {PopupTemplateStateService} from "../../modals/popup-template/popup-templ
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
-import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
@@ -50,7 +49,6 @@ const LANGUAGE_CREST_SESSION_KEY = 'language_crest_hint_seen';
     AvatarComponent,
     ManageAvatarComponent,
     LucideAngularModule,
-    GifPlayerComponent,
     SharedLucideIconsModule,
     TuiBadgedContentComponent,
     TuiBadgeNotification,
@@ -110,8 +108,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected showCrestHint = false;
 
   private langColors: Record<string, string> = {};
-
-  protected replayGifSubject = new Subject<void>();
 
   protected uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
 
@@ -466,8 +462,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   onLogoClick(): void {
-    this.replayGifSubject.next();
-
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {

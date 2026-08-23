@@ -31,14 +31,6 @@
   height: 4.75rem;
   pointer-events: none; /* Ensure logo doesn't block QR code scanning */
 
-  /* QR codes are a monochrome context: use the flat emblem. */
-  background: var(--qr-code-gradient);
-  mask-image: url('/assets/img/logo/logo-flat.svg');
-  mask-repeat: no-repeat;
-  mask-size: cover;
-  mask-position: center;
-  -webkit-mask-image: url('/assets/img/logo/logo-flat.svg');
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: cover;
-  -webkit-mask-position: center;
+  /* At 76px the tonal ramp has enough room to resolve cleanly. */
+  background: center / contain no-repeat url('/assets/img/logo/logo.svg');
 }
