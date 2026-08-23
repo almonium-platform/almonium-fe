@@ -6,6 +6,7 @@
       ? 'one-letter'
       : 'multiple-letters'
   }}"
+  [class.has-image]="!!(imageUrl || fallbackChannelImage) && !isError"
 >
   @if ((imageUrl || fallbackChannelImage) && !isError) {
     <img
