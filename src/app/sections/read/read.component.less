@@ -4,10 +4,10 @@
 .read-header h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 1; }
 .read-header p { margin: .4rem 0 0; color: var(--disabled-text-color); }
 .header-actions { display: flex; align-items: center; gap: .65rem; }
-.quota, .premium-pill { padding: .3rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
+.quota { padding: .3rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
 .quota { border: 1px solid var(--border-color); color: var(--disabled-text-color); }
-.premium-pill { background: var(--premium-gradient); color: #FDF4F8; text-transform: uppercase; }
 .import-book-action, .empty-state button { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.65rem; padding: .65rem .9rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-weight: 700; }
+.import-book-action.premium-gate { background: var(--premium-gradient); color: #FDF4F8; box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45); }
 .filter-bar { position: sticky; z-index: 5; top: var(--header-height); display: flex; align-items: center; gap: .55rem; width: min(100%, 76rem); min-height: 44px; margin: -1.1rem auto 0; padding: .35rem; border: 1px solid var(--border-color); border-radius: .9rem; background: color-mix(in srgb, var(--card-color) 96%, transparent); backdrop-filter: blur(10px); }
 .search-input { flex: 1 1 14rem; min-width: 11rem; }
 .native-select select { min-height: 2.5rem; padding: 0 2rem 0 .7rem; border: 1px solid var(--control-border-color); border-radius: .7rem; background: var(--card-color); color: var(--text-color); font: inherit; }

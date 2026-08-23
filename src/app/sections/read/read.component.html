@@ -12,7 +12,10 @@
     <div><h1>Read</h1><p>Your books</p></div>
     <div class="header-actions">
       @if (isPremium && quotaLabel(); as quota) { <span class="quota">{{ quota }}</span> }
-      <button type="button" class="import-book-action" (click)="startImport()"><lucide-icon name="plus" size="18"></lucide-icon>{{ importActionLabel() }}@if (isAuthenticated && !isPremium) { <span class="premium-pill">Premium</span> }</button>
+      <button type="button" class="import-book-action" [class.premium-gate]="isAuthenticated && !isPremium" (click)="startImport()">
+        <lucide-icon [name]="isAuthenticated && !isPremium ? 'lock' : 'plus'" size="18"></lucide-icon>
+        {{ importActionLabel() }}
+      </button>
     </div>
   </header>
 
