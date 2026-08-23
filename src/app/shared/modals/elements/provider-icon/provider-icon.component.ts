@@ -44,15 +44,15 @@ export class ProviderIconComponent {
 
   private providerConfig: Record<string, { sizeClass: string; clickHandler: () => void }> = {
     google: {
-      sizeClass: 'text-2xl',
+      sizeClass: 'text-base',
       clickHandler: () => this.handleProviderAction('google')
     },
     apple: {
-      sizeClass: 'text-3xl',
+      sizeClass: 'text-lg',
       clickHandler: () => this.handleProviderAction('apple')
     },
     local: {
-      sizeClass: 'text-2xl',
+      sizeClass: 'text-base',
       clickHandler: () => this.handleProviderAction('local')
     }
   };
