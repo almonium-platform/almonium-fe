@@ -18,7 +18,6 @@ import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
-import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
 
@@ -37,7 +36,6 @@ import {UserInfo} from "../../models/userinfo.model";
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
     TuiInput,
-    GifPlayerComponent,
     ButtonComponent
   ],
   templateUrl: './auth.component.html',
@@ -100,9 +98,6 @@ export class AuthComponent implements OnInit, OnDestroy {
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
   });
   isSignUp = false;
-
-  // logo
-  protected replayGifTrigger = new Subject<void>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -233,7 +228,6 @@ export class AuthComponent implements OnInit, OnDestroy {
     } else if (this.mode === 'embedded') {
       this.login(emailValue, passwordValue);
     } else {
-      this.replayGifTrigger.next();
       if (this.isSignUp) {
         this.register(emailValue, passwordValue);
       } else {
@@ -361,7 +355,6 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     if (provider !== 'google' && provider !== 'apple') return;
 
-    this.replayGifTrigger.next();
     this.loadingSubject$.next(true);
     const mode = this.intent === 'link' ? 'link' : this.embeddedMode ? 'reauth' : 'sign-in';
     const signIn = provider === 'apple'
