@@ -3,6 +3,7 @@ import {Subscription} from 'rxjs';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
 import {avatarLetter} from '../../../shared/avatar/avatar-display';
+import {AppConstants} from '../../../app.constants';
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -132,5 +133,9 @@ export class CustomChatAvatarComponent
     );
 
     return otherMembers.length === 1 ? otherMembers[0].user : undefined;
+  }
+
+  protected get isSavedMessages(): boolean {
+    return this.type === 'channel' && this.channel?.data?.name === AppConstants.SELF_CHAT_NAME;
   }
 }

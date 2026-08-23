@@ -6,9 +6,10 @@
       ? 'one-letter'
       : 'multiple-letters'
   }}"
-  [class.has-image]="!!(imageUrl || fallbackChannelImage) && !isError"
+  [class.has-image]="!isSavedMessages && !!(imageUrl || fallbackChannelImage) && !isError"
+  [class.saved-messages]="isSavedMessages"
 >
-  @if ((imageUrl || fallbackChannelImage) && !isError) {
+  @if (!isSavedMessages && (imageUrl || fallbackChannelImage) && !isError) {
     <img
       class="str-chat__avatar-image"
       data-testid="avatar-img"
@@ -19,7 +20,13 @@
     />
   } @else {
     <div data-testid="fallback-img" class="str-chat__avatar-fallback">
-      {{ initials }}
+      @if (isSavedMessages) {
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6.5 4.75A1.75 1.75 0 0 1 8.25 3h7.5a1.75 1.75 0 0 1 1.75 1.75V21L12 17.6 6.5 21V4.75Z"/>
+        </svg>
+      } @else {
+        {{ initials }}
+      }
     </div>
   }
   <ng-template #fallback>

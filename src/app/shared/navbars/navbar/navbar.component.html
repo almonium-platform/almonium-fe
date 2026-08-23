@@ -263,15 +263,12 @@
         <div class="title-group">
           <p class="popover-title">Notifications</p>
 
-          @if (unreadNotificationsCount > 0) {
-            <span class="circular-icon">{{ unreadNotificationsCount }}</span>
-          }
         </div>
         @if (unreadNotificationsCount > 0) {
           <app-button appearance="text"
-                      label="Mark all as read"
-                      [fontSize]="16"
-                      [fontWeight]="550"
+                      label="Mark all read"
+                      [fontSize]="13"
+                      [fontWeight]="500"
                       (click)="markAllAsRead()"
                       [disabled]="unreadNotificationsCount === 0"
                       [loading$]="loading$"
@@ -290,7 +287,6 @@
           </div>
         } @else {
           @for (notification of notifications; track notification) {
-            <div class="separator"></div>
             <tui-badged-content>
               @if (!notification.readAt) {
                 <tui-badge-notification size="xs" tuiSlot="top"/>
@@ -330,7 +326,8 @@
                 </tui-data-list>
               </ng-template>
 
-              <div class="notification-item hover:bg-gray-100 rounded-md p-2"
+              <div class="notification-item"
+                   [class.unread]="!notification.readAt"
                    tuiDropdownContext
                    #dropdown="tuiDropdown"
                    [tuiDropdown]="dropdownTemplate"
@@ -342,12 +339,10 @@
                 ></app-avatar-preview>
 
                 <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
-                  <div class="notification-title">{{ notification.title }}
-                    <p>
-                      {{ (notification.createdAt | shortRelativeTime) }}
-                    </p>
+                  <div class="notification-row">
+                    <div class="notification-message" [innerHTML]="notificationSummary(notification)"></div>
+                    <time>{{ notification.createdAt | shortRelativeTime }}</time>
                   </div>
-                  <div class="notification-message" [innerHTML]="formatNotificationText(notification.message)"></div>
                 </div>
               </div>
             </tui-badged-content>

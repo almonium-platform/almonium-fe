@@ -10,3 +10,16 @@
 .str-chat__avatar.has-image {
   background: transparent;
 }
+
+.str-chat__avatar.saved-messages {
+  background: var(--premium-gradient);
+  color: var(--on-brand-color);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 35%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, black 25%, transparent);
+
+  svg {
+    fill: currentColor;
+    height: 52%;
+    width: 52%;
+  }
+}

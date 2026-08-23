@@ -19,7 +19,7 @@ import {
 import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
-import {ActivatedRoute, Params, RouterLink} from "@angular/router";
+import {ActivatedRoute, Params} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -85,7 +85,6 @@ import {SocialConfirmationService} from './social-confirmation.service';
     ButtonComponent,
     TuiIcon,
     OverlayscrollbarsModule,
-    RouterLink,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     UserPreviewCardComponent,
@@ -141,14 +140,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected incomingRequestsCount = 0;
   // drawer
   protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' | 'menu' = 'menu';
-  protected drawerHeader = 'Menu';
+  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' = 'friends';
+  protected drawerHeader = 'People';
   protected loadingFriends = false;
   protected loadingBlocked = false;
   protected loadingIncomingRequests = false;
   protected loadingOutgoingRequests = false;
   protected noResultMessage = 'No results found';
-  protected drawerIcon = 'menu';
+  protected drawerIcon = 'users-round';
 
   protected readonly FriendshipStatus = RelationshipStatus;
   protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
@@ -665,7 +664,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
         next: () => {
-          this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
+          const username = this.matchedUsers.find(user => user.id === id)?.username;
+          const recipient = username ? `@${username}` : 'that user';
+          this.alertService.open(`Request sent to ${recipient}.`, {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
 
           this.schedule(() => {
@@ -713,14 +714,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected openDrawerAndSetupData() {
     this.openDrawer();
-    if (this.drawerMode === 'menu') {
-      this.menuSetup();
-    } else {
-      this.drawerIcon = 'chevron-left';
-    }
+    this.drawerHeader = 'People';
+    this.drawerIcon = 'users-round';
     if (this.drawerMode === 'requests') {
-      this.drawerHeader = 'Requests';
-
       if (this.requestsIndex === 0) {
         this.getIncomingRequests();
         this.noResultMessage = `You have no incoming friend requests.`;
@@ -730,17 +726,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
     if (this.drawerMode === 'friends') {
-      this.drawerHeader = 'Friends';
       this.getFriends();
-      this.noResultMessage = `You don't have any friends yet.`;
+      this.noResultMessage = `Almo hasn't found anyone here yet.`;
     }
     if (this.drawerMode === 'blocked') {
-      this.drawerHeader = 'Blocked';
-      this.noResultMessage = `You haven't blocked anyone.`;
+      this.noResultMessage = `No one is blocked.`;
       this.getBlocked();
     }
     if (this.drawerMode === 'search') {
-      this.drawerHeader = 'Search';
+      this.drawerHeader = 'Find people';
+      this.drawerIcon = 'chevron-left';
     }
   }
 
@@ -932,17 +927,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   setDrawerMode(mode: string) {
-    this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'menu';
+    this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'search';
     this.openDrawerAndSetupData();
   }
 
-  menuSetup() {
-    this.matchedUsers = [];
-    this.drawerHeader = 'Menu';
-    this.friendFormControl.setValue('');
-    this.usernameFormControl.setValue('');
-    this.drawerIcon = 'menu';
-    this.drawerUserTiles = [];
+  protected get peopleIndex(): number {
+    return this.drawerMode === 'requests' ? 1 : this.drawerMode === 'blocked' ? 2 : 0;
+  }
+
+  protected onPeopleIndexChange(index: number): void {
+    this.setDrawerMode((['friends', 'requests', 'blocked'] as const)[index] ?? 'friends');
   }
 
   openChat() {
@@ -961,8 +955,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 100);
   }
 
-  get hiddenChatsTooltip() {
-    return this.showHiddenChannels$.value ? 'Switch to visible chats' : 'Switch to hidden chats';
+  get hiddenChatsLabel() {
+    return this.showHiddenChannels$.value ? 'Hidden on' : 'Hidden';
   }
 
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {

@@ -159,6 +159,27 @@
   }
 }
 
+.find-people-link {
+  align-items: center;
+  align-self: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: .5rem;
+  color: var(--brand-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: 500 .8rem/1 var(--font-family-ui);
+  gap: .4rem;
+  margin: -.45rem 0 .25rem;
+  padding: .35rem .5rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: none;
+  }
+}
+
 .username {
   font-size: 1.1rem;
   font-weight: 600;
@@ -196,6 +217,40 @@
       opacity: .8;
     }
   }
+
+  .action-button {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--control-border-color);
+    border-radius: 999px;
+    color: var(--subhead-color);
+    display: inline-flex;
+    font: 600 .75rem/1 var(--font-family-ui);
+    gap: .35rem;
+    min-height: 2rem;
+    padding: .45rem .75rem;
+
+    &.positive,
+    &.primary-action {
+      color: var(--brand-primary);
+    }
+
+    &.primary-action {
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+      color: var(--on-brand-color);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-margin);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+  }
 }
 
 .tiles {
@@ -213,43 +268,6 @@
   align-self: stretch; /* Ensure it stretches fully */
   gap: 1rem;
 
-  .menu-tiles {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-
-    .menu-tile {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      padding: .5rem;
-      width: 100%;
-      max-width: 20rem;
-      font-size: 1.5rem;
-      height: 4rem;
-
-      .menu-text {
-        padding-bottom: 3px;
-        color: var(--text-color);
-      }
-
-      &.return {
-        display: none;
-      }
-
-      .menu-icon {
-        margin: 0 1rem;
-      }
-
-      &:hover {
-        background-color: var(--grey-color);
-        cursor: pointer;
-      }
-    }
-  }
-
   .no-results {
     font-size: 1.3rem;
     line-height: 1.5;
@@ -262,6 +280,23 @@
 
     .btn-text {
       width: 50%;
+    }
+  }
+
+  .people-toggle {
+    width: 20rem;
+    --tui-radius-l: 2rem;
+
+    button {
+      font-size: .8rem;
+      width: 33.333%;
+    }
+
+    span {
+      color: var(--dark-raspberry);
+      font-family: var(--font-family-mono);
+      font-size: .7rem;
+      margin-left: .2rem;
     }
   }
 }
@@ -313,6 +348,7 @@
 // my messages color
 ::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
   background-color: var(--chat-lite);
+  color: var(--on-brand-color);
 }
 
 ::ng-deep .str-chat__reaction-selector {
@@ -353,9 +389,14 @@
   padding: 0.1rem;
 }
 
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-text-value {
+  color: var(--on-brand-color);
+}
+
 // interlocutor's messages color
 ::ng-deep .str-chat__message .str-chat__message-bubble {
   background-color: var(--card-color);
+  border: 1px solid var(--hairline-color);
 }
 
 // main chat background
@@ -415,7 +456,8 @@
   &--active,
   &-messenger--active {
     // selected chat preview
-    background-color: var(--chat-accent-color);
+    background-color: var(--state-selected);
+    border-left: 3px solid var(--brand-primary);
     color: var(--text-color);
 
     .muted-icon {
@@ -429,7 +471,7 @@
 
     // Ensure hover does not affect active state
     &:hover {
-      background-color: var(--chat-accent-color) !important;
+      background-color: var(--state-selected) !important;
     }
 
     .str-chat__icon {
@@ -441,7 +483,7 @@
     }
 
     .online-indicator-buffer {
-      background-color: var(--chat-accent-color) !important;
+      background-color: var(--state-selected) !important;
     }
 
     .str-chat__avatar--online-indicator {
@@ -482,7 +524,43 @@
 }
 
 ::ng-deep .str-chat__empty-channel-text {
-  color: var(--chat-accent-color) !important;
+  color: var(--text-color) !important;
+  font-family: var(--font-family-reading);
+  font-size: 0;
+
+  &::before {
+    content: 'No chat open';
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .55rem;
+  }
+
+  &::after {
+    color: var(--metadata-color);
+    content: 'Pick someone on the left, or write to yourself in Saved Messages.';
+    display: block;
+    font-family: var(--font-family-ui);
+    font-size: .8rem;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 30ch;
+  }
+}
+
+::ng-deep .str-chat__empty-channel {
+  background: var(--card-color);
+
+  stream-icon {
+    background: url('/assets/img/almo/empty_box.png') center / contain no-repeat;
+    display: block;
+    height: 6rem;
+    width: 6rem;
+
+    svg {
+      display: none;
+    }
+  }
 }
 
 // You can't send messages in this channel
@@ -577,18 +655,50 @@
     height: 100vh;
   }
 
-  .drawer-container .menu-tiles .menu-tile.return {
-    display: flex;
-  }
-
   .drawer {
     min-width: 100vw;
   }
 }
 
-.hidden-chat-icon {
+.hidden-chat-toggle {
+  align-items: center;
+  background: var(--nested-color);
+  border: 0;
+  border-radius: 999px;
+  color: var(--subhead-color);
   cursor: pointer;
+  display: inline-flex;
+  font: 500 .72rem/1 var(--font-family-ui);
+  gap: .4rem;
   margin-left: auto;
+  padding: .35rem .65rem .35rem .4rem;
+
+  .toggle-track {
+    background: var(--control-border-color);
+    border-radius: 999px;
+    display: block;
+    height: .95rem;
+    padding: 2px;
+    width: 1.65rem;
+  }
+
+  .toggle-thumb {
+    background: var(--card-color);
+    border-radius: 50%;
+    display: block;
+    height: .7rem;
+    transition: transform 150ms ease;
+    width: .7rem;
+  }
+
+  &.active .toggle-thumb {
+    transform: translateX(.7rem);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand-margin);
+    outline-offset: 2px;
+  }
 }
 
 .search-icon {

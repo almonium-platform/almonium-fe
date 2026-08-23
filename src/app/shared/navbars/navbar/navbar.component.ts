@@ -7,7 +7,7 @@ import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/u
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, interval, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, interval, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
@@ -116,6 +116,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected unreadNotificationsCount = 0;
 
   protected notifications: Notification[] = [];
+  private readonly notificationGroupIds = new Map<string, string[]>();
 
   protected get hasLanguageChoices(): boolean {
     return this.targetLanguages.length > 1;
@@ -257,9 +258,31 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private getNotifications() {
     this.notificationService.getNotifications().pipe(takeUntil(this.destroy$)).subscribe((notifications) => {
-      this.notifications = notifications;
-      this.unreadNotificationsCount = notifications.filter(n => !n.readAt).length;
+      this.notifications = this.collapseNotifications(notifications);
+      this.unreadNotificationsCount = this.notifications.filter(n => !n.readAt).length;
     });
+  }
+
+  private collapseNotifications(notifications: Notification[]): Notification[] {
+    const groups = new Map<string, Notification[]>();
+
+    for (const notification of notifications) {
+      const key = `${notification.senderId}:${notification.type}`;
+      groups.set(key, [...(groups.get(key) ?? []), notification]);
+    }
+
+    this.notificationGroupIds.clear();
+    const collapsed = [...groups.values()].map(group => {
+      const newest = [...group].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )[0];
+      this.notificationGroupIds.set(newest.id, group.map(notification => notification.id));
+      return {...newest, readAt: group.every(notification => notification.readAt) ? newest.readAt : null};
+    });
+
+    return collapsed.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   ngOnDestroy(): void {
@@ -491,11 +514,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // NOTIFICATIONS
   formatNotificationText(text: string | null): string {
     if (text === null) return '';
-    return text.replace(/(@\w+)/g, (match) => {
+    const quietText = text.trim().replace(/[!]+(?=\s*$)/, '.');
+    return quietText.replace(/(@\w+)/g, (match) => {
       const username = match.slice(1); // Remove the '@' symbol
       const url = `/users/${username}`;
       return `<a href="${url}" target="_blank"><strong>${match}</strong></a>`;
     });
+  }
+
+  protected notificationSummary(notification: Notification): string {
+    const message = notification.message?.trim();
+    return message
+      ? this.formatNotificationText(message)
+      : notification.title.replace(/[!]+(?=\s*$)/, '.');
   }
 
   onNotificationClick(notification: Notification) {
@@ -514,7 +545,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private markNotificationAsRead(notification: Notification) {
     this.loadingNotificationAction = true;
-    this.notificationService.markAsRead(notification.id)
+    const ids = this.notificationGroupIds.get(notification.id) ?? [notification.id];
+    forkJoin(ids.map(id => this.notificationService.markAsRead(id)))
       .pipe(finalize(() => this.loadingNotificationAction = false))
       .subscribe({
         next: () => {
@@ -523,7 +555,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, 'Failed to mark notification as read'), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -597,9 +629,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   deleteNotification(notification: Notification, dropdown: TuiDropdownDirective) {
-    this.notificationService.delete(notification.id).subscribe({
+    const ids = this.notificationGroupIds.get(notification.id) ?? [notification.id];
+    forkJoin(ids.map(id => this.notificationService.delete(id))).subscribe({
       next: () => {
         this.notifications = this.notifications.filter(n => n.id !== notification.id);
+        this.notificationGroupIds.delete(notification.id);
         if (!notification.readAt) {
           this.unreadNotificationsCount--;
         }

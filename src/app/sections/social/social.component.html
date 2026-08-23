@@ -23,49 +23,26 @@
   <header class="header">
     <div class="header-inner pb-1">
       <lucide-icon [name]="drawerIcon"
-                   class="cursor-pointer max-h-fit"
-                   (click)="setDrawerMode('menu')"
+                   class="max-h-fit"
+                   [class.cursor-pointer]="drawerMode === 'search'"
+                   (click)="drawerMode === 'search' && setDrawerMode('friends')"
       ></lucide-icon>
       <p class="header-text">{{ drawerHeader }}</p>
       <app-dismiss-button [relative]="true" (closed)="closeDrawer()"></app-dismiss-button>
     </div>
   </header>
   <div class="drawer-container">
-    @if (drawerMode === 'menu') {
-      <div class="menu-tiles">
-        <div class="menu-tile card" (keydown.enter)="setDrawerMode('search')" tabindex="0" (click)="setDrawerMode('search')">
-          <lucide-icon name="user-round-search" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Search</p>
-        </div>
-        <div class="menu-tile card" (keydown.enter)="setDrawerMode('friends')" tabindex="0" (click)="setDrawerMode('friends')">
-          <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Friends</p>
-        </div>
-
-        <div class="menu-tile card" (keydown.enter)="setDrawerMode('requests')" tabindex="0" (click)="setDrawerMode('requests')">
-          <tui-badged-content class="menu-icon">
-            @if (incomingRequestsCount > 0) {
-              <tui-badge-notification
-                size="xs"
-                tuiSlot="top"
-              />
-            }
-            <div class="m-0.5">
-              <lucide-icon name="user-round-plus" color="var(--brand-ink)" [size]="24"></lucide-icon>
-            </div>
-          </tui-badged-content>
-          <p class="menu-text">Requests</p>
-        </div>
-
-        <div class="menu-tile card" (keydown.enter)="setDrawerMode('blocked')" tabindex="0" (click)="setDrawerMode('blocked')">
-          <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Blocked</p>
-        </div>
-        <div class="menu-tile return card" routerLink="/home">
-          <lucide-icon name="circle-arrow-out-up-left" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Return</p>
-        </div>
-      </div>
+    @if (drawerMode !== 'search') {
+      <tui-segmented
+        size="m"
+        class="people-toggle"
+        [activeItemIndex]="peopleIndex"
+        (activeItemIndexChange)="onPeopleIndexChange($event)"
+      >
+        <button type="button">Friends</button>
+        <button type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
+        <button type="button">Blocked</button>
+      </tui-segmented>
     }
 
     @if (drawerMode === 'requests') {
@@ -96,7 +73,11 @@
                 <input
                   [formControl]="usernameFormControl"
                   tuiInput type="text"
-                  placeholder="Type at least 3 characters"/>
+                  inputmode="text"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  placeholder="Find someone by @handle"/>
               </tui-textfield>
               @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
                 <p class="no-results">
@@ -120,17 +101,21 @@
                                  [size]="20"
                     ></lucide-icon>
                   } @else {
-                    <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
-                                 class="friend-action positive"
-                                 (click)="sendFriendRequest(friend.id)"
-                                 [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
-                                 [size]="20"
-                    ></lucide-icon>
+                    <button type="button"
+                            class="friend-action action-button positive"
+                            [class.request-sent]="requestedIds.includes(friend.id)"
+                            [disabled]="requestedIds.includes(friend.id)"
+                            (click)="sendFriendRequest(friend.id)">
+                      <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
+                                   [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
+                                   [size]="18"></lucide-icon>
+                      {{ requestedIds.includes(friend.id) ? 'Request sent' : 'Add friend' }}
+                    </button>
                   }
                 </div>
               }
             </div>
-          } @else if (drawerMode !== 'menu' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
+          } @else if (drawerUserTiles.length === 0 && friendFormControl.value === '') {
             <p class="no-results">
               {{ noResultMessage }}
             </p>
@@ -146,6 +131,9 @@
                     [formControl]="friendFormControl"
                     tuiInput
                     type="text"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
                     placeholder="Type a username"
                   />
                 </tui-textfield>
@@ -155,6 +143,10 @@
                   </p>
                 }
               </div>
+              <button type="button" class="find-people-link" (click)="setDrawerMode('search')">
+                <lucide-icon name="user-round-search" [size]="16"></lucide-icon>
+                Find people
+              </button>
             } @else {
               <app-button
                 appearance="bw"
@@ -183,6 +175,7 @@
               @if (drawerMode === 'friends') {
                 <lucide-icon name="ellipsis"
                              class="friend-action positive"
+                             aria-label="Friend actions"
                              [size]="20"
                              #friendDropdown="tuiDropdown"
                              tuiDropdown
@@ -243,11 +236,8 @@
                                [size]="20"
                   ></lucide-icon>
                 } @else {
-                  <lucide-icon name="x"
-                               class="friend-action negative primary"
-                               [size]="20"
-                               (click)="unblock(friend.id, friend.relationshipId)"
-                  ></lucide-icon>
+                  <button type="button" class="friend-action action-button secondary"
+                          (click)="unblock(friend.id, friend.relationshipId)">Unblock</button>
                 }
               }
 
@@ -260,25 +250,19 @@
                     ></lucide-icon>
                   } @else {
                     @if (friend.relationshipStatus === FriendshipStatus.PENDING_INCOMING) {
-                      <lucide-icon name="user-round-plus"
-                                   class="friend-action positive"
-                                   [size]="20"
-                                   (click)="acceptFriendRequest(friend)"
-                      ></lucide-icon>
-                      <lucide-icon name="x"
-                                   class="friend-action negative secondary"
-                                   [size]="20"
-                                   (click)="rejectFriendRequest(friend.relationshipId)"
-                      ></lucide-icon>
+                      <button type="button" class="friend-action action-button primary-action"
+                              (click)="acceptFriendRequest(friend)">Accept</button>
+                      <button type="button" class="friend-action action-button secondary negative"
+                              (click)="rejectFriendRequest(friend.relationshipId)">Decline</button>
                     }
                   }
 
                   @if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
-                    <lucide-icon name="message-circle"
-                                 class="friend-action positive"
-                                 [size]="20"
-                                 (click)="openChatWithFriend(friend)"
-                    ></lucide-icon>
+                    <button type="button" class="friend-action action-button positive"
+                            (click)="openChatWithFriend(friend)">
+                      <lucide-icon name="message-circle" [size]="17"></lucide-icon>
+                      Message
+                    </button>
                   }
                 }
                 @if (requestsIndex === 1) {
@@ -288,11 +272,8 @@
                                  [size]="20"
                     ></lucide-icon>
                   } @else {
-                    <lucide-icon name="x"
-                                 class="friend-action negative"
-                                 [size]="20"
-                                 (click)="cancelFriendRequest(friend.relationshipId)"
-                    ></lucide-icon>
+                    <button type="button" class="friend-action action-button secondary"
+                            (click)="cancelFriendRequest(friend.relationshipId)">Cancel</button>
                   }
                 }
               }
@@ -332,6 +313,7 @@
           <div class="m-0.5">
             <lucide-icon name="menu"
                          class="cursor-pointer"
+                         aria-label="Open people panel"
                          (click)="openDrawerAndSetupData()"
                          tuiHintAppearance="dark"
                          tuiHintDirection="bottom"
@@ -352,18 +334,14 @@
         </tui-badged-content>
 
         <p class="header-text chats">Chats</p>
-        <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
-                     class="hidden-chat-icon"
-                     [strokeWidth]="1.5"
-                     (click)="toggleHiddenChats()"
-                     tuiHintAppearance="dark"
-                     tuiHintDirection="bottom"
-                     [tuiHint]="tooltipTemplate"
-        >
-          <ng-template #tooltipTemplate>
-            <div>{{ hiddenChatsTooltip }}</div>
-          </ng-template>
-        </lucide-icon>
+        <button type="button"
+                class="hidden-chat-toggle"
+                [class.active]="showHiddenChannels$.value"
+                [attr.aria-pressed]="showHiddenChannels$.value"
+                (click)="toggleHiddenChats()">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          {{ hiddenChatsLabel }}
+        </button>
       </div>
       <div class="search-header"
            (keydown.enter)="openSearch()" tabindex="0" (click)="openSearch()">
@@ -380,6 +358,8 @@
             tuiInput
             tuiTextfieldSize="m"
             type="text"
+            autocomplete="off"
+            spellcheck="false"
             placeholder="Search"
           />
         </tui-textfield>
