@@ -1,1 +1,82 @@
-<app-not-ready></app-not-ready>
+<main class="home-shell">
+  <p class="date-line">{{ today }}</p>
+
+  @if (loading) {
+    <section class="home-card loading-card" aria-live="polite">
+      <span class="loading-line short"></span><span class="loading-line title"></span><span class="loading-line"></span>
+    </section>
+  } @else if (!hasHomeActivity) {
+    <section class="empty-home" aria-labelledby="empty-home-title">
+      <div class="almo-greeting" aria-hidden="true"><img src="assets/img/almo/empty_box.png" alt=""></div>
+      <p class="eyebrow">Nothing here yet</p>
+      <h1 id="empty-home-title">Start with one page</h1>
+      <p>Almo hasn’t found any books in progress yet. Open one from the library and the words you keep will collect here.</p>
+      <div class="empty-actions"><a class="primary-action" routerLink="/read">Open the library</a><a class="text-action" routerLink="/discover">Or paste a sentence into Discover</a></div>
+    </section>
+
+    @if (suggestedBooks.length > 0) {
+      <section class="home-card suggestions" aria-labelledby="suggestions-title">
+        <p class="eyebrow" id="suggestions-title">Suggested @if (learnerLevel) { for {{ learnerLevel }} } {{ selectedLanguage }}</p>
+        <div class="suggestion-row">
+          @for (book of suggestedBooks; track book.id) {
+            <a class="suggestion-book" [routerLink]="['/books', book.editionSlug]">
+              <span class="suggestion-cover"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover></span>
+              <span><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  } @else {
+    <section class="home-card continue-card" aria-labelledby="continue-title">
+      @if (continueBook; as book) {
+        <div class="hero-cover"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover></div>
+        <div class="continue-copy">
+          <p class="eyebrow">Continue reading</p><h1 id="continue-title">{{ book.title }}</h1><p>{{ book.author }} · {{ book.cefrLevel }} {{ selectedLanguage }}</p>
+          <div class="progress-row"><span class="progress-track" role="progressbar" [attr.aria-label]="'Reading progress for ' + book.title" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="book.progressPercentage ?? 0"><i [style.width.%]="book.progressPercentage ?? 0"></i></span><small>{{ book.progressPercentage ?? 0 }}% · {{ progressLabel(book) }}</small></div>
+        </div>
+        <div class="continue-actions"><a class="primary-action" [routerLink]="['/reader', book.editionSlug]">Continue</a><a class="text-action" routerLink="/read">Start something else</a></div>
+      } @else {
+        <div class="continue-copy choose-copy"><p class="eyebrow">Continue reading</p><h1 id="continue-title">Choose your next page</h1><p>Your saved words are waiting. A book will give them somewhere to return.</p></div>
+        <a class="primary-action" routerLink="/read">Open the library</a>
+      }
+    </section>
+
+    <div class="dashboard-grid">
+      <div class="main-column">
+        <section class="home-card kept-card" aria-labelledby="kept-title">
+          <header class="card-heading"><div><p class="eyebrow">Kept while reading</p><h2 id="kept-title">{{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }}</h2></div><a routerLink="/review">All saved words</a></header>
+          @if (recentCards.length > 0) {
+            <div class="word-list">
+              @for (card of recentCards; track card.id ?? card.entry) {
+                <article class="word-row">
+                  <div class="word-name"><strong>{{ card.entry }}</strong><small>{{ cardMeta(card) }}</small></div>
+                  <div class="word-detail"><span>{{ translation(card) }}</span>@if (example(card); as sentence) { <q>{{ sentence }}</q> }</div>
+                  @if (card.falseFriend) { <span class="word-note"><i></i>false friend</span> }
+                </article>
+              }
+            </div>
+          } @else { <p class="card-empty">Words you keep while reading or discovering will appear here.</p> }
+        </section>
+
+        <section class="home-card shelf-card" aria-labelledby="shelf-title">
+          <header class="card-heading"><div><p class="eyebrow">Your shelf</p><h2 id="shelf-title">{{ shelfBooks.length }} {{ shelfBooks.length === 1 ? 'book' : 'books' }} open</h2></div><a routerLink="/read">Browse the library</a></header>
+          @if (shelfBooks.length > 0) {
+            <div class="book-row">
+              @for (book of shelfBooks; track book.id; let index = $index) { <a class="book-spine spine-{{ index + 1 }}" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="book.title + ' by ' + book.author"><span>{{ book.title }}</span></a> }
+              <p>Your open books keep their place either way.</p>
+            </div>
+          } @else { <p class="card-empty">No book is open right now. Your saved vocabulary will stay here.</p> }
+        </section>
+      </div>
+
+      <aside class="side-column" aria-label="Learning overview">
+        <section class="home-card review-card"><p class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span>{{ reviewCount === 1 ? 'word' : 'words' }} ready to come back</span></div><p>Review the vocabulary you chose to learn in {{ selectedLanguage }}.</p><a class="secondary-action" routerLink="/review">Start review</a></section>
+        <section class="home-card record-card"><p class="eyebrow">The record</p><div class="week-row" aria-hidden="true">@for (_ of recordWeeks; track $index) { <i></i> }</div><p>Reading history will appear here as your session record grows. Weeks—not streaks—are what matter.</p><a routerLink="/settings">Review your settings</a></section>
+        <section class="home-card plan-card"><p class="eyebrow">Your plan</p><p>You’re on {{ userInfo?.subscription?.name ?? (userInfo?.premium ? 'Premium' : 'Free') }} with {{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }} in {{ selectedLanguage }}.</p>@if (!userInfo?.premium) { <a routerLink="/pricing">See what Premium adds</a> }</section>
+      </aside>
+    </div>
+  }
+
+  @if (loadError) { <p class="load-note" role="status">Some home details couldn’t be loaded. The available sections are shown.</p> }
+</main>

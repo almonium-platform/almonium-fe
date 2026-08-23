@@ -1,3 +1,5 @@
+import {expectArray, expectBoolean, expectNumber, expectRecord, expectString} from '../shared/runtime-validation';
+
 export interface TranslationDto {
   id: string;
   translation: string;
@@ -36,7 +38,7 @@ export interface CardDto {
 export function parseCards(value: unknown): CardDto[] {
   return expectArray(value, 'cards').map((item, index) => {
     const card = expectRecord(item, `cards[${index}]`);
-    return {
+    const parsed: CardDto = {
       entry: expectString(card['entry'], `cards[${index}].entry`),
       language: expectString(card['language'], `cards[${index}].language`),
       translations: expectArray(card['translations'], `cards[${index}].translations`).map((translation, translationIndex) => {
@@ -47,6 +49,40 @@ export function parseCards(value: unknown): CardDto[] {
         };
       }),
     };
+    const optionalStrings = ['id', 'publicId', 'userId', 'notes', 'createdAt', 'updatedAt'] as const;
+    optionalStrings.forEach(key => {
+      if (card[key] !== undefined && card[key] !== null) {
+        parsed[key] = expectString(card[key], `cards[${index}].${key}`);
+      }
+    });
+    if (card['tags'] !== undefined && card['tags'] !== null) {
+      parsed.tags = expectArray(card['tags'], `cards[${index}].tags`).map((tag, tagIndex) => {
+        const item = expectRecord(tag, `cards[${index}].tags[${tagIndex}]`);
+        return {text: expectString(item['text'], `cards[${index}].tags[${tagIndex}].text`)};
+      });
+    }
+    if (card['examples'] !== undefined && card['examples'] !== null) {
+      parsed.examples = expectArray(card['examples'], `cards[${index}].examples`).map((example, exampleIndex) => {
+        const item = expectRecord(example, `cards[${index}].examples[${exampleIndex}]`);
+        return {
+          id: expectString(item['id'], `cards[${index}].examples[${exampleIndex}].id`),
+          example: expectString(item['example'], `cards[${index}].examples[${exampleIndex}].example`),
+          translation: expectString(item['translation'], `cards[${index}].examples[${exampleIndex}].translation`),
+        };
+      });
+    }
+    const optionalNumbers = ['iteration', 'priority'] as const;
+    optionalNumbers.forEach(key => {
+      if (card[key] !== undefined && card[key] !== null) {
+        parsed[key] = expectNumber(card[key], `cards[${index}].${key}`);
+      }
+    });
+    const optionalBooleans = ['activeLearning', 'irregularPlural', 'irregularSpelling', 'falseFriend'] as const;
+    optionalBooleans.forEach(key => {
+      if (card[key] !== undefined && card[key] !== null) {
+        parsed[key] = expectBoolean(card[key], `cards[${index}].${key}`);
+      }
+    });
+    return parsed;
   });
 }
-import {expectArray, expectRecord, expectString} from '../shared/runtime-validation';
