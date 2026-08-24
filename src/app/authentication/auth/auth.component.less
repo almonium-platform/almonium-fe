@@ -137,12 +137,12 @@ button[tuiButton] {
   height: auto;
 }
 
-html[data-theme='dark'] .wordmark {
+:host-context(html[data-theme='dark']) .wordmark {
   filter: brightness(0) invert(1);
 }
 
 @media (prefers-color-scheme: dark) {
-  html[data-theme='system'] .wordmark {
+  :host-context(html[data-theme='system']) .wordmark {
     filter: brightness(0) invert(1);
   }
 }
