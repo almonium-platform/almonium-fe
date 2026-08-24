@@ -20,6 +20,7 @@ import {AvatarComponent} from '../../../shared/avatar/avatar.component';
 import {SettingsAvatarPickerComponent} from './avatar/settings-avatar-picker/settings-avatar-picker.component';
 import {ProfileService} from '../../../shared/user-preview-card/profile.service';
 import {UserProfileInfo} from '../../../shared/user-preview-card/user-profile.model';
+import {LanguageNameService} from '../../../services/language-name.service';
 
 @Component({
   selector: 'app-profile-settings',
@@ -46,6 +47,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private alertService = inject(TuiNotificationService);
   private profileService = inject(ProfileService);
+  private languageNameService = inject(LanguageNameService);
 
   @ViewChild(ShareLinkComponent, {static: false}) shareLinkComponent!: ShareLinkComponent;
 
@@ -111,6 +113,15 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     })}`;
   }
 
+  protected get primaryLevel(): string {
+    return this.primaryLearner?.selfReportedLevel ?? '—';
+  }
+
+  protected get primaryLanguage(): string {
+    const code = this.primaryLearner?.language;
+    return code ? this.languageNameService.getLanguageName(code) : 'Level';
+  }
+
   protected get planSummary(): string {
     const subscription = this.userInfo?.subscription;
     if (!this.premium || !subscription) {
@@ -128,6 +139,10 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
       year: 'numeric',
     });
     return `${subscription.autoRenewal ? 'Renews' : 'Ends'} ${date}`;
+  }
+
+  private get primaryLearner() {
+    return this.userInfo?.learners.find(learner => learner.active) ?? this.userInfo?.learners[0];
   }
 
   protected editInterests() {

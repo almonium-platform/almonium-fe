@@ -50,6 +50,25 @@
           </div>
         }
 
+        <div class="profile-metrics" aria-label="Reading profile summary">
+          <div>
+            <strong>{{ userInfo.streak ?? 0 }}</strong>
+            <span>Day streak</span>
+          </div>
+          <div>
+            <strong>{{ userInfo.learners.length }}</strong>
+            <span>Languages</span>
+          </div>
+          <div>
+            <strong>{{ primaryLevel }}</strong>
+            <span>{{ primaryLanguage }}</span>
+          </div>
+          <div>
+            <strong>{{ userInfo.fluentLangs.length }}</strong>
+            <span>Fluent</span>
+          </div>
+        </div>
+
         <div class="interests-section">
           <div class="eyebrow">Interests</div>
           @if (!interestsEdit) {
