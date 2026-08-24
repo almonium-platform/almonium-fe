@@ -81,6 +81,20 @@ button { font: inherit; }
 .pill-button:hover,
 .interest-edit:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
 
+:host-context(html[data-theme='dark']) .profile-actions .pill-button {
+  border-color: #6B6178;
+  background: rgba(241, 234, 239, .07);
+  color: #F1EAEF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host-context(html[data-theme='system']) .profile-actions .pill-button {
+    border-color: #6B6178;
+    background: rgba(241, 234, 239, .07);
+    color: #F1EAEF;
+  }
+}
+
 .profile-editor { display: grid; gap: 1.25rem; margin-top: 1.375rem; padding: 1.25rem; border-radius: 18px; background: var(--page-ground); }
 .username-field { display: grid; gap: .5rem; }
 
