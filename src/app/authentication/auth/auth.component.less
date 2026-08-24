@@ -122,15 +122,6 @@ button[tuiButton] {
   font-weight: 500;
 }
 
-.title {
-  color: var(--wordmark-color);
-  font-family: var(--font-family-reading);
-  font-size: 1.8125rem;
-  font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
-}
-
 .logo-div {
   display: flex;
   flex-direction: column;
@@ -138,6 +129,22 @@ button[tuiButton] {
   justify-content: center;
   gap: .375rem;
   margin: 1.875rem 0 0;
+}
+
+.wordmark {
+  display: block;
+  width: 9rem;
+  height: auto;
+}
+
+html[data-theme='dark'] .wordmark {
+  filter: brightness(0) invert(1);
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme='system'] .wordmark {
+    filter: brightness(0) invert(1);
+  }
 }
 
 .logo-emblem {
