@@ -70,9 +70,25 @@ html[data-theme='dark'] {
   .dark-theme-tokens();
 }
 
+html[data-theme='dark'] .auth-body .wordmark-light {
+  display: none;
+}
+
+html[data-theme='dark'] .auth-body .wordmark-dark {
+  display: block;
+}
+
 @media (prefers-color-scheme: dark) {
   html[data-theme='system'] {
     .dark-theme-tokens();
+  }
+
+  html[data-theme='system'] .auth-body .wordmark-light {
+    display: none;
+  }
+
+  html[data-theme='system'] .auth-body .wordmark-dark {
+    display: block;
   }
 }
 

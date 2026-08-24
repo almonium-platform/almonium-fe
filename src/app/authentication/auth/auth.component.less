@@ -137,14 +137,8 @@ button[tuiButton] {
   height: auto;
 }
 
-:host-context(html[data-theme='dark']) .wordmark {
-  filter: brightness(0) invert(1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :host-context(html[data-theme='system']) .wordmark {
-    filter: brightness(0) invert(1);
-  }
+.wordmark-dark {
+  display: none;
 }
 
 .logo-emblem {
