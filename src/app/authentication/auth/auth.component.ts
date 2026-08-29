@@ -85,6 +85,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
   protected termsOfUseUrl = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
   protected privacyPolicyUrl = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
+  protected readonly minimumPasswordLength = AppConstants.MIN_PASSWORD_LENGTH;
 
   // greetings
   greetings: Record<string, string> = {};
@@ -98,6 +99,8 @@ export class AuthComponent implements OnInit, OnDestroy {
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
   });
   isSignUp = false;
+  protected emailIdentified = false;
+  protected accountExists = false;
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -213,7 +216,17 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   protected onSubmit() {
+    if (this.mode === 'default' && !this.emailIdentified) {
+      if (this.authForm.controls.emailValue.invalid) {
+        this.authForm.controls.emailValue.markAsTouched();
+        return;
+      }
+      this.identifyEmail();
+      return;
+    }
+
     if (!this.authForm.valid) {
+      this.authForm.markAllAsTouched();
       logger.error('Button should be disabled');
       return;
     }
@@ -228,12 +241,40 @@ export class AuthComponent implements OnInit, OnDestroy {
     } else if (this.mode === 'embedded') {
       this.login(emailValue, passwordValue);
     } else {
-      if (this.isSignUp) {
+      if (!this.accountExists) {
         this.register(emailValue, passwordValue);
       } else {
         this.login(emailValue, passwordValue);
       }
     }
+  }
+
+  private identifyEmail() {
+    const email = this.authForm.controls.emailValue.value ?? '';
+    this.loadingSubject$.next(true);
+    this.authService.lookupEmailAccount(email)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: ({registered}) => {
+          this.accountExists = registered;
+          this.isSignUp = !registered;
+          this.emailIdentified = true;
+          this.authForm.controls.emailValue.disable();
+          this.cdr.markForCheck();
+        },
+        error: (error) => this.alertService
+          .open(getErrorMessage(error, 'Could not check this email address'), {appearance: 'negative'})
+          .subscribe(),
+      });
+  }
+
+  protected changeIdentifiedEmail() {
+    this.emailIdentified = false;
+    this.accountExists = false;
+    this.isSignUp = false;
+    this.authForm.controls.emailValue.enable();
+    this.authForm.controls.passwordValue.reset('');
+    this.cdr.markForCheck();
   }
 
   private linkLocal(passwordValue: string) {
@@ -280,7 +321,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           this.alertService
             .open(response.message || 'Next step, verify your email!', {appearance: 'positive'})
             .subscribe();
-          this.isSignUp = false;
+          this.changeIdentifiedEmail();
         },
         error: (error) => {
           this.alertService.open(getErrorMessage(error, 'Registration failed'), {appearance: 'negative'}).subscribe();
@@ -380,8 +421,10 @@ export class AuthComponent implements OnInit, OnDestroy {
   get actionBtnText(): string {
     if (this.mode === 'linkLocal' || this.mode === 'changeEmail') {
       return 'Link Account';
+    } else if (this.mode === 'default' && !this.emailIdentified) {
+      return 'Continue';
     } else if (this.isSignUp) {
-      return 'Sign Up';
+      return 'Create account';
     } else {
       return 'Sign In';
     }

@@ -19,37 +19,99 @@
             </h3>
           }
 
-          @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
+          @if (mode === 'default') {
+            @if (!emailIdentified) {
+              <div class="auth-field">
+                <label for="auth-email">Email address</label>
+                <tui-textfield tuiTextfieldSize="l" data-size="l">
+                  <input
+                    id="auth-email"
+                    tuiInput
+                    formControlName="emailValue"
+                    type="email"
+                    placeholder="you@example.com"
+                    maxlength="320"
+                    autocomplete="email"
+                  />
+                </tui-textfield>
+                <tui-error formControlName="emailValue"></tui-error>
+              </div>
+            } @else {
+              <button class="identified-email" type="button" (click)="changeIdentifiedEmail()">
+                <tui-icon icon="@tui.chevron-left" />
+                <span>{{ authForm.controls.emailValue.value }}</span>
+                <strong>Change</strong>
+              </button>
+
+              <div class="auth-field">
+                <div class="password-label">
+                  <label for="auth-password">Password</label>
+                  @if (accountExists) {
+                    <a tuiLink (keydown.enter)="onForgotPassword()" tabindex="0" (click)="onForgotPassword()">Forgot?</a>
+                  }
+                </div>
+                <tui-textfield tuiTextfieldSize="l" data-size="l">
+                  <input
+                    id="auth-password"
+                    tuiInput
+                    formControlName="passwordValue"
+                    type="password"
+                    placeholder="Password"
+                    maxlength="64"
+                    [autocomplete]="accountExists ? 'current-password' : 'new-password'"
+                  />
+                  <tui-icon tuiPassword />
+                </tui-textfield>
+                <tui-error formControlName="passwordValue"></tui-error>
+                @if (!accountExists) {
+                  <p class="password-rule">Use at least {{ minimumPasswordLength }} characters.</p>
+                }
+              </div>
+            }
+
+            <app-button
+              [label]="actionBtnText"
+              [loading$]="loading$"
+              [satisfiable]="emailIdentified ? authForm.valid : authForm.controls.emailValue.valid"
+            ></app-button>
+
+            @if (!emailIdentified) {
+              <div class="separator"><b>OR</b></div>
+              <div class="social-buttons">
+                @for (provider of providers.slice(0, 2); track provider) {
+                  <app-provider-icon
+                    [provider]="provider"
+                    [connectedProviders]="this.connectedProviders"
+                    [clickOnLinked]="onSocialLogin"
+                    [loginFlow]="true"
+                  ></app-provider-icon>
+                }
+              </div>
+            }
+
+            <p class="auth-legal">
+              By continuing you agree to the
+              <a [routerLink]="termsOfUseUrl" target="_blank">Terms</a>
+              and
+              <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+            </p>
+          } @else if (mode !== 'linkLocal' && mode !== 'changeEmail') {
             <div class="social-buttons">
               @for (provider of providers; track provider) {
                 <app-provider-icon
                   [provider]="provider"
                   [connectedProviders]="this.connectedProviders"
                   [clickOnLinked]="onSocialLogin"
-                  [loginFlow]="mode ==='default'"
+                  [loginFlow]="false"
                 ></app-provider-icon>
               }
             </div>
-            @if (mode === 'default') {
-              <p class="auth-legal">
-                By continuing you agree to the
-                <a [routerLink]="termsOfUseUrl" target="_blank">Terms</a>
-                and
-                <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
-              </p>
-            }
           }
 
-          @if (this.showSeparatorAndForm) {
+          @if (mode !== 'default' && this.showSeparatorAndForm) {
             <div>
               @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
                 <div class="separator"><b>OR</b></div>
-              }
-              @if (mode === 'default') {
-                <div class="switch">
-                  <span (keydown.enter)="toggleSignUp()" tabindex="0" (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span>
-                  <span (keydown.enter)="toggleSignUp()" tabindex="0" (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
-                </div>
               }
               <div class="row-1">
                 <tui-textfield
@@ -85,11 +147,6 @@
                 </tui-textfield>
                 <tui-error formControlName="passwordValue"></tui-error>
               </div>
-              @if (!isSignUp && mode === 'default') {
-                <div class="forgot-div">
-                  <a tuiLink (keydown.enter)="onForgotPassword()" tabindex="0" (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
-                </div>
-              }
               <div class="mt-2.5">
                 <app-button
                   [label]="actionBtnText"

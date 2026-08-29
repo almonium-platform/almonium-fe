@@ -51,6 +51,10 @@ export class AuthService {
     );
   }
 
+  lookupEmailAccount(email: string): Observable<{registered: boolean}> {
+    return this.http.post<{registered: boolean}>(`${AppConstants.PUBLIC_AUTH_URL}/email-accounts`, {email});
+  }
+
   googleSignIn(mode: 'sign-in' | 'reauth' | 'link' = 'sign-in'): Observable<UserInfo> {
     const provider = new GoogleAuthProvider();
     return this.providerSignIn(provider, mode);

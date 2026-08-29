@@ -2,7 +2,7 @@
   --tui-background-accent-1: var(--brand-primary);
   --tui-status-negative: var(--danger-text-color);
   --tui-text-negative: var(--danger-text-color);
-  --tui-radius-l: 2rem;
+  --tui-radius-l: .75rem;
 }
 
 form {
@@ -95,7 +95,7 @@ button[tuiButton] {
 }
 
 .auth-legal {
-  margin: 14px 0 0;
+  margin: 20px 0 0;
   color: var(--metadata-color);
   font-size: 11.5px;
   line-height: 1.5;
@@ -154,6 +154,65 @@ button[tuiButton] {
   margin: 20px 0;
   min-width: 280px;
   padding: 0 1rem;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.auth-field label,
+.password-label {
+  color: var(--metadata-color);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.password-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.password-label a {
+  color: var(--brand-margin);
+}
+
+.identified-email {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 42px;
+  margin: 0 0 18px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+}
+
+.identified-email span {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identified-email strong {
+  color: var(--brand-margin);
+  font-size: 12px;
+}
+
+.password-rule {
+  margin: 0;
+  color: var(--metadata-color);
+  font-size: 11.5px;
 }
 
 .separator::before,
