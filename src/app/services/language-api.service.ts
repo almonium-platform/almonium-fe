@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
+import {map, Observable} from 'rxjs';
 import {AppConstants} from '../app.constants';
 import {LanguageCode} from "../models/language.enum";
 import {TargetLanguageWithProficiency} from "../onboarding/language-setup/language-setup.model";
-import {Learner} from "../models/userinfo.model";
+import {CEFRLevel, Learner} from "../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -28,8 +28,10 @@ export class LanguageApiService {
     return this.http.post<Learner[]>(url, {data: payload}, {withCredentials: true});
   }
 
-  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: string }>) {
+  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: CEFRLevel }>): Observable<Learner> {
     const url = `${AppConstants.LEARNER_PROFILES_URL}/${language}`;
-    return this.http.patch(url, updates, {withCredentials: true});
+    return this.http.patch<unknown>(url, updates, {withCredentials: true}).pipe(
+      map((response) => Learner.fromJSON(response)),
+    );
   }
 }

@@ -87,6 +87,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected colourPickerLanguage: LanguageCode | null = null;
   protected readonly cefrLevels = Object.values(CEFRLevel);
   protected readonly languageColours = LANGUAGE_COLOURS;
+  protected readonly updatingLearnerIds = new Set<string>();
   private langColors: Record<string, string> = {};
 
   // TL deletion modal
@@ -156,18 +157,30 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected onCefrLevelChange(learner: Learner, newValue: CEFRLevel): void {
-    const oldValue = learner.selfReportedLevel;
-    learner.selfReportedLevel = newValue;
+    if (learner.selfReportedLevel === newValue || this.updatingLearnerIds.has(learner.id)) {
+      return;
+    }
 
-    this.languageApiService.updateLearner(learner.language, {level: newValue}).subscribe({
-      next: () => {
+    const previousLearners = this.learners;
+    const optimisticLearner = new Learner(learner.id, learner.language, newValue, learner.active);
+    this.learners = this.learners.map((currentLearner) =>
+      currentLearner.id === learner.id ? optimisticLearner : currentLearner,
+    );
+    this.updatingLearnerIds.add(learner.id);
+
+    this.languageApiService.updateLearner(learner.language, {level: newValue}).pipe(
+      finalize(() => this.updatingLearnerIds.delete(learner.id)),
+    ).subscribe({
+      next: (savedLearner) => {
+        this.learners = this.learners.map((currentLearner) =>
+          currentLearner.id === learner.id ? savedLearner : currentLearner,
+        );
         this.userInfoService.updateUserInfo({learners: this.learners});
-        this.userInfoService.fetchUserInfoFromServer().subscribe();
       },
       error: (err) => {
         logger.error('Failed to update CEFR:', err);
         this.alertService.open('Failed to update CEFR level', {appearance: 'negative'}).subscribe();
-        learner.selfReportedLevel = oldValue;
+        this.learners = previousLearners;
       },
     });
   }

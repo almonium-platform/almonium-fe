@@ -104,6 +104,20 @@ describe('UserInfoService', () => {
     expect(Object.hasOwn(persistedUser, 'streamChatToken')).toBeFalse();
   });
 
+  it('does not let an older profile refresh overwrite a newer one', async () => {
+    const olderRequestPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    const newerRequestPromise = firstValueFrom(service.fetchUserInfoFromServer());
+    const [olderRequest, newerRequest] = httpTesting.match(AppConstants.ME_URL);
+
+    newerRequest.flush({...serverUser, username: 'new-level'});
+    olderRequest.flush({...serverUser, username: 'old-level'});
+
+    await Promise.all([olderRequestPromise, newerRequestPromise]);
+
+    expect(service.currentUserInfo?.username).toBe('new-level');
+    expect(localStorage.saveUserInfo.calls.mostRecent().args[0].username).toBe('new-level');
+  });
+
   it('rejects malformed session DTOs without persisting partial identity state', async () => {
     const resultPromise = firstValueFrom(service.fetchUserInfoFromServer());
     httpTesting.expectOne(AppConstants.ME_URL).flush({

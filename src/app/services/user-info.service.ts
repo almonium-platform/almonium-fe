@@ -18,6 +18,7 @@ export class UserInfoService {
   private userInfoSubject = new BehaviorSubject<UserInfo | null>(null);
   private sessionVerified = false;
   private streamChatTokenValue: string | null = null;
+  private userInfoRequestVersion = 0;
   userInfo$ = this.userInfoSubject.asObservable();
 
   constructor() {
@@ -35,6 +36,7 @@ export class UserInfoService {
   }
 
   clearUserInfo(): void {
+    this.invalidatePendingUserInfoRequests();
     this.localStorageService.clearUserInfo();
     this.sessionVerified = false;
     this.streamChatTokenValue = null;
@@ -45,11 +47,17 @@ export class UserInfoService {
    * Fetch user info from the server.
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
+    const requestVersion = ++this.userInfoRequestVersion;
+
     return this.http.get<unknown>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
       map((data) => {
         return parseUserInfoDto(data);
       }),
       tap(({userInfo, streamChatToken}) => {
+        if (!this.isCurrentUserInfoRequest(requestVersion)) {
+          return;
+        }
+
         this.streamChatTokenValue = streamChatToken;
         this.sessionVerified = true;
         this.localStorageService.saveUserInfo(userInfo);
@@ -57,6 +65,10 @@ export class UserInfoService {
       }),
       map(({userInfo}) => userInfo),
       catchError((error) => {
+        if (!this.isCurrentUserInfoRequest(requestVersion)) {
+          return of(null);
+        }
+
         logger.error('Failed to load user info from server:', error);
         this.sessionVerified = false;
         this.streamChatTokenValue = null;
@@ -74,6 +86,7 @@ export class UserInfoService {
   updateUserInfo(updates: Partial<UserInfo>): void {
     const currentUserInfo = this.getCurrentUserInfo();
     if (currentUserInfo) {
+      this.invalidatePendingUserInfoRequests();
       const updatedUserInfo = currentUserInfo.update(updates);
       this.localStorageService.saveUserInfo(updatedUserInfo);
       this.userInfoSubject.next(updatedUserInfo); // Notify subscribers
@@ -89,6 +102,7 @@ export class UserInfoService {
   }
 
   setUserInfo(userInfoData: UserInfoDto): void {
+    this.invalidatePendingUserInfoRequests();
     const {userInfo, streamChatToken} = parseUserInfoDto(userInfoData);
     this.streamChatTokenValue = streamChatToken;
     this.sessionVerified = true;
@@ -98,5 +112,13 @@ export class UserInfoService {
 
   private getCurrentUserInfo(): UserInfo | null {
     return this.currentUserInfo;
+  }
+
+  private invalidatePendingUserInfoRequests(): void {
+    this.userInfoRequestVersion++;
+  }
+
+  private isCurrentUserInfoRequest(requestVersion: number): boolean {
+    return requestVersion === this.userInfoRequestVersion;
   }
 }
