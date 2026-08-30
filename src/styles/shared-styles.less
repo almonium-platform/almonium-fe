@@ -61,6 +61,15 @@
   }
 }
 
+// Popovers borrow --tui-radius-l, which is dialled up to 3rem globally so that
+// textfields read as pills. On a short menu or tooltip that lands as a stadium,
+// give the floating surfaces their own, calmer radius.
+tui-dropdown,
+tui-hint {
+  --tui-radius-l: .75rem;
+  --tui-radius-m: .625rem;
+}
+
 tui-data-list button[tuiOption].context-button {
   display: flex;
   justify-content: flex-start;
