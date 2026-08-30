@@ -12,16 +12,11 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
-import {catchError, takeUntil} from "rxjs/operators";
+import {catchError} from "rxjs/operators";
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 import {ThemeService} from 'stream-chat-angular';
 import {applyThemeAssets} from '../../../services/theme-assets';
 import {applyMotionPreference, resolveReducedMotion} from '../../../services/motion-preference';
-import {RhythmTargetComponent} from '../../../shared/rhythm/rhythm-target/rhythm-target.component';
-import {RhythmService} from '../../../shared/rhythm/rhythm.service';
-import {LanguageRhythm} from '../../../shared/rhythm/rhythm.model';
-import {LanguageCode} from '../../../models/language.enum';
-import {LanguageNameService} from '../../../services/language-name.service';
 
 @Component({
   selector: 'app-app-settings',
@@ -32,8 +27,7 @@ import {LanguageNameService} from '../../../services/language-name.service';
     TuiSwitch,
     FormsModule,
     TuiIcon,
-    ButtonComponent,
-    RhythmTargetComponent
+    ButtonComponent
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
@@ -46,8 +40,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private alertService = inject(TuiNotificationService);
   private taigaDarkMode = inject(TUI_DARK_MODE);
   private streamThemeService = inject(ThemeService);
-  private rhythmService = inject(RhythmService);
-  private languageNameService = inject(LanguageNameService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -55,8 +47,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
-  protected languageRhythms: LanguageRhythm[] = [];
-  private langColors: Record<string, string> = {};
   protected appearance: 'light' | 'dark' | 'system' = 'system';
   protected reduceMotion = false;
   protected dailyReview = false;
@@ -82,16 +72,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
     this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
     this.applyAppearancePreferences();
-
-    this.rhythmService.rhythm$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(rhythm => this.languageRhythms = rhythm?.languages ?? []);
-    this.targetLanguageDropdownService.langColors$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(colors => this.langColors = colors);
-    this.rhythmService.load().subscribe({
-      error: (error) => logger.error('Failed to load your rhythm:', error),
-    });
 
     this.userInfoService.userInfo$
       .pipe(take(1)) // Only listen to the first emission
@@ -123,14 +103,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           this.uiPreferences.navbar[key] = oldValue;
         },
       });
-  }
-
-  protected languageName(language: LanguageCode): string {
-    return this.languageNameService.getLanguageName(language);
-  }
-
-  protected crestColour(language: LanguageCode): string {
-    return this.langColors[language] ?? '#7A6BB8';
   }
 
   protected getKeys<T extends object>(obj: T): (keyof T)[] {

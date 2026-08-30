@@ -6,6 +6,7 @@ import {CardDto} from '../../models/card.model';
 import {LanguageCode} from '../../models/language.enum';
 import {SetupStep, UserInfo} from '../../models/userinfo.model';
 import {CardService} from '../../services/card.service';
+import {LanguageNameService} from '../../services/language-name.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {BookCoverComponent} from '../read/book-cover/book-cover.component';
@@ -27,6 +28,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly readService = inject(ReadService);
   private readonly cardService = inject(CardService);
+  private readonly languageNameService = inject(LanguageNameService);
   private readonly reviewService = inject(ReviewService);
   private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
@@ -120,6 +122,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   protected get suggestedBooks(): Book[] {
     return this.shelf.available.slice(0, 3);
+  }
+
+  protected get languageName(): string {
+    return this.languageNameService.getLanguageName(this.selectedLanguage);
   }
 
   protected get learnerLevel(): string | null {

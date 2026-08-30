@@ -2,25 +2,29 @@ import {Component, OnInit, inject} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {Observable, combineLatest, map} from 'rxjs';
 import {LanguageCode} from '../../../models/language.enum';
+import {LanguageApiService} from '../../../services/language-api.service';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
+import {UserInfoService} from '../../../services/user-info.service';
 import {logger} from '../../logger';
-import {LanguageRhythm, RhythmDay, RhythmWeek, WeeklyTarget, hasTarget, localDate} from '../rhythm.model';
+import {
+  LanguageRhythm,
+  RhythmWeek,
+  TARGET_OPTIONS,
+  WeeklyTarget,
+  cadenceLabel,
+  hasTarget,
+  numberWord,
+  trackedWeeks,
+} from '../rhythm.model';
 import {RhythmService} from '../rhythm.service';
-import {RhythmTargetComponent} from '../rhythm-target/rhythm-target.component';
 
-const CADENCE: Record<number, string> = {
-  2: 'Two days a week',
-  3: 'Three days a week',
-  5: 'Five days a week',
-  7: 'Every day',
-};
-
-/** Weeks shown in full, day by day, ending with the one in progress. */
-const ROWS = 4;
+/** Weeks the card shows. The band keeps more; twelve is what the sentence talks about. */
+const WEEKS_SHOWN = 12;
 const DEFAULT_CREST = '#7A6BB8';
+const SESSION_WORD: Record<number, string> = {1: 'one session', 2: 'two sessions', 4: 'four sessions'};
 
-interface HarnessView {
+interface RecordView {
   language: LanguageCode;
   languageName: string;
   rhythm: LanguageRhythm | null;
@@ -29,24 +33,26 @@ interface HarnessView {
 }
 
 /**
- * The harness — the learner's own target for this language, not a streak.
+ * The record — twelve weeks, and the bar the learner set for this language.
  *
- * <p>Weeks are the unit, so missing a Tuesday is not a failure and there is no number that can be lost. The only
- * judgement here is against a bar the learner set themselves, and "No target" is a legitimate choice. Home shows
- * the active language alone, in that language's own colour, so the band says which commitment was kept.
+ * <p>Weeks are the unit, so missing a Tuesday is not a failure and there is no number that can be lost. The target
+ * is edited here, in place, because this is the only surface that shows what changing it re-reads. A language that
+ * has been set aside freezes: its weeks since read as neither met nor missed.
  */
 @Component({
   selector: 'app-harness',
   templateUrl: './harness.component.html',
   styleUrls: ['./harness.component.less'],
-  imports: [AsyncPipe, RhythmTargetComponent],
+  imports: [AsyncPipe],
 })
 export class HarnessComponent implements OnInit {
   private readonly rhythmService = inject(RhythmService);
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly languageNameService = inject(LanguageNameService);
+  private readonly languageApiService = inject(LanguageApiService);
+  private readonly userInfoService = inject(UserInfoService);
 
-  protected readonly view$: Observable<HarnessView> = combineLatest([
+  protected readonly view$: Observable<RecordView> = combineLatest([
     this.rhythmService.rhythm$,
     this.languageService.currentLanguage$,
     this.languageService.langColors$,
@@ -58,55 +64,116 @@ export class HarnessComponent implements OnInit {
     crest: colours[language] ?? DEFAULT_CREST,
   })));
 
-  protected readonly weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  protected readonly today = localDate();
-  protected readonly hasTarget = hasTarget;
+  protected readonly options = TARGET_OPTIONS;
+  protected editing = false;
+  protected draft: WeeklyTarget = null;
+  protected saving = false;
 
   ngOnInit(): void {
     if (this.rhythmService.rhythm) return;
     this.rhythmService.load().subscribe({
-      error: error => logger.error('Could not load your rhythm', error),
+      error: error => logger.error('Could not load your record', error),
     });
   }
 
   protected shownWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
-    return rhythm.weeks.slice(-ROWS);
+    return rhythm.weeks.slice(-WEEKS_SHOWN);
   }
 
-  protected isCurrentWeek(rhythm: LanguageRhythm, week: RhythmWeek): boolean {
-    return week === rhythm.weeks.at(-1);
+  /** Nothing has happened yet, so the card asks for no commitment: there is nothing to measure one against. */
+  protected isEmpty(rhythm: LanguageRhythm): boolean {
+    return !this.shownWeeks(rhythm).some(week => week.daysMet > 0);
   }
 
-  protected weekLabel(weekStart: string): string {
-    const [year, month, day] = weekStart.split('-').map(Number);
-    return new Intl.DateTimeFormat(undefined, {month: 'short', day: 'numeric'})
-      .format(new Date(year, month - 1, day));
+  /** Tint deepens with time spent that week. Six steps, so a light week and a heavy one do not read alike. */
+  protected tint(week: RhythmWeek): number {
+    const minutes = week.days.reduce((total, day) => total + day.minutes, 0);
+    if (week.frozen) return 0;
+    if (minutes >= 240) return 5;
+    if (minutes >= 120) return 4;
+    if (minutes >= 60) return 3;
+    if (minutes >= 30) return 2;
+    if (minutes > 0 || week.daysMet > 0) return 1;
+    return 0;
   }
 
-  /** Tint follows time learning, but any met day keeps a visible floor so a short session never reads as a blank. */
-  protected tint(day: RhythmDay): number {
-    if (!day.met) return 0;
-    if (day.minutes >= 25) return 3;
-    if (day.minutes >= 10) return 2;
-    return 1;
+  protected weekLabel(week: RhythmWeek): string {
+    if (week.frozen) return `Week of ${week.weekStart}: set aside`;
+    const minutes = week.days.reduce((total, day) => total + day.minutes, 0);
+    if (minutes === 0) return `Week of ${week.weekStart}: nothing recorded`;
+    return `Week of ${week.weekStart}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
   }
 
-  protected isFuture(day: RhythmDay): boolean {
-    return day.date > this.today;
+  protected cadence(target: WeeklyTarget): string {
+    return cadenceLabel(target);
   }
 
-  protected isToday(day: RhythmDay): boolean {
-    return day.date === this.today;
+  /** The sentence the card leads with, which is the whole of the judgement it makes. */
+  protected summary(rhythm: LanguageRhythm, languageName: string): string {
+    const counted = trackedWeeks(rhythm).filter(week => this.shownWeeks(rhythm).includes(week));
+    const met = counted.filter(week => week.met).length;
+
+    if (!rhythm.editable) {
+      const aside = rhythm.setAsideAt ? ` on ${this.formatDate(rhythm.setAsideAt)}` : '';
+      return `${numberWord(met)} ${met === 1 ? 'week' : 'weeks'} met your target before you set ${languageName}`
+        + ` aside${aside}. The weeks since are not counted against you.`;
+    }
+    if (this.isEmpty(rhythm)) {
+      return 'Twelve weeks, filling in as you learn. You can set a target once there is something to measure.';
+    }
+    if (!hasTarget(rhythm.target)) {
+      return 'Twelve weeks with no bar to meet. Tint shows time learning, not a score.';
+    }
+    return `${numberWord(met)} of the last ${numberWord(counted.length)} weeks met your target of`
+      + ` ${SESSION_WORD[rhythm.target] ?? `${rhythm.target} sessions`}.`
+      + ' Tint shows time learning, not a score.';
   }
 
-  protected dayLabel(day: RhythmDay): string {
-    if (!day.met) return `${day.date}: nothing recorded`;
-    if (day.minutes === 0) return `${day.date}: under a minute`;
-    return `${day.date}: ${day.minutes} ${day.minutes === 1 ? 'minute' : 'minutes'}`;
+  protected startEditing(rhythm: LanguageRhythm): void {
+    this.draft = rhythm.target;
+    this.editing = true;
   }
 
-  protected headline(target: WeeklyTarget): string {
-    if (target === null) return 'Set your own pace';
-    return hasTarget(target) ? CADENCE[target] ?? `${target} days a week` : 'No target';
+  protected cancelEditing(): void {
+    this.editing = false;
+  }
+
+  protected save(rhythm: LanguageRhythm): void {
+    if (this.saving || this.draft === rhythm.target) {
+      this.editing = false;
+      return;
+    }
+    this.saving = true;
+    this.rhythmService.setTarget(rhythm.language, this.draft).subscribe({
+      next: () => {
+        this.saving = false;
+        this.editing = false;
+      },
+      error: error => {
+        this.saving = false;
+        logger.error('Could not save your target', error);
+      },
+    });
+  }
+
+  protected makeActive(rhythm: LanguageRhythm): void {
+    if (this.saving) return;
+    this.saving = true;
+    this.languageApiService.updateLearner(rhythm.language, {active: true}).subscribe({
+      next: () => {
+        this.saving = false;
+        this.userInfoService.fetchUserInfoFromServer().subscribe({error: () => undefined});
+        this.rhythmService.load().subscribe({error: () => undefined});
+      },
+      error: error => {
+        this.saving = false;
+        logger.error('Could not make this language active again', error);
+      },
+    });
+  }
+
+  private formatDate(date: string): string {
+    const [year, month, day] = date.split('-').map(Number);
+    return new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(new Date(year, month - 1, day));
   }
 }

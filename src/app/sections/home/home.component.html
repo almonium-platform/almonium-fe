@@ -6,27 +6,48 @@
       <span class="loading-line short"></span><span class="loading-line title"></span><span class="loading-line"></span>
     </section>
   } @else if (!hasHomeActivity) {
-    <section class="empty-home" aria-labelledby="empty-home-title">
+    <section class="home-card empty-hero" aria-labelledby="empty-home-title">
       <div class="almo-greeting" aria-hidden="true"><img src="assets/img/almo/empty_box.png" alt=""></div>
-      <p class="eyebrow">Nothing here yet</p>
-      <h1 id="empty-home-title">Start with one page</h1>
-      <p>Almo hasn’t found any books in progress yet. Open one from the library and the words you keep will collect here.</p>
+      <div class="empty-copy">
+        <p class="eyebrow">Nothing here yet</p>
+        <h1 id="empty-home-title">Start with one page</h1>
+        <p>Open a book and the words you keep collect here, next to the sentence you met them in. One page is enough to see how it works.</p>
+      </div>
       <div class="empty-actions"><a class="primary-action" routerLink="/read">Open the library</a><a class="text-action" routerLink="/discover">Or paste a sentence into Discover</a></div>
     </section>
 
-    @if (suggestedBooks.length > 0) {
-      <section class="home-card suggestions" aria-labelledby="suggestions-title">
-        <p class="eyebrow" id="suggestions-title">Suggested @if (learnerLevel) { for {{ learnerLevel }} } {{ selectedLanguage }}</p>
-        <div class="suggestion-row">
-          @for (book of suggestedBooks; track book.id) {
-            <a class="suggestion-book" [routerLink]="['/books', book.editionSlug]">
-              <span class="suggestion-cover"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover></span>
-              <span><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span>
-            </a>
+    <div class="dashboard-grid">
+      <div class="main-column">
+        <section class="home-card suggestions" aria-labelledby="suggestions-title">
+          <header class="card-heading">
+            <div>
+              <p class="eyebrow">Where most people start</p>
+              <h2 id="suggestions-title">Short {{ languageName }}@if (learnerLevel) { , {{ learnerLevel }} and up }</h2>
+            </div>
+            <a routerLink="/read">Browse the library</a>
+          </header>
+          @if (suggestedBooks.length > 0) {
+            <div class="book-row">
+              @for (book of suggestedBooks; track book.id; let index = $index) {
+                <a class="book-spine spine-{{ index + 1 }}" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="book.title + ' by ' + book.author"><span>{{ book.title }}</span></a>
+              }
+              <p>Pick one and the words you keep start collecting.<a class="text-action" routerLink="/read">Import a book of your own</a></p>
+            </div>
+          } @else {
+            <p class="card-empty">The library is loading. Anything you open will keep its place.</p>
           }
-        </div>
-      </section>
-    }
+        </section>
+      </div>
+
+      <aside class="side-column" aria-label="Learning overview">
+        <section class="home-card review-card empty-due">
+          <p class="eyebrow">Due today</p>
+          <div class="review-count"><strong>0</strong><span>nothing scheduled</span></div>
+          <p>Reviews appear a day after you keep your first word.</p>
+        </section>
+        <app-harness></app-harness>
+      </aside>
+    </div>
   } @else {
     <section class="home-card continue-card" aria-labelledby="continue-title">
       @if (continueBook; as book) {
@@ -44,8 +65,6 @@
 
     <div class="dashboard-grid">
       <div class="main-column">
-        <app-harness></app-harness>
-
         <section class="home-card kept-card" aria-labelledby="kept-title">
           <header class="card-heading"><div><p class="eyebrow">Kept while reading</p><h2 id="kept-title">{{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }}</h2></div><a routerLink="/review">All saved words</a></header>
           @if (recentCards.length > 0) {
@@ -74,6 +93,7 @@
 
       <aside class="side-column" aria-label="Learning overview">
         <section class="home-card review-card"><p class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span>{{ reviewCount === 1 ? 'word' : 'words' }} ready to come back</span></div><p>Review the vocabulary you chose to learn in {{ selectedLanguage }}.</p><a class="secondary-action" routerLink="/review">Start review</a></section>
+        <app-harness></app-harness>
         <section class="home-card plan-card"><p class="eyebrow">Your plan</p><p>You’re on {{ userInfo?.subscription?.name ?? (userInfo?.premium ? 'Premium' : 'Free') }} with {{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }} in {{ selectedLanguage }}.</p>@if (!userInfo?.premium) { <a routerLink="/pricing">See what Premium adds</a> }</section>
       </aside>
     </div>

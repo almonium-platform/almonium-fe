@@ -4,6 +4,7 @@ import {
   expectBoolean,
   expectEnum,
   expectNullableNumber,
+  expectNullableString,
   expectNumber,
   expectRecord,
   expectString,
@@ -12,12 +13,11 @@ import {
 /** Days per week a learner can ask of one language. `null` means never chosen; 0 is the deliberate "no target". */
 export type WeeklyTarget = number | null;
 
-export const TARGET_OPTIONS: {value: number; label: string}[] = [
-  {value: 2, label: '2×'},
-  {value: 3, label: '3×'},
-  {value: 5, label: '5×'},
-  {value: 7, label: 'Daily'},
-  {value: 0, label: 'No target'},
+export const TARGET_OPTIONS: {value: number; label: string; note?: string}[] = [
+  {value: 1, label: 'Once a week'},
+  {value: 2, label: 'Twice a week'},
+  {value: 4, label: 'Four times a week'},
+  {value: 0, label: 'No target', note: 'Keep the record, drop the bar'},
 ];
 
 export interface RhythmDay {
@@ -31,6 +31,8 @@ export interface RhythmWeek {
   weekStart: string;
   daysMet: number;
   met: boolean;
+  /** A week after the language was set aside: neither met nor missed, because nothing was asked of it. */
+  frozen: boolean;
   days: RhythmDay[];
 }
 
@@ -41,6 +43,8 @@ export interface LanguageRhythm {
   editable: boolean;
   /** When the language was taken up, so weeks at pace count only the weeks it has existed. */
   startedAt: string;
+  /** When the language was set aside, or null while it is active. */
+  setAsideAt: string | null;
   /** Oldest first, ending with the week in progress. */
   weeks: RhythmWeek[];
 }
@@ -64,6 +68,7 @@ function parseLanguageRhythm(value: unknown, path: string): LanguageRhythm {
     target: expectNullableNumber(rhythm['target'], `${path}.target`),
     editable: expectBoolean(rhythm['editable'], `${path}.editable`),
     startedAt: expectString(rhythm['startedAt'], `${path}.startedAt`),
+    setAsideAt: expectNullableString(rhythm['setAsideAt'], `${path}.setAsideAt`),
     weeks: expectArray(rhythm['weeks'], `${path}.weeks`).map((week, index) => parseWeek(week, `${path}.weeks[${index}]`)),
   };
 }
@@ -74,6 +79,7 @@ function parseWeek(value: unknown, path: string): RhythmWeek {
     weekStart: expectString(week['weekStart'], `${path}.weekStart`),
     daysMet: expectNumber(week['daysMet'], `${path}.daysMet`),
     met: expectBoolean(week['met'], `${path}.met`),
+    frozen: expectBoolean(week['frozen'], `${path}.frozen`),
     days: expectArray(week['days'], `${path}.days`).map((day, index) => parseDay(day, `${path}.days[${index}]`)),
   };
 }
@@ -100,8 +106,17 @@ export function hasTarget(target: WeeklyTarget): target is number {
 
 export function cadenceLabel(target: WeeklyTarget): string {
   if (target === null) return 'No pace set';
-  if (target === 0) return 'No target';
-  return target === 7 ? 'Daily' : `${target}× a week`;
+  return TARGET_OPTIONS.find(option => option.value === target)?.label ?? `${target} times a week`;
+}
+
+const NUMBER_WORDS = [
+  'No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
+  'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
+];
+
+/** The record speaks in words, not figures — it is a sentence about a person, not a readout. */
+export function numberWord(value: number): string {
+  return NUMBER_WORDS[value] ?? `${value}`;
 }
 
 /** The Monday the given day belongs to, so a start date can be compared with a week's start. */
@@ -112,10 +127,13 @@ function weekStartOf(date: string): string {
   return localDate(parsed);
 }
 
-/** Only the weeks the language has actually existed: a language taken up in June is not judged against fourteen. */
+/**
+ * Only the weeks that were ever asked of: after the language was taken up, and before it was set aside. A week
+ * outside that span is not a week it missed.
+ */
 export function trackedWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
   const start = weekStartOf(rhythm.startedAt);
-  return rhythm.weeks.filter(week => week.weekStart >= start);
+  return rhythm.weeks.filter(week => week.weekStart >= start && !week.frozen);
 }
 
 export function weeksAtPace(rhythm: LanguageRhythm): number {

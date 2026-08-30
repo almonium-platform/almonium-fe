@@ -1,55 +1,61 @@
 :host { display: block; }
-.harness { --crest-color: var(--brand-primary); display: flex; flex-direction: column; gap: 1.35rem; padding: 1.45rem 1.6rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
+.record { --crest-color: var(--brand-primary); display: flex; flex-direction: column; gap: .85rem; padding: 1.35rem 1.5rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
 
-.harness-head { display: flex; align-items: flex-start; gap: .9rem; }
-.harness-head > div { min-width: 0; }
-.crest { display: flex; flex: 0 0 2.9rem; align-items: center; justify-content: center; height: 2.15rem; border: 1.5px solid var(--crest-color); border-radius: .62rem; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .85rem; font-weight: 500; }
-.eyebrow { margin: 0; color: var(--crest-color); font-size: .69rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
-h2 { margin: .2rem 0 0; font-family: var(--font-family-reading); font-size: 1.45rem; font-weight: 600; line-height: 1.14; }
-.harness-lede { margin: .3rem 0 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.55; }
+.record-head { display: flex; align-items: center; gap: .6rem; }
+.eyebrow { color: var(--dark-raspberry); font-size: .69rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.record-language { margin-left: auto; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .69rem; }
 
-.band { display: flex; flex-direction: column; gap: .42rem; }
-.band-row { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) 4.4rem; align-items: center; gap: .6rem; }
-.week-label { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
-.band-row.current .week-label { color: var(--text-color); font-weight: 500; }
-.band-head .week-label, .weekday, .band-head .week-verdict { color: var(--metadata-color); font-family: inherit; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
-.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; max-width: 15rem; }
-.weekday { text-align: center; }
-.day { aspect-ratio: 1; border-radius: .35rem; background: var(--hairline-color); }
+.weeks { display: flex; gap: .3rem; transition: opacity 160ms ease; }
+.weeks.behind { opacity: .4; }
+.week { flex: 1; height: 2.1rem; border-radius: .32rem; background: var(--nested-color); }
 
-// Three steps of the language's own hue, darkening as the time deepens. The color-mix pair is the fallback for
-// engines without relative colour; the oklch pair is the drawn ramp, chroma rising as lightness falls.
-.day.tint-1 { background: color-mix(in srgb, var(--crest-color) 26%, var(--card-color)); }
-.day.tint-2 { background: color-mix(in srgb, var(--crest-color) 58%, var(--card-color)); }
-.day.tint-3 { background: var(--crest-color); }
+// Time learning, six steps of the language's own hue. The colour-mix pair is the fallback for engines without
+// relative colour; the oklch pair is the ramp, chroma rising as lightness falls.
+.week.level-1 { background: color-mix(in srgb, var(--crest-color) 14%, var(--card-color)); }
+.week.level-2 { background: color-mix(in srgb, var(--crest-color) 28%, var(--card-color)); }
+.week.level-3 { background: color-mix(in srgb, var(--crest-color) 45%, var(--card-color)); }
+.week.level-4 { background: color-mix(in srgb, var(--crest-color) 65%, var(--card-color)); }
+.week.level-5 { background: var(--crest-color); }
 @supports (background: oklch(from #fff l c h)) {
-  .day.tint-1, .legend .tint-1 { background: oklch(from var(--crest-color) .84 .05 h); }
-  .day.tint-2, .legend .tint-2 { background: oklch(from var(--crest-color) .67 .08 h); }
-  .day.tint-3, .legend .tint-3 { background: oklch(from var(--crest-color) .50 .10 h); }
+  .week.level-1 { background: oklch(from var(--crest-color) .90 .035 h); }
+  .week.level-2 { background: oklch(from var(--crest-color) .82 .05 h); }
+  .week.level-3 { background: oklch(from var(--crest-color) .73 .07 h); }
+  .week.level-4 { background: oklch(from var(--crest-color) .62 .09 h); }
+  .week.level-5 { background: oklch(from var(--crest-color) .50 .10 h); }
 }
-.day.today { box-shadow: inset 0 0 0 1.5px var(--crest-color); }
-.day.future { background: var(--nested-color); box-shadow: inset 0 0 0 1px var(--control-border-color); border: 1px dashed var(--control-border-color); }
 
-.week-verdict { font-size: .72rem; text-align: right; }
-.week-verdict .met { color: var(--success-color); font-size: .82rem; }
-.week-verdict .quiet { color: var(--metadata-color); }
-
-.legend { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem .85rem; padding: .7rem .9rem; border-radius: .85rem; background: var(--nested-color); }
-.swatches { display: flex; gap: .22rem; }
-.swatches i { width: .85rem; height: .85rem; border-radius: .25rem; }
-.legend .tint-1 { background: color-mix(in srgb, var(--crest-color) 26%, var(--card-color)); }
-.legend .tint-2 { background: color-mix(in srgb, var(--crest-color) 58%, var(--card-color)); }
-.legend .tint-3 { background: var(--crest-color); }
-.legend-copy { color: var(--subhead-color); font-size: .78rem; }
-.legend-scale { margin-left: auto; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
-
-.loading-line { display: block; width: 60%; height: .9rem; border-radius: 999px; background: var(--nested-color); animation: harness-pulse 1.5s ease-in-out infinite; }
-.loading-line.title { width: 40%; height: 1.7rem; }
-@keyframes harness-pulse { 50% { opacity: .45; } }
-
-@media (max-width: 560px) {
-  .band-row { grid-template-columns: 3.2rem minmax(0, 1fr) 3.6rem; gap: .4rem; }
-  .days { max-width: none; }
-  .legend-scale { margin-left: 0; }
+// Neither met nor missed: a language that was set aside was never asked for these weeks.
+.week.frozen {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--nested-color), var(--nested-color) 3px,
+    var(--hairline-color) 3px, var(--hairline-color) 6px
+  );
 }
-@media (prefers-reduced-motion: reduce) { .loading-line { animation: none; } }
+
+.record-summary { margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.6; }
+.record-foot { display: flex; align-items: center; gap: .6rem; }
+.cadence { color: var(--subhead-color); font-size: .78rem; }
+.cadence.quiet { color: var(--metadata-color); }
+.link { padding: 0; border: none; background: none; color: var(--dark-raspberry); font-size: .78rem; font-weight: 500; cursor: pointer; }
+.link:hover { text-decoration: underline; }
+.link:disabled { cursor: default; opacity: .6; }
+
+.panel-title { margin: 0; font-family: var(--font-family-reading); font-size: 1.05rem; font-weight: 600; }
+.choices { display: flex; flex-direction: column; gap: .44rem; }
+.choice { display: flex; align-items: center; gap: .7rem; padding: .56rem .8rem; border: 1px solid var(--hairline-color); border-radius: .7rem; background: transparent; color: var(--text-color); font-size: .84rem; text-align: left; cursor: pointer; }
+.choice:hover { background: var(--state-hover); }
+.choice.selected { border: 1.5px solid var(--dark-raspberry); background: var(--state-selected); font-weight: 500; }
+.dot { flex: 0 0 1rem; width: 1rem; height: 1rem; border: 1.5px solid var(--control-border-color); border-radius: 50%; }
+.choice.selected .dot { border: .28rem solid var(--dark-raspberry); background: var(--card-color); }
+.choice-copy { display: flex; flex-direction: column; gap: .05rem; }
+.choice-copy small { color: var(--metadata-color); font-size: .72rem; }
+.panel-note { margin: 0; color: var(--metadata-color); font-size: .74rem; line-height: 1.55; }
+.panel-actions { display: flex; align-items: center; gap: .9rem; }
+.save { padding: .55rem 1.25rem; border: none; border-radius: 999px; background: var(--dark-raspberry); color: var(--on-brand-color); font-size: .8rem; font-weight: 600; cursor: pointer; }
+.save:disabled { cursor: default; opacity: .6; }
+.cancel { padding: 0; border: none; background: none; color: var(--metadata-color); font-size: .78rem; cursor: pointer; }
+
+.loading-line { display: block; width: 70%; height: .8rem; border-radius: 999px; background: var(--nested-color); animation: record-pulse 1.5s ease-in-out infinite; }
+@keyframes record-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .loading-line { animation: none; } .weeks { transition: none; } }
