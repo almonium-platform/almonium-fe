@@ -1,20 +1,5 @@
-.record-row { --crest-color: var(--brand-primary); display: flex; flex-direction: column; gap: .55rem; }
-.record-row.uncommitted { opacity: .62; }
-.record-row-head { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
-.strip-crest { display: flex; flex: 0 0 2.1rem; align-items: center; justify-content: center; height: 1.6rem; border: 1.5px solid var(--crest-color); border-radius: .5rem; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .68rem; }
-.strip-language { font-family: var(--font-family-reading); font-size: .95rem; }
-.strip-meta { color: var(--metadata-color); font-size: .69rem; }
-.strip-count { margin-left: auto; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .69rem; }
-.strip-action { margin-left: auto; padding: 0; border: none; background: none; color: var(--dark-raspberry); font-size: .72rem; cursor: pointer; }
-.strip-action:hover { text-decoration: underline; }
+@import (reference) '../week-ramp.less';
 
-.bars { display: flex; align-items: flex-end; gap: .18rem; }
-.bar { width: .7rem; height: 1rem; border-radius: .12rem; background: var(--hairline-color); }
-.bar.partial { background: color-mix(in srgb, var(--crest-color) 55%, var(--card-color)); }
-.bar.met { background: var(--crest-color); }
-@supports (background: oklch(from #fff l c h)) {
-  .bar.partial { background: oklch(from var(--crest-color) .67 .08 h); }
-  .bar.met { background: oklch(from var(--crest-color) .50 .10 h); }
-}
-.bar.before-start { background: transparent; box-shadow: inset 0 0 0 1px var(--hairline-color); }
-.bar.current:not(.met):not(.partial) { border: 1px dashed var(--control-border-color); background: transparent; box-shadow: none; }
+.weeks { --crest-color: var(--brand-primary); display: flex; gap: .25rem; }
+.week { height: 1.6rem; }
+.week-ramp();

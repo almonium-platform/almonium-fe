@@ -1,5 +1,5 @@
 import {ApiContractError} from '../runtime-validation';
-import {cadenceLabel, hasTarget, localDate, numberWord, parseRhythm, trackedWeeks, weeksAtPace} from './rhythm.model';
+import {cadenceLabel, hasTarget, localDate, numberWord, paceFraction, parseRhythm, trackedWeeks, weekLevel} from './rhythm.model';
 
 describe('rhythm API validation', () => {
   const week = (weekStart: string, daysMet: number, met: boolean, frozen = false) => ({
@@ -55,7 +55,7 @@ describe('rhythm API validation', () => {
     const rhythm = parseRhythm({languages: [language('DE', 2, true, '2026-01-12')]});
 
     expect(trackedWeeks(rhythm.languages[0]).length).toBe(2);
-    expect(weeksAtPace(rhythm.languages[0])).toBe(2);
+    expect(paceFraction(rhythm.languages[0]).met).toBe(2);
   });
 
   it('leaves a frozen week out of the count, so a set-aside language cannot accumulate misses', () => {
@@ -67,7 +67,18 @@ describe('rhythm API validation', () => {
     });
 
     expect(trackedWeeks(parsed.languages[0]).length).toBe(2);
-    expect(weeksAtPace(parsed.languages[0])).toBe(2);
+    expect(paceFraction(parsed.languages[0])).toEqual({met: 2, counted: 2});
+  });
+
+  it('draws a frozen week at no level, so it reads as neither met nor missed', () => {
+    const parsed = parseRhythm({
+      languages: [{
+        language: 'DE', target: 2, editable: false, startedAt: '2026-01-05', setAsideAt: '2026-01-19',
+        weeks: [week('2026-01-19', 0, false, true)],
+      }],
+    });
+
+    expect(weekLevel(parsed.languages[0].weeks[0])).toBe(0);
   });
 
   it('names the cadence the way the card reads it', () => {

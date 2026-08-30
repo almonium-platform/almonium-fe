@@ -136,6 +136,33 @@ export function trackedWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
   return rhythm.weeks.filter(week => week.weekStart >= start && !week.frozen);
 }
 
-export function weeksAtPace(rhythm: LanguageRhythm): number {
-  return trackedWeeks(rhythm).filter(week => week.met).length;
+/** The weeks a card actually shows. Twelve is what every surface talks about. */
+export function bandWeeks(rhythm: LanguageRhythm, count = 12): RhythmWeek[] {
+  return rhythm.weeks.slice(-count);
+}
+
+/**
+ * Weeks kept against weeks asked for, over the weeks on show. Both halves skip anything outside the language's
+ * span, so a young language is not judged against twelve and a set-aside one collects no misses.
+ */
+export function paceFraction(rhythm: LanguageRhythm, count = 12): {met: number; counted: number} {
+  const tracked = trackedWeeks(rhythm);
+  const counted = bandWeeks(rhythm, count).filter(week => tracked.includes(week));
+  return {met: counted.filter(week => week.met).length, counted: counted.length};
+}
+
+/** Time learning that week, in the six steps the ramp draws. */
+export function weekLevel(week: RhythmWeek): number {
+  if (week.frozen) return 0;
+  const minutes = week.days.reduce((total, day) => total + day.minutes, 0);
+  if (minutes >= 240) return 5;
+  if (minutes >= 120) return 4;
+  if (minutes >= 60) return 3;
+  if (minutes >= 30) return 2;
+  if (minutes > 0 || week.daysMet > 0) return 1;
+  return 0;
+}
+
+export function weekMinutes(week: RhythmWeek): number {
+  return week.days.reduce((total, day) => total + day.minutes, 0);
 }

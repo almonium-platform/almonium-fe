@@ -175,5 +175,13 @@ button { font: inherit; }
 .record-number .figure { font-family: var(--font-family-reading); font-size: 1.6rem; font-weight: 600; line-height: 1; }
 .record-number .figure .of { color: var(--metadata-color); font-size: .95rem; }
 .record-number .caption { color: var(--metadata-color); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; }
-.record-empty { margin: 0; color: var(--subhead-color); font-size: .82rem; line-height: 1.55; }
-.record-bands { display: flex; flex-direction: column; gap: .55rem; }
+.record-empty { max-width: 52ch; margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.6; }
+.record-action { align-self: flex-start; margin-top: .25rem; padding: .55rem 1.25rem; border-radius: 999px; background: var(--dark-raspberry); color: var(--on-brand-color); font-size: .8rem; font-weight: 600; }
+.record-action:hover { color: var(--on-brand-color); opacity: .9; }
+.record-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; color: var(--subhead-color); font-size: .78rem; }
+.record-foot a { margin-left: auto; color: var(--dark-raspberry); font-weight: 500; white-space: nowrap; }
+.also-card { display: flex; flex-direction: column; gap: .6rem; padding: 1.25rem 1.4rem; border-radius: 20px; box-sizing: border-box; box-shadow: var(--box-shadow); }
+.also-row { display: flex; align-items: center; gap: .55rem; }
+.also-chip { width: 1.1rem; height: 1.1rem; border-radius: .32rem; }
+.also-name { flex: 1; font-size: .82rem; }
+.also-count { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .69rem; }

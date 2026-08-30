@@ -12,10 +12,13 @@ import {
   RhythmWeek,
   TARGET_OPTIONS,
   WeeklyTarget,
+  bandWeeks,
   cadenceLabel,
   hasTarget,
   numberWord,
-  trackedWeeks,
+  paceFraction,
+  weekLevel,
+  weekMinutes,
 } from '../rhythm.model';
 import {RhythmService} from '../rhythm.service';
 
@@ -77,7 +80,7 @@ export class HarnessComponent implements OnInit {
   }
 
   protected shownWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
-    return rhythm.weeks.slice(-WEEKS_SHOWN);
+    return bandWeeks(rhythm, WEEKS_SHOWN);
   }
 
   /** Nothing has happened yet, so the card asks for no commitment: there is nothing to measure one against. */
@@ -85,21 +88,11 @@ export class HarnessComponent implements OnInit {
     return !this.shownWeeks(rhythm).some(week => week.daysMet > 0);
   }
 
-  /** Tint deepens with time spent that week. Six steps, so a light week and a heavy one do not read alike. */
-  protected tint(week: RhythmWeek): number {
-    const minutes = week.days.reduce((total, day) => total + day.minutes, 0);
-    if (week.frozen) return 0;
-    if (minutes >= 240) return 5;
-    if (minutes >= 120) return 4;
-    if (minutes >= 60) return 3;
-    if (minutes >= 30) return 2;
-    if (minutes > 0 || week.daysMet > 0) return 1;
-    return 0;
-  }
+  protected readonly tint = weekLevel;
 
   protected weekLabel(week: RhythmWeek): string {
     if (week.frozen) return `Week of ${week.weekStart}: set aside`;
-    const minutes = week.days.reduce((total, day) => total + day.minutes, 0);
+    const minutes = weekMinutes(week);
     if (minutes === 0) return `Week of ${week.weekStart}: nothing recorded`;
     return `Week of ${week.weekStart}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
   }
@@ -110,8 +103,7 @@ export class HarnessComponent implements OnInit {
 
   /** The sentence the card leads with, which is the whole of the judgement it makes. */
   protected summary(rhythm: LanguageRhythm, languageName: string): string {
-    const counted = trackedWeeks(rhythm).filter(week => this.shownWeeks(rhythm).includes(week));
-    const met = counted.filter(week => week.met).length;
+    const {met, counted} = paceFraction(rhythm, WEEKS_SHOWN);
 
     if (!rhythm.editable) {
       const aside = rhythm.setAsideAt ? ` on ${this.formatDate(rhythm.setAsideAt)}` : '';
@@ -124,7 +116,7 @@ export class HarnessComponent implements OnInit {
     if (!hasTarget(rhythm.target)) {
       return 'Twelve weeks with no bar to meet. Tint shows time learning, not a score.';
     }
-    return `${numberWord(met)} of the last ${numberWord(counted.length)} weeks met your target of`
+    return `${numberWord(met)} of the last ${numberWord(counted)} weeks met your target of`
       + ` ${SESSION_WORD[rhythm.target] ?? `${rhythm.target} sessions`}.`
       + ' Tint shows time learning, not a score.';
   }

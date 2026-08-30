@@ -1,0 +1,27 @@
+// One ramp for a week, wherever a week appears. A week holds more variance than a day, so it takes six steps:
+// the language's own hue, chroma rising as lightness falls. The color-mix set is the fallback for engines without
+// relative colour. Frozen weeks are hatched — a language that was set aside was never asked for them.
+.week-ramp() {
+  .week { flex: 1; border-radius: .32rem; background: var(--nested-color); }
+  .week.level-1 { background: color-mix(in srgb, var(--crest-color) 14%, var(--card-color)); }
+  .week.level-2 { background: color-mix(in srgb, var(--crest-color) 28%, var(--card-color)); }
+  .week.level-3 { background: color-mix(in srgb, var(--crest-color) 45%, var(--card-color)); }
+  .week.level-4 { background: color-mix(in srgb, var(--crest-color) 65%, var(--card-color)); }
+  .week.level-5 { background: var(--crest-color); }
+
+  @supports (background: oklch(from #fff l c h)) {
+    .week.level-1 { background: oklch(from var(--crest-color) .90 .035 h); }
+    .week.level-2 { background: oklch(from var(--crest-color) .82 .05 h); }
+    .week.level-3 { background: oklch(from var(--crest-color) .73 .07 h); }
+    .week.level-4 { background: oklch(from var(--crest-color) .62 .09 h); }
+    .week.level-5 { background: oklch(from var(--crest-color) .50 .10 h); }
+  }
+
+  .week.frozen {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--nested-color), var(--nested-color) 3px,
+      var(--hairline-color) 3px, var(--hairline-color) 6px
+    );
+  }
+}

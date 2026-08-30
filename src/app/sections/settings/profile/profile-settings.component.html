@@ -32,9 +32,11 @@
                 <button type="button" class="pill-button" (click)="copyProfileLink()">
                   <lucide-icon name="link" [size]="15" /> Copy link
                 </button>
-                <button type="button" class="pill-button" (click)="openShareProfile()">
-                  <lucide-icon name="qr-code" [size]="15" /> QR
-                </button>
+                @if (hasRecord) {
+                  <button type="button" class="pill-button" (click)="openShareProfile()">
+                    <lucide-icon name="qr-code" [size]="15" /> QR
+                  </button>
+                }
               }
             </div>
           </div>
@@ -84,11 +86,11 @@
 
         <section class="record-strip" aria-labelledby="record-strip-title">
           <div class="record-head">
-            <span class="record-language">{{ activeLanguageName }}</span>
             <span id="record-strip-title" class="eyebrow">Your record</span>
+            @if (hasRecord) { <span class="record-language">{{ activeLanguageName }}</span> }
           </div>
 
-          @if (hasRecord) {
+          @if (hasRecord && activeRhythm; as loadedRhythm) {
             <div class="record-numbers">
               <div class="record-number">
                 <span class="figure">{{ stats?.wordsKept | number }}</span>
@@ -98,30 +100,28 @@
                 <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
                 <span class="caption">Books finished</span>
               </div>
-              @if (activeRhythm; as loadedRhythm) {
-                <div class="record-number">
-                  <span class="figure">{{ weeksAtPace(loadedRhythm) }}<span class="of">/{{ weeksCounted(loadedRhythm) }}</span></span>
-                  <span class="caption">Weeks at pace</span>
-                </div>
-              }
+              <div class="record-number">
+                <span class="figure">{{ pace(loadedRhythm).met }}<span class="of">/{{ pace(loadedRhythm).counted }}</span></span>
+                <span class="caption">Weeks at pace</span>
+              </div>
             </div>
 
-            @if (recordRows.length) {
-              <div class="record-bands">
-                @for (languageRhythm of recordRows; track languageRhythm.language) {
-                  <app-rhythm-band
-                    [rhythm]="languageRhythm"
-                    [languageName]="languageName(languageRhythm.language)"
-                    [crest]="crestColour(languageRhythm.language)"
-                    (setPace)="goSetPace($event)"
-                  ></app-rhythm-band>
-                }
-              </div>
-            }
+            <app-rhythm-band
+              [rhythm]="loadedRhythm"
+              [languageName]="activeLanguageName"
+              [crest]="crestColour(loadedRhythm.language)"
+            ></app-rhythm-band>
+
+            <div class="record-foot">
+              <span>{{ recordCaption(loadedRhythm) }}</span>
+              <a routerLink="/home">Change on home</a>
+            </div>
           } @else {
             <p class="record-empty">
-              Nothing to show yet. <a routerLink="/settings/app">Set a weekly pace</a> and the record starts here as you learn.
+              Nothing here until you finish a first session. Then this holds the words you can read, the books you
+              finished, and the weeks you kept pace.
             </p>
+            <a class="record-action" routerLink="/read">Open the library</a>
           }
         </section>
 
@@ -166,5 +166,18 @@
         <lucide-icon name="chevron-right" [size]="15" />
       </a>
     </aside>
+
+    @if (otherLanguages.length) {
+      <aside class="also-card card">
+        <div class="eyebrow">Also learning</div>
+        @for (other of otherLanguages; track other.language) {
+          <div class="also-row">
+            <span class="also-chip" [style.background]="crestColour(other.language)" aria-hidden="true"></span>
+            <span class="also-name">{{ languageName(other.language) }}</span>
+            <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
+          </div>
+        }
+      </aside>
+    }
   </main>
 </div>

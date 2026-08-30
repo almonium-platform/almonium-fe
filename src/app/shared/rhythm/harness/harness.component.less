@@ -1,3 +1,5 @@
+@import (reference) '../week-ramp.less';
+
 :host { display: block; }
 .record { --crest-color: var(--brand-primary); display: flex; flex-direction: column; gap: .85rem; padding: 1.35rem 1.5rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
 
@@ -7,31 +9,8 @@
 
 .weeks { display: flex; gap: .3rem; transition: opacity 160ms ease; }
 .weeks.behind { opacity: .4; }
-.week { flex: 1; height: 2.1rem; border-radius: .32rem; background: var(--nested-color); }
-
-// Time learning, six steps of the language's own hue. The colour-mix pair is the fallback for engines without
-// relative colour; the oklch pair is the ramp, chroma rising as lightness falls.
-.week.level-1 { background: color-mix(in srgb, var(--crest-color) 14%, var(--card-color)); }
-.week.level-2 { background: color-mix(in srgb, var(--crest-color) 28%, var(--card-color)); }
-.week.level-3 { background: color-mix(in srgb, var(--crest-color) 45%, var(--card-color)); }
-.week.level-4 { background: color-mix(in srgb, var(--crest-color) 65%, var(--card-color)); }
-.week.level-5 { background: var(--crest-color); }
-@supports (background: oklch(from #fff l c h)) {
-  .week.level-1 { background: oklch(from var(--crest-color) .90 .035 h); }
-  .week.level-2 { background: oklch(from var(--crest-color) .82 .05 h); }
-  .week.level-3 { background: oklch(from var(--crest-color) .73 .07 h); }
-  .week.level-4 { background: oklch(from var(--crest-color) .62 .09 h); }
-  .week.level-5 { background: oklch(from var(--crest-color) .50 .10 h); }
-}
-
-// Neither met nor missed: a language that was set aside was never asked for these weeks.
-.week.frozen {
-  background: repeating-linear-gradient(
-    135deg,
-    var(--nested-color), var(--nested-color) 3px,
-    var(--hairline-color) 3px, var(--hairline-color) 6px
-  );
-}
+.week { height: 2.1rem; }
+.week-ramp();
 
 .record-summary { margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.6; }
 .record-foot { display: flex; align-items: center; gap: .6rem; }
