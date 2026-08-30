@@ -1,6 +1,15 @@
-import {expectArray, expectBoolean, expectNullableNumber, expectNumber, expectRecord, expectString} from '../runtime-validation';
+import {LanguageCode} from '../../models/language.enum';
+import {
+  expectArray,
+  expectBoolean,
+  expectEnum,
+  expectNullableNumber,
+  expectNumber,
+  expectRecord,
+  expectString,
+} from '../runtime-validation';
 
-/** Days per week a learner can ask of themselves. `null` means never chosen; 0 is the deliberate "no target". */
+/** Days per week a learner can ask of one language. `null` means never chosen; 0 is the deliberate "no target". */
 export type WeeklyTarget = number | null;
 
 export const TARGET_OPTIONS: {value: number; label: string}[] = [
@@ -25,17 +34,34 @@ export interface RhythmWeek {
   days: RhythmDay[];
 }
 
-export interface Rhythm {
+/** One language's harness. A set-aside language keeps its record, read-only. */
+export interface LanguageRhythm {
+  language: LanguageCode;
   target: WeeklyTarget;
+  editable: boolean;
   /** Oldest first, ending with the week in progress. */
   weeks: RhythmWeek[];
+}
+
+export interface Rhythm {
+  languages: LanguageRhythm[];
 }
 
 export function parseRhythm(value: unknown): Rhythm {
   const rhythm = expectRecord(value, 'rhythm');
   return {
-    target: expectNullableNumber(rhythm['target'], 'rhythm.target'),
-    weeks: expectArray(rhythm['weeks'], 'rhythm.weeks').map((week, index) => parseWeek(week, `rhythm.weeks[${index}]`)),
+    languages: expectArray(rhythm['languages'], 'rhythm.languages')
+      .map((language, index) => parseLanguageRhythm(language, `rhythm.languages[${index}]`)),
+  };
+}
+
+function parseLanguageRhythm(value: unknown, path: string): LanguageRhythm {
+  const rhythm = expectRecord(value, path);
+  return {
+    language: expectEnum(rhythm['language'], Object.values(LanguageCode), `${path}.language`),
+    target: expectNullableNumber(rhythm['target'], `${path}.target`),
+    editable: expectBoolean(rhythm['editable'], `${path}.editable`),
+    weeks: expectArray(rhythm['weeks'], `${path}.weeks`).map((week, index) => parseWeek(week, `${path}.weeks[${index}]`)),
   };
 }
 

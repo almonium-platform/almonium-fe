@@ -25,7 +25,7 @@ import {LanguageCode} from '../../../models/language.enum';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {LearningStats, LearningStatsService} from '../../../services/learning-stats.service';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
-import {Rhythm} from '../../../shared/rhythm/rhythm.model';
+import {LanguageRhythm, Rhythm, hasTarget} from '../../../shared/rhythm/rhythm.model';
 import {RhythmBandComponent} from '../../../shared/rhythm/rhythm-band/rhythm-band.component';
 import {RhythmService} from '../../../shared/rhythm/rhythm.service';
 import {catchError, switchMap} from 'rxjs/operators';
@@ -80,6 +80,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   protected stats: LearningStats | null = null;
   protected rhythm: Rhythm | null = null;
   protected activeLanguage: LanguageCode | null = null;
+  private langColors: Record<string, string> = {};
 
   private readonly loadingSubjectInterests$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingInterests$ = this.loadingSubjectInterests$.asObservable();
@@ -103,6 +104,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     });
 
     this.rhythmService.rhythm$.pipe(takeUntil(this.destroy$)).subscribe(rhythm => this.rhythm = rhythm);
+    this.languageService.langColors$.pipe(takeUntil(this.destroy$)).subscribe(colors => this.langColors = colors);
     this.rhythmService.load().subscribe({
       error: error => logger.error('Failed to load your rhythm:', error),
     });
@@ -126,14 +128,27 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     return this.activeLanguage ? this.languageNameService.getLanguageName(this.activeLanguage) : '';
   }
 
+  protected get activeRhythm(): LanguageRhythm | null {
+    return RhythmService.forLanguage(this.rhythm, this.activeLanguage);
+  }
+
+  /** One strip per language the learner has actually committed to; a bar nobody set says nothing. */
+  protected get committedRhythms(): LanguageRhythm[] {
+    return this.rhythm?.languages.filter(entry => hasTarget(entry.target)) ?? [];
+  }
+
   /** Nothing has happened yet, so the space holds an invitation rather than three zeroes. */
   protected get hasRecord(): boolean {
     const kept = (this.stats?.wordsKept ?? 0) + (this.stats?.booksFinished ?? 0);
-    return kept > 0 || this.weeksAtPace > 0;
+    return kept > 0 || this.committedRhythms.length > 0;
   }
 
-  protected get weeksAtPace(): number {
-    return this.rhythm?.weeks.filter(week => week.met).length ?? 0;
+  protected weeksAtPace(rhythm: LanguageRhythm): number {
+    return rhythm.weeks.filter(week => week.met).length;
+  }
+
+  protected crestColour(language: LanguageCode): string {
+    return this.langColors[language] ?? '#7A6BB8';
   }
 
   ngOnDestroy() {

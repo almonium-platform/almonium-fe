@@ -8,22 +8,40 @@ describe('rhythm API validation', () => {
     met,
     days: [{date: `${weekStart}`, minutes: 25, met: daysMet > 0}],
   });
+  const language = (code: string, target: number | null, editable = true) => ({
+    language: code,
+    target,
+    editable,
+    weeks: [week('2026-02-16', 3, target === 3)],
+  });
 
   it('parses the backend rhythm contract', () => {
-    const rhythm = parseRhythm({target: 3, weeks: [week('2026-02-16', 3, true)]});
+    const rhythm = parseRhythm({languages: [language('DE', 3)]});
 
-    expect(rhythm.target).toBe(3);
-    expect(rhythm.weeks[0].met).toBeTrue();
-    expect(rhythm.weeks[0].days[0].minutes).toBe(25);
+    expect(rhythm.languages[0].target).toBe(3);
+    expect(rhythm.languages[0].weeks[0].met).toBeTrue();
+    expect(rhythm.languages[0].weeks[0].days[0].minutes).toBe(25);
+  });
+
+  it('keeps each language its own bar', () => {
+    const rhythm = parseRhythm({languages: [language('DE', 3), language('ES', 5)]});
+
+    expect(rhythm.languages.map(entry => entry.language)).toEqual(['DE', 'ES'] as never);
+    expect(rhythm.languages[1].target).toBe(5);
   });
 
   it('accepts a learner who has never chosen a target', () => {
-    expect(parseRhythm({target: null, weeks: []}).target).toBeNull();
+    expect(parseRhythm({languages: [language('DE', null)]}).languages[0].target).toBeNull();
+  });
+
+  it('carries the read-only flag of a set-aside language', () => {
+    expect(parseRhythm({languages: [language('DE', 3, false)]}).languages[0].editable).toBeFalse();
   });
 
   it('rejects a week without its verdict', () => {
-    expect(() => parseRhythm({target: 3, weeks: [{weekStart: '2026-02-16', daysMet: 1, days: []}]}))
-      .toThrowError(ApiContractError);
+    expect(() => parseRhythm({
+      languages: [{language: 'DE', target: 3, editable: true, weeks: [{weekStart: '2026-02-16', daysMet: 1, days: []}]}],
+    })).toThrowError(ApiContractError);
   });
 
   it('treats an explicit no-target as a choice rather than a bar', () => {

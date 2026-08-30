@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable, inject} from '@angular/core';
 import {AppConstants} from '../app.constants';
+import {LanguageCode} from '../models/language.enum';
 import {logger} from '../shared/logger';
 import {localDate} from '../shared/rhythm/rhythm.model';
 import {RhythmService} from '../shared/rhythm/rhythm.service';
@@ -25,6 +26,7 @@ export class LearningActivityService {
   private readonly rhythmService = inject(RhythmService);
 
   private source: ActivitySource | null = null;
+  private language: LanguageCode | null = null;
   private pendingSeconds = 0;
   private lastInteractionAt = 0;
   private lastReportedDate: string | null = null;
@@ -38,12 +40,16 @@ export class LearningActivityService {
     }
   };
 
-  /** Begins counting time in a learning surface. Safe to call again; a different surface flushes the previous one. */
-  start(source: ActivitySource): void {
-    if (this.source === source) return;
+  /**
+   * Begins counting time in a learning surface, against one language. Safe to call again; a different surface or
+   * language flushes the previous one first, so time is never credited to the wrong commitment.
+   */
+  start(source: ActivitySource, language: LanguageCode): void {
+    if (this.source === source && this.language === language) return;
     if (this.source) this.flush(false);
 
     this.source = source;
+    this.language = language;
     this.lastInteractionAt = Date.now();
     if (this.ticker) return;
 
@@ -56,6 +62,7 @@ export class LearningActivityService {
   stop(completed = false): void {
     this.flush(completed);
     this.source = null;
+    this.language = null;
     if (!this.ticker) return;
 
     clearInterval(this.ticker);
@@ -74,7 +81,7 @@ export class LearningActivityService {
 
   private flush(completed: boolean): void {
     const seconds = Math.round(this.pendingSeconds);
-    if (!this.source || (seconds === 0 && !completed)) return;
+    if (!this.source || !this.language || (seconds === 0 && !completed)) return;
 
     const today = localDate();
     // The day flips to met on its first report; later reports only deepen a tint nobody is watching live.
@@ -84,7 +91,7 @@ export class LearningActivityService {
 
     this.http.post<void>(
       `${AppConstants.LEARNING_URL}/activity`,
-      {source: this.source, seconds, localDate: today, completed},
+      {source: this.source, language: this.language, seconds, localDate: today, completed},
       {withCredentials: true},
     ).subscribe({
       next: () => {

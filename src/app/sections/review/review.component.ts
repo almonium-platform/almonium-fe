@@ -68,7 +68,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
         this.currentIndex = 0;
         this.stage = session.items.length ? 'session' : 'overview';
         this.submitting = false;
-        if (session.items.length) this.learningActivity.start('REVIEW');
+        if (session.items.length) this.learningActivity.start('REVIEW', this.selectedLanguage);
       },
       error: error => {
         this.submitting = false;

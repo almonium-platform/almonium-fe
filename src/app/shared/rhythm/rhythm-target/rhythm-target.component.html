@@ -8,7 +8,7 @@
       [class.selected]="target === option.value"
       [class.none]="option.value === 0"
       [attr.aria-checked]="target === option.value"
-      [disabled]="saving"
+      [disabled]="saving || !editable"
       (click)="choose(option.value)"
     >{{ option.label }}</button>
   }

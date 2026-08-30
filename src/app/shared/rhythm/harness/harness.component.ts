@@ -1,8 +1,10 @@
 import {Component, OnInit, inject} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
-import {Observable} from 'rxjs';
+import {Observable, combineLatest, map} from 'rxjs';
+import {LanguageCode} from '../../../models/language.enum';
+import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 import {logger} from '../../logger';
-import {Rhythm, RhythmDay, RhythmWeek, WeeklyTarget, hasTarget, localDate} from '../rhythm.model';
+import {LanguageRhythm, RhythmDay, RhythmWeek, WeeklyTarget, hasTarget, localDate} from '../rhythm.model';
 import {RhythmService} from '../rhythm.service';
 import {RhythmTargetComponent} from '../rhythm-target/rhythm-target.component';
 
@@ -17,12 +19,21 @@ const CADENCE: Record<number, string> = {
 const ROWS = 5;
 /** Weeks behind the summary line, as many as the band keeps once the current one is set aside. */
 const SUMMARISED_WEEKS = 12;
+const DEFAULT_CREST = '#7A6BB8';
+
+interface HarnessView {
+  language: LanguageCode;
+  rhythm: LanguageRhythm | null;
+  loaded: boolean;
+  crest: string;
+}
 
 /**
- * The harness — the learner's own target, not a streak.
+ * The harness — the learner's own target for this language, not a streak.
  *
  * <p>Weeks are the unit, so missing a Tuesday is not a failure and there is no number that can be lost. The only
- * judgement here is against a bar the learner set themselves, and "No target" is a legitimate choice.
+ * judgement here is against a bar the learner set themselves, and "No target" is a legitimate choice. Home shows
+ * the active language alone, in that language's own colour, so the band says which commitment was kept.
  */
 @Component({
   selector: 'app-harness',
@@ -32,10 +43,23 @@ const SUMMARISED_WEEKS = 12;
 })
 export class HarnessComponent implements OnInit {
   private readonly rhythmService = inject(RhythmService);
+  private readonly languageService = inject(TargetLanguageDropdownService);
 
-  protected readonly rhythm$: Observable<Rhythm | null> = this.rhythmService.rhythm$;
+  protected readonly view$: Observable<HarnessView> = combineLatest([
+    this.rhythmService.rhythm$,
+    this.languageService.currentLanguage$,
+    this.languageService.langColors$,
+  ]).pipe(map(([rhythm, language, colours]) => ({
+    language,
+    rhythm: RhythmService.forLanguage(rhythm, language),
+    loaded: rhythm !== null,
+    crest: colours[language] ?? DEFAULT_CREST,
+  })));
+
   protected readonly weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   protected readonly today = localDate();
+  protected readonly summarisedWeeks = SUMMARISED_WEEKS;
+  protected readonly hasTarget = hasTarget;
 
   ngOnInit(): void {
     if (this.rhythmService.rhythm) return;
@@ -44,15 +68,11 @@ export class HarnessComponent implements OnInit {
     });
   }
 
-  protected shownWeeks(rhythm: Rhythm): RhythmWeek[] {
+  protected shownWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
     return rhythm.weeks.slice(-ROWS);
   }
 
-  protected currentWeek(rhythm: Rhythm): RhythmWeek | null {
-    return rhythm.weeks.at(-1) ?? null;
-  }
-
-  protected isCurrentWeek(rhythm: Rhythm, week: RhythmWeek): boolean {
+  protected isCurrentWeek(rhythm: LanguageRhythm, week: RhythmWeek): boolean {
     return week === rhythm.weeks.at(-1);
   }
 
@@ -62,7 +82,7 @@ export class HarnessComponent implements OnInit {
       .format(new Date(year, month - 1, day));
   }
 
-  /** Tint follows minutes, but any met day keeps a visible floor so a short session never reads as a blank. */
+  /** Tint follows time learning, but any met day keeps a visible floor so a short session never reads as a blank. */
   protected tint(day: RhythmDay): number {
     if (!day.met) return 0;
     if (day.minutes >= 25) return 3;
@@ -76,16 +96,17 @@ export class HarnessComponent implements OnInit {
 
   protected dayLabel(day: RhythmDay): string {
     if (!day.met) return `${day.date}: nothing recorded`;
-    return day.minutes > 0 ? `${day.date}: ${day.minutes} minutes` : `${day.date}: a short session`;
+    if (day.minutes === 0) return `${day.date}: under a minute`;
+    return `${day.date}: ${day.minutes} ${day.minutes === 1 ? 'minute' : 'minutes'}`;
   }
 
-  protected daysToGo(rhythm: Rhythm): number {
-    const week = this.currentWeek(rhythm);
+  protected daysToGo(rhythm: LanguageRhythm): number {
+    const week = rhythm.weeks.at(-1);
     if (!week || !hasTarget(rhythm.target)) return 0;
     return Math.max(rhythm.target - week.daysMet, 0);
   }
 
-  protected weeksMet(rhythm: Rhythm): number {
+  protected weeksMet(rhythm: LanguageRhythm): number {
     return rhythm.weeks.slice(0, -1).slice(-SUMMARISED_WEEKS).filter(week => week.met).length;
   }
 
@@ -93,7 +114,4 @@ export class HarnessComponent implements OnInit {
     if (target === null) return 'Set your own pace';
     return hasTarget(target) ? CADENCE[target] ?? `${target} days a week` : 'No target';
   }
-
-  protected readonly summarisedWeeks = SUMMARISED_WEEKS;
-  protected readonly hasTarget = hasTarget;
 }

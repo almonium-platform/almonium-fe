@@ -1,7 +1,8 @@
-.band-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.band-strip { --crest-color: var(--brand-primary); display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; }
+.strip-crest { padding: .1rem .34rem; border: 1px solid var(--crest-color); border-radius: .3rem; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .6rem; font-weight: 600; }
 .bars { display: flex; align-items: flex-end; gap: .18rem; }
 .bar { width: .7rem; height: 1rem; border-radius: .12rem; background: var(--hairline-color); }
-.bar.partial { background: color-mix(in srgb, var(--brand-primary) 45%, var(--card-color)); }
-.bar.met { background: var(--brand-primary); }
+.bar.partial { background: color-mix(in srgb, var(--crest-color) 45%, var(--card-color)); }
+.bar.met { background: var(--crest-color); }
 .bar.current:not(.met):not(.partial) { border: 1px dashed var(--control-border-color); background: transparent; }
 .caption { color: var(--subhead-color); font-size: .72rem; }

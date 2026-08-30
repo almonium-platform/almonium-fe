@@ -98,19 +98,27 @@
                 <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
                 <span class="caption">Books finished</span>
               </div>
-              @if (rhythm; as loadedRhythm) {
+              @if (activeRhythm; as loadedRhythm) {
                 <div class="record-number">
-                  <span class="figure">{{ weeksAtPace }}<span class="of">/{{ loadedRhythm.weeks.length }}</span></span>
+                  <span class="figure">{{ weeksAtPace(loadedRhythm) }}<span class="of">/{{ loadedRhythm.weeks.length }}</span></span>
                   <span class="caption">Weeks at pace</span>
                 </div>
               }
             </div>
-            @if (rhythm; as loadedRhythm) {
-              <app-rhythm-band [rhythm]="loadedRhythm"></app-rhythm-band>
+
+            @if (committedRhythms.length) {
+              <div class="record-bands">
+                @for (languageRhythm of committedRhythms; track languageRhythm.language) {
+                  <app-rhythm-band
+                    [rhythm]="languageRhythm"
+                    [crest]="crestColour(languageRhythm.language)"
+                  ></app-rhythm-band>
+                }
+              </div>
             }
           } @else {
             <p class="record-empty">
-              Nothing to show yet. <a routerLink="/settings/app">Set a weekly pace</a> and the record starts here as you read.
+              Nothing to show yet. <a routerLink="/settings/app">Set a weekly pace</a> and the record starts here as you learn.
             </p>
           }
         </section>

@@ -19,7 +19,9 @@ import {applyThemeAssets} from '../../../services/theme-assets';
 import {applyMotionPreference, resolveReducedMotion} from '../../../services/motion-preference';
 import {RhythmTargetComponent} from '../../../shared/rhythm/rhythm-target/rhythm-target.component';
 import {RhythmService} from '../../../shared/rhythm/rhythm.service';
-import {WeeklyTarget} from '../../../shared/rhythm/rhythm.model';
+import {LanguageRhythm} from '../../../shared/rhythm/rhythm.model';
+import {LanguageCode} from '../../../models/language.enum';
+import {LanguageNameService} from '../../../services/language-name.service';
 
 @Component({
   selector: 'app-app-settings',
@@ -45,6 +47,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private taigaDarkMode = inject(TUI_DARK_MODE);
   private streamThemeService = inject(ThemeService);
   private rhythmService = inject(RhythmService);
+  private languageNameService = inject(LanguageNameService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -52,7 +55,8 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
-  protected rhythmTarget: WeeklyTarget = null;
+  protected languageRhythms: LanguageRhythm[] = [];
+  private langColors: Record<string, string> = {};
   protected appearance: 'light' | 'dark' | 'system' = 'system';
   protected reduceMotion = false;
   protected dailyReview = false;
@@ -81,7 +85,10 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
     this.rhythmService.rhythm$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(rhythm => this.rhythmTarget = rhythm?.target ?? null);
+      .subscribe(rhythm => this.languageRhythms = rhythm?.languages ?? []);
+    this.targetLanguageDropdownService.langColors$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(colors => this.langColors = colors);
     this.rhythmService.load().subscribe({
       error: (error) => logger.error('Failed to load your rhythm:', error),
     });
@@ -116,6 +123,14 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           this.uiPreferences.navbar[key] = oldValue;
         },
       });
+  }
+
+  protected languageName(language: LanguageCode): string {
+    return this.languageNameService.getLanguageName(language);
+  }
+
+  protected crestColour(language: LanguageCode): string {
+    return this.langColors[language] ?? '#7A6BB8';
   }
 
   protected getKeys<T extends object>(obj: T): (keyof T)[] {

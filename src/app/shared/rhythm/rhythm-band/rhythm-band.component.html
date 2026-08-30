@@ -1,5 +1,10 @@
-<div class="band-strip">
-  <div class="bars" [attr.aria-label]="'Weeks at pace over the last ' + rhythm.weeks.length + ' weeks'" role="img">
+<div class="band-strip" [style.--crest-color]="crest">
+  <span class="strip-crest">{{ rhythm.language }}</span>
+  <div
+    class="bars"
+    role="img"
+    [attr.aria-label]="weeksMet + ' of the last ' + rhythm.weeks.length + ' weeks at pace in ' + rhythm.language"
+  >
     @for (week of rhythm.weeks; track week.weekStart) {
       <i
         class="bar"

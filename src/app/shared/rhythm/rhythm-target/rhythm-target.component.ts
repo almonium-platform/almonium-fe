@@ -1,9 +1,10 @@
 import {Component, Input, inject} from '@angular/core';
+import {LanguageCode} from '../../../models/language.enum';
 import {logger} from '../../logger';
 import {TARGET_OPTIONS, WeeklyTarget} from '../rhythm.model';
 import {RhythmService} from '../rhythm.service';
 
-/** The only lever the harness offers: the bar the learner sets for themselves. */
+/** The only lever the harness offers: the bar the learner sets for one language. */
 @Component({
   selector: 'app-rhythm-target',
   templateUrl: './rhythm-target.component.html',
@@ -12,19 +13,22 @@ import {RhythmService} from '../rhythm.service';
 export class RhythmTargetComponent {
   private readonly rhythmService = inject(RhythmService);
 
+  @Input({required: true}) language!: LanguageCode;
   @Input() target: WeeklyTarget = null;
+  /** A set-aside language keeps its bar on show, but the bar stops moving. */
+  @Input() editable = true;
   @Input() label = 'Target';
 
   protected readonly options = TARGET_OPTIONS;
   protected saving = false;
 
   protected choose(value: number): void {
-    if (this.saving || this.target === value) return;
+    if (!this.editable || this.saving || this.target === value) return;
 
     const previous = this.target;
     this.target = value;
     this.saving = true;
-    this.rhythmService.setTarget(value).subscribe({
+    this.rhythmService.setTarget(this.language, value).subscribe({
       next: () => this.saving = false,
       error: error => {
         this.target = previous;
