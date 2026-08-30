@@ -34,7 +34,7 @@
         <button
           type="button"
           class="overflow-trigger"
-          aria-label="Profile actions"
+          aria-label="More profile actions"
           #friendDropdown="tuiDropdown"
           tuiDropdown
           (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
@@ -42,19 +42,28 @@
           tuiDropdownAlign="end"
           (click)="friendDropdown.toggle(true)"
         >
-          <lucide-icon name="ellipsis-vertical" [size]="19"></lucide-icon>
+          More
         </button>
 
         <ng-template #friendDropdownTemplate>
           <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
+            <button
+              tuiOption
+              type="button"
+              class="context-button"
+              (click)="viewProfile(); friendDropdown.toggle(false)"
+            >
+              <lucide-icon name="user-round" class="chat-icon" [size]="18"></lucide-icon>
+              View profile
+            </button>
             @if (profile.relationshipStatus === 'FRIENDS') {
               <button
                 tuiOption
                 type="button"
-                class="context-button negative"
+                class="context-button"
                 (click)="prepareUnfriendModal(); friendDropdown.toggle(false)"
               >
-                <lucide-icon name="user-round-x" class="chat-icon negative" [size]="18"></lucide-icon>
+                <lucide-icon name="user-round-x" class="chat-icon" [size]="18"></lucide-icon>
                 Unfriend
               </button>
             }
@@ -62,10 +71,10 @@
               <button
                 tuiOption
                 type="button"
-                class="context-button negative"
+                class="context-button"
                 (click)="unblock(); friendDropdown.toggle(false)"
               >
-                <lucide-icon name="handshake" class="chat-icon negative" [size]="18"></lucide-icon>
+                <lucide-icon name="handshake" class="chat-icon" [size]="18"></lucide-icon>
                 Unblock
               </button>
             } @else {

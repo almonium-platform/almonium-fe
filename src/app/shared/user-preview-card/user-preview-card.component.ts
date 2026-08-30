@@ -297,6 +297,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     void this.router.navigate(['/users', this.userProfileInfo.username]);
   }
 
+  protected viewProfile() {
+    if (!this.userProfileInfo) return;
+    this.closed.emit();
+    void this.router.navigate(['/users', this.userProfileInfo.username]);
+  }
+
   protected prepareUnfriendModal() {
     this.modalTitle = 'Unfriend';
     this.modalMessage = 'Are you sure you want to unfriend this user?';

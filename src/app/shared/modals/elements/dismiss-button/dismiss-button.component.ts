@@ -1,6 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass} from "@angular/common";
-import {TuiButton} from "@taiga-ui/core/components";
 import {TuiButtonX} from "@taiga-ui/core/directives";
 
 @Component({
@@ -31,7 +30,6 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
     } @else {
       <button
         tuiButtonX
-        tuiIconButton
         type="button"
         (click)="onClose()"
         [ngClass]="relative ? '' : 'inner-close'"
@@ -42,7 +40,6 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
   `,
   imports: [
     NgClass,
-    TuiButton,
     TuiButtonX
   ],
   styleUrls: ['./dismiss-button.component.less']
