@@ -1,40 +1,55 @@
 :host { display: block; }
-.harness { --crest-color: var(--brand-primary); }
-.harness { display: flex; flex-direction: column; gap: 1.35rem; padding: 1.45rem 1.6rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
-.eyebrow { margin: 0; color: var(--dark-raspberry); font-size: .69rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
-h2 { margin: .3rem 0 0; font-family: var(--font-family-reading); font-size: 1.45rem; font-weight: 600; line-height: 1.14; }
-.harness-head { display: flex; align-items: flex-start; gap: 1rem; }
+.harness { --crest-color: var(--brand-primary); display: flex; flex-direction: column; gap: 1.35rem; padding: 1.45rem 1.6rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
+
+.harness-head { display: flex; align-items: flex-start; gap: .9rem; }
 .harness-head > div { min-width: 0; }
-.crest { margin-left: auto; padding: .18rem .5rem; border: 1.5px solid var(--crest-color); border-radius: .45rem; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .72rem; font-weight: 600; letter-spacing: .04em; }
-.harness-lede { margin: .45rem 0 0; color: var(--subhead-color); font-size: .86rem; line-height: 1.55; }
+.crest { display: flex; flex: 0 0 2.9rem; align-items: center; justify-content: center; height: 2.15rem; border: 1.5px solid var(--crest-color); border-radius: .62rem; color: var(--crest-color); font-family: var(--font-family-mono); font-size: .85rem; font-weight: 500; }
+.eyebrow { margin: 0; color: var(--crest-color); font-size: .69rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+h2 { margin: .2rem 0 0; font-family: var(--font-family-reading); font-size: 1.45rem; font-weight: 600; line-height: 1.14; }
+.harness-lede { margin: .3rem 0 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.55; }
 
 .band { display: flex; flex-direction: column; gap: .42rem; }
 .band-row { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) 4.4rem; align-items: center; gap: .6rem; }
-.band-row.current { padding-top: .3rem; }
 .week-label { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
 .band-row.current .week-label { color: var(--text-color); font-weight: 500; }
 .band-head .week-label, .weekday, .band-head .week-verdict { color: var(--metadata-color); font-family: inherit; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
 .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; max-width: 15rem; }
 .weekday { text-align: center; }
-.day { aspect-ratio: 1; border-radius: .35rem; background: var(--nested-color); border: 1px solid var(--hairline-color); }
-.day.tint-1 { border-color: transparent; background: color-mix(in srgb, var(--crest-color) 32%, var(--card-color)); }
-.day.tint-2 { border-color: transparent; background: color-mix(in srgb, var(--crest-color) 62%, var(--card-color)); }
-.day.tint-3 { border-color: transparent; background: var(--crest-color); }
-.day.future { border-style: dashed; border-color: var(--control-border-color); background: transparent; }
+.day { aspect-ratio: 1; border-radius: .35rem; background: var(--hairline-color); }
+
+// Three steps of the language's own hue, darkening as the time deepens. The color-mix pair is the fallback for
+// engines without relative colour; the oklch pair is the drawn ramp, chroma rising as lightness falls.
+.day.tint-1 { background: color-mix(in srgb, var(--crest-color) 26%, var(--card-color)); }
+.day.tint-2 { background: color-mix(in srgb, var(--crest-color) 58%, var(--card-color)); }
+.day.tint-3 { background: var(--crest-color); }
+@supports (background: oklch(from #fff l c h)) {
+  .day.tint-1, .legend .tint-1 { background: oklch(from var(--crest-color) .84 .05 h); }
+  .day.tint-2, .legend .tint-2 { background: oklch(from var(--crest-color) .67 .08 h); }
+  .day.tint-3, .legend .tint-3 { background: oklch(from var(--crest-color) .50 .10 h); }
+}
+.day.today { box-shadow: inset 0 0 0 1.5px var(--crest-color); }
+.day.future { background: var(--nested-color); box-shadow: inset 0 0 0 1px var(--control-border-color); border: 1px dashed var(--control-border-color); }
+
 .week-verdict { font-size: .72rem; text-align: right; }
 .week-verdict .met { color: var(--success-color); font-size: .82rem; }
 .week-verdict .quiet { color: var(--metadata-color); }
-.band-row.current .week-verdict .to-go { color: var(--dark-raspberry); font-weight: 500; }
 
-.harness-foot { display: flex; align-items: baseline; gap: .55rem; padding-top: 1rem; border-top: 1px solid var(--hairline-color); }
-.harness-foot p { margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.5; }
-.weeks-met { color: var(--crest-color); font-family: var(--font-family-reading); font-size: 1.9rem; font-weight: 600; line-height: 1; }
-.loading-line { display: block; width: 60%; height: .9rem; margin-top: .5rem; border-radius: 999px; background: var(--nested-color); animation: harness-pulse 1.5s ease-in-out infinite; }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem .85rem; padding: .7rem .9rem; border-radius: .85rem; background: var(--nested-color); }
+.swatches { display: flex; gap: .22rem; }
+.swatches i { width: .85rem; height: .85rem; border-radius: .25rem; }
+.legend .tint-1 { background: color-mix(in srgb, var(--crest-color) 26%, var(--card-color)); }
+.legend .tint-2 { background: color-mix(in srgb, var(--crest-color) 58%, var(--card-color)); }
+.legend .tint-3 { background: var(--crest-color); }
+.legend-copy { color: var(--subhead-color); font-size: .78rem; }
+.legend-scale { margin-left: auto; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
+
+.loading-line { display: block; width: 60%; height: .9rem; border-radius: 999px; background: var(--nested-color); animation: harness-pulse 1.5s ease-in-out infinite; }
 .loading-line.title { width: 40%; height: 1.7rem; }
 @keyframes harness-pulse { 50% { opacity: .45; } }
 
 @media (max-width: 560px) {
   .band-row { grid-template-columns: 3.2rem minmax(0, 1fr) 3.6rem; gap: .4rem; }
   .days { max-width: none; }
+  .legend-scale { margin-left: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .loading-line { animation: none; } }

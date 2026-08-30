@@ -2,6 +2,7 @@ import {Component, OnInit, inject} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {Observable, combineLatest, map} from 'rxjs';
 import {LanguageCode} from '../../../models/language.enum';
+import {LanguageNameService} from '../../../services/language-name.service';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 import {logger} from '../../logger';
 import {LanguageRhythm, RhythmDay, RhythmWeek, WeeklyTarget, hasTarget, localDate} from '../rhythm.model';
@@ -15,14 +16,13 @@ const CADENCE: Record<number, string> = {
   7: 'Every day',
 };
 
-/** Weeks shown in full, day by day: the four that finished and the one in progress. */
-const ROWS = 5;
-/** Weeks behind the summary line, as many as the band keeps once the current one is set aside. */
-const SUMMARISED_WEEKS = 12;
+/** Weeks shown in full, day by day, ending with the one in progress. */
+const ROWS = 4;
 const DEFAULT_CREST = '#7A6BB8';
 
 interface HarnessView {
   language: LanguageCode;
+  languageName: string;
   rhythm: LanguageRhythm | null;
   loaded: boolean;
   crest: string;
@@ -44,6 +44,7 @@ interface HarnessView {
 export class HarnessComponent implements OnInit {
   private readonly rhythmService = inject(RhythmService);
   private readonly languageService = inject(TargetLanguageDropdownService);
+  private readonly languageNameService = inject(LanguageNameService);
 
   protected readonly view$: Observable<HarnessView> = combineLatest([
     this.rhythmService.rhythm$,
@@ -51,6 +52,7 @@ export class HarnessComponent implements OnInit {
     this.languageService.langColors$,
   ]).pipe(map(([rhythm, language, colours]) => ({
     language,
+    languageName: this.languageNameService.getLanguageName(language),
     rhythm: RhythmService.forLanguage(rhythm, language),
     loaded: rhythm !== null,
     crest: colours[language] ?? DEFAULT_CREST,
@@ -58,7 +60,6 @@ export class HarnessComponent implements OnInit {
 
   protected readonly weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   protected readonly today = localDate();
-  protected readonly summarisedWeeks = SUMMARISED_WEEKS;
   protected readonly hasTarget = hasTarget;
 
   ngOnInit(): void {
@@ -94,20 +95,14 @@ export class HarnessComponent implements OnInit {
     return day.date > this.today;
   }
 
+  protected isToday(day: RhythmDay): boolean {
+    return day.date === this.today;
+  }
+
   protected dayLabel(day: RhythmDay): string {
     if (!day.met) return `${day.date}: nothing recorded`;
     if (day.minutes === 0) return `${day.date}: under a minute`;
     return `${day.date}: ${day.minutes} ${day.minutes === 1 ? 'minute' : 'minutes'}`;
-  }
-
-  protected daysToGo(rhythm: LanguageRhythm): number {
-    const week = rhythm.weeks.at(-1);
-    if (!week || !hasTarget(rhythm.target)) return 0;
-    return Math.max(rhythm.target - week.daysMet, 0);
-  }
-
-  protected weeksMet(rhythm: LanguageRhythm): number {
-    return rhythm.weeks.slice(0, -1).slice(-SUMMARISED_WEEKS).filter(week => week.met).length;
   }
 
   protected headline(target: WeeklyTarget): string {

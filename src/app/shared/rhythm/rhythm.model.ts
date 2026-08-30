@@ -39,6 +39,8 @@ export interface LanguageRhythm {
   language: LanguageCode;
   target: WeeklyTarget;
   editable: boolean;
+  /** When the language was taken up, so weeks at pace count only the weeks it has existed. */
+  startedAt: string;
   /** Oldest first, ending with the week in progress. */
   weeks: RhythmWeek[];
 }
@@ -61,6 +63,7 @@ function parseLanguageRhythm(value: unknown, path: string): LanguageRhythm {
     language: expectEnum(rhythm['language'], Object.values(LanguageCode), `${path}.language`),
     target: expectNullableNumber(rhythm['target'], `${path}.target`),
     editable: expectBoolean(rhythm['editable'], `${path}.editable`),
+    startedAt: expectString(rhythm['startedAt'], `${path}.startedAt`),
     weeks: expectArray(rhythm['weeks'], `${path}.weeks`).map((week, index) => parseWeek(week, `${path}.weeks[${index}]`)),
   };
 }
@@ -93,4 +96,28 @@ export function localDate(date: Date = new Date()): string {
 
 export function hasTarget(target: WeeklyTarget): target is number {
   return target !== null && target > 0;
+}
+
+export function cadenceLabel(target: WeeklyTarget): string {
+  if (target === null) return 'No pace set';
+  if (target === 0) return 'No target';
+  return target === 7 ? 'Daily' : `${target}× a week`;
+}
+
+/** The Monday the given day belongs to, so a start date can be compared with a week's start. */
+function weekStartOf(date: string): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+  parsed.setDate(parsed.getDate() - ((parsed.getDay() + 6) % 7));
+  return localDate(parsed);
+}
+
+/** Only the weeks the language has actually existed: a language taken up in June is not judged against fourteen. */
+export function trackedWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
+  const start = weekStartOf(rhythm.startedAt);
+  return rhythm.weeks.filter(week => week.weekStart >= start);
+}
+
+export function weeksAtPace(rhythm: LanguageRhythm): number {
+  return trackedWeeks(rhythm).filter(week => week.met).length;
 }

@@ -1,18 +1,27 @@
-<div class="band-strip" [style.--crest-color]="crest">
-  <span class="strip-crest">{{ rhythm.language }}</span>
-  <div
-    class="bars"
-    role="img"
-    [attr.aria-label]="weeksMet + ' of the last ' + rhythm.weeks.length + ' weeks at pace in ' + rhythm.language"
-  >
+<div class="record-row" [class.uncommitted]="!committed" [style.--crest-color]="crest">
+  <div class="record-row-head">
+    <span class="strip-crest" aria-hidden="true">{{ rhythm.language }}</span>
+    <span class="strip-language">{{ languageName }}</span>
+    <span class="strip-meta">{{ meta }}</span>
+    @if (committed) {
+      <span
+        class="strip-count"
+        [attr.aria-label]="weeksMet + ' of ' + weeksCounted + ' weeks at pace in ' + languageName"
+      >{{ weeksMet }}/{{ weeksCounted }}</span>
+    } @else {
+      <button type="button" class="strip-action" (click)="setPace.emit(rhythm)">Set a pace</button>
+    }
+  </div>
+
+  <div class="bars" role="img" [attr.aria-label]="'Weekly record in ' + languageName">
     @for (week of rhythm.weeks; track week.weekStart) {
       <i
         class="bar"
         [class.met]="week.met"
         [class.partial]="!week.met && week.daysMet > 0"
         [class.current]="isCurrent(week)"
+        [class.before-start]="isBeforeStart(week)"
       ></i>
     }
   </div>
-  <span class="caption">{{ caption }}</span>
 </div>

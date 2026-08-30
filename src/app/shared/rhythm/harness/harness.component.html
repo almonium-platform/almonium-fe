@@ -2,12 +2,12 @@
   @if (view.rhythm; as rhythm) {
     <section class="harness" aria-labelledby="harness-title" [style.--crest-color]="view.crest">
       <div class="harness-head">
+        <span class="crest" aria-hidden="true">{{ view.language }}</span>
         <div>
-          <p class="eyebrow">Your rhythm</p>
+          <p class="eyebrow">Your rhythm in {{ view.languageName }}</p>
           <h2 id="harness-title">{{ headline(rhythm.target) }}</h2>
           <p class="harness-lede">You set the bar. Almonium only tells you whether you cleared it.</p>
         </div>
-        <span class="crest" [attr.aria-label]="'In ' + view.language">{{ view.language }}</span>
       </div>
 
       <app-rhythm-target
@@ -16,7 +16,7 @@
         [editable]="rhythm.editable"
       ></app-rhythm-target>
 
-      <div class="band" role="table" [attr.aria-label]="'Weekly rhythm in ' + view.language + ', tint shows time learning'">
+      <div class="band" role="table" [attr.aria-label]="'Weekly rhythm in ' + view.languageName">
         <div class="band-row band-head" role="row">
           <span class="week-label" role="columnheader">Week</span>
           <div class="days" role="presentation">
@@ -27,27 +27,20 @@
 
         @for (week of shownWeeks(rhythm); track week.weekStart) {
           <div class="band-row" role="row" [class.current]="isCurrentWeek(rhythm, week)">
-            <span class="week-label" role="rowheader">
-              {{ isCurrentWeek(rhythm, week) ? 'This wk' : weekLabel(week.weekStart) }}
-            </span>
+            <span class="week-label" role="rowheader">{{ weekLabel(week.weekStart) }}</span>
             <div class="days" role="presentation">
               @for (day of week.days; track day.date) {
                 <span
                   class="day tint-{{ tint(day) }}"
                   [class.future]="isFuture(day)"
+                  [class.today]="isToday(day)"
                   role="cell"
                   [attr.aria-label]="dayLabel(day)"
                 ></span>
               }
             </div>
             <span class="week-verdict" role="cell">
-              @if (isCurrentWeek(rhythm, week)) {
-                @if (hasTarget(rhythm.target)) {
-                  @if (week.met) { <span class="met">✓</span> } @else { <span class="to-go">{{ daysToGo(rhythm) }} to go</span> }
-                } @else {
-                  <span class="quiet">{{ week.daysMet }}</span>
-                }
-              } @else if (week.met) {
+              @if (week.met) {
                 <span class="met" aria-label="Target met">✓</span>
               } @else if (hasTarget(rhythm.target)) {
                 <span class="quiet">{{ week.daysMet }} of {{ rhythm.target }}</span>
@@ -59,15 +52,10 @@
         }
       </div>
 
-      <div class="harness-foot">
-        @if (hasTarget(rhythm.target)) {
-          <span class="weeks-met">{{ weeksMet(rhythm) }}</span>
-          <p>of the last {{ summarisedWeeks }} weeks met your target. Tint shows time learning, not a score.</p>
-        } @else if (rhythm.target === null) {
-          <p class="no-target">Set a weekly pace and the band above starts answering one question: did you clear it?</p>
-        } @else {
-          <p class="no-target">No target — the band is just a record of when you learned. Tint shows time learning, not a score.</p>
-        }
+      <div class="legend">
+        <span class="swatches" aria-hidden="true"><i class="tint-1"></i><i class="tint-2"></i><i class="tint-3"></i></span>
+        <span class="legend-copy">Tint shows time learning, not a score.</span>
+        <span class="legend-scale">&lt;10 · 10–25 · 25+ min</span>
       </div>
     </section>
   } @else if (!view.loaded) {

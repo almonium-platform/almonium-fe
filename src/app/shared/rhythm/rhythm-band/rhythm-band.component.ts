@@ -1,7 +1,7 @@
-import {Component, Input} from '@angular/core';
-import {LanguageRhythm, RhythmWeek, hasTarget} from '../rhythm.model';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {LanguageRhythm, RhythmWeek, cadenceLabel, hasTarget, trackedWeeks, weeksAtPace} from '../rhythm.model';
 
-/** The read-only face of one language's harness: a bar per week, and where this week stands. */
+/** One language's record, read-only: what you asked of it, how long it has run, and the weeks you kept. */
 @Component({
   selector: 'app-rhythm-band',
   templateUrl: './rhythm-band.component.html',
@@ -9,21 +9,42 @@ import {LanguageRhythm, RhythmWeek, hasTarget} from '../rhythm.model';
 })
 export class RhythmBandComponent {
   @Input({required: true}) rhythm!: LanguageRhythm;
+  @Input({required: true}) languageName!: string;
   @Input() crest = 'var(--brand-primary)';
+  @Output() readonly setPace = new EventEmitter<LanguageRhythm>();
+
+  protected readonly hasTarget = hasTarget;
+
+  protected get committed(): boolean {
+    return hasTarget(this.rhythm.target);
+  }
+
+  protected get meta(): string {
+    return this.committed ? `${cadenceLabel(this.rhythm.target)} · ${this.since}` : 'No target';
+  }
+
+  protected get weeksMet(): number {
+    return weeksAtPace(this.rhythm);
+  }
+
+  protected get weeksCounted(): number {
+    return trackedWeeks(this.rhythm).length;
+  }
 
   protected isCurrent(week: RhythmWeek): boolean {
     return week === this.rhythm.weeks.at(-1);
   }
 
-  protected get weeksMet(): number {
-    return this.rhythm.weeks.filter(week => week.met).length;
+  /** A week before the language existed is not a week it missed. */
+  protected isBeforeStart(week: RhythmWeek): boolean {
+    return !trackedWeeks(this.rhythm).includes(week);
   }
 
-  protected get caption(): string {
-    const week = this.rhythm.weeks.at(-1);
-    if (!week) return '';
-    return hasTarget(this.rhythm.target)
-      ? `this week: ${week.daysMet} of ${this.rhythm.target} days`
-      : `this week: ${week.daysMet} ${week.daysMet === 1 ? 'day' : 'days'}`;
+  private get since(): string {
+    const [year, month, day] = this.rhythm.startedAt.split('-').map(Number);
+    const started = new Date(year, month - 1, day);
+    const sameYear = started.getFullYear() === new Date().getFullYear();
+    return `since ${new Intl.DateTimeFormat(undefined, sameYear ? {month: 'long'} : {month: 'long', year: 'numeric'})
+      .format(started)}`;
   }
 }

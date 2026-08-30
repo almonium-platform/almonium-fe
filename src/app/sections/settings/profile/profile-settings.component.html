@@ -100,18 +100,20 @@
               </div>
               @if (activeRhythm; as loadedRhythm) {
                 <div class="record-number">
-                  <span class="figure">{{ weeksAtPace(loadedRhythm) }}<span class="of">/{{ loadedRhythm.weeks.length }}</span></span>
+                  <span class="figure">{{ weeksAtPace(loadedRhythm) }}<span class="of">/{{ weeksCounted(loadedRhythm) }}</span></span>
                   <span class="caption">Weeks at pace</span>
                 </div>
               }
             </div>
 
-            @if (committedRhythms.length) {
+            @if (recordRows.length) {
               <div class="record-bands">
-                @for (languageRhythm of committedRhythms; track languageRhythm.language) {
+                @for (languageRhythm of recordRows; track languageRhythm.language) {
                   <app-rhythm-band
                     [rhythm]="languageRhythm"
+                    [languageName]="languageName(languageRhythm.language)"
                     [crest]="crestColour(languageRhythm.language)"
+                    (setPace)="goSetPace($event)"
                   ></app-rhythm-band>
                 }
               </div>

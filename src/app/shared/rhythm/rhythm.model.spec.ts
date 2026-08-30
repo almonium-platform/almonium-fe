@@ -1,5 +1,5 @@
 import {ApiContractError} from '../runtime-validation';
-import {hasTarget, localDate, parseRhythm} from './rhythm.model';
+import {cadenceLabel, hasTarget, localDate, parseRhythm, trackedWeeks, weeksAtPace} from './rhythm.model';
 
 describe('rhythm API validation', () => {
   const week = (weekStart: string, daysMet: number, met: boolean) => ({
@@ -8,18 +8,20 @@ describe('rhythm API validation', () => {
     met,
     days: [{date: `${weekStart}`, minutes: 25, met: daysMet > 0}],
   });
-  const language = (code: string, target: number | null, editable = true) => ({
+  const language = (code: string, target: number | null, editable = true, startedAt = '2026-01-05') => ({
     language: code,
     target,
     editable,
-    weeks: [week('2026-02-16', 3, target === 3)],
+    startedAt,
+    weeks: [week('2026-01-05', 3, false), week('2026-01-12', 3, true), week('2026-02-16', 3, target === 3)],
   });
 
   it('parses the backend rhythm contract', () => {
     const rhythm = parseRhythm({languages: [language('DE', 3)]});
 
     expect(rhythm.languages[0].target).toBe(3);
-    expect(rhythm.languages[0].weeks[0].met).toBeTrue();
+    expect(rhythm.languages[0].startedAt).toBe('2026-01-05');
+    expect(rhythm.languages[0].weeks[2].met).toBeTrue();
     expect(rhythm.languages[0].weeks[0].days[0].minutes).toBe(25);
   });
 
@@ -40,8 +42,24 @@ describe('rhythm API validation', () => {
 
   it('rejects a week without its verdict', () => {
     expect(() => parseRhythm({
-      languages: [{language: 'DE', target: 3, editable: true, weeks: [{weekStart: '2026-02-16', daysMet: 1, days: []}]}],
+      languages: [{
+        language: 'DE', target: 3, editable: true, startedAt: '2026-01-05',
+        weeks: [{weekStart: '2026-02-16', daysMet: 1, days: []}],
+      }],
     })).toThrowError(ApiContractError);
+  });
+
+  it('counts only the weeks a language has existed, so a new one is not judged against fourteen', () => {
+    const rhythm = parseRhythm({languages: [language('DE', 3, true, '2026-01-12')]});
+
+    expect(trackedWeeks(rhythm.languages[0]).length).toBe(2);
+    expect(weeksAtPace(rhythm.languages[0])).toBe(2);
+  });
+
+  it('names the cadence the way the row reads it', () => {
+    expect(cadenceLabel(3)).toBe('3× a week');
+    expect(cadenceLabel(7)).toBe('Daily');
+    expect(cadenceLabel(0)).toBe('No target');
   });
 
   it('treats an explicit no-target as a choice rather than a bar', () => {

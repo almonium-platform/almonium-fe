@@ -6,7 +6,7 @@ import {PlanType, UserInfo} from "../../../models/userinfo.model";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {BehaviorSubject, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UsernameComponent} from "../../../shared/username/username.component";
 import {InterestsComponent} from "../../../shared/interests/interests.component";
@@ -25,7 +25,7 @@ import {LanguageCode} from '../../../models/language.enum';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {LearningStats, LearningStatsService} from '../../../services/learning-stats.service';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
-import {LanguageRhythm, Rhythm, hasTarget} from '../../../shared/rhythm/rhythm.model';
+import {LanguageRhythm, Rhythm, hasTarget, trackedWeeks, weeksAtPace} from '../../../shared/rhythm/rhythm.model';
 import {RhythmBandComponent} from '../../../shared/rhythm/rhythm-band/rhythm-band.component';
 import {RhythmService} from '../../../shared/rhythm/rhythm.service';
 import {catchError, switchMap} from 'rxjs/operators';
@@ -61,6 +61,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   private languageNameService = inject(LanguageNameService);
   private learningStatsService = inject(LearningStatsService);
   private rhythmService = inject(RhythmService);
+  private router = inject(Router);
 
   @ViewChild(ShareLinkComponent, {static: false}) shareLinkComponent!: ShareLinkComponent;
 
@@ -132,19 +133,36 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     return RhythmService.forLanguage(this.rhythm, this.activeLanguage);
   }
 
-  /** One strip per language the learner has actually committed to; a bar nobody set says nothing. */
-  protected get committedRhythms(): LanguageRhythm[] {
-    return this.rhythm?.languages.filter(entry => hasTarget(entry.target)) ?? [];
+  /** Languages with a bar first, deepest record at the top; those without one follow, dimmed, offering the bar. */
+  protected get recordRows(): LanguageRhythm[] {
+    const languages = this.rhythm?.languages ?? [];
+    const committed = languages.filter(entry => hasTarget(entry.target))
+      .sort((a, b) => weeksAtPace(b) - weeksAtPace(a));
+    return [...committed, ...languages.filter(entry => !hasTarget(entry.target))];
   }
 
   /** Nothing has happened yet, so the space holds an invitation rather than three zeroes. */
   protected get hasRecord(): boolean {
     const kept = (this.stats?.wordsKept ?? 0) + (this.stats?.booksFinished ?? 0);
-    return kept > 0 || this.committedRhythms.length > 0;
+    return kept > 0 || this.recordRows.some(entry => hasTarget(entry.target));
   }
 
   protected weeksAtPace(rhythm: LanguageRhythm): number {
-    return rhythm.weeks.filter(week => week.met).length;
+    return weeksAtPace(rhythm);
+  }
+
+  protected weeksCounted(rhythm: LanguageRhythm): number {
+    return trackedWeeks(rhythm).length;
+  }
+
+  protected languageName(language: LanguageCode): string {
+    return this.languageNameService.getLanguageName(language);
+  }
+
+  /** The bar is set where the interactive harness lives, so setting a pace means going there in that language. */
+  protected goSetPace(rhythm: LanguageRhythm): void {
+    this.languageService.setCurrentLanguage(rhythm.language);
+    void this.router.navigate(['/home']);
   }
 
   protected crestColour(language: LanguageCode): string {
