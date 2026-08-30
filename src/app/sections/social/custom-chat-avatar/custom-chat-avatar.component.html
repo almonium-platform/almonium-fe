@@ -21,8 +21,13 @@
   } @else {
     <div data-testid="fallback-img" class="str-chat__avatar-fallback">
       @if (isSavedMessages) {
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6.5 4.75A1.75 1.75 0 0 1 8.25 3h7.5a1.75 1.75 0 0 1 1.75 1.75V21L12 17.6 6.5 21V4.75Z"/>
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <path d="M170 148a26 26 0 0 1 26-26h120a26 26 0 0 1 26 26v244l-86-64-86 64z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="30"
+                stroke-linejoin="round"
+                stroke-linecap="round"/>
         </svg>
       } @else {
         {{ initials }}
