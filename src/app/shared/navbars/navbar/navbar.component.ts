@@ -31,6 +31,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
 import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit/components";
 import {LanguageNameService} from "../../../services/language-name.service";
+import {SocialService} from "../../../sections/social/social.service";
+import {RelationshipAction} from "../../relationship.model";
 
 const RECENT_LANGUAGES_KEY = 'recent_target_languages';
 const LANGUAGE_CREST_SESSIONS_KEY = 'language_crest_hint_sessions';
@@ -78,6 +80,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private alertService = inject(TuiNotificationService);
   private localStorageService = inject(LocalStorageService);
   private languageNameService = inject(LanguageNameService);
+  private socialService = inject(SocialService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -116,6 +119,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected unreadNotificationsCount = 0;
 
   protected notifications: Notification[] = [];
+  protected readonly requestActionInProgressIds = new Set<string>();
+  private readonly resolvedRequestIds = new Set<string>();
   private readonly notificationGroupIds = new Map<string, string[]>();
 
   protected get hasLanguageChoices(): boolean {
@@ -168,13 +173,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.timer,
         icon: 'timer',
         hasUpdate: this.isTimerRunning(),
+        count: 0,
         action: () => this.toggleTimerPopover()
       },
       {
         name: 'social',
         enabled: this.uiPreferences.navbar.social,
         icon: 'message-circle',
+        // Chat is a debt you clear by opening the thread; a bare dot, never a number.
         hasUpdate: this.hasUnreadMessages,
+        count: 0,
         action: () => this.router.navigate(['/social'])
       },
       {
@@ -182,6 +190,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.notifications,
         icon: 'bell',
         hasUpdate: this.unreadNotificationsCount > 0,
+        // The bell is a debt you clear by reading; it says how many.
+        count: this.unreadNotificationsCount,
         action: () => this.toggleNotificationPopover()
       }
     ];
@@ -492,19 +502,30 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /* Only one popover at a time: opening one closes the others, so a click always
+     has an owner. */
   toggleProfilePopover(): void {
-    this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
-    if (this.isProfilePopoverOpen) {
-      this.isNotificationOpen = false;
-    }
+    const willOpen = !this.isProfilePopoverOpen;
+    this.closeAllPopovers();
+    this.isProfilePopoverOpen = willOpen;
   }
 
   toggleNotificationPopover(): void {
-    this.isNotificationOpen = !this.isNotificationOpen;
+    const willOpen = !this.isNotificationOpen;
+    this.closeAllPopovers();
+    this.isNotificationOpen = willOpen;
   }
 
   toggleTimerPopover(): void {
-    this.isTimerOpen = !this.isTimerOpen;
+    const willOpen = !this.isTimerOpen;
+    this.closeAllPopovers();
+    this.isTimerOpen = willOpen;
+  }
+
+  private closeAllPopovers(): void {
+    this.isProfilePopoverOpen = false;
+    this.isNotificationOpen = false;
+    this.isTimerOpen = false;
   }
 
   openChangeAvatarPopup() {
@@ -527,6 +548,43 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return message
       ? this.formatNotificationText(message)
       : notification.title.replace(/[!]+(?=\s*$)/, '.');
+  }
+
+  protected isActionableRequest(notification: Notification): boolean {
+    return notification.type === NotificationType.FRIENDSHIP_REQUESTED
+      && !this.resolvedRequestIds.has(notification.referenceId);
+  }
+
+  protected acceptFriendRequest(notification: Notification, event: Event) {
+    event.stopPropagation();
+    this.respondToFriendRequest(notification, RelationshipAction.ACCEPT, 'Friend request accepted');
+  }
+
+  protected declineFriendRequest(notification: Notification, event: Event) {
+    event.stopPropagation();
+    this.respondToFriendRequest(notification, RelationshipAction.REJECT, 'Friend request declined');
+  }
+
+  private respondToFriendRequest(notification: Notification, action: RelationshipAction, message: string) {
+    const relationshipId = notification.referenceId;
+    if (this.requestActionInProgressIds.has(relationshipId)) return;
+    this.requestActionInProgressIds.add(relationshipId);
+
+    this.socialService.patchFriendship(relationshipId, action)
+      .pipe(finalize(() => {
+        this.requestActionInProgressIds.delete(relationshipId);
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: () => {
+          this.resolvedRequestIds.add(relationshipId);
+          this.markNotificationAsRead(notification);
+          this.alertService.open(message, {appearance: 'positive'}).subscribe();
+        },
+        error: (error) => {
+          this.alertService.open(getErrorMessage(error, 'Could not answer the friend request'), {appearance: 'negative'}).subscribe();
+        },
+      });
   }
 
   onNotificationClick(notification: Notification) {
