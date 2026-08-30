@@ -456,8 +456,7 @@
   &--active,
   &-messenger--active {
     // selected chat preview
-    background-color: var(--state-selected);
-    border-left: 3px solid var(--brand-primary);
+    background-color: var(--chat-selected-color);
     color: var(--text-color);
 
     .muted-icon {
@@ -471,7 +470,7 @@
 
     // Ensure hover does not affect active state
     &:hover {
-      background-color: var(--state-selected) !important;
+      background-color: var(--chat-selected-color) !important;
     }
 
     .str-chat__icon {
@@ -483,7 +482,7 @@
     }
 
     .online-indicator-buffer {
-      background-color: var(--state-selected) !important;
+      background-color: var(--chat-selected-color) !important;
     }
 
     .str-chat__avatar--online-indicator {

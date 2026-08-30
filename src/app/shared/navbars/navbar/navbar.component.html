@@ -287,65 +287,65 @@
           </div>
         } @else {
           @for (notification of notifications; track notification) {
-            <tui-badged-content>
-              @if (!notification.readAt) {
-                <tui-badge-notification size="xs" tuiSlot="top"/>
-              }
-              <ng-template #dropdownTemplate>
+            <ng-template #dropdownTemplate>
 
-                <tui-data-list
-                  role="menu"
-                  tuiDataListDropdownManager
-                  (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
-                  class="context-menu">
+              <tui-data-list
+                role="menu"
+                tuiDataListDropdownManager
+                (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
+                class="context-menu">
 
-                  <button tuiOption
-                          type="button"
-                          class="context-button"
-                          [disabled]="loadingNotificationAction"
-                          (click)="toggleRead(notification, dropdown)"
-                  >
-                    <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
-                  </button>
+                <button tuiOption
+                        type="button"
+                        class="context-button"
+                        [disabled]="loadingNotificationAction"
+                        (click)="toggleRead(notification, dropdown)"
+                >
+                  <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
+                               [size]="18"
+                  ></lucide-icon>
+                  Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
+                </button>
 
-                  <button tuiOption
-                          type="button"
-                          class="context-button"
-                          [disabled]="loadingNotificationAction"
-                          (click)="deleteNotification(notification, dropdown)"
-                  >
-                    <lucide-icon name="trash"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Delete
-                  </button>
+                <button tuiOption
+                        type="button"
+                        class="context-button"
+                        [disabled]="loadingNotificationAction"
+                        (click)="deleteNotification(notification, dropdown)"
+                >
+                  <lucide-icon name="trash"
+                               [size]="18"
+                  ></lucide-icon>
+                  Delete
+                </button>
 
-                </tui-data-list>
-              </ng-template>
+              </tui-data-list>
+            </ng-template>
 
-              <div class="notification-item"
-                   [class.unread]="!notification.readAt"
-                   tuiDropdownContext
-                   #dropdown="tuiDropdown"
-                   [tuiDropdown]="dropdownTemplate"
-              >
-                <app-avatar-preview
-                  [avatarUrl]="notification.pictureUrl"
-                  (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
-                  [userId]="notification.senderId"
-                ></app-avatar-preview>
+            <div class="notification-item"
+                 [class.unread]="!notification.readAt"
+                 tuiDropdownContext
+                 #dropdown="tuiDropdown"
+                 [tuiDropdown]="dropdownTemplate"
+            >
+              <app-avatar-preview
+                [avatarUrl]="notification.pictureUrl"
+                (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
+                [userId]="notification.senderId"
+              ></app-avatar-preview>
 
-                <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
-                  <div class="notification-row">
-                    <div class="notification-message" [innerHTML]="notificationSummary(notification)"></div>
+              <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
+                <div class="notification-row">
+                  <div class="notification-message" [innerHTML]="notificationSummary(notification)"></div>
+                  <div class="notification-meta">
                     <time>{{ notification.createdAt | shortRelativeTime }}</time>
+                    @if (!notification.readAt) {
+                      <span class="unread-dot" aria-label="Unread"></span>
+                    }
                   </div>
                 </div>
               </div>
-            </tui-badged-content>
+            </div>
           }
         }
       </div>
