@@ -82,6 +82,39 @@
           }
         </div>
 
+        <section class="record-strip" aria-labelledby="record-strip-title">
+          <div class="record-head">
+            <span class="record-language">{{ activeLanguageName }}</span>
+            <span id="record-strip-title" class="eyebrow">Your record</span>
+          </div>
+
+          @if (hasRecord) {
+            <div class="record-numbers">
+              <div class="record-number">
+                <span class="figure">{{ stats?.wordsKept | number }}</span>
+                <span class="caption">Words you can read</span>
+              </div>
+              <div class="record-number">
+                <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
+                <span class="caption">Books finished</span>
+              </div>
+              @if (rhythm; as loadedRhythm) {
+                <div class="record-number">
+                  <span class="figure">{{ weeksAtPace }}<span class="of">/{{ loadedRhythm.weeks.length }}</span></span>
+                  <span class="caption">Weeks at pace</span>
+                </div>
+              }
+            </div>
+            @if (rhythm; as loadedRhythm) {
+              <app-rhythm-band [rhythm]="loadedRhythm"></app-rhythm-band>
+            }
+          } @else {
+            <p class="record-empty">
+              Nothing to show yet. <a routerLink="/settings/app">Set a weekly pace</a> and the record starts here as you read.
+            </p>
+          }
+        </section>
+
         <div class="visibility-row">
           <div>
             <strong>Profile is {{ userInfo.hidden ? 'hidden' : 'visible' }}</strong>

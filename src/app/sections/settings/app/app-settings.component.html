@@ -4,6 +4,12 @@
   <main class="app-settings-layout">
     <div class="settings-grid">
       <section class="section-block card">
+        <div class="title">Your rhythm</div>
+        <p class="section-note">Days a week you ask of yourself. Weeks are the unit, so missing a Tuesday is not a failure — and no target is a legitimate choice.</p>
+        <app-rhythm-target [target]="rhythmTarget"></app-rhythm-target>
+      </section>
+
+      <section class="section-block card">
         <div class="title">Appearance</div>
         <div class="setting-line">
           <span>Theme</span>

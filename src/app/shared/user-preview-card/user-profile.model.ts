@@ -5,7 +5,6 @@ import {
   expectBoolean,
   expectEnum,
   expectNullableString,
-  expectNumber,
   expectRecord,
   expectString,
 } from '../runtime-validation';
@@ -22,7 +21,6 @@ export interface UserProfileInfo {
   isPremium: boolean;
   hidden: boolean;
   interests: string[];
-  loginStreak: number;
   fluentLangs: string[];
   targetLangs: TargetLanguageWithProficiency[];
   relationshipId: string | null;
@@ -42,9 +40,6 @@ export function parseUserProfileInfo(value: unknown): UserProfileInfo {
     hidden,
     interests: expectProfileDetailArray(profile['interests'], 'user profile.interests', hidden)
       .map((interest, index) => expectString(interest, `user profile.interests[${index}]`)),
-    loginStreak: profile['loginStreak'] === undefined && hidden
-      ? 0
-      : expectNumber(profile['loginStreak'], 'user profile.loginStreak'),
     fluentLangs: expectProfileDetailArray(profile['fluentLangs'], 'user profile.fluentLangs', hidden)
       .map((language, index) => expectEnum(language, Object.values(LanguageCode), `user profile.fluentLangs[${index}]`)),
     targetLangs: expectProfileDetailArray(profile['targetLangs'], 'user profile.targetLangs', hidden).map((target, index) => {

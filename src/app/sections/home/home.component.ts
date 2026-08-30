@@ -12,6 +12,7 @@ import {BookCoverComponent} from '../read/book-cover/book-cover.component';
 import {Book, BookshelfView} from '../read/book.model';
 import {ReadService} from '../read/read.service';
 import {ReviewService} from '../review/review.service';
+import {HarnessComponent} from '../../shared/rhythm/harness/harness.component';
 
 const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorites: []};
 
@@ -19,7 +20,7 @@ const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorite
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less'],
-  imports: [RouterLink, BookCoverComponent],
+  imports: [RouterLink, BookCoverComponent, HarnessComponent],
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private readonly userService = inject(UserInfoService);
@@ -42,7 +43,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     day: 'numeric',
     month: 'long',
   }).format(new Date());
-  protected readonly recordWeeks = Array.from({length: 12});
 
   ngOnInit(): void {
     this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {

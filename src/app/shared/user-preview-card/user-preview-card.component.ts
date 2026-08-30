@@ -61,7 +61,6 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   // constant to store how many interests to display
   protected readonly MAX_INTERESTS = 4;
   protected readonly MAX_TARGET_LANGS = 3;
-  protected readonly SIGNIFICANT_STREAK = 30;
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
 

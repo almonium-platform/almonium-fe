@@ -4,7 +4,7 @@ import {parseUserProfileInfo} from './user-profile.model';
 describe('user profile API validation', () => {
   const profile = {
     id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', registeredAt: '2026-01-01T00:00:00Z',
-    premium: false, hidden: false, interests: ['Languages'], loginStreak: 3, fluentLangs: ['EN'],
+    premium: false, hidden: false, interests: ['Languages'], fluentLangs: ['EN'],
     targetLangs: [{language: 'FR', cefrLevel: 'A2'}], relationshipId: null,
     relationshipStatus: 'STRANGER', acceptsRequests: true,
   };
@@ -27,7 +27,6 @@ describe('user profile API validation', () => {
       avatarUrl: null,
       isPremium: true,
       interests: [],
-      loginStreak: 0,
       fluentLangs: [],
       targetLangs: [],
     }));

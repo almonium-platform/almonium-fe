@@ -1,0 +1,13 @@
+<div class="band-strip">
+  <div class="bars" [attr.aria-label]="'Weeks at pace over the last ' + rhythm.weeks.length + ' weeks'" role="img">
+    @for (week of rhythm.weeks; track week.weekStart) {
+      <i
+        class="bar"
+        [class.met]="week.met"
+        [class.partial]="!week.met && week.daysMet > 0"
+        [class.current]="isCurrent(week)"
+      ></i>
+    }
+  </div>
+  <span class="caption">{{ caption }}</span>
+</div>

@@ -12,11 +12,14 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
-import {catchError} from "rxjs/operators";
+import {catchError, takeUntil} from "rxjs/operators";
 import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
 import {ThemeService} from 'stream-chat-angular';
 import {applyThemeAssets} from '../../../services/theme-assets';
 import {applyMotionPreference, resolveReducedMotion} from '../../../services/motion-preference';
+import {RhythmTargetComponent} from '../../../shared/rhythm/rhythm-target/rhythm-target.component';
+import {RhythmService} from '../../../shared/rhythm/rhythm.service';
+import {WeeklyTarget} from '../../../shared/rhythm/rhythm.model';
 
 @Component({
   selector: 'app-app-settings',
@@ -27,7 +30,8 @@ import {applyMotionPreference, resolveReducedMotion} from '../../../services/mot
     TuiSwitch,
     FormsModule,
     TuiIcon,
-    ButtonComponent
+    ButtonComponent,
+    RhythmTargetComponent
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
@@ -40,6 +44,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private alertService = inject(TuiNotificationService);
   private taigaDarkMode = inject(TUI_DARK_MODE);
   private streamThemeService = inject(ThemeService);
+  private rhythmService = inject(RhythmService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -47,6 +52,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
+  protected rhythmTarget: WeeklyTarget = null;
   protected appearance: 'light' | 'dark' | 'system' = 'system';
   protected reduceMotion = false;
   protected dailyReview = false;
@@ -72,6 +78,13 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
     this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
     this.applyAppearancePreferences();
+
+    this.rhythmService.rhythm$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(rhythm => this.rhythmTarget = rhythm?.target ?? null);
+    this.rhythmService.load().subscribe({
+      error: (error) => logger.error('Failed to load your rhythm:', error),
+    });
 
     this.userInfoService.userInfo$
       .pipe(take(1)) // Only listen to the first emission

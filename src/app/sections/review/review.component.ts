@@ -4,6 +4,7 @@ import {RouterLink} from '@angular/router';
 import {Subject, takeUntil} from 'rxjs';
 import {LanguageCode} from '../../models/language.enum';
 import {LanguageNameService} from '../../services/language-name.service';
+import {LearningActivityService} from '../../services/learning-activity.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {getErrorMessage} from '../../shared/http-error';
 import {LearningIntent, ReviewAnswer, ReviewItem, ReviewSession, ReviewSessionResult, ReviewSummary} from './review.model';
@@ -21,6 +22,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
   private readonly reviewService = inject(ReviewService);
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly languageNameService = inject(LanguageNameService);
+  private readonly learningActivity = inject(LearningActivityService);
   private readonly destroy$ = new Subject<void>();
 
   protected selectedLanguage = LanguageCode.EN;
@@ -47,6 +49,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.learningActivity.stop();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -65,6 +68,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
         this.currentIndex = 0;
         this.stage = session.items.length ? 'session' : 'overview';
         this.submitting = false;
+        if (session.items.length) this.learningActivity.start('REVIEW');
       },
       error: error => {
         this.submitting = false;
@@ -217,6 +221,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
         this.result = result;
         this.stage = 'complete';
         this.submitting = false;
+        this.learningActivity.stop(true);
       },
       error: error => {
         this.submitting = false;

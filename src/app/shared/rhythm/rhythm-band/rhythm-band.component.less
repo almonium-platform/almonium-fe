@@ -1,0 +1,7 @@
+.band-strip { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.bars { display: flex; align-items: flex-end; gap: .18rem; }
+.bar { width: .7rem; height: 1rem; border-radius: .12rem; background: var(--hairline-color); }
+.bar.partial { background: color-mix(in srgb, var(--brand-primary) 45%, var(--card-color)); }
+.bar.met { background: var(--brand-primary); }
+.bar.current:not(.met):not(.partial) { border: 1px dashed var(--control-border-color); background: transparent; }
+.caption { color: var(--subhead-color); font-size: .72rem; }

@@ -1,0 +1,36 @@
+:host { display: block; }
+.harness { display: flex; flex-direction: column; gap: 1.35rem; padding: 1.45rem 1.6rem; border: 1px solid var(--hairline-color); border-radius: 1.5rem; background: var(--card-color); box-shadow: var(--box-shadow); }
+.eyebrow { margin: 0; color: var(--dark-raspberry); font-size: .69rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+h2 { margin: .3rem 0 0; font-family: var(--font-family-reading); font-size: 1.45rem; font-weight: 600; line-height: 1.14; }
+.harness-lede { margin: .45rem 0 0; color: var(--subhead-color); font-size: .86rem; line-height: 1.55; }
+
+.band { display: flex; flex-direction: column; gap: .42rem; }
+.band-row { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) 4.4rem; align-items: center; gap: .6rem; }
+.band-row.current { padding-top: .3rem; }
+.week-label { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
+.band-row.current .week-label { color: var(--text-color); font-weight: 500; }
+.band-head .week-label, .weekday, .band-head .week-verdict { color: var(--metadata-color); font-family: inherit; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .3rem; max-width: 15rem; }
+.weekday { text-align: center; }
+.day { aspect-ratio: 1; border-radius: .35rem; background: var(--nested-color); border: 1px solid var(--hairline-color); }
+.day.tint-1 { border-color: transparent; background: color-mix(in srgb, var(--brand-primary) 32%, var(--card-color)); }
+.day.tint-2 { border-color: transparent; background: color-mix(in srgb, var(--brand-primary) 62%, var(--card-color)); }
+.day.tint-3 { border-color: transparent; background: var(--brand-primary); }
+.day.future { border-style: dashed; border-color: var(--control-border-color); background: transparent; }
+.week-verdict { font-size: .72rem; text-align: right; }
+.week-verdict .met { color: var(--success-color); font-size: .82rem; }
+.week-verdict .quiet { color: var(--metadata-color); }
+.band-row.current .week-verdict .to-go { color: var(--dark-raspberry); font-weight: 500; }
+
+.harness-foot { display: flex; align-items: baseline; gap: .55rem; padding-top: 1rem; border-top: 1px solid var(--hairline-color); }
+.harness-foot p { margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.5; }
+.weeks-met { color: var(--brand-primary); font-family: var(--font-family-reading); font-size: 1.9rem; font-weight: 600; line-height: 1; }
+.loading-line { display: block; width: 60%; height: .9rem; margin-top: .5rem; border-radius: 999px; background: var(--nested-color); animation: harness-pulse 1.5s ease-in-out infinite; }
+.loading-line.title { width: 40%; height: 1.7rem; }
+@keyframes harness-pulse { 50% { opacity: .45; } }
+
+@media (max-width: 560px) {
+  .band-row { grid-template-columns: 3.2rem minmax(0, 1fr) 3.6rem; gap: .4rem; }
+  .days { max-width: none; }
+}
+@media (prefers-reduced-motion: reduce) { .loading-line { animation: none; } }

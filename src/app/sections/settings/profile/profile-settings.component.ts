@@ -4,7 +4,7 @@ import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
-import {BehaviorSubject, finalize, firstValueFrom, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import {RouterLink} from "@angular/router";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -20,6 +20,15 @@ import {AvatarComponent} from '../../../shared/avatar/avatar.component';
 import {SettingsAvatarPickerComponent} from './avatar/settings-avatar-picker/settings-avatar-picker.component';
 import {ProfileService} from '../../../shared/user-preview-card/profile.service';
 import {UserProfileInfo} from '../../../shared/user-preview-card/user-profile.model';
+import {DecimalPipe} from '@angular/common';
+import {LanguageCode} from '../../../models/language.enum';
+import {LanguageNameService} from '../../../services/language-name.service';
+import {LearningStats, LearningStatsService} from '../../../services/learning-stats.service';
+import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
+import {Rhythm} from '../../../shared/rhythm/rhythm.model';
+import {RhythmBandComponent} from '../../../shared/rhythm/rhythm-band/rhythm-band.component';
+import {RhythmService} from '../../../shared/rhythm/rhythm.service';
+import {catchError, switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-profile-settings',
@@ -36,6 +45,8 @@ import {UserProfileInfo} from '../../../shared/user-preview-card/user-profile.mo
     FormsModule,
     SharedLucideIconsModule,
     RouterLink,
+    RhythmBandComponent,
+    DecimalPipe,
   ],
   templateUrl: './profile-settings.component.html',
   styleUrl: './profile-settings.component.less'
@@ -46,6 +57,10 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private alertService = inject(TuiNotificationService);
   private profileService = inject(ProfileService);
+  private languageService = inject(TargetLanguageDropdownService);
+  private languageNameService = inject(LanguageNameService);
+  private learningStatsService = inject(LearningStatsService);
+  private rhythmService = inject(RhythmService);
 
   @ViewChild(ShareLinkComponent, {static: false}) shareLinkComponent!: ShareLinkComponent;
 
@@ -60,6 +75,11 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   // interests
   protected interestsEdit = false;
   protected interests: Interest[] = [];
+
+  // the record: numbers that only move by reading, and the harness they sit beside
+  protected stats: LearningStats | null = null;
+  protected rhythm: Rhythm | null = null;
+  protected activeLanguage: LanguageCode | null = null;
 
   private readonly loadingSubjectInterests$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingInterests$ = this.loadingSubjectInterests$.asObservable();
@@ -81,6 +101,39 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
       this.interests = info.interests;
       this.loadProfileInfo(info.id);
     });
+
+    this.rhythmService.rhythm$.pipe(takeUntil(this.destroy$)).subscribe(rhythm => this.rhythm = rhythm);
+    this.rhythmService.load().subscribe({
+      error: error => logger.error('Failed to load your rhythm:', error),
+    });
+
+    this.languageService.currentLanguage$.pipe(
+      switchMap(language => {
+        this.activeLanguage = language;
+        // A failed record must not end the stream, or switching language would stop updating it.
+        return this.learningStatsService.getStats(language).pipe(
+          catchError(error => {
+            logger.error('Failed to load your learning record:', error);
+            return of(null);
+          }),
+        );
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(stats => this.stats = stats);
+  }
+
+  protected get activeLanguageName(): string {
+    return this.activeLanguage ? this.languageNameService.getLanguageName(this.activeLanguage) : '';
+  }
+
+  /** Nothing has happened yet, so the space holds an invitation rather than three zeroes. */
+  protected get hasRecord(): boolean {
+    const kept = (this.stats?.wordsKept ?? 0) + (this.stats?.booksFinished ?? 0);
+    return kept > 0 || this.weeksAtPace > 0;
+  }
+
+  protected get weeksAtPace(): number {
+    return this.rhythm?.weeks.filter(week => week.met).length ?? 0;
   }
 
   ngOnDestroy() {

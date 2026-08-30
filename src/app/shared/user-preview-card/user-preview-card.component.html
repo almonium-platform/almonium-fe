@@ -138,9 +138,6 @@
     <footer class="profile-footer">
       <div class="profile-metadata">
         <span>Joined {{ formatDate(profile.registeredAt) }}</span>
-        @if (!profile.hidden && profile.loginStreak >= SIGNIFICANT_STREAK) {
-          <span>{{ profile.loginStreak }} day streak</span>
-        }
       </div>
 
       @if (canUseRelationshipAction && buttonConfig.label) {

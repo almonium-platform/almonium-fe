@@ -23,6 +23,7 @@ import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/compo
 import {TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ReaderChapter, ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
+import {LearningActivityService} from '../../../services/learning-activity.service';
 import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
 import {UserInfoService} from '../../../services/user-info.service';
@@ -64,6 +65,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private readerDom = inject(ReaderDomService);
   private progressTracker = inject(ReaderProgressTracker);
+  private learningActivity = inject(LearningActivityService);
   private userInfoService = inject(UserInfoService);
 
   // --- Element References ---
@@ -206,6 +208,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.targetLangCode = book.language;
         this.parallelVersions = book.languageVariants.filter(variant => variant.language !== book.language);
         this.trackProgress = this.userInfoService.currentUserInfo !== null;
+        this.startCountingReadingTime();
         if (this.trackProgress) {
           this.initialPosition = this.progressTracker.startBook(book.id);
           this.fetchBookData(book.id);
@@ -228,6 +231,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.readService.getBookImport(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: book => {
         this.targetLangCode = book.language;
+        this.startCountingReadingTime();
         this.loadBookHtml(id, true);
       },
       error: error => this.handleError(getErrorMessage(error, 'Could not load private book.')),
@@ -370,8 +374,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.parallelLoadSubscription?.unsubscribe();
     this.updateScrollState();
     if (this.trackProgress) this.progressTracker.saveOnExit(false);
+    this.learningActivity.stop();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /** Reading counts for the harness whether or not the book's own progress is stored on the server. */
+  private startCountingReadingTime(): void {
+    if (this.userInfoService.currentUserInfo) this.learningActivity.start('READ');
   }
 
 // Modify loadBookHtml to trigger the scroll AFTER load
