@@ -42,7 +42,7 @@
 
       <section class="section-block card">
         <div class="title">What's in the navbar</div>
-        <div class="setting-line locked"><span><strong>Read · Review</strong><small>Always shown</small></span><span class="always-on">always on</span></div>
+        <div class="setting-line locked"><span><strong>Read · Review</strong></span><span class="always-on">always on</span></div>
         @for (item of primaryNavItems; track item) {
           <label class="setting-line"><strong>{{ item === 'play' ? 'Play' : item === 'write' ? 'Write' : 'Discover' }}</strong><input tuiSwitch type="checkbox" [ngModel]="uiPreferences.navbar[item]" (ngModelChange)="onPreferenceChange(item, $event)" [showIcons]="true" /></label>
         }
