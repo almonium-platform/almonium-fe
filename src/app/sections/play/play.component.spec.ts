@@ -40,7 +40,7 @@ describe('PlayComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
 
     expect(cardService.getCardsInLanguage.calls.mostRecent().args[0]).toBe(LanguageCode.DE);
-    expect(element.querySelector('h1')?.textContent).toContain('same 2 words');
+    expect(element.querySelector('h1')?.textContent).toContain('Another way through your words');
     expect(element.querySelector('.primary-action')?.textContent).toContain('Start a 2-word grid');
     expect(element.textContent).toContain('German vocabulary');
   });

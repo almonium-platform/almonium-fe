@@ -70,12 +70,6 @@ export class PlayComponent implements OnInit, OnDestroy {
     return this.cards.filter(card => card.activeLearning !== false).length;
   }
 
-  protected get headline(): string {
-    if (this.loading) return 'Another way through your words';
-    if (this.deckWordCount === 0) return 'Put your vocabulary into play';
-    return `Another way through the same ${this.deckWordCount} ${this.deckWordCount === 1 ? 'word' : 'words'}`;
-  }
-
   protected get crosswordAction(): string {
     return this.deckWordCount > 0
       ? `Start a ${this.deckWordCount}-word grid`
