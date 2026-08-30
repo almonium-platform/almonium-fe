@@ -72,9 +72,9 @@
               <div class="learner-controls">
                 <label class="level-select" [attr.aria-label]="'Level for ' + getLanguageName(learner.language)">
                   <select
-                    [value]="learner.selfReportedLevel"
+                    [ngModel]="learner.selfReportedLevel"
                     [disabled]="updatingLearnerIds.has(learner.id)"
-                    (change)="onCefrLevelChange(learner, $any($event.target).value)">
+                    (ngModelChange)="onCefrLevelChange(learner, $event)">
                     @for (level of cefrLevels; track level) {
                       <option [value]="level">{{ level }}</option>
                     }
