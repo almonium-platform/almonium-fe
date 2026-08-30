@@ -56,6 +56,16 @@ export class SocialChannelFacade {
     return channel.data?.name === AppConstants.SELF_CHAT_NAME;
   }
 
+  /**
+   * The subject a broadcast channel is about: "Almonium — Deutsch" -> "Deutsch".
+   * Falls back to the full channel name when there is no separator.
+   */
+  topic(channel: Channel): string {
+    const name = channel.data?.name ?? '';
+    const parts = name.split(/\s[\u2014\u2013-]\s/);
+    return (parts.at(-1) ?? name).trim();
+  }
+
   isPublic(channel: Channel): boolean {
     return !this.isPrivate(channel) && !this.isSelf(channel);
   }

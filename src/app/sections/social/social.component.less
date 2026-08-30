@@ -274,15 +274,6 @@
     margin-top: 1rem;
   }
 
-  .requests-toggle {
-    width: 20rem;
-    --tui-radius-l: 2rem;
-
-    .btn-text {
-      width: 50%;
-    }
-  }
-
   .people-toggle {
     width: 20rem;
     --tui-radius-l: 2rem;
@@ -733,12 +724,42 @@
 }
 
 .resizer {
-  width: 3px;
-  background: var(--border-color);
+  align-items: center;
+  background: transparent;
   border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-  cursor: ew-resize;
+  cursor: col-resize;
+  display: flex;
+  flex: 0 0 9px;
+  justify-content: center;
+  position: relative;
   user-select: none;
+  width: 9px;
+
+  /* Hairline at rest: the seam reads as a border until you reach for it. */
+  &::before {
+    background: var(--border-color);
+    content: '';
+    height: 100%;
+    position: absolute;
+    width: 1px;
+  }
+
+  .resizer-grip {
+    background: transparent;
+    border-radius: 999px;
+    height: 34px;
+    position: relative;
+    transition: background-color 140ms ease;
+    width: 3px;
+  }
+
+  &:hover .resizer-grip {
+    background: var(--control-border-color);
+  }
+
+  &.dragging .resizer-grip {
+    background: var(--dark-raspberry);
+  }
 }
 
 .left-container.collapsed {
@@ -746,20 +767,35 @@
     display: none;
   }
 
+  ::ng-deep .str-chat__channel-preview {
+    justify-content: center;
+    padding-right: 0;
+
+    &--active,
+    &-messenger--active {
+      background-color: transparent;
+
+      .str-chat__avatar {
+        box-shadow: 0 0 0 2px var(--dark-raspberry);
+      }
+    }
+  }
+
   min-width: unset;
 
   .chats-container {
     .chats-header {
-      &:hover,
-      &:focus {
-        background-color: var(--grey-color);
-      }
+      gap: 0;
+      justify-content: center;
+      padding: 1rem 0;
 
       .header-text.chats {
         display: none;
       }
 
-      .hidden-chat-icon {
+      /* The switch was being cut in half by the edge; in the rail it belongs to
+         the list's own context menu, not to a header that has no room for it. */
+      .hidden-chat-toggle {
         display: none;
       }
     }
@@ -782,5 +818,80 @@
         display: inline;
       }
     }
+  }
+}
+
+
+/* ---- 2f: People is a task you finish, not a modal that blacks out the app. ---- */
+.super-container.drawer-pushed {
+  padding-left: 24rem;
+  transition: padding-left 180ms ease;
+}
+
+.drawer {
+  /* Ink at 22%, no blur: clearly on top, but the app underneath stays legible. */
+  --tui-service-backdrop: rgba(44, 37, 48, .22);
+
+  &.pushes {
+    border-radius: 0;
+    box-shadow: 1px 0 0 var(--hairline-color);
+    inset-block-start: 0;
+  }
+}
+
+.section-heading {
+  align-self: flex-start;
+  color: var(--metadata-color);
+  font: 600 .7rem/1 var(--font-family-mono);
+  letter-spacing: .06rem;
+  margin: .35rem 0 -.35rem;
+  text-transform: uppercase;
+}
+
+/* ---- 2b: a channel offers no composer; it says so instead. ---- */
+.channel-readonly-footer {
+  align-items: center;
+  background: var(--card-color);
+  border-top: 1px solid var(--hairline-color);
+  color: var(--metadata-color);
+  display: flex;
+  font-size: .8rem;
+  gap: .75rem;
+  justify-content: space-between;
+  padding: .85rem 1.1rem;
+
+  .muted-pill {
+    background: var(--nested-color);
+    border-radius: 999px;
+    color: var(--subhead-color);
+    font-size: .75rem;
+    padding: .3rem .75rem;
+  }
+}
+
+.channel-empty-state {
+  color: var(--subhead-color);
+  font-size: .9rem;
+  line-height: 1.5;
+  margin: auto;
+  max-width: 22rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.channel-leave {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: 600 .8rem/1 var(--font-family-ui);
+  margin-left: auto;
+  padding: .45rem .8rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
   }
 }

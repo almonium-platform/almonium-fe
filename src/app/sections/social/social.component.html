@@ -12,7 +12,8 @@
   *tuiPopup="isDrawerOpened()"
   direction="start"
   class="drawer"
-  [overlay]="true"
+  [class.pushes]="isWideViewport()"
+  [overlay]="!isWideViewport()"
   (click.self)="closeDrawer()"
   (tuiActiveZoneChange)="!$event && isDrawerOpened.set(false)"
 >
@@ -45,17 +46,6 @@
       </tui-segmented>
     }
 
-    @if (drawerMode === 'requests') {
-      <tui-segmented
-        size="l"
-        class="requests-toggle"
-        [(activeItemIndex)]="requestsIndex"
-        (activeItemIndexChange)="onRequestsIndexChange($event)"
-      >
-        <button type="button" class="btn-text">Received</button>
-        <button type="button" class="btn-text">Sent</button>
-      </tui-segmented>
-    }
     <tui-scrollbar class="w-full p-1">
       <div class="tiles">
         @if (isDrawerDataLoading()) {
@@ -81,7 +71,7 @@
               </tui-textfield>
               @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
                 <p class="no-results">
-                  No one matched your search.
+                  No account with that handle.
                 </p>
               }
             </div>
@@ -115,7 +105,11 @@
                 </div>
               }
             </div>
-          } @else if (drawerUserTiles.length === 0 && friendFormControl.value === '') {
+          } @else if (drawerMode === 'requests' && incomingRequests.length === 0 && outgoingRequests.length === 0) {
+            <p class="no-results">
+              {{ noResultMessage }}
+            </p>
+          } @else if (drawerMode !== 'requests' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
             <p class="no-results">
               {{ noResultMessage }}
             </p>
@@ -163,6 +157,64 @@
               </app-button>
             }
           }
+          @if (drawerMode === 'requests') {
+            @if (incomingRequests.length > 0) {
+              <p class="section-heading">Received</p>
+              @for (friend of incomingRequests; track friend.relationshipId) {
+                <div class="user-tile card">
+                  <app-avatar [avatarUrl]="friend.avatarUrl"
+                              [username]="friend.username"
+                              [premium]="friend.premium"
+                              [size]="'m'"
+                  ></app-avatar>
+                  <p class="username">{{ friend.username }}</p>
+
+                  @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
+                    <lucide-icon name="loader-circle"
+                                 class="friend-action motion-preset-spin"
+                                 [size]="20"
+                    ></lucide-icon>
+                  } @else if (friend.relationshipStatus === FriendshipStatus.PENDING_INCOMING) {
+                    <button type="button" class="friend-action action-button primary-action"
+                            (click)="acceptFriendRequest(friend)">Accept</button>
+                    <button type="button" class="friend-action action-button secondary"
+                            (click)="rejectFriendRequest(friend.relationshipId)">Decline</button>
+                  } @else if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
+                    <button type="button" class="friend-action action-button positive"
+                            (click)="openChatWithFriend(friend)">
+                      <lucide-icon name="message-circle" [size]="17"></lucide-icon>
+                      Message
+                    </button>
+                  }
+                </div>
+              }
+            }
+
+            @if (outgoingRequests.length > 0) {
+              <p class="section-heading">Sent</p>
+              @for (friend of outgoingRequests; track friend.relationshipId) {
+                <div class="user-tile card">
+                  <app-avatar [avatarUrl]="friend.avatarUrl"
+                              [username]="friend.username"
+                              [premium]="friend.premium"
+                              [size]="'m'"
+                  ></app-avatar>
+                  <p class="username">{{ friend.username }}</p>
+
+                  @if (cancelInProgressIds.has(friend.relationshipId)) {
+                    <lucide-icon name="loader-circle"
+                                 class="friend-action motion-preset-spin"
+                                 [size]="20"
+                    ></lucide-icon>
+                  } @else {
+                    <button type="button" class="friend-action action-button secondary"
+                            (click)="cancelFriendRequest(friend.relationshipId)">Cancel</button>
+                  }
+                </div>
+              }
+            }
+          }
+
           @for (friend of drawerUserTiles; track friend) {
             <div class="user-tile card">
               <app-avatar [avatarUrl]="friend.avatarUrl"
@@ -203,11 +255,11 @@
                       <button
                         tuiOption
                         type="button"
-                        class="context-button negative"
+                        class="context-button"
                         (click)="prepareUnfriendModal(friend.id, friend.relationshipId)"
                       >
                         <lucide-icon name="user-round-x"
-                                     class="chat-icon negative"
+                                     class="chat-icon"
                                      [size]="18"
                         ></lucide-icon>
                         Unfriend
@@ -240,43 +292,6 @@
                           (click)="unblock(friend.id, friend.relationshipId)">Unblock</button>
                 }
               }
-
-              @if (drawerMode === 'requests') {
-                @if (requestsIndex === 0) {
-                  @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
-                    <lucide-icon name="loader-circle"
-                                 class="friend-action motion-preset-spin"
-                                 [size]="20"
-                    ></lucide-icon>
-                  } @else {
-                    @if (friend.relationshipStatus === FriendshipStatus.PENDING_INCOMING) {
-                      <button type="button" class="friend-action action-button primary-action"
-                              (click)="acceptFriendRequest(friend)">Accept</button>
-                      <button type="button" class="friend-action action-button secondary negative"
-                              (click)="rejectFriendRequest(friend.relationshipId)">Decline</button>
-                    }
-                  }
-
-                  @if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
-                    <button type="button" class="friend-action action-button positive"
-                            (click)="openChatWithFriend(friend)">
-                      <lucide-icon name="message-circle" [size]="17"></lucide-icon>
-                      Message
-                    </button>
-                  }
-                }
-                @if (requestsIndex === 1) {
-                  @if (cancelInProgressIds.has(friend.relationshipId)) {
-                    <lucide-icon name="loader-circle"
-                                 class="friend-action motion-preset-spin"
-                                 [size]="20"
-                    ></lucide-icon>
-                  } @else {
-                    <button type="button" class="friend-action action-button secondary"
-                            (click)="cancelFriendRequest(friend.relationshipId)">Cancel</button>
-                  }
-                }
-              }
             </div>
           }
         }
@@ -297,7 +312,7 @@
   ></stream-message-actions-box>
 </ng-template>
 
-<div class="super-container">
+<div class="super-container" [class.drawer-pushed]="isDrawerOpened() && isWideViewport()">
   <div class="left-container"
        appSocialSidebarResize
        #sidebar="socialSidebarResize"
@@ -380,6 +395,7 @@
               <div class="avatar-wrapper"
                    (mouseenter)="startAvatarHover(channel, location)"
                    (mouseleave)="stopAvatarHover()"
+                   (focusin)="togglePreviewCard(channel, location)"
               >
 
                 <app-custom-chat-avatar
@@ -390,9 +406,16 @@
                   [name]="name"
                   [imageUrl]="imageUrl"
                   [location]="location"
+                  [tuiHint]="sidebar.isCollapsed ? name : ''"
+                  tuiHintAppearance="dark"
+                  tuiHintDirection="end"
                   [tuiDropdownManual]="shouldShowDropdown(channel, location)"
                   [tuiDropdown]="dropdownTemplate"
-                  (click)="openUser(location)"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-label]="'Show profile of ' + name"
+                  (click)="togglePreviewCard(channel, location)"
+                  (keydown.enter)="togglePreviewCard(channel, location)"
                 >
                   <ng-template #dropdownTemplate>
                     @let interlocutorId = getInterlocutorId();
@@ -651,7 +674,14 @@
     </div>
   </div>
 
-  <div class="resizer" (mousedown)="sidebar.start()"></div>
+  <div class="resizer"
+       role="separator"
+       aria-orientation="vertical"
+       aria-label="Resize chat list"
+       [class.dragging]="sidebar.isDragging"
+       (mousedown)="sidebar.start()">
+    <span class="resizer-grip"></span>
+  </div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <div class="chat-window">
@@ -666,11 +696,32 @@
                        [strokeWidth]="1.5"
                        class="mr-2 block back-to-channels"
           ></lucide-icon>
+          @if (canLeaveActiveChannel) {
+            <button type="button" class="channel-leave" (click)="leaveActiveChannel()">Leave</button>
+          }
+        </ng-template>
+        <ng-template #emptyMessageListPlaceholder>
+          <p class="channel-empty-state">
+            @if (isActiveChannelReadOnly) {
+              New books, packs and features for {{ activeChannelTopic }} land here.
+            } @else {
+              Say hello — this is the start of the conversation.
+            }
+          </p>
         </ng-template>
 
         <stream-channel-header></stream-channel-header>
         <stream-message-list></stream-message-list>
-        <stream-message-input></stream-message-input>
+        @if (isActiveChannelReadOnly) {
+          <div class="channel-readonly-footer">
+            <span>Only Almonium posts in this channel.</span>
+            @if (activeChannel && isChannelMuted(activeChannel)) {
+              <span class="muted-pill">Muted while you read</span>
+            }
+          </div>
+        } @else {
+          <stream-message-input></stream-message-input>
+        }
       </stream-channel>
     </div>
   </div>

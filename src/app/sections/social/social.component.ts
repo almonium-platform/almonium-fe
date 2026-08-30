@@ -119,6 +119,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
   @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
+  @ViewChild('emptyMessageListPlaceholder', {static: true}) emptyMessageListPlaceholder!: TemplateRef<void>;
   @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
 
   private readonly destroy$ = new Subject<void>();
@@ -136,7 +137,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected drawerUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
-  protected requestsIndex = 0;
   protected incomingRequestsCount = 0;
   // drawer
   protected readonly isDrawerOpened = signal(false);
@@ -156,7 +156,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
   protected hoveredChannel: Channel | null = null;
+  protected activeChannel: Channel | null = null;
   protected currentLocation = '';
+  /** The preview card is pinned open by a click or keyboard focus; hover no longer dismisses it. */
+  protected isPreviewCardPinned = false;
   protected isChatOpen = false;
   protected redirectId: string | undefined = undefined;
 
@@ -231,6 +234,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.setupActiveChannelSubscription();
+    this.onViewportResize();
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
     this.listenToUsernameField();
@@ -271,6 +275,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         takeUntil(this.destroy$)
       )
       .subscribe((channel) => {
+        this.activeChannel = channel;
         this.setChatTitle(channel);
         this.openChat();
         void this.chatUnreadService.fetchUnreadCount();
@@ -299,14 +304,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.drawerMode = 'friends';
       this.openDrawerAndSetupData();
     }
-    if (params['requests'] === 'received') {
+    if (params['requests'] === 'received' || params['requests'] === 'sent') {
       this.drawerMode = 'requests';
-      this.requestsIndex = 0;
-      this.openDrawerAndSetupData();
-    }
-    if (params['requests'] === 'sent') {
-      this.drawerMode = 'requests';
-      this.requestsIndex = 1;
       this.openDrawerAndSetupData();
     }
     const chat: unknown = params['chat'];
@@ -330,6 +329,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
     this.customTemplatesService.channelActionsTemplate$.next(this.customChannelActions);
     this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
+    this.customTemplatesService.emptyMainMessageListPlaceholder$.next(this.emptyMessageListPlaceholder);
   }
 
   private setChatTitle(channel: Channel) {
@@ -475,7 +475,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: outgoingRequests => {
         this.outgoingRequests = outgoingRequests;
-        this.drawerUserTiles = outgoingRequests;
       },
       error: error => this.showSocialLoadError('outgoing friend requests', error),
     });
@@ -489,8 +488,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: incomingRequests => {
         this.incomingRequests = incomingRequests;
-        this.drawerUserTiles = incomingRequests;
-        this.incomingRequestsCount = incomingRequests.length;
+        this.incomingRequestsCount = incomingRequests.filter(
+          request => request.relationshipStatus === RelationshipStatus.PENDING_INCOMING
+        ).length;
       },
       error: error => this.showSocialLoadError('incoming friend requests', error),
     });
@@ -565,7 +565,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.outgoingRequests = this.outgoingRequests.filter(request => request.relationshipId !== friendshipId);
-          this.drawerUserTiles = this.outgoingRequests;
           this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
@@ -717,13 +716,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.drawerHeader = 'People';
     this.drawerIcon = 'users-round';
     if (this.drawerMode === 'requests') {
-      if (this.requestsIndex === 0) {
-        this.getIncomingRequests();
-        this.noResultMessage = `You have no incoming friend requests.`;
-      } else {
-        this.getOutgoingRequests();
-        this.noResultMessage = `You have no outgoing friend requests.`;
-      }
+      // One scroll, two headers: Received carries the work, Sent is usually a row or two.
+      this.drawerUserTiles = [];
+      this.getIncomingRequests();
+      this.getOutgoingRequests();
+      this.noResultMessage = `You have no friend requests.`;
     }
     if (this.drawerMode === 'friends') {
       this.getFriends();
@@ -739,9 +736,22 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Language rooms are broadcast channels: readable, leavable, never writable. */
+  protected get isActiveChannelReadOnly(): boolean {
+    return !!this.activeChannel && this.channels.isPublic(this.activeChannel);
+  }
+
+  protected get canLeaveActiveChannel(): boolean {
+    return this.isActiveChannelReadOnly && this.channels.isMember(this.activeChannel!);
+  }
+
+  protected get activeChannelTopic(): string {
+    return this.activeChannel ? this.channels.topic(this.activeChannel) : '';
+  }
+
   protected isDrawerDataLoading() {
     if (this.drawerMode === 'requests') {
-      return this.requestsIndex === 0 ? this.loadingIncomingRequests : this.loadingOutgoingRequests;
+      return this.loadingIncomingRequests || this.loadingOutgoingRequests;
     }
     if (this.drawerMode === 'friends') {
       return this.loadingFriends;
@@ -752,7 +762,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return false;
   }
 
+  /** Above this width People pushes the app aside; below it, it overlays with a scrim. */
+  private static readonly DRAWER_PUSH_BREAKPOINT_PX = 1280;
+  protected readonly isWideViewport = signal(false);
+
   public openDrawer(): void {
+    this.closePreviewCard();
     this.isDrawerOpened.set(true);
   }
 
@@ -762,7 +777,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @HostListener('document:keydown.escape')
   handleEscapeKey() {
+    if (this.hoveredChannel) {
+      this.closePreviewCard();
+      return;
+    }
     this.isDrawerOpened.set(false);
+  }
+
+  @HostListener('window:resize')
+  protected onViewportResize(): void {
+    this.isWideViewport.set(globalThis.innerWidth >= SocialComponent.DRAWER_PUSH_BREAKPOINT_PX);
   }
 
   hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
@@ -869,9 +893,43 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return interlocutor ? interlocutor.user?.id ?? null : null
   }
 
+  /** A cursor crossing a column of avatars must not fire a card per row. */
+  private static readonly PREVIEW_CARD_OPEN_DELAY_MS = 120;
+  private hoverOpenTimeout?: ReturnType<typeof setTimeout>;
+
   startAvatarHover(channel: Channel, location: string) {
+    if (this.isPreviewCardPinned) return;
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+    this.hoverOpenTimeout = this.schedule(() => {
+      this.hoveredChannel = channel;
+      this.currentLocation = location;
+    }, SocialComponent.PREVIEW_CARD_OPEN_DELAY_MS);
+  }
+
+  /** Click and keyboard focus open the same card, and pin it until it is dismissed. */
+  protected togglePreviewCard(channel: Channel, location: AvatarLocation) {
+    if (!this.channels.isPrivate(channel)) return;
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+
+    const isSameCard = this.hoveredChannel?.cid === channel.cid && this.currentLocation === location;
+    if (isSameCard && this.isPreviewCardPinned) {
+      this.closePreviewCard();
+      return;
+    }
+
     this.hoveredChannel = channel;
     this.currentLocation = location;
+    this.isPreviewCardPinned = true;
+  }
+
+  protected closePreviewCard() {
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+    this.isPreviewCardPinned = false;
+    this.hoveredChannel = null;
+    this.currentLocation = '';
   }
 
   private timeout?: ReturnType<typeof setTimeout>;
@@ -886,6 +944,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   stopAvatarHover() {
+    clearTimeout(this.hoverOpenTimeout);
+    if (this.isPreviewCardPinned) return;
     this.timeout = this.schedule(() => {
       this.hoveredChannel = null;
       this.currentLocation = '';
@@ -900,13 +960,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     clearTimeout(this.timeout);
   }
 
-  openUser(location: AvatarLocation) {
-    if (location === 'channel-preview' && this.channels.isPrivate(this.hoveredChannel!)) {
-      const interlocutorId = this.getInterlocutorId();
-      logger.info('Opening chat with user:', interlocutorId);
-    }
-  }
-
   private excludedLocations: AvatarLocation[] = ['channel-preview', 'channel-header'];
 
   shouldShowDropdown(channel: Channel, location: AvatarLocation): boolean {
@@ -919,11 +972,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       && this.channels.isPrivate(this.hoveredChannel);
 
     return firstCheck && channel.cid === this.hoveredChannel?.cid;
-  }
-
-  onRequestsIndexChange($event: number) {
-    this.requestsIndex = $event;
-    this.openDrawerAndSetupData();
   }
 
   setDrawerMode(mode: string) {
@@ -979,8 +1027,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+  /** Leave is the only action a broadcast channel has, so it sits in the header. */
+  protected leaveActiveChannel() {
+    if (!this.activeChannel) return;
+    this.confirmLeave(this.activeChannel);
+  }
+
+  private confirmLeave(channel: Channel) {
     this.confirmation.open({
       title: 'Leave Channel',
       message: 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.',
@@ -991,6 +1044,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         void channel.removeMembers([this.userInfo!.id]);
       },
     });
+  }
+
+  protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
+    dropdown.toggle(false);
+    this.confirmLeave(channel);
   }
 
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {

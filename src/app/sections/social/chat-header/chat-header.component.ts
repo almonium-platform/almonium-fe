@@ -16,6 +16,12 @@ import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
 
+/** "Almonium — Deutsch" -> "Deutsch"; falls back to the whole name. */
+function topicOf(name: string): string {
+  const parts = name.split(/\s[\u2014\u2013-]\s/);
+  return (parts.at(-1) ?? name).trim();
+}
+
 @Component({
   selector: 'app-chat-header',
   standalone: true,
@@ -31,34 +37,39 @@ import {LocalStorageService} from "../../../services/local-storage.service";
         'row-gap': isSelfChat ? 'unset' : ''
         }">
       @if (!isSelfChat) {
-        @if (!isPrivateChat) {
-          @if ((usersTyping$ | async); as typingUsers) {
-            @if (typingUsers.length === 0) {
-              {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
-            }
-          }
-        }
-        @if (canReceiveConnectEvents) {
-          @if (isPrivateChat) {
-            @if ((usersTyping$ | async); as typingUsers) {
-              @if (typingUsers.length === 1) {
-                <span>typing...</span>
-              }
-              @if (typingUsers.length === 0) {
-                <span>
-                  {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
-                </span>
-              }
-            }
-          }
+        @if (isBroadcastChannel) {
+          <!-- A room is a channel: the subtitle carries the type, so nobody tries to talk. -->
+          <span>Channel &middot; updates about {{ topic }}</span>
+        } @else {
           @if (!isPrivateChat) {
             @if ((usersTyping$ | async); as typingUsers) {
               @if (typingUsers.length === 0) {
-                <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
-              } @else if (typingUsers.length === 1) {
-                {{ typingUsers[0].name || typingUsers[0].id }} is typing...
-              } @else {
-                {{ typingUsers.length }} people typing...
+                {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
+              }
+            }
+          }
+          @if (canReceiveConnectEvents) {
+            @if (isPrivateChat) {
+              @if ((usersTyping$ | async); as typingUsers) {
+                @if (typingUsers.length === 1) {
+                  <span>typing...</span>
+                }
+                @if (typingUsers.length === 0) {
+                  <span>
+                    {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
+                  </span>
+                }
+              }
+            }
+            @if (!isPrivateChat) {
+              @if ((usersTyping$ | async); as typingUsers) {
+                @if (typingUsers.length === 0) {
+                  <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
+                } @else if (typingUsers.length === 1) {
+                  {{ typingUsers[0].name || typingUsers[0].id }} is typing...
+                } @else {
+                  {{ typingUsers.length }} people typing...
+                }
               }
             }
           }
@@ -96,6 +107,8 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
   protected canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
   protected isSelfChat: boolean | undefined;
+  protected isBroadcastChannel = false;
+  protected topic = '';
   protected usersTyping$: Observable<UserResponse[]> = of([]);
 
   private subscriptions: Subscription[] = [];
@@ -114,6 +127,8 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
         this.activeChannel = c;
         this.isPrivateChat = c?.data?.name === AppConstants.PRIVATE_CHAT_NAME;
         this.isSelfChat = c?.data?.name === AppConstants.SELF_CHAT_NAME;
+        this.isBroadcastChannel = !!c && !this.isPrivateChat && !this.isSelfChat;
+        this.topic = this.isBroadcastChannel ? topicOf(c!.data?.name ?? '') : '';
         const capabilities = this.activeChannel?.data?.own_capabilities;
         if (capabilities) {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
