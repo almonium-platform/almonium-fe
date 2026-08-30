@@ -172,8 +172,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       finalize(() => this.updatingLearnerIds.delete(learner.id)),
     ).subscribe({
       next: (savedLearner) => {
+        const persistedLearner = savedLearner ?? optimisticLearner;
         this.learners = this.learners.map((currentLearner) =>
-          currentLearner.id === learner.id ? savedLearner : currentLearner,
+          currentLearner.id === learner.id ? persistedLearner : currentLearner,
         );
         this.userInfoService.updateUserInfo({learners: this.learners});
       },

@@ -17,12 +17,11 @@ import {CEFRLevel, Learner} from '../../../models/userinfo.model';
 import {LangSettingsComponent} from './lang-settings.component';
 
 describe('LangSettingsComponent', () => {
-  it('uses the saved learner response as the CEFR level source of truth', () => {
+  it('keeps the selected CEFR level when the save returns no content', () => {
     const originalLearner = new Learner('learner-1', LanguageCode.DE, CEFRLevel.A1, true);
-    const savedLearner = new Learner('learner-1', LanguageCode.DE, CEFRLevel.B2, true);
     const languageApi = jasmine.createSpyObj<LanguageApiService>('LanguageApiService', ['updateLearner']);
     const userInfo = jasmine.createSpyObj<UserInfoService>('UserInfoService', ['updateUserInfo']);
-    languageApi.updateLearner.and.returnValue(of(savedLearner));
+    languageApi.updateLearner.and.returnValue(of(null));
 
     TestBed.configureTestingModule({
       providers: [
@@ -50,9 +49,9 @@ describe('LangSettingsComponent', () => {
 
     languageSettings.onCefrLevelChange(originalLearner, CEFRLevel.B2);
 
-    expect(languageApi.updateLearner).toHaveBeenCalledWith(LanguageCode.DE, {level: CEFRLevel.B2});
-    expect(languageSettings.learners).toEqual([savedLearner]);
-    expect(userInfo.updateUserInfo).toHaveBeenCalledWith({learners: [savedLearner]});
+    expect(languageApi.updateLearner.calls.allArgs()).toEqual([[LanguageCode.DE, {level: CEFRLevel.B2}]]);
+    expect(languageSettings.learners[0].selfReportedLevel).toBe(CEFRLevel.B2);
+    expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: languageSettings.learners}]]);
   });
 
   it('keeps the add-language popup open while interacting with portaled dropdowns', fakeAsync(() => {

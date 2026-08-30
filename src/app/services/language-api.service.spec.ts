@@ -21,19 +21,17 @@ describe('LanguageApiService', () => {
 
   afterEach(() => httpTesting.verify());
 
-  it('persists a learner CEFR level with the learner update endpoint', () => {
-    service.updateLearner(LanguageCode.DE, {level: CEFRLevel.B2}).subscribe();
+  it('accepts the learner update endpoint returning no content', () => {
+    let result: unknown = 'not emitted';
+    service.updateLearner(LanguageCode.DE, {level: CEFRLevel.B2}).subscribe((learner) => result = learner);
 
     const request = httpTesting.expectOne(`${AppConstants.LEARNER_PROFILES_URL}/${LanguageCode.DE}`);
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual({level: CEFRLevel.B2});
     expect(request.request.withCredentials).toBeTrue();
 
-    request.flush({
-      id: 'learner-1',
-      language: LanguageCode.DE,
-      selfReportedLevel: CEFRLevel.B2,
-      active: true,
-    });
+    request.flush(null, {status: 204, statusText: 'No Content'});
+
+    expect(result).toBeNull();
   });
 });

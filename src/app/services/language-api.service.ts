@@ -28,10 +28,10 @@ export class LanguageApiService {
     return this.http.post<Learner[]>(url, {data: payload}, {withCredentials: true});
   }
 
-  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: CEFRLevel }>): Observable<Learner> {
+  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: CEFRLevel }>): Observable<Learner | null> {
     const url = `${AppConstants.LEARNER_PROFILES_URL}/${language}`;
     return this.http.patch<unknown>(url, updates, {withCredentials: true}).pipe(
-      map((response) => Learner.fromJSON(response)),
+      map((response) => response === null ? null : Learner.fromJSON(response)),
     );
   }
 }
