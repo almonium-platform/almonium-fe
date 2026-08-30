@@ -1,0 +1,97 @@
+<ng-template #content>
+  <section class="reauth-card" role="dialog" aria-modal="true" aria-labelledby="reauth-title">
+    <header>
+      <h2 id="reauth-title">Confirm it’s you</h2>
+      <p>
+        This is a sensitive action, so please verify your identity once more.
+        @if (email) {
+          You are signed in as <strong>{{ email }}</strong>.
+        }
+      </p>
+    </header>
+
+    @if (methodsLoading) {
+      <p class="status" aria-live="polite">Loading your sign-in methods…</p>
+    } @else {
+      @if (hasMethod('local')) {
+        <form [formGroup]="form" (ngSubmit)="submitPassword()">
+          <label for="reauth-password">Password</label>
+          <tui-textfield tuiTextfieldSize="l">
+            <input
+              id="reauth-password"
+              tuiInput
+              formControlName="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="64"
+            />
+            <tui-icon tuiPassword />
+          </tui-textfield>
+
+          <div class="actions">
+            <button #cancelButton type="button" class="secondary" (click)="cancel()">Cancel</button>
+            <button
+              type="submit"
+              class="primary"
+              [class.destructive]="actionLabel === 'Delete account'"
+              [disabled]="form.invalid || loading"
+            >{{ actionLabel }}</button>
+          </div>
+
+          <button type="button" class="reset-link" [disabled]="loading" (click)="sendPasswordReset()">
+            Forgotten it? Send a reset link
+          </button>
+        </form>
+      }
+
+      @if (hasMethod('local') && (hasMethod('google') || hasMethod('apple'))) {
+        <div class="separator"><span>or use another linked method</span></div>
+      }
+
+      @if (hasMethod('google') || hasMethod('apple')) {
+        <div class="provider-actions">
+          @if (hasMethod('google')) {
+            <button
+              type="button"
+              class="provider"
+              [class.destructive]="actionLabel === 'Delete account'"
+              [disabled]="loading"
+              (click)="verifyWithProvider('google')"
+            >
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#4285F4" d="M45 24c0-1.6-.1-2.7-.4-4H24v7.5h12c-.2 2-1.5 5-4.4 7l6.7 5.2C42.2 36 45 30.6 45 24z" />
+                <path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.9 1.3-4.4 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-7.1 5.5C8 41.4 15.4 46 24 46z" />
+                <path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .7-4.4l-7.1-5.5C2.8 17 2 20.4 2 24s.8 7 2.3 9.9l7.2-5.5z" />
+                <path fill="#EA4335" d="M24 10.4c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.2 29.9 2 24 2 15.4 2 8 6.6 4.3 14.1l7.1 5.5c1.8-5.3 6.8-9.2 12.6-9.2z" />
+              </svg>
+              {{ actionLabel }} with Google
+            </button>
+          }
+          @if (hasMethod('apple')) {
+            <button
+              type="button"
+              class="provider"
+              [class.destructive]="actionLabel === 'Delete account'"
+              [disabled]="loading"
+              (click)="verifyWithProvider('apple')"
+            >
+              <i class="fa-brands fa-apple" aria-hidden="true"></i>
+              {{ actionLabel }} with Apple
+            </button>
+          }
+          @if (!hasMethod('local')) {
+            <button #cancelButton type="button" class="secondary standalone-cancel" (click)="cancel()">Cancel</button>
+          }
+        </div>
+      }
+
+      @if (!authMethods.length && !fieldError) {
+        <p class="status">No sign-in method is available. Sign in again to continue.</p>
+      }
+    }
+
+    @if (fieldError) {
+      <p class="feedback" aria-live="polite">{{ fieldError }}</p>
+    }
+  </section>
+</ng-template>

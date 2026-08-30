@@ -206,7 +206,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   // DELETE ACCOUNT
   protected onDeleteAccount() {
     this.restoreEmailAndPasswordFields();
-    this.checkAuth(this.prepareConfirmModalForDeletion.bind(this));
+    this.prepareConfirmModalForDeletion();
   }
 
   private prepareConfirmModalForDeletion() {
@@ -219,7 +219,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private confirmDeletion() {
-    this.checkAuth(this.deleteAccount.bind(this));
+    this.recentAuthGuardService.guardAction(this.deleteAccount.bind(this), !this.authService.currentUser(), 'Delete account');
   }
 
   private deleteAccount() {

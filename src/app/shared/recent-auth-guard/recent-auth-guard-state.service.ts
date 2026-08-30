@@ -5,14 +5,17 @@ import {BehaviorSubject} from 'rxjs';
   providedIn: 'root',
 })
 export class RecentAuthGuardStateService {
-  private recentAuthState = new BehaviorSubject<{ visible: boolean }>({visible: false});
+  private recentAuthState = new BehaviorSubject<{visible: boolean; actionLabel: string}>({
+    visible: false,
+    actionLabel: 'Continue',
+  });
   recentAuthState$ = this.recentAuthState.asObservable();
 
-  open() {
-    this.recentAuthState.next({visible: true});
+  open(actionLabel = 'Continue') {
+    this.recentAuthState.next({visible: true, actionLabel});
   }
 
   close() {
-    this.recentAuthState.next({visible: false});
+    this.recentAuthState.next({...this.recentAuthState.value, visible: false});
   }
 }

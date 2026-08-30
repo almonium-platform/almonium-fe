@@ -20,14 +20,17 @@ export class RecentAuthGuardService {
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   // universal live token auth guard
-  public guardAction(onValidToken: () => void, forceReauthentication = false) {
+  public guardAction(onValidToken: () => void, forceReauthentication = false, actionLabel = 'Continue') {
     this.pendingAction = onValidToken;
     if (forceReauthentication) {
       this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
-      this.showIdentityVerificationPopup();
+      this.showIdentityVerificationPopup(actionLabel);
       return;
     }
-    this.checkAuth(this.runPendingAction.bind(this), this.showIdentityVerificationPopup.bind(this));
+    this.checkAuth(
+      this.runPendingAction.bind(this),
+      () => this.showIdentityVerificationPopup(actionLabel),
+    );
   }
 
   public updateStatusAndShowAlert() {
@@ -76,9 +79,8 @@ export class RecentAuthGuardService {
     return false;
   }
 
-  private showIdentityVerificationPopup() {
-    this.alertService.open('To continue with this action, we need to verify your identity.', {appearance: 'info'}).subscribe();
-    this.recentAuthGuardStateService.open();
+  private showIdentityVerificationPopup(actionLabel: string) {
+    this.recentAuthGuardStateService.open(actionLabel);
   }
 
   private checkAuth(onValidTokenAction: () => void, identityVerification: () => void): void {

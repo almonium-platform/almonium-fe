@@ -44,10 +44,7 @@ describe('RecentAuthGuardService', () => {
 
     expect(state.open.calls.count()).toBe(1);
     expect(action).not.toHaveBeenCalled();
-    expect(notifications.open.calls.mostRecent().args).toEqual([
-      'To continue with this action, we need to verify your identity.',
-      {appearance: 'info'},
-    ]);
+    expect(notifications.open.calls.count()).toBe(0);
   });
 
   it('resumes the pending action once after successful reauthentication', () => {
@@ -77,6 +74,14 @@ describe('RecentAuthGuardService', () => {
     expect(settings.checkCurrentAccessTokenIsLive.calls.count()).toBe(0);
     expect(action).not.toHaveBeenCalled();
     expect(storage.removeItem.calls.allArgs()).toContain(['recent_login_cache_timestamp']);
+  });
+
+  it('passes the protected action name to the verification card', () => {
+    settings.checkCurrentAccessTokenIsLive.and.returnValue(throwError(() => recentLoginRequired()));
+
+    service.guardAction(() => undefined, false, 'Delete account');
+
+    expect(state.open.calls.allArgs()).toEqual([['Delete account']]);
   });
 
   it('keeps unexpected access-token failures as errors', () => {

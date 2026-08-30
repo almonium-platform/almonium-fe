@@ -5,12 +5,16 @@ import {RecentAuthGuardStateService} from './recent-auth-guard-state.service';
 describe('RecentAuthGuardStateService', () => {
   it('does not retain a dismissed verification request', () => {
     const service = TestBed.inject(RecentAuthGuardStateService);
-    const states: boolean[] = [];
-    service.recentAuthState$.pipe(take(3)).subscribe(state => states.push(state.visible));
+    const states: {visible: boolean; actionLabel: string}[] = [];
+    service.recentAuthState$.pipe(take(3)).subscribe(state => states.push(state));
 
-    service.open();
+    service.open('Delete account');
     service.close();
 
-    expect(states).toEqual([false, true, false]);
+    expect(states).toEqual([
+      {visible: false, actionLabel: 'Continue'},
+      {visible: true, actionLabel: 'Delete account'},
+      {visible: false, actionLabel: 'Delete account'},
+    ]);
   });
 });

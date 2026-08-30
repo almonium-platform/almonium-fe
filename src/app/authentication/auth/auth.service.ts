@@ -57,6 +57,13 @@ export class AuthService {
 
   googleSignIn(mode: 'sign-in' | 'reauth' | 'link' = 'sign-in'): Observable<UserInfo> {
     const provider = new GoogleAuthProvider();
+    if (mode === 'reauth') {
+      const email = this.userInfoService.currentUserInfo?.email;
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        ...(email ? {login_hint: email} : {}),
+      });
+    }
     return this.providerSignIn(provider, mode);
   }
 
@@ -81,7 +88,9 @@ export class AuthService {
         if (mode === 'reauth' && user) return from(reauthenticateWithPopup(user, provider));
         return from(signInWithPopup(this.firebaseAuth, provider));
       }),
-      switchMap(credential => this.exchangeSession(credential.user)),
+      switchMap(credential => mode === 'reauth'
+        ? this.exchangeSession(credential.user, 'reauth')
+        : this.exchangeSession(credential.user)),
     );
   }
 
@@ -101,7 +110,7 @@ export class AuthService {
     const authentication = current
       ? reauthenticateWithCredential(current, EmailAuthProvider.credential(email, password))
       : signInWithEmailAndPassword(this.firebaseAuth, email, password);
-    return from(authentication).pipe(switchMap(credential => this.exchangeSession(credential.user)));
+    return from(authentication).pipe(switchMap(credential => this.exchangeSession(credential.user, 'reauth')));
   }
 
   linkLocalAccount(password: string): Observable<UserInfo> {
@@ -160,10 +169,10 @@ export class AuthService {
     return this.firebaseAuth.currentUser;
   }
 
-  private exchangeSession(user: User): Observable<UserInfo> {
+  private exchangeSession(user: User, mode: 'create' | 'reauth' = 'create'): Observable<UserInfo> {
     return from(getIdToken(user, true)).pipe(
       switchMap(idToken => this.http.post<UserInfoDto>(
-        `${AppConstants.AUTH_URL}/session`,
+        `${AppConstants.AUTH_URL}/session${mode === 'reauth' ? '/reauth' : ''}`,
         {idToken},
         {withCredentials: true},
       )),
