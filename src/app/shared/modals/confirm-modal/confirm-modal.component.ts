@@ -16,7 +16,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
         <div
           [class.fade-slide-in]="isVisible"
           [class.fade-slide-out]="fadeOutAnimating"
-          class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
+          class="confirm-modal-surface rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
         >
           <app-dismiss-button (closed)="onClose()"/>
           <div class="flex items-center mb-4 flex-row">
@@ -29,9 +29,9 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             </span>
             <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
           </div>
-          <p class="text-gray-700 mb-6 mt-6 text-sm">{{ message }}</p>
+          <p class="confirm-modal-copy mb-6 mt-6 text-sm">{{ message }}</p>
           @if (confirmationWord) {
-            <label class="block text-sm text-gray-700 mb-5">
+            <label class="confirm-modal-copy block text-sm mb-5">
               Type <strong>{{ confirmationWord }}</strong> to confirm
               <input
                 type="text"
@@ -46,7 +46,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           <div class="flex justify-between">
             <button
               (click)="onClose()"
-              class="text-gray-950 underline font-bold hover:underline"
+              class="confirm-modal-cancel underline font-bold hover:underline"
             >
               Cancel
             </button>
