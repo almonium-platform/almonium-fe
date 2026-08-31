@@ -67,7 +67,7 @@ interface MessageHit {
 @Component({
   selector: 'app-social',
   templateUrl: './social.component.html',
-  styleUrls: ['./social.component.less', './social-stream-overrides.less'],
+  styleUrls: ['./social.component.less', './social-people.less', './social-stream-overrides.less'],
   imports: [
     ReactiveFormsModule,
     AvatarComponent,
@@ -264,6 +264,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
     this.setupActiveChannelSubscription();
+    this.onViewportResize();
     this.registerMessageActions();
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
@@ -924,6 +925,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       return this.loadingBlocked;
     }
     return false;
+  }
+
+  /**
+   * 07: rail, snaps and the drag handle are desktop only. A width persisted on a wide screen
+   * must not follow the list onto a phone, where the list is the whole column.
+   */
+  private static readonly NARROW_VIEWPORT_PX = 640;
+  protected readonly isNarrowViewport = signal(false);
+
+  @HostListener('window:resize')
+  protected onViewportResize(): void {
+    this.isNarrowViewport.set(globalThis.innerWidth <= SocialComponent.NARROW_VIEWPORT_PX);
   }
 
   public openPeople(): void {

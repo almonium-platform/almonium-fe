@@ -1,6 +1,7 @@
-// The component's own markup: the shell, the chat list column and everything
-// that overlays it, the conversation pane, and the responsive rules.
-// Overrides that reach into Stream's DOM live in social-stream-overrides.less.
+// The component's own markup: the shell, the chat list column and the
+// conversation pane, plus the responsive rules. Search and the People panel
+// live in social-people.less; overrides that reach into Stream's DOM live in
+// social-stream-overrides.less.
 
 .super-container {
   display: flex;
@@ -11,11 +12,9 @@
   padding-top: 1rem;
   width: 100%;
 }
-
 [tuiAppearance][data-appearance=textfield] {
   --t-shadow: initial !important;
 }
-
 .right-container {
   display: flex;
   background-color: var(--main-bg-color);
@@ -47,7 +46,6 @@
     border-radius: inherit;
   }
 }
-
 .left-container {
   display: flex;
   flex-direction: column;
@@ -142,122 +140,6 @@
     }
   }
 }
-
-.search-container {
-  --tui-radius-m: 2rem;
-  --tui-typography-body-m: normal 1.1rem/1.25rem var(--tui-typography-family-text);
-  width: 20rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  .username-input {
-    margin-bottom: 1rem;
-    width: 100%;
-  }
-}
-
-.find-people-link {
-  align-items: center;
-  align-self: flex-start;
-  background: transparent;
-  border: 0;
-  border-radius: .5rem;
-  color: var(--brand-primary);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 .8rem/1 var(--font-family-ui);
-  gap: .4rem;
-  margin: -.45rem 0 .25rem;
-  padding: .35rem .5rem;
-
-  &:hover,
-  &:focus-visible {
-    background: var(--state-hover);
-    outline: none;
-  }
-}
-
-.username {
-  font-size: 1.1rem;
-  font-weight: 600;
-  display: inline;
-  margin-left: .9rem;
-}
-
-.user-tile {
-  padding: .5rem;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  max-width: 20rem;
-
-
-  .friend-action {
-    margin-left: auto;
-    cursor: pointer;
-    padding: .5rem;
-
-    &.negative {
-      color: var(--danger-text-color);
-    }
-
-    &.positive {
-      color: var(--tui-background-accent-1);
-    }
-
-    &.secondary {
-      margin-left: unset;
-    }
-
-    &:hover {
-      opacity: .8;
-    }
-  }
-
-  .action-button {
-    align-items: center;
-    background: transparent;
-    border: 1px solid var(--control-border-color);
-    border-radius: 999px;
-    color: var(--subhead-color);
-    display: inline-flex;
-    font: 600 .75rem/1 var(--font-family-ui);
-    gap: .35rem;
-    min-height: 2rem;
-    padding: .45rem .75rem;
-
-    &.positive,
-    &.primary-action {
-      color: var(--brand-primary);
-    }
-
-    &.primary-action {
-      background: var(--brand-primary);
-      border-color: var(--brand-primary);
-      color: var(--on-brand-color);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--brand-margin);
-      outline-offset: 2px;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 1;
-    }
-  }
-}
-
-.tiles {
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
 .panel-body {
   display: flex;
   flex-direction: column;
@@ -290,14 +172,12 @@
     }
   }
 }
-
 .header-text {
   font-size: 1.5rem;
   font-weight: 600;
   display: flex;
   align-items: center;
 }
-
 .header {
   position: sticky;
   background-color: var(--main-bg-color) !important;
@@ -318,11 +198,9 @@
     margin-left: auto;
   }
 }
-
 .str-chat__channel-preview-end-first-row .str-chat__channel-preview-messenger--name {
   font-weight: 550;
 }
-
 .single-digit {
   display: flex;
   align-items: center;
@@ -333,7 +211,6 @@
   padding: 0 4px; /* Ensures double-digit numbers have more space */
   border-radius: 50%; /* Default: fully circular */
 }
-
 @media (max-width: 1024px) {
   .right-container {
     padding-right: 0;
@@ -343,7 +220,6 @@
     }
   }
 }
-
 @media (max-width: 640px) {
   .super-container {
     padding-top: 0;
@@ -354,17 +230,11 @@
     width: 100%;
   }
 }
-
-.search-icon {
-  display: none;
-}
-
 @media (min-width: 640px) {
   .back-to-channels {
     display: none;
   }
 }
-
 @media (max-width: 640px) {
   .right-container {
     display: none;
@@ -386,7 +256,6 @@
     width: 100%;
   }
 }
-
 .resizer {
   align-items: center;
   background: transparent;
@@ -425,7 +294,6 @@
     background: var(--dark-raspberry);
   }
 }
-
 .left-container.collapsed {
   ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
     display: none;
@@ -483,7 +351,6 @@
     }
   }
 }
-
 .section-heading {
   align-self: flex-start;
   color: var(--metadata-color);
@@ -492,7 +359,6 @@
   margin: .35rem 0 -.35rem;
   text-transform: uppercase;
 }
-
 /* ---- 2b: a channel offers no composer; it says so instead. ---- */
 .channel-readonly-footer {
   align-items: center;
@@ -513,7 +379,6 @@
     padding: .3rem .75rem;
   }
 }
-
 /* 03: an empty room is centred in its own area, never pinned to the top edge. */
 .channel-empty-state {
   display: flex;
@@ -536,12 +401,10 @@
     line-height: 1.55;
   }
 }
-
 .header-text.chats {
   font: 500 1.1875rem/1.25 var(--font-family-reading);
   margin-right: auto;
 }
-
 .new-chat {
   align-items: center;
   background: transparent;
@@ -559,38 +422,6 @@
     outline: none;
   }
 }
-
-.search-header {
-  align-items: center;
-  display: flex;
-  position: relative;
-
-  .chat-input {
-    flex: 1;
-    min-width: 0;
-  }
-}
-
-.search-clear {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 50%;
-  color: var(--metadata-color);
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  padding: .25rem;
-  position: absolute;
-  right: 1rem;
-
-  &:hover,
-  &:focus-visible {
-    color: var(--text-color);
-    outline: none;
-  }
-}
-
 .archive-row {
   align-items: center;
   background: transparent;
@@ -641,7 +472,6 @@
     width: .5rem;
   }
 }
-
 .left-container.collapsed .archive-row {
   gap: 0;
   justify-content: center;
@@ -652,11 +482,9 @@
     display: none;
   }
 }
-
 .preview-tile {
   position: relative;
 }
-
 .row-controls {
   align-items: center;
   display: flex;
@@ -668,12 +496,10 @@
   transform: translateY(-50%);
   transition: opacity 120ms ease;
 }
-
 .str-chat__channel-preview:hover .row-controls,
 .row-controls:focus-within {
   opacity: 1;
 }
-
 .row-control {
   align-items: center;
   background: var(--card-color);
@@ -694,121 +520,13 @@
     outline: none;
   }
 }
-
 .left-container.collapsed .row-controls {
   display: none;
 }
-
-.list-section {
-  color: var(--metadata-color);
-  font: 600 .6875rem/1 var(--font-family-mono);
-  letter-spacing: .06rem;
-  padding: 1rem 1rem .35rem;
-  text-transform: uppercase;
-}
-
-.list-empty {
-  color: var(--metadata-color);
-  font-size: .8125rem;
-  line-height: 1.5;
-  padding: 2rem 1.5rem;
-  text-align: center;
-}
-
-.result-row {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: flex;
-  gap: 1rem;
-  padding: .6rem 1rem;
-  text-align: left;
-  width: 100%;
-
-  &.static {
-    cursor: default;
-  }
-
-  &:not(.static):hover,
-  &:not(.static):focus-visible {
-    background: var(--gray-bg);
-    outline: none;
-  }
-
-  .result-body {
-    display: flex;
-    flex-direction: column;
-    gap: .15rem;
-    min-width: 0;
-  }
-
-  .result-name {
-    color: var(--text-color);
-    font: 500 .90625rem/1.25 var(--font-family-reading);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .result-preview {
-    color: var(--metadata-color);
-    font-size: .78125rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .row-join {
-    flex: none;
-    margin-left: auto;
-  }
-}
-
-@keyframes people-panel-in {
-  from {
-    opacity: 0;
-    transform: translateX(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.people-panel {
-  animation: people-panel-in 160ms ease-out;
-  background: var(--main-bg-color);
-  border-right: 1px solid var(--hairline-color);
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  left: 0;
-  overflow: hidden;
-  position: absolute;
-  top: 0;
-  width: 20.625rem;
-  z-index: 5;
-
-  .panel-body {
-    padding: 0 1rem 1rem;
-  }
-
-  .people-toggle,
-  .search-container {
-    width: 100%;
-  }
-
-  .user-tile {
-    max-width: 100%;
-  }
-}
-
 /* 06: in the rail the unread count has nowhere to sit, so it becomes a dot. */
 .avatar-wrapper {
   position: relative;
 }
-
 .rail-unread {
   background: var(--chat-accent-color);
   border: 2px solid var(--card-color);
@@ -821,8 +539,9 @@
   width: .625rem;
 }
 
-/* Search draws its own grouped list above; the channel list stays mounted so the templates
-   Stream was handed at view init keep resolving. */
-.channel-list-main.searching {
-  display: none;
+/* 07: the drag handle is desktop only - there is no second column to size against. */
+@media (max-width: 640px) {
+  .resizer {
+    display: none;
+  }
 }
