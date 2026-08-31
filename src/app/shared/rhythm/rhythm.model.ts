@@ -45,6 +45,8 @@ export interface LanguageRhythm {
   startedAt: string;
   /** When the language was set aside, or null while it is active. */
   setAsideAt: string | null;
+  /** The first day ever learned in this language, where its weeks start counting. Null until there has been one. */
+  firstSessionAt: string | null;
   /** Oldest first, ending with the week in progress. */
   weeks: RhythmWeek[];
 }
@@ -69,6 +71,7 @@ function parseLanguageRhythm(value: unknown, path: string): LanguageRhythm {
     editable: expectBoolean(rhythm['editable'], `${path}.editable`),
     startedAt: expectString(rhythm['startedAt'], `${path}.startedAt`),
     setAsideAt: expectNullableString(rhythm['setAsideAt'], `${path}.setAsideAt`),
+    firstSessionAt: expectNullableString(rhythm['firstSessionAt'], `${path}.firstSessionAt`),
     weeks: expectArray(rhythm['weeks'], `${path}.weeks`).map((week, index) => parseWeek(week, `${path}.weeks[${index}]`)),
   };
 }
@@ -128,11 +131,13 @@ function weekStartOf(date: string): string {
 }
 
 /**
- * Only the weeks that were ever asked of: after the language was taken up, and before it was set aside. A week
- * outside that span is not a week it missed.
+ * Only the weeks that were ever asked of: from the first session onwards, and not while the language was set
+ * aside. A week before a language was ever learned in, or after it was put down, is not a week it missed — the
+ * denominator grows with the language rather than starting at twelve.
  */
 export function trackedWeeks(rhythm: LanguageRhythm): RhythmWeek[] {
-  const start = weekStartOf(rhythm.startedAt);
+  if (rhythm.firstSessionAt === null) return [];
+  const start = weekStartOf(rhythm.firstSessionAt);
   return rhythm.weeks.filter(week => week.weekStart >= start && !week.frozen);
 }
 

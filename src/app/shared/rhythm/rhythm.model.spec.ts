@@ -15,6 +15,7 @@ describe('rhythm API validation', () => {
     editable,
     startedAt,
     setAsideAt: null,
+    firstSessionAt: startedAt,
     weeks: [week('2026-01-05', 2, false), week('2026-01-12', 2, true), week('2026-02-16', 2, target === 2)],
   });
 
@@ -46,6 +47,7 @@ describe('rhythm API validation', () => {
     expect(() => parseRhythm({
       languages: [{
         language: 'DE', target: 2, editable: true, startedAt: '2026-01-05', setAsideAt: null,
+        firstSessionAt: '2026-01-05',
         weeks: [{weekStart: '2026-02-16', daysMet: 1, frozen: false, days: []}],
       }],
     })).toThrowError(ApiContractError);
@@ -62,6 +64,7 @@ describe('rhythm API validation', () => {
     const parsed = parseRhythm({
       languages: [{
         language: 'DE', target: 2, editable: false, startedAt: '2026-01-05', setAsideAt: '2026-01-19',
+        firstSessionAt: '2026-01-05',
         weeks: [week('2026-01-05', 2, true), week('2026-01-12', 2, true), week('2026-01-19', 0, false, true)],
       }],
     });
@@ -74,11 +77,36 @@ describe('rhythm API validation', () => {
     const parsed = parseRhythm({
       languages: [{
         language: 'DE', target: 2, editable: false, startedAt: '2026-01-05', setAsideAt: '2026-01-19',
+        firstSessionAt: '2026-01-05',
         weeks: [week('2026-01-19', 0, false, true)],
       }],
     });
 
     expect(weekLevel(parsed.languages[0].weeks[0])).toBe(0);
+  });
+
+  it('counts a young language from its first session, not from twelve weeks ago', () => {
+    const parsed = parseRhythm({
+      languages: [{
+        language: 'DE', target: 2, editable: true, startedAt: '2026-01-05', setAsideAt: null,
+        firstSessionAt: '2026-01-12',
+        weeks: [week('2026-01-05', 0, false), week('2026-01-12', 2, true), week('2026-01-19', 2, true)],
+      }],
+    });
+
+    expect(paceFraction(parsed.languages[0])).toEqual({met: 2, counted: 2});
+  });
+
+  it('counts nothing at all before a first session, so a fresh language is not graded', () => {
+    const parsed = parseRhythm({
+      languages: [{
+        language: 'DE', target: 2, editable: true, startedAt: '2026-01-05', setAsideAt: null,
+        firstSessionAt: null,
+        weeks: [week('2026-01-05', 0, false), week('2026-01-12', 0, false)],
+      }],
+    });
+
+    expect(paceFraction(parsed.languages[0])).toEqual({met: 0, counted: 0});
   });
 
   it('names the cadence the way the card reads it', () => {
