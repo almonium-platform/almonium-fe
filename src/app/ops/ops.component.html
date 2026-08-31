@@ -172,6 +172,84 @@
       }
     </form>
   </section>
+
+  <section class="ops-card ops-card--maintenance" aria-labelledby="maintenance-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="maintenance-title">Stream maintenance</h2>
+        <p>
+          Stream keeps its own copy of our users and channels. These reconcile it with ours when the
+          two drift apart — after a database is dropped, or when channel artwork moves.
+        </p>
+      </div>
+    </div>
+
+    <div class="ops-maintenance">
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>Orphaned Stream users</strong>
+          <p>Accounts with no row in our database. Look first; the delete is permanent.</p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="scanningOrphans" (click)="onScanOrphans()">
+          {{ scanningOrphans ? 'Checking…' : 'Check' }}
+        </button>
+      </div>
+
+      @if (orphans !== null) {
+        @if (orphans.length) {
+          <div class="ops-maintenance__result" aria-live="polite">
+            <p><strong>{{ orphans.length }}</strong> orphaned {{ orphans.length === 1 ? 'user' : 'users' }}.</p>
+            <ul class="ops-maintenance__ids">
+              @for (id of orphans.slice(0, 10); track id) {
+                <li>{{ id }}</li>
+              }
+            </ul>
+            @if (orphans.length > 10) {
+              <p class="ops-maintenance__more">…and {{ orphans.length - 10 }} more.</p>
+            }
+
+            @if (awaitingPurgeConfirmation) {
+              <div class="ops-confirm" role="alert">
+                <p>
+                  Delete {{ orphans.length }} Stream {{ orphans.length === 1 ? 'account' : 'accounts' }} and
+                  everything they wrote? This cannot be undone.
+                </p>
+                <div class="ops-form__actions">
+                  <button class="ops-button ops-button--danger" type="button" [disabled]="purgingOrphans" (click)="onPurgeOrphans()">
+                    Yes, delete
+                  </button>
+                  <button class="ops-button ops-button--quiet" type="button" (click)="onCancelPurge()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="ops-form__actions">
+                <button class="ops-button ops-button--danger" type="button" [disabled]="purgingOrphans" (click)="onPurgeOrphans()">
+                  {{ purgingOrphans ? 'Deleting…' : 'Delete orphans' }}
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="ops-maintenance__result ops-maintenance__result--clean" aria-live="polite">
+            <span class="ops-summary__status-dot" aria-hidden="true"></span>
+            <span>The directories agree — nothing to clean up.</span>
+          </div>
+        }
+      }
+
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>System channel artwork</strong>
+          <p>Re-stamps the broadcast channels with the images this client serves.</p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="syncingArtwork" (click)="onSyncArtwork()">
+          {{ syncingArtwork ? 'Syncing…' : 'Sync' }}
+        </button>
+      </div>
+    </div>
+  </section>
 </div>
 
 <app-recent-auth-guard></app-recent-auth-guard>

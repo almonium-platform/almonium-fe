@@ -78,6 +78,26 @@ export class OpsService {
   }
 
   /**
+   * Stream users with no row in our database: a dropped database or a half-failed deletion leaves
+   * accounts behind that nothing else can notice. Read-only, so it is safe to look.
+   */
+  findOrphanedStreamUsers(): Observable<string[]> {
+    const url = `${AppConstants.OPS_URL}/chat/orphans`;
+    return this.http.get<string[]>(url, {withCredentials: true});
+  }
+
+  deleteOrphanedStreamUsers(): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/chat/orphans`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  /** Re-stamps the system channels with the artwork this client currently serves. */
+  syncSystemChannelArtwork(): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/chat/system-channels/artwork`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  /**
    * Posts to a broadcast channel as Almonium itself. Members cannot write to those channels, so
    * this is the only way anything is published there.
    */

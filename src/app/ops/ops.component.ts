@@ -48,6 +48,12 @@ export class OpsComponent {
   });
 
   protected lookupResult: OpsUserSummary | null = null;
+  protected orphans: string[] | null = null;
+  protected scanningOrphans = false;
+  protected purgingOrphans = false;
+  protected awaitingPurgeConfirmation = false;
+  protected syncingArtwork = false;
+
   protected lookingUp = false;
   protected submitting = false;
   protected publishing = false;
@@ -139,7 +145,9 @@ export class OpsComponent {
     }
 
     this.awaitingPublishConfirmation = false;
-    this.publishing = true;
+    // The flag goes up with the request, not before it: the identity prompt can be dismissed, and a
+    // flag raised ahead of it would leave the button disabled with nothing on the way back to lower
+    // it. Double-fires are already impossible - sending again costs another confirmation.
     this.recentAuthGuardService.guardAction(() => this.performPublish(), false, 'Publish');
   }
 
@@ -153,6 +161,7 @@ export class OpsComponent {
   }
 
   private performPublish(): void {
+    this.publishing = true;
     const {language, text} = this.announcementForm.getRawValue();
     const channelLabel = this.selectedChannelLabel;
 
@@ -164,6 +173,68 @@ export class OpsComponent {
           this.announcementForm.controls.text.reset('');
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to publish the announcement'), 'negative'),
+      });
+  }
+
+  protected onScanOrphans(): void {
+    if (this.scanningOrphans) {
+      return;
+    }
+    this.scanningOrphans = true;
+    this.opsService.findOrphanedStreamUsers()
+      .pipe(finalize(() => this.scanningOrphans = false))
+      .subscribe({
+        next: (orphans) => this.orphans = orphans,
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to read the Stream user directory'), 'negative'),
+      });
+  }
+
+  protected onPurgeOrphans(): void {
+    if (this.purgingOrphans || !this.orphans?.length) {
+      return;
+    }
+
+    if (!this.awaitingPurgeConfirmation) {
+      this.awaitingPurgeConfirmation = true;
+      return;
+    }
+
+    this.awaitingPurgeConfirmation = false;
+    this.recentAuthGuardService.guardAction(() => this.performPurge(), false, 'Delete');
+  }
+
+  protected onCancelPurge(): void {
+    this.awaitingPurgeConfirmation = false;
+  }
+
+  protected onSyncArtwork(): void {
+    if (this.syncingArtwork) {
+      return;
+    }
+    this.recentAuthGuardService.guardAction(() => this.performSyncArtwork(), false, 'Sync');
+  }
+
+  private performPurge(): void {
+    const count = this.orphans?.length ?? 0;
+    this.purgingOrphans = true;
+    this.opsService.deleteOrphanedStreamUsers()
+      .pipe(finalize(() => this.purgingOrphans = false))
+      .subscribe({
+        next: () => {
+          this.notify(`Deleted ${count} orphaned Stream ${count === 1 ? 'user' : 'users'}.`, 'positive');
+          this.orphans = [];
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to delete the orphaned users'), 'negative'),
+      });
+  }
+
+  private performSyncArtwork(): void {
+    this.syncingArtwork = true;
+    this.opsService.syncSystemChannelArtwork()
+      .pipe(finalize(() => this.syncingArtwork = false))
+      .subscribe({
+        next: () => this.notify('System channel artwork synced.', 'positive'),
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to sync the channel artwork'), 'negative'),
       });
   }
 
