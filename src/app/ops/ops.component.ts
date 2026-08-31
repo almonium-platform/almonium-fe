@@ -6,7 +6,14 @@ import {finalize} from 'rxjs';
 import {getErrorMessage} from '../shared/http-error';
 import {RecentAuthGuardService} from '../authentication/auth/recent-auth-guard.service';
 import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-guard.component';
-import {AccessGrantRequest, Entitlement, OpsService, OpsUserSummary} from './ops.service';
+import {
+  AccessGrantRequest,
+  BROADCAST_CHANNELS,
+  BroadcastLanguage,
+  Entitlement,
+  OpsService,
+  OpsUserSummary,
+} from './ops.service';
 
 @Component({
   selector: 'app-ops',
@@ -21,6 +28,8 @@ export class OpsComponent {
   private alertService = inject(TuiNotificationService);
 
   protected readonly entitlements = Object.values(Entitlement);
+  protected readonly broadcastChannels = BROADCAST_CHANNELS;
+  protected readonly maxAnnouncementLength = 5000;
 
   protected lookupForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -33,9 +42,17 @@ export class OpsComponent {
     reason: ['', [Validators.required]],
   });
 
+  protected announcementForm = this.fb.nonNullable.group({
+    language: ['' as BroadcastLanguage | '', []],
+    text: ['', [Validators.required, Validators.maxLength(5000)]],
+  });
+
   protected lookupResult: OpsUserSummary | null = null;
   protected lookingUp = false;
   protected submitting = false;
+  protected publishing = false;
+  /** A post is irreversible and lands in front of everyone in the room, so it asks twice. */
+  protected awaitingPublishConfirmation = false;
 
   protected onLookup(): void {
     if (this.lookupForm.invalid) {
@@ -107,6 +124,46 @@ export class OpsComponent {
           this.refreshLookup(userId);
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to revoke access grant'), 'negative'),
+      });
+  }
+
+  protected onPublish(): void {
+    if (this.publishing || this.announcementForm.invalid) {
+      this.announcementForm.markAllAsTouched();
+      return;
+    }
+
+    if (!this.awaitingPublishConfirmation) {
+      this.awaitingPublishConfirmation = true;
+      return;
+    }
+
+    this.awaitingPublishConfirmation = false;
+    this.publishing = true;
+    this.recentAuthGuardService.guardAction(() => this.performPublish(), false, 'Publish');
+  }
+
+  protected onCancelPublish(): void {
+    this.awaitingPublishConfirmation = false;
+  }
+
+  protected get selectedChannelLabel(): string {
+    const language = this.announcementForm.controls.language.value;
+    return this.broadcastChannels.find(channel => channel.value === language)?.label ?? '';
+  }
+
+  private performPublish(): void {
+    const {language, text} = this.announcementForm.getRawValue();
+    const channelLabel = this.selectedChannelLabel;
+
+    this.opsService.publishAnnouncement({language: language || null, text})
+      .pipe(finalize(() => this.publishing = false))
+      .subscribe({
+        next: () => {
+          this.notify(`Published to ${channelLabel}.`, 'positive');
+          this.announcementForm.controls.text.reset('');
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to publish the announcement'), 'negative'),
       });
   }
 

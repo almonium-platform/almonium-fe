@@ -2,9 +2,10 @@
   <header class="ops-page__header">
     <div>
       <p class="ops-page__eyebrow">Operations console</p>
-      <h1>Access grants</h1>
+      <h1>Operations</h1>
       <p class="ops-page__hint">
-        Grant temporary or permanent entitlement overrides without changing a user's billing plan.
+        Entitlement overrides and the announcement channels. Everything here takes effect
+        immediately, against the environment you are signed in to.
       </p>
     </div>
     <span class="ops-page__badge">Admin only</span>
@@ -115,6 +116,62 @@
       </form>
     </section>
   </div>
+
+  <section class="ops-card ops-card--announce" aria-labelledby="announce-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="announce-title">Publish an announcement</h2>
+        <p>
+          Posts to a broadcast channel as Almonium. Members cannot write there, so this is the only
+          way anything reaches those rooms — and there is no edit and no undo.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="announcementForm" class="ops-form">
+      <label class="ops-form__field">
+        <span>Channel</span>
+        <select formControlName="language">
+          @for (channel of broadcastChannels; track channel.value) {
+            <option [value]="channel.value">{{ channel.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="ops-form__field">
+        <span>
+          Message
+          <em>{{ announcementForm.controls.text.value.length }} / {{ maxAnnouncementLength }}</em>
+        </span>
+        <textarea
+          formControlName="text"
+          rows="5"
+          [maxlength]="maxAnnouncementLength"
+          placeholder="New packs for German just landed."
+        ></textarea>
+      </label>
+
+      @if (awaitingPublishConfirmation) {
+        <div class="ops-confirm" role="alert">
+          <p>Publish to <strong>{{ selectedChannelLabel }}</strong>? Everyone in the room sees this.</p>
+          <div class="ops-form__actions">
+            <button class="ops-button ops-button--danger" type="button" [disabled]="publishing" (click)="onPublish()">
+              Yes, publish
+            </button>
+            <button class="ops-button ops-button--quiet" type="button" (click)="onCancelPublish()">
+              Cancel
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="ops-form__actions">
+          <button class="ops-button ops-button--primary" type="button" [disabled]="publishing" (click)="onPublish()">
+            {{ publishing ? 'Publishing…' : 'Publish' }}
+          </button>
+        </div>
+      }
+    </form>
+  </section>
 </div>
 
 <app-recent-auth-guard></app-recent-auth-guard>
