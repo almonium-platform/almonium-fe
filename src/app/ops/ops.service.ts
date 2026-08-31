@@ -103,6 +103,18 @@ export class OpsService {
     return this.http.post<{message: string}>(url, {confirmation}, {withCredentials: true});
   }
 
+  /** The Firebase project the backend is pointed at, and how many accounts live in it. */
+  firebasePurgeInfo(): Observable<{confirmation: string; userCount: number}> {
+    const url = `${AppConstants.OPS_URL}/firebase/users/purge`;
+    return this.http.get<{confirmation: string; userCount: number}>(url, {withCredentials: true});
+  }
+
+  /** Deletes Firebase accounts. The operator's own is spared unless explicitly included. */
+  purgeFirebase(confirmation: string, includeOperator: boolean): Observable<{message: string}> {
+    const url = `${AppConstants.OPS_URL}/firebase/users/purge`;
+    return this.http.post<{message: string}>(url, {confirmation, includeOperator}, {withCredentials: true});
+  }
+
   /** Re-stamps the system channels with the artwork this client currently serves. */
   syncSystemChannelArtwork(): Observable<unknown> {
     const url = `${AppConstants.OPS_URL}/chat/system-channels/artwork`;

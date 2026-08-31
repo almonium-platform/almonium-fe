@@ -286,6 +286,56 @@
       }
     </form>
   </section>
+
+  <section class="ops-card ops-card--danger-zone" aria-labelledby="firebase-purge-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="firebase-purge-title">Empty the Firebase project</h2>
+        <p>
+          Deletes the accounts themselves. A database drop cannot reach them, and an account left
+          behind without its row can no longer sign in — it is asked for a verified email it never
+          had. Wipe this <em>before</em> you drop the database, not after.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="firebaseForm" class="ops-form">
+      @if (firebaseProject) {
+        <p class="ops-maintenance__more">
+          Project <code>{{ firebaseProject }}</code> currently holds
+          <strong>{{ firebaseUserCount }}</strong> {{ firebaseUserCount === 1 ? 'account' : 'accounts' }}.
+        </p>
+
+        <label class="ops-form__field">
+          <span>Type <code>{{ firebaseProject }}</code> to confirm</span>
+          <input type="text" formControlName="confirmation" autocomplete="off" spellcheck="false" [placeholder]="firebaseProject" />
+        </label>
+
+        <label class="ops-checkbox">
+          <input type="checkbox" formControlName="includeOperator" />
+          <span>
+            Include my own account
+            <em>you will be signed out, and must register again and re-run the admin-claim script</em>
+          </span>
+        </label>
+
+        <div class="ops-form__actions">
+          <button
+            class="ops-button ops-button--danger"
+            type="button"
+            [disabled]="purgingFirebase || !canPurgeFirebase"
+            (click)="onPurgeFirebase()"
+          >
+            {{ purgingFirebase ? 'Erasing…' : 'Erase accounts' }}
+          </button>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">
+          The backend did not name a Firebase project, so this is unavailable.
+        </p>
+      }
+    </form>
+  </section>
 </div>
 
 <app-recent-auth-guard></app-recent-auth-guard>

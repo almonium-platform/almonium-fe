@@ -54,6 +54,14 @@ export class OpsComponent implements OnInit {
   protected purgePhrase: string | null = null;
   protected purging = false;
 
+  protected firebaseForm = this.fb.nonNullable.group({
+    confirmation: ['', [Validators.required]],
+    includeOperator: [false],
+  });
+  protected firebaseProject: string | null = null;
+  protected firebaseUserCount = 0;
+  protected purgingFirebase = false;
+
   protected orphans: string[] | null = null;
   protected scanningOrphans = false;
   protected purgingOrphans = false;
@@ -190,6 +198,41 @@ export class OpsComponent implements OnInit {
       next: ({confirmation}) => this.purgePhrase = confirmation,
       error: () => this.purgePhrase = null,
     });
+
+    this.opsService.firebasePurgeInfo().subscribe({
+      next: ({confirmation, userCount}) => {
+        this.firebaseProject = confirmation;
+        this.firebaseUserCount = userCount;
+      },
+      error: () => this.firebaseProject = null,
+    });
+  }
+
+  protected onPurgeFirebase(): void {
+    if (this.purgingFirebase || this.firebaseForm.invalid) {
+      this.firebaseForm.markAllAsTouched();
+      return;
+    }
+    this.recentAuthGuardService.guardAction(() => this.performPurgeFirebase(), false, 'Erase');
+  }
+
+  private performPurgeFirebase(): void {
+    const {confirmation, includeOperator} = this.firebaseForm.getRawValue();
+    this.purgingFirebase = true;
+    this.opsService.purgeFirebase(confirmation, includeOperator)
+      .pipe(finalize(() => this.purgingFirebase = false))
+      .subscribe({
+        next: (response) => {
+          this.notify(response.message, 'positive');
+          this.firebaseForm.reset({confirmation: '', includeOperator: false});
+          this.firebaseUserCount = includeOperator ? 0 : 1;
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to empty the Firebase project'), 'negative'),
+      });
+  }
+
+  protected get canPurgeFirebase(): boolean {
+    return !!this.firebaseProject && this.firebaseForm.controls.confirmation.value === this.firebaseProject;
   }
 
   protected onPurge(): void {
