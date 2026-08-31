@@ -11,6 +11,15 @@
   background: transparent;
 }
 
+/* Stream paints the fallback layer with its own tokens, and
+   --str-chat__avatar-background-color defaults to the theme's blue. Setting a
+   background on the wrapper alone leaves that blue square sitting on top of it,
+   so the fallback has to step aside and let the wrapper show through. */
+.str-chat__avatar .str-chat__avatar-fallback {
+  background: transparent;
+  color: inherit;
+}
+
 /* Flat plum disc, cream bookmark. The premium gradient is reserved for premium
    users; Saved Messages is a system place, not a person. */
 .str-chat__avatar.saved-messages {

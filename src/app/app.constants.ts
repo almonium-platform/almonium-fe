@@ -65,5 +65,7 @@ export class AppConstants {
   // CHATS
   public static PRIVATE_CHAT_NAME = 'Private Chat';
   public static SELF_CHAT_NAME = 'Saved Messages';
+  // Stream channel type: the durable identity of the self chat, unlike its display name.
+  public static SELF_CHAT_TYPE = 'self';
   public static DEFAULT_CHANNEL_NAME = 'Almonium';
 }

@@ -136,6 +136,6 @@ export class CustomChatAvatarComponent
   }
 
   protected get isSavedMessages(): boolean {
-    return this.type === 'channel' && this.channel?.data?.name === AppConstants.SELF_CHAT_NAME;
+    return this.type === 'channel' && this.channel?.type === AppConstants.SELF_CHAT_TYPE;
   }
 }

@@ -53,7 +53,7 @@ export class SocialChannelFacade {
   }
 
   isSelf(channel: Channel): boolean {
-    return channel.data?.name === AppConstants.SELF_CHAT_NAME;
+    return channel.type === AppConstants.SELF_CHAT_TYPE;
   }
 
   /**

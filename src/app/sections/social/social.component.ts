@@ -425,7 +425,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
               orConditions.push(
                 {
-                  name: {$eq: AppConstants.SELF_CHAT_NAME},
+                  type: {$eq: AppConstants.SELF_CHAT_TYPE},
                   ...filterWithMembership
                 });
             }
