@@ -7,7 +7,7 @@ import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/u
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, forkJoin, interval, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, interval, map, Observable, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
@@ -37,6 +37,7 @@ import {RelationshipAction} from "../../relationship.model";
 const RECENT_LANGUAGES_KEY = 'recent_target_languages';
 const LANGUAGE_CREST_SESSIONS_KEY = 'language_crest_hint_sessions';
 const LANGUAGE_CREST_SESSION_KEY = 'language_crest_hint_seen';
+const REQUEST_ANSWER_FAILED = 'Could not answer the friend request';
 
 @Component({
   selector: 'app-navbar',
@@ -120,7 +121,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected notifications: Notification[] = [];
   protected readonly requestActionInProgressIds = new Set<string>();
-  private readonly resolvedRequestIds = new Set<string>();
+  private pendingRequestIds = new Set<string>();
   private readonly notificationGroupIds = new Map<string, string[]>();
 
   protected get hasLanguageChoices(): boolean {
@@ -270,6 +271,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.notificationService.getNotifications().pipe(takeUntil(this.destroy$)).subscribe((notifications) => {
       this.notifications = this.collapseNotifications(notifications);
       this.unreadNotificationsCount = this.notifications.filter(n => !n.readAt).length;
+      this.refreshPendingRequests();
     });
   }
 
@@ -514,6 +516,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const willOpen = !this.isNotificationOpen;
     this.closeAllPopovers();
     this.isNotificationOpen = willOpen;
+    if (willOpen) {
+      // Opening the bell is the moment the list has to be right; the five-minute poll is too coarse
+      // to keep answered requests from lingering with their buttons.
+      this.getNotifications();
+    }
   }
 
   toggleTimerPopover(): void {
@@ -550,9 +557,34 @@ export class NavbarComponent implements OnInit, OnDestroy {
       : notification.title.replace(/[!]+(?=\s*$)/, '.');
   }
 
+  /* A FRIENDSHIP_REQUESTED notification outlives the request it announces: answering it here, in
+     People, or on another device leaves the row behind, and answering an already-settled
+     relationship is refused by the backend's state machine. The received-requests list is the only
+     truth about what is still answerable, so the buttons are drawn from it, not from the row. */
   protected isActionableRequest(notification: Notification): boolean {
     return notification.type === NotificationType.FRIENDSHIP_REQUESTED
-      && !this.resolvedRequestIds.has(notification.referenceId);
+      && this.pendingRequestIds.has(notification.referenceId);
+  }
+
+  private refreshPendingRequests() {
+    if (!this.notifications.some(notification => notification.type === NotificationType.FRIENDSHIP_REQUESTED)) {
+      this.pendingRequestIds = new Set<string>();
+      return;
+    }
+
+    this.loadPendingRequestIds().subscribe({
+      next: (ids) => this.pendingRequestIds = ids,
+      error: () => {
+        // Keep the last known answer rather than offering actions we can't vouch for.
+      },
+    });
+  }
+
+  private loadPendingRequestIds(): Observable<Set<string>> {
+    return this.socialService.getIncomingRequests().pipe(
+      takeUntil(this.destroy$),
+      map(requests => new Set(requests.map(request => request.relationshipId))),
+    );
   }
 
   protected acceptFriendRequest(notification: Notification, event: Event) {
@@ -577,12 +609,26 @@ export class NavbarComponent implements OnInit, OnDestroy {
       }))
       .subscribe({
         next: () => {
-          this.resolvedRequestIds.add(relationshipId);
+          this.pendingRequestIds.delete(relationshipId);
           this.markNotificationAsRead(notification);
           this.alertService.open(message, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Could not answer the friend request'), {appearance: 'negative'}).subscribe();
+          // The request may have been settled elsewhere since this row was drawn; ask who is
+          // still waiting before blaming the user for a transition the backend had to refuse.
+          this.loadPendingRequestIds().subscribe({
+            next: (ids) => {
+              this.pendingRequestIds = ids;
+              if (ids.has(relationshipId)) {
+                this.alertService.open(getErrorMessage(error, REQUEST_ANSWER_FAILED), {appearance: 'negative'}).subscribe();
+              } else {
+                this.alertService.open('That request has already been answered.', {appearance: 'info'}).subscribe();
+              }
+            },
+            error: () => {
+              this.alertService.open(getErrorMessage(error, REQUEST_ANSWER_FAILED), {appearance: 'negative'}).subscribe();
+            },
+          });
         },
       });
   }
