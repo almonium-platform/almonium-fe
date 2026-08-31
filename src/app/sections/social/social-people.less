@@ -1,0 +1,252 @@
+// Search and people discovery: the search overlay above the channel list,
+// its result groups, and the People panel. The chat shell and its responsive
+// rules live in social.component.less; Stream DOM overrides in
+// social-stream-overrides.less.
+
+.search-container {
+  --tui-radius-m: 2rem;
+  --tui-typography-body-m: normal 1.1rem/1.25rem var(--tui-typography-family-text);
+  width: 20rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .username-input {
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+}
+.find-people-link {
+  align-items: center;
+  align-self: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: .5rem;
+  color: var(--brand-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font: 500 .8rem/1 var(--font-family-ui);
+  gap: .4rem;
+  margin: -.45rem 0 .25rem;
+  padding: .35rem .5rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: none;
+  }
+}
+.username {
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: inline;
+  margin-left: .9rem;
+}
+.user-tile {
+  padding: .5rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 20rem;
+
+
+  .friend-action {
+    margin-left: auto;
+    cursor: pointer;
+    padding: .5rem;
+
+    &.negative {
+      color: var(--danger-text-color);
+    }
+
+    &.positive {
+      color: var(--tui-background-accent-1);
+    }
+
+    &.secondary {
+      margin-left: unset;
+    }
+
+    &:hover {
+      opacity: .8;
+    }
+  }
+
+  .action-button {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--control-border-color);
+    border-radius: 999px;
+    color: var(--subhead-color);
+    display: inline-flex;
+    font: 600 .75rem/1 var(--font-family-ui);
+    gap: .35rem;
+    min-height: 2rem;
+    padding: .45rem .75rem;
+
+    &.positive,
+    &.primary-action {
+      color: var(--brand-primary);
+    }
+
+    &.primary-action {
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+      color: var(--on-brand-color);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-margin);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+  }
+}
+.tiles {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+.search-icon {
+  display: none;
+}
+.search-header {
+  align-items: center;
+  display: flex;
+  position: relative;
+
+  .chat-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+.search-clear {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  color: var(--metadata-color);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: .25rem;
+  position: absolute;
+  right: 1rem;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--text-color);
+    outline: none;
+  }
+}
+.list-section {
+  color: var(--metadata-color);
+  font: 600 .6875rem/1 var(--font-family-mono);
+  letter-spacing: .06rem;
+  padding: 1rem 1rem .35rem;
+  text-transform: uppercase;
+}
+.list-empty {
+  color: var(--metadata-color);
+  font-size: .8125rem;
+  line-height: 1.5;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.result-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  padding: .6rem 1rem;
+  text-align: left;
+  width: 100%;
+
+  &.static {
+    cursor: default;
+  }
+
+  &:not(.static):hover,
+  &:not(.static):focus-visible {
+    background: var(--gray-bg);
+    outline: none;
+  }
+
+  .result-body {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+    min-width: 0;
+  }
+
+  .result-name {
+    color: var(--text-color);
+    font: 500 .90625rem/1.25 var(--font-family-reading);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .result-preview {
+    color: var(--metadata-color);
+    font-size: .78125rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .row-join {
+    flex: none;
+    margin-left: auto;
+  }
+}
+@keyframes people-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.people-panel {
+  animation: people-panel-in 160ms ease-out;
+  background: var(--main-bg-color);
+  border-right: 1px solid var(--hairline-color);
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  width: 20.625rem;
+  z-index: 5;
+
+  .panel-body {
+    padding: 0 1rem 1rem;
+  }
+
+  .people-toggle,
+  .search-container {
+    width: 100%;
+  }
+
+  .user-tile {
+    max-width: 100%;
+  }
+}
+/* Search draws its own grouped list above; the channel list stays mounted so the templates
+   Stream was handed at view init keep resolving. */
+.channel-list-main.searching {
+  display: none;
+}
