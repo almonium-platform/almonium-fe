@@ -8,6 +8,8 @@ import {TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
+import {LanguageCode} from "../../../models/language.enum";
+import {TranslationOrder, TranslationOrderStatus} from "../translation-order.model";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiChip, TuiDataListWrapperComponent, TuiSelect} from "@taiga-ui/kit/components";
 import {TuiChevron, TuiSkeleton} from "@taiga-ui/kit/directives";
@@ -69,6 +71,9 @@ export class BookComponent implements OnInit, OnDestroy {
   protected originalLanguage: string | undefined = undefined;
   private supportedLanguages: Language[] = [];
   protected showLangDropdown = false;
+  /** Open requests this reader has on this book, one per language. */
+  protected orderedLanguages: LanguageCode[] = [];
+  protected withdrawing: LanguageCode | null = null;
   protected languageSelectControl = new FormControl("Language");
   protected bookLoading = true;
 
@@ -123,6 +128,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.availableTranslations = this.languageNameService.getLanguageNames(book.languageVariants.map(t => t.language))
             .filter(lang => lang !== this.bookLanguage && lang !== this.originalLanguage);
           logger.debug(`Successfully loaded book: ${book.title}`);
+          this.loadTranslationOrders();
           this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
         }
       });
@@ -137,11 +143,35 @@ export class BookComponent implements OnInit, OnDestroy {
     return this.book?.progressPercentage ? "Continue Reading" : "Start Reading";
   }
 
-  get orderLanguage() {
-    if (!this.book?.orderLanguage) {
-      return '';
+  /**
+   * The book page is public, so request state comes from the reader's own orders rather
+   * than the book projection. Without this the chips would vanish on every reload.
+   */
+  private loadTranslationOrders() {
+    if (!this.authenticated) {
+      this.orderedLanguages = [];
+      return;
     }
-    return this.languageNameService.getLanguageName(this.book?.orderLanguage);
+    const originalId = this.originalBookId;
+    this.readService.getTranslationOrders()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (orders: TranslationOrder[]) => {
+          this.orderedLanguages = orders
+            .filter(order => order.bookId === originalId && order.status === TranslationOrderStatus.ASKED)
+            .map(order => order.language);
+          this.cdr.detectChanges();
+        },
+        error: (error) => logger.error('Failed to load translation requests:', error),
+      });
+  }
+
+  private get originalBookId(): string | null {
+    return this.book?.originalId ?? this.bookId;
+  }
+
+  get orderedLanguageNames(): {code: LanguageCode, name: string}[] {
+    return this.orderedLanguages.map(code => ({code, name: this.languageNameService.getLanguageName(code)}));
   }
 
   get pages() {
@@ -155,6 +185,7 @@ export class BookComponent implements OnInit, OnDestroy {
   get languagesAvailableForOrder(): string[] {
     return this.supportedLanguages
       .filter(lang => !this.book?.languageVariants.map(t => t.language).includes(lang.code))
+      .filter(lang => !this.orderedLanguages.includes(lang.code))
       .map(lang => lang.name);
   }
 
@@ -179,8 +210,8 @@ export class BookComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.book?.orderLanguage) {
-      logger.info("Order is already placed");
+    if (this.languagesAvailableForOrder.length === 0) {
+      logger.info("Nothing left to request for this book");
       return;
     }
 
@@ -204,8 +235,8 @@ export class BookComponent implements OnInit, OnDestroy {
       }))
       .subscribe({
         next: () => {
-          this.book!.orderLanguage = language;
-          this.alertService.open('Translation ordered', {appearance: 'positive'}).subscribe();
+          this.orderedLanguages = [...this.orderedLanguages, language];
+          this.alertService.open('Translation requested', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error('Failed to order translation:', error);
@@ -265,24 +296,23 @@ export class BookComponent implements OnInit, OnDestroy {
     return 'bookmark';
   }
 
-  cancelOrder() {
-    const language = this.book?.orderLanguage;
-    if (!this.book || !language || !this.bookId) {
+  cancelOrder(language: LanguageCode) {
+    const id = this.originalBookId;
+    if (!this.book || !id) {
       return;
     }
-    this.orderLoading = true;
-    const id = this.book?.originalId ?? this.bookId;
+    this.withdrawing = language;
     this.readService.cancelTranslationOrder(id, language)
       .pipe(finalize(() => {
-        this.orderLoading = false;
+        this.withdrawing = null;
       }))
       .subscribe({
         next: () => {
-          this.book!.orderLanguage = undefined;
-          this.alertService.open('Translation order cancelled', {appearance: 'positive'}).subscribe();
+          this.orderedLanguages = this.orderedLanguages.filter(code => code !== language);
+          this.alertService.open('Translation request withdrawn', {appearance: 'positive'}).subscribe();
         }, error: (error) => {
-          logger.error('Failed to cancel translation order:', error);
-          this.alertService.open(getErrorMessage(error, 'Couldn\'t cancel translation order'), {appearance: 'negative'}).subscribe();
+          logger.error('Failed to withdraw translation request:', error);
+          this.alertService.open(getErrorMessage(error, 'Couldn\'t withdraw translation request'), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -317,16 +347,5 @@ export class BookComponent implements OnInit, OnDestroy {
 
   onClickOutsideLanguageDropdown() {
     this.showLangDropdown = false;
-  }
-
-  get orderLanguageName(): string | undefined {
-    // Don't try to calculate if loading, book is null, or no order language code exists
-    if (this.bookLoading || !this.book?.orderLanguage) {
-      return undefined; // Return undefined (or null) so the @if correctly evaluates to false
-    }
-    // We have a book and an orderLanguage code, get the display name
-    return this.languageNameService.getLanguageName(this.book.orderLanguage);
-    // Note: Ensure your languageNameService.getLanguageName handles cases
-    // where the code might not be found (e.g., returns the code itself or undefined)
   }
 }

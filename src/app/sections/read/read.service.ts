@@ -18,6 +18,7 @@ import {
   parseBookImportQuota,
   parseBookImports,
 } from './book-import.model';
+import {TranslationOrder, parseTranslationOrders} from './translation-order.model';
 import {Observable} from "rxjs";
 import {map, tap} from 'rxjs/operators';
 
@@ -104,6 +105,12 @@ export class ReadService {
   getMiniBookDetailsById(bookId: string): Observable<BookMiniDetails> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}`;
     return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBookMiniDetails));
+  }
+
+  /** Every translation the caller has asked for, across all books. */
+  getTranslationOrders(): Observable<TranslationOrder[]> {
+    const url = `${AppConstants.BOOKS_URL}/orders`;
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseTranslationOrders));
   }
 
   orderTranslation(bookId: string, language: string): Observable<unknown> {

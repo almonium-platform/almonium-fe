@@ -29,7 +29,6 @@ export interface Book {
   hasTranslation: boolean;
   languageVariants: BookLanguageVariant[];
   favorite: boolean;
-  orderLanguage?: LanguageCode;
   originalLanguage?: LanguageCode;
   originalId?: string;
   translator?: string;
@@ -106,7 +105,6 @@ export function parseBook(value: unknown, path = 'book'): Book {
     favorite: data['favorite'] === undefined
       ? false
       : expectBoolean(data['favorite'], `${path}.favorite`),
-    ...optionalEnum(data['orderLanguage'], Object.values(LanguageCode), 'orderLanguage', path),
     ...optionalEnum(data['originalLanguage'], Object.values(LanguageCode), 'originalLanguage', path),
     ...optionalUuid(data['originalId'], 'originalId', path),
     ...optionalString(data['translator'], 'translator', path),
@@ -149,7 +147,7 @@ function optionalUuid(
     : {[key]: expectUuid(value, `${path}.${key}`)};
 }
 
-function optionalEnum<K extends 'orderLanguage' | 'originalLanguage'>(
+function optionalEnum<K extends 'originalLanguage'>(
   value: unknown,
   values: readonly LanguageCode[],
   key: K,

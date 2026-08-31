@@ -118,27 +118,26 @@
               >{{ language }}
               </span>
             }
-            @if (orderLanguageName) {
-              <!-- Use the getter name -->
+            @for (ordered of orderedLanguageNames; track ordered.code) {
               <span tuiChip
                 class="edit-chip edit-chip--no-hover"
                 appearance="outline"
-                (keydown.enter)="openLanguageDropdown()" tabindex="0" (click)="openLanguageDropdown()"
                 tuiHintAppearance="dark"
                 tuiHintDirection="bottom"
                 [tuiHint]="orderTooltip"
-                [tuiSkeleton]="orderLoading"
+                [tuiSkeleton]="withdrawing === ordered.code"
               >
                 <ng-template #orderTooltip>
                   <div>
                     Your AI translation request is queued. We will notify you when it is available.
                   </div>
                 </ng-template>
-                {{ orderLanguageName }}
-                <p class="inner-text">ORDERED</p>
-                <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder()"></lucide-icon>
+                {{ ordered.name }}
+                <p class="inner-text">REQUESTED</p>
+                <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder(ordered.code)"></lucide-icon>
               </span>
-            } @else {
+            }
+            @if (languagesAvailableForOrder.length > 0) {
               @if (showLangDropdown) {
                 <tui-textfield
                   tuiChevron
