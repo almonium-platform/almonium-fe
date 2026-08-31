@@ -136,6 +136,15 @@ export class OpsService {
     return this.http.post<{message: string}>(url, {confirmation, includeOperator}, {withCredentials: true});
   }
 
+  /**
+   * Gives every account its Stream user, memberships and Saved Messages back. Idempotent, so it
+   * repairs a half-provisioned account and leaves a healthy one alone.
+   */
+  provisionStreamAccounts(): Observable<{message: string}> {
+    const url = `${AppConstants.OPS_URL}/chat/users/provision`;
+    return this.http.post<{message: string}>(url, {}, {withCredentials: true});
+  }
+
   /** Re-stamps the system channels with the artwork this client currently serves. */
   syncSystemChannelArtwork(): Observable<unknown> {
     const url = `${AppConstants.OPS_URL}/chat/system-channels/artwork`;

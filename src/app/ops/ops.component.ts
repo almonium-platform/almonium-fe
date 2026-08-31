@@ -75,6 +75,7 @@ export class OpsComponent implements OnInit {
   protected purgingOrphans = false;
   protected awaitingPurgeConfirmation = false;
   protected syncingArtwork = false;
+  protected provisioningAccounts = false;
 
   protected lookingUp = false;
   protected submitting = false;
@@ -317,6 +318,23 @@ export class OpsComponent implements OnInit {
 
   protected onCancelPurge(): void {
     this.awaitingPurgeConfirmation = false;
+  }
+
+  protected onProvisionAccounts(): void {
+    if (this.provisioningAccounts) {
+      return;
+    }
+    this.recentAuthGuardService.guardAction(() => this.performProvisionAccounts(), false, 'Rebuild');
+  }
+
+  private performProvisionAccounts(): void {
+    this.provisioningAccounts = true;
+    this.opsService.provisionStreamAccounts()
+      .pipe(finalize(() => this.provisioningAccounts = false))
+      .subscribe({
+        next: (response) => this.notify(response.message, 'positive'),
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to rebuild the accounts'), 'negative'),
+      });
   }
 
   protected onSyncArtwork(): void {

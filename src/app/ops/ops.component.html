@@ -241,6 +241,19 @@
 
       <div class="ops-maintenance__row">
         <div>
+          <strong>Accounts in Stream</strong>
+          <p>
+            Gives every account its Stream user, memberships and Saved Messages back. Safe to press
+            at any time — a healthy account is left alone.
+          </p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="provisioningAccounts" (click)="onProvisionAccounts()">
+          {{ provisioningAccounts ? 'Rebuilding…' : 'Rebuild' }}
+        </button>
+      </div>
+
+      <div class="ops-maintenance__row">
+        <div>
           <strong>System channel artwork</strong>
           <p>Re-stamps the broadcast channels with the images this client serves.</p>
         </div>
