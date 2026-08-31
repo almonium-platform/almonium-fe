@@ -32,6 +32,7 @@ describe('HarnessComponent', () => {
       startedAt: monday(11),
       setAsideAt: null,
       firstSessionAt: monday(11),
+      frozenPace: null,
       weeks,
       ...overrides,
     }],

@@ -20,6 +20,12 @@ export const TARGET_OPTIONS: {value: number; label: string; note?: string}[] = [
   {value: 0, label: 'No target', note: 'Keep the record, drop the bar'},
 ];
 
+/** Weeks kept against weeks asked for, fixed at a moment rather than rolling. */
+export interface PaceSnapshot {
+  met: number;
+  counted: number;
+}
+
 export interface RhythmDay {
   date: string;
   /** Texture for the band's tint, never a threshold for whether the day counts. */
@@ -47,6 +53,8 @@ export interface LanguageRhythm {
   setAsideAt: string | null;
   /** The first day ever learned in this language, where its weeks start counting. Null until there has been one. */
   firstSessionAt: string | null;
+  /** The fraction as it stood the day the language was set aside. Null while it is active. */
+  frozenPace: PaceSnapshot | null;
   /** Oldest first, ending with the week in progress. */
   weeks: RhythmWeek[];
 }
@@ -72,7 +80,17 @@ function parseLanguageRhythm(value: unknown, path: string): LanguageRhythm {
     startedAt: expectString(rhythm['startedAt'], `${path}.startedAt`),
     setAsideAt: expectNullableString(rhythm['setAsideAt'], `${path}.setAsideAt`),
     firstSessionAt: expectNullableString(rhythm['firstSessionAt'], `${path}.firstSessionAt`),
+    frozenPace: parseFrozenPace(rhythm['frozenPace'], `${path}.frozenPace`),
     weeks: expectArray(rhythm['weeks'], `${path}.weeks`).map((week, index) => parseWeek(week, `${path}.weeks[${index}]`)),
+  };
+}
+
+function parseFrozenPace(value: unknown, path: string): PaceSnapshot | null {
+  if (value === null || value === undefined) return null;
+  const pace = expectRecord(value, path);
+  return {
+    met: expectNumber(pace['met'], `${path}.met`),
+    counted: expectNumber(pace['counted'], `${path}.counted`),
   };
 }
 
@@ -150,7 +168,10 @@ export function bandWeeks(rhythm: LanguageRhythm, count = 12): RhythmWeek[] {
  * Weeks kept against weeks asked for, over the weeks on show. Both halves skip anything outside the language's
  * span, so a young language is not judged against twelve and a set-aside one collects no misses.
  */
-export function paceFraction(rhythm: LanguageRhythm, count = 12): {met: number; counted: number} {
+export function paceFraction(rhythm: LanguageRhythm, count = 12): PaceSnapshot {
+  // A language that has stopped moving keeps the fraction it had when it was put down; a rolling window over it
+  // would carry the set-aside date out of range and decay to 0/0, which reads as a fault rather than a record.
+  if (rhythm.frozenPace) return rhythm.frozenPace;
   const tracked = trackedWeeks(rhythm);
   const counted = bandWeeks(rhythm, count).filter(week => tracked.includes(week));
   return {met: counted.filter(week => week.met).length, counted: counted.length};

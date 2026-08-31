@@ -1,0 +1,69 @@
+<div class="base-container">
+  <main class="record-layout">
+    <a class="back-link" routerLink="/settings/me">‹ Profile</a>
+
+    @if (rhythm; as languageRhythm) {
+      <section class="record-card card" aria-labelledby="language-record-title">
+        <header class="record-identity">
+          <span class="crest" [style.background]="crest" [class.aside]="setAside" aria-hidden="true"></span>
+          <div class="identity-copy">
+            <h1 id="language-record-title">{{ languageName }}</h1>
+            <p>{{ statusLine }}</p>
+          </div>
+          @if (setAside) {
+            <button type="button" class="make-active" [disabled]="activating" (click)="makeActive()">Make active</button>
+          }
+        </header>
+
+        <div class="record-numbers">
+          <div class="record-number">
+            <span class="figure">{{ stats?.wordsKept ?? 0 | number }}</span>
+            <span class="caption">Words you can read</span>
+          </div>
+          <div class="record-number">
+            <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
+            <span class="caption">Books finished</span>
+          </div>
+          <div class="record-number">
+            <span class="figure">{{ pace.met }}<span class="of">/{{ pace.counted }}</span></span>
+            <span class="caption">Weeks at pace</span>
+          </div>
+        </div>
+
+        <app-rhythm-band [rhythm]="languageRhythm" [languageName]="languageName" [crest]="crest"></app-rhythm-band>
+        <p class="record-sentence">{{ recordSentence }}</p>
+      </section>
+
+      <section class="words-card card" aria-labelledby="words-title">
+        <header class="words-head">
+          <span class="eyebrow" id="words-title">Your words</span>
+          <span class="due-count">
+            {{ dueCount }} due{{ setAside ? ' when you come back' : '' }}
+          </span>
+        </header>
+
+        @if (shownWords.length > 0) {
+          <ul class="word-list">
+            @for (word of shownWords; track word.id ?? word.entry) {
+              <li class="word-row">
+                <span class="word-entry">{{ word.entry }}</span>
+                <span class="word-meta">{{ wordMeta(word) }}</span>
+              </li>
+            }
+          </ul>
+          <a class="all-words" routerLink="/review">All {{ stats?.wordsKept ?? words.length | number }} words</a>
+        } @else {
+          <p class="words-empty">No words kept in {{ languageName }} yet.</p>
+        }
+      </section>
+
+      @if (setAside) {
+        <p class="swap-note">Making {{ languageName }} active again returns it to your target languages.</p>
+      }
+    } @else {
+      <section class="record-card card" aria-busy="true">
+        <span class="loading-line"></span>
+      </section>
+    }
+  </main>
+</div>

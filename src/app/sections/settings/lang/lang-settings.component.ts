@@ -2,6 +2,7 @@ import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import {FormControl, FormsModule} from "@angular/forms";
+import {RouterLink} from '@angular/router';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
   FluentLanguageSelectorComponent
@@ -46,6 +47,7 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     LanguageSetupComponent,
     TuiSwitch,
     TuiHintDirective,
+    RouterLink,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'

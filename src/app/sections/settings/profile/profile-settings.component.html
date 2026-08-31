@@ -171,14 +171,15 @@
       <aside class="also-card card">
         <div class="eyebrow">Also learning</div>
         @for (other of otherLanguages; track other.language) {
-          <div class="also-row">
+          <a class="also-row" [routerLink]="['/settings/me/language', other.language.toLowerCase()]">
             <span class="also-chip" [style.background]="crestColour(other.language)" aria-hidden="true"></span>
             <span class="also-name">
               {{ languageName(other.language) }}
-              @if (!other.editable) { <small>set aside</small> }
+              @if (!other.editable) { <small>Set aside</small> }
             </span>
             <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
-          </div>
+            <span class="also-chevron" aria-hidden="true">›</span>
+          </a>
         }
       </aside>
     }

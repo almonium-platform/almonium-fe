@@ -97,6 +97,13 @@
                   />
                 </div>
 
+                @if (!learner.active) {
+                  <a
+                    class="view-record"
+                    [routerLink]="['/settings/me/language', learner.language.toLowerCase()]"
+                  >View record</a>
+                }
+
                 @if (learners.length > 1) {
                   <button
                     type="button"
