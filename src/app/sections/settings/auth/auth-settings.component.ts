@@ -1,9 +1,10 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import {AsyncPipe} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import {TuiError, TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TuiError, TuiInput, TuiLoader, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
 import {TUI_VALIDATION_ERRORS} from "@taiga-ui/core/tokens";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
@@ -13,7 +14,6 @@ import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
-import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
@@ -29,8 +29,9 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
     ConfirmModalComponent,
     AuthComponent,
     ReactiveFormsModule,
+    AsyncPipe,
     TuiError,
-    EditButtonComponent,
+    TuiLoader,
     ActionModalComponent,
     SettingsTabsComponent,
     RecentAuthGuardComponent,

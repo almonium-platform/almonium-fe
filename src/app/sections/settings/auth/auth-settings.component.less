@@ -84,8 +84,13 @@ button { font: inherit; }
 .method-copy > span { color: var(--metadata-color); font-size: .68rem; line-height: 1.4; overflow-wrap: anywhere; }
 
 .method-action {
+  position: relative;
+  display: inline-flex;
   min-width: 5.5rem;
   min-height: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   padding: .3rem .75rem;
   border: 1px solid var(--control-border-color);
   border-radius: 9999px;
@@ -96,9 +101,22 @@ button { font: inherit; }
 }
 
 .method-action:hover:not(:disabled) { border-color: var(--brand-primary); color: var(--brand-primary); }
-.method-action:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
-.method-row app-edit-button,
-.email-row app-edit-button { flex: 0 0 auto; }
+
+.method-action.committing {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.method-action.committing:hover:not(:disabled) { border-color: var(--brand-hover); background: var(--brand-hover); color: #fff; }
+.method-action:disabled { border-color: var(--disabled-fill-color); background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
+
+.method-action .action-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
 
 .delete-account-row {
   display: flex;

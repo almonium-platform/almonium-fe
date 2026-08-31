@@ -56,8 +56,15 @@
         @if (!emailVerified && !hasPendingEmailVerificationRequest() && !emailEditable) {
           <button type="button" class="method-action" (click)="requestEmailVerification()">Verify</button>
         } @else if (!hasPendingEmailVerificationRequest()) {
-          <app-edit-button [disabled]="!emailConfirmEnabled()" [label]="'Change'" [editable]="emailEditable"
-            [loading$]="loadingEmail$" (clickFunction)="onEmailEditClick()" />
+          <button type="button" class="method-action" [class.committing]="emailEditable"
+            [disabled]="!emailConfirmEnabled() || !!(loadingEmail$ | async)" (click)="onEmailEditClick()">
+            @if (loadingEmail$ | async) {
+              <tui-loader class="action-loader" size="s"></tui-loader>
+            }
+            <span [style.visibility]="(loadingEmail$ | async) ? 'hidden' : 'visible'">
+              {{ emailEditable ? 'Save' : 'Change' }}
+            </span>
+          </button>
         }
       </div>
     </section>
@@ -96,8 +103,15 @@
             }
           </div>
           @if (isProviderLinked('local')) {
-            <app-edit-button [disabled]="!passwordConfirmEnabled()" [label]="'Change'" [editable]="passwordEditable"
-              [loading$]="loadingPassword$" (clickFunction)="onPasswordEditClick()" />
+            <button type="button" class="method-action" [class.committing]="passwordEditable"
+              [disabled]="!passwordConfirmEnabled() || !!(loadingPassword$ | async)" (click)="onPasswordEditClick()">
+              @if (loadingPassword$ | async) {
+                <tui-loader class="action-loader" size="s"></tui-loader>
+              }
+              <span [style.visibility]="(loadingPassword$ | async) ? 'hidden' : 'visible'">
+                {{ passwordEditable ? 'Save' : 'Change' }}
+              </span>
+            </button>
           } @else {
             <button type="button" class="method-action" (click)="handleProviderWrapped('local')()">Set up</button>
           }
