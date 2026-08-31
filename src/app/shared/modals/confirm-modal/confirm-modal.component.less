@@ -56,3 +56,25 @@
   border-color: #dc2626;
   box-shadow: 0 0 0 2px rgba(220, 38, 38, .12);
 }
+
+/* Reversible actions commit in plum; only a destructive one is allowed to be red. */
+.confirm-modal-confirm {
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+
+.confirm-modal-confirm:hover:not(:disabled) {
+  background: var(--dark-raspberry);
+}
+
+.confirm-modal-confirm.danger {
+  background: #ef4444;
+}
+
+.confirm-modal-confirm.danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.confirm-modal-cancel.danger {
+  text-decoration: underline;
+}

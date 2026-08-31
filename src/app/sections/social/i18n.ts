@@ -47,7 +47,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   New: 'New',
   'New Messages!': 'New Messages!',
   'No results found': 'No results found',
-  'Nothing yet...': 'Nothing here... yet!',
+  'Nothing yet...': 'No messages yet',
   'Only visible to you': 'Only visible to you',
   'Open emoji picker': 'Open emoji picker',
   'People matching': 'People matching',
@@ -65,12 +65,12 @@ export const STREAM_CHAT_TRANSLATIONS = {
   'Start of a new thread': 'Start of a new thread',
   'This message was deleted...': 'This message was deleted...',
   Thread: 'Thread reply',
-  'Type your message': 'Write a message...',
+  'Type your message': 'Write a message',
   Unmute: 'Unmute',
   Unpin: 'Unpin',
   'Wait until all attachments have uploaded':
     'Wait until all attachments have uploaded',
-  'You have no channels currently': 'Oops! Nothing here...',
+  'You have no channels currently': 'No chats yet',
   "You've reached the maximum number of files":
     "You've reached the maximum number of files",
   live: 'live',
@@ -97,7 +97,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   'Sending links is not allowed in this conversation':
     'Sending links is not allowed in this conversation',
   "You can't send messages in this channel":
-    "Stay tuned! Announcements will be posted here",
+    'Only Almonium posts in this channel',
   "You can't send thread replies in this channel":
     "You can't send thread replies in this channel",
   'Message not found': 'Message not found',
@@ -108,7 +108,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   'See original (automatically translated)':
     'See original (automatically translated)',
   'See translation': 'See translation',
-  'Mark as unread': 'Mark as unread',
+  'Mark as unread': 'Mark as unread from here',
   'Error marking message as unread': 'Error marking message as unread',
   'Error, only the first {{count}} message can be marked as unread':
     'Error, only the first {{count}} message can be marked as unread',
@@ -120,7 +120,7 @@ export const STREAM_CHAT_TRANSLATIONS = {
   'Send Anyway': 'Send Anyway',
   Edited: 'Edited',
   'Error playing audio': 'Error playing audio',
-  'Copy text': 'Copy Text',
+  'Copy text': 'Copy text',
   'Please grant permission to use microhpone':
     'Please grant permission to use microhpone',
   'Error starting recording': 'Error starting recording',

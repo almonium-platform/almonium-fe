@@ -20,13 +20,15 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
         >
           <app-dismiss-button (closed)="onClose()"/>
           <div class="flex items-center mb-4 flex-row">
-            <span
-              class="flex items-center justify-center" style="margin-right: 6px">
-              <i
-                class="fas fa-circle-exclamation text-xl text-red-500"
-                style="margin-top: 1px"
-              ></i>
-            </span>
+            @if (tone === 'danger') {
+              <span
+                class="flex items-center justify-center" style="margin-right: 6px">
+                <i
+                  class="fas fa-circle-exclamation text-xl text-red-500"
+                  style="margin-top: 1px"
+                ></i>
+              </span>
+            }
             <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
           </div>
           <p class="confirm-modal-copy mb-6 mt-6 text-sm">{{ message }}</p>
@@ -46,14 +48,16 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           <div class="flex justify-between">
             <button
               (click)="onClose()"
-              class="confirm-modal-cancel underline font-bold hover:underline"
+              class="confirm-modal-cancel font-bold"
+              [class.danger]="tone === 'danger'"
             >
               Cancel
             </button>
             <button
               (click)="onConfirm()"
               [disabled]="isButtonDisabled"
-              class="bg-red-500 text-white px-4 py-2 font-bold rounded-3xl hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="confirm-modal-confirm text-white px-4 py-2 font-bold rounded-3xl disabled:bg-gray-400 disabled:cursor-not-allowed"
+              [class.danger]="tone === 'danger'"
             >
               {{ isButtonDisabled ? 'Proceed in ' + countdown : confirmText }}
             </button>
@@ -70,6 +74,11 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() confirmText = '';
   @Input() useCountdown = false;
   @Input() confirmationWord = '';
+  /**
+   * Danger paints the alert icon and the red commit button. A reversible action takes the
+   * plum one and no icon: the modal asks a question, it does not warn.
+   */
+  @Input() tone: 'danger' | 'default' = 'danger';
 
   @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();

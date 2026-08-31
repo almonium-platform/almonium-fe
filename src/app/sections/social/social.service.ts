@@ -3,10 +3,10 @@ import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {map} from 'rxjs/operators';
 import {
-  parsePublicUserProfiles,
   parseRelatedUserProfiles,
-  PublicUserProfile,
+  parseUserSearchResults,
   RelatedUserProfile,
+  UserSearchResult,
 } from "./social.model";
 import {AppConstants} from "../../app.constants";
 import {UserProfileInfo} from "../../shared/user-preview-card/user-profile.model";
@@ -34,11 +34,11 @@ export class SocialService {
       .pipe(map(value => parseRelatedUserProfiles(value, 'incoming requests')));
   }
 
-  searchAllByUsername(username: string): Observable<PublicUserProfile[]> {
+  searchAllByUsername(username: string): Observable<UserSearchResult[]> {
     return this.http.get<unknown>(
       `${AppConstants.RELATIONSHIPS_URL}/search/all?username=${encodeURIComponent(username)}`,
       {withCredentials: true}
-    ).pipe(map(value => parsePublicUserProfiles(value, 'user search results')));
+    ).pipe(map(value => parseUserSearchResults(value)));
   }
 
   // TODO: Remove this method

@@ -3,17 +3,16 @@ import {getErrorMessage} from '../../shared/http-error';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
 import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, combineLatest, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
-import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
+import {RelatedUserProfile, RelationshipAction, RelationshipStatus, UserSearchResult} from "./social.model";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiDataList, TuiIcon, TuiNotificationService, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
-import {TuiDropdownDirective, TuiDropdownManual, TuiHintDirective, TuiPopup} from "@taiga-ui/core/portals";
+import {TuiDropdownDirective, TuiDropdownManual, TuiDropdownOptionsDirective, TuiHintDirective} from "@taiga-ui/core/portals";
 import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
-  TuiDrawer,
   TuiSegmented
 } from "@taiga-ui/kit/components";
 import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
@@ -33,12 +32,14 @@ import {
   ChatClientService,
   CustomTemplatesService,
   MessageActionsBoxContext,
+  MessageActionsService,
   MessageService,
+  StreamMessage,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
   StreamI18nService
 } from "stream-chat-angular";
-import {Channel, ChannelFilters, StreamChat, User} from "stream-chat";
+import {Channel, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
@@ -55,6 +56,14 @@ import {SocialChannelFacade} from './social-channel.facade';
 import {SocialSidebarResizeDirective} from './social-sidebar-resize.directive';
 import {SocialConfirmationService} from './social-confirmation.service';
 
+/** One row in the Messages section of chat search. */
+interface MessageHit {
+  id: string;
+  text: string;
+  cid: string;
+  channelName: string;
+}
+
 @Component({
   selector: 'app-social',
   templateUrl: './social.component.html',
@@ -65,8 +74,6 @@ import {SocialConfirmationService} from './social-confirmation.service';
     SharedLucideIconsModule,
     NgClass,
     TuiSegmented,
-    TuiPopup,
-    TuiDrawer,
     DismissButtonComponent,
     TuiScrollbar,
     TuiSkeleton,
@@ -91,6 +98,7 @@ import {SocialConfirmationService} from './social-confirmation.service';
     TuiTextfieldComponent,
     TuiDropdownDirective,
     TuiDropdownManual,
+    TuiDropdownOptionsDirective,
     TuiTextfieldOptionsDirective,
     SocialSidebarResizeDirective,
   ],
@@ -107,6 +115,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private userInfoService = inject(UserInfoService);
   private customTemplatesService = inject(CustomTemplatesService);
   private messageService = inject(MessageService);
+  private messageActionsService = inject(MessageActionsService);
   private chatUnreadService = inject(ChatUnreadService);
   private cdr = inject(ChangeDetectorRef);
   protected channels = inject(SocialChannelFacade);
@@ -130,27 +139,46 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected friendFormControl = new FormControl<string>('');
   protected chatFormControl = new FormControl<string>('');
   protected nothingFound = false;
-  protected matchedUsers: PublicUserProfile[] = [];
+  protected matchedUsers: UserSearchResult[] = [];
   protected requestedIds: string[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
-  protected drawerUserTiles: RelatedUserProfile[] = [];
+  protected peopleUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
   protected incomingRequestsCount = 0;
-  // drawer
-  protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' = 'friends';
-  protected drawerHeader = 'People';
+  /** Two characters is enough to be looking for a handle; three hid too many people. */
+  protected static readonly MIN_HANDLE_SEARCH_LENGTH = 2;
+  private static readonly SEARCH_DEBOUNCE_MS = 250;
+  protected readonly MIN_HANDLE_SEARCH_LENGTH = SocialComponent.MIN_HANDLE_SEARCH_LENGTH;
+
+  // people panel
+  protected readonly isPeopleOpen = signal(false);
+  protected peopleMode: 'requests' | 'friends' | 'blocked' | 'search' = 'friends';
+  protected peopleHeader = 'People';
   protected loadingFriends = false;
   protected loadingBlocked = false;
   protected loadingIncomingRequests = false;
   protected loadingOutgoingRequests = false;
   protected noResultMessage = 'No results found';
-  protected drawerIcon = 'users-round';
+  protected peopleIcon = 'users-round';
 
   protected readonly FriendshipStatus = RelationshipStatus;
-  protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
+
+  /**
+   * 01: the archive is a place you enter, not a switch you flip. The subject still drives the
+   * channel query — a Stream "hidden" channel is what an archived one is made of.
+   */
+  protected showArchived$ = new BehaviorSubject<boolean>(false);
+  protected archivedCount = 0;
+  protected archiveHasUnread = false;
+
+  // Search answers in sections rather than one undifferentiated list.
+  protected searchQuery = '';
+  protected isSearching = false;
+  protected searchChats: Channel[] = [];
+  protected searchJoinable: Channel[] = [];
+  protected searchMessages: MessageHit[] = [];
 
   // CHATS
   private chatClient: StreamChat;
@@ -231,10 +259,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       } else {
         void this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false);
       }
+
+      void this.refreshArchiveSummary();
     });
 
     this.setupActiveChannelSubscription();
-    this.onViewportResize();
+    this.registerMessageActions();
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
     this.listenToUsernameField();
@@ -246,7 +276,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.chatFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
-        debounceTime(300),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
         takeUntil(this.destroy$)
       )
       .subscribe(value => {
@@ -279,6 +309,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setChatTitle(channel);
         this.openChat();
         void this.chatUnreadService.fetchUnreadCount();
+        void this.refreshArchiveSummary();
       });
   }
 
@@ -301,12 +332,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private handleQueryParams(params: Params) {
     if (params['tab'] === 'friends') {
-      this.drawerMode = 'friends';
-      this.openDrawerAndSetupData();
+      this.peopleMode = 'friends';
+      this.openPeopleAndSetupData();
     }
     if (params['requests'] === 'received' || params['requests'] === 'sent') {
-      this.drawerMode = 'requests';
-      this.openDrawerAndSetupData();
+      this.peopleMode = 'requests';
+      this.openPeopleAndSetupData();
     }
     const chat: unknown = params['chat'];
     if (typeof chat === 'string') {
@@ -319,7 +350,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected listenToFriendSearch() {
     this.friendFormControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
       if (value === null) return;
-      this.drawerUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
+      this.peopleUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
     });
   }
 
@@ -345,7 +376,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private listenToUsernameField() {
     this.usernameFormControl.valueChanges
       .pipe(
-        debounceTime(300),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
         distinctUntilChanged(),
         takeUntil(this.destroy$),
         map((username) => {
@@ -354,7 +385,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           return sanitizedUsername;
         }),
         switchMap((username) => {
-          if (username.length < 3) {
+          if (username.length < SocialComponent.MIN_HANDLE_SEARCH_LENGTH) {
             this.matchedUsers = [];
             this.nothingFound = false;
             return [];
@@ -367,9 +398,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           );
         })
       )
-      .subscribe((friends: PublicUserProfile[]) => {
-        this.matchedUsers = friends;
-        this.nothingFound = friends.length === 0;
+      .subscribe((candidates: UserSearchResult[]) => {
+        this.matchedUsers = candidates;
+        this.nothingFound = candidates.length === 0;
       });
   }
 
@@ -387,80 +418,179 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     combineLatest([
       this.chatFormControl.valueChanges.pipe(
         startWith(this.chatFormControl.value ?? ''),
-        debounceTime(300),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
+        map(value => (value ?? '').trim()),
         distinctUntilChanged()
       ),
-      this.showHiddenChannels$,
+      this.showArchived$,
     ])
-      .pipe(
-        takeUntil(this.destroy$),
-        switchMap(async ([query]) => {
-          const user = await firstValueFrom(this.chatService.user$); // ✅ Get user only when needed
-          if (!user) return;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([query, archived]) => {
+        this.searchQuery = query;
+        if (!query) {
+          this.clearSearchResults();
+          this.channels.reload(archived);
+          return;
+        }
+        void this.runChatSearch(query);
+      });
+  }
 
-          const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
+  private clearSearchResults(): void {
+    this.isSearching = false;
+    this.searchChats = [];
+    this.searchJoinable = [];
+    this.searchMessages = [];
+  }
 
-          if (!trimmedQuery) {
-            this.channels.reload(this.showHiddenChannels$.value);
-            return EMPTY; // Prevent API calls if the query is empty
-          }
+  /**
+   * Chats first, then the channels you could join, then messages. A private chat carries no name
+   * of its own, so it has to be found through its members.
+   */
+  private async runChatSearch(query: string): Promise<void> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return;
 
-          // 🔹 Filters for user’s channels (membership required)
-          const filterWithMembership: ChannelFilters = {
-            members: {$in: [user.id]}, // Ensure the user is a member of the channels
-          };
+    this.isSearching = true;
+    try {
+      const [byMember, byName, broadcast] = await Promise.all([
+        client.queryChannels(
+          {type: AppConstants.PRIVATE_CHAT_TYPE, members: {$in: [userId]}, 'member.user.name': {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+        client.queryChannels(
+          {members: {$in: [userId]}, name: {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+        client.queryChannels(
+          {type: 'broadcast', name: {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+      ]);
 
-          let orConditions: ChannelFilters[] = [];
+      if (this.searchQuery !== query) return;
 
-          if (trimmedQuery) {
-            orConditions.push(
-              {
-                "member.user.name": {$autocomplete: trimmedQuery},
-                type: AppConstants.PRIVATE_CHAT_TYPE,
-                hidden: this.showHiddenChannels$.value,
-              },
-            );
+      const mine = new Map<string, Channel>();
+      [...byMember, ...byName].forEach(channel => mine.set(channel.cid, channel));
+      if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(query.toLowerCase())) {
+        const saved = await this.selfChannel();
+        if (saved) mine.set(saved.cid, saved);
+      }
 
-            // ✅ Include "Saved Messages" if the query matches its name
-            if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
-              orConditions.push(
-                {
-                  type: {$eq: AppConstants.SELF_CHAT_TYPE},
-                  ...filterWithMembership
-                });
-            }
-          }
+      this.searchChats = [...mine.values()];
+      this.searchJoinable = broadcast.filter(channel => !this.channels.isMember(channel));
+      this.searchMessages = await this.searchInMessages(userId, query);
+    } catch (error) {
+      logger.error('Chat search failed', error);
+    } finally {
+      if (this.searchQuery === query) {
+        this.isSearching = false;
+      }
+      this.cdr.detectChanges();
+    }
+  }
 
-          // 🔹 Filters for **public (broadcast) channels**, regardless of membership
-          const filterForPublicChannels: ChannelFilters = {
-            type: "broadcast",
-            name: {$autocomplete: trimmedQuery},
-            hidden: this.showHiddenChannels$.value,
-          };
+  /** Message search is a bonus section: if the app is not entitled to it, the rest still answers. */
+  private async searchInMessages(userId: string, query: string): Promise<MessageHit[]> {
+    try {
+      const response = await this.chatService.chatClient.search(
+        {members: {$in: [userId]}},
+        query,
+        {limit: 5},
+      );
+      return response.results
+        .map(result => result.message)
+        .filter(message => !!message.text)
+        .map(message => ({
+          id: message.id,
+          text: message.text ?? '',
+          cid: message.channel?.cid ?? '',
+          channelName: message.channel?.name ?? message.user?.name ?? 'Chat',
+        }))
+        .filter(hit => !!hit.cid);
+    } catch (error) {
+      logger.debug('Message search unavailable', error);
+      return [];
+    }
+  }
 
-          // ✅ Fix: Always include broadcast channels (including Almonium) in $or
-          if (orConditions.length > 0) {
-            orConditions.push(filterForPublicChannels);
-          } else {
-            // If no other conditions exist, we still need the broadcast filter
-            orConditions = [filterForPublicChannels];
-          }
+  private registerMessageActions(): void {
+    this.messageActionsService.customActions$.next([
+      {
+        actionName: 'save-to-saved-messages',
+        actionLabelOrTranslationKey: 'Save to Saved Messages',
+        isVisible: () => true,
+        actionHandler: (message: StreamMessage) => void this.saveToSavedMessages(message),
+      },
+    ]);
+  }
 
-          const finalFilters: ChannelFilters = {
-            $or: orConditions as [ChannelFilters, ChannelFilters, ...ChannelFilters[]],
-          };
+  private async saveToSavedMessages(message: StreamMessage): Promise<void> {
+    const text = message.text?.trim();
+    if (!text) return;
 
-          try {
-            this.channelService.reset();
-            await this.channelService.init(finalFilters, undefined, undefined, false);
-            return [];
-          } catch (error) {
-            logger.error("Error fetching channels:", error);
-            return EMPTY;
-          }
-        })
-      )
-      .subscribe();
+    try {
+      const saved = await this.selfChannel();
+      if (!saved) {
+        this.alertService.open('Saved Messages is not ready yet.', {appearance: 'negative'}).subscribe();
+        return;
+      }
+      await saved.sendMessage({text});
+      this.alertService.open('Saved to Saved Messages', {appearance: 'positive'}).subscribe();
+    } catch (error) {
+      logger.error('Could not save the message', error);
+      this.alertService.open('Could not save that message.', {appearance: 'negative'}).subscribe();
+    }
+  }
+
+  protected channelImage(channel: Channel): string | undefined {
+    const image = channel.data?.image;
+    return typeof image === 'string' ? image : undefined;
+  }
+
+  /** An empty row says what the chat is, rather than repeating one generic absence. */
+  protected emptyPreview(channel: Channel): string {
+    if (this.channels.isSelf(channel)) return 'Only you can see this';
+    if (this.channels.isPublic(channel)) return 'No updates yet';
+    return 'No messages yet';
+  }
+
+  protected lastMessagePreview(channel: Channel): string {
+    return channel.state.messages.at(-1)?.text ?? this.emptyPreview(channel);
+  }
+
+  protected openSearchResult(channel: Channel): void {
+    this.channelService.setAsActiveChannel(channel);
+    this.chatFormControl.setValue('');
+  }
+
+  protected joinFromSearch(channel: Channel): void {
+    void this.channels.join(channel).then(() => this.chatFormControl.setValue(''));
+  }
+
+  protected openMessageHit(hit: MessageHit): void {
+    void this.channels.openByCid(hit.cid).then(() => this.chatFormControl.setValue(''));
+  }
+
+  protected clearSearch(event: Event): void {
+    event.stopPropagation();
+    this.chatFormControl.setValue('');
+  }
+
+  private async selfChannel(): Promise<Channel | null> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return null;
+    const [saved] = await client.queryChannels(
+      {type: AppConstants.SELF_CHAT_TYPE, members: {$in: [userId]}},
+      undefined,
+      {limit: 1},
+    );
+    return saved ?? null;
   }
 
   range(n: number): number[] {
@@ -504,7 +634,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: friends => {
         this.friends = friends;
-        this.drawerUserTiles = friends;
+        this.peopleUserTiles = friends;
       },
       error: error => this.showSocialLoadError('friends', error),
     });
@@ -518,7 +648,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe({
       next: blocked => {
         this.blockedUsers = blocked;
-        this.drawerUserTiles = blocked;
+        this.peopleUserTiles = blocked;
       },
       error: error => this.showSocialLoadError('blocked users', error),
     });
@@ -529,8 +659,32 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.alertService.open(`Could not load ${resource}. Please try again.`, {appearance: 'negative'}).subscribe();
   }
 
+  protected candidateState(candidate: UserSearchResult): 'friend' | 'requested' | 'blocked' | 'none' {
+    if (this.requestedIds.includes(candidate.id)) return 'requested';
+    switch (candidate.relationshipStatus) {
+      case RelationshipStatus.FRIENDS:
+        return 'friend';
+      case RelationshipStatus.PENDING_OUTGOING:
+      case RelationshipStatus.PENDING_INCOMING:
+        return 'requested';
+      case RelationshipStatus.BLOCKED:
+        return 'blocked';
+      default:
+        return 'none';
+    }
+  }
+
+  protected messageCandidate(candidate: UserSearchResult): void {
+    if (!candidate.relationshipId) return;
+    this.openChatWithFriend({
+      ...candidate,
+      relationshipId: candidate.relationshipId,
+      relationshipStatus: RelationshipStatus.FRIENDS,
+    });
+  }
+
   openChatWithFriend(friend: RelatedUserProfile) {
-    this.closeDrawer();
+    this.closePeople();
 
     const cid = this.channels.friendshipCid(friend.relationshipId);
     void this.openChatByCid(cid).then((found) => {
@@ -636,7 +790,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
-          this.drawerUserTiles = this.blockedUsers;
+          this.peopleUserTiles = this.blockedUsers;
           this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
@@ -663,15 +817,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
         next: () => {
-          const username = this.matchedUsers.find(user => user.id === id)?.username;
+          const username = this.matchedUsers.find(candidate => candidate.id === id)?.username;
           const recipient = username ? `@${username}` : 'that user';
           this.alertService.open(`Request sent to ${recipient}.`, {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
-
-          this.schedule(() => {
-            this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
-            this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
-          }, 2000);
+          this.matchedUsers = this.matchedUsers.map(user =>
+            user.id === id ? {...user, relationshipStatus: RelationshipStatus.PENDING_OUTGOING} : user
+          );
         },
         error: (error) => {
           logger.error(error);
@@ -684,9 +836,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(friendshipId, RelationshipAction.UNFRIEND).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
-        this.drawerUserTiles = this.friends;
+        this.peopleUserTiles = this.friends;
         this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
-        this.setDrawerMode('friends');
+        this.setPeopleMode('friends');
       },
       error: (error) => {
         logger.error(error);
@@ -700,9 +852,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(friendshipId, RelationshipAction.BLOCK).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
-        this.drawerUserTiles = this.friends;
+        this.peopleUserTiles = this.friends;
         this.alertService.open('User blocked', {appearance: 'positive'}).subscribe();
-        this.setDrawerMode('blocked');
+        this.setPeopleMode('blocked');
       },
       error: (error) => {
         logger.error(error);
@@ -711,28 +863,28 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  protected openDrawerAndSetupData() {
-    this.openDrawer();
-    this.drawerHeader = 'People';
-    this.drawerIcon = 'users-round';
-    if (this.drawerMode === 'requests') {
+  protected openPeopleAndSetupData() {
+    this.openPeople();
+    this.peopleHeader = 'People';
+    this.peopleIcon = 'users-round';
+    if (this.peopleMode === 'requests') {
       // One scroll, two headers: Received carries the work, Sent is usually a row or two.
-      this.drawerUserTiles = [];
+      this.peopleUserTiles = [];
       this.getIncomingRequests();
       this.getOutgoingRequests();
       this.noResultMessage = `You have no friend requests.`;
     }
-    if (this.drawerMode === 'friends') {
+    if (this.peopleMode === 'friends') {
       this.getFriends();
-      this.noResultMessage = `Almo hasn't found anyone here yet.`;
+      this.noResultMessage = 'You have not added anyone yet.';
     }
-    if (this.drawerMode === 'blocked') {
+    if (this.peopleMode === 'blocked') {
       this.noResultMessage = `No one is blocked.`;
       this.getBlocked();
     }
-    if (this.drawerMode === 'search') {
-      this.drawerHeader = 'Find people';
-      this.drawerIcon = 'chevron-left';
+    if (this.peopleMode === 'search') {
+      this.peopleHeader = 'Find people';
+      this.peopleIcon = 'chevron-left';
     }
   }
 
@@ -741,38 +893,52 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return !!this.activeChannel && this.channels.isPublic(this.activeChannel);
   }
 
-  protected get canLeaveActiveChannel(): boolean {
-    return this.isActiveChannelReadOnly && this.channels.isMember(this.activeChannel!);
-  }
-
   protected get activeChannelTopic(): string {
     return this.activeChannel ? this.channels.topic(this.activeChannel) : '';
   }
 
-  protected isDrawerDataLoading() {
-    if (this.drawerMode === 'requests') {
+  protected get emptyChannelTitle(): string {
+    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) return 'Your own notebook';
+    if (this.isActiveChannelReadOnly) return 'Nothing posted yet';
+    return 'No messages yet';
+  }
+
+  protected get emptyChannelBody(): string {
+    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) {
+      return 'Forward messages here, or write to yourself. Nobody else can see this chat.';
+    }
+    if (this.isActiveChannelReadOnly) {
+      return `New books, packs and features for ${this.activeChannelTopic} will land here.`;
+    }
+    return 'Say hello — this is the start of the conversation.';
+  }
+
+  protected isPeopleDataLoading() {
+    if (this.peopleMode === 'requests') {
       return this.loadingIncomingRequests || this.loadingOutgoingRequests;
     }
-    if (this.drawerMode === 'friends') {
+    if (this.peopleMode === 'friends') {
       return this.loadingFriends;
     }
-    if (this.drawerMode === 'blocked') {
+    if (this.peopleMode === 'blocked') {
       return this.loadingBlocked;
     }
     return false;
   }
 
-  /** Above this width People pushes the app aside; below it, it overlays with a scrim. */
-  private static readonly DRAWER_PUSH_BREAKPOINT_PX = 1280;
-  protected readonly isWideViewport = signal(false);
-
-  public openDrawer(): void {
+  public openPeople(): void {
     this.closePreviewCard();
-    this.isDrawerOpened.set(true);
+    this.isPeopleOpen.set(true);
   }
 
-  public closeDrawer(): void {
-    this.isDrawerOpened.set(false);
+  public closePeople(): void {
+    this.isPeopleOpen.set(false);
+  }
+
+  /** A new chat starts by picking a person, so it lands in People rather than an empty thread. */
+  protected startNewChat(): void {
+    this.peopleMode = 'friends';
+    this.openPeopleAndSetupData();
   }
 
   @HostListener('document:keydown.escape')
@@ -781,28 +947,28 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.closePreviewCard();
       return;
     }
-    this.isDrawerOpened.set(false);
+    this.isPeopleOpen.set(false);
   }
 
-  @HostListener('window:resize')
-  protected onViewportResize(): void {
-    this.isWideViewport.set(globalThis.innerWidth >= SocialComponent.DRAWER_PUSH_BREAKPOINT_PX);
-  }
-
-  hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
+  protected archiveChat(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
 
     this.schedule(() => {
-      void channel.hide();
+      void channel.hide().then(() => {
+        this.channels.reload(this.showArchived$.value);
+        void this.refreshArchiveSummary();
+      });
     }, 30);
   }
 
-  showChat(channel: Channel, dropdown: TuiDropdownDirective) {
+  protected unarchiveChat(channel: Channel, dropdown: TuiDropdownDirective, event?: Event) {
+    event?.stopPropagation();
     dropdown.toggle(false);
 
     this.schedule(() => {
       void channel.show().then(() => {
-        this.channels.reload(this.showHiddenChannels$.value);
+        this.channels.reload(this.showArchived$.value);
+        void this.refreshArchiveSummary();
       });
     }, 30);
   }
@@ -858,12 +1024,50 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return channel.muteStatus().muted;
   }
 
-  isHiddenChannel(channel: Channel) {
-    return channel.data?.hidden;
+  protected isArchived(channel: Channel): boolean {
+    return !!channel.data?.hidden;
   }
 
-  toggleHiddenChats() {
-    this.showHiddenChannels$.next(!this.showHiddenChannels$.value);
+  protected get isArchiveOpen(): boolean {
+    return this.showArchived$.value;
+  }
+
+  protected openArchive(): void {
+    this.showArchived$.next(true);
+  }
+
+  protected closeArchive(): void {
+    this.showArchived$.next(false);
+  }
+
+  /**
+   * The Archived row only exists when there is an archive; a chat that arrives in it stays there
+   * and lights the row rather than jumping back into the list.
+   */
+  private async refreshArchiveSummary(): Promise<void> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return;
+
+    try {
+      const archived = await client.queryChannels(
+        {hidden: true, members: {$in: [userId]}},
+        {last_message_at: -1},
+        {limit: 30},
+      );
+      this.archivedCount = archived.length;
+      this.archiveHasUnread = archived.some(channel => channel.countUnread() > 0);
+      this.cdr.detectChanges();
+    } catch (error) {
+      logger.error('Could not read the archive', error);
+    }
+  }
+
+  /** Right-click on the row is an accelerator for the same menu the button opens. */
+  protected openRowMenu(menu: TuiDropdownDirective, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    menu.toggle(true);
   }
 
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
@@ -974,17 +1178,17 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return firstCheck && channel.cid === this.hoveredChannel?.cid;
   }
 
-  setDrawerMode(mode: string) {
-    this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'search';
-    this.openDrawerAndSetupData();
+  setPeopleMode(mode: string) {
+    this.peopleMode = mode as 'requests' | 'friends' | 'blocked' | 'search';
+    this.openPeopleAndSetupData();
   }
 
   protected get peopleIndex(): number {
-    return this.drawerMode === 'requests' ? 1 : this.drawerMode === 'blocked' ? 2 : 0;
+    return this.peopleMode === 'requests' ? 1 : this.peopleMode === 'blocked' ? 2 : 0;
   }
 
   protected onPeopleIndexChange(index: number): void {
-    this.setDrawerMode((['friends', 'requests', 'blocked'] as const)[index] ?? 'friends');
+    this.setPeopleMode((['friends', 'requests', 'blocked'] as const)[index] ?? 'friends');
   }
 
   openChat() {
@@ -1003,15 +1207,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }, 100);
   }
 
-  get hiddenChatsLabel() {
-    return this.showHiddenChannels$.value ? 'Hidden on' : 'Hidden';
-  }
-
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
     this.confirmation.open({
-      title: 'Delete Chat',
-      message: 'Are you sure? This action cannot be undone',
+      title: 'Delete chat',
+      message: 'The chat and its messages are removed for both of you. This cannot be undone.',
       confirmText: 'Delete',
       action: () => void channel.delete(),
     });
@@ -1020,24 +1220,24 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
     dropdown.toggle(false);
     this.confirmation.open({
-      title: 'Clear Chat History',
-      message: 'Are you sure? This action cannot be undone',
+      title: 'Clear history',
+      message: 'Every message in this chat is removed for you. This cannot be undone.',
       confirmText: 'Clear',
       action: () => void channel.truncate(),
     });
   }
 
-  /** Leave is the only action a broadcast channel has, so it sits in the header. */
-  protected leaveActiveChannel() {
-    if (!this.activeChannel) return;
-    this.confirmLeave(this.activeChannel);
-  }
-
+  /**
+   * Leaving is reversible, so the modal names the channel and commits in plum. It lives in the
+   * row menu; the header carries no permanent Leave button.
+   */
   private confirmLeave(channel: Channel) {
+    const name = this.channels.name(channel, 'this channel');
     this.confirmation.open({
-      title: 'Leave Channel',
-      message: 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.',
+      title: `Leave ${name}?`,
+      message: `You will stop receiving ${this.channels.topic(channel)} updates here. You can rejoin from search at any time.`,
       confirmText: 'Leave',
+      tone: 'default',
       action: () => {
         void channel.show();
         void channel.unmute();
@@ -1052,7 +1252,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {
-    this.closeDrawer();
+    this.closePeople();
     this.confirmation.open({
       title: 'Unfriend',
       message: 'Are you sure you want to unfriend this user?',
@@ -1062,7 +1262,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected prepareBlockModal(friendId: string, friendshipId: string) {
-    this.closeDrawer();
+    this.closePeople();
     this.confirmation.open({
       title: 'Block User',
       message: 'Are you sure you want to block this user?',

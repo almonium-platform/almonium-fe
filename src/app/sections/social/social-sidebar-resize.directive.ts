@@ -51,6 +51,14 @@ export class SocialSidebarResizeDirective implements OnInit, OnDestroy {
     this.persist();
   }
 
+  /** Double-click the handle to swap between the rail and the default width. */
+  toggleRail(): void {
+    this.isManuallyResized = true;
+    this.width = this.isCollapsed ? SNAPS[1] : MIN_WIDTH;
+    this.isCollapsed = this.width <= MIN_WIDTH;
+    this.persist();
+  }
+
   ngOnDestroy(): void {
     this.stop();
   }

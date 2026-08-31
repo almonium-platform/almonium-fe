@@ -22,6 +22,15 @@ export interface RelatedUserProfile extends PublicUserProfile {
   relationshipStatus: RelationshipStatus;
 }
 
+/**
+ * A handle search answers with every account, so a result may have no relationship at all. The
+ * status is what the row's single control is drawn from.
+ */
+export interface UserSearchResult extends PublicUserProfile {
+  relationshipId: string | null;
+  relationshipStatus: RelationshipStatus;
+}
+
 export function parsePublicUserProfiles(value: unknown, path = 'users'): PublicUserProfile[] {
   return expectArray(value, path).map((item, index) => parsePublicUserProfile(item, `${path}[${index}]`));
 }
@@ -32,6 +41,21 @@ export function parseRelatedUserProfiles(value: unknown, path = 'related users')
     return {
       ...parsePublicUserProfile(profile, `${path}[${index}]`),
       relationshipId: expectString(profile['relationshipId'], `${path}[${index}].relationshipId`),
+      relationshipStatus: expectEnum(
+        profile['relationshipStatus'],
+        Object.values(RelationshipStatus),
+        `${path}[${index}].relationshipStatus`,
+      ),
+    };
+  });
+}
+
+export function parseUserSearchResults(value: unknown, path = 'user search results'): UserSearchResult[] {
+  return expectArray(value, path).map((item, index) => {
+    const profile = expectRecord(item, `${path}[${index}]`);
+    return {
+      ...parsePublicUserProfile(profile, `${path}[${index}]`),
+      relationshipId: expectNullableString(profile['relationshipId'], `${path}[${index}].relationshipId`),
       relationshipStatus: expectEnum(
         profile['relationshipStatus'],
         Object.values(RelationshipStatus),

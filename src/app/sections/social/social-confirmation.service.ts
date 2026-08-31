@@ -6,6 +6,8 @@ export interface SocialConfirmation {
   confirmText: string;
   action: () => void;
   useCountdown?: boolean;
+  /** Reversible actions ask in plum; only destructive ones wear the red button. */
+  tone?: 'danger' | 'default';
 }
 
 /** Owns the lifecycle of destructive social confirmations. */

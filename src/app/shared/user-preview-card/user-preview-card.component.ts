@@ -230,7 +230,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       throw new Error('Invalid date');
     }
     return date.toLocaleDateString('en-US', {
-      month: 'short',
+      month: 'long',
       year: 'numeric'
     });
   }

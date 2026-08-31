@@ -180,9 +180,32 @@ export class MessageActionsBoxComponent
       this.visibleMessageActionItems = [
         ...this.messageActionItems,
         ...this.customActions,
-      ].filter((item) =>
-        item.isVisible(this.enabledActions, this.isMine, this.message!)
-      );
+      ]
+        .filter((item) =>
+          item.isVisible(this.enabledActions, this.isMine, this.message!)
+        )
+        .sort(
+          (a, b) =>
+            MessageActionsBoxComponent.actionRank(a.actionName) -
+            MessageActionsBoxComponent.actionRank(b.actionName)
+        );
     }
+  }
+
+  /**
+   * The reactions strip sits above the items, then the four verbs the menu is for. Anything the
+   * SDK adds beyond them keeps its own relative order underneath.
+   */
+  private static readonly ACTION_ORDER = [
+    'react',
+    'quote',
+    'save-to-saved-messages',
+    'copy-message-text',
+    'mark-unread',
+  ];
+
+  private static actionRank(actionName: string): number {
+    const rank = MessageActionsBoxComponent.ACTION_ORDER.indexOf(actionName);
+    return rank === -1 ? MessageActionsBoxComponent.ACTION_ORDER.length : rank;
   }
 }
