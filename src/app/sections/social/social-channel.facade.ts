@@ -2,12 +2,14 @@ import {Injectable, inject} from '@angular/core';
 import {Channel} from 'stream-chat';
 import {ChannelService, ChatClientService} from 'stream-chat-angular';
 import {AppConstants} from '../../app.constants';
+import {PrivateChatService} from '../../services/private-chat.service';
 
 /** Encapsulates Stream channel naming, membership, and command semantics. */
 @Injectable()
 export class SocialChannelFacade {
   private readonly chatService = inject(ChatClientService);
   private readonly channelService = inject(ChannelService);
+  private readonly privateChats = inject(PrivateChatService);
   private userId: string | null = null;
 
   setCurrentUser(userId: string): void {
@@ -15,21 +17,15 @@ export class SocialChannelFacade {
   }
 
   friendshipCid(friendshipId: string): string {
-    return `${AppConstants.PRIVATE_CHAT_TYPE}:private_${friendshipId}`;
+    return this.privateChats.cid(friendshipId);
   }
 
   async createPrivateChat(recipientId: string, friendshipId: string): Promise<Channel> {
-    if (!this.chatService.chatClient.user || !this.userId) {
+    if (!this.userId) {
       throw new Error('User must be connected before creating a chat.');
     }
 
-    const channel = this.chatService.chatClient.channel(AppConstants.PRIVATE_CHAT_TYPE, `private_${friendshipId}`, {
-      members: [this.userId, recipientId],
-      created_by_id: this.userId,
-    });
-    await channel.create();
-    await channel.watch();
-    return channel;
+    return this.privateChats.create(this.userId, recipientId, friendshipId);
   }
 
   async openByCid(cid: string): Promise<boolean> {

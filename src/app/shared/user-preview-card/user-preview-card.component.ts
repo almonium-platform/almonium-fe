@@ -14,7 +14,7 @@ import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
 import {StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
-import {AppConstants} from "../../app.constants";
+import {PrivateChatService} from "../../services/private-chat.service";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
@@ -50,6 +50,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private userInfoService = inject(UserInfoService);
   private socialService = inject(SocialService);
   private chatService = inject(ChatClientService);
+  private privateChats = inject(PrivateChatService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
   private languageNameService = inject(LanguageNameService);
@@ -464,7 +465,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: (userProfileInfo) => {
-          void this.createPrivateChat(userInfo.id, userProfileInfo.id, relationshipId)
+          void this.privateChats.create(userInfo.id, userProfileInfo.id, relationshipId)
             .then(() => {
               this.userProfileInfo = userProfileInfo;
               this.setButtonConfig();
@@ -474,25 +475,6 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         },
         error: (error) => logger.error(error),
       });
-  }
-
-  private async createPrivateChat(userId: string, recipientId: string, relationshipId: string) {
-    if (!this.chatClient.user) {
-      throw new Error('User must be connected before creating a chat.');
-    }
-
-    // Unique channel ID (e.g., `private_user1_user2`)
-    const channelId = `private_${relationshipId}`;
-
-    const channel = this.chatService.chatClient.channel(AppConstants.PRIVATE_CHAT_TYPE, channelId, {
-      members: [userId, recipientId], // Both users in the private chat
-      created_by_id: userId, // Set creator
-    });
-
-    await channel.create(); // Ensure the channel is created
-    await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
-
-    return channel;
   }
 
   private sendFriendRequest() {
