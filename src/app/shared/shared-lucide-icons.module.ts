@@ -1,5 +1,7 @@
 import {NgModule} from '@angular/core';
 import {
+  Archive,
+  ArchiveRestore,
   ArrowDown,
   ArrowLeft,
   ArrowUp,
@@ -21,6 +23,7 @@ import {
   Edit,
   Ellipsis,
   EllipsisVertical,
+  Eraser,
   Eye,
   EyeClosed,
   Handshake,
@@ -47,6 +50,7 @@ import {
   Search,
   Settings,
   Square,
+  SquarePen,
   Star,
   StarOff,
   StepBack,
@@ -56,6 +60,7 @@ import {
   Trash,
   UndoDot,
   UserCheck,
+  UserRound,
   UserRoundPlus,
   UserRoundSearch,
   UserRoundX,
@@ -67,6 +72,8 @@ import {
 @NgModule({
   imports: [
     LucideAngularModule.pick({
+      Archive,
+      ArchiveRestore,
       ArrowDown,
       ArrowLeft,
       ArrowUp,
@@ -88,6 +95,7 @@ import {
       Edit,
       Ellipsis,
       EllipsisVertical,
+      Eraser,
       Eye,
       EyeClosed,
       Handshake,
@@ -116,12 +124,14 @@ import {
       StarOff,
       StepBack,
       Square,
+      SquarePen,
       TableOfContents,
       Telescope,
       Timer,
       Trash,
       UndoDot,
       UserCheck,
+      UserRound,
       UserRoundPlus,
       UserRoundSearch,
       UserRoundX,
