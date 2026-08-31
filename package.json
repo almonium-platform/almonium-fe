@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "lint": "ng lint",
+    "lint": "node scripts/check-lucide-icons.mjs && ng lint",
     "start:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
