@@ -32,7 +32,7 @@
               "src/firebase-messaging-sw.js",
               "src/manifest.json",
               {
-                "glob": "**/*",
+                "glob": "*.svg",
                 "input": "node_modules/@taiga-ui/icons/src",
                 "output": "assets/taiga-ui/icons"
               },
@@ -42,9 +42,14 @@
                 "output": "/"
               },
               {
-                "glob": "**/*",
+                "glob": "*.svg",
                 "input": "node_modules/@taiga-ui/icons-fontawesome/src",
                 "output": "assets/taiga-ui/icons"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@taiga-ui/icons-fontawesome/src/fa/solid",
+                "output": "assets/taiga-ui/icons/fa/solid"
               }
             ],
             "styles": [
