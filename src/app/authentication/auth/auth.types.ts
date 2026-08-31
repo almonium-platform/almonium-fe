@@ -1,8 +1,6 @@
 export interface AuthMethod {
   provider: string; // user provider
   email: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface TokenInfo {

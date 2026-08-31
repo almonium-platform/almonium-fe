@@ -11,7 +11,6 @@ describe('AuthSettingsService provider cache', () => {
   let firebaseAuth: {
     currentUser: {
       email: string;
-      metadata: {creationTime: string; lastSignInTime: string};
       providerData: {providerId: string; email: string}[];
     } | null;
     authStateReady: jasmine.Spy<() => Promise<void>>;
@@ -46,14 +45,10 @@ describe('AuthSettingsService provider cache', () => {
     const cachedMethods = [{
       provider: 'google',
       email: 'reader@example.com',
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-07-01T00:00:00Z',
     }];
     const refreshedMethods = [...cachedMethods, {
       provider: 'local',
       email: 'reader@example.com',
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-07-27T12:00:00Z',
     }];
     storage.getAuthMethods.and.returnValue(cachedMethods);
     http.get.and.returnValue(of(refreshedMethods));
@@ -66,10 +61,6 @@ describe('AuthSettingsService provider cache', () => {
   it('refreshes the cache when Firebase identity is available', async () => {
     firebaseAuth.currentUser = {
       email: 'reader@example.com',
-      metadata: {
-        creationTime: '2026-01-01T00:00:00Z',
-        lastSignInTime: '2026-07-27T12:00:00Z',
-      },
       providerData: [
         {providerId: 'google.com', email: 'reader@example.com'},
         {providerId: 'password', email: 'reader@example.com'},
@@ -87,8 +78,6 @@ describe('AuthSettingsService provider cache', () => {
     const providers = [{
       provider: 'apple',
       email: 'reader@example.com',
-      createdAt: '2026-01-01T00:00:00Z',
-      updatedAt: '2026-07-01T00:00:00Z',
     }];
     storage.getAuthMethods.and.returnValue(null);
     http.get.and.returnValue(of(providers));
