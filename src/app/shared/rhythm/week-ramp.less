@@ -2,7 +2,9 @@
 // the language's own hue, chroma rising as lightness falls. The color-mix set is the fallback for engines without
 // relative colour. Frozen weeks are hatched — a language that was set aside was never asked for them.
 .week-ramp() {
-  .week { flex: 1; border-radius: .32rem; background: var(--nested-color); }
+  // A week with nothing in it is still a slot. It sits on the card ground in one place and the nested ground in
+  // another, so it takes the hairline tone to stay countable against both — twelve bars must read as twelve.
+  .week { flex: 1; border-radius: .32rem; background: var(--hairline-color); }
   .week.level-1 { background: color-mix(in srgb, var(--crest-color) 14%, var(--card-color)); }
   .week.level-2 { background: color-mix(in srgb, var(--crest-color) 28%, var(--card-color)); }
   .week.level-3 { background: color-mix(in srgb, var(--crest-color) 45%, var(--card-color)); }

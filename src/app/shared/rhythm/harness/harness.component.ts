@@ -116,7 +116,9 @@ export class HarnessComponent implements OnInit {
     if (!hasTarget(rhythm.target)) {
       return 'Twelve weeks with no bar to meet. Tint shows time learning, not a score.';
     }
-    return `${numberWord(met)} of the last ${numberWord(counted)} weeks met your target of`
+    // "No of the last twelve weeks" is not a sentence; the attributive "No weeks" only works before the noun.
+    const kept = met === 0 ? 'None' : numberWord(met);
+    return `${kept} of the last ${numberWord(counted)} weeks met your target of`
       + ` ${SESSION_WORD[rhythm.target] ?? `${rhythm.target} sessions`}.`
       + ' Tint shows time learning, not a score.';
   }

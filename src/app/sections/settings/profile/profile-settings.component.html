@@ -173,7 +173,10 @@
         @for (other of otherLanguages; track other.language) {
           <div class="also-row">
             <span class="also-chip" [style.background]="crestColour(other.language)" aria-hidden="true"></span>
-            <span class="also-name">{{ languageName(other.language) }}</span>
+            <span class="also-name">
+              {{ languageName(other.language) }}
+              @if (!other.editable) { <small>set aside</small> }
+            </span>
             <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
           </div>
         }
