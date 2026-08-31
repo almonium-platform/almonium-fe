@@ -67,7 +67,7 @@ interface MessageHit {
 @Component({
   selector: 'app-social',
   templateUrl: './social.component.html',
-  styleUrls: ['./social.component.less'],
+  styleUrls: ['./social.component.less', './social-stream-overrides.less'],
   imports: [
     ReactiveFormsModule,
     AvatarComponent,

@@ -1,0 +1,302 @@
+// Overrides for markup this component does not own: Stream renders it, so every
+// rule here needs ::ng-deep to escape view encapsulation and every selector is
+// the vendor's to change. Kept apart from the component's own styles so an SDK
+// upgrade has one file to re-check.
+
+// for tui-badge-notification red dot
+::ng-deep .t-badge_top {
+  top: 2px !important;
+  right: 2px !important;
+}
+
+::ng-deep .str-chat__message-textarea:placeholder-shown {
+  min-height: 1.3em
+}
+
+::ng-deep .str-chat__icon {
+  color: var(--chat-accent-color);
+}
+
+// my messages color
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
+  background-color: var(--chat-lite);
+  color: var(--on-brand-color);
+}
+
+::ng-deep .str-chat__reaction-selector {
+  .str-chat__message-reactions-options {
+  @include utils . component-layer-overrides('message-reactions-options');
+
+    .str-chat__message-reactions-option {
+    @include utils . component-layer-overrides('message-reactions-option');
+
+      &:hover {
+        background-color: var(--chat-lite);
+      }
+
+      &.str-chat__message-reactions-option-selected {
+        background-color: var(--chat-bg-color);
+      }
+    }
+  }
+}
+
+// three dot on message action
+::ng-deep .str-chat__message-action-icon {
+  .str-chat__icon {
+    color: var(--chat-accent-color) !important;
+  }
+}
+
+// read icon on my messages
+::ng-deep .str-chat__message.str-chat__message--me {
+  .str-chat__icon {
+    color: var(--text-color);
+  }
+}
+
+// text of interlocutor's messages
+::ng-deep .str-chat__message-text-value {
+  color: var(--reader-text-color);
+  padding: 0.1rem;
+}
+
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-text-value {
+  color: var(--on-brand-color);
+}
+
+// interlocutor's messages color
+::ng-deep .str-chat__message .str-chat__message-bubble {
+  background-color: var(--card-color);
+  border: 1px solid var(--hairline-color);
+}
+
+// main chat background
+::ng-deep .str-chat__list {
+  background-color: var(--chat-bg-color);
+}
+
+// input field color
+::ng-deep .str-chat__message-input {
+  background-color: var(--card-color);
+}
+
+// input field text color
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container .str-chat__message-textarea {
+  color: var(--reader-text-color);
+}
+
+// remove border from input field
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container {
+  border: none;
+}
+
+// default, right chat window header
+::ng-deep .str-chat__channel-header {
+  background-color: var(--card-color);
+  color: var(--reader-text-color);
+  gap: 0;
+
+  .str-chat__channel-header-end {
+    row-gap: 0;
+
+    .str-chat__channel-header-title {
+      line-height: 1.5;
+      font-weight: 550;
+    }
+  }
+
+  stream-avatar-placeholder {
+    order: 0;
+    margin-right: 1rem;
+  }
+
+  .back-to-channels {
+    order: -1;
+  }
+}
+
+::ng-deep .str-chat__channel-preview-messenger--time {
+  min-width: fit-content;
+}
+
+::ng-deep .str-chat__channel-preview-messenger.str-chat__channel-preview {
+  padding-right: .6rem;
+}
+
+::ng-deep .str-chat__channel-preview {
+  &--active,
+  &-messenger--active {
+    // selected chat preview
+    background-color: var(--chat-selected-color);
+    color: var(--text-color);
+
+    .muted-icon {
+      color: var(--text-color);
+    }
+
+    // Ensure hover does not affect active state
+    &:hover {
+      background-color: var(--chat-selected-color) !important;
+    }
+
+    .str-chat__icon {
+      color: var(--text-color);
+    }
+
+    .str-chat__channel-preview-messenger--time {
+      color: var(--text-color);
+    }
+
+    .online-indicator-buffer {
+      background-color: var(--chat-selected-color) !important;
+    }
+
+    .str-chat__avatar--online-indicator {
+      background-color: var(--text-color) !important;
+    }
+  }
+
+  &:hover {
+    background-color: var(--gray-bg);
+
+    .online-indicator-buffer {
+      background-color: var(--gray-bg);
+    }
+  }
+}
+
+// message reactions container
+::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
+  background-color: var(--card-color);
+}
+
+::ng-deep .str-chat__message .str-chat__message-metadata, .str-chat__message .str-chat__custom-message-metadata {
+  color: var(--text-color);
+}
+
+// in chat window, separator lines for timeline
+::ng-deep .str-chat__date-separator {
+  color: var(--text-color);
+}
+
+::ng-deep .str-chat__date-separator-line {
+  background-color: var(--text-color);
+}
+
+// You have no channels currently, No chats here yet...
+::ng-deep .str-chat__channel-list-empty {
+  color: var(--chat-accent-color) !important;
+}
+
+::ng-deep .str-chat__empty-channel-text {
+  color: var(--text-color) !important;
+  font-family: var(--font-family-reading);
+  font-size: 0;
+
+  &::before {
+    content: 'No chat open';
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .55rem;
+  }
+
+  &::after {
+    color: var(--metadata-color);
+    content: 'Pick someone on the left, or write to yourself in Saved Messages.';
+    display: block;
+    font-family: var(--font-family-ui);
+    font-size: .8rem;
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 30ch;
+  }
+}
+
+::ng-deep .str-chat__empty-channel {
+  background: var(--card-color);
+
+  stream-icon {
+    background: var(--chat-selected-color) url('/assets/img/almo/canon-256.webp') center / 3.25rem no-repeat;
+    border-radius: 50%;
+    display: block;
+    height: 4.75rem;
+    width: 4.75rem;
+
+    svg {
+      display: none;
+    }
+  }
+}
+
+// You can't send messages in this channel
+::ng-deep .str-chat__message-input .str-chat__message-input-not-allowed {
+  color: var(--chat-bg-color);
+}
+
+// barely visible grey separator on the right side of the channel list
+::ng-deep .str-chat-channel-list {
+  border: none;
+}
+
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
+  background: var(--chat-accent-color); // here
+}
+
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
+  padding: 0 6px;
+  color: var(--on-brand-color);
+  font-weight: 550;
+}
+
+// chat window, unread messages notification
+::ng-deep .str-chat__unread-messages-notification button {
+  color: var(--on-brand-color);
+  background-color: var(--chat-accent-color);
+
+  .str-chat__icon {
+    color: var(--on-brand-color);
+  }
+}
+
+// unread message separator in chat window
+::ng-deep .str-chat__unread-messages-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-color);
+  position: relative;
+  margin: 1rem 0;
+  background-color: transparent;
+}
+
+::ng-deep .str-chat__unread-messages-separator::before,
+::ng-deep .str-chat__unread-messages-separator::after {
+  content: "";
+  flex: none;
+  width: 38%;
+  height: var(--str-chat__spacing-px);
+  background-color: var(--text-color);
+}
+
+::ng-deep .str-chat__unread-messages-separator::before {
+  margin-right: 1rem;
+}
+
+::ng-deep .str-chat__unread-messages-separator::after {
+  margin-left: 1rem;
+}
+
+::ng-deep .str-chat__message-sender-name,
+::ng-deep .str-chat__message-simple-name {
+  display: none;
+}
+
+/* Consecutive messages in a run indent to where the one avatar sits. */
+::ng-deep .str-chat__li--middle .str-chat__message-bubble,
+::ng-deep .str-chat__li--top .str-chat__message-bubble {
+  border-start-start-radius: var(--str-chat__border-radius-xs, .25rem);
+}
