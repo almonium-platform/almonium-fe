@@ -3,7 +3,7 @@ import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
-import {avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../../../../shared/avatar/avatar-display';
+import {avatarLetter} from '../../../../../shared/avatar/avatar-display';
 import {ProfileSettingsService} from '../../profile-settings.service';
 
 interface SettingsAvatarChoice {
@@ -36,18 +36,6 @@ export class SettingsAvatarPickerComponent {
 
   protected get letter(): string {
     return avatarLetter(this.userInfo.username);
-  }
-
-  protected get displayAvatarUrl(): string | null {
-    return avatarImageUrl(this.userInfo.avatarUrl);
-  }
-
-  protected get currentAvatarMask(): string | null {
-    return this.userInfo.avatarUrl ? this.mask(this.userInfo.avatarUrl) : null;
-  }
-
-  protected get premiumCurrentAvatar(): boolean {
-    return this.userInfo.premium && isDefaultAvatar(this.userInfo.avatarUrl);
   }
 
   protected useLetter(): void {

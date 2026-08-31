@@ -1,56 +1,35 @@
 <section class="settings-avatar-picker" [class.member]="userInfo.premium">
-  <div class="picker-heading">
-    <h2>Choose an avatar</h2>
-    <p>Keep your letter or choose one of the Almonium drawings.</p>
-  </div>
+  <div class="tile-row" role="group" aria-label="How you appear">
+    <button
+      type="button"
+      class="tile letter-tile"
+      [class.selected]="!userInfo.avatarUrl"
+      [disabled]="busyUrl !== undefined"
+      (click)="useLetter()"
+      aria-label="Use your letter"
+      [attr.aria-pressed]="!userInfo.avatarUrl"
+    >
+      <span class="avatar-letter">{{ letter }}</span>
+    </button>
 
-  <button
-    type="button"
-    class="current-avatar-row"
-    [class.can-reset]="userInfo.avatarUrl"
-    [disabled]="busyUrl !== undefined"
-    (click)="useLetter()"
-  >
-    <span class="current-avatar">
-      @if (userInfo.avatarUrl) {
-        @if (premiumCurrentAvatar) {
-          <span class="gradient-artwork" [style.mask-image]="currentAvatarMask" [style.-webkit-mask-image]="currentAvatarMask" role="img" aria-label="Current avatar"></span>
-        } @else {
-          <img [src]="displayAvatarUrl" alt="Current avatar" />
-        }
-      } @else {
-        <span class="avatar-letter">{{ letter }}</span>
-      }
-    </span>
-    <span class="current-description">
-      @if (userInfo.avatarUrl) {
-        Use your letter instead
-      } @else {
-        Current avatar — your letter
-      }
-    </span>
-  </button>
-
-  <div class="settings-choices" aria-label="Choose an avatar">
     @for (choice of choices; track choice.path) {
       <button
         type="button"
-        class="settings-choice"
+        class="tile"
         [class.selected]="isSelected(choice)"
         [disabled]="busyUrl !== undefined"
         (click)="chooseAvatar(choice)"
-        [attr.aria-label]="'Use ' + choice.label + ' avatar'"
+        [attr.aria-label]="'Use the ' + choice.label + ' drawing'"
         [attr.aria-pressed]="isSelected(choice)"
       >
-        <span class="animal-frame">
-          @if (userInfo.premium) {
-            <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
-          } @else {
-            <img [src]="displayChoiceUrl(choice)" alt="" />
-          }
-        </span>
-        <span>{{ choice.label }}</span>
+        @if (userInfo.premium) {
+          <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+        } @else {
+          <img [src]="displayChoiceUrl(choice)" alt="" />
+        }
       </button>
     }
   </div>
+
+  <p class="picker-caption">Your letter, or one of five drawings.</p>
 </section>

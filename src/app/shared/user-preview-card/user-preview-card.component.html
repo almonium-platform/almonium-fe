@@ -15,6 +15,7 @@
         [username]="profile.username"
         [avatarUrl]="profile.avatarUrl"
         [premium]="profile.isPremium"
+        [ring]="true"
         [sizeInRem]="3.25"
       ></app-avatar>
 
@@ -22,7 +23,7 @@
         <div class="username-row">
           <h2>{{ profile.username }}</h2>
           @if (profile.isPremium) {
-            <span class="premium-mark" title="Member" aria-label="Member"></span>
+            <span class="member-label">Member</span>
           }
         </div>
         @if (connectionSummary; as summary) {

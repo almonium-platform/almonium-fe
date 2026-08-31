@@ -48,6 +48,11 @@
               <li class="word-row">
                 <span class="word-entry">{{ word.entry }}</span>
                 <span class="word-meta">{{ wordMeta(word) }}</span>
+                <span class="word-strength" aria-hidden="true">
+                  @for (lit of strength(word); track $index) {
+                    <span class="pip" [class.lit]="lit"></span>
+                  }
+                </span>
               </li>
             }
           </ul>

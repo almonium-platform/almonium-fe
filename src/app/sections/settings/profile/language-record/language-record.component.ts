@@ -18,6 +18,8 @@ import {RhythmService} from '../../../../shared/rhythm/rhythm.service';
 import {ReviewService} from '../../../review/review.service';
 
 const WORDS_SHOWN = 3;
+/** Four pips, and the review counts a word has to pass to light each one. */
+const STRENGTH_PIPS = [1, 5, 10, 20];
 const DEFAULT_CREST = '#7A6BB8';
 
 /**
@@ -127,6 +129,12 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
 
   protected wordMeta(card: CardDto): string {
     return card.iteration ? `seen ${card.iteration}×` : 'not yet reviewed';
+  }
+
+  /** How far a word has come, as pips rather than a number: the record shows keeping, not scoring. */
+  protected strength(card: CardDto): boolean[] {
+    const seen = card.iteration ?? 0;
+    return STRENGTH_PIPS.map(threshold => seen >= threshold);
   }
 
   protected makeActive(): void {

@@ -84,8 +84,9 @@ button {
   font-weight: 600;
 }
 
+/* Selection is a ring, offset by the surface it sits on — never a caption or a check mark. */
 .compact-choice.selected {
-  transform: translateY(-2px);
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);
 }
 
 .avatar-picker.member .current-avatar,
@@ -113,7 +114,7 @@ button {
 
 @media (max-width: 520px) {
   .compact-choices {
-    gap: .55rem;
+    gap: .75rem;
   }
 
   .compact-choice {

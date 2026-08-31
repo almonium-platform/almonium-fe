@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, HostBinding, Input} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
@@ -60,6 +60,27 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       color: transparent;
       -webkit-background-clip: text;
     }
+
+    /* Tier beside other people is a ring, not a star. Never on your own profile, where the plan card says it. */
+    :host(.premium-ring) {
+      position: relative;
+      display: inline-grid;
+      padding: 3px;
+      border-radius: 50%;
+      background: var(--premium-gradient);
+    }
+
+    :host(.premium-ring)::before {
+      position: absolute;
+      background: var(--avatar-ring-gap, var(--card-color));
+      border-radius: 50%;
+      content: '';
+      inset: 2px;
+    }
+
+    :host(.premium-ring) .avatar-disc {
+      position: relative;
+    }
   `],
 })
 export class AvatarComponent {
@@ -69,6 +90,13 @@ export class AvatarComponent {
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
   @Input() loading = false;
+  /** Draw the member ring. Only where someone else is looking — a people list, a profile card. */
+  @Input() ring = false;
+
+  @HostBinding('class.premium-ring')
+  get memberRing(): boolean {
+    return this.ring && this.premium;
+  }
 
   get letter(): string {
     return avatarLetter(this.username);

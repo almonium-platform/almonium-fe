@@ -9,78 +9,57 @@ button {
 .settings-avatar-picker {
   display: flex;
   flex-direction: column;
-  gap: 1.125rem;
+  gap: .6rem;
 }
 
-.picker-heading h2 {
-  margin: 0;
-  color: var(--brand-ink);
-  font-family: var(--font-family-reading);
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.picker-heading p {
-  margin: .3rem 0 0;
-  color: var(--subhead-color);
-  font-size: .85rem;
-  line-height: 1.5;
-}
-
-.current-avatar-row {
+/* The letter is a tile in the row, not a separate current-avatar block above it. */
+.tile-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
-  width: 100%;
-  padding: 0 0 1.125rem;
-  border: 0;
-  border-bottom: 1px solid var(--hairline-color);
-  background: none;
-  color: var(--subhead-color);
-  text-align: left;
+  gap: .875rem;
+  padding: .25rem 0;
 }
 
-.current-avatar-row.can-reset {
-  cursor: pointer;
-}
-
-.current-avatar,
-.animal-frame {
+.tile {
   display: grid;
   overflow: hidden;
-  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
   background: var(--avatar-ground);
+  cursor: pointer;
+  place-items: center;
 }
 
-.current-avatar {
-  width: 3.875rem;
-  height: 3.875rem;
-  flex: 0 0 auto;
+/* Selection is a ring: no bold caption, no check mark, no name. */
+.tile.selected {
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);
+}
+
+.letter-tile .avatar-letter {
   color: var(--subhead-color);
   font-family: var(--font-family-reading);
-  font-size: 2.125rem;
+  font-size: 1.4375rem;
   font-weight: 600;
 }
 
-.member .current-avatar,
-.member .animal-frame {
-  background: var(--avatar-ground);
+.tile img,
+.gradient-artwork {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
+/* The tier is the gradient on the ink; the ground stays pale on both tiers. */
 .member .avatar-letter {
   background: var(--premium-gradient);
   background-clip: text;
   color: transparent;
   -webkit-background-clip: text;
-}
-
-.current-avatar img,
-.animal-frame img,
-.gradient-artwork {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .gradient-artwork {
@@ -94,42 +73,27 @@ button {
   -webkit-mask-size: contain;
 }
 
-.current-description {
-  font-size: .8125rem;
-  line-height: 1.5;
-}
-
-.settings-choices {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: .75rem;
-}
-
-.settings-choice {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: .45rem;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--subhead-color);
-  cursor: pointer;
-  font-size: .72rem;
-}
-
-.animal-frame {
-  width: 100%;
-  aspect-ratio: 1;
-}
-
-.settings-choice.selected {
-  color: var(--brand-primary);
-  font-weight: 700;
-}
-
-.current-avatar-row:disabled,
-.settings-choice:disabled {
+.tile:disabled {
   cursor: wait;
+}
+
+.picker-caption {
+  margin: 0;
+  color: var(--metadata-color);
+  font-size: .75rem;
+}
+
+@media (max-width: 520px) {
+  .tile-row {
+    gap: .625rem;
+  }
+
+  .tile {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .letter-tile .avatar-letter {
+    font-size: 1.125rem;
+  }
 }
