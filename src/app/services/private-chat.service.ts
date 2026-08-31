@@ -1,6 +1,6 @@
 import {Injectable, inject} from '@angular/core';
 import {Channel} from 'stream-chat';
-import {ChatClientService} from 'stream-chat-angular';
+import {ChannelService, ChatClientService} from 'stream-chat-angular';
 import {AppConstants} from '../app.constants';
 
 /**
@@ -11,6 +11,7 @@ import {AppConstants} from '../app.constants';
 @Injectable({providedIn: 'root'})
 export class PrivateChatService {
   private readonly chatService = inject(ChatClientService);
+  private readonly channelService = inject(ChannelService);
 
   channelId(friendshipId: string): string {
     return `private_${friendshipId}`;
@@ -32,6 +33,10 @@ export class PrivateChatService {
 
     await channel.create();
     await channel.watch();
+
+    // A channel we make ourselves arrives through no event the list is listening for, so without
+    // this it exists on Stream and nowhere on screen until the next reload.
+    this.channelService.addChannel(channel);
     return channel;
   }
 }
