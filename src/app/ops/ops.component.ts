@@ -8,6 +8,7 @@ import {RecentAuthGuardService} from '../authentication/auth/recent-auth-guard.s
 import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-guard.component';
 import {
   AccessGrantRequest,
+  FirebaseAccountSummary,
   BROADCAST_CHANNELS,
   BroadcastLanguage,
   Entitlement,
@@ -58,6 +59,13 @@ export class OpsComponent implements OnInit {
     confirmation: ['', [Validators.required]],
     includeOperator: [false],
   });
+  protected firebaseLookupForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+  });
+  protected firebaseAccount: FirebaseAccountSummary | null = null;
+  protected firebaseLookupError = '';
+  protected lookingUpFirebase = false;
+
   protected firebaseProject: string | null = null;
   protected firebaseUserCount = 0;
   protected purgingFirebase = false;
@@ -206,6 +214,25 @@ export class OpsComponent implements OnInit {
       },
       error: () => this.firebaseProject = null,
     });
+  }
+
+  protected onLookupFirebase(): void {
+    if (this.lookingUpFirebase || this.firebaseLookupForm.invalid) {
+      this.firebaseLookupForm.markAllAsTouched();
+      return;
+    }
+
+    this.lookingUpFirebase = true;
+    this.firebaseLookupError = '';
+    this.opsService.findFirebaseAccount(this.firebaseLookupForm.controls.email.value)
+      .pipe(finalize(() => this.lookingUpFirebase = false))
+      .subscribe({
+        next: (account) => this.firebaseAccount = account,
+        error: (error) => {
+          this.firebaseAccount = null;
+          this.firebaseLookupError = getErrorMessage(error, 'No Firebase account with that email');
+        },
+      });
   }
 
   protected onPurgeFirebase(): void {

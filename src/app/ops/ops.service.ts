@@ -27,6 +27,18 @@ export interface AnnouncementRequest {
   text: string;
 }
 
+export interface FirebaseAuthProviderSummary {
+  provider: string;
+  email: string | null;
+}
+
+export interface FirebaseAccountSummary {
+  uid: string;
+  email: string | null;
+  emailVerified: boolean;
+  providers: FirebaseAuthProviderSummary[];
+}
+
 export interface AccessGrantRequest {
   entitlement: Entitlement;
   expiresAt: string | null;
@@ -101,6 +113,15 @@ export class OpsService {
   purgeStream(confirmation: string): Observable<{message: string}> {
     const url = `${AppConstants.OPS_URL}/chat/purge`;
     return this.http.post<{message: string}>(url, {confirmation}, {withCredentials: true});
+  }
+
+  /**
+   * What Firebase itself believes about an account. Our row and Firebase can disagree for months
+   * without anything noticing, and this is the only place that shows both halves.
+   */
+  findFirebaseAccount(email: string): Observable<FirebaseAccountSummary> {
+    const url = `${AppConstants.OPS_URL}/firebase/users`;
+    return this.http.get<FirebaseAccountSummary>(url, {params: {email}, withCredentials: true});
   }
 
   /** The Firebase project the backend is pointed at, and how many accounts live in it. */

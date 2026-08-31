@@ -287,6 +287,59 @@
     </form>
   </section>
 
+  <section class="ops-card ops-card--firebase" aria-labelledby="firebase-lookup-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="firebase-lookup-title">Firebase account</h2>
+        <p>
+          What Firebase believes, which is not always what our database believes. A linked provider
+          does not raise the account's own verified flag, and an account can sit that way for months
+          before anything reads it.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="firebaseLookupForm" class="ops-form" (ngSubmit)="onLookupFirebase()">
+      <label class="ops-form__field">
+        <span>Email address</span>
+        <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
+      </label>
+      <div class="ops-form__actions">
+        <button class="ops-button ops-button--quiet" type="submit" [disabled]="lookingUpFirebase">
+          {{ lookingUpFirebase ? 'Looking up…' : 'Look up' }}
+        </button>
+      </div>
+    </form>
+
+    @if (firebaseAccount) {
+      <div class="ops-maintenance__result" aria-live="polite">
+        <p>
+          <span class="ops-summary__label">Firebase UID</span><br />
+          <code>{{ firebaseAccount.uid }}</code>
+        </p>
+        <p>
+          <span class="ops-summary__label">Email verified</span><br />
+          @if (firebaseAccount.emailVerified) {
+            <strong class="ops-flag ops-flag--yes">yes</strong>
+          } @else {
+            <strong class="ops-flag ops-flag--no">no</strong>
+          }
+        </p>
+        <p class="ops-summary__label">Providers</p>
+        <ul class="ops-maintenance__ids">
+          @for (provider of firebaseAccount.providers; track provider.provider) {
+            <li>{{ provider.provider }} — {{ provider.email || 'no email' }}</li>
+          }
+        </ul>
+      </div>
+    } @else if (firebaseLookupError) {
+      <div class="ops-maintenance__result ops-maintenance__result--clean" aria-live="polite">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ firebaseLookupError }}</span>
+      </div>
+    }
+  </section>
+
   <section class="ops-card ops-card--danger-zone" aria-labelledby="firebase-purge-title">
     <div class="ops-card__heading ops-card__heading--plain">
       <div>
