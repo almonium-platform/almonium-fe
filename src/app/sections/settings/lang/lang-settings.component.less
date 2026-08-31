@@ -180,8 +180,28 @@ select { font: inherit; }
 .colour-names { margin-top: .75rem; line-height: 1.5; }
 
 .add-language-row { padding-top: .125rem; }
-.add-language-row app-premium-badged-content { margin-left: auto; }
+.add-language-row .add-language,
+.add-language-row .members-gate { margin-left: auto; }
 .add-language:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+.members-gate {
+  display: inline-flex;
+  align-items: center;
+  gap: .4375rem;
+  padding: .375rem .8125rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--premium-gradient);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45);
+  color: #FDF4F8;
+  cursor: pointer;
+  font: inherit;
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.members-gate lucide-icon { display: block; }
+.members-gate:hover { box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45), 0 2px 6px rgba(72, 23, 125, .3); }
 
 @media (max-width: 600px) {
   .learning-layout { width: min(100% - 1rem, 30rem); }

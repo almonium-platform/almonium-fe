@@ -10,6 +10,8 @@
 
 <app-recent-auth-guard></app-recent-auth-guard>
 
+<app-paywall></app-paywall>
+
 @if (addTargetLangModalVisible) {
   <app-language-setup [embeddedMode]="true"></app-language-setup>
 }
@@ -138,16 +140,16 @@
         <div class="add-language-row">
           <span class="empty-colour"></span>
           <span>Another language</span>
-          <app-premium-badged-content
-            [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
-            [badgeText]="'Members'"
-            [showIcon]="false"
-            [labelPosition]="{ top: '-1.15rem', right: '-0.4rem' }"
-            [originalClickHandler]="openLangSetupPopup.bind(this)">
-            <button type="button" class="add-language" aria-label="Add another language">
+          @if (userInfo?.isTargetLangPaywalled()) {
+            <button type="button" class="members-gate" (click)="openPaywall()">
+              <lucide-icon name="lock" size="13"></lucide-icon>
+              Members
+            </button>
+          } @else {
+            <button type="button" class="add-language" aria-label="Add another language" (click)="openLangSetupPopup()">
               <tui-icon icon="@tui.plus" />
             </button>
-          </app-premium-badged-content>
+          }
         </div>
       </div>
     </section>

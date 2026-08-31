@@ -23,7 +23,8 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
 import {LanguageCode} from "../../../models/language.enum";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
-import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
+import {PaywallComponent} from "../../../shared/paywall/paywall.component";
+import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
@@ -42,7 +43,8 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     AsyncPipe,
     TuiIcon,
     ConfirmModalComponent,
-    PremiumBadgedContentComponent,
+    PaywallComponent,
+    SharedLucideIconsModule,
     RecentAuthGuardComponent,
     LanguageSetupComponent,
     TuiSwitch,
@@ -69,6 +71,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
+  @ViewChild(PaywallComponent, {static: true}) private paywallComponent!: PaywallComponent;
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -309,6 +312,10 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
           .subscribe();
       },
     });
+  }
+
+  protected openPaywall() {
+    this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
   }
 
   protected openLangSetupPopup() {
