@@ -91,6 +91,18 @@ export class OpsService {
     return this.http.delete(url, {withCredentials: true});
   }
 
+  /** The phrase the backend will demand before it empties the Stream application. */
+  purgeConfirmationPhrase(): Observable<{confirmation: string}> {
+    const url = `${AppConstants.OPS_URL}/chat/purge`;
+    return this.http.get<{confirmation: string}>(url, {withCredentials: true});
+  }
+
+  /** Deletes every Stream channel and user, then rebuilds the broadcast channels. */
+  purgeStream(confirmation: string): Observable<{message: string}> {
+    const url = `${AppConstants.OPS_URL}/chat/purge`;
+    return this.http.post<{message: string}>(url, {confirmation}, {withCredentials: true});
+  }
+
   /** Re-stamps the system channels with the artwork this client currently serves. */
   syncSystemChannelArtwork(): Observable<unknown> {
     const url = `${AppConstants.OPS_URL}/chat/system-channels/artwork`;

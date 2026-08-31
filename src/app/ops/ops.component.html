@@ -250,6 +250,42 @@
       </div>
     </div>
   </section>
+
+  <section class="ops-card ops-card--danger-zone" aria-labelledby="purge-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="purge-title">Empty the Stream application</h2>
+        <p>
+          Deletes every channel and every user in Stream, then rebuilds the broadcast channels.
+          Accounts and their Saved Messages come back as people sign in. Nothing here is recoverable.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="purgeForm" class="ops-form">
+      @if (purgePhrase) {
+        <label class="ops-form__field">
+          <span>Type <code>{{ purgePhrase }}</code> to confirm</span>
+          <input type="text" formControlName="confirmation" autocomplete="off" spellcheck="false" [placeholder]="purgePhrase" />
+        </label>
+
+        <div class="ops-form__actions">
+          <button
+            class="ops-button ops-button--danger"
+            type="button"
+            [disabled]="purging || !canPurge"
+            (click)="onPurge()"
+          >
+            {{ purging ? 'Erasing…' : 'Erase everything' }}
+          </button>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">
+          The backend did not hand over a confirmation phrase, so this is unavailable.
+        </p>
+      }
+    </form>
+  </section>
 </div>
 
 <app-recent-auth-guard></app-recent-auth-guard>

@@ -1,6 +1,6 @@
-import {Component, inject} from '@angular/core';
+import {Component, OnInit, inject} from '@angular/core';
 import {DatePipe} from '@angular/common';
-import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {finalize} from 'rxjs';
 import {getErrorMessage} from '../shared/http-error';
@@ -21,7 +21,7 @@ import {
   templateUrl: './ops.component.html',
   styleUrl: './ops.component.less',
 })
-export class OpsComponent {
+export class OpsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private opsService = inject(OpsService);
   private recentAuthGuardService = inject(RecentAuthGuardService);
@@ -43,11 +43,17 @@ export class OpsComponent {
   });
 
   protected announcementForm = this.fb.nonNullable.group({
-    language: ['' as BroadcastLanguage | '', []],
+    language: new FormControl<BroadcastLanguage | ''>('', {nonNullable: true}),
     text: ['', [Validators.required, Validators.maxLength(5000)]],
   });
 
   protected lookupResult: OpsUserSummary | null = null;
+  protected purgeForm = this.fb.nonNullable.group({
+    confirmation: ['', [Validators.required]],
+  });
+  protected purgePhrase: string | null = null;
+  protected purging = false;
+
   protected orphans: string[] | null = null;
   protected scanningOrphans = false;
   protected purgingOrphans = false;
@@ -174,6 +180,42 @@ export class OpsComponent {
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to publish the announcement'), 'negative'),
       });
+  }
+
+  ngOnInit(): void {
+    // The backend names the environment in the phrase, so the console shows what it will accept
+    // rather than guessing: a client pointed at a different backend than you assume is exactly the
+    // mistake this is here to catch.
+    this.opsService.purgeConfirmationPhrase().subscribe({
+      next: ({confirmation}) => this.purgePhrase = confirmation,
+      error: () => this.purgePhrase = null,
+    });
+  }
+
+  protected onPurge(): void {
+    if (this.purging || this.purgeForm.invalid) {
+      this.purgeForm.markAllAsTouched();
+      return;
+    }
+    this.recentAuthGuardService.guardAction(() => this.performPurgeStream(), false, 'Erase');
+  }
+
+  private performPurgeStream(): void {
+    this.purging = true;
+    this.opsService.purgeStream(this.purgeForm.controls.confirmation.value)
+      .pipe(finalize(() => this.purging = false))
+      .subscribe({
+        next: (response) => {
+          this.notify(response.message, 'positive');
+          this.purgeForm.reset();
+          this.orphans = null;
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to empty the Stream application'), 'negative'),
+      });
+  }
+
+  protected get canPurge(): boolean {
+    return !!this.purgePhrase && this.purgeForm.controls.confirmation.value === this.purgePhrase;
   }
 
   protected onScanOrphans(): void {
