@@ -124,7 +124,7 @@ export class CustomChatAvatarComponent
   }
 
   private getOtherMemberIfOneToOneChannel() {
-    if (this.channel?.type !== 'messaging') {
+    if (this.channel?.type !== AppConstants.PRIVATE_CHAT_TYPE) {
       return undefined;
     }
 

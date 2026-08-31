@@ -337,7 +337,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.channels.name(channel, channel.data?.name ?? AppConstants.PRIVATE_CHAT_NAME);
+      chatTitleElement.textContent = this.channels.name(channel, channel.data?.name ?? '');
       this.cdr.detectChanges();
     }, 1);
   }
@@ -416,7 +416,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             orConditions.push(
               {
                 "member.user.name": {$autocomplete: trimmedQuery},
-                name: AppConstants.PRIVATE_CHAT_NAME,
+                type: AppConstants.PRIVATE_CHAT_TYPE,
                 hidden: this.showHiddenChannels$.value,
               },
             );

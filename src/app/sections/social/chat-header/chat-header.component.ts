@@ -125,7 +125,7 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((c) => {
         this.activeChannel = c;
-        this.isPrivateChat = c?.data?.name === AppConstants.PRIVATE_CHAT_NAME;
+        this.isPrivateChat = c?.type === AppConstants.PRIVATE_CHAT_TYPE;
         this.isSelfChat = c?.type === AppConstants.SELF_CHAT_TYPE;
         this.isBroadcastChannel = !!c && !this.isPrivateChat && !this.isSelfChat;
         this.topic = this.isBroadcastChannel ? topicOf(c!.data?.name ?? '') : '';

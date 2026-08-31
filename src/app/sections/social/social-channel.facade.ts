@@ -15,7 +15,7 @@ export class SocialChannelFacade {
   }
 
   friendshipCid(friendshipId: string): string {
-    return `messaging:private_${friendshipId}`;
+    return `${AppConstants.PRIVATE_CHAT_TYPE}:private_${friendshipId}`;
   }
 
   async createPrivateChat(recipientId: string, friendshipId: string): Promise<Channel> {
@@ -23,8 +23,7 @@ export class SocialChannelFacade {
       throw new Error('User must be connected before creating a chat.');
     }
 
-    const channel = this.chatService.chatClient.channel('messaging', `private_${friendshipId}`, {
-      name: AppConstants.PRIVATE_CHAT_NAME,
+    const channel = this.chatService.chatClient.channel(AppConstants.PRIVATE_CHAT_TYPE, `private_${friendshipId}`, {
       members: [this.userId, recipientId],
       created_by_id: this.userId,
     });
@@ -40,16 +39,25 @@ export class SocialChannelFacade {
     return true;
   }
 
+  /**
+   * A private chat has no name of its own, only an interlocutor; every other channel carries one.
+   * Reading the type rather than the stored name also keeps the placeholder that older channels
+   * were created with from ever reaching the screen.
+   */
   name(channel: Channel, fallback: string): string {
-    if (fallback !== AppConstants.PRIVATE_CHAT_NAME) return fallback;
+    if (this.isPrivate(channel)) return this.interlocutorName(channel) ?? fallback;
+    return channel.data?.name ?? fallback;
+  }
+
+  private interlocutorName(channel: Channel): string | undefined {
     const currentUserId = this.chatService.chatClient.userID;
     return Object.values(channel.state.members)
       .find(member => member.user?.id !== currentUserId)
-      ?.user?.name ?? AppConstants.PRIVATE_CHAT_NAME;
+      ?.user?.name;
   }
 
   isPrivate(channel: Channel): boolean {
-    return channel.data?.name === AppConstants.PRIVATE_CHAT_NAME;
+    return channel.type === AppConstants.PRIVATE_CHAT_TYPE;
   }
 
   isSelf(channel: Channel): boolean {

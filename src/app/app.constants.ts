@@ -63,9 +63,9 @@ export class AppConstants {
   public static USERNAME_PATTERN = '^[a-zA-Z0-9_]*$';
 
   // CHATS
-  public static PRIVATE_CHAT_NAME = 'Private Chat';
   public static SELF_CHAT_NAME = 'Saved Messages';
-  // Stream channel type: the durable identity of the self chat, unlike its display name.
+  // Stream channel types: the durable identity of a channel, unlike its display name.
+  public static PRIVATE_CHAT_TYPE = 'private';
   public static SELF_CHAT_TYPE = 'self';
   public static DEFAULT_CHANNEL_NAME = 'Almonium';
 }

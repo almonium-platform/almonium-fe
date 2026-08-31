@@ -484,8 +484,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     // Unique channel ID (e.g., `private_user1_user2`)
     const channelId = `private_${relationshipId}`;
 
-    const channel = this.chatService.chatClient.channel('messaging', channelId, {
-      name: AppConstants.PRIVATE_CHAT_NAME,
+    const channel = this.chatService.chatClient.channel(AppConstants.PRIVATE_CHAT_TYPE, channelId, {
       members: [userId, recipientId], // Both users in the private chat
       created_by_id: userId, // Set creator
     });
