@@ -193,13 +193,15 @@
   color: var(--text-color) !important;
   font-family: var(--font-family-reading);
   font-size: 0;
+  margin: 0;
 
   &::before {
     content: 'No chat open';
     display: block;
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: .55rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-bottom: .5rem;
   }
 
   &::after {
@@ -207,23 +209,33 @@
     content: 'Pick someone on the left, or write to yourself in Saved Messages.';
     display: block;
     font-family: var(--font-family-ui);
-    font-size: .8rem;
+    font-size: .8125rem;
     font-weight: 400;
-    line-height: 1.5;
-    max-width: 30ch;
+    line-height: 1.55;
+    margin-inline: auto;
+    max-width: 32ch;
   }
 }
 
 ::ng-deep .str-chat__empty-channel {
+  align-items: center;
   background: var(--card-color);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  justify-content: center;
+  padding: 2.5rem 1.75rem;
+  text-align: center;
 
   stream-icon {
-    background: var(--chat-selected-color) url('/assets/img/almo/canon-256.webp') center / 3.25rem no-repeat;
+    background: var(--chat-selected-color) url('/assets/img/almo/canon-256.webp') center / 2.6rem no-repeat;
     border-radius: 50%;
     display: block;
+    flex: none;
     height: 4.75rem;
     width: 4.75rem;
 
+    // Stream renders the default bubble as a 136px icon-font glyph, not an SVG
     .str-chat__icon {
       display: none;
     }
