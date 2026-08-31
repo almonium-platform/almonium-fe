@@ -76,7 +76,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected emailVerifiedTextExpanded = true;
   protected emailEditable = false;
   protected passwordEditable = false;
-  protected lastPasswordUpdate = '';
   protected emailVerified = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl<string>('', {
@@ -157,7 +156,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.settingService.populateAuthMethods().subscribe({
       next: (methods) => {
         this.authMethods = methods;
-        this.updateLocalAuthData(methods);
       },
       error: (error) => {
         logger.error(error);
@@ -165,15 +163,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       complete: () => onComplete?.(),
     });
-  }
-
-  private updateLocalAuthData(methods: AuthMethod[]): void {
-    if (this.isProviderLinked('local')) {
-      const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
-      this.lastPasswordUpdate = localMethod.lastPasswordResetDate
-        ? new Date(localMethod.lastPasswordResetDate).toISOString().split('T')[0]
-        : new Date(localMethod.createdAt).toISOString().split('T')[0];
-    }
   }
 
   private clearAuthCache(): void {
@@ -258,17 +247,12 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       return 'Not connected';
     }
 
-    const connectedAt = new Date(method.createdAt).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: new Date(method.createdAt).getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
-    });
-    return `${method.email} · since ${connectedAt}`;
+    return method.email;
   }
 
   protected getPasswordDetail(): string {
     return this.isProviderLinked('local')
-      ? `Updated ${this.lastPasswordUpdate}`
+      ? 'Set'
       : 'Not set — adds a way back in if a connected account is lost';
   }
 
@@ -573,7 +557,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.alertService.open('Password successfully changed!', {appearance: 'positive'}).subscribe();
-          this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
           this.restorePasswordField();
         },
         error: (error) => {
