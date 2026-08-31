@@ -83,41 +83,6 @@ button { font: inherit; }
 .method-copy strong { color: var(--brand-ink); font-size: .85rem; font-weight: 500; }
 .method-copy > span { color: var(--metadata-color); font-size: .68rem; line-height: 1.4; overflow-wrap: anywhere; }
 
-.method-action {
-  position: relative;
-  display: inline-flex;
-  min-width: 5.5rem;
-  min-height: 2rem;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding: .3rem .75rem;
-  border: 1px solid var(--control-border-color);
-  border-radius: 9999px;
-  background: var(--card-color);
-  color: var(--subhead-color);
-  cursor: pointer;
-  font-size: .75rem;
-}
-
-.method-action:hover:not(:disabled) { border-color: var(--brand-primary); color: var(--brand-primary); }
-
-.method-action.committing {
-  border-color: var(--brand-primary);
-  background: var(--brand-primary);
-  color: #fff;
-}
-
-.method-action.committing:hover:not(:disabled) { border-color: var(--brand-hover); background: var(--brand-hover); color: #fff; }
-.method-action:disabled { border-color: var(--disabled-fill-color); background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
-
-.method-action .action-loader {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
-
 .delete-account-row {
   display: flex;
   align-items: center;
@@ -141,7 +106,7 @@ button { font: inherit; }
   .account-layout { width: min(100% - 1rem, 30rem); }
   .account-card { padding-right: 1rem; padding-left: 1rem; }
   .method-row { align-items: flex-start; padding: .75rem 0; }
-  .method-action { min-width: 4.75rem; }
+  .settings-action { min-width: 4.75rem; }
   .method-row.editing { flex-wrap: wrap; }
   .method-row.editing .method-copy { min-width: calc(100% - 2.75rem); }
 }

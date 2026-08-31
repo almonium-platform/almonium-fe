@@ -11,9 +11,8 @@ import {LanguageApiService} from "../../../services/language-api.service";
 import {Language} from "../../../models/language.model";
 import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
-import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {TuiIcon, TuiNotificationService} from "@taiga-ui/core/components";
+import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {AsyncPipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit/components";
@@ -39,9 +38,9 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     FormsModule,
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
-    EditButtonComponent,
     AsyncPipe,
     TuiIcon,
+    TuiLoader,
     ConfirmModalComponent,
     PaywallComponent,
     SharedLucideIconsModule,

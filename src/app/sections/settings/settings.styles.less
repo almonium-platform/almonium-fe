@@ -64,6 +64,43 @@
   margin-top: 2px;
 }
 
+// one control shape for every row action on the settings tabs
+.settings-action {
+  position: relative;
+  display: inline-flex;
+  min-width: 5.5rem;
+  min-height: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: .3rem .75rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 9999px;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: .75rem;
+}
+
+.settings-action:hover:not(:disabled) { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+// the open field's commit action, the one plum thing on the tab
+.settings-action.committing {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.settings-action.committing:hover:not(:disabled) { border-color: var(--brand-hover); background: var(--brand-hover); color: #fff; }
+.settings-action:disabled { border-color: var(--disabled-fill-color); background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
+
+.settings-action .action-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
 .chips-box {
   display: flex;
   flex-wrap: wrap;

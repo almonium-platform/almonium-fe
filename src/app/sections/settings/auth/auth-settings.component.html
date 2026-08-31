@@ -54,9 +54,9 @@
         </div>
 
         @if (!emailVerified && !hasPendingEmailVerificationRequest() && !emailEditable) {
-          <button type="button" class="method-action" (click)="requestEmailVerification()">Verify</button>
+          <button type="button" class="settings-action" (click)="requestEmailVerification()">Verify</button>
         } @else if (!hasPendingEmailVerificationRequest()) {
-          <button type="button" class="method-action" [class.committing]="emailEditable"
+          <button type="button" class="settings-action" [class.committing]="emailEditable"
             [disabled]="!emailConfirmEnabled() || !!(loadingEmail$ | async)" (click)="onEmailEditClick()">
             @if (loadingEmail$ | async) {
               <tui-loader class="action-loader" size="s"></tui-loader>
@@ -79,7 +79,7 @@
               <strong>{{ provider === 'google' ? 'Google' : 'Apple' }}</strong>
               <span>{{ getProviderDetail(provider) }}</span>
             </div>
-            <button type="button" class="method-action" [disabled]="isLastLinkedProvider(provider)"
+            <button type="button" class="settings-action" [disabled]="isLastLinkedProvider(provider)"
               [title]="isLastLinkedProvider(provider) ? 'You cannot disconnect your only sign-in method.' : ''"
               (click)="handleProviderWrapped(provider)()">
               {{ isProviderLinked(provider) ? 'Disconnect' : 'Connect' }}
@@ -103,7 +103,7 @@
             }
           </div>
           @if (isProviderLinked('local')) {
-            <button type="button" class="method-action" [class.committing]="passwordEditable"
+            <button type="button" class="settings-action" [class.committing]="passwordEditable"
               [disabled]="!passwordConfirmEnabled() || !!(loadingPassword$ | async)" (click)="onPasswordEditClick()">
               @if (loadingPassword$ | async) {
                 <tui-loader class="action-loader" size="s"></tui-loader>
@@ -113,7 +113,7 @@
               </span>
             </button>
           } @else {
-            <button type="button" class="method-action" (click)="handleProviderWrapped('local')()">Set up</button>
+            <button type="button" class="settings-action" (click)="handleProviderWrapped('local')()">Set up</button>
           }
         </div>
       </div>

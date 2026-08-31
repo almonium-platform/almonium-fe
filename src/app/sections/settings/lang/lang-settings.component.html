@@ -42,14 +42,15 @@
         }
       </div>
 
-      <app-edit-button
-        class="edit-language"
-        [disabled]="(fluentEnabled$ | async) !== true"
-        [label]="'Save'"
-        [editable]="fluentEditable"
-        [loading$]="loading$"
-        (clickFunction)="onFluentEdit()">
-      </app-edit-button>
+      <button type="button" class="settings-action" [class.committing]="fluentEditable"
+        [disabled]="(fluentEnabled$ | async) !== true || !!(loading$ | async)" (click)="onFluentEdit()">
+        @if (loading$ | async) {
+          <tui-loader class="action-loader" size="s"></tui-loader>
+        }
+        <span [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
+          {{ fluentEditable ? 'Save' : 'Edit' }}
+        </span>
+      </button>
     </section>
 
     <section class="learning-card card">
