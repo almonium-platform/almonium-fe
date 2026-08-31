@@ -2,8 +2,11 @@
   background: unset;
 }
 
+/* Stream rounds the image and fallback layers but never the wrapper, so any
+   fill painted here reads as a square behind a circular avatar. */
 .str-chat__avatar {
   background: var(--control-border-color);
+  border-radius: var(--str-chat__avatar-border-radius, 50%);
   color: var(--subhead-color);
 }
 
