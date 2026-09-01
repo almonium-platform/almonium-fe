@@ -699,6 +699,7 @@
       <div style="display:flex; flex-direction:column; gap:11px;">
         <div style="width:320px; background:#fff; border-radius:26px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); display:flex; flex-direction:column;" data-screen-label="Mobile chat list">
           <div style="padding:14px 16px 10px; display:flex; align-items:center; gap:12px;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5f5560" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l-7 7 7 7"></path></svg>
             <div style="font-family:'Literata',serif; font-size:21px; font-weight:500; flex:1;">Chats</div>
             <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#5f5560" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path></svg>
             <div style="width:15px; height:15px; border:1.6px solid #5f5560; border-radius:4px;"></div>
@@ -737,33 +738,9 @@
               </div>
             </div>
           </div>
-          <div style="margin-top:14px; border-top:1px solid #EDE6EA; padding:9px 6px 16px; display:flex;">
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#8B8189" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"></path></svg>
-              <span style="font-size:10.5px; color:#8B8189;">Home</span>
-            </div>
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#8B8189" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h6a2 2 0 0 1 2 2V19a2 2 0 0 0-2-2H4z"></path><path d="M20 5.5h-6a2 2 0 0 0-2 2V19a2 2 0 0 1 2-2h6z"></path></svg>
-              <span style="font-size:10.5px; color:#8B8189;">Read</span>
-            </div>
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#8B8189" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"></path><path d="M20 4v4h-4"></path></svg>
-              <span style="font-size:10.5px; color:#8B8189;">Review</span>
-            </div>
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <div style="position:relative;">
-                <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#872657" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v10H8l-4 4z"></path></svg>
-                <div style="position:absolute; top:-1px; right:-2px; width:7px; height:7px; border-radius:50%; background:#872657; border:1.5px solid #fff;"></div>
-              </div>
-              <span style="font-size:10.5px; font-weight:600; color:#872657;">Chats</span>
-            </div>
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-              <div style="width:21px; height:21px; border-radius:50%; background:linear-gradient(135deg,#8F2356,#5A1A74);"></div>
-              <span style="font-size:10.5px; color:#8B8189;">You</span>
-            </div>
-          </div>
+          <div style="height:14px;"></div>
         </div>
-        <div style="width:320px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.65; color:#a99aa8;">&#8627; Annotation, not UI copy &mdash; do not render. Rows go to 44px avatars and 66px height for thumb targets; the desktop 38px row is too tight to hit. No drag handle, no rail, no column widths &mdash; section 06 is desktop only. Unread is a plum count on the row here rather than a dot, because there is no second column showing which chat is open. Tab bar carries the same bare dot as the desktop chat icon, and Archived moves into the header overflow instead of taking a permanent row.</div>
+        <div style="width:320px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.65; color:#a99aa8;">&#8627; Annotation, not UI copy &mdash; do not render. Rows go to 44px avatars and 66px height for thumb targets; the desktop 38px row is too tight to hit. No drag handle, no rail, no column widths &mdash; section 06 is desktop only. Unread is a plum count on the row here rather than a dot, because there is no second column showing which chat is open. No tab bar: chat is not a tab, so this is a pushed screen off Settings with a back arrow, per Almonium Mobile rule 1. Archived moves into the header overflow instead of taking a permanent row.</div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:11px;">
