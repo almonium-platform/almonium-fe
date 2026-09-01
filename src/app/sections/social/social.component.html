@@ -667,9 +667,12 @@
           holds the person they want.
         -->
         <div class="search-container">
+          <!-- Taiga's own cleaner sets the accessor to null rather than the control, so the field
+               carries the same hand-rolled clear the chat search does. -->
           <tui-textfield
             class="username-input shadowless-input"
             iconStart="@tui.search"
+            [tuiTextfieldCleaner]="false"
           >
             <input
               #peopleSearchInput
@@ -682,6 +685,14 @@
               spellcheck="false"
               placeholder="Search people"/>
           </tui-textfield>
+          @if (usernameFormControl.value) {
+            <button type="button"
+                    class="search-clear"
+                    aria-label="Clear search"
+                    (click)="clearPeopleSearch()">
+              <lucide-icon name="x" [size]="16"></lucide-icon>
+            </button>
+          }
         </div>
 
         <tui-scrollbar class="w-full p-1">

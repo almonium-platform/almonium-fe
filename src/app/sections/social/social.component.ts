@@ -442,6 +442,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.peopleSearchInput?.nativeElement.focus();
   }
 
+  protected clearPeopleSearch(): void {
+    this.usernameFormControl.setValue('');
+    this.focusPeopleSearch();
+  }
+
   private sanitizeUsername(username: string | null): string {
     if (!username) return "";
     return username
@@ -1278,6 +1283,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected onPeopleIndexChange(index: number): void {
+    // Picking a tab is a request to see that tab. The field searches every account whichever one is
+    // showing, but it must not sit over the view the user just asked for.
+    this.usernameFormControl.setValue('');
     this.setPeopleMode((['friends', 'requests', 'blocked'] as const)[index] ?? 'friends');
   }
 
