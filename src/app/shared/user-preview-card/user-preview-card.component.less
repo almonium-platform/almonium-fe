@@ -11,12 +11,18 @@
 }
 
 .profile-header { position: relative; display: flex; align-items: flex-start; gap: .8125rem; }
-.identity { min-width: 0; flex: 1; padding-top: .1875rem; }
+.identity { min-width: 0; flex: 1; }
 
 /* Capped so the name never runs under the absolutely positioned More button. The name shrinks
    to fit inside that cap, so the star always sits against the last letter, not against the edge. */
 .username-row { display: flex; max-width: 12rem; align-items: center; gap: .375rem; }
 
+/*
+ * The ellipsis needs overflow: hidden, which clips vertically too, so the line box has to be tall
+ * enough for the glyphs it holds: Literata's own box is 1.476em (1.190 up, 0.286 down) and 1.2 cut
+ * the tail off every g, j, p, q and y. The half-leading this adds above the name is also what sets
+ * it against the avatar, so .identity needs no padding of its own.
+ */
 h2 {
   min-width: 0;
   margin: 0;
@@ -25,7 +31,7 @@ h2 {
   font-family: var(--font-family-reading);
   font-size: 1.3125rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.5;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
