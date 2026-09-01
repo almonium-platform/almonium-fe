@@ -221,6 +221,8 @@
                      (focusin)="togglePreviewCard(channel, location)"
                 >
 
+                  <!-- 08: the member ring is for people, and never in the rail, where the plum
+                       selection ring is already on those pixels. -->
                   <app-custom-chat-avatar
                     class="custom-chat-avatar"
                     [type]="type"
@@ -229,7 +231,7 @@
                     [name]="name"
                     [imageUrl]="imageUrl"
                     [location]="location"
-                    [premium]="!sidebar.isCollapsed && isMemberRow(channel)"
+                    [premium]="!sidebar.isCollapsed && channels.isInterlocutorPremium(channel)"
                     [tuiHint]="sidebar.isCollapsed ? name : ''"
                     tuiHintAppearance="dark"
                     tuiHintDirection="end"

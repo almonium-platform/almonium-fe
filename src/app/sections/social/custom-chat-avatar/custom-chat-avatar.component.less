@@ -32,36 +32,40 @@
 }
 
 /*
- * 08: the member ring. 2px of gradient and a 2px gap, both taken out of the avatar's own box
- * rather than added around it, so a row with a ring is exactly as tall as one without.
+ * 08: the member ring. The disc keeps the size it has in every other row and the ring is drawn
+ * around it, out of the space between the avatar and the name, so nothing in the row reflows and
+ * no avatar in the column is smaller than its neighbours.
  */
 :host(.premium-ring) {
   --premium-ring-width: 2px;
   /* ring plus the gap inside it */
   --premium-ring-inset: 4px;
 
-  background: var(--premium-gradient);
-  border-radius: 50%;
   display: inline-grid;
-  padding: var(--premium-ring-inset);
   position: relative;
+  /* Its own stacking context, so the two rings behind the disc stay in front of the row. */
+  z-index: 0;
+}
+
+:host(.premium-ring)::before,
+:host(.premium-ring)::after {
+  border-radius: 50%;
+  content: '';
+  position: absolute;
+  z-index: -1;
+}
+
+:host(.premium-ring)::before {
+  background: var(--premium-gradient);
+  inset: calc(var(--premium-ring-inset) * -1);
 }
 
 /*
  * The gap is the row showing through, and the selected row's tint is translucent on dark, so it
  * is painted as a layer over the list's own ground rather than as a flat colour of its own.
  */
-:host(.premium-ring)::before {
+:host(.premium-ring)::after {
   background-color: var(--card-color);
   background-image: linear-gradient(var(--avatar-ring-gap, transparent), var(--avatar-ring-gap, transparent));
-  border-radius: 50%;
-  content: '';
-  inset: var(--premium-ring-width);
-  position: absolute;
-}
-
-:host(.premium-ring) .str-chat__avatar {
-  --str-chat__avatar-size: calc(var(--avatar-ring-box, 2.375rem) - 2 * var(--premium-ring-inset));
-
-  position: relative;
+  inset: calc((var(--premium-ring-inset) - var(--premium-ring-width)) * -1);
 }

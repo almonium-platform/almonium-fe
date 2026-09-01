@@ -49,10 +49,12 @@ export class SocialChannelFacade {
     return this.interlocutor(channel)?.name;
   }
 
-  /** The other person in a 1:1 chat. Null for a channel, for Saved Messages, and while members load. */
-  interlocutorId(channel: Channel): string | null {
-    if (!this.isPrivate(channel)) return null;
-    return this.interlocutor(channel)?.id ?? null;
+  /**
+   * Membership is a field on the Stream user, so the chat list can ring a member's avatar without
+   * a request of its own - and without the person having to be a friend.
+   */
+  isInterlocutorPremium(channel: Channel): boolean {
+    return this.isPrivate(channel) && this.interlocutor(channel)?.premium === true;
   }
 
   private interlocutor(channel: Channel) {

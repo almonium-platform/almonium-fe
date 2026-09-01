@@ -7,4 +7,9 @@ declare module 'stream-chat' {
     name?: string;
     hidden?: boolean;
   }
+
+  /** Written by the backend from the user's entitlement; the chat list draws the member ring from it. */
+  interface CustomUserData {
+    premium?: boolean;
+  }
 }

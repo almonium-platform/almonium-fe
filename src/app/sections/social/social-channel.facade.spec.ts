@@ -8,7 +8,11 @@ import {SocialChannelFacade} from './social-channel.facade';
 describe('SocialChannelFacade', () => {
   let facade: SocialChannelFacade;
 
-  const channel = (type: string, data: Record<string, unknown>, members: {id: string; name?: string}[]) =>
+  const channel = (
+    type: string,
+    data: Record<string, unknown>,
+    members: {id: string; name?: string; premium?: boolean}[],
+  ) =>
     ({
       type,
       data,
@@ -50,6 +54,28 @@ describe('SocialChannelFacade', () => {
     ]);
 
     expect(facade.name(legacy, 'fallback')).toBe('Ada');
+  });
+
+  it('reads membership off the other member, not off a friends list', () => {
+    const dm = channel(AppConstants.PRIVATE_CHAT_TYPE, {}, [
+      {id: 'me', name: 'Me', premium: true},
+      {id: 'them', name: 'Ada', premium: true},
+    ]);
+
+    expect(facade.isInterlocutorPremium(dm)).toBeTrue();
+    expect(facade.isInterlocutorPremium(channel(AppConstants.PRIVATE_CHAT_TYPE, {}, [
+      {id: 'me', name: 'Me'},
+      {id: 'them', name: 'Ada'},
+    ]))).toBeFalse();
+  });
+
+  it('never rings a channel, whoever its members are', () => {
+    const broadcast = channel('broadcast', {name: 'Almonium'}, [
+      {id: 'me', name: 'Me'},
+      {id: 'them', name: 'Ada', premium: true},
+    ]);
+
+    expect(facade.isInterlocutorPremium(broadcast)).toBeFalse();
   });
 
   it('keeps the stored name of every other channel', () => {

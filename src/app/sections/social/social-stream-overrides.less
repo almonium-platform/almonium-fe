@@ -8,9 +8,6 @@
 @chat-reaction-chip-height: 1.5rem;
 @chat-reaction-row-gap: .25rem;
 
-// The chat row's avatar box. The member ring is drawn inside it, so both follow one number.
-@chat-preview-avatar-size: 2.375rem;
-
 // for tui-badge-notification red dot
 ::ng-deep .t-badge_top {
   top: 2px !important;
@@ -470,12 +467,7 @@
 /* 01: the chat row's avatar, and the 30px disc a run indents past. */
 ::ng-deep .str-chat__avatar--channel-preview,
 ::ng-deep .stream-chat__avatar--channel-preview {
-  --str-chat__avatar-size: @chat-preview-avatar-size;
-}
-
-/* 08: the member ring gives back what it takes, so the ringed row keeps the same box. */
-::ng-deep .custom-chat-avatar.premium-ring {
-  --avatar-ring-box: @chat-preview-avatar-size;
+  --str-chat__avatar-size: 2.375rem;
 }
 
 ::ng-deep .str-chat__message-sender-avatar {
