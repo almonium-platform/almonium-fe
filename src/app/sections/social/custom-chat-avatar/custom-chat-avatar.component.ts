@@ -4,6 +4,7 @@ import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
 import {avatarHueClass, avatarLetter} from '../../../shared/avatar/avatar-display';
 import {AppConstants} from '../../../app.constants';
+import {ChannelMark, channelMark} from './channel-mark';
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -55,6 +56,8 @@ export class CustomChatAvatarComponent
   @Input() premium = false;
   isError = false;
   initials = '';
+  /** 03: set on the app's own rooms, which draw a fill rather than a face. */
+  protected mark: ChannelMark | null = null;
   hueClass = avatarHueClass('');
   fallbackChannelImage: string | undefined;
   private userId?: string;
@@ -69,6 +72,7 @@ export class CustomChatAvatarComponent
           if (this.type || this.channel || this.name) {
             this.setInitials();
             this.setFallbackChannelImage();
+            this.setChannelMark();
           }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
@@ -85,11 +89,16 @@ export class CustomChatAvatarComponent
 
     if (changes['type'] || changes['channel']) {
       this.setFallbackChannelImage();
+      this.setChannelMark();
     }
   }
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
+  }
+
+  private setChannelMark() {
+    this.mark = this.type === 'channel' ? channelMark(this.channel) : null;
   }
 
   private setFallbackChannelImage() {
@@ -153,13 +162,29 @@ export class CustomChatAvatarComponent
 
   /**
    * The disc behind the mark: a plate under portrait art, a hashed hue under a letter, and
-   * neither under the emblem, which brings its own fill.
+   * neither under the emblem or a crest, which bring their own fill.
    */
   protected get discClass(): string {
-    if (this.isSavedMessages) {
+    if (this.isSavedMessages || this.mark) {
       return '';
     }
 
     return !this.isError && (this.imageUrl || this.fallbackChannelImage) ? 'avatar-plate' : this.hueClass;
+  }
+
+  /**
+   * The composed `logo-XX` artwork the channel carries is drawn for 64px and up, so at avatar
+   * size the app's own rooms ignore it and paint the disc themselves.
+   */
+  protected get showsImage(): boolean {
+    return !this.isSavedMessages && !this.mark && !!(this.imageUrl ?? this.fallbackChannelImage) && !this.isError;
+  }
+
+  protected get isEmblem(): boolean {
+    return this.mark?.kind === 'emblem';
+  }
+
+  protected get crest(): {code: string; fill: string} | null {
+    return this.mark?.kind === 'crest' ? this.mark : null;
   }
 }

@@ -69,3 +69,42 @@
   background-image: linear-gradient(var(--avatar-ring-gap, transparent), var(--avatar-ring-gap, transparent));
   inset: calc((var(--premium-ring-inset) - var(--premium-ring-width)) * -1);
 }
+
+/*
+ * 03: the app's own channels. Every avatar in the column is this one disc and only the fill
+ * changes, so neither of these ever goes transparent and neither carries two marks. The
+ * composed `logo-XX` artwork the channel data points at is drawn for 64px and up - its badge is
+ * illegible below that - so at avatar size the disc is painted here instead.
+ */
+.str-chat__avatar.brand-emblem {
+  background: var(--channel-emblem-disc);
+
+  /* 23px in the 38px row. The pinwheel is circular, so it can run to 60% where a square glyph
+     would need about 50%; bare, its blades would read a size larger than its neighbours. */
+  .emblem-mark {
+    background-image: var(--brand-flat-logo-image);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: block;
+    height: 60%;
+    width: 60%;
+  }
+}
+
+/*
+ * The row already names the language, but the avatar has to work alone in the collapsed rail,
+ * so the letters earn their place and the emblem does not.
+ */
+.str-chat__avatar.channel-crest {
+  background: var(--channel-crest-fill);
+  color: var(--channel-crest-ink);
+
+  /* 11px in the 38px row, kept proportional so the rail and the header read the same. */
+  .str-chat__avatar-fallback {
+    font-family: var(--font-family-mono);
+    font-size: calc(var(--str-chat__avatar-size, 2.375rem) * .29);
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+}

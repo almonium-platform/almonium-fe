@@ -67,6 +67,23 @@
   --avatar-hue-3-ink: #E8F7F4;
   --avatar-hue-4: #594436;
   --avatar-hue-4-ink: #F7EEE8;
+  // 03: the app's own channels. The emblem is never bare - its blades are a spiky silhouette,
+  // and without a disc it reads a size larger than the rows around it - so the brand channel
+  // gets a disc of its own. A language channel drops the emblem and fills the disc with its
+  // hue instead: two marks do not fit one 38px slot.
+  --channel-emblem-disc: #F3EDF6;
+  // Crests: chroma 0.10 throughout, lightness inside the 0.40-0.48 band on light and flat 0.55
+  // on dark, so every crest carries the same cream letters on either ground. English is the
+  // legacy #6E2A5E and sits at the dark end of the band; the rest are spread around the wheel
+  // so no two crests in one column read alike. A language added upstream is generated on the
+  // same rule off a hashed hue - see `channelMark`.
+  --channel-crest-en: #6E2A5E;
+  --channel-crest-de: oklch(0.45 0.10 285);
+  --channel-crest-es: oklch(0.44 0.10 45);
+  --channel-crest-fr: oklch(0.44 0.10 215);
+  --channel-crest-it: oklch(0.46 0.10 150);
+  --channel-crest-lightness: 0.44;
+  --channel-crest-ink: #F1EAEF;
   --pale-purple: #958ba5;
   --lavender: var(--metadata-color);
   --purple-dark: var(--brand-margin);

@@ -6,10 +6,13 @@
       ? 'one-letter'
       : 'multiple-letters'
   }} {{ discClass }}"
-  [class.has-image]="!isSavedMessages && !!(imageUrl || fallbackChannelImage) && !isError"
+  [class.has-image]="showsImage"
   [class.saved-messages]="isSavedMessages"
+  [class.brand-emblem]="isEmblem"
+  [class.channel-crest]="!!crest"
+  [style.--channel-crest-fill]="crest?.fill ?? null"
 >
-  @if (!isSavedMessages && (imageUrl || fallbackChannelImage) && !isError) {
+  @if (showsImage) {
     <img
       class="str-chat__avatar-image"
       data-testid="avatar-img"
@@ -29,6 +32,12 @@
                 stroke-linejoin="round"
                 stroke-linecap="round"/>
         </svg>
+      } @else if (isEmblem) {
+        <!-- 03: the emblem sits at 60% of the disc. It is circular, so it can run larger than a
+             square glyph would; bare, its blades would read a size larger than the row. -->
+        <span class="emblem-mark" aria-hidden="true"></span>
+      } @else if (crest; as crest) {
+        {{ crest.code }}
       } @else {
         {{ initials }}
       }

@@ -24,13 +24,17 @@ export function avatarHueToken(name: string | null | undefined, part: 'fill' | '
 }
 
 function avatarHue(name: string | null | undefined): number {
-  return (hash(name ?? '') % AVATAR_HUES) + 1;
+  return (stableHash(name ?? '') % AVATAR_HUES) + 1;
 }
 
 const AVATAR_HUES = 4;
 
-/** FNV-1a, the same hash the book covers pick their spine colour with. */
-function hash(value: string): number {
+/**
+ * FNV-1a, the same hash the book covers pick their spine colour with. Exported because a
+ * channel crest picks a hue angle off the wheel rather than one of four buckets, and the two
+ * have to agree on how a name becomes a number.
+ */
+export function stableHash(value: string): number {
   let result = 2166136261;
   for (const character of value) {
     result ^= character.charCodeAt(0);

@@ -67,5 +67,7 @@ export class AppConstants {
   // Stream channel types: the durable identity of a channel, unlike its display name.
   public static PRIVATE_CHAT_TYPE = 'private';
   public static SELF_CHAT_TYPE = 'self';
+  // The read-only rooms the app itself posts in: the app-wide channel and one per language.
+  public static BROADCAST_CHAT_TYPE = 'broadcast';
   public static DEFAULT_CHANNEL_NAME = 'Almonium';
 }

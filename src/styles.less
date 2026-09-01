@@ -71,6 +71,16 @@ html[data-motion='reduced'] *::after {
   --chat-unread-fill: #B0416F;
   --chat-unread-ink: #FFF1F6;
   --avatar-plate-ring: #453D51;
+  // A white puck on a dark list is the light-mode asset leaking through, so the emblem's disc
+  // goes to the hairline and the emblem itself to the tint. Crests keep their hue and only
+  // flatten to one lightness, which is what stops them muddying on the dark ground.
+  --channel-emblem-disc: #332C3C;
+  --channel-crest-en: oklch(0.55 0.10 340);
+  --channel-crest-de: oklch(0.55 0.10 285);
+  --channel-crest-es: oklch(0.55 0.10 45);
+  --channel-crest-fr: oklch(0.55 0.10 215);
+  --channel-crest-it: oklch(0.55 0.10 150);
+  --channel-crest-lightness: 0.55;
   --tui-background-accent-1: var(--brand-primary);
   --tui-background-accent-1-hover: var(--brand-hover);
   --tui-background-accent-1-pressed: var(--brand-pressed);
