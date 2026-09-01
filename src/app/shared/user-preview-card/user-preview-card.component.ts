@@ -281,6 +281,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     return !!this.userProfileInfo && this.userInfo?.id !== this.userProfileInfo.id;
   }
 
+  // on the public profile page the card already is the profile, so the link would be a no-op
+  protected get canViewProfile(): boolean {
+    return !this.publicProfile;
+  }
+
   protected showMore(section: 'languages' | 'interests'): void {
     if (!this.userProfileInfo) {
       return;

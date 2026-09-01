@@ -48,15 +48,17 @@
 
         <ng-template #friendDropdownTemplate>
           <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
-            <button
-              tuiOption
-              type="button"
-              class="context-button"
-              (click)="viewProfile(); friendDropdown.toggle(false)"
-            >
-              <lucide-icon name="user-round" class="chat-icon" [size]="18"></lucide-icon>
-              View profile
-            </button>
+            @if (canViewProfile) {
+              <button
+                tuiOption
+                type="button"
+                class="context-button"
+                (click)="viewProfile(); friendDropdown.toggle(false)"
+              >
+                <lucide-icon name="user-round" class="chat-icon" [size]="18"></lucide-icon>
+                View profile
+              </button>
+            }
             @if (profile.relationshipStatus === 'FRIENDS') {
               <button
                 tuiOption
