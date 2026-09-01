@@ -152,13 +152,21 @@
     text-align: center;
   }
 
+  /* The strip is a row of the panel body, so it takes the body's width - a fixed one overflowed
+     the panel and pushed the last tab under its right edge. */
   .people-toggle {
-    width: 20rem;
-    --tui-radius-l: 2rem;
+    width: 100%;
+    /* The same stadium the field under it is cut to - size m reads --tui-radius-m for both the
+       strip and the pill riding inside it. */
+    --tui-radius-l: 3rem;
+    --tui-radius-m: 3rem;
+    /* Three labels have to share a 300px panel, so the tabs keep less padding of their own. */
+    --t-padding: .5rem;
 
     button {
       font-size: .8rem;
-      width: 33.333%;
+      flex: 1 1 0;
+      min-width: 0;
     }
 
     span {
@@ -185,10 +193,12 @@
     justify-content: center;
     align-items: center;
     gap: .5rem;
+    /* The same gutter the panel body keeps, so the title starts where the tabs and the field do. */
+    padding: 0 1rem;
   }
 
   .header-text {
-    padding: .2rem;
+    padding: .2rem 0;
   }
 
   app-dismiss-button {

@@ -4,7 +4,6 @@
 // social-stream-overrides.less.
 
 .search-container {
-  --tui-radius-m: 2rem;
   --tui-typography-body-m: normal 1.1rem/1.25rem var(--tui-typography-family-text);
   width: 20rem;
   display: flex;
@@ -127,8 +126,9 @@
   display: none;
 }
 /*
- * 01: the field is an outlined box on the card, not a grey pill - a 1px hairline at rest and a
- * plum ring once it has focus, so it reads as somewhere you can type before you type in it.
+ * 01: both search fields are stadium-shaped, the way every field on the auth screens is - a 1px
+ * hairline at rest and a plum ring once it has focus, so it reads as somewhere you can type
+ * before you type in it.
  */
 .search-header {
   align-items: center;
@@ -142,11 +142,11 @@
 }
 .search-header .chat-input,
 .search-container .username-input {
-  --tui-radius-l: .625rem;
-  --tui-radius-m: .625rem;
+  --tui-radius-l: 3rem;
+  --tui-radius-m: 3rem;
   background: var(--card-color);
   border: 1px solid var(--control-border-color);
-  border-radius: .625rem;
+  border-radius: 3rem;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 
   &:focus-within {
@@ -261,7 +261,9 @@
   overflow: hidden;
   position: absolute;
   top: 0;
-  width: 20.625rem;
+  /* The column it covers can be dragged narrower than the panel wants to be; when it is, the
+     panel gives up its width rather than letting the column clip its right edge off. */
+  width: min(20.625rem, 100%);
   z-index: 5;
 
   .panel-body {
