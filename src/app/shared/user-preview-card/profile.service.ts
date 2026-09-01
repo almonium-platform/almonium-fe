@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
-import {Observable} from "rxjs";
-import {map} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from "rxjs";
+import {map, tap} from 'rxjs/operators';
 import {parseUserProfileInfo, UserProfileInfo} from "./user-profile.model";
 import {AppConstants} from "../../app.constants";
 
@@ -11,6 +11,20 @@ import {AppConstants} from "../../app.constants";
 export class ProfileService {
   private http = inject(HttpClient);
 
+  /**
+   * The signed-in user's own profile, held past the lifetime of any one component: the settings tabs are separate
+   * routes, and re-fetching on every switch left the header blank for as long as the request took.
+   */
+  private readonly myProfileSubject$ = new BehaviorSubject<UserProfileInfo | null>(null);
+  readonly myProfile$ = this.myProfileSubject$.asObservable();
+
+  /** Refreshes the cached own profile; subscribers keep the last one until the new one lands. */
+  loadMyProfile(userId: string): Observable<UserProfileInfo> {
+    if (this.myProfileSubject$.value?.id !== userId) {
+      this.myProfileSubject$.next(null);
+    }
+    return this.getUserProfile(userId).pipe(tap(profile => this.myProfileSubject$.next(profile)));
+  }
 
   getUserProfile(userId: string): Observable<UserProfileInfo> {
     const url = `${AppConstants.PROFILE_URL}/${userId}`;

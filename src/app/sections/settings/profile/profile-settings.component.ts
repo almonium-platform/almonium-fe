@@ -93,6 +93,8 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.profileService.myProfile$.pipe(takeUntil(this.destroy$)).subscribe(profile => this.profileInfo = profile);
+
     this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
       if (!info) {
         return;
@@ -184,10 +186,9 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
       return;
     }
     this.loadedProfileId = userId;
-    this.profileService.getUserProfile(userId)
+    this.profileService.loadMyProfile(userId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: profile => this.profileInfo = profile,
         error: () => this.loadedProfileId = null,
       });
   }
