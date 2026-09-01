@@ -54,16 +54,12 @@
     </section>
 
     <section class="learning-card card">
-      <div class="eyebrow">I'm Learning</div>
-
-      @if (singleChoice) {
-        <p class="allowance-note">
-          One language stays editable. The rest keep every word and stay open to read.
-          @if (!switchAvailable && nextSwitchOn) {
-            You can change which one on {{ nextSwitchOn | date: 'd MMMM' }}.
-          }
-        </p>
-      }
+      <div class="learning-head">
+        <div class="eyebrow">I'm Learning</div>
+        @if (allowance !== null) {
+          <span class="allowance-count">{{ getActiveLearnersCount() }} of {{ allowance }} active</span>
+        }
+      </div>
 
       <div class="learner-list">
         @for (learner of learners; track learner.id; let index = $index) {
@@ -79,7 +75,15 @@
                 [attr.aria-label]="'Choose colour for ' + getLanguageName(learner.language)">
               </button>
 
-              <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
+              <div class="language-copy">
+                <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
+                @if (!learner.active && atAllowance) {
+                  <span class="read-only-note">
+                    Read-only
+                    @if (wordsKept(learner); as kept) { &middot; {{ kept | number }} words kept }
+                  </span>
+                }
+              </div>
 
               <div class="learner-controls">
                 <label class="level-select" [attr.aria-label]="'Level for ' + getLanguageName(learner.language)">
@@ -109,6 +113,15 @@
                   />
                 </div>
 
+                @if (!learner.active && atAllowance) {
+                  <button
+                    type="button"
+                    class="make-active"
+                    [disabled]="makeActiveDisabled(learner)"
+                    (click)="makeActive(learner)"
+                  >Make active</button>
+                }
+
                 @if (!learner.active) {
                   <a
                     class="view-record"
@@ -116,7 +129,8 @@
                   >View record</a>
                 }
 
-                @if (learners.length > 1) {
+                <!-- No delete on a read-only row: removing a language here is indistinguishable from losing it. -->
+                @if (learners.length > 1 && learner.active) {
                   <button
                     type="button"
                     class="delete-language"
@@ -161,6 +175,12 @@
             </button>
           }
         </div>
+
+        @if (atAllowance && !switchAvailable && nextSwitchOn) {
+          <p class="cooldown-panel">
+            You can change your active language once a month. Next change available {{ nextSwitchOn | date: 'd MMMM' }}.
+          </p>
+        }
       </div>
     </section>
   </main>

@@ -220,9 +220,61 @@ select { font: inherit; }
 .view-record { color: var(--dark-raspberry); font-size: .78rem; white-space: nowrap; }
 .view-record:hover { text-decoration: underline; }
 
-/* The rule is stated once for the section, not implied by every disabled row. */
-.allowance-note {
-  margin: 0 0 .25rem;
+/* The allowance is stated once for the section, not implied by every disabled row. */
+.learning-head {
+  display: flex;
+  align-items: baseline;
+  gap: .625rem;
+}
+
+.allowance-count {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .6875rem;
+}
+
+.language-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: .0625rem;
+}
+
+.read-only-note {
+  color: var(--metadata-color);
+  font-size: .71875rem;
+}
+
+.make-active {
+  padding: .3125rem .75rem;
+  border: 1px solid var(--secondary-control-border-color);
+  border-radius: 9999px;
+  background: var(--secondary-control-fill);
+  color: var(--brand-ink);
+  cursor: pointer;
+  font-size: .75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.make-active:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.make-active:disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+/* Inside the cooldown this panel is the whole explanation. */
+.cooldown-panel {
+  margin: .75rem 0 0;
+  padding: .6875rem .875rem;
+  border-radius: 12px;
+  background: var(--nested-color);
   color: var(--subhead-color);
   font-size: .78125rem;
   line-height: 1.55;
