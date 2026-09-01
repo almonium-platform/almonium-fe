@@ -13,12 +13,12 @@
 .profile-header { position: relative; display: flex; align-items: flex-start; gap: .8125rem; }
 .identity { min-width: 0; flex: 1; padding-top: .1875rem; }
 
-/* Capped so the name never runs under the absolutely positioned More button. */
+/* Capped so the name never runs under the absolutely positioned More button. The name shrinks
+   to fit inside that cap, so the star always sits against the last letter, not against the edge. */
 .username-row { display: flex; max-width: 12rem; align-items: center; gap: .375rem; }
 
 h2 {
   min-width: 0;
-  flex: 1;
   margin: 0;
   overflow: hidden;
   color: var(--text-color);
