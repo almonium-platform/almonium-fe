@@ -28,8 +28,19 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
     TuiSkeleton
   ],
   styles: [`
-    :host [tuiAvatar]._initials::before {
+    /* The mark is the first letter of the username in Literata 600, per the type scale --
+       the disc otherwise inherits the UI sans and the letter reads as a label, not a mark. */
+    :host .avatar-disc {
+      font-family: var(--font-family-reading);
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* Taiga's own [data-size=*]._initials rule sets the font, so the disc's own class
+       has to be in the selector for the inherited Literata and inline size to win. */
+    :host [tuiAvatar]._initials.avatar-disc::before {
       font: inherit;
+      letter-spacing: normal;
     }
 
     :host img {
@@ -50,11 +61,13 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       -webkit-mask-size: contain;
     }
 
+    /* Tier is the gradient on the ink, the same rule the animals follow: pale ground, gradient
+       letterform. Specificity matches the Taiga initials rule so the fill is not overridden. */
     :host .premium-letter {
       color: transparent;
     }
 
-    :host .premium-letter::before {
+    :host [tuiAvatar]._initials.premium-letter::before {
       background: var(--premium-gradient);
       background-clip: text;
       color: transparent;
@@ -132,6 +145,6 @@ export class AvatarComponent {
       xxl: 5,
     }[this.size];
 
-    return `${sizeRem * .55}rem`;
+    return `${sizeRem * .46}rem`;
   }
 }
