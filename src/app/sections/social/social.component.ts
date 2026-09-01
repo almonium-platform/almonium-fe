@@ -173,7 +173,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected loadingIncomingRequests = false;
   protected loadingOutgoingRequests = false;
   protected noResultMessage = 'No results found';
-  protected peopleIcon = 'users-round';
 
   protected readonly FriendshipStatus = RelationshipStatus;
 
@@ -937,7 +936,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected openPeopleAndSetupData() {
     this.openPeople();
     this.peopleHeader = 'People';
-    this.peopleIcon = 'users-round';
     if (this.peopleMode === 'requests') {
       // One scroll, two headers: Received carries the work, Sent is usually a row or two.
       this.peopleUserTiles = [];
@@ -955,7 +953,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (this.peopleMode === 'search') {
       this.peopleHeader = 'Find people';
-      this.peopleIcon = 'chevron-left';
     }
   }
 

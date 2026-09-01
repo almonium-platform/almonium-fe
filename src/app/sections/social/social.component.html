@@ -589,12 +589,23 @@
 
       <header class="header">
         <div class="header-inner pb-1">
-          <lucide-icon [name]="peopleIcon"
-                       class="max-h-fit"
-                       [class.cursor-pointer]="peopleMode === 'search'"
-                       (click)="peopleMode === 'search' && setPeopleMode('friends')"
-          ></lucide-icon>
-          <p class="header-text">{{ peopleHeader }}</p>
+          @if (peopleMode === 'search') {
+            <button type="button"
+                    class="people-back"
+                    aria-label="Back to friends"
+                    (click)="setPeopleMode('friends')">
+              <lucide-icon name="chevron-left" [size]="20"></lucide-icon>
+            </button>
+          }
+          <p class="header-text people">{{ peopleHeader }}</p>
+          @if (peopleMode === 'friends') {
+            <button type="button"
+                    class="people-search-cta"
+                    aria-label="Find people"
+                    (click)="setPeopleMode('search')">
+              <lucide-icon name="user-round-search" [size]="18"></lucide-icon>
+            </button>
+          }
           <app-dismiss-button [relative]="true" (closed)="closePeople()"></app-dismiss-button>
         </div>
       </header>
@@ -716,7 +727,7 @@
                         autocomplete="off"
                         autocapitalize="none"
                         spellcheck="false"
-                        placeholder="Find anyone by @handle"
+                        placeholder="Search your friends"
                       />
                     </tui-textfield>
                     @if (peopleUserTiles.length === 0 && friendFormControl.value !== '') {
@@ -725,10 +736,6 @@
                       </p>
                     }
                   </div>
-                  <button type="button" class="find-people-link" (click)="setPeopleMode('search')">
-                    <lucide-icon name="user-round-search" [size]="16"></lucide-icon>
-                    Find people
-                  </button>
                 } @else {
                   <app-button
                     appearance="bw"
