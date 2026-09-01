@@ -43,6 +43,10 @@ import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './a
     :host [tuiAvatar]._initials.avatar-disc::before {
       font: inherit;
       letter-spacing: normal;
+      /* Taiga centres the line box, so the mark sits on a baseline set by the whole em -
+         Literata's descender included. A capital has no descender, so it hangs low by half
+         of one: lift it back onto the disc's optical centre. */
+      transform: translateY(-.06em);
     }
 
     :host img {
