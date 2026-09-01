@@ -79,6 +79,15 @@
 .str-chat__avatar.brand-emblem {
   background: var(--channel-emblem-disc);
 
+  /* Stream's fallback layer lands on `display: block` here, and centres its initials with
+     text-align and a line-height rather than a box model, which leaves anything that is not
+     text in the top left corner. The emblem is a box, so this layer has to centre boxes. */
+  .str-chat__avatar-fallback {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+
   /* 23px in the 38px row. The pinwheel is circular, so it can run to 60% where a square glyph
      would need about 50%; bare, its blades would read a size larger than its neighbours. */
   .emblem-mark {

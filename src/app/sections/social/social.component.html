@@ -159,10 +159,9 @@
                     ></app-custom-chat-avatar>
                     <span class="result-body">
                       <span class="result-name">{{ channels.name(channel, '') }}</span>
-                      <span class="result-preview">Channel &middot; updates about {{ channels.topic(channel) }}</span>
                     </span>
                     <button type="button"
-                            class="action-button positive row-join"
+                            class="row-join"
                             (click)="joinFromSearch(channel)">Join</button>
                   </div>
                 }
@@ -375,7 +374,9 @@
                         }
                       }
 
+                      <!-- Clearing and deleting throw messages away, so a rule sets them off. -->
                       @if (channels.isPrivate(channel) || channels.isSelf(channel)) {
+                        <div class="context-separator" role="separator"></div>
                         <button
                           tuiOption
                           type="button"

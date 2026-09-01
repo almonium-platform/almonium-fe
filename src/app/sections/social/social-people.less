@@ -236,9 +236,31 @@
     white-space: nowrap;
   }
 
+  /*
+   * 01: Join is a button on the row, never a floating popover over the list - an outline pill
+   * in plum. It sits outside the People panel, so it carries its own pill rather than the
+   * `.action-button` written for the tiles in there.
+   */
   .row-join {
+    background: transparent;
+    border: 1px solid var(--control-border-color);
+    border-radius: 999px;
+    color: var(--dark-raspberry);
+    cursor: pointer;
     flex: none;
+    font: 500 .75rem/1 var(--font-family-ui);
     margin-left: auto;
+    padding: .3125rem .8125rem;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--state-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-margin);
+      outline-offset: 2px;
+    }
   }
 }
 @keyframes people-panel-in {
