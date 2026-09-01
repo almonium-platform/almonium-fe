@@ -2,14 +2,8 @@ import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestro
 import {Subscription} from 'rxjs';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
-import {avatarLetter} from '../../../shared/avatar/avatar-display';
+import {avatarHueClass, avatarLetter} from '../../../shared/avatar/avatar-display';
 import {AppConstants} from '../../../app.constants';
-
-/**
- * Four fixed hues for the initial fallback. The disc is an identity, not a theme surface, so
- * the same person keeps the same one in either mode - see `Almonium Social and Chat`, 08.
- */
-const HUE_COUNT = 4;
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -56,7 +50,7 @@ export class CustomChatAvatarComponent
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
   isError = false;
   initials = '';
-  hueClass = 'hue-1';
+  hueClass = avatarHueClass('');
   fallbackChannelImage: string | undefined;
   private userId?: string;
   private isViewInited = false;
@@ -124,17 +118,7 @@ export class CustomChatAvatarComponent
     }
 
     this.initials = this.type === 'channel' && result === '#' ? '#' : avatarLetter(result);
-    this.hueClass = `hue-${(this.hash(result) % HUE_COUNT) + 1}`;
-  }
-
-  /** FNV-1a, the same hash the book covers pick their spine colour with. */
-  private hash(value: string): number {
-    let result = 2166136261;
-    for (const character of value) {
-      result ^= character.charCodeAt(0);
-      result = Math.imul(result, 16777619);
-    }
-    return result >>> 0;
+    this.hueClass = avatarHueClass(result);
   }
 
   ngAfterViewInit(): void {
@@ -158,14 +142,14 @@ export class CustomChatAvatarComponent
   }
 
   /**
-   * The disc behind the mark. Portrait art brings its own plate and the emblem its own fill,
-   * so a hue is only ever wanted under an initial.
+   * The disc behind the mark: a plate under portrait art, a hashed hue under a letter, and
+   * neither under the emblem, which brings its own fill.
    */
   protected get discClass(): string {
-    if (this.isSavedMessages || (!this.isError && (this.imageUrl || this.fallbackChannelImage))) {
+    if (this.isSavedMessages) {
       return '';
     }
 
-    return this.hueClass;
+    return !this.isError && (this.imageUrl || this.fallbackChannelImage) ? 'avatar-plate' : this.hueClass;
   }
 }

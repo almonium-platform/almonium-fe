@@ -30,7 +30,6 @@ button {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--avatar-ground);
   cursor: pointer;
   place-items: center;
 }
@@ -41,7 +40,7 @@ button {
 }
 
 .letter-tile .avatar-letter {
-  color: var(--subhead-color);
+  color: inherit;
   font-family: var(--font-family-reading);
   font-size: 1.4375rem;
   font-weight: 600;
@@ -54,7 +53,8 @@ button {
   object-fit: contain;
 }
 
-/* The tier is the gradient on the ink; the ground stays pale on both tiers. */
+/* The tier is the gradient on the ink; the ground stays pale on both tiers, which is what
+   the plate is for - a hashed hue under a gradient letter would swallow it. */
 .member .avatar-letter {
   background: var(--premium-gradient);
   background-clip: text;

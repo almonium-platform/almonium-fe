@@ -2,7 +2,7 @@
   <div class="tile-row" role="group" aria-label="How you appear">
     <button
       type="button"
-      class="tile letter-tile"
+      class="tile letter-tile {{ letterDisc }}"
       [class.selected]="!userInfo.avatarUrl"
       [disabled]="busyUrl !== undefined"
       (click)="useLetter()"
@@ -15,7 +15,7 @@
     @for (choice of choices; track choice.path) {
       <button
         type="button"
-        class="tile"
+        class="tile avatar-plate"
         [class.selected]="isSelected(choice)"
         [disabled]="busyUrl !== undefined"
         (click)="chooseAvatar(choice)"

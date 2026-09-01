@@ -1,5 +1,5 @@
 <section class="avatar-picker" [class.member]="userInfo.premium">
-  <span class="current-avatar onboarding-current">
+  <span class="current-avatar onboarding-current {{ currentDisc }}">
     @if (userInfo.avatarUrl) {
       @if (premiumCurrentAvatar) {
         <span class="gradient-artwork" [style.mask-image]="currentAvatarMask" [style.-webkit-mask-image]="currentAvatarMask" role="img" aria-label="Selected avatar"></span>
@@ -14,7 +14,7 @@
   <div class="compact-choices" aria-label="Choose an avatar">
     <button
       type="button"
-      class="compact-choice letter-choice"
+      class="compact-choice letter-choice {{ letterDisc }}"
       [class.selected]="!userInfo.avatarUrl"
       [disabled]="busyUrl !== undefined"
       (click)="useLetter()"
@@ -24,7 +24,7 @@
     @for (choice of choices; track choice.path) {
       <button
         type="button"
-        class="compact-choice animal-choice"
+        class="compact-choice animal-choice avatar-plate"
         [class.selected]="isSelected(choice)"
         [disabled]="busyUrl !== undefined"
         (click)="chooseAvatar(choice)"

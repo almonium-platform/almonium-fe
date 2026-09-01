@@ -425,3 +425,21 @@ tui-data-list button[tuiOption].context-button {
     }
   }
 }
+
+/*
+ * The two grounds an avatar can sit on, wherever one is drawn.
+ *
+ * Portrait art is dark line work on transparency, so the plate under it belongs to the avatar
+ * rather than to the theme: the same #EFE9E6 in both modes, with a ring that only materialises
+ * on dark, where the plate needs seating. A letter takes a hue hashed from the name instead -
+ * see `avatarHueClass`. Neither is a surface token, and neither flips with the theme.
+ */
+.avatar-plate {
+  background: var(--avatar-plate);
+  box-shadow: 0 0 0 1px var(--avatar-plate-ring);
+}
+
+.avatar-hue-1 { background: var(--avatar-hue-1); color: var(--avatar-hue-1-ink); }
+.avatar-hue-2 { background: var(--avatar-hue-2); color: var(--avatar-hue-2-ink); }
+.avatar-hue-3 { background: var(--avatar-hue-3); color: var(--avatar-hue-3-ink); }
+.avatar-hue-4 { background: var(--avatar-hue-4); color: var(--avatar-hue-4-ink); }

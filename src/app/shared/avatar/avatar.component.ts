@@ -1,7 +1,7 @@
 import {Component, HostBinding, Input} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
-import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
+import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
 
 
 @Component({
@@ -11,6 +11,7 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       [size]="size"
       [tuiSkeleton]="loading"
       [style.background]="discBackground"
+      [style.color]="discInk"
       [style.box-shadow]="discRing"
       [style.font-size]="letterFontSize"
       [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
@@ -129,20 +130,32 @@ export class AvatarComponent {
   }
 
   /**
-   * The bundled artwork is dark line work on transparency, so the ground under it belongs to
-   * the avatar rather than to the theme - #EFE9E6 in both modes, ringed where it needs
-   * seating. An uploaded photo is opaque and covers the disc, so it gets neither.
+   * The bundled artwork is dark line work on transparency, so it needs its plate; a letter
+   * takes a hue hashed from the name. The one exception is a premium letter, whose ink is the
+   * gradient - that wants the plate's pale ground, the same rule the artwork follows. An
+   * uploaded photo is opaque and covers the disc, so it gets nothing.
+   *
+   * Taiga paints the disc from its own rule at the same specificity, so these have to be
+   * inline styles rather than the `.avatar-plate` / `.avatar-hue-*` classes used elsewhere.
    */
   get discBackground(): string | null {
     if (!this.avatarUrl) {
-      return 'var(--avatar-ground)';
+      return this.premium ? 'var(--avatar-plate)' : avatarHueToken(this.username, 'fill');
     }
 
     return isDefaultAvatar(this.avatarUrl) ? 'var(--avatar-plate)' : null;
   }
 
+  get discInk(): string | null {
+    return !this.avatarUrl && !this.premium ? avatarHueToken(this.username, 'ink') : null;
+  }
+
   get discRing(): string | null {
-    return isDefaultAvatar(this.avatarUrl) ? '0 0 0 1px var(--avatar-plate-ring)' : null;
+    return this.wearsPlate ? '0 0 0 1px var(--avatar-plate-ring)' : null;
+  }
+
+  private get wearsPlate(): boolean {
+    return this.avatarUrl ? isDefaultAvatar(this.avatarUrl) : this.premium;
   }
 
   get letterFontSize(): string {

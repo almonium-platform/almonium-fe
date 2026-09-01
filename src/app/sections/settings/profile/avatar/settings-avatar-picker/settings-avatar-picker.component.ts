@@ -3,7 +3,7 @@ import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
-import {avatarLetter} from '../../../../../shared/avatar/avatar-display';
+import {avatarHueClass, avatarLetter} from '../../../../../shared/avatar/avatar-display';
 import {ProfileSettingsService} from '../../profile-settings.service';
 
 interface SettingsAvatarChoice {
@@ -36,6 +36,15 @@ export class SettingsAvatarPickerComponent {
 
   protected get letter(): string {
     return avatarLetter(this.userInfo.username);
+  }
+
+  /**
+   * The letter tile has to show the disc the app will actually draw, so it takes the same
+   * hashed hue as the avatar. A premium letter is the exception: its ink is the gradient, so
+   * it wants the plate's pale ground instead - see `avatarHueClass`.
+   */
+  protected get letterDisc(): string {
+    return this.userInfo.premium ? 'avatar-plate' : avatarHueClass(this.userInfo.username);
   }
 
   protected useLetter(): void {
