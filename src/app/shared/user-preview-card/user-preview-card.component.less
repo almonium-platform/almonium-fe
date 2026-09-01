@@ -27,7 +27,22 @@ h2 {
   white-space: nowrap;
 }
 
-.member-label { flex: 0 0 auto; color: var(--brand-primary); font-size: .71875rem; font-weight: 500; }
+/* The one pill on this card. It borrows the premium ring's gradient so tier reads as a single
+   signal, not two marks. Free accounts get no pill at all rather than a "Free" one. */
+.member-label {
+  flex: 0 0 auto;
+  padding: .1875rem .5rem .125rem;
+  border-radius: 9999px;
+  background: var(--premium-gradient);
+  color: #FFF1F6;
+  font-size: .59375rem;
+  font-weight: 600;
+  letter-spacing: .05625rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .connection-summary { margin: .1875rem 0 0; color: var(--dark-raspberry); font-size: .78125rem; line-height: 1.35; }
 
 .overflow-trigger {
