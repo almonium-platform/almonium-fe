@@ -46,10 +46,20 @@ export class SocialChannelFacade {
   }
 
   private interlocutorName(channel: Channel): string | undefined {
+    return this.interlocutor(channel)?.name;
+  }
+
+  /** The other person in a 1:1 chat. Null for a channel, for Saved Messages, and while members load. */
+  interlocutorId(channel: Channel): string | null {
+    if (!this.isPrivate(channel)) return null;
+    return this.interlocutor(channel)?.id ?? null;
+  }
+
+  private interlocutor(channel: Channel) {
     const currentUserId = this.chatService.chatClient.userID;
     return Object.values(channel.state.members)
       .find(member => member.user?.id !== currentUserId)
-      ?.user?.name;
+      ?.user;
   }
 
   isPrivate(channel: Channel): boolean {

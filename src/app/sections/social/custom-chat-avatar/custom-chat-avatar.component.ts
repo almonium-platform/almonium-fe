@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
@@ -48,6 +48,11 @@ export class CustomChatAvatarComponent
   @Input() initialsType:
     | 'first-letter-of-first-word'
     | 'first-letter-of-each-word' = 'first-letter-of-first-word';
+  /**
+   * Draw the member ring around the disc. The caller decides who earns it - this component only
+   * knows that a system place is never a member.
+   */
+  @Input() premium = false;
   isError = false;
   initials = '';
   hueClass = avatarHueClass('');
@@ -135,6 +140,11 @@ export class CustomChatAvatarComponent
     );
 
     return otherMembers.length === 1 ? otherMembers[0].user : undefined;
+  }
+
+  @HostBinding('class.premium-ring')
+  get memberRing(): boolean {
+    return this.premium && !this.isSavedMessages;
   }
 
   protected get isSavedMessages(): boolean {

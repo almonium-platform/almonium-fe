@@ -30,3 +30,38 @@
     width: 100%;
   }
 }
+
+/*
+ * 08: the member ring. 2px of gradient and a 2px gap, both taken out of the avatar's own box
+ * rather than added around it, so a row with a ring is exactly as tall as one without.
+ */
+:host(.premium-ring) {
+  --premium-ring-width: 2px;
+  /* ring plus the gap inside it */
+  --premium-ring-inset: 4px;
+
+  background: var(--premium-gradient);
+  border-radius: 50%;
+  display: inline-grid;
+  padding: var(--premium-ring-inset);
+  position: relative;
+}
+
+/*
+ * The gap is the row showing through, and the selected row's tint is translucent on dark, so it
+ * is painted as a layer over the list's own ground rather than as a flat colour of its own.
+ */
+:host(.premium-ring)::before {
+  background-color: var(--card-color);
+  background-image: linear-gradient(var(--avatar-ring-gap, transparent), var(--avatar-ring-gap, transparent));
+  border-radius: 50%;
+  content: '';
+  inset: var(--premium-ring-width);
+  position: absolute;
+}
+
+:host(.premium-ring) .str-chat__avatar {
+  --str-chat__avatar-size: calc(var(--avatar-ring-box, 2.375rem) - 2 * var(--premium-ring-inset));
+
+  position: relative;
+}

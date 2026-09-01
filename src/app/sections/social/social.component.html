@@ -229,6 +229,7 @@
                     [name]="name"
                     [imageUrl]="imageUrl"
                     [location]="location"
+                    [premium]="!sidebar.isCollapsed && isMemberRow(channel)"
                     [tuiHint]="sidebar.isCollapsed ? name : ''"
                     tuiHintAppearance="dark"
                     tuiHintDirection="end"

@@ -156,6 +156,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected peopleUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
   protected friends: RelatedUserProfile[] = [];
+  /** 08: who in the chat list wears the member ring. Only ids - the rest of the profile is the card's job. */
+  private premiumMemberIds = new Set<string>();
   protected incomingRequestsCount = 0;
   /** Two characters is enough to be looking for a handle; three hid too many people. */
   protected static readonly MIN_HANDLE_SEARCH_LENGTH = 2;
@@ -279,6 +281,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.registerMessageActions();
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
+    // The chat list draws the member ring off this, so it is needed before People is ever opened.
+    this.getFriends();
     this.listenToUsernameField();
     this.listenToFriendSearch();
     this.listenToChannelSearch();
@@ -658,6 +662,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: friends => {
         this.friends = friends;
         this.peopleUserTiles = friends;
+        this.premiumMemberIds = new Set(friends.filter(friend => friend.premium).map(friend => friend.id));
       },
       error: error => this.showSocialLoadError('friends', error),
     });
@@ -1159,6 +1164,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected hoveredInterlocutorId = undefined;
+
+  /**
+   * 08: the member ring in the chat list. Humans only - never a channel, Saved Messages or the
+   * brand row - and the caller drops it in the 72px rail, where the plum selection ring is
+   * already on those pixels and "where am I" beats "who is a member".
+   */
+  protected isMemberRow(channel: Channel): boolean {
+    const interlocutorId = this.channels.interlocutorId(channel);
+    return !!interlocutorId && this.premiumMemberIds.has(interlocutorId);
+  }
 
   getInterlocutorId(): string | null {
     // Ensure hoveredChannel and members exist

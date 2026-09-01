@@ -8,6 +8,9 @@
 @chat-reaction-chip-height: 1.5rem;
 @chat-reaction-row-gap: .25rem;
 
+// The chat row's avatar box. The member ring is drawn inside it, so both follow one number.
+@chat-preview-avatar-size: 2.375rem;
+
 // for tui-badge-notification red dot
 ::ng-deep .t-badge_top {
   top: 2px !important;
@@ -144,6 +147,8 @@
     // selected chat preview
     background-color: var(--chat-selected-color);
     color: var(--text-color);
+    // 08: the gap inside a member ring is whatever the row itself is painted with.
+    --avatar-ring-gap: var(--chat-selected-color);
 
     .muted-icon {
       color: var(--text-color);
@@ -152,6 +157,7 @@
     // Ensure hover does not affect active state
     &:hover {
       background-color: var(--chat-selected-color) !important;
+      --avatar-ring-gap: var(--chat-selected-color);
     }
 
     .str-chat__icon {
@@ -173,6 +179,7 @@
 
   &:hover {
     background-color: var(--gray-bg);
+    --avatar-ring-gap: var(--gray-bg);
 
     .online-indicator-buffer {
       background-color: var(--gray-bg);
@@ -463,7 +470,12 @@
 /* 01: the chat row's avatar, and the 30px disc a run indents past. */
 ::ng-deep .str-chat__avatar--channel-preview,
 ::ng-deep .stream-chat__avatar--channel-preview {
-  --str-chat__avatar-size: 2.375rem;
+  --str-chat__avatar-size: @chat-preview-avatar-size;
+}
+
+/* 08: the member ring gives back what it takes, so the ringed row keeps the same box. */
+::ng-deep .custom-chat-avatar.premium-ring {
+  --avatar-ring-box: @chat-preview-avatar-size;
 }
 
 ::ng-deep .str-chat__message-sender-avatar {
