@@ -23,7 +23,11 @@
         <div class="username-row">
           <h2>{{ profile.username }}</h2>
           @if (profile.isPremium) {
-            <span class="member-label">Member</span>
+            <span class="premium-star" role="img" aria-label="Premium member">
+              <svg viewBox="0 0 24 24" width="10" height="10" aria-hidden="true">
+                <path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
+              </svg>
+            </span>
           }
         </div>
         @if (connectionSummary; as summary) {
