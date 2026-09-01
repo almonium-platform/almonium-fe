@@ -1,0 +1,57 @@
+/*
+ * Stream's palette, rewritten in Almonium's tokens.
+ *
+ * The SDK ships two themes of its own — a light one on `.str-chat` and a dark one on
+ * `.str-chat__theme-dark`, which `AppComponent` keeps in step with `data-theme`. Both are
+ * built from neutral greys and a blue accent: the dark one grounds at #080707 and writes in
+ * #ffffff, the two colours the dark spec rules out outright. Overriding the surfaces we
+ * happen to notice, one selector at a time, leaves everything else on that palette, so this
+ * file replaces it at the root instead. Every `--str-chat__*` role below points at an
+ * application token, and each theme's values arrive when `data-theme` flips those tokens —
+ * one mapping, not two.
+ *
+ * Must stay after the SDK's stylesheet in `styles.scss`: these selectors carry the same
+ * specificity as the ones they replace, so the cascade decides on source order.
+ */
+.str-chat,
+.str-chat__theme-light,
+.str-chat__theme-dark {
+  // Brand
+  --str-chat__primary-color: var(--brand-primary);
+  --str-chat__primary-color-low-emphasis: var(--brand-margin);
+  --str-chat__primary-overlay-color: color-mix(in srgb, var(--brand-primary) 60%, transparent);
+  --str-chat__active-primary-color: var(--brand-pressed);
+  --str-chat__on-primary-color: var(--on-brand-color);
+
+  // Grounds and surfaces. The list, the header and the composer are the panel; the message
+  // list drops to the page ground on its own so bubbles read as raised above it.
+  --str-chat__background-color: var(--card-color);
+  --str-chat__secondary-background-color: var(--card-color);
+  --str-chat__surface-color: var(--hairline-color);
+  --str-chat__secondary-surface-color: var(--nested-color);
+  --str-chat__tertiary-surface-color: var(--state-hover);
+  --str-chat__primary-surface-color: var(--chat-own-bubble-color);
+  --str-chat__primary-surface-color-low-emphasis: var(--state-selected);
+
+  // Text
+  --str-chat__text-color: var(--text-color);
+  --str-chat__text-low-emphasis-color: var(--metadata-color);
+
+  // States
+  --str-chat__disabled-color: var(--disabled-fill-color);
+  --str-chat__on-disabled-color: var(--disabled-label-color);
+  --str-chat__danger-color: var(--danger-text-color);
+  --str-chat__info-color: var(--success-color);
+  --str-chat__message-highlight-color: var(--state-selected);
+  --str-chat__unread-badge-color: var(--chat-accent-color);
+  --str-chat__on-unread-badge-color: var(--on-brand-color);
+
+  // Overlays. The scrim and the box shadow follow the theme; the two that sit on top of
+  // uploaded media do not, because a photo is the same brightness in either one.
+  --str-chat__overlay-color: var(--scrim);
+  --str-chat__box-shadow-color: var(--shadow-color);
+  --str-chat__secondary-overlay-color: rgba(20, 17, 26, .45);
+  --str-chat__secondary-overlay-text-color: #F1EAEF;
+  --str-chat__opaque-surface-background-color: rgba(20, 17, 26, .82);
+  --str-chat__opaque-surface-text-color: #F1EAEF;
+}

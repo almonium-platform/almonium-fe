@@ -28,7 +28,9 @@
   --disabled-fill-color: #e8e2e6;
   --disabled-label-color: #8b8290;
   --on-brand-color: #fff;
-  --overlay-shadow: 0 16px 40px rgba(44, 37, 48, .16);
+  --shadow-color: rgba(44, 37, 48, .16);
+  --overlay-shadow: 0 16px 40px var(--shadow-color);
+  --scrim: rgba(43, 43, 43, .78);
   --state-hover: rgba(44, 37, 48, .04);
   --state-pressed: rgba(44, 37, 48, .08);
   --state-selected: #faf6fb;
@@ -41,6 +43,13 @@
   --chat-accent-color: var(--brand-primary);
   --chat-bg-color: var(--page-ground);
   --chat-lite: var(--brand-primary);
+  // Chat surfaces. Named separately from the card/nested pair because the two
+  // themes do not step the same way: on cream an incoming bubble floats to
+  // white, on the dark ground it climbs two steps to read as raised at all.
+  --chat-incoming-bubble-color: var(--card-color);
+  --chat-own-bubble-color: var(--dark-raspberry);
+  --chat-own-ink: #FFF8F5;
+  --chat-avatar-ground: var(--control-border-color);
   --pale-purple: #958ba5;
   --lavender: var(--metadata-color);
   --purple-dark: var(--brand-margin);

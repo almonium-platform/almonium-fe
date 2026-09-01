@@ -19,8 +19,8 @@
 
 // my messages color
 ::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
-  background-color: var(--dark-raspberry);
-  color: var(--on-brand-color);
+  background-color: var(--chat-own-bubble-color);
+  color: var(--chat-own-ink);
 }
 
 ::ng-deep .str-chat__reaction-selector {
@@ -51,7 +51,7 @@
 // read icon on my messages
 ::ng-deep .str-chat__message.str-chat__message--me {
   .str-chat__icon {
-    color: var(--text-color);
+    color: var(--chat-own-ink);
   }
 }
 
@@ -62,12 +62,12 @@
 }
 
 ::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-text-value {
-  color: var(--on-brand-color);
+  color: var(--chat-own-ink);
 }
 
 // interlocutor's messages color
 ::ng-deep .str-chat__message .str-chat__message-bubble {
-  background-color: var(--card-color);
+  background-color: var(--chat-incoming-bubble-color);
   border: 1px solid var(--hairline-color);
 }
 
@@ -118,6 +118,15 @@
 
 ::ng-deep .str-chat__channel-preview-messenger--time {
   min-width: fit-content;
+}
+
+/*
+ * The preview line is the quieter half of the row. Stream tints it, but its rule is nested
+ * under the first row while the template renders the line in the second, so it never lands
+ * and the line inherits full-strength ink - loudest on dark, where that is near-white.
+ */
+::ng-deep .str-chat__channel-preview-end-second-row .str-chat__channel-preview-messenger--last-message {
+  color: var(--subhead-color);
 }
 
 ::ng-deep .str-chat__channel-preview-messenger.str-chat__channel-preview {
@@ -171,17 +180,18 @@
   background-color: var(--card-color);
 }
 
-::ng-deep .str-chat__message .str-chat__message-metadata, .str-chat__message .str-chat__custom-message-metadata {
-  color: var(--text-color);
+::ng-deep .str-chat__message .str-chat__message-metadata,
+::ng-deep .str-chat__message .str-chat__custom-message-metadata {
+  color: var(--metadata-color);
 }
 
 // in chat window, separator lines for timeline
 ::ng-deep .str-chat__date-separator {
-  color: var(--text-color);
+  color: var(--metadata-color);
 }
 
 ::ng-deep .str-chat__date-separator-line {
-  background-color: var(--text-color);
+  background-color: var(--hairline-color);
 }
 
 // You have no channels currently, No chats here yet...
@@ -244,7 +254,7 @@
 
 // You can't send messages in this channel
 ::ng-deep .str-chat__message-input .str-chat__message-input-not-allowed {
-  color: var(--chat-bg-color);
+  color: var(--metadata-color);
 }
 
 // barely visible grey separator on the right side of the channel list
@@ -279,7 +289,7 @@
   display: flex;
   align-items: center;
   text-align: center;
-  color: var(--text-color);
+  color: var(--dark-raspberry);
   position: relative;
   margin: 1rem 0;
   background-color: transparent;
@@ -291,7 +301,7 @@
   flex: none;
   width: 38%;
   height: var(--str-chat__spacing-px);
-  background-color: var(--text-color);
+  background-color: var(--hairline-color);
 }
 
 ::ng-deep .str-chat__unread-messages-separator::before {
@@ -341,7 +351,7 @@
   z-index: 1;
 
   &.mine {
-    color: color-mix(in srgb, var(--on-brand-color) 66%, transparent);
+    color: color-mix(in srgb, var(--chat-own-ink) 66%, transparent);
   }
 
   .message-stamp-receipt {

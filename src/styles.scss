@@ -1,4 +1,6 @@
 @use 'stream-chat-angular/src/assets/styles/scss/index.scss';
+// Repaints the SDK's own palette in application tokens. Order matters — see the file.
+@use 'styles/stream-theme';
 @import '@fontsource/literata/400.css';
 @import '@fontsource/literata/400-italic.css';
 @import '@fontsource/literata/500.css';

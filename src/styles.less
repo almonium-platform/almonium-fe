@@ -39,7 +39,10 @@ html[data-motion='reduced'] *::after {
   --on-brand-color: #14111A;
   --disabled-fill-color: #2A2433;
   --disabled-label-color: #6E637A;
-  --overlay-shadow: 0 16px 40px rgba(0, 0, 0, .55);
+  --shadow-color: rgba(0, 0, 0, .55);
+  --overlay-shadow: 0 16px 40px var(--shadow-color);
+  --scrim: rgba(10, 8, 14, .72);
+  --avatar-ground: #332C3C;
   --state-hover: rgba(241, 234, 239, .06);
   --state-pressed: rgba(241, 234, 239, .1);
   --state-selected: rgba(203, 163, 224, .14);
@@ -62,6 +65,10 @@ html[data-motion='reduced'] *::after {
   --chat-accent-color: var(--brand-primary);
   --chat-bg-color: var(--page-ground);
   --chat-lite: var(--brand-pressed);
+  --chat-incoming-bubble-color: var(--nested-color);
+  --chat-own-bubble-color: #7C2D53;
+  --chat-own-ink: #FFF1F6;
+  --chat-avatar-ground: var(--hairline-color);
   --tui-background-accent-1: var(--brand-primary);
   --tui-background-accent-1-hover: var(--brand-hover);
   --tui-background-accent-1-pressed: var(--brand-pressed);
