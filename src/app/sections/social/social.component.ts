@@ -1191,8 +1191,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private static readonly PREVIEW_CARD_OPEN_DELAY_MS = 120;
   private hoverOpenTimeout?: ReturnType<typeof setTimeout>;
 
-  startAvatarHover(channel: Channel, location: string) {
-    if (this.isPreviewCardPinned) return;
+  startAvatarHover(channel: Channel | undefined, location: string) {
+    if (!channel || this.isPreviewCardPinned) return;
     clearTimeout(this.timeout);
     clearTimeout(this.hoverOpenTimeout);
     this.hoverOpenTimeout = this.schedule(() => {
@@ -1202,8 +1202,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /** Click and keyboard focus open the same card, and pin it until it is dismissed. */
-  protected togglePreviewCard(channel: Channel, location: AvatarLocation) {
-    if (!this.channels.isPrivate(channel)) return;
+  protected togglePreviewCard(channel: Channel | undefined, location: AvatarLocation) {
+    if (!channel || !this.channels.isPrivate(channel)) return;
     clearTimeout(this.timeout);
     clearTimeout(this.hoverOpenTimeout);
 
@@ -1256,7 +1256,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private excludedLocations: AvatarLocation[] = ['channel-preview', 'channel-header'];
 
-  shouldShowDropdown(channel: Channel, location: AvatarLocation): boolean {
+  shouldShowDropdown(channel: Channel | undefined, location: AvatarLocation): boolean {
     if (!this.excludedLocations.includes(location)) {
       return false;
     }
@@ -1265,7 +1265,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       && (this.hoveredChannel !== null)
       && this.channels.isPrivate(this.hoveredChannel);
 
-    return firstCheck && channel.cid === this.hoveredChannel?.cid;
+    return firstCheck && !!channel && channel.cid === this.hoveredChannel?.cid;
   }
 
   setPeopleMode(mode: string) {

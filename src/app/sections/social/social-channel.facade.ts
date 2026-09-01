@@ -52,9 +52,13 @@ export class SocialChannelFacade {
   /**
    * Membership is a field on the Stream user, so the chat list can ring a member's avatar without
    * a request of its own - and without the person having to be a friend.
+   *
+   * Stream hands the avatar template a channel only where the avatar stands for one. A message
+   * sender, a header, a typing indicator all arrive with `channel` undefined, and this binding is
+   * read on every change detection, so an absent channel has to mean "no ring" rather than a throw.
    */
-  isInterlocutorPremium(channel: Channel): boolean {
-    return this.isPrivate(channel) && this.interlocutor(channel)?.premium === true;
+  isInterlocutorPremium(channel: Channel | undefined): boolean {
+    return !!channel && this.isPrivate(channel) && this.interlocutor(channel)?.premium === true;
   }
 
   private interlocutor(channel: Channel) {

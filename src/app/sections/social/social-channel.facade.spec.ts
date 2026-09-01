@@ -78,6 +78,12 @@ describe('SocialChannelFacade', () => {
     expect(facade.isInterlocutorPremium(broadcast)).toBeFalse();
   });
 
+  it('rings nothing when Stream hands the avatar template no channel at all', () => {
+    // A message sender, a header or a typing indicator arrives with channel undefined, and the
+    // binding is read on every change detection.
+    expect(facade.isInterlocutorPremium(undefined)).toBeFalse();
+  });
+
   it('keeps the stored name of every other channel', () => {
     const broadcast = channel('broadcast', {name: 'Almonium — Deutsch'}, []);
 
