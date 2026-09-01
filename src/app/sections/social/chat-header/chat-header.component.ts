@@ -32,10 +32,7 @@ function topicOf(name: string): string {
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
       [ngClass]="!isSelfChat ? 'pb-1 pt-1' : ''"
-      [ngStyle]="{
-        'color': isPrivateChat && isInterlocutorOnline ? 'var(--chat-accent-color)' : '',
-        'row-gap': isSelfChat ? 'unset' : ''
-        }">
+      [ngStyle]="{'row-gap': isSelfChat ? 'unset' : ''}">
       @if (!isSelfChat) {
         @if (isBroadcastChannel) {
           <!-- A room is a channel: the subtitle carries the type, so nobody tries to talk. -->
@@ -55,9 +52,14 @@ function topicOf(name: string): string {
                   <span>typing...</span>
                 }
                 @if (typingUsers.length === 0) {
-                  <span>
-                    {{ isInterlocutorOnline ? 'online' : (lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline') }}
-                  </span>
+                  <!-- Presence reads as a dot plus a word, so "online" never has to shout in colour. -->
+                  @if (isInterlocutorOnline) {
+                    <span class="presence"><span class="presence-dot"></span>online</span>
+                  } @else {
+                    <span class="presence">
+                      {{ lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline' }}
+                    </span>
+                  }
                 }
               }
             }
@@ -86,7 +88,21 @@ function topicOf(name: string): string {
   ],
   styles: [`
     .str-chat__channel-header-info {
-      color: #708599;
+      color: var(--metadata-color);
+    }
+
+    .presence {
+      align-items: center;
+      display: inline-flex;
+      gap: .375rem;
+    }
+
+    .presence-dot {
+      background: var(--success-color);
+      border-radius: 50%;
+      display: block;
+      height: .375rem;
+      width: .375rem;
     }
   `],
   providers: [DatePipe]

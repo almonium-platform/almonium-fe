@@ -3,8 +3,16 @@ import {parsePublicUserProfiles, parseRelatedUserProfiles} from './social.model'
 
 describe('social API validation', () => {
   it('parses user search results from the backend contract', () => {
-    expect(parsePublicUserProfiles([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true}]))
-      .toEqual([{id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true}]);
+    expect(parsePublicUserProfiles([
+      {id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true, learning: ['es', 'de']},
+    ])).toEqual([
+      {id: 'user-1', username: 'Ada', avatarUrl: 'avatar.png', premium: true, learning: ['es', 'de']},
+    ]);
+  });
+
+  it('reads a profile with no languages to show as an empty list', () => {
+    expect(parsePublicUserProfiles([{id: 'user-1', username: 'Ada', avatarUrl: null, premium: false}]))
+      .toEqual([{id: 'user-1', username: 'Ada', avatarUrl: null, premium: false, learning: []}]);
   });
 
   it('rejects an unknown relationship status', () => {

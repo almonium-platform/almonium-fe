@@ -22,6 +22,30 @@
   ></stream-message-actions-box>
 </ng-template>
 
+<!--
+  02: the day divider owns the date and the bubble owns the time, so the stamp rides inside the
+  pill instead of restating "Today at" underneath it. The read receipt comes with it.
+-->
+<ng-template #messageStamp let-message="message">
+  <span class="message-stamp" [class.mine]="isOwnMessage(message)">
+    <span class="message-stamp-time">{{ message.created_at | date: 'h:mm a' }}</span>
+    @if (isOwnMessage(message)) {
+      <lucide-icon class="message-stamp-receipt"
+                   [name]="receiptIcon(message)"
+                   [size]="13"
+                   [strokeWidth]="2"
+      ></lucide-icon>
+    }
+  </span>
+</ng-template>
+
+<!-- 03: every post carries the thing it announces as a footer action. -->
+<ng-template #postCta let-message="message">
+  @if (postCtaLabel(message); as label) {
+    <button type="button" class="post-cta" (click)="openPostCta(message)">{{ label }}</button>
+  }
+</ng-template>
+
 <div class="super-container">
   <div class="left-container"
        appSocialSidebarResize
@@ -626,7 +650,13 @@
                                   [ring]="true"
                                   [size]="'m'"
                       ></app-avatar>
-                      <p class="username">{{ candidate.username }}</p>
+                      <span class="tile-body">
+                        <span class="username">{{ candidate.username }}</span>
+                        <!-- A friend has already said what they are; everyone else is what they study. -->
+                        @if (personSubtitle(candidate, candidateState(candidate)); as subtitle) {
+                          <span class="person-subtitle">{{ subtitle }}</span>
+                        }
+                      </span>
 
                       @if (sendRequestInProgressIds.has(candidate.id)) {
                         <lucide-icon name="loader-circle"
@@ -639,10 +669,7 @@
                           @case ('friend') {
                             <button type="button"
                                     class="friend-action action-button positive"
-                                    (click)="messageCandidate(candidate)">
-                              <lucide-icon name="message-circle" [size]="17"></lucide-icon>
-                              Message
-                            </button>
+                                    (click)="messageCandidate(candidate)">Message</button>
                           }
                           @case ('requested') {
                             <button type="button"
@@ -655,12 +682,10 @@
                                     disabled>Blocked</button>
                           }
                           @default {
+                            <!-- Add is the row's commitment, so it is filled the way Accept is. -->
                             <button type="button"
-                                    class="friend-action action-button positive"
-                                    (click)="sendFriendRequest(candidate.id)">
-                              <lucide-icon name="user-round-plus" [size]="18"></lucide-icon>
-                              Add
-                            </button>
+                                    class="friend-action action-button primary-action"
+                                    (click)="sendFriendRequest(candidate.id)">Add</button>
                           }
                         }
                       }
@@ -690,7 +715,7 @@
                         autocomplete="off"
                         autocapitalize="none"
                         spellcheck="false"
-                        placeholder="Type a username"
+                        placeholder="Find anyone by @handle"
                       />
                     </tui-textfield>
                     @if (peopleUserTiles.length === 0 && friendFormControl.value !== '') {
@@ -730,7 +755,7 @@
                                   [ring]="true"
                                   [size]="'m'"
                       ></app-avatar>
-                      <p class="username">{{ friend.username }}</p>
+                      <span class="tile-body"><span class="username">{{ friend.username }}</span></span>
 
                       @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
                         <lucide-icon name="loader-circle"
@@ -763,7 +788,7 @@
                                   [ring]="true"
                                   [size]="'m'"
                       ></app-avatar>
-                      <p class="username">{{ friend.username }}</p>
+                      <span class="tile-body"><span class="username">{{ friend.username }}</span></span>
 
                       @if (cancelInProgressIds.has(friend.relationshipId)) {
                         <lucide-icon name="loader-circle"
@@ -787,7 +812,12 @@
                               [ring]="true"
                               [size]="'m'"
                   ></app-avatar>
-                  <p class="username">{{ friend.username }}</p>
+                  <span class="tile-body">
+                    <span class="username">{{ friend.username }}</span>
+                    @if (peopleMode === 'friends' && personSubtitle(friend); as subtitle) {
+                      <span class="person-subtitle">{{ subtitle }}</span>
+                    }
+                  </span>
 
                   @if (peopleMode === 'friends') {
                     <lucide-icon name="ellipsis"

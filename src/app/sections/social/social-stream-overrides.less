@@ -19,7 +19,7 @@
 
 // my messages color
 ::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
-  background-color: var(--chat-lite);
+  background-color: var(--dark-raspberry);
   color: var(--on-brand-color);
 }
 
@@ -307,10 +307,108 @@
   display: none;
 }
 
-/* Consecutive messages in a run indent to where the one avatar sits. */
-::ng-deep .str-chat__li--middle .str-chat__message-bubble,
-::ng-deep .str-chat__li--top .str-chat__message-bubble {
-  border-start-start-radius: var(--str-chat__border-radius-xs, .25rem);
+/*
+ * ---- 02: the bubble owns the time ----
+ *
+ * Stream renders the timestamp in a metadata row underneath the bubble, spelled "Today at 2:09 AM"
+ * - a date the day divider directly above has already given, and a shape the mock does not draw.
+ * The row goes, and the clock plus its read receipt ride inside the pill instead. Stream keeps that
+ * stamp outside the bubble element, so it is placed into the bubble's own grid cell and pinned to
+ * the corner, with an inline spacer at the end of the text reserving the room it needs.
+ */
+::ng-deep .chat-window:not(.broadcast) .str-chat__message-metadata {
+  display: none;
+}
+
+::ng-deep .str-chat__message-inner .message-stamp {
+  align-items: center;
+  align-self: end;
+  color: var(--metadata-color);
+  display: flex;
+  font-size: .65625rem;
+  gap: .25rem;
+  grid-area: message-bubble;
+  justify-self: end;
+  line-height: 1;
+  padding: 0 .8125rem .4375rem;
+  pointer-events: none;
+
+  &.mine {
+    color: color-mix(in srgb, var(--on-brand-color) 66%, transparent);
+  }
+
+  .message-stamp-receipt {
+    display: block;
+  }
+}
+
+/* The spacer keeps the last line of text clear of the stamp, however the text wraps. */
+::ng-deep .str-chat__message-text-inner::after {
+  content: '';
+  display: inline-block;
+  width: 3.25rem;
+}
+
+::ng-deep .str-chat__message--me .str-chat__message-text-inner::after {
+  width: 4.5rem;
+}
+
+::ng-deep .chat-window.broadcast {
+  .message-stamp {
+    display: none;
+  }
+
+  .str-chat__message-text-inner::after {
+    content: none;
+  }
+}
+
+/* The pill itself, to the mock's measurements. */
+::ng-deep .str-chat__message .str-chat__message-bubble {
+  border-radius: 1rem;
+
+  .str-chat__message-text {
+    font-size: .875rem;
+    line-height: 1.5;
+    padding: .5625rem .8125rem .4375rem;
+  }
+}
+
+/* Consecutive messages in a run indent to where the one avatar sits, and square the joined corner. */
+::ng-deep .str-chat__li--middle,
+::ng-deep .str-chat__li--bottom {
+  .str-chat__message--other .str-chat__message-bubble {
+    border-start-start-radius: .25rem;
+  }
+
+  .str-chat__message--me .str-chat__message-bubble {
+    border-start-end-radius: .25rem;
+  }
+}
+
+::ng-deep .str-chat__li--top,
+::ng-deep .str-chat__li--single {
+  .str-chat__message--other .str-chat__message-bubble {
+    border-end-start-radius: .25rem;
+  }
+
+  .str-chat__message--me .str-chat__message-bubble {
+    border-end-end-radius: .25rem;
+  }
+}
+
+/* 01: the chat row's avatar, and the 30px disc a run indents past. */
+::ng-deep .str-chat__avatar--channel-preview,
+::ng-deep .stream-chat__avatar--channel-preview {
+  --str-chat__avatar-size: 2.375rem;
+}
+
+::ng-deep .str-chat__message-sender-avatar {
+  --str-chat__avatar-size: 1.875rem;
+}
+
+::ng-deep .str-chat__message--other {
+  column-gap: .625rem;
 }
 
 /*
@@ -326,15 +424,21 @@
     display: none;
   }
 
+  // The announced thing is the last line of the card, under the time it was posted at.
   .str-chat__message.str-chat__message--other {
     grid-template-areas:
       'message-reminder'
       'message'
       'replies'
       'translation-notice'
-      'custom-metadata'
-      'metadata';
+      'metadata'
+      'custom-metadata';
     grid-template-columns: 1fr;
+  }
+
+  .str-chat__custom-message-metadata {
+    margin: 0;
+    width: 100%;
   }
 
   // the message container is the card: full column width, hairline, no shadow
@@ -390,5 +494,29 @@
     color: var(--metadata-color);
     font-size: .66rem;
     margin-block-start: .45rem;
+  }
+}
+
+/*
+ * 03: every post carries the thing it announces as a footer action - one strip across the foot of
+ * the card, divided from the text by the same hairline that draws the card.
+ */
+::ng-deep .chat-window.broadcast .post-cta {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--hairline-color);
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  display: block;
+  font: 500 .8125rem/1 var(--font-family-ui);
+  margin: .55rem -1.05rem -.7rem;
+  padding: .625rem 1.05rem;
+  text-align: left;
+  width: calc(100% + 2.1rem);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: none;
   }
 }

@@ -37,14 +37,31 @@
     outline: none;
   }
 }
+/* 04: a name over the one line that says who this is - what they study, or that they are a friend. */
+.tile-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .0625rem;
+  margin-left: .6875rem;
+  min-width: 0;
+}
 .username {
-  font-size: 1.1rem;
-  font-weight: 600;
-  display: inline;
-  margin-left: .9rem;
+  color: var(--text-color);
+  font: 500 .90625rem/1.3 var(--font-family-reading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.person-subtitle {
+  color: var(--metadata-color);
+  font-size: .75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .user-tile {
-  padding: .5rem;
+  padding: .5625rem .625rem;
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -55,7 +72,6 @@
   .friend-action {
     margin-left: auto;
     cursor: pointer;
-    padding: .5rem;
 
     &.negative {
       color: var(--danger-text-color);
@@ -65,13 +81,18 @@
       color: var(--tui-background-accent-1);
     }
 
-    &.secondary {
-      margin-left: unset;
+    /* The pills sit together at the row's end, so only the first of a pair claims the gap. */
+    & + .friend-action {
+      margin-left: .5rem;
     }
 
     &:hover {
       opacity: .8;
     }
+  }
+
+  lucide-icon.friend-action {
+    padding: .5rem;
   }
 
   .action-button {
@@ -81,20 +102,29 @@
     border-radius: 999px;
     color: var(--subhead-color);
     display: inline-flex;
-    font: 600 .75rem/1 var(--font-family-ui);
+    flex: none;
+    font: 500 .75rem/1 var(--font-family-ui);
     gap: .35rem;
-    min-height: 2rem;
-    padding: .45rem .75rem;
+    min-height: 1.75rem;
+    padding: .3125rem .8125rem;
+    white-space: nowrap;
 
-    &.positive,
-    &.primary-action {
-      color: var(--brand-primary);
+    &.positive {
+      color: var(--dark-raspberry);
     }
 
+    /* Add and Accept are commitments, and a commitment is a filled pill. */
     &.primary-action {
-      background: var(--brand-primary);
-      border-color: var(--brand-primary);
+      background: var(--dark-raspberry);
+      border-color: var(--dark-raspberry);
       color: var(--on-brand-color);
+    }
+
+    /* Decline and Cancel step back: a quiet chip with no outline of its own. */
+    &.secondary {
+      background: var(--nested-color);
+      border-color: transparent;
+      color: var(--subhead-color);
     }
 
     &:focus-visible {
@@ -116,6 +146,10 @@
 .search-icon {
   display: none;
 }
+/*
+ * 01: the field is an outlined box on the card, not a grey pill - a 1px hairline at rest and a
+ * plum ring once it has focus, so it reads as somewhere you can type before you type in it.
+ */
 .search-header {
   align-items: center;
   display: flex;
@@ -124,6 +158,24 @@
   .chat-input {
     flex: 1;
     min-width: 0;
+  }
+}
+.search-header .chat-input,
+.search-container .username-input {
+  --tui-radius-l: .625rem;
+  --tui-radius-m: .625rem;
+  background: var(--card-color);
+  border: 1px solid var(--control-border-color);
+  border-radius: .625rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+
+  &:focus-within {
+    border-color: var(--dark-raspberry);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--dark-raspberry) 18%, transparent);
+  }
+
+  input {
+    background: transparent;
   }
 }
 .search-clear {

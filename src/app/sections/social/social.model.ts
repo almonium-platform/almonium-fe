@@ -15,6 +15,8 @@ export interface PublicUserProfile {
   username: string;
   avatarUrl: string | null;
   premium: boolean;
+  /** Language codes the person studies. Empty for a hidden profile, and for a backend that predates the field. */
+  learning: string[];
 }
 
 export interface RelatedUserProfile extends PublicUserProfile {
@@ -65,6 +67,12 @@ export function parseUserSearchResults(value: unknown, path = 'user search resul
   });
 }
 
+/** The row draws a subtitle from this, so an absent list is a person with nothing to show, not an error. */
+function parseLearning(value: unknown, path: string): string[] {
+  if (value === null || value === undefined) return [];
+  return expectArray(value, path).map((code, index) => expectString(code, `${path}[${index}]`));
+}
+
 function parsePublicUserProfile(value: unknown, path: string): PublicUserProfile {
   const profile = expectRecord(value, path);
   return {
@@ -72,5 +80,6 @@ function parsePublicUserProfile(value: unknown, path: string): PublicUserProfile
     username: expectString(profile['username'], `${path}.username`),
     avatarUrl: expectNullableString(profile['avatarUrl'], `${path}.avatarUrl`),
     premium: expectBoolean(profile['premium'], `${path}.premium`),
+    learning: parseLearning(profile['learning'], `${path}.learning`),
   };
 }

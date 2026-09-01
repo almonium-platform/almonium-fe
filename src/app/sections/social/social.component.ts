@@ -5,11 +5,12 @@ import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
-import {RelatedUserProfile, RelationshipAction, RelationshipStatus, UserSearchResult} from "./social.model";
+import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus, UserSearchResult} from "./social.model";
+import {LanguageNameService} from "../../services/language-name.service";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
 import {TuiDataList, TuiIcon, TuiNotificationService, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
 import {TuiDropdownDirective, TuiDropdownManual, TuiDropdownOptionsDirective, TuiHintDirective} from "@taiga-ui/core/portals";
-import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
+import {DatePipe, NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
@@ -18,7 +19,7 @@ import {
 import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
-import {ActivatedRoute, Params} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -34,6 +35,7 @@ import {
   DateParserService,
   MessageActionsBoxContext,
   MessageActionsService,
+  CustomMetadataContext,
   MessageService,
   parseDate,
   StreamMessage,
@@ -103,6 +105,7 @@ interface MessageHit {
     TuiDropdownOptionsDirective,
     TuiTextfieldOptionsDirective,
     SocialSidebarResizeDirective,
+    DatePipe,
   ],
   providers: [SocialChannelFacade, SocialConfirmationService, DateParserService],
 })
@@ -110,6 +113,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private socialService = inject(SocialService);
   private alertService = inject(TuiNotificationService);
   private urlService = inject(UrlService);
+  private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   private chatService = inject(ChatClientService);
   private channelService = inject(ChannelService);
@@ -121,6 +125,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private chatUnreadService = inject(ChatUnreadService);
   private cdr = inject(ChangeDetectorRef);
   private dateParser = inject(DateParserService);
+  private languageNames = inject(LanguageNameService);
   protected channels = inject(SocialChannelFacade);
   protected confirmation = inject(SocialConfirmationService);
 
@@ -132,6 +137,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
   @ViewChild('emptyMessageListPlaceholder', {static: true}) emptyMessageListPlaceholder!: TemplateRef<void>;
+  @ViewChild('messageStamp', {static: true}) messageStamp!: TemplateRef<CustomMetadataContext>;
+  @ViewChild('postCta', {static: true}) postCta!: TemplateRef<CustomMetadataContext>;
   @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
 
   private readonly destroy$ = new Subject<void>();
@@ -297,12 +304,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /**
    * 25: a post carries only its clock time. The date separator above it already names
-   * the day, and "Today at 2:51 AM" is the grammar of something someone said to you.
-   * Chat keeps Stream's calendar wording; only a broadcast channel drops the day.
+   * the day, and "Today at 2:51 AM" repeats what the divider already said. The chat bubble
+   * carries the same bare clock inside the pill, so nothing anywhere restates the date.
    */
   private setupPostTimestamps(): void {
-    this.dateParser.customDateTimeParser = date =>
-      parseDate(date, this.isActiveChannelReadOnly ? 'time' : 'date-time');
+    this.dateParser.customDateTimeParser = date => parseDate(date, 'time');
   }
 
   private setupActiveChannelSubscription() {
@@ -376,6 +382,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.channelActionsTemplate$.next(this.customChannelActions);
     this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
     this.customTemplatesService.emptyMainMessageListPlaceholder$.next(this.emptyMessageListPlaceholder);
+    this.customTemplatesService.customMessageMetadataInsideBubbleTemplate$.next(this.messageStamp);
+    this.customTemplatesService.customMessageMetadataTemplate$.next(this.postCta);
   }
 
   private setChatTitle(channel: Channel) {
@@ -687,6 +695,46 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       default:
         return 'none';
     }
+  }
+
+  protected isOwnMessage(message: StreamMessage): boolean {
+    return !!this.userInfo && message.user?.id === this.userInfo.id;
+  }
+
+  /**
+   * A double check once somebody has read it, a single one while it is only delivered: the receipt
+   * the desktop mock draws beside the time, kept rather than dropped with Stream's own metadata row.
+   */
+  protected receiptIcon(message: StreamMessage): string {
+    if (message.status === 'sending') return 'clock';
+    if (message.status === 'failed') return 'circle-x';
+    return message.readBy?.length ? 'check-check' : 'check';
+  }
+
+  /** A post announces something, and the thing it announces rides under it as one action. */
+  protected postCtaLabel(message: StreamMessage): string | null {
+    const label = (message as unknown as Record<string, unknown>)['ctaLabel'];
+    return typeof label === 'string' && label.trim() ? label : null;
+  }
+
+  protected openPostCta(message: StreamMessage): void {
+    const url = (message as unknown as Record<string, unknown>)['ctaUrl'];
+    if (typeof url !== 'string' || !url) return;
+    if (url.startsWith('/')) {
+      void this.router.navigateByUrl(url);
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  }
+
+  /**
+   * The one line under a name in the People panel. A friend already said what they are, so the
+   * search row says "Friend"; everyone else is described by what they study.
+   */
+  protected personSubtitle(person: PublicUserProfile, relationship?: string): string {
+    if (relationship === 'friend') return 'Friend';
+    if (!person.learning.length) return '';
+    return `Learning ${this.languageNames.getLanguageNames(person.learning).join(', ')}`;
   }
 
   protected messageCandidate(candidate: UserSearchResult): void {
