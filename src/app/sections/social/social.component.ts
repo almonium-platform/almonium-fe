@@ -31,9 +31,11 @@ import {
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
+  DateParserService,
   MessageActionsBoxContext,
   MessageActionsService,
   MessageService,
+  parseDate,
   StreamMessage,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
@@ -102,7 +104,7 @@ interface MessageHit {
     TuiTextfieldOptionsDirective,
     SocialSidebarResizeDirective,
   ],
-  providers: [SocialChannelFacade, SocialConfirmationService],
+  providers: [SocialChannelFacade, SocialConfirmationService, DateParserService],
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private socialService = inject(SocialService);
@@ -118,6 +120,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private messageActionsService = inject(MessageActionsService);
   private chatUnreadService = inject(ChatUnreadService);
   private cdr = inject(ChangeDetectorRef);
+  private dateParser = inject(DateParserService);
   protected channels = inject(SocialChannelFacade);
   protected confirmation = inject(SocialConfirmationService);
 
@@ -232,6 +235,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     this.setupChatFormControl();
+    this.setupPostTimestamps();
 
     combineLatest([
       this.userInfoService.userInfo$.pipe(filter(info => !!info)),
@@ -289,6 +293,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.chatFormControl.setValue(trimmedValue, {emitEvent: false});
         }
       });
+  }
+
+  /**
+   * 25: a post carries only its clock time. The date separator above it already names
+   * the day, and "Today at 2:51 AM" is the grammar of something someone said to you.
+   * Chat keeps Stream's calendar wording; only a broadcast channel drops the day.
+   */
+  private setupPostTimestamps(): void {
+    this.dateParser.customDateTimeParser = date =>
+      parseDate(date, this.isActiveChannelReadOnly ? 'time' : 'date-time');
   }
 
   private setupActiveChannelSubscription() {

@@ -312,3 +312,83 @@
 ::ng-deep .str-chat__li--top .str-chat__message-bubble {
   border-start-start-radius: var(--str-chat__border-radius-xs, .25rem);
 }
+
+/*
+ * 25: a channel post is published, not said. There is exactly one author and the
+ * header already names it, so the repeated disc down the left edge is noise, and a
+ * bubble sized to its sentence inherits the wrong grammar. Every rule below turns
+ * Stream's chat message into a post card, and applies only while a broadcast
+ * channel is open.
+ */
+::ng-deep .chat-window.broadcast {
+  // no author disc, and no column left reserved for one
+  .str-chat__message-sender-avatar {
+    display: none;
+  }
+
+  .str-chat__message.str-chat__message--other {
+    grid-template-areas:
+      'message-reminder'
+      'message'
+      'replies'
+      'translation-notice'
+      'custom-metadata'
+      'metadata';
+    grid-template-columns: 1fr;
+  }
+
+  // the message container is the card: full column width, hairline, no shadow
+  .str-chat__message:not(.str-chat__message--system) {
+    background: var(--card-color);
+    border: 1px solid var(--hairline-color);
+    border-radius: .875rem;
+    padding: .95rem 1.05rem .7rem;
+    width: 100%;
+  }
+
+  // one rhythm between posts: a run of them is not a run of chat messages
+  .str-chat__li--top .str-chat__message,
+  .str-chat__li--middle .str-chat__message,
+  .str-chat__li--bottom .str-chat__message,
+  .str-chat__li--single .str-chat__message {
+    margin-block-end: 1rem;
+  }
+
+  // the options button floats over the card so the text never reflows on hover
+  .str-chat__message--other .str-chat__message-inner {
+    grid-template-columns: 1fr auto;
+    margin-inline-end: 0;
+    width: 100%;
+  }
+
+  .str-chat__message-inner .str-chat__message-options {
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    position: absolute;
+  }
+
+  // the bubble stops being a bubble
+  .str-chat__message .str-chat__message-bubble {
+    background: none;
+    border: none;
+    border-radius: 0;
+    max-width: none;
+    width: 100%;
+
+    .str-chat__message-text {
+      padding: 0;
+    }
+  }
+
+  // the time sits inside the card, bottom-left, on every post including a run
+  .str-chat__li--top .str-chat__message .str-chat__message-metadata,
+  .str-chat__li--middle .str-chat__message .str-chat__message-metadata {
+    display: flex;
+  }
+
+  .str-chat__message .str-chat__message-metadata {
+    color: var(--metadata-color);
+    font-size: .66rem;
+    margin-block-start: .45rem;
+  }
+}

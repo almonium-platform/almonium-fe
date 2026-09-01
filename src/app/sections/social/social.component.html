@@ -514,7 +514,8 @@
   </div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
-    <div class="chat-window">
+    <!-- 25: a channel post is published, not said, so its feed drops the chat grammar. -->
+    <div class="chat-window" [class.broadcast]="isActiveChannelReadOnly">
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">
           <app-chat-header [channel]="channel"></app-chat-header>
@@ -538,7 +539,10 @@
         <stream-message-list></stream-message-list>
         @if (isActiveChannelReadOnly) {
           <div class="channel-readonly-footer">
-            <span>Only Almonium posts in this channel</span>
+            <span class="readonly-note">
+              <lucide-icon name="lock" [size]="15" [strokeWidth]="1.7"></lucide-icon>
+              Only Almonium posts in this channel
+            </span>
             @if (activeChannel && isChannelMuted(activeChannel)) {
               <span class="muted-pill">Muted while you read</span>
             }
