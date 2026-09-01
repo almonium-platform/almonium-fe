@@ -12,10 +12,13 @@ import {UserProfileInfo} from "../user-preview-card/user-profile.model";
   template: `
     <app-particles></app-particles>
     @if (publicProfile) {
-      <div class="flex items-center justify-center w-full h-full base-container">
+      <div class="headless-container">
         <app-user-preview-card class="relative" [publicProfile]="publicProfile"></app-user-preview-card>
       </div>
     }
+  `,
+  styles: `
+    .headless-container { background-color: var(--main-bg-color); }
   `,
   standalone: true,
   imports: [
