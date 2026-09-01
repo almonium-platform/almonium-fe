@@ -11,6 +11,7 @@ import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
       [size]="size"
       [tuiSkeleton]="loading"
       [style.background]="discBackground"
+      [style.box-shadow]="discRing"
       [style.font-size]="letterFontSize"
       [style.--t-size]="sizeInRem ? sizeInRem + 'rem' : null"
       [class.premium-letter]="premium && !avatarUrl"
@@ -127,12 +128,21 @@ export class AvatarComponent {
     return this.avatarUrl ? `url("${this.avatarUrl}")` : null;
   }
 
+  /**
+   * The bundled artwork is dark line work on transparency, so the ground under it belongs to
+   * the avatar rather than to the theme - #EFE9E6 in both modes, ringed where it needs
+   * seating. An uploaded photo is opaque and covers the disc, so it gets neither.
+   */
   get discBackground(): string | null {
-    if (this.avatarUrl && !isDefaultAvatar(this.avatarUrl)) {
-      return null;
+    if (!this.avatarUrl) {
+      return 'var(--avatar-ground)';
     }
 
-    return 'var(--avatar-ground)';
+    return isDefaultAvatar(this.avatarUrl) ? 'var(--avatar-plate)' : null;
+  }
+
+  get discRing(): string | null {
+    return isDefaultAvatar(this.avatarUrl) ? '0 0 0 1px var(--avatar-plate-ring)' : null;
   }
 
   get letterFontSize(): string {

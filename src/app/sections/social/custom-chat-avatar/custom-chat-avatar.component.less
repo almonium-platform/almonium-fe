@@ -5,13 +5,7 @@
 /* Stream rounds the image and fallback layers but never the wrapper, so any
    fill painted here reads as a square behind a circular avatar. */
 .str-chat__avatar {
-  background: var(--chat-avatar-ground);
   border-radius: var(--str-chat__avatar-border-radius, 50%);
-  color: var(--subhead-color);
-}
-
-.str-chat__avatar.has-image {
-  background: transparent;
 }
 
 /* Stream paints the fallback layer with its own tokens, and
@@ -22,6 +16,23 @@
   background: transparent;
   color: inherit;
 }
+
+/* Portrait art is dark line work on transparency, so it disappears the moment the backing
+   goes dark. The plate belongs to the avatar rather than to the theme: the same #EFE9E6 in
+   both modes, with a ring that only materialises on dark, where the plate needs seating.
+   The artwork itself is never inverted or brightened - the same face in either theme. */
+.str-chat__avatar.has-image {
+  background: var(--avatar-plate);
+  box-shadow: 0 0 0 1px var(--avatar-plate-ring);
+}
+
+/* No image: the initial rides a disc hashed from the name, so the same person keeps the same
+   colour everywhere. The flat #332C3C puck is for glyph avatars - crests, brand marks, the
+   Saved Messages emblem - and a letter is not one of those. */
+.str-chat__avatar.hue-1 { background: var(--avatar-hue-1); color: var(--avatar-hue-1-ink); }
+.str-chat__avatar.hue-2 { background: var(--avatar-hue-2); color: var(--avatar-hue-2-ink); }
+.str-chat__avatar.hue-3 { background: var(--avatar-hue-3); color: var(--avatar-hue-3-ink); }
+.str-chat__avatar.hue-4 { background: var(--avatar-hue-4); color: var(--avatar-hue-4-ink); }
 
 /* Flat plum disc, cream bookmark. The premium gradient is reserved for premium
    users; Saved Messages is a system place, not a person. */

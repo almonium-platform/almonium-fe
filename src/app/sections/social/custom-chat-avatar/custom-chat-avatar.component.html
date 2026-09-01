@@ -5,7 +5,7 @@
     initialsType === 'first-letter-of-first-word'
       ? 'one-letter'
       : 'multiple-letters'
-  }}"
+  }} {{ discClass }}"
   [class.has-image]="!isSavedMessages && !!(imageUrl || fallbackChannelImage) && !isError"
   [class.saved-messages]="isSavedMessages"
 >

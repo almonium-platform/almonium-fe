@@ -49,7 +49,24 @@
   --chat-incoming-bubble-color: var(--card-color);
   --chat-own-bubble-color: var(--dark-raspberry);
   --chat-own-ink: #FFF8F5;
-  --chat-avatar-ground: var(--control-border-color);
+  --chat-unread-fill: var(--chat-accent-color);
+  --chat-unread-ink: var(--on-brand-color);
+  // The plate an avatar carries with it. Generated portraits are dark line work on
+  // transparency, so the ground under them is a property of the avatar, not of the theme:
+  // one value for both modes, and a ring that only appears where the plate needs seating.
+  --avatar-plate: #EFE9E6;
+  --avatar-plate-ring: transparent;
+  // Four fixed hues for the initial fallback, picked by a hash of the name. Matched in
+  // luminance so no one's disc reads louder than anyone else's, and dark enough to carry
+  // its own near-white letter on either ground.
+  --avatar-hue-1: #5C3B57;
+  --avatar-hue-1-ink: #F6E8EF;
+  --avatar-hue-2: #3E4A6B;
+  --avatar-hue-2-ink: #E6ECF8;
+  --avatar-hue-3: #2F4E47;
+  --avatar-hue-3-ink: #E8F7F4;
+  --avatar-hue-4: #594436;
+  --avatar-hue-4-ink: #F7EEE8;
   --pale-purple: #958ba5;
   --lavender: var(--metadata-color);
   --purple-dark: var(--brand-margin);
