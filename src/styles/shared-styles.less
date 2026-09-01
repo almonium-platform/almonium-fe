@@ -70,6 +70,20 @@ tui-hint {
   --tui-radius-m: .625rem;
 }
 
+// The preview card brings its own surface — border, background, shadow, radius. A
+// dropdown that hosts one must not draw a second: Taiga's panel is squarer, so its
+// corners show up behind the card's. Demote the panel to a bare positioner and let
+// the card's shadow out of the clip. The transparent border stays for layout, since
+// Taiga offsets the content by -1px to sit under it.
+// !important: Taiga's :host rules outrank any element selector written here.
+tui-dropdown:has(app-user-preview-card) {
+  border-color: transparent !important;
+  border-radius: var(--card-radius) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
 tui-data-list button[tuiOption].context-button {
   display: flex;
   justify-content: flex-start;
