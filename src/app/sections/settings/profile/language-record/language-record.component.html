@@ -11,7 +11,12 @@
             <p>{{ statusLine }}</p>
           </div>
           @if (setAside) {
-            <button type="button" class="make-active" [disabled]="activating" (click)="makeActive()">Make active</button>
+            <button
+              type="button"
+              class="make-active"
+              [disabled]="activating || !switchAvailable"
+              (click)="makeActive()"
+            >Make active</button>
           }
         </header>
 
@@ -63,7 +68,7 @@
       </section>
 
       @if (setAside) {
-        <p class="swap-note">Making {{ languageName }} active again returns it to your target languages.</p>
+        <p class="swap-note">{{ swapNote }}</p>
       }
     } @else {
       <section class="record-card card" aria-busy="true">

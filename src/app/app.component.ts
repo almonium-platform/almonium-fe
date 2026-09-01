@@ -4,6 +4,7 @@ import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
+import {DowngradePickComponent} from './shared/downgrade-pick/downgrade-pick.component';
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {UrlService} from "./services/url.service";
 import {StreamI18nService, ThemeService} from "stream-chat-angular";
@@ -25,7 +26,7 @@ declare const gtag: (command: 'config', measurementId: string, config: {page_pat
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent],
+  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent, DowngradePickComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.less',
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]

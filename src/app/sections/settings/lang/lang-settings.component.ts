@@ -14,12 +14,13 @@ import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
-import {AsyncPipe} from "@angular/common";
+import {AsyncPipe, DatePipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit/components";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
+import {ActiveLanguagePolicy, capped, switchAvailable} from "../../../models/active-language-policy.model";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
@@ -39,6 +40,7 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
     AsyncPipe,
+    DatePipe,
     TuiIcon,
     TuiLoader,
     ConfirmModalComponent,
@@ -69,6 +71,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   private utilsService = inject(UtilsService);
 
   private readonly destroy$ = new Subject<void>();
+
+  /** What the plan allows: how many languages stay active, and whether this month's switch is still available. */
+  protected policy: ActiveLanguagePolicy | null = null;
   @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
   @ViewChild(PaywallComponent, {static: true}) private paywallComponent!: PaywallComponent;
 
@@ -102,6 +107,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected modalAction: (() => void) | null = null;
 
   ngOnInit(): void {
+    this.loadPolicy();
+
     this.popupTemplateStateService.drawerState$
       .pipe(
         takeUntil(this.destroy$),
@@ -326,8 +333,25 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }, 50);
   }
 
+  /** At the allowance the row is a choice, not a switch: one is on, and turning another on turns this one off. */
+  protected get singleChoice(): boolean {
+    return capped(this.policy) && this.policy!.allowance === 1;
+  }
+
+  protected get switchAvailable(): boolean {
+    return switchAvailable(this.policy);
+  }
+
+  protected get nextSwitchOn(): Date | null {
+    return this.policy?.nextSwitchAllowedAt ?? null;
+  }
+
   protected activeToggleDisabled(learner: Learner): boolean {
-    return learner.active && this.getActiveLearnersCount() === 1;
+    if (learner.active) {
+      return this.getActiveLearnersCount() === 1;
+    }
+    // Turning one on at the allowance spends the monthly switch, so it is refused while one is not available.
+    return this.singleChoice && !this.switchAvailable;
   }
 
   protected getActiveLearnersCount(): number {
@@ -344,6 +368,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
     this.languageApiService.updateLearner(learner.language, {active: active}).subscribe({
       next: () => {
+        this.loadPolicy();
         this.userInfoService.updateUserInfo({learners: this.learners});
         if (!active) {
           this.targetLanguageDropdownService.removeTargetLanguage(learner.language);
@@ -396,9 +421,24 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     if (this.getActiveLearnersCount() === 1 && learner.active) {
       return 'You must have at least one active target language';
     }
+    if (!learner.active && this.singleChoice && !this.switchAvailable && this.nextSwitchOn) {
+      return `You can change your active language again on ${this.nextSwitchOn.toLocaleDateString(undefined, {day: 'numeric', month: 'long'})}`;
+    }
+    if (!learner.active && this.singleChoice) {
+      return `Makes ${this.languageNameService.getLanguageName(learner.language)} active and sets the other one aside`;
+    }
     if (learner.active) {
       return 'Deactivating language removes it from the navbar dropdown';
     }
     return 'Activating language adds it to the navbar dropdown';
+  }
+
+  private loadPolicy(): void {
+    this.languageApiService.getActiveLanguagePolicy()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: policy => this.policy = policy,
+        error: error => logger.error('Could not load your language allowance', error),
+      });
   }
 }

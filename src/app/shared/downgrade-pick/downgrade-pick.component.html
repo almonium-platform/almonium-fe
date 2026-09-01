@@ -1,0 +1,52 @@
+<ng-template #downgradePick>
+  @if (policy; as loadedPolicy) {
+    <div class="downgrade-pick">
+      <div class="pick-heading">
+        <span class="ends-on">Premium ends {{ endsOn | date: 'd MMMM' }}</span>
+        <h1>Which language stays active?</h1>
+        <p>
+          Free keeps {{ loadedPolicy.allowanceWithoutPlan === 1 ? 'one language' : loadedPolicy.allowanceWithoutPlan + ' languages' }}
+          editable. The {{ surplus.length === 1 ? 'other one stays' : 'other ' + surplus.length + ' stay' }} open to
+          read &mdash; every word, every review &mdash; you just cannot add to them.
+        </p>
+      </div>
+
+      <div class="choices" role="radiogroup" aria-label="Which language stays active">
+        @for (choice of loadedPolicy.languages; track choice.language) {
+          @if (choice.active) {
+            <button
+              type="button"
+              class="choice"
+              role="radio"
+              [class.chosen]="selected === choice.language"
+              [attr.aria-checked]="selected === choice.language"
+              (click)="select(choice.language)"
+            >
+              <span class="radio" aria-hidden="true"></span>
+              <span class="crest" [style.background]="crest(choice.language)" aria-hidden="true"></span>
+              <span class="choice-copy">
+                <span class="choice-name">{{ languageName(choice.language) }}</span>
+                <span class="choice-meta">
+                  @if (choice.cefrLevel) { {{ choice.cefrLevel }} &middot; }
+                  {{ choice.wordsKept | number }} {{ choice.wordsKept === 1 ? 'word' : 'words' }} &middot;
+                  {{ lastRead(choice) }}
+                </span>
+              </span>
+            </button>
+          }
+        }
+      </div>
+
+      <div class="pick-actions">
+        <button type="button" class="keep-action" [disabled]="saving || !selected" (click)="keep()">
+          Keep {{ selectedName }}
+        </button>
+        <button type="button" class="stay-link" (click)="stayOnPremium()">Or stay on Premium</button>
+      </div>
+
+      <p class="pick-note">
+        Nothing changes until {{ endsOn | date: 'd MMMM' }}, and this choice does not count as your monthly switch.
+      </p>
+    </div>
+  }
+</ng-template>

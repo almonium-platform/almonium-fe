@@ -56,6 +56,15 @@
     <section class="learning-card card">
       <div class="eyebrow">I'm Learning</div>
 
+      @if (singleChoice) {
+        <p class="allowance-note">
+          One language stays editable. The rest keep every word and stay open to read.
+          @if (!switchAvailable && nextSwitchOn) {
+            You can change which one on {{ nextSwitchOn | date: 'd MMMM' }}.
+          }
+        </p>
+      }
+
       <div class="learner-list">
         @for (learner of learners; track learner.id; let index = $index) {
           <div class="learner-record">

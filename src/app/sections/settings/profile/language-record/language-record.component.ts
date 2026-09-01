@@ -6,6 +6,7 @@ import {catchError, switchMap, takeUntil} from 'rxjs/operators';
 import {CardDto} from '../../../../models/card.model';
 import {LanguageCode} from '../../../../models/language.enum';
 import {CardService} from '../../../../services/card.service';
+import {ActiveLanguagePolicy, switchAvailable} from '../../../../models/active-language-policy.model';
 import {LanguageApiService} from '../../../../services/language-api.service';
 import {LanguageNameService} from '../../../../services/language-name.service';
 import {LearningStats, LearningStatsService} from '../../../../services/learning-stats.service';
@@ -53,6 +54,7 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
   protected words: CardDto[] = [];
   protected dueCount = 0;
   protected activating = false;
+  protected policy: ActiveLanguagePolicy | null = null;
   private langColors: Record<string, string> = {};
 
   ngOnInit(): void {
@@ -77,6 +79,9 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
     ).subscribe();
 
     this.rhythmService.load().subscribe({error: error => logger.error('Could not load your record', error)});
+    this.languageApiService.getActiveLanguagePolicy()
+      .pipe(catchError(() => of(null)), takeUntil(this.destroy$))
+      .subscribe(policy => this.policy = policy);
   }
 
   ngOnDestroy(): void {
@@ -102,6 +107,27 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
 
   protected get pace(): {met: number; counted: number} {
     return this.rhythm ? paceFraction(this.rhythm) : {met: 0, counted: 0};
+  }
+
+  protected get switchAvailable(): boolean {
+    return switchAvailable(this.policy);
+  }
+
+  /**
+   * Inside the cooldown this sentence is the whole explanation: the button greys and says why in one line, rather
+   * than greying silently and making the reader hunt for the rule.
+   */
+  protected get swapNote(): string {
+    if (!this.policy || this.policy.allowance < 1) {
+      return `Making ${this.languageName} active again returns it to your target languages.`;
+    }
+    const active = this.policy.languages.find(choice => choice.active && choice.language !== this.language);
+    const replaced = active ? this.languageNameService.getLanguageName(active.language) : 'your active language';
+    const swap = `Making ${this.languageName} active sets ${replaced} aside in its place.`;
+    const next = this.policy.nextSwitchAllowedAt;
+    return next && !this.switchAvailable
+      ? `${swap} You can change again on ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
+      : swap;
   }
 
   protected get statusLine(): string {
@@ -138,13 +164,16 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
   }
 
   protected makeActive(): void {
-    if (!this.language || this.activating) return;
+    if (!this.language || this.activating || !this.switchAvailable) return;
     this.activating = true;
     this.languageApiService.updateLearner(this.language, {active: true}).subscribe({
       next: () => {
         this.activating = false;
         this.userInfoService.fetchUserInfoFromServer().subscribe({error: () => undefined});
         this.rhythmService.load().subscribe({error: () => undefined});
+        this.languageApiService.getActiveLanguagePolicy()
+          .pipe(catchError(() => of(null)), takeUntil(this.destroy$))
+          .subscribe(policy => this.policy = policy);
       },
       error: error => {
         this.activating = false;
