@@ -96,6 +96,17 @@
       align-items: center;
       gap: 1rem;
       padding: 1rem;
+
+      /*
+       * Centring boxes is not centring letters: Literata's line box is 1.476em (1.19 up, .29 down),
+       * so the caps of "Chats" land 1.5px below the middle of the box the row centres. The icons
+       * flanking the title drop by the same 1.5px and their ink then starts and ends with the caps.
+       */
+      tui-badged-content,
+      .new-chat {
+        position: relative;
+        top: .09375rem;
+      }
     }
 
     .chats {
@@ -193,8 +204,9 @@
     justify-content: center;
     align-items: center;
     gap: .5rem;
-    /* The same gutter the panel body keeps, so the title starts where the tabs and the field do. */
-    padding: 0 1rem;
+    /* The Chats header's own inset: the title starts where the tabs and the field under it do,
+       and it is not pressed against the top of the panel. */
+    padding: 1rem;
   }
 
   .header-text {
