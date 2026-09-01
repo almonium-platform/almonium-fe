@@ -1,10 +1,12 @@
 import { AfterViewInit, ChangeDetectorRef, Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
-import {Subscription} from 'rxjs';
+import {Subscription, combineLatest} from 'rxjs';
 import {Channel, User} from 'stream-chat';
-import {AvatarLocation, AvatarType, ChatClientService,} from 'stream-chat-angular';
+import {AvatarLocation, AvatarType, ChatClientService, ThemeService,} from 'stream-chat-angular';
 import {avatarHueClass, avatarLetter} from '../../../shared/avatar/avatar-display';
 import {AppConstants} from '../../../app.constants';
 import {ChannelMark, channelMark} from './channel-mark';
+import {crestFill} from './crest-fill';
+import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 
 /**
  * The `Avatar` component displays the provided image, with fallback to the first letter of the optional name input.
@@ -18,6 +20,8 @@ export class CustomChatAvatarComponent
   implements OnChanges, OnInit, AfterViewInit, OnDestroy {
   private chatClientService = inject(ChatClientService);
   private cdRef = inject(ChangeDetectorRef);
+  private languages = inject(TargetLanguageDropdownService);
+  private themeService = inject(ThemeService);
 
   /**
    * An optional name of the image, used for fallback image or image title (if `imageUrl` is provided)
@@ -58,14 +62,27 @@ export class CustomChatAvatarComponent
   initials = '';
   /** 03: set on the app's own rooms, which draw a fill rather than a face. */
   protected mark: ChannelMark | null = null;
+  protected crest: {code: string; fill: string} | null = null;
   hueClass = avatarHueClass('');
   fallbackChannelImage: string | undefined;
+  private langColors: Record<string, string> = {};
+  private isDark = false;
   private userId?: string;
   private isViewInited = false;
   private subscriptions: Subscription[] = [];
 
   ngOnInit(): void {
     this.subscriptions.push(
+      // A crest is the language's own colour, so it follows both the stored palette and the
+      // theme, whose band the disc is normalised into.
+      combineLatest([this.languages.langColors$, this.themeService.theme$]).subscribe(([colors, theme]) => {
+        this.langColors = colors;
+        this.isDark = theme === 'dark';
+        this.setChannelMark();
+        if (this.isViewInited) {
+          this.cdRef.detectChanges();
+        }
+      }),
       this.chatClientService.user$.subscribe(u => {
         if (u?.id !== this.userId) {
           this.userId = u?.id;
@@ -99,6 +116,9 @@ export class CustomChatAvatarComponent
 
   private setChannelMark() {
     this.mark = this.type === 'channel' ? channelMark(this.channel) : null;
+    this.crest = this.mark?.kind === 'crest'
+      ? {code: this.mark.code, fill: crestFill(this.langColors[this.mark.code], this.isDark)}
+      : null;
   }
 
   private setFallbackChannelImage() {
@@ -182,9 +202,5 @@ export class CustomChatAvatarComponent
 
   protected get isEmblem(): boolean {
     return this.mark?.kind === 'emblem';
-  }
-
-  protected get crest(): {code: string; fill: string} | null {
-    return this.mark?.kind === 'crest' ? this.mark : null;
   }
 }
