@@ -1038,6 +1038,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @HostListener('document:keydown.escape')
   handleEscapeKey() {
+    if (this.activeRowMenu) {
+      this.closeRowMenu();
+      return;
+    }
     if (this.hoveredChannel) {
       this.closePreviewCard();
       return;
@@ -1046,7 +1050,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected archiveChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void channel.hide().then(() => {
@@ -1058,7 +1062,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected unarchiveChat(channel: Channel, dropdown: TuiDropdownDirective, event?: Event) {
     event?.stopPropagation();
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void channel.show().then(() => {
@@ -1069,7 +1073,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   muteChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void channel.mute();
@@ -1085,7 +1089,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   markAsRead(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void channel.markRead();
@@ -1093,7 +1097,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   markAsUnread(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       const lastMessage = channel.state.messages[channel.state.messages.length - 1];
@@ -1108,7 +1112,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   unmuteChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void channel.unmute();
@@ -1159,14 +1163,34 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /** Right-click on the row is an accelerator for the same menu the button opens. */
+  /**
+   * The row menu the list currently has open. Right-click never propagates far enough for the
+   * dropdowns to notice each other, so the list holds the one that is open and closes it itself.
+   */
+  private activeRowMenu?: TuiDropdownDirective;
+
+  /** Asking a row for its menu replaces whatever menu was open: one at a time, never a stack. */
   protected openRowMenu(menu: TuiDropdownDirective, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
+    this.closeRowMenu();
+    this.activeRowMenu = menu;
     menu.toggle(true);
   }
 
+  /**
+   * With no argument, closes whichever menu is open. With one, closes that menu alone - a zone
+   * that has just lost focus may have been replaced already, and must not close its successor.
+   */
+  protected closeRowMenu(menu?: TuiDropdownDirective): void {
+    (menu ?? this.activeRowMenu)?.toggle(false);
+    if (!menu || this.activeRowMenu === menu) {
+      this.activeRowMenu = undefined;
+    }
+  }
+
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
     this.schedule(() => {
       void this.channels.join(channel).then(() => {
@@ -1306,7 +1330,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
     this.confirmation.open({
       title: 'Delete chat',
       message: 'The chat and its messages are removed for both of you. This cannot be undone.',
@@ -1316,7 +1340,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
     this.confirmation.open({
       title: 'Clear history',
       message: 'Every message in this chat is removed for you. This cannot be undone.',
@@ -1345,7 +1369,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
     this.confirmLeave(channel);
   }
 

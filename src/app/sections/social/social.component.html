@@ -275,7 +275,7 @@
                 <div
                   class="preview-tile"
                   (contextmenu)="openRowMenu(rowMenu, $event)"
-                  (keydown.enter)="rowMenu.toggle(false)" tabindex="0" (click)="rowMenu.toggle(false)"
+                  (keydown.enter)="closeRowMenu()" tabindex="0" (click)="closeRowMenu()"
                 >
                   <ng-template #contextMenu>
 
@@ -520,7 +520,7 @@
                             tuiDropdown
                             tuiDropdownAlign="end"
                             [tuiDropdown]="contextMenu"
-                            (tuiActiveZoneChange)="!$event && rowMenu.toggle(false)"
+                            (tuiActiveZoneChange)="!$event && closeRowMenu(rowMenu)"
                             (click)="openRowMenu(rowMenu, $event)">
                       <lucide-icon name="ellipsis" [size]="16"></lucide-icon>
                     </button>
