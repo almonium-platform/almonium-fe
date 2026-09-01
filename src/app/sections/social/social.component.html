@@ -589,170 +589,159 @@
         <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
       </ng-template>
 
+      <!--
+        04: one row type serves both search sections, because the control on its right states the
+        relationship rather than the section it sits under.
+      -->
+      <ng-template #candidateRow let-candidate>
+        <div class="user-tile card">
+          <app-avatar [avatarUrl]="candidate.avatarUrl"
+                      [username]="candidate.username"
+                      [premium]="candidate.premium"
+                      [ring]="true"
+                      [size]="'m'"
+          ></app-avatar>
+          <span class="tile-body">
+            <span class="username">{{ candidate.username }}</span>
+            <!-- A friend has already said what they are; everyone else is what they study. -->
+            @if (personSubtitle(candidate, candidateState(candidate)); as subtitle) {
+              <span class="person-subtitle">{{ subtitle }}</span>
+            }
+          </span>
+
+          @if (sendRequestInProgressIds.has(candidate.id)) {
+            <lucide-icon name="loader-circle"
+                         class="friend-action motion-preset-spin"
+                         [size]="20"
+            ></lucide-icon>
+          } @else {
+            @switch (candidateState(candidate)) {
+              @case ('friend') {
+                <button type="button"
+                        class="friend-action action-button positive"
+                        (click)="messageCandidate(candidate)">Message</button>
+              }
+              @case ('requested') {
+                <button type="button"
+                        class="friend-action action-button request-sent"
+                        disabled>Requested</button>
+              }
+              @case ('blocked') {
+                <button type="button"
+                        class="friend-action action-button"
+                        disabled>Blocked</button>
+              }
+              @default {
+                <!-- Add is the row's commitment, so it is filled the way Accept is. -->
+                <button type="button"
+                        class="friend-action action-button primary-action"
+                        (click)="sendFriendRequest(candidate.id)">Add</button>
+              }
+            }
+          }
+        </div>
+      </ng-template>
+
       <header class="header">
         <div class="header-inner pb-1">
-          @if (peopleMode === 'search') {
-            <button type="button"
-                    class="people-back"
-                    aria-label="Back to friends"
-                    (click)="setPeopleMode('friends')">
-              <lucide-icon name="chevron-left" [size]="20"></lucide-icon>
-            </button>
-          }
-          <p class="header-text people">{{ peopleHeader }}</p>
-          @if (peopleMode === 'friends') {
-            <button type="button"
-                    class="people-search-cta"
-                    aria-label="Find people"
-                    (click)="setPeopleMode('search')">
-              <lucide-icon name="user-round-search" [size]="18"></lucide-icon>
-            </button>
-          }
+          <p class="header-text people">People</p>
           <app-dismiss-button [relative]="true" (closed)="closePeople()"></app-dismiss-button>
         </div>
       </header>
       <div class="panel-body">
-        @if (peopleMode !== 'search') {
-          <tui-segmented
-            size="m"
-            class="people-toggle"
-            [activeItemIndex]="peopleIndex"
-            (activeItemIndexChange)="onPeopleIndexChange($event)"
+        <!-- 04: the tabs stay views over your own relationships; the field under them cuts across all three. -->
+        <tui-segmented
+          size="m"
+          class="people-toggle"
+          [activeItemIndex]="peopleIndex"
+          (activeItemIndexChange)="onPeopleIndexChange($event)"
+        >
+          <button type="button">Friends</button>
+          <button type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
+          <button type="button">Blocked</button>
+        </tui-segmented>
+
+        <!--
+          04: the only people search there is. A friend list runs to tens of rows, so a filter over
+          it is a strictly weaker version of this one, and two fields make the user guess which
+          holds the person they want.
+        -->
+        <div class="search-container">
+          <tui-textfield
+            class="username-input shadowless-input"
+            iconStart="@tui.search"
           >
-            <button type="button">Friends</button>
-            <button type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
-            <button type="button">Blocked</button>
-          </tui-segmented>
-        }
+            <input
+              #peopleSearchInput
+              [formControl]="usernameFormControl"
+              tuiInput
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="Search people"/>
+          </tui-textfield>
+        </div>
 
         <tui-scrollbar class="w-full p-1">
           <div class="tiles">
-            @if (isPeopleDataLoading()) {
+            @if (isSearchingPeople) {
+              @if (peopleSearchPending) {
+                @for (i of range(3); track i) {
+                  <ng-container [ngTemplateOutlet]="skeletonLoader"></ng-container>
+                }
+              } @else if (matchedUsers.length === 0) {
+                <!-- The empty line renders only when both sections come back empty. -->
+                <p class="no-results">
+                  No account with that handle.
+                </p>
+              } @else {
+                @if (friendMatches.length > 0) {
+                  <p class="section-heading">Your friends</p>
+                  @for (candidate of friendMatches; track candidate.id) {
+                    <ng-container [ngTemplateOutlet]="candidateRow"
+                                  [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
+                  }
+                }
+                @if (otherMatches.length > 0) {
+                  <p class="section-heading">Everyone else</p>
+                  @for (candidate of otherMatches; track candidate.id) {
+                    <ng-container [ngTemplateOutlet]="candidateRow"
+                                  [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
+                  }
+                }
+              }
+            } @else if (isPeopleDataLoading()) {
               @for (i of range(3); track i) {
                 <ng-container [ngTemplateOutlet]="skeletonLoader"
                               [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
               }
             } @else {
-              @if (peopleMode === 'search') {
-                <div class="search-container">
-                  <tui-textfield
-                    class="username-input shadowless-input"
-                    iconStart="@tui.user-search"
-                  >
-                    <input
-                      [formControl]="usernameFormControl"
-                      tuiInput type="text"
-                      inputmode="text"
-                      autocomplete="off"
-                      autocapitalize="none"
-                      spellcheck="false"
-                      placeholder="Find anyone by @handle"/>
-                  </tui-textfield>
-                  <!-- The empty line renders only when nothing came back, never above results. -->
-                  @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= MIN_HANDLE_SEARCH_LENGTH) {
-                    <p class="no-results">
-                      No account with that handle.
-                    </p>
-                  }
-                </div>
-                <div class="tiles">
-                  @for (candidate of matchedUsers; track candidate.id) {
-                    <div class="user-tile card">
-                      <app-avatar [avatarUrl]="candidate.avatarUrl"
-                                  [username]="candidate.username"
-                                  [premium]="candidate.premium"
-                                  [ring]="true"
-                                  [size]="'m'"
-                      ></app-avatar>
-                      <span class="tile-body">
-                        <span class="username">{{ candidate.username }}</span>
-                        <!-- A friend has already said what they are; everyone else is what they study. -->
-                        @if (personSubtitle(candidate, candidateState(candidate)); as subtitle) {
-                          <span class="person-subtitle">{{ subtitle }}</span>
-                        }
-                      </span>
-
-                      @if (sendRequestInProgressIds.has(candidate.id)) {
-                        <lucide-icon name="loader-circle"
-                                     class="friend-action motion-preset-spin"
-                                     [size]="20"
-                        ></lucide-icon>
-                      } @else {
-                        <!-- One control, and it states the relationship rather than guessing at it. -->
-                        @switch (candidateState(candidate)) {
-                          @case ('friend') {
-                            <button type="button"
-                                    class="friend-action action-button positive"
-                                    (click)="messageCandidate(candidate)">Message</button>
-                          }
-                          @case ('requested') {
-                            <button type="button"
-                                    class="friend-action action-button request-sent"
-                                    disabled>Requested</button>
-                          }
-                          @case ('blocked') {
-                            <button type="button"
-                                    class="friend-action action-button"
-                                    disabled>Blocked</button>
-                          }
-                          @default {
-                            <!-- Add is the row's commitment, so it is filled the way Accept is. -->
-                            <button type="button"
-                                    class="friend-action action-button primary-action"
-                                    (click)="sendFriendRequest(candidate.id)">Add</button>
-                          }
-                        }
-                      }
-                    </div>
-                  }
-                </div>
-              } @else if (peopleMode === 'requests' && incomingRequests.length === 0 && outgoingRequests.length === 0) {
+              @if (peopleMode === 'requests' && incomingRequests.length === 0 && outgoingRequests.length === 0) {
                 <p class="no-results">
                   {{ noResultMessage }}
                 </p>
-              } @else if (peopleMode !== 'requests' && peopleUserTiles.length === 0 && friendFormControl.value === '') {
+              } @else if (peopleMode !== 'requests' && peopleUserTiles.length === 0) {
                 <p class="no-results">
                   {{ noResultMessage }}
                 </p>
               }
-              @if (peopleMode === 'friends') {
-                @if (friends.length !== 0) {
-                  <div class="search-container">
-                    <tui-textfield
-                      class="username-input shadowless-input"
-                      iconStart="@tui.user-search"
-                    >
-                      <input
-                        [formControl]="friendFormControl"
-                        tuiInput
-                        type="text"
-                        autocomplete="off"
-                        autocapitalize="none"
-                        spellcheck="false"
-                        placeholder="Search your friends"
-                      />
-                    </tui-textfield>
-                    @if (peopleUserTiles.length === 0 && friendFormControl.value !== '') {
-                      <p class="no-results">
-                        No friend matched your search.
-                      </p>
-                    }
-                  </div>
-                } @else {
-                  <app-button
-                    appearance="bw"
-                    label="Find people"
-                    gap="1rem"
-                    width="fit"
-                    [fontSize]=18
-                    (click)="setPeopleMode('search')"
-                  >
-                    <tui-icon
-                      [style.width.px]="18"
-                      [style.height.px]="18"
-                      icon="@tui.user-round-search"/>
-                  </app-button>
-                }
+              @if (peopleMode === 'friends' && friends.length === 0) {
+                <!-- 05: this does not navigate anywhere - it points at the field above it. -->
+                <app-button
+                  appearance="bw"
+                  label="Search people"
+                  gap="1rem"
+                  width="fit"
+                  [fontSize]=18
+                  (click)="focusPeopleSearch()"
+                >
+                  <tui-icon
+                    [style.width.px]="18"
+                    [style.height.px]="18"
+                    icon="@tui.search"/>
+                </app-button>
               }
               @if (peopleMode === 'requests') {
                 @if (incomingRequests.length > 0) {

@@ -17,25 +17,6 @@
     width: 100%;
   }
 }
-/* 03: the header carries the two people actions - back out of search, and go into it. */
-.people-back,
-.people-search-cta {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: .6rem;
-  color: var(--text-color);
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  padding: .35rem;
-
-  &:hover,
-  &:focus-visible {
-    background: var(--state-hover);
-    outline: none;
-  }
-}
 /* 04: a name over the one line that says who this is - what they study, or that they are a friend. */
 .tile-body {
   display: flex;
@@ -290,6 +271,11 @@
   .people-toggle,
   .search-container {
     width: 100%;
+  }
+
+  /* The field is a row of the panel body now, so the body's own gap sets the space under it. */
+  .search-container .username-input {
+    margin-bottom: 0;
   }
 
   .user-tile {

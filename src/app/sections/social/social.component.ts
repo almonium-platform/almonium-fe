@@ -135,6 +135,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
   @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('peopleSearchInput', {read: ElementRef}) peopleSearchInput?: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
   @ViewChild('emptyMessageListPlaceholder', {static: true}) emptyMessageListPlaceholder!: TemplateRef<void>;
   @ViewChild('messageStamp', {static: true}) messageStamp!: TemplateRef<CustomMetadataContext>;
@@ -146,9 +147,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private userInfo: UserInfo | null = null;
 
   protected usernameFormControl = new FormControl<string>('');
-  protected friendFormControl = new FormControl<string>('');
   protected chatFormControl = new FormControl<string>('');
-  protected nothingFound = false;
+  /** The handle the rows on screen actually answer for. */
+  private searchedHandle = '';
   protected matchedUsers: UserSearchResult[] = [];
   protected requestedIds: string[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
@@ -164,8 +165,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // people panel
   protected readonly isPeopleOpen = signal(false);
-  protected peopleMode: 'requests' | 'friends' | 'blocked' | 'search' = 'friends';
-  protected peopleHeader = 'People';
+  protected peopleMode: 'requests' | 'friends' | 'blocked' = 'friends';
   protected loadingFriends = false;
   protected loadingBlocked = false;
   protected loadingIncomingRequests = false;
@@ -279,7 +279,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
     this.listenToUsernameField();
-    this.listenToFriendSearch();
     this.listenToChannelSearch();
   }
 
@@ -367,13 +366,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.urlService.clearUrl();
   }
 
-  protected listenToFriendSearch() {
-    this.friendFormControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(value => {
-      if (value === null) return;
-      this.peopleUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
-    });
-  }
-
   ngAfterViewInit() {
     this.customTemplatesService.channelPreviewInfoTemplate$.next(this.channelPreview);
     this.customTemplatesService.channelHeaderInfoTemplate$.next(this.headerTemplate);
@@ -408,22 +400,46 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         }),
         switchMap((username) => {
           if (username.length < SocialComponent.MIN_HANDLE_SEARCH_LENGTH) {
-            this.matchedUsers = [];
-            this.nothingFound = false;
-            return [];
+            return of<UserSearchResult[]>([]);
           }
           return this.socialService.searchAllByUsername(username).pipe(
-            catchError(() => {
-              this.nothingFound = true;
-              return [];
-            })
+            catchError(() => of<UserSearchResult[]>([]))
           );
         })
       )
       .subscribe((candidates: UserSearchResult[]) => {
         this.matchedUsers = candidates;
-        this.nothingFound = candidates.length === 0;
+        // Answers arrive one debounce behind the keystrokes, and the panel must not call a handle
+        // missing until the answer for that exact handle is in.
+        this.searchedHandle = this.usernameFormControl.value ?? '';
       });
+  }
+
+  /**
+   * 04: two characters in, the one field takes the list over from whichever tab is showing. The
+   * tabs stay put and their counts do not move - they are views over your own relationships, and
+   * the field cuts across all three.
+   */
+  protected get isSearchingPeople(): boolean {
+    return (this.usernameFormControl.value ?? '').length >= SocialComponent.MIN_HANDLE_SEARCH_LENGTH;
+  }
+
+  protected get peopleSearchPending(): boolean {
+    return this.isSearchingPeople && this.searchedHandle !== (this.usernameFormControl.value ?? '');
+  }
+
+  /** The results section by section: the people you already know, then everybody else. */
+  protected get friendMatches(): UserSearchResult[] {
+    return this.matchedUsers.filter(candidate => this.candidateState(candidate) === 'friend');
+  }
+
+  protected get otherMatches(): UserSearchResult[] {
+    return this.matchedUsers.filter(candidate => this.candidateState(candidate) !== 'friend');
+  }
+
+  /** 05: the empty-friends button is a pointer at that field, not a route to a second screen. */
+  protected focusPeopleSearch(): void {
+    this.peopleSearchInput?.nativeElement.focus();
   }
 
   private sanitizeUsername(username: string | null): string {
@@ -930,7 +946,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected openPeopleAndSetupData() {
     this.openPeople();
-    this.peopleHeader = 'People';
     if (this.peopleMode === 'requests') {
       // One scroll, two headers: Received carries the work, Sent is usually a row or two.
       this.peopleUserTiles = [];
@@ -945,9 +960,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.peopleMode === 'blocked') {
       this.noResultMessage = `No one is blocked.`;
       this.getBlocked();
-    }
-    if (this.peopleMode === 'search') {
-      this.peopleHeader = 'Find people';
     }
   }
 
@@ -1008,6 +1020,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public closePeople(): void {
     this.isPeopleOpen.set(false);
+    // The panel reopens on its tab list, not on whoever was searched for last. Cleared through the
+    // pipe rather than silently, so the next search for the same handle is not swallowed as a repeat.
+    this.usernameFormControl.setValue('');
   }
 
   /** A new chat starts by picking a person, so it lands in People rather than an empty thread. */
@@ -1254,7 +1269,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   setPeopleMode(mode: string) {
-    this.peopleMode = mode as 'requests' | 'friends' | 'blocked' | 'search';
+    this.peopleMode = mode as 'requests' | 'friends' | 'blocked';
     this.openPeopleAndSetupData();
   }
 

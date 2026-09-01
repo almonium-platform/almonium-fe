@@ -141,10 +141,15 @@
   align-self: stretch; /* Ensure it stretches fully */
   gap: 1rem;
 
+  /* 05: a list-level empty state is one quiet centred line - no illustration, no headline size. */
   .no-results {
-    font-size: 1.3rem;
-    line-height: 1.5;
+    align-self: center;
+    color: var(--subhead-color);
+    font-size: .8125rem;
+    line-height: 1.55;
     margin-top: 1rem;
+    max-width: 32ch;
+    text-align: center;
   }
 
   .people-toggle {
