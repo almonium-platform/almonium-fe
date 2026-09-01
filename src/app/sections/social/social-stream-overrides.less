@@ -326,12 +326,19 @@
   color: var(--metadata-color);
   display: flex;
   font-size: .65625rem;
+  // Keeps a column of times from jittering as their digits change. The reserve below is still
+  // sized to the widest clock, because a one-digit hour is one character shorter whatever the font.
+  font-variant-numeric: tabular-nums;
   gap: .25rem;
   grid-area: message-bubble;
   justify-self: end;
   line-height: 1;
-  padding: 0 .8125rem .4375rem;
+  padding: 0 .8125rem .4375rem 0;
   pointer-events: none;
+  // Stream emits the bubble last inside the inner grid, so sharing its cell paints the stamp
+  // underneath an opaque background. Lift it out of the source order.
+  position: relative;
+  z-index: 1;
 
   &.mine {
     color: color-mix(in srgb, var(--on-brand-color) 66%, transparent);
@@ -342,15 +349,19 @@
   }
 }
 
-/* The spacer keeps the last line of text clear of the stamp, however the text wraps. */
-::ng-deep .str-chat__message-text-inner::after {
+/*
+ * The spacer keeps the last line of text clear of the stamp, however the text wraps. It belongs on
+ * the paragraph, not on the container around it: after a block element an inline-block opens a line
+ * of its own, which is blank space under the sentence rather than room beside it.
+ */
+::ng-deep .str-chat__message-text-value::after {
   content: '';
   display: inline-block;
-  width: 3.25rem;
+  width: 4.25rem;
 }
 
-::ng-deep .str-chat__message--me .str-chat__message-text-inner::after {
-  width: 4.5rem;
+::ng-deep .str-chat__message--me .str-chat__message-text-value::after {
+  width: 5.3125rem;
 }
 
 ::ng-deep .chat-window.broadcast {
@@ -358,7 +369,7 @@
     display: none;
   }
 
-  .str-chat__message-text-inner::after {
+  .str-chat__message-text-value::after {
     content: none;
   }
 }
