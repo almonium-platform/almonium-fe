@@ -3,6 +3,11 @@
 // the vendor's to change. Kept apart from the component's own styles so an SDK
 // upgrade has one file to re-check.
 
+// The reaction row's two measurements, shared by the row itself and by the avatar offset that
+// cancels it.
+@chat-reaction-chip-height: 1.5rem;
+@chat-reaction-row-gap: .25rem;
+
 // for tui-badge-notification red dot
 ::ng-deep .t-badge_top {
   top: 2px !important;
@@ -178,6 +183,43 @@
 // message reactions container
 ::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
   background-color: var(--card-color);
+}
+
+/*
+ * Reactions hang off the foot of the bubble, not its head. Stream's inner grid stacks the
+ * reaction row above the message; every chat app the reader already uses puts it below. The
+ * areas are the vendor's - only the row order changes - so the options column stays on the
+ * side each direction puts it. Same specificity as the rules replaced, so this file has to
+ * keep loading after the SDK's stylesheet.
+ */
+::ng-deep .str-chat__message.str-chat__message--other .str-chat__message-inner {
+  grid-template-areas: 'message-bubble options' 'reactions reactions';
+}
+
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-inner {
+  grid-template-areas: 'options message-bubble' 'reactions reactions';
+}
+
+/*
+ * The row is given a definite height so the disc below can be lifted by exactly it: left to the
+ * emoji's own metrics the chip measures a fraction of a pixel nobody can name.
+ */
+::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions {
+  margin-block: @chat-reaction-row-gap 0;
+
+  .str-chat__message-reaction {
+    height: @chat-reaction-chip-height;
+    padding-block: 0;
+  }
+}
+
+/*
+ * Stream sits the sender's disc at the bottom of the message, which the reaction row has just
+ * made taller - leaving it stranded beside the chips. It belongs at the bubble's corner, one
+ * reaction row up.
+ */
+::ng-deep .str-chat__message--with-reactions .str-chat__message-sender-avatar {
+  transform: translateY(-(@chat-reaction-chip-height + @chat-reaction-row-gap));
 }
 
 ::ng-deep .str-chat__message .str-chat__message-metadata,
