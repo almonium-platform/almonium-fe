@@ -92,7 +92,6 @@ function userInfo(premium: boolean): UserInfo {
     uiLang: null,
     avatarUrl: null,
     background: null,
-    streak: 4,
     fluentLangs: [LanguageCode.EN],
     setupStep: SetupStep.COMPLETED,
     tags: [],

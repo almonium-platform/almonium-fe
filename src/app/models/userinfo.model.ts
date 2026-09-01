@@ -5,7 +5,6 @@ import {
   expectBoolean,
   expectDate,
   expectEnum,
-  expectNullableNumber,
   expectNullableString,
   expectNumber,
   expectRecord,
@@ -22,7 +21,6 @@ export class UserInfo {
     public uiLang: string | null,
     public avatarUrl: string | null,
     public background: string | null,
-    public streak: number | null,
     public fluentLangs: LanguageCode[],
     public setupStep: SetupStep,
     public tags: string[] | null,
@@ -45,7 +43,6 @@ export class UserInfo {
       updates.uiLang ?? this.uiLang,
       updates.avatarUrl === undefined ? this.avatarUrl : updates.avatarUrl,
       updates.background ?? this.background,
-      updates.streak ?? this.streak,
       updates.fluentLangs ?? this.fluentLangs,
       updates.setupStep ?? this.setupStep,
       updates.tags ?? this.tags,
@@ -69,7 +66,6 @@ export class UserInfo {
       expectNullableString(data['uiLang'], 'user.uiLang'),
       expectNullableString(data['avatarUrl'], 'user.avatarUrl'),
       expectNullableString(data['background'], 'user.background'),
-      expectNullableNumber(data['streak'], 'user.streak'),
       parseEnumArray(data['fluentLangs'], Object.values(LanguageCode), 'user.fluentLangs'),
       expectEnum(data['setupStep'], Object.values(SetupStep), 'user.setupStep'),
       parseNullableStringArray(data['tags'], 'user.tags'),
@@ -113,7 +109,6 @@ export interface UserInfoData {
   uiLang: string | null;
   avatarUrl: string | null;
   background: string | null;
-  streak: number | null;
   fluentLangs: LanguageCode[];
   setupStep: SetupStep;
   tags: string[] | null;

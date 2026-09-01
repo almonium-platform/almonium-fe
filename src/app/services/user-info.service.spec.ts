@@ -28,7 +28,6 @@ describe('UserInfoService', () => {
     uiLang: 'en',
     avatarUrl: null,
     background: null,
-    streak: 1,
     fluentLangs: [],
     setupStep: SetupStep.COMPLETED,
     tags: [],
