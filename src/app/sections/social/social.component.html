@@ -90,9 +90,12 @@
                      class="search-icon"
         ></lucide-icon>
 
+        <!-- Taiga's own cleaner sets the accessor to null rather than the control, and would sit
+             beside the hand-rolled clear below as a second x. -->
         <tui-textfield
           #chatSearch
           class="chat-input shadowless-input"
+          [tuiTextfieldCleaner]="false"
         >
           <input
             [formControl]="chatFormControl"
