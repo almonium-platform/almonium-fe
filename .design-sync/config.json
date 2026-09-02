@@ -1,0 +1,7 @@
+{
+  "shape": "tokens-only",
+  "scope": "Angular app - no React component bundle is possible; tokens and fonts only. See NOTES.md.",
+  "readmeHeader": ".design-sync/conventions.md",
+  "outDir": "ds-bundle",
+  "projectId": "0ecf5ce1-96e9-4efb-8fb8-ac0a374755e4"
+}
