@@ -3,8 +3,8 @@ import {parsePlans, parseSessionUrlResponse} from './plan.model';
 
 describe('plan API validation', () => {
   it('parses the backend plan contract', () => {
-    expect(parsePlans([{id: 1, name: 'Monthly', type: 'MONTHLY', description: 'Premium', price: 12}]))
-      .toEqual([{id: 1, name: 'Monthly', type: 'MONTHLY', description: 'Premium', price: 12}]);
+    expect(parsePlans([{id: 1, name: 'Monthly', type: 'MONTHLY', description: 'Premium', price: 12, founderPrice: 8}]))
+      .toEqual([{id: 1, name: 'Monthly', type: 'MONTHLY', description: 'Premium', price: 12, founderPrice: 8}]);
   });
 
   it('rejects an invalid checkout response before it reaches navigation', () => {

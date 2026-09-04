@@ -73,6 +73,10 @@ export class PaywallComponent implements OnInit, OnDestroy {
     monthly: 12,
     yearly: 120,
   };
+  founderPrice: {monthly: number | null; yearly: number | null} = {
+    monthly: null,
+    yearly: null,
+  };
   premiumMonthlyId = '';
   premiumYearlyId = '';
   protected founderOfferAvailable = false;
@@ -122,10 +126,12 @@ export class PaywallComponent implements OnInit, OnDestroy {
         const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
         if (monthlyPremium) {
           this.premiumPrice.monthly = monthlyPremium.price;
+          this.founderPrice.monthly = monthlyPremium.founderPrice;
           this.premiumMonthlyId = String(monthlyPremium.id);
         }
         if (yearlyPremium) {
           this.premiumPrice.yearly = yearlyPremium.price;
+          this.founderPrice.yearly = yearlyPremium.founderPrice;
           this.premiumYearlyId = String(yearlyPremium.id);
         }
       },
@@ -141,10 +147,15 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   get currentPriceValue(): number {
-    if (this.founderOfferAvailable) {
-      return this.selectedMode === 0 ? 8 : 80;
+    const founderValue = this.selectedMode === 0 ? this.founderPrice.monthly : this.founderPrice.yearly;
+    if (this.founderOfferAvailable && founderValue !== null) {
+      return founderValue;
     }
     return this.currentPublicPriceValue;
+  }
+
+  get founderDiscountVisible(): boolean {
+    return this.founderOfferAvailable && this.currentPriceValue !== this.currentPublicPriceValue;
   }
 
   get currentPublicPriceValue(): number {

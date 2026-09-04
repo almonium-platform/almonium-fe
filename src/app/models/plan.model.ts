@@ -1,4 +1,11 @@
-import {expectArray, expectEnum, expectNumber, expectRecord, expectString} from '../shared/runtime-validation';
+import {
+  expectArray,
+  expectEnum,
+  expectNullableNumber,
+  expectNumber,
+  expectRecord,
+  expectString,
+} from '../shared/runtime-validation';
 
 export interface PlanDto {
   id: number;
@@ -6,6 +13,7 @@ export interface PlanDto {
   type: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
   description: string;
   price: number;
+  founderPrice: number | null;
 }
 
 export function parsePlans(value: unknown): PlanDto[] {
@@ -17,6 +25,7 @@ export function parsePlans(value: unknown): PlanDto[] {
       type: expectEnum(plan['type'], ['MONTHLY', 'YEARLY', 'LIFETIME'], `plans[${index}].type`),
       description: expectString(plan['description'], `plans[${index}].description`),
       price: expectNumber(plan['price'], `plans[${index}].price`),
+      founderPrice: expectNullableNumber(plan['founderPrice'], `plans[${index}].founderPrice`),
     };
   });
 }

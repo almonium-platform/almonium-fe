@@ -143,7 +143,7 @@ export class MembershipComponent implements OnInit {
   protected get offerPrice(): number | null {
     if (this.publicPrice === null) return null;
     if (!this.founderOfferAvailable) return this.publicPrice;
-    return this.billingPeriod === 'monthly' ? 8 : 80;
+    return this.selectedPlan?.founderPrice ?? this.publicPrice;
   }
 
   protected get founderOfferAvailable(): boolean {
