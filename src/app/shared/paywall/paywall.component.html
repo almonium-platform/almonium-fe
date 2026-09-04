@@ -1,118 +1,115 @@
 <ng-template #paywallContent>
-  <div class="popup-container" [class.page-layout]="layout === 'page'">
-    <div class="popup-header">
-      <h1>
-        Compare Plans
-      </h1>
-    </div>
-    <div class="tui-segmented-wrapper">
-      <div class="billing-toggle" role="group" aria-label="Billing period">
-        <button type="button"
-                [attr.aria-pressed]="selectedMode === 0"
-                (click)="selectedMode = 0">
-          Monthly
-        </button>
-        <button type="button"
-                [attr.aria-pressed]="selectedMode === 1"
-                (click)="selectedMode = 1">
-          Yearly <span class="chip">2 months free</span>
-        </button>
-      </div>
-    </div>
-    <div class="cards">
-      <div
-        appearance="floating"
-        tuiCardLarge
-        class="plan-section premium"
-      >
-        <div class="shining-effect" aria-hidden="true"></div>
-        <div class="plan-content">
-          <div class="header">
-            <h1 tuiTitle class="premium-text">
-              Premium
-            </h1>
-            <p class="plan-subtitle">Everything in Free, plus</p>
-          </div>
-          <div class="premium-star-badge" aria-hidden="true">
-            <img src="assets/img/icons/premium-star.svg" alt="" width="25" height="25" />
-          </div>
-          <div class="features">
-            @for (feature of premiumFeatures; track feature) {
-              <div class="feature">
-                <div>
-                  <tui-icon [icon]="getIcon(feature)" aria-hidden="true"></tui-icon>
-                </div>
-                <span>{{ feature }}</span>
-              </div>
-            }
-          </div>
+  <section class="paywall" [class.page-layout]="layout === 'page'">
+    <header class="paywall-head">
+      <span class="eyebrow">Pricing</span>
+      <h1>Reading is free, and stays free</h1>
+      <p>Paying covers the parts that cost something every time you use them.</p>
+    </header>
+
+    <div class="tiers">
+      <article class="tier free" [class.is-current]="onFreePlan">
+        <div class="tier-label">
+          <span class="eyebrow">Free</span>
+          @if (onFreePlan) {
+            <span class="pill current">Your current plan</span>
+          }
         </div>
-        <footer>
-          <div class="price">
-            @if (founderDiscountVisible) {
-              <span class="price-original">${{ currentPublicPriceValue }}</span>
-            }
-            <span class="price-value">${{ currentPriceValue }}</span>
-            <span class="price-period">{{ currentPricePeriod }}</span>
-          </div>
-          @if (founderOfferAvailable) {
-            <div class="founder-offer">
-              <span>Founding price, locked for as long as you stay subscribed.</span>
-              @if (founderRemaining < founderCapacity) {
-                <span>{{ founderRemaining }} of {{ founderCapacity }} places left.</span>
-              } @else {
-                <span>Limited to {{ founderCapacity }} founding members.</span>
+
+        <div class="price">
+          <span class="price-value">$0</span>
+        </div>
+
+        <ul class="features">
+          @for (feature of freeFeatures; track feature) {
+            <li>{{ feature }}</li>
+          }
+        </ul>
+
+        @if (!onFreePlan) {
+          <button type="button"
+                  class="cta ghost"
+                  [disabled]="freeLoading$.value"
+                  (click)="chooseFreePlan()">
+            {{ freeLoading$.value ? 'One moment…' : 'Start reading' }}
+          </button>
+        }
+      </article>
+
+      <article class="tier paid">
+        <div class="tier-label">
+          <span class="eyebrow">{{ paidTierLabel }}</span>
+          @if (founderSoldOut) {
+            <span class="pill sold-out">Founding memberships sold out</span>
+          }
+        </div>
+
+        <div class="billing-toggle" role="group" aria-label="Billing period">
+          <button type="button"
+                  class="monthly"
+                  [attr.aria-pressed]="billingPeriod === 'monthly'"
+                  (click)="choosePeriod('monthly')">
+            Monthly
+          </button>
+          <button type="button"
+                  class="annual"
+                  [attr.aria-pressed]="billingPeriod === 'yearly'"
+                  (click)="choosePeriod('yearly')">
+            Annual <span class="chip">2 months free</span>
+          </button>
+        </div>
+
+        @if (paidPrice !== null) {
+          <div class="price-block">
+            <div class="price">
+              <span class="price-value">${{ paidPrice }}<span class="price-period">{{ pricePeriodLabel }}</span></span>
+              @if (struckPrice !== null) {
+                <s>${{ struckPrice }}</s>
               }
             </div>
-          }
-          <app-interactive-cta-button (buttonClick)="onPremiumAction()"
-                                      [text]="premiumButtonText"
-                                      [loading$]="premiumLoading$"
-                                      class="cta"
-          ></app-interactive-cta-button>
-        </footer>
-      </div>
-
-      <div
-        tuiCardLarge
-        class="plan-section free"
-        appearance="outline"
-      >
-        <div class="plan-content">
-          <div class="header free">
-            <h1 tuiTitle>
-              Free
-            </h1>
-          </div>
-          <div class="features">
-            @for (feature of freeFeatures; track feature) {
-              <div class="feature">
-                <div style="">
-                  <tui-icon icon="check"></tui-icon>
-                </div>
-                <span>{{ feature }}</span>
+            @if (alternateCadenceLabel) {
+              <div class="price-alt">
+                <span>{{ alternateCadenceLabel }}</span>
+                @if (alternateStruckPrice !== null) {
+                  <s>${{ alternateStruckPrice }}</s>
+                }
               </div>
             }
           </div>
-        </div>
-        <footer>
-          <div class="price">
-            <span class="price-value">$0</span>
-            <span class="price-period">/ forever</span>
+        } @else {
+          <div class="price-block">
+            <div class="price-loading">Loading current price…</div>
           </div>
+        }
 
-          <app-button
-            [label]="planChosen ? 'Current plan' : 'Start reading'"
-            [loading$]="freeLoading$"
-            [disabled]="planChosen"
-            [fontSize]="16"
-            [padding]="'.88rem 0'"
-            (click)="chooseFreePlan()"
-            class="plan-btn"
-            appearance="bw"
-          ></app-button>
-        </footer>
-      </div>
+        <ul class="features">
+          @for (feature of premiumFeatures; track feature) {
+            <li>{{ feature }}</li>
+          }
+        </ul>
+
+        <button type="button"
+                class="cta gradient"
+                [disabled]="paidLoading$.value"
+                (click)="onPaidAction()">
+          {{ paidButtonText }}
+        </button>
+
+        @if (founderOfferAvailable) {
+          <div class="founder-notes">
+            <span>Only {{ founderCapacity }} founding memberships available</span>
+            @if (claimedCountVisible) {
+              <span>{{ founderClaimed }} of {{ founderCapacity }} claimed</span>
+            }
+            <span>Keep this price while your subscription stays active.</span>
+            <span>Monthly and annual memberships use the same {{ founderCapacity }}-member limit.</span>
+          </div>
+        }
+      </article>
     </div>
-  </div>
+
+    <p class="paywall-foot">
+      The price shown is the one for your region. 14-day money-back guarantee, and you can cancel
+      from your account page at any time.
+    </p>
+  </section>
 </ng-template>

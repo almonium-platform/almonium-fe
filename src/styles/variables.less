@@ -75,6 +75,18 @@
   // The crest fill is not a token: it is the language's stored `langColors` colour, normalised
   // for legibility per `crestFill`. One language, one colour, everywhere.
   --channel-crest-ink: #F1EAEF;
+  // 27: the paid tier's card. Light mode still uses the ink panel as a surface here, so the
+  // tier reads as paid before a price is read; dark mode drops it, because two dark panels on
+  // a dark ground are one panel, and takes the card step with a hairline instead.
+  --paywall-plate: var(--brand-ink);
+  --paywall-plate-border: transparent;
+  --paywall-plate-ink: #F9F6F5;
+  --paywall-plate-ink-2: rgba(249, 246, 245, .82);
+  --paywall-plate-ink-3: rgba(249, 246, 245, .55);
+  --paywall-plate-eyebrow: #c9a8c4;
+  --paywall-plate-fill: rgba(249, 246, 245, .09);
+  --paywall-plate-selected: #F9F6F5;
+  --paywall-plate-selected-ink: #2C2530;
   --pale-purple: #958ba5;
   --lavender: var(--metadata-color);
   --purple-dark: var(--brand-margin);

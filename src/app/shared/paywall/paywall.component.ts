@@ -1,36 +1,38 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
 import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
-import {FormsModule} from "@angular/forms";
-import {TuiIcon, TuiNotificationService, TuiTitle} from "@taiga-ui/core/components";
-import {TuiAppearance} from "@taiga-ui/core/directives";
-import {TuiCardLarge} from "@taiga-ui/layout/components";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 
-import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
 import {UserInfoService} from "../../services/user-info.service";
-import {BehaviorSubject, finalize, forkJoin, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, catchError, finalize, forkJoin, map, of, Subject, takeUntil} from "rxjs";
 import {HttpClient} from '@angular/common/http';
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../../onboarding/onboarding.service";
-import {ButtonComponent} from "../button/button.component";
+import {CardService} from "../../services/card.service";
 import {AppConstants} from '../../app.constants';
 import {expectNumber, expectRecord} from '../runtime-validation';
+
+type BillingPeriod = 'monthly' | 'yearly';
+
+interface FoundingMemberStatus {
+  capacity: number;
+  claimed: number;
+}
+
+// The free tier's saved-item ceiling. The backend has no plan-limit key for it, so the number
+// lives here and prints in both the static line and the signed-in usage line.
+const FREE_SAVED_ITEMS_LIMIT = 100;
+
+// The claimed count is built but held off: a low number reads as "nobody wanted this". It goes
+// on near twelve claimed, and from then reads "7 of 20 claimed".
+const CLAIMED_COUNT_VISIBLE = false;
 
 @Component({
   selector: 'app-paywall',
   templateUrl: './paywall.component.html',
   styleUrls: ['./paywall.component.less'],
-  imports: [
-    FormsModule,
-    TuiAppearance,
-    TuiTitle,
-    TuiCardLarge,
-    TuiIcon,
-    InteractiveCtaButtonComponent,
-    ButtonComponent
-  ]
 })
 export class PaywallComponent implements OnInit, OnDestroy {
   @Input() layout: 'modal' | 'page' = 'modal';
@@ -38,6 +40,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   private planService = inject(PlanService);
   private userInfoService = inject(UserInfoService);
   private onboardingService = inject(OnboardingService);
+  private cardService = inject(CardService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
   private http = inject(HttpClient);
@@ -49,45 +52,25 @@ export class PaywallComponent implements OnInit, OnDestroy {
   private userInfo: UserInfo | null = null;
   protected planChosen = false;
   protected premium = false;
+  protected savedItems: number | null = null;
 
-  protected freeFeatures: string[] = [
-    'Read any book in the library',
-    'Unlimited word lookup and translation',
-    '100 saved words',
-    'Unlimited review, with confusion detection',
-    'One target language, one fluent language',
-    '3 AI stories a week',
-    'No card required',
+  protected billingPeriod: BillingPeriod = 'yearly';
+
+  protected readonly premiumFeatures: string[] = [
+    'Unlimited reading and lookups',
+    'Unlimited saved items and languages',
+    'Sync across your devices',
+    '10 hours of book audio',
+    '3 book imports a month',
   ];
-  protected premiumFeatures: string[] = [
-    'Unlimited saved words',
-    'Every target and fluent language',
-    'Books adapted to your level — B1, B2, C1',
-    'Import your own books — 3 a month',
-    '10 hours of audio',
-    'Sync across devices',
-    'Share word packs with friends',
-  ];
-  selectedMode = 0;
-  premiumPrice = {
-    monthly: 12,
-    yearly: 120,
-  };
-  founderPrice: {monthly: number | null; yearly: number | null} = {
-    monthly: null,
-    yearly: null,
-  };
-  premiumMonthlyId = '';
-  premiumYearlyId = '';
-  protected founderOfferAvailable = false;
-  protected founderCapacity = 0;
-  protected founderRemaining = 0;
 
-  private freeLoadingSubject$ = new BehaviorSubject(false);
-  private premiumLoadingSubject$ = new BehaviorSubject(false);
+  private premiumPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
+  private founderPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
+  private planIds: Record<BillingPeriod, string> = {monthly: '', yearly: ''};
+  private foundingStatus: FoundingMemberStatus | null = null;
 
-  readonly freeLoading$ = this.freeLoadingSubject$.asObservable();
-  readonly premiumLoading$ = this.premiumLoadingSubject$.asObservable();
+  protected readonly freeLoading$ = new BehaviorSubject(false);
+  protected readonly paidLoading$ = new BehaviorSubject(false);
 
   ngOnInit() {
     this.populatePlanInfo();
@@ -109,31 +92,35 @@ export class PaywallComponent implements OnInit, OnDestroy {
         this.userInfo = userInfo;
         this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.LANGUAGES);
         this.premium = userInfo.premium;
+        this.loadSavedItems(userInfo);
       });
   }
 
   private populatePlanInfo() {
     forkJoin({
       plans: this.planService.getPlans(),
-      founder: this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`),
-    }).subscribe({
+      founder: this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`).pipe(
+        map(parseFoundingMemberStatus),
+        catchError(() => of(null)),
+      ),
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({plans, founder}) => {
-        const founderStatus = parseFoundingMemberStatus(founder);
-        this.founderCapacity = founderStatus.capacity;
-        this.founderRemaining = Math.max(0, founderStatus.capacity - founderStatus.claimed);
-        this.founderOfferAvailable = this.founderRemaining > 0;
+        this.foundingStatus = founder;
         const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
         const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
         if (monthlyPremium) {
           this.premiumPrice.monthly = monthlyPremium.price;
           this.founderPrice.monthly = monthlyPremium.founderPrice;
-          this.premiumMonthlyId = String(monthlyPremium.id);
+          this.planIds.monthly = String(monthlyPremium.id);
         }
         if (yearlyPremium) {
           this.premiumPrice.yearly = yearlyPremium.price;
           this.founderPrice.yearly = yearlyPremium.founderPrice;
-          this.premiumYearlyId = String(yearlyPremium.id);
+          this.planIds.yearly = String(yearlyPremium.id);
         }
+        // Premium preselects annual; the founder card preselects monthly, because the barrier
+        // matters more there than the fee ratio.
+        this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
       },
       error: error => this.alertService.open(
         getErrorMessage(error, 'Could not load subscription plans'),
@@ -142,47 +129,149 @@ export class PaywallComponent implements OnInit, OnDestroy {
     });
   }
 
-  get currentPricePeriod(): string {
-    return this.selectedMode === 0 ? '/ month' : '/ year';
+  // Counting saved items means one request per target language, so it only runs on the full
+  // pricing page, where the free card is the reader's own plan rather than a comparison.
+  private loadSavedItems(userInfo: UserInfo) {
+    if (this.layout !== 'page' || userInfo.premium || this.savedItems !== null) {
+      return;
+    }
+
+    const languages = [...new Set(userInfo.targetLangs)];
+    if (!languages.length) {
+      this.savedItems = 0;
+      return;
+    }
+
+    forkJoin(languages.map(language => this.cardService.getCardsInLanguage(language).pipe(
+      catchError(() => of([])),
+    ))).pipe(
+      map(stacks => stacks.reduce((total, cards) => total + cards.length, 0)),
+      takeUntil(this.destroy$),
+    ).subscribe(total => this.savedItems = total);
   }
 
-  get currentPriceValue(): number {
-    const founderValue = this.selectedMode === 0 ? this.founderPrice.monthly : this.founderPrice.yearly;
+  protected get freeFeatures(): string[] {
+    return [
+      'Every book in the library, unlimited reading',
+      'Unlimited lookups',
+      this.savedItems === null
+        ? `Up to ${FREE_SAVED_ITEMS_LIMIT} saved items`
+        : `${this.savedItems} of ${FREE_SAVED_ITEMS_LIMIT} saved items`,
+      'One language, unlimited review',
+      'Confusion feedback',
+    ];
+  }
+
+  protected get onFreePlan(): boolean {
+    return !!this.userInfo && !this.premium && this.planChosen;
+  }
+
+  protected get founderOfferAvailable(): boolean {
+    return !!this.foundingStatus && this.foundingStatus.claimed < this.foundingStatus.capacity;
+  }
+
+  protected get founderSoldOut(): boolean {
+    return !!this.foundingStatus && this.foundingStatus.claimed >= this.foundingStatus.capacity;
+  }
+
+  protected get founderCapacity(): number {
+    return this.foundingStatus?.capacity ?? 0;
+  }
+
+  protected get founderClaimed(): number {
+    return this.foundingStatus?.claimed ?? 0;
+  }
+
+  protected get claimedCountVisible(): boolean {
+    return CLAIMED_COUNT_VISIBLE && this.founderOfferAvailable;
+  }
+
+  protected get paidTierLabel(): string {
+    return this.founderOfferAvailable ? 'Founding member' : 'Premium';
+  }
+
+  // The one price that applies to this visitor for the selected cadence — never a band, never
+  // a range.
+  protected get paidPrice(): number | null {
+    const founderValue = this.founderPrice[this.billingPeriod];
     if (this.founderOfferAvailable && founderValue !== null) {
       return founderValue;
     }
-    return this.currentPublicPriceValue;
+    return this.premiumPrice[this.billingPeriod];
   }
 
-  get founderDiscountVisible(): boolean {
-    return this.founderOfferAvailable && this.currentPriceValue !== this.currentPublicPriceValue;
-  }
-
-  get currentPublicPriceValue(): number {
-    return this.selectedMode === 0 ? this.premiumPrice.monthly : this.premiumPrice.yearly;
-  }
-
-  get premiumButtonText(): string {
-    return this.premium ? 'Manage plan' : 'Become a member';
-  }
-
-  getIcon(feature: string) {
-    if (feature.startsWith('Unlimited')) {
-      return 'infinity';
+  // Once the last place is gone the founder price is struck through: proof the offer was real,
+  // in muted ink at body size so it never reads as something still selectable.
+  protected get struckPrice(): number | null {
+    if (!this.founderSoldOut) {
+      return null;
     }
-    return 'check';
+    const founderValue = this.founderPrice[this.billingPeriod];
+    return founderValue === this.paidPrice ? null : founderValue;
   }
 
-  chooseFreePlan() {
+  protected get alternatePeriod(): BillingPeriod {
+    return this.billingPeriod === 'monthly' ? 'yearly' : 'monthly';
+  }
+
+  protected get alternatePrice(): number | null {
+    const period = this.alternatePeriod;
+    const founderValue = this.founderPrice[period];
+    if (this.founderOfferAvailable && founderValue !== null) {
+      return founderValue;
+    }
+    return this.premiumPrice[period];
+  }
+
+  protected get alternateStruckPrice(): number | null {
+    if (!this.founderSoldOut) {
+      return null;
+    }
+    const founderValue = this.founderPrice[this.alternatePeriod];
+    return founderValue === this.alternatePrice ? null : founderValue;
+  }
+
+  protected get alternateCadenceLabel(): string {
+    if (this.alternatePrice === null) {
+      return '';
+    }
+    return this.billingPeriod === 'monthly'
+      ? `$${this.alternatePrice} a year on annual billing`
+      : `$${this.alternatePrice} a month on monthly billing`;
+  }
+
+  protected get pricePeriodLabel(): string {
+    return this.billingPeriod === 'monthly' ? '/ month' : '/ year';
+  }
+
+  protected get paidButtonText(): string {
+    if (this.paidLoading$.value) {
+      return 'Opening checkout…';
+    }
+    if (this.premium) {
+      return 'Manage subscription';
+    }
+    return this.founderOfferAvailable ? 'Take a place' : 'Go Premium';
+  }
+
+  protected choosePeriod(period: BillingPeriod) {
+    this.billingPeriod = period;
+  }
+
+  protected chooseFreePlan() {
+    if (!this.userInfo) {
+      void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
+      return;
+    }
     if (this.planChosen) {
       logger.error('User is not onboarded');
       return;
     }
 
-    this.freeLoadingSubject$.next(true);
+    this.freeLoading$.next(true);
 
     this.onboardingService.completeStep(this.step)
-      .pipe(finalize(() => this.freeLoadingSubject$.next(false)))
+      .pipe(finalize(() => this.freeLoading$.next(false)))
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
@@ -194,7 +283,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
       });
   }
 
-  onPremiumAction() {
+  protected onPaidAction() {
     if (this.premium) {
       this.accessCustomerPortal();
       return;
@@ -207,16 +296,15 @@ export class PaywallComponent implements OnInit, OnDestroy {
       void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
     }
-    if (this.premiumLoadingSubject$.value) {
+    if (this.paidLoading$.value) {
       logger.warn('Rapid clicks detected');
       return;
     }
 
-    this.premiumLoadingSubject$.next(true);
+    this.paidLoading$.next(true);
 
-    const selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
-    this.planService.subscribeToPlan(String(selectedPlanId), this.founderOfferAvailable)
-      .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
+    this.planService.subscribeToPlan(this.planIds[this.billingPeriod], this.founderOfferAvailable)
+      .pipe(finalize(() => this.paidLoading$.next(false)))
       .subscribe({
         next: url => {
           window.location.href = url.sessionUrl;
@@ -229,13 +317,13 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   private accessCustomerPortal() {
-    if (this.premiumLoadingSubject$.value) {
+    if (this.paidLoading$.value) {
       return;
     }
 
-    this.premiumLoadingSubject$.next(true);
+    this.paidLoading$.next(true);
     this.planService.accessCustomerPortal()
-      .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
+      .pipe(finalize(() => this.paidLoading$.next(false)))
       .subscribe({
         next: url => {
           window.location.href = url.sessionUrl;
@@ -248,7 +336,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 }
 
-function parseFoundingMemberStatus(value: unknown): {capacity: number; claimed: number} {
+function parseFoundingMemberStatus(value: unknown): FoundingMemberStatus {
   const status = expectRecord(value, 'founding-member status');
   return {
     capacity: expectNumber(status['capacity'], 'founding-member status.capacity'),

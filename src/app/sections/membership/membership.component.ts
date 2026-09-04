@@ -75,6 +75,9 @@ export class MembershipComponent implements OnInit {
       next: ({plans, foundingStatus}) => {
         this.plans = plans;
         this.foundingStatus = foundingStatus;
+        // The founder offer preselects monthly, because the barrier matters more there than
+        // the fee ratio; without it, annual leads.
+        this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
       },
       error: error => this.showError(error, 'Could not load membership options'),
     });
@@ -150,9 +153,20 @@ export class MembershipComponent implements OnInit {
     return !!this.foundingStatus && this.foundingStatus.claimed < this.foundingStatus.capacity;
   }
 
-  protected get founderRemaining(): number {
-    if (!this.foundingStatus) return 0;
-    return Math.max(0, this.foundingStatus.capacity - this.foundingStatus.claimed);
+  protected get founderSoldOut(): boolean {
+    return !!this.foundingStatus && this.foundingStatus.claimed >= this.foundingStatus.capacity;
+  }
+
+  protected get founderCapacity(): number {
+    return this.foundingStatus?.capacity ?? 0;
+  }
+
+  // While places remain, only the founder price is on screen. Once they are gone the founder
+  // price is struck through: proof the offer was real, never a second price to reach for.
+  protected get struckPrice(): number | null {
+    if (!this.founderSoldOut) return null;
+    const founderValue = this.selectedPlan?.founderPrice ?? null;
+    return founderValue === this.offerPrice ? null : founderValue;
   }
 
   protected usagePercent(used: number | null, limit: number): number {

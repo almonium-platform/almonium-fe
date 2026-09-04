@@ -51,8 +51,8 @@ async function createFixture(userInfo$: BehaviorSubject<UserInfo>, savedWords: n
     'accessCustomerPortal',
   ]);
   planService.getPlans.and.returnValue(of([
-    {id: 2, name: 'PREMIUM', type: 'MONTHLY', description: '', price: 12},
-    {id: 3, name: 'PREMIUM', type: 'YEARLY', description: '', price: 120},
+    {id: 2, name: 'PREMIUM', type: 'MONTHLY', description: '', price: 12, founderPrice: 8},
+    {id: 3, name: 'PREMIUM', type: 'YEARLY', description: '', price: 120, founderPrice: 80},
   ]));
 
   const readService = jasmine.createSpyObj<ReadService>('ReadService', ['getBookImportQuota']);

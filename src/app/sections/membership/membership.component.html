@@ -46,18 +46,17 @@
             <div class="offer-copy">
               @if (offerPrice !== null) {
                 <div class="price">
-                  @if (founderOfferAvailable && publicPrice !== offerPrice) {
-                    <s>${{ publicPrice }}</s>
-                  }
                   <strong>${{ offerPrice }}</strong>
                   <span>/ {{ billingPeriod === 'monthly' ? 'month' : 'year' }}</span>
+                  @if (struckPrice !== null) {
+                    <s>${{ struckPrice }}</s>
+                  }
                 </div>
               } @else {
                 <div class="price-loading">Loading current price…</div>
               }
               @if (founderOfferAvailable) {
-                <p>Founding price, locked for as long as you stay subscribed.</p>
-                <code>{{ founderRemaining }} founding {{ founderRemaining === 1 ? 'place' : 'places' }} left</code>
+                <p>Only {{ founderCapacity }} founding memberships available. Keep this price while your subscription stays active.</p>
               }
             </div>
             <button class="premium-action" type="button" [disabled]="!selectedPlan || actionLoading$.value" (click)="becomeMember()">

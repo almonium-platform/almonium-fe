@@ -1,266 +1,284 @@
-@import '../../../styles/popup-styles';
+button { font: inherit; }
 
-.popup-container {
+.paywall {
+  display: flex;
+  // A definite width, so the fit-content dialog shell it sits in has something to measure.
+  width: 46rem;
+  max-width: 100%;
   flex-direction: column;
-  max-width: 100vw;
-  background-color: var(--gray-bg);
-  border-radius: 2rem;
+  gap: 1.375rem;
+  padding: 1.875rem 2rem;
+  border-radius: 1.5rem;
+  background: var(--page-ground);
 }
 
-.popup-container.page-layout {
+// On the pricing page the ground is already the page, so the shell only holds the grid.
+.paywall.page-layout {
   width: 100%;
-  max-width: 64rem;
   padding: 0;
-  background-color: transparent;
+  background: transparent;
   border-radius: 0;
 }
 
-.tui-segmented-wrapper {
+.eyebrow {
+  color: var(--dark-raspberry);
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .09375rem;
+  text-transform: uppercase;
+}
+
+.paywall-head {
   display: flex;
-  justify-content: center;
-  padding: 20px 0 8px;
+  flex-direction: column;
+  gap: .4375rem;
+}
+
+.paywall-head h1 {
+  margin: 0;
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.paywall-head p {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: .84375rem;
+  line-height: 1.6;
+}
+
+.tiers {
+  display: grid;
+  align-items: start;
+  gap: 1rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.tier {
+  display: flex;
+  flex-direction: column;
+  gap: .8125rem;
+  padding: 1.375rem 1.5rem;
+  border-radius: 1.25rem;
+}
+
+.tier.free {
+  border: 1.5px solid transparent;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+
+// The card a user is already on states where they are instead of selling it again: an outline
+// rather than a shadow, and no purchase CTA at all.
+.tier.free.is-current {
+  border-color: var(--control-border-color);
+  box-shadow: none;
+}
+
+.tier.paid {
+  border: 1px solid var(--paywall-plate-border);
+  background: var(--paywall-plate);
+  color: var(--paywall-plate-ink);
+}
+
+.tier.paid .eyebrow { color: var(--paywall-plate-eyebrow); }
+
+.tier-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5625rem;
+}
+
+.pill {
+  border-radius: 9999px;
+  font-size: .6875rem;
+  font-weight: 600;
+  padding: .25rem .625rem;
+}
+
+.pill.current {
+  background: var(--state-selected);
+  color: var(--brand-primary);
+}
+
+.pill.sold-out {
+  background: var(--paywall-plate-fill);
+  color: var(--paywall-plate-ink-2);
 }
 
 .billing-toggle {
   display: flex;
-  background: var(--hairline-color);
-  border-radius: 12px;
-  padding: 4px;
-  gap: 2px;
+  align-items: center;
+  gap: .375rem;
+  padding: .25rem;
+  border-radius: 9999px;
+  background: var(--paywall-plate-fill);
 }
 
 .billing-toggle button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: .375rem;
+  padding: .4375rem .75rem;
   border: 0;
-  cursor: pointer;
-  font: 600 15px Helvetica, Arial, sans-serif;
-  padding: 10px 20px;
-  border-radius: 9px;
+  border-radius: 9999px;
   background: transparent;
-  color: var(--subhead-color);
-  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
-}
-
-.billing-toggle button[aria-pressed='true'] {
-  background: var(--card-color);
-  color: var(--text-color);
-  box-shadow: 0 1px 3px rgba(43, 34, 38, 0.14);
-}
-
-.billing-toggle .chip {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 3px 7px;
-  border-radius: 5px;
+  color: var(--paywall-plate-ink-2);
+  cursor: pointer;
+  font-size: .78125rem;
+  font-weight: 500;
   white-space: nowrap;
-  background: var(--control-border-color);
-  color: var(--subhead-color);
   transition: background 180ms ease, color 180ms ease;
 }
 
+.billing-toggle button.monthly { flex: 1; }
+.billing-toggle button.annual { flex: 0 0 auto; }
+
+.billing-toggle button[aria-pressed='true'] {
+  background: var(--paywall-plate-selected);
+  color: var(--paywall-plate-selected-ink);
+  font-weight: 600;
+}
+
+.chip {
+  padding: .1875rem .4375rem;
+  border-radius: 9999px;
+  background: rgba(217, 139, 168, .28);
+  color: var(--paywall-plate-ink);
+  font-size: .625rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .billing-toggle button[aria-pressed='true'] .chip {
-  background: var(--brand-primary);
-  color: var(--on-brand-color);
+  background: var(--state-selected);
+  color: var(--brand-primary);
 }
 
-.cards {
-  margin-top: 1em;
+.price-block {
   display: flex;
-  flex-direction: row-reverse;
-  justify-content: center;
-  gap: 2em;
-  scroll-behavior: smooth;
-}
-
-.plan-section {
-  flex: 1 1 calc(50% - 2rem); /* Each card takes half the width minus the gap */
-  max-width: 340px;
-  min-width: 340px;
-  box-sizing: border-box;
-}
-
-.plan-section.premium {
-  position: relative;
-  overflow: hidden;
-  background: var(--card-color);
-  border: 1px solid var(--hairline-color);
-}
-
-.shining-effect {
-  position: absolute;
-  top: 0;
-  left: -200%;
-  width: 300%;
-  height: 100%;
-  background: linear-gradient(90deg,
-    rgba(255, 252, 248, 0) 0%,
-    rgba(255, 252, 248, 0.22) 50%,
-    rgba(255, 252, 248, 0) 100%);
-  transform: skewX(20deg);
-  filter: blur(6px);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-@keyframes shine {
-  0% {
-    left: -200%;
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  100% {
-    left: 200%;
-    opacity: 0;
-  }
-}
-
-.plan-section.premium:hover .shining-effect {
-  animation: shine 900ms ease-out 1;
-}
-
-.premium-star-badge {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #612b5e, #83397f);
-  box-shadow: 0 1px 3px rgba(97, 43, 94, 0.25);
-  transition: transform 400ms ease, background 400ms ease;
-}
-
-.premium-star-badge:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(200deg, #612b5e, #83397f);
-}
-
-.plan-section.free {
-  border-radius: 25px;
-  border: 1px solid var(--border-color);
-  background-color: var(--card-color) !important;
-}
-
-.header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  display: inline-block;
-  line-height: 1.2;
-}
-
-.header.free h1 {
-  color: var(--text-color);
-}
-
-.plan-subtitle {
-  margin: 0.4rem 0 0;
-  color: var(--disabled-text-color);
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-.plan-content {
-  padding: 0 1rem;
-}
-
-.features {
-  margin-top: 2rem;
-}
-
-.feature {
-  display: flex;
-  align-items: center; /* Center items vertically */
-  color: var(--text-color);
-}
-
-.feature tui-icon {
-  display: inline-block;
-  vertical-align: middle; /* Ensure vertical alignment of the icon */
-}
-
-.feature span {
-  margin-left: 1rem;
-  line-height: 1.5; /* Adjust to match the text size */
-}
-
-.disabled:hover,
-.disabled {
-  background-color: var(--disabled-color);
-  color: var(--disabled-text-color);
-  border-color: var(--disabled-color);
-  cursor: not-allowed;
+  flex-direction: column;
+  gap: .1875rem;
 }
 
 .price {
   display: flex;
   align-items: baseline;
-  padding: 1.5rem;
-}
-
-.price-original {
-  margin-right: 0.5rem;
-  color: var(--disabled-text-color);
-  font-size: 1.35rem;
-  text-decoration: line-through;
+  gap: .625rem;
 }
 
 .price-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-color);
-}
-
-.price-period {
-  font-size: 1.2rem;
-  color: var(--disabled-text-color);
-  margin-left: 0.5rem;
-  font-weight: 700;
-}
-
-.founder-offer {
-  display: grid;
-  gap: 0.25rem;
-  margin: -0.75rem 1.5rem 1.25rem;
-  color: var(--purple-dark);
-  font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.founder-offer span:last-child {
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.8125rem;
   font-weight: 600;
 }
 
-@media screen and (max-width: 600px) {
-  .cards {
-    flex-direction: row; /* Keep cards in a row */
-    justify-content: flex-start;
-    overflow-x: auto; /* Enable horizontal scrolling */
-    padding: 1rem; /* Add padding to avoid cutting shadows */
-    gap: 1rem; /* Adjust gap */
-  }
+.tier.paid .price-value { color: var(--paywall-plate-ink); }
 
-  .plan-section {
-    flex: 0 0 auto; /* Allow cards to maintain their width in horizontal scrolling */
-    width: calc(100% - 2rem); /* Make cards narrower on smaller screens if needed */
-  }
+.price-period {
+  margin-left: .25rem;
+  color: var(--paywall-plate-ink-3);
+  font-size: .9375rem;
+  font-weight: 500;
 }
 
-.plan-section.premium tui-icon:after {
-  background: var(--premium-gradient);
-  color: transparent;
+// Struck founder pricing is proof the offer was real: body size, muted ink, never a second
+// price the reader could try to pick.
+.price s,
+.price-alt s {
+  color: var(--paywall-plate-ink-3);
+  font-size: .875rem;
 }
+
+.price-alt {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  color: var(--paywall-plate-ink-3);
+  font-size: .75rem;
+}
+
+.price-alt s { font-size: .75rem; }
+
+.price-loading {
+  color: var(--paywall-plate-ink-3);
+  font-size: .84375rem;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: .4375rem;
+  margin: 0;
+  padding: 0;
+  color: var(--subhead-color);
+  font-size: .8125rem;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.tier.paid .features { color: var(--paywall-plate-ink-2); }
 
 .cta {
+  align-self: flex-start;
+  margin-top: .1875rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: .84375rem;
+  font-weight: 600;
+}
+
+.cta.ghost {
+  padding: .625rem 1.375rem;
+  border: 1.5px solid var(--brand-ink);
+  background: transparent;
+  color: var(--brand-ink);
+}
+
+.cta.gradient {
+  padding: .6875rem 1.5rem;
+  border: 0;
+  background: var(--premium-gradient);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 2px 6px rgba(72, 23, 125, .3);
+  color: #FDF4F8;
+}
+
+.cta:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+.founder-notes {
   display: flex;
-  height: 55px;
+  flex-direction: column;
+  gap: .25rem;
+  color: var(--paywall-plate-ink-3);
+  font-size: .75rem;
+  line-height: 1.5;
+}
+
+.paywall-foot {
+  margin: 0;
+  color: var(--metadata-color);
+  font-size: .78125rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 44rem) {
+  .paywall {
+    padding: 1.25rem 1rem;
+    gap: 1.125rem;
+  }
+
+  .paywall.page-layout { padding: 0; }
+
+  .tiers { grid-template-columns: 1fr; }
+
+  .cta { align-self: stretch; text-align: center; }
 }
