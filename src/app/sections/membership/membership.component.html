@@ -126,7 +126,7 @@
             @if (importQuota) {
               <div><dt>Book imports</dt><dd>{{ importQuota.used }} / {{ importQuota.limit < 0 ? 'unlimited' : importQuota.limit }} this month</dd></div>
             }
-            <div><dt>Target languages</dt><dd>{{ targetLanguagesUsed }}</dd></div>
+            <div><dt>Target languages</dt><dd>{{ activeLanguagesUsed }}</dd></div>
             <div><dt>Fluent languages</dt><dd>{{ fluentLanguagesUsed }}</dd></div>
           </dl>
         </div>
