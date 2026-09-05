@@ -7,6 +7,7 @@ import {AppConstants} from '../../../app.constants';
 import {ChannelMark, channelMark} from './channel-mark';
 import {isAlmoUser} from '../almo/almo-channel';
 import {crestFill} from './crest-fill';
+import {isInterlocutorGone, isUserGone} from '../interlocutor';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 
 /**
@@ -128,12 +129,14 @@ export class CustomChatAvatarComponent
   }
 
   /**
-   * Stream soft-deletes a user, so the member is still on the channel with a date on it. The row
-   * this draws is the one place the absence has to be visible before the thread is opened.
+   * The row this draws is the one place the absence has to be visible before the thread is
+   * opened. A channel's disc asks about the member; a message's disc asks about its sender, whose
+   * user object survives on the message after the member itself is gone.
    */
   private setDeletedAccount() {
-    const user = this.type === 'channel' ? this.getOtherMemberIfOneToOneChannel() : this.user;
-    this.isDeletedAccount = !!user && (!!user.deleted_at || !!user.deactivated_at);
+    this.isDeletedAccount = this.type === 'channel'
+      ? isInterlocutorGone(this.channel, this.userId)
+      : isUserGone(this.user);
   }
 
   private setFallbackChannelImage() {

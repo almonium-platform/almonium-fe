@@ -471,7 +471,9 @@
 
                   <div class="str-chat__channel-preview-end-first-row">
                     <div class="str-chat__channel-preview-messenger--name">
-                                  <span data-testid="channel-preview-title">
+                                  <!-- 10: a name in muted ink is a name nobody answers to any more. -->
+                                  <span data-testid="channel-preview-title"
+                                        [class.deleted-account]="channels.isInterlocutorDeleted(channel)">
                                     {{ channels.name(channel, channelDisplayTitle) }}
                                   </span>
                     </div>

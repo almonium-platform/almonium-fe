@@ -644,6 +644,12 @@
   }
 }
 
+/* 10: the name of an account that is gone, in the row and in the header alike. */
+::ng-deep .chat-window .str-chat__channel-header-title.deleted-account,
+::ng-deep .str-chat__channel-preview-messenger--name .deleted-account {
+  color: var(--metadata-color);
+}
+
 /* The line below the bubble: one mark, one sentence, and on a retryable send, one target. */
 ::ng-deep .chat-window .message-failure {
   align-items: center;

@@ -422,6 +422,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       if (!chatTitleElement) return;
 
       chatTitleElement.textContent = this.channels.name(channel, channel.data?.name ?? '');
+      // 10: the header's name is Stream's element, so its muted ink is toggled the same way its text is set.
+      chatTitleElement.classList.toggle('deleted-account', this.channels.isInterlocutorDeleted(channel));
       this.cdr.detectChanges();
     }, 1);
   }

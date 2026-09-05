@@ -3,6 +3,7 @@ import {Channel, ChannelSort} from 'stream-chat';
 import {ChannelService, ChatClientService} from 'stream-chat-angular';
 import {AppConstants} from '../../app.constants';
 import {DELETED_ACCOUNT_NAME} from './social-copy';
+import {interlocutorOf, isInterlocutorGone} from './interlocutor';
 import {PrivateChatService} from '../../services/private-chat.service';
 import {isAlmoChannel} from './almo/almo-channel';
 
@@ -68,15 +69,11 @@ export class SocialChannelFacade {
   /**
    * 10: deleting an account leaves its private threads standing. The server drops the person from
    * the rooms and deletes their Saved Messages, but a DM has two members and only one of them
-   * left, so the other keeps the history - and Stream soft-deletes the user, which is what makes
-   * the date below readable at all rather than the member simply vanishing.
+   * left, so the other keeps the history. What Stream leaves of the departed member is decided in
+   * `interlocutor.ts`, which is the one place that reads it.
    */
   isInterlocutorDeleted(channel: Channel): boolean {
-    if (!this.isPrivate(channel)) return false;
-    const user = this.interlocutor(channel);
-    // Deactivation is reversible and deletion is not, but a thread cannot be written to under
-    // either, and both read the same way to the person still holding it.
-    return !!user && (!!user.deleted_at || !!user.deactivated_at);
+    return isInterlocutorGone(channel, this.chatService.chatClient.userID);
   }
 
   private interlocutorName(channel: Channel): string | undefined {
@@ -97,10 +94,7 @@ export class SocialChannelFacade {
   }
 
   private interlocutor(channel: Channel) {
-    const currentUserId = this.chatService.chatClient.userID;
-    return Object.values(channel.state.members)
-      .find(member => member.user?.id !== currentUserId)
-      ?.user;
+    return interlocutorOf(channel, this.chatService.chatClient.userID);
   }
 
   /**

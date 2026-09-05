@@ -15,6 +15,7 @@ import {AsyncPipe, DatePipe, NgClass, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
+import {isInterlocutorGone} from '../interlocutor';
 import {isAlmoChannel} from "../almo/almo-channel";
 
 /** "Almonium — Deutsch" -> "Deutsch"; falls back to the whole name. */
@@ -34,7 +35,8 @@ function topicOf(name: string): string {
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
       [ngClass]="!isSelfChat ? 'pb-1 pt-1' : ''"
       [ngStyle]="{'row-gap': isSelfChat ? 'unset' : ''}">
-      @if (!isSelfChat) {
+      <!-- 10: a deleted account has no presence to report, so the line under its name is empty. -->
+      @if (!isSelfChat && !isDeletedAccount) {
         @if (isAlmoChat) {
           <!-- 11: the name only. No presence dot, no "online", no tagline; typing reads as a contact's does. -->
           @if (canReceiveConnectEvents) {
@@ -135,6 +137,8 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
   protected isSelfChat: boolean | undefined;
   protected isAlmoChat = false;
   protected isBroadcastChannel = false;
+  /** 10: the other side of this private chat is an account that no longer exists. */
+  protected isDeletedAccount = false;
   protected topic = '';
   protected usersTyping$: Observable<UserResponse[]> = of([]);
 
@@ -161,7 +165,10 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
         if (capabilities) {
           this.canReceiveConnectEvents = capabilities.includes('connect-events');
         }
-        if (this.isPrivateChat) {
+        this.isDeletedAccount = isInterlocutorGone(c, this.chatClient.userID);
+        // Presence is a question about a person. There is nobody to ask it of here, so the
+        // subscription is not made rather than made and answered "offline".
+        if (this.isPrivateChat && !this.isDeletedAccount) {
           const user = this.getOtherMemberIfOneToOneChannel();
           if (user) {
             this.interlocutorId = user.id;

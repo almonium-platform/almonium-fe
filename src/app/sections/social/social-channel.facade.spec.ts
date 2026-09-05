@@ -11,13 +11,17 @@ describe('SocialChannelFacade', () => {
   const channel = (
     type: string,
     data: Record<string, unknown>,
-    members: {id: string; name?: string; premium?: boolean; deleted_at?: string; deactivated_at?: string}[],
+    members: {id: string; name?: string; premium?: boolean; deleted_at?: string; deactivated_at?: string; stripped?: boolean}[],
   ) =>
     ({
       type,
       data,
       state: {
-        members: Object.fromEntries(members.map(member => [member.id, {user_id: member.id, user: member}])),
+        // `stripped` is the member as Stream returns it once the account behind it is deleted:
+        // the id survives on the membership, the user object does not.
+        members: Object.fromEntries(
+          members.map(({stripped, ...member}) => [member.id, {user_id: member.id, user: stripped ? undefined : member}]),
+        ),
       },
     }) as unknown as Channel;
 
@@ -105,6 +109,24 @@ describe('SocialChannelFacade', () => {
       {id: 'me', name: 'Me'},
       {id: 'them', name: 'Ada', deleted_at: '2026-03-04T10:00:00Z'},
     ]);
+
+    expect(facade.isInterlocutorDeleted(dm)).toBeTrue();
+    expect(facade.name(dm, 'fallback')).toBe('Deleted account');
+  });
+
+  it('reads a member Stream has stripped of its user as an account that is gone', () => {
+    const dm = channel(AppConstants.PRIVATE_CHAT_TYPE, {}, [
+      {id: 'me', name: 'Me'},
+      {id: 'them', stripped: true},
+    ]);
+
+    expect(facade.isInterlocutorDeleted(dm)).toBeTrue();
+    expect(facade.name(dm, 'fallback')).toBe('Deleted account');
+  });
+
+  it('reads a private chat with nobody left on the other side the same way', () => {
+    // A DM is created with both members and nobody leaves one, so a missing member is a deletion.
+    const dm = channel(AppConstants.PRIVATE_CHAT_TYPE, {}, [{id: 'me', name: 'Me'}]);
 
     expect(facade.isInterlocutorDeleted(dm)).toBeTrue();
     expect(facade.name(dm, 'fallback')).toBe('Deleted account');
