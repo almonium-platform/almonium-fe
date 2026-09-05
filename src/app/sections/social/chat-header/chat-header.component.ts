@@ -33,10 +33,9 @@ function topicOf(name: string): string {
     <p
       data-testid="info"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
-      [ngClass]="!isSelfChat ? 'pb-1 pt-1' : ''"
-      [ngStyle]="{'row-gap': isSelfChat ? 'unset' : ''}">
-      <!-- 10: a deleted account has no presence to report, so the line under its name is empty. -->
-      @if (!isSelfChat && !isDeletedAccount) {
+      [ngClass]="hasSubtitle ? 'pb-1 pt-1' : ''"
+      [ngStyle]="{'row-gap': hasSubtitle ? '' : 'unset'}">
+      @if (hasSubtitle) {
         @if (isAlmoChat) {
           <!-- 11: the name only. No presence dot, no "online", no tagline; typing reads as a contact's does. -->
           @if (canReceiveConnectEvents) {
@@ -139,6 +138,15 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
   protected isBroadcastChannel = false;
   /** 10: the other side of this private chat is an account that no longer exists. */
   protected isDeletedAccount = false;
+
+  /**
+   * Whether anything is drawn under the name. Saved Messages has nobody to report on and a
+   * deleted account has nobody left to report on; either way the name centres against the disc,
+   * and the padding that would hold an empty line open has to go with the line.
+   */
+  protected get hasSubtitle(): boolean {
+    return !this.isSelfChat && !this.isDeletedAccount;
+  }
   protected topic = '';
   protected usersTyping$: Observable<UserResponse[]> = of([]);
 
