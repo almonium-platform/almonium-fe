@@ -95,7 +95,11 @@ export class UserInfo {
       .map(learner => learner.language);
   }
 
-  public isTargetLangPaywalled(): boolean {
+  /**
+   * The account holds as many languages as it can store, which is the same number on every plan. Nothing is sold
+   * here — what a plan moves is how many of them may be active.
+   */
+  public isAtLanguageCeiling(): boolean {
     return this.targetLangs.length >= this.subscription.getMaxTargetLanguages();
   }
 }

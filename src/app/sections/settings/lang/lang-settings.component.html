@@ -164,17 +164,21 @@
         <div class="add-language-row">
           <span class="empty-colour"></span>
           <span>Another language</span>
-          @if (userInfo?.isTargetLangPaywalled()) {
-            <button type="button" class="members-gate" (click)="openPaywall()">
-              <lucide-icon name="lock" size="13"></lucide-icon>
-              Members
-            </button>
+          @if (atLanguageCeiling) {
+            <span class="ceiling-note">{{ languageCeiling }} is all an account can hold</span>
           } @else {
             <button type="button" class="add-language" aria-label="Add another language" (click)="openLangSetupPopup()">
               <tui-icon icon="@tui.plus" />
             </button>
           }
         </div>
+
+        @if (atAllowance && !atLanguageCeiling) {
+          <p class="allowance-panel">
+            {{ allowanceNote }}
+            <button type="button" class="allowance-upgrade" (click)="openPaywall()">See plans</button>
+          </p>
+        }
 
         @if (atAllowance && !switchAvailable && nextSwitchOn) {
           <p class="cooldown-panel">

@@ -24,7 +24,6 @@ import {ActiveLanguagePolicy, capped, switchAvailable} from "../../../models/act
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
 import {PaywallComponent} from "../../../shared/paywall/paywall.component";
-import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
@@ -46,7 +45,6 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     TuiLoader,
     ConfirmModalComponent,
     PaywallComponent,
-    SharedLucideIconsModule,
     RecentAuthGuardComponent,
     LanguageSetupComponent,
     TuiSwitch,
@@ -357,6 +355,26 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected get allowance(): number | null {
     return capped(this.policy) ? this.policy!.allowance : null;
+  }
+
+  /** How many languages the account may hold at all. The same on every plan, so reaching it is not an upsell. */
+  protected get languageCeiling(): number {
+    return this.userInfo?.subscription.getMaxTargetLanguages() ?? 0;
+  }
+
+  protected get atLanguageCeiling(): boolean {
+    return this.userInfo?.isAtLanguageCeiling() ?? false;
+  }
+
+  /**
+   * What adding one more would actually do. The account can hold it either way; at the allowance it arrives set
+   * aside, and saying so beforehand is the difference between a limit and a surprise.
+   */
+  protected get allowanceNote(): string {
+    const allowance = this.allowance;
+    const held = allowance === 1 ? 'one active language' : `${allowance} active languages`;
+    return `Your plan keeps ${held}. Another one is saved with everything in it, `
+      + 'but waits until you make it active or upgrade.';
   }
 
   /** Words kept in a language, so a read-only row says what it is holding rather than just that it is off. */

@@ -180,27 +180,8 @@ select { font: inherit; }
 
 .add-language-row { padding-top: .125rem; }
 .add-language-row .add-language,
-.add-language-row .members-gate { margin-left: auto; }
+.add-language-row .ceiling-note { margin-left: auto; }
 .add-language:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
-
-.members-gate {
-  display: inline-flex;
-  align-items: center;
-  gap: .4375rem;
-  padding: .375rem .8125rem;
-  border: 0;
-  border-radius: 9999px;
-  background: var(--premium-gradient);
-  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45);
-  color: #FDF4F8;
-  cursor: pointer;
-  font: inherit;
-  font-size: .75rem;
-  font-weight: 500;
-}
-
-.members-gate lucide-icon { display: block; }
-.members-gate:hover { box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45), 0 2px 6px rgba(72, 23, 125, .3); }
 
 @media (max-width: 600px) {
   .learning-layout { width: min(calc(100% - 1rem), 30rem); }
@@ -270,6 +251,32 @@ select { font: inherit; }
 }
 
 /* Inside the cooldown this panel is the whole explanation. */
+.ceiling-note {
+  color: var(--metadata-color);
+  font-size: .78125rem;
+}
+
+.allowance-panel {
+  margin: .75rem 0 0;
+  padding: .6875rem .875rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: .78125rem;
+  line-height: 1.55;
+}
+
+.allowance-upgrade {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.allowance-upgrade:hover { text-decoration: underline; }
+
 .cooldown-panel {
   margin: .75rem 0 0;
   padding: .6875rem .875rem;
