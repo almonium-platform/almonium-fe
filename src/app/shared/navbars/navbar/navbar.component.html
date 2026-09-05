@@ -330,12 +330,17 @@
                  #dropdown="tuiDropdown"
                  [tuiDropdown]="dropdownTemplate"
             >
-              <app-avatar-preview
-                [avatarUrl]="notification.pictureUrl"
-                [username]="notification.senderUsername"
-                (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
-                [userId]="notification.senderId"
-              ></app-avatar-preview>
+              <!-- The panel already floats; a hover card off it would be a third layer over the row
+                   that spawned it, repeating the row's own actions. The avatar is a link instead. -->
+              <button type="button"
+                      class="notification-avatar"
+                      [attr.aria-label]="'View profile of ' + (notification.senderUsername ?? 'the sender')"
+                      (click)="openSenderProfile(notification)">
+                <app-avatar
+                  [avatarUrl]="notification.pictureUrl"
+                  [username]="notification.senderUsername"
+                ></app-avatar>
+              </button>
 
               <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
                 <div class="notification-row">

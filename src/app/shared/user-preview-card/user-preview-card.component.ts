@@ -77,6 +77,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   private dropdownOpen = false;
+  private pointerInside = false;
   private authenticatedPerspectiveFor: string | null = null;
   protected targetLanguagesExpanded = false;
   protected interestsExpanded = false;
@@ -317,6 +318,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
   protected closeConfirmModal() {
     this.isConfirmModalVisible = false;
+    this.release();
   }
 
   protected confirmModalAction() {
@@ -508,14 +510,33 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     this.dropdownOpen = $event;
     if (!$event) {
       friendDropdown.toggle(false);
+      this.release();
     }
   }
 
+  protected onMouseEnter() {
+    this.pointerInside = true;
+  }
+
   protected onMouseLeave() {
+    this.pointerInside = false;
     setTimeout(() => {
-      if (!this.dropdownOpen) {
+      if (!this.held) {
         this.closed.emit();
       }
     }, 10);
+  }
+
+  // The More menu and the confirm dialog both sit outside the card's box; while either is up, a
+  // pointer wandering off the card must not take the card (and the thing it opened) with it.
+  private get held(): boolean {
+    return this.dropdownOpen || this.isConfirmModalVisible;
+  }
+
+  // Once nothing holds the card any more, it closes unless the pointer came back to it.
+  private release() {
+    if (!this.held && !this.pointerInside) {
+      this.closed.emit();
+    }
   }
 }

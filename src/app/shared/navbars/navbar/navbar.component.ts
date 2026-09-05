@@ -25,7 +25,6 @@ import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
-import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
 import {TimerComponent} from "./timer/timer.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
@@ -63,7 +62,6 @@ const REQUEST_ANSWER_FAILED = 'Could not answer the friend request';
     TuiDataListComponent,
     TuiDataListDropdownManager,
     TuiActiveZone,
-    AvatarPreviewComponent,
     TimerComponent,
     TuiOption,
   ]
@@ -488,7 +486,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   notificationOnClickOutside() {
-    if (!this.notificationDropdownActive && !this.userPreviewDropdownActive) {
+    if (!this.notificationDropdownActive) {
       this.isNotificationOpen = false;
     }
   }
@@ -648,6 +646,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.markNotificationAsRead(notification);
   }
 
+  protected openSenderProfile(notification: Notification) {
+    const handle = notification.senderUsername ?? notification.senderId;
+    if (!handle) {
+      return;
+    }
+    this.isNotificationOpen = false;
+    void this.router.navigate(['/users', handle]);
+  }
+
   private markNotificationAsRead(notification: Notification) {
     this.loadingNotificationAction = true;
     const ids = this.notificationGroupIds.get(notification.id) ?? [notification.id];
@@ -680,11 +687,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   protected notificationDropdownActive = false;
-  protected userPreviewDropdownActive = false;
-
-  togglePreviewDropdownActive($event: boolean) {
-    this.userPreviewDropdownActive = $event;
-  }
 
   toggleReadDropdownActive($event: boolean) {
     this.notificationDropdownActive = $event;

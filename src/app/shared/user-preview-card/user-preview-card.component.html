@@ -8,7 +8,7 @@
   [useCountdown]="false">
 </app-confirm-modal>
 
-<article class="preview-card" (mouseleave)="onMouseLeave()">
+<article class="preview-card" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
   @if (userProfileInfo; as profile) {
     <header class="profile-header">
       <app-avatar
@@ -62,6 +62,8 @@
                 <lucide-icon name="user-round" class="chat-icon" [size]="18"></lucide-icon>
                 View profile
               </button>
+              <!-- Unfriend and Block both take something away, so a rule keeps them together. -->
+              <div class="context-separator" role="separator"></div>
             }
             @if (profile.relationshipStatus === 'FRIENDS') {
               <button
