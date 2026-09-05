@@ -5,7 +5,12 @@ import {ActivatedRoute} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {BehaviorSubject, catchError, finalize, forkJoin, map, of, take} from 'rxjs';
 import {AppConstants} from '../../app.constants';
-import {PlanDto} from '../../models/plan.model';
+import {
+  BillingPeriod,
+  PAID_TIER_FEATURES,
+  parseFoundingMemberStatus,
+  PlanOffer,
+} from '../../models/plan-offer';
 import {
   PlanLimitKeys,
   PlanType,
@@ -22,15 +27,8 @@ import {UserInfoService} from '../../services/user-info.service';
 import {ReadService} from '../read/read.service';
 import {BookImportQuota} from '../read/book-import.model';
 import {getErrorMessage} from '../../shared/http-error';
-import {expectBoolean, expectNumber, expectRecord} from '../../shared/runtime-validation';
+import {expectBoolean, expectRecord} from '../../shared/runtime-validation';
 import {UrlService} from '../../services/url.service';
-
-type BillingPeriod = 'monthly' | 'yearly';
-
-interface FoundingMemberStatus {
-  capacity: number;
-  claimed: number;
-}
 
 @Component({
   selector: 'app-membership',
@@ -53,8 +51,9 @@ export class MembershipComponent implements OnInit {
   protected savedWords: number | null = null;
   protected importQuota: BookImportQuota | null = null;
   protected billingPeriod: BillingPeriod = 'yearly';
-  protected plans: PlanDto[] = [];
-  protected foundingStatus: FoundingMemberStatus | null = null;
+  // The same offer the paywall and the landing page price, rather than a third reading of the
+  // same two endpoints.
+  private offer: PlanOffer | null = null;
   protected readonly actionLoading$ = new BehaviorSubject(false);
 
   protected cadencePreview: CadenceChangePreview | null = null;
@@ -68,14 +67,7 @@ export class MembershipComponent implements OnInit {
   protected annualNudgeEligible = false;
   protected annualOfferDismissed = readAnnualOfferDismissed();
 
-  protected readonly premiumFeatures = [
-    'Unlimited saved words',
-    'Every target and fluent language',
-    'Books adapted to your level — B1, B2, C1',
-    'Import your own books — 3 a month',
-    '10 hours of audio',
-    'Sync across devices',
-  ];
+  protected readonly premiumFeatures = PAID_TIER_FEATURES;
 
   ngOnInit(): void {
     this.userInfoService.userInfo$
@@ -95,8 +87,7 @@ export class MembershipComponent implements OnInit {
       ),
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({plans, foundingStatus}) => {
-        this.plans = plans;
-        this.foundingStatus = foundingStatus;
+        this.offer = new PlanOffer(plans, foundingStatus);
         // The founder offer preselects monthly, because the barrier matters more there than
         // the fee ratio; without it, annual leads.
         this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
@@ -156,39 +147,24 @@ export class MembershipComponent implements OnInit {
     return this.displayLimit(this.subscription?.getLimit(PlanLimitKeys.MAX_FLUENT_LANGS, 1), 1);
   }
 
-  protected get selectedPlan(): PlanDto | undefined {
-    const type = this.billingPeriod === 'monthly' ? 'MONTHLY' : 'YEARLY';
-    return this.plans.find(plan => plan.type === type);
-  }
-
-  protected get publicPrice(): number | null {
-    return this.selectedPlan?.price ?? null;
+  protected get selectedPlanId(): string {
+    return this.offer?.planId(this.billingPeriod) ?? '';
   }
 
   protected get offerPrice(): number | null {
-    if (this.publicPrice === null) return null;
-    if (!this.founderOfferAvailable) return this.publicPrice;
-    return this.selectedPlan?.founderPrice ?? this.publicPrice;
+    return this.offer?.priceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get struckPrice(): number | null {
+    return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
   }
 
   protected get founderOfferAvailable(): boolean {
-    return !!this.foundingStatus && this.foundingStatus.claimed < this.foundingStatus.capacity;
+    return !!this.offer?.founderOfferAvailable;
   }
 
-  protected get founderSoldOut(): boolean {
-    return !!this.foundingStatus && this.foundingStatus.claimed >= this.foundingStatus.capacity;
-  }
-
-  protected get founderCapacity(): number {
-    return this.foundingStatus?.capacity ?? 0;
-  }
-
-  // While places remain, only the founder price is on screen. Once they are gone the founder
-  // price is struck through: proof the offer was real, never a second price to reach for.
-  protected get struckPrice(): number | null {
-    if (!this.founderSoldOut) return null;
-    const founderValue = this.selectedPlan?.founderPrice ?? null;
-    return founderValue === this.offerPrice ? null : founderValue;
+  protected get founderLimitNote(): string {
+    return this.offer?.founderLimitNote ?? '';
   }
 
   protected usagePercent(used: number | null, limit: number): number {
@@ -201,11 +177,11 @@ export class MembershipComponent implements OnInit {
   }
 
   protected becomeMember(): void {
-    const plan = this.selectedPlan;
-    if (!plan || this.actionLoading$.value) return;
+    const planId = this.selectedPlanId;
+    if (!planId || this.actionLoading$.value) return;
 
     this.actionLoading$.next(true);
-    this.planService.subscribeToPlan(String(plan.id), this.founderOfferAvailable).pipe(
+    this.planService.subscribeToPlan(planId, this.founderOfferAvailable).pipe(
       finalize(() => this.actionLoading$.next(false)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
@@ -404,12 +380,4 @@ function readAnnualOfferDismissed(): boolean {
   } catch {
     return false;
   }
-}
-
-function parseFoundingMemberStatus(value: unknown): FoundingMemberStatus {
-  const status = expectRecord(value, 'founding-member status');
-  return {
-    capacity: expectNumber(status['capacity'], 'founding-member status.capacity'),
-    claimed: expectNumber(status['claimed'], 'founding-member status.claimed'),
-  };
 }

@@ -56,10 +56,10 @@
                 <div class="price-loading">Loading current price…</div>
               }
               @if (founderOfferAvailable) {
-                <p>Only {{ founderCapacity }} founding memberships available. Keep this price while your subscription stays active.</p>
+                <p>{{ founderLimitNote }} Keep this price while your subscription stays active.</p>
               }
             </div>
-            <button class="premium-action" type="button" [disabled]="!selectedPlan || actionLoading$.value" (click)="becomeMember()">
+            <button class="premium-action" type="button" [disabled]="!selectedPlanId || actionLoading$.value" (click)="becomeMember()">
               {{ actionLoading$.value ? 'Opening checkout…' : 'Become a member' }}
             </button>
           </div>
