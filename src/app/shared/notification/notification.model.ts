@@ -17,6 +17,9 @@ export interface Notification {
   referenceId: string;
   pictureUrl: string | null;
   senderId: string;
+  /* Nullable so a client that reaches the API before it ships the field keeps its old
+     behaviour - the avatar's placeholder mark - instead of failing the whole panel. */
+  senderUsername: string | null;
 }
 
 export enum NotificationType {
@@ -38,6 +41,7 @@ export function parseNotifications(value: unknown): Notification[] {
       referenceId: expectString(data['referenceId'], `${path}.referenceId`),
       pictureUrl: expectNullableString(data['pictureUrl'], `${path}.pictureUrl`),
       senderId: expectString(data['senderId'], `${path}.senderId`),
+      senderUsername: expectNullableString(data['senderUsername'], `${path}.senderUsername`),
     };
   });
 }

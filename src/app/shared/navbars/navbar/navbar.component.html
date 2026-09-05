@@ -332,6 +332,7 @@
             >
               <app-avatar-preview
                 [avatarUrl]="notification.pictureUrl"
+                [username]="notification.senderUsername"
                 (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
                 [userId]="notification.senderId"
               ></app-avatar-preview>

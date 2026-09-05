@@ -12,6 +12,7 @@ describe('notification API runtime validation', () => {
     referenceId: 'relationship-id',
     pictureUrl: null,
     senderId: 'sender-id',
+    senderUsername: 'familsubs',
   };
 
   it('converts valid timestamps at the boundary', () => {
