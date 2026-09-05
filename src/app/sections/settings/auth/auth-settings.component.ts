@@ -22,6 +22,7 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
+import {LOGOUT_REASON_ACCOUNT_DELETED} from "../../../authentication/logout/logout-reason";
 
 @Component({
   selector: 'app-settings',
@@ -215,9 +216,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private deleteAccount() {
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
-        this.alertService.open('Account successfully deleted!', {appearance: 'positive'}).subscribe();
-        this.localStorageService.clearUserRelatedData();
-        void this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+        // The account is gone server-side and the cookie is cleared, but the client still holds a
+        // verified session in memory. The logout route runs the full teardown and reloads the app,
+        // which is what stops a dead session from rendering home with a ghost avatar.
+        void this.router.navigate(['/logout'], {queryParams: {reason: LOGOUT_REASON_ACCOUNT_DELETED}});
       },
       error: (error) => {
         this.alertService
