@@ -14,14 +14,12 @@ import {CardService} from "../../services/card.service";
 import {AppConstants} from '../../app.constants';
 import {
   BillingPeriod,
+  freeTierFeatures,
+  PAID_TIER_FEATURES,
   parseFoundingMemberStatus,
   periodLabel,
   PlanOffer,
 } from '../../models/plan-offer';
-
-// The free tier's saved-item ceiling. The backend has no plan-limit key for it, so the number
-// lives here and prints in both the static line and the signed-in usage line.
-const FREE_SAVED_ITEMS_LIMIT = 100;
 
 // The claimed count is built but held off: a low number reads as "nobody wanted this". It goes
 // on near twelve claimed, and from then reads "7 of 20 claimed".
@@ -58,13 +56,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   protected billingPeriod: BillingPeriod = 'yearly';
 
-  protected readonly premiumFeatures: string[] = [
-    'Unlimited reading and lookups',
-    'Unlimited saved items and languages',
-    'Sync across your devices',
-    '10 hours of book audio',
-    '3 book imports a month',
-  ];
+  protected readonly premiumFeatures = PAID_TIER_FEATURES;
 
   private offer: PlanOffer | null = null;
 
@@ -138,15 +130,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   protected get freeFeatures(): string[] {
-    return [
-      'Every book in the library, unlimited reading',
-      'Unlimited lookups',
-      this.savedItems === null
-        ? `Up to ${FREE_SAVED_ITEMS_LIMIT} saved items`
-        : `${this.savedItems} of ${FREE_SAVED_ITEMS_LIMIT} saved items`,
-      'One language, unlimited review',
-      'Confusion feedback',
-    ];
+    return freeTierFeatures(this.savedItems);
   }
 
   protected get onFreePlan(): boolean {
@@ -169,6 +153,10 @@ export class PaywallComponent implements OnInit, OnDestroy {
     return this.offer?.claimed ?? 0;
   }
 
+  protected get founderLimitNote(): string {
+    return this.offer?.founderLimitNote ?? '';
+  }
+
   protected get claimedCountVisible(): boolean {
     return CLAIMED_COUNT_VISIBLE && this.founderOfferAvailable;
   }
@@ -181,7 +169,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
     return this.offer?.priceFor(this.billingPeriod) ?? null;
   }
 
-  // The struck founder price renders in muted ink at body size, so it never reads as something
+  // The price that no longer applies, in muted ink at body size, so it never reads as something
   // still selectable.
   protected get struckPrice(): number | null {
     return this.offer?.struckPriceFor(this.billingPeriod) ?? null;

@@ -101,7 +101,7 @@
 
         @if (founderOfferAvailable) {
           <div class="founder-notes">
-            <span>Only {{ founderCapacity }} founding memberships available</span>
+            <span>{{ founderLimitNote }}</span>
             @if (claimedCountVisible) {
               <span>{{ founderClaimed }} of {{ founderCapacity }} claimed</span>
             }

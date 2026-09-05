@@ -122,7 +122,9 @@ mark { border-radius: 4px; padding: 1px 3px; background: #efd6e1; color: #65183e
 .plan-price small { margin-left: 4px; color: var(--muted); font: 500 17px var(--font-family-reading); }
 .plan-paid .plan-price small { color: rgba(249, 246, 245, .55); }
 .plan-paid .plan-price s { color: rgba(249, 246, 245, .55); font-family: var(--font-family-ui); font-size: 14px; font-weight: 400; }
-.plan-paid .plan-alt { margin: -8px 0 0; color: rgba(249, 246, 245, .55); font-size: 13px; }
+.plan-paid .plan-alt { display: flex; align-items: baseline; gap: 9px; margin: -8px 0 0; color: rgba(249, 246, 245, .55); font-size: 13px; }
+// The other cadence's standard price, struck at the same size as the line it sits in: arithmetic, not a rival price tag.
+.plan-paid .plan-alt s { color: rgba(249, 246, 245, .38); }
 .plan-features { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; color: var(--copy); font-size: 14.5px; line-height: 1.5; list-style: none; }
 .plan-paid .plan-features { color: rgba(249, 246, 245, .82); }
 .plan-notes { display: flex; flex-direction: column; gap: 5px; color: rgba(249, 246, 245, .6); font-size: 13px; line-height: 1.5; }

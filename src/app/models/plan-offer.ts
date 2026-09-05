@@ -62,7 +62,15 @@ export class PlanOffer {
   }
 
   get ctaLabel(): string {
-    return this.founderOfferAvailable ? 'Take a place' : 'Go Premium';
+    return this.founderOfferAvailable ? 'Claim your place' : 'Go Premium';
+  }
+
+  // What a place is worth: how many there are, and the price the offer reverts to without one.
+  get founderLimitNote(): string {
+    const standard = this.premiumPrice.monthly;
+    return standard === null
+      ? `Only ${this.capacity} founding memberships available.`
+      : `Only ${this.capacity} founding memberships available, then $${standard} a month.`;
   }
 
   planId(period: BillingPeriod): string {
@@ -78,14 +86,19 @@ export class PlanOffer {
     return this.premiumPrice[period];
   }
 
-  // Once the last place is gone the founder price is struck through: proof the offer was real,
-  // never a second price the reader could try to pick.
+  // The figure that no longer applies, struck through in muted ink at body size. While places
+  // remain it is the standard price, so the founder rate has something to bite on; once the last
+  // one is gone it is the founder rate itself, proof the offer was real. Either way it is never a
+  // second price the reader could try to pick, and there is nothing to strike when no offer ran.
   struckPriceFor(period: BillingPeriod): number | null {
-    if (!this.founderSoldOut) {
-      return null;
+    const applicable = this.priceFor(period);
+    let struck: number | null = null;
+    if (this.founderOfferAvailable) {
+      struck = this.premiumPrice[period];
+    } else if (this.founderSoldOut) {
+      struck = this.founderPrice[period];
     }
-    const founderValue = this.founderPrice[period];
-    return founderValue === this.priceFor(period) ? null : founderValue;
+    return struck === null || struck === applicable ? null : struck;
   }
 
   alternatePeriod(period: BillingPeriod): BillingPeriod {
@@ -107,4 +120,40 @@ export class PlanOffer {
 
 export function periodLabel(period: BillingPeriod): string {
   return period === 'monthly' ? '/ month' : '/ year';
+}
+
+// The free tier's saved-item ceiling. The backend has no plan-limit key for it, so the number
+// lives here and prints in both the static line and the signed-in usage line.
+export const FREE_SAVED_ITEMS_LIMIT = 100;
+
+/**
+ * What each tier buys, in the words the pricing card uses. The paywall and the landing page draw
+ * the same two cards, so the entries live beside the prices rather than once in each component,
+ * where they drifted into two different lists of two different lengths.
+ */
+export function freeTierFeatures(savedItems: number | null): string[] {
+  return [
+    'Every book in the library, unlimited reading',
+    'Unlimited word lookups',
+    savedItemsFeature(savedItems),
+    'One language, unlimited review',
+    'Confusion feedback',
+  ];
+}
+
+export const PAID_TIER_FEATURES: readonly string[] = [
+  'Unlimited saved words, and every language',
+  'Every book at your level — B1, B2 and C1 editions',
+  'Sync across your devices',
+  'Narrated audiobooks',
+  'Import your own books, 3 a month',
+  'Share word packs with friends',
+];
+
+// The saved entry counts only for a reader who is signed in and has saved something. A new
+// account reads the plain ceiling: "0 of 100" is a scold, not information.
+function savedItemsFeature(savedItems: number | null): string {
+  return savedItems
+    ? `${savedItems} of ${FREE_SAVED_ITEMS_LIMIT} saved words and phrases`
+    : `${FREE_SAVED_ITEMS_LIMIT} saved words and phrases`;
 }

@@ -138,7 +138,12 @@
               }
             </div>
             @if (alternateCadenceLabel) {
-              <p class="plan-alt">{{ alternateCadenceLabel }}</p>
+              <p class="plan-alt">
+                <span>{{ alternateCadenceLabel }}</span>
+                @if (alternateStruckPrice !== null) {
+                  <s>${{ alternateStruckPrice }}</s>
+                }
+              </p>
             }
           } @else {
             <p class="plan-alt">Loading current price…</p>
@@ -154,7 +159,7 @@
 
           @if (offer?.founderOfferAvailable) {
             <div class="plan-notes">
-              <span>Only {{ offer?.capacity }} founding memberships available.</span>
+              <span>{{ founderLimitNote }}</span>
               <span>Keep this price while your subscription stays active.</span>
               <span>Monthly and annual memberships use the same {{ offer?.capacity }}-member limit.</span>
             </div>

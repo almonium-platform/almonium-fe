@@ -5,7 +5,14 @@ import {RouterLink} from '@angular/router';
 import {catchError, forkJoin, map, of} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {PlanService} from '../../services/plan.service';
-import {BillingPeriod, parseFoundingMemberStatus, periodLabel, PlanOffer} from '../../models/plan-offer';
+import {
+  BillingPeriod,
+  freeTierFeatures,
+  PAID_TIER_FEATURES,
+  parseFoundingMemberStatus,
+  periodLabel,
+  PlanOffer,
+} from '../../models/plan-offer';
 
 @Component({
   selector: 'app-landing',
@@ -27,21 +34,10 @@ export class LandingComponent implements OnInit {
 
   protected billingPeriod: BillingPeriod = 'monthly';
 
-  protected readonly freeFeatures: readonly string[] = [
-    'Every book in the library, unlimited reading',
-    'Unlimited lookups',
-    'Up to 100 saved items',
-    'One language, unlimited review',
-    'Confusion feedback',
-  ];
+  // Signed out, so there is nothing to count against the ceiling.
+  protected readonly freeFeatures: readonly string[] = freeTierFeatures(null);
 
-  protected readonly paidFeatures: readonly string[] = [
-    'Unlimited reading and lookups',
-    'Unlimited saved items and languages',
-    'Sync across your devices',
-    '10 hours of book audio',
-    '3 book imports a month',
-  ];
+  protected readonly paidFeatures = PAID_TIER_FEATURES;
 
   ngOnInit(): void {
     forkJoin({
@@ -69,6 +65,15 @@ export class LandingComponent implements OnInit {
 
   protected get struckPrice(): number | null {
     return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get alternateStruckPrice(): number | null {
+    const offer = this.offer;
+    return offer ? offer.struckPriceFor(offer.alternatePeriod(this.billingPeriod)) : null;
+  }
+
+  protected get founderLimitNote(): string {
+    return this.offer?.founderLimitNote ?? '';
   }
 
   protected get alternateCadenceLabel(): string {

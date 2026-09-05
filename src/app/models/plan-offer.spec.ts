@@ -1,4 +1,9 @@
-import {parseFoundingMemberStatus, periodLabel, PlanOffer} from './plan-offer';
+import {
+  freeTierFeatures,
+  parseFoundingMemberStatus,
+  periodLabel,
+  PlanOffer,
+} from './plan-offer';
 import {PlanDto} from './plan.model';
 import {ApiContractError} from '../shared/runtime-validation';
 
@@ -16,7 +21,26 @@ describe('PlanOffer', () => {
     expect(offer.priceFor('monthly')).toBe(8);
     expect(offer.priceFor('yearly')).toBe(80);
     expect(offer.tierLabel).toBe('Founding member');
-    expect(offer.ctaLabel).toBe('Take a place');
+    expect(offer.ctaLabel).toBe('Claim your place');
+  });
+
+  it('strikes the standard price while places remain, so the founder rate has something to bite on', () => {
+    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
+
+    expect(offer.struckPriceFor('monthly')).toBe(12);
+    expect(offer.struckPriceFor('yearly')).toBe(120);
+  });
+
+  it('names the price a place saves the reader from, so the limit reads as an offer', () => {
+    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
+
+    expect(offer.founderLimitNote).toBe('Only 20 founding memberships available, then $12 a month.');
+  });
+
+  it('drops the reverted price from the limit note when no monthly plan arrived', () => {
+    const offer = new PlanOffer([], {capacity: 20, claimed: 7});
+
+    expect(offer.founderLimitNote).toBe('Only 20 founding memberships available.');
   });
 
   it('falls back to the list price once the last place is gone, and strikes the founder price', () => {
@@ -30,8 +54,8 @@ describe('PlanOffer', () => {
     expect(offer.ctaLabel).toBe('Go Premium');
   });
 
-  it('never strikes a price while the offer is still open', () => {
-    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
+  it('strikes nothing when no founding-member offer ever ran', () => {
+    const offer = new PlanOffer(PLANS, null);
 
     expect(offer.struckPriceFor('monthly')).toBeNull();
     expect(offer.struckPriceFor('yearly')).toBeNull();
@@ -77,6 +101,17 @@ describe('PlanOffer', () => {
 
     expect(offer.planId('monthly')).toBe('1');
     expect(offer.planId('yearly')).toBe('2');
+  });
+});
+
+describe('freeTierFeatures', () => {
+  it('prints the plain ceiling until something is saved', () => {
+    expect(freeTierFeatures(null)).toContain('100 saved words and phrases');
+    expect(freeTierFeatures(0)).toContain('100 saved words and phrases');
+  });
+
+  it('counts against the ceiling once the reader has saved something', () => {
+    expect(freeTierFeatures(72)).toContain('72 of 100 saved words and phrases');
   });
 });
 
