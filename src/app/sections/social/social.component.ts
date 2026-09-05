@@ -343,7 +343,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     const user: User = {
       id: userId,
       name: userName,
-      image: userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+      // Only a real picture is worth sending: with no image Stream leaves the field empty and the
+      // avatar falls back to the same letter disc a profile card draws, rather than to a stranger's
+      // random portrait that no other surface would ever show.
+      image: userInfo.avatarUrl ?? undefined,
     };
 
     void this.chatService.init(environment.streamChatApiKey, user, userToken);

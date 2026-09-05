@@ -119,7 +119,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
       const user: User = {
         id: userId,
         name: userName,
-        image: this.userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+        image: this.userInfo.avatarUrl ?? undefined,
       };
 
       void this.chatService.init(environment.streamChatApiKey, user, userToken);
