@@ -44,7 +44,8 @@ form { display: flex; flex-direction: column; width: 100%; }
 .sheet-heading { display: flex; flex-direction: column; gap: .2rem; padding-right: 2rem; }
 .sheet-step { color: var(--metadata-color); font-size: .72rem; }
 .slot-summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: -1rem 0 1rem; color: var(--metadata-color); font-size: .75rem; }
-.slot-summary a { display: inline-flex; align-items: center; gap: .35rem; color: var(--brand-primary); text-decoration: none; }
+.slot-summary .members-link { display: inline-flex; align-items: center; gap: .35rem; padding: 0; border: 0; background: none; color: var(--brand-primary); cursor: pointer; font: inherit; font-size: inherit; text-decoration: none; }
+.slot-summary .members-link:hover { text-decoration: underline; }
 .cefr-rows { display: flex; flex-direction: column; gap: .75rem; margin: .25rem 0 1rem; }
 .cefr-language-row { display: grid; grid-template-columns: 1.375rem minmax(6rem, 1fr) auto; align-items: center; gap: .75rem; margin: 0; }
 .language-swatch { width: 1.375rem; height: 1.375rem; border-radius: .4375rem; }

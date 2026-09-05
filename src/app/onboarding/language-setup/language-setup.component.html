@@ -73,7 +73,7 @@
           <div class="slot-summary">
             <span>{{ usedTargetSlots }} of {{ totalTargetSlots }} slots used</span>
             @if (!userInfo?.premium) {
-              <a routerLink="/pricing"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</a>
+              <button type="button" class="members-link" (click)="upgrade.emit()"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</button>
             }
           </div>
           <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />

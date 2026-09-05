@@ -77,6 +77,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected policy: ActiveLanguagePolicy | null = null;
   @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
   @ViewChild(PaywallComponent, {static: true}) private paywallComponent!: PaywallComponent;
+  /** Non-null while the paywall is a detour out of the add-language sheet, which offers the way back. */
+  protected paywallBackLabel: string | null = null;
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -322,7 +324,21 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected openPaywall() {
+    this.paywallBackLabel = null;
     this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+  }
+
+  // The upsell is a detour, not a destination: the reader still means to add a language, so the
+  // plans replace the sheet's content in place rather than routing the page underneath it.
+  protected openPaywallFromLangSetup() {
+    this.paywallBackLabel = 'Back to languages';
+    this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+  }
+
+  protected returnToLangSetupPopup() {
+    this.paywallBackLabel = null;
+    // The sheet's component stays mounted while the paywall shows, so its form keeps what was typed.
+    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
   }
 
   protected openLangSetupPopup() {

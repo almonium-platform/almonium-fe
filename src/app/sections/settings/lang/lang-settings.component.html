@@ -10,10 +10,10 @@
 
 <app-recent-auth-guard></app-recent-auth-guard>
 
-<app-paywall></app-paywall>
+<app-paywall [backLabel]="paywallBackLabel" (back)="returnToLangSetupPopup()"></app-paywall>
 
 @if (addTargetLangModalVisible) {
-  <app-language-setup [embeddedMode]="true"></app-language-setup>
+  <app-language-setup [embeddedMode]="true" (upgrade)="openPaywallFromLangSetup()"></app-language-setup>
 }
 
 <div class="base-container">

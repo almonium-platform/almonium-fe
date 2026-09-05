@@ -39,7 +39,6 @@ import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {LANGUAGE_COLOURS} from "../../shared/language-colours";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {RouterLink} from "@angular/router";
 
 type CefrFormGroup = FormGroup<{
   language: FormControl<string>;
@@ -77,7 +76,6 @@ type CefrFormGroup = FormGroup<{
     TuiDataList,
     FormsModule,
     NgClass,
-    RouterLink,
   ]
 })
 export class LanguageSetupComponent implements OnInit, OnDestroy {
@@ -99,6 +97,8 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   @Output() continue = new EventEmitter<SetupStep>();
   @Output() back = new EventEmitter<void>();
+  /** The embedded sheet's plan upsell: the host swaps in the paywall rather than routing away under the dialog. */
+  @Output() upgrade = new EventEmitter<void>();
   @Input() embeddedMode = false;
 
   protected onSecondForm = false;

@@ -1,6 +1,11 @@
 <ng-template #paywallContent>
   <section class="paywall" [class.page-layout]="layout === 'page'">
     <header class="paywall-head">
+      @if (backLabel) {
+        <button type="button" class="paywall-back" (click)="back.emit()">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ backLabel }}
+        </button>
+      }
       <span class="eyebrow">Pricing</span>
       <h1>Reading is free, and stays free</h1>
       <p>Paying covers the parts that cost something every time you use them.</p>

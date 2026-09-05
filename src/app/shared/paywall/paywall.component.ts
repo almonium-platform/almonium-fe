@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
-import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from "@angular/core";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 
 import {PlanService} from "../../services/plan.service";
@@ -34,6 +34,10 @@ const CLAIMED_COUNT_VISIBLE = false;
 })
 export class PaywallComponent implements OnInit, OnDestroy {
   @Input() layout: 'modal' | 'page' = 'modal';
+  // Set when the paywall is a detour inside another dialog: the reader came from somewhere with
+  // unfinished work, so the head offers the way back instead of only a dismiss.
+  @Input() backLabel: string | null = null;
+  @Output() back = new EventEmitter<void>();
 
   private planService = inject(PlanService);
   private userInfoService = inject(UserInfoService);
