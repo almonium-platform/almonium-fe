@@ -127,7 +127,7 @@
 
           <div class="billing-toggle" role="group" aria-label="Billing period">
             <button type="button" class="monthly" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
-            <button type="button" class="annual" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual <span class="chip">2 months free</span></button>
+            <button type="button" class="annual" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
           </div>
 
           @if (paidPrice !== null) {
@@ -137,8 +137,8 @@
                 <s>${{ struckPrice }}</s>
               }
             </div>
-            @if (alternateCadenceLabel) {
-              <p class="plan-alt">{{ alternateCadenceLabel }}</p>
+            @for (note of cadenceNotes; track note) {
+              <p class="plan-alt">{{ note }}</p>
             }
           } @else {
             <p class="plan-alt">Loading current price…</p>

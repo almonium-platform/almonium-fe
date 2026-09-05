@@ -166,6 +166,10 @@ export class MembershipComponent implements OnInit {
     return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
   }
 
+  protected get cadenceNotes(): string[] {
+    return this.offer?.cadenceNotes(this.billingPeriod) ?? [];
+  }
+
   protected get founderOfferAvailable(): boolean {
     return !!this.offer?.founderOfferAvailable;
   }
@@ -288,6 +292,11 @@ export class MembershipComponent implements OnInit {
 
   protected get annualOfferVisible(): boolean {
     return this.annualNudgeEligible && !this.annualOfferDismissed && !this.scheduledChange;
+  }
+
+  /** The member's own tier, priced as arithmetic: a founder keeps the founder rate whatever the offer's state today. */
+  protected get annualPromptLine(): string | null {
+    return this.offer?.annualPromptLine(this.subscription?.founder ?? false) ?? null;
   }
 
   protected acceptAnnualOffer(): void {

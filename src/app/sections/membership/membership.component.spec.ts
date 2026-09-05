@@ -131,7 +131,8 @@ describe('MembershipComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
 
     expect(element.textContent).toContain('Switch to annual and save');
-    expect(element.textContent).toContain('Get 12 months for the price of 10.');
+    expect(element.textContent).toContain('$120 a year comes to $10 a month, instead of $12.');
+    expect(element.textContent).not.toContain('months free');
 
     clickByText(element, 'button', 'Keep monthly');
     fixture.detectChanges();

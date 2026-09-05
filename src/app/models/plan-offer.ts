@@ -118,18 +118,53 @@ export class PlanOffer {
     return period === 'monthly' ? 'yearly' : 'monthly';
   }
 
-  // The selected term owns the price display — one figure and its struck standard price. The other
-  // term is a single line of cross-sell underneath, with no second anchor to weigh against it.
-  alternateCadenceLabel(period: BillingPeriod): string {
-    const alternate = this.alternatePeriod(period);
-    const price = this.priceFor(alternate);
-    if (price === null) {
-      return '';
+  /**
+   * What sits under the headline price, one short line each. The annual discount is only ever
+   * stated as arithmetic — the yearly amount and what it comes to a month — never as a percentage,
+   * a saving, or a count of free months: "2 months free" is the weakest reading of the figure and
+   * the phrase every product at this discount uses. With monthly selected, the annual amount is a
+   * single line of cross-sell. With annual selected, the effective monthly rate comes first, then
+   * what the same year costs billed monthly, so the saving is visible without being claimed.
+   */
+  cadenceNotes(period: BillingPeriod): string[] {
+    const monthly = this.priceFor('monthly');
+    const yearly = this.priceFor('yearly');
+    if (period === 'monthly') {
+      return yearly === null ? [] : [`or $${yearly} a year — that’s ${effectiveMonthlyRate(yearly)} a month`];
     }
-    return alternate === 'yearly'
-      ? `or $${price} a year — 2 months free`
-      : `or $${price} a month`;
+    const notes: string[] = [];
+    if (yearly !== null) {
+      notes.push(`That’s ${effectiveMonthlyRate(yearly)} a month`);
+    }
+    if (monthly !== null) {
+      notes.push(`or $${monthly * 12} a year, billed monthly at $${monthly}`);
+    }
+    return notes;
   }
+
+  /**
+   * The one sentence the annual prompt says to a monthly member. It quotes the member's own tier —
+   * a founder keeps the founder rate whatever the offer's state today — and, like every other
+   * reading of the discount, it is arithmetic rather than a percentage.
+   */
+  annualPromptLine(founder: boolean): string | null {
+    const yearly = this.tierPrice('yearly', founder);
+    const monthly = this.tierPrice('monthly', founder);
+    if (yearly === null || monthly === null) {
+      return null;
+    }
+    return `$${yearly} a year comes to ${effectiveMonthlyRate(yearly)} a month, instead of $${monthly}.`;
+  }
+
+  private tierPrice(period: BillingPeriod, founder: boolean): number | null {
+    return (founder ? this.founderPrice[period] : null) ?? this.premiumPrice[period];
+  }
+}
+
+// A yearly amount as its monthly equivalent: whole dollars where it divides, cents where it does not.
+export function effectiveMonthlyRate(yearly: number): string {
+  const rate = yearly / 12;
+  return Number.isInteger(rate) ? `$${rate}` : `$${rate.toFixed(2)}`;
 }
 
 export function periodLabel(period: BillingPeriod): string {

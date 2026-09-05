@@ -1,4 +1,5 @@
 import {
+  effectiveMonthlyRate,
   freeTierFeatures,
   paidTierFeatures,
   parseFoundingMemberStatus,
@@ -77,16 +78,50 @@ describe('PlanOffer', () => {
     const offer = new PlanOffer([], {capacity: 20, claimed: 7});
 
     expect(offer.priceFor('monthly')).toBeNull();
-    expect(offer.alternateCadenceLabel('monthly')).toBe('');
+    expect(offer.cadenceNotes('monthly')).toEqual([]);
+    expect(offer.cadenceNotes('yearly')).toEqual([]);
+    expect(offer.annualPromptLine(false)).toBeNull();
     expect(offer.planId('monthly')).toBe('');
   });
 
-  it('offers the other cadence as one line of cross-sell, with no second price to anchor on', () => {
+  it('cross-sells annual under a monthly price as an amount and its monthly rate, never a month count', () => {
     const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
 
-    expect(offer.alternateCadenceLabel('monthly')).toBe('or $80 a year — 2 months free');
-    expect(offer.alternateCadenceLabel('yearly')).toBe('or $8 a month');
+    expect(offer.cadenceNotes('monthly')).toEqual(['or $80 a year — that’s $6.67 a month']);
     expect(offer.alternatePeriod('monthly')).toBe('yearly');
+  });
+
+  it('shows the annual saving as arithmetic: the monthly rate, then the same year billed monthly', () => {
+    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
+
+    expect(offer.cadenceNotes('yearly')).toEqual([
+      'That’s $6.67 a month',
+      'or $96 a year, billed monthly at $8',
+    ]);
+  });
+
+  it('quotes the list figures once the founder offer is gone, with whole dollars where they divide', () => {
+    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 20});
+
+    expect(offer.cadenceNotes('monthly')).toEqual(['or $120 a year — that’s $10 a month']);
+    expect(offer.cadenceNotes('yearly')).toEqual([
+      'That’s $10 a month',
+      'or $144 a year, billed monthly at $12',
+    ]);
+  });
+
+  it('never says "months free" or a percentage anywhere in the notes', () => {
+    const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
+    const everything = [...offer.cadenceNotes('monthly'), ...offer.cadenceNotes('yearly'), offer.annualPromptLine(true)].join(' ');
+
+    expect(everything).not.toMatch(/months? free|%|save/i);
+  });
+
+  it('writes the annual prompt in the member’s own tier, whatever the offer’s state today', () => {
+    const soldOut = new PlanOffer(PLANS, {capacity: 20, claimed: 20});
+
+    expect(soldOut.annualPromptLine(true)).toBe('$80 a year comes to $6.67 a month, instead of $8.');
+    expect(soldOut.annualPromptLine(false)).toBe('$120 a year comes to $10 a month, instead of $12.');
   });
 
   it('keeps a plan without a founder price at its list price', () => {
@@ -159,6 +194,14 @@ describe('parseFoundingMemberStatus', () => {
 
   it('rejects a payload that does not carry the counts', () => {
     expect(() => parseFoundingMemberStatus({capacity: 20})).toThrowError(ApiContractError);
+  });
+});
+
+describe('effectiveMonthlyRate', () => {
+  it('prints cents only when the year does not divide into whole dollars', () => {
+    expect(effectiveMonthlyRate(120)).toBe('$10');
+    expect(effectiveMonthlyRate(80)).toBe('$6.67');
+    expect(effectiveMonthlyRate(90)).toBe('$7.50');
   });
 });
 

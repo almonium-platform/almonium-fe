@@ -178,8 +178,8 @@ export class PaywallComponent implements OnInit, OnDestroy {
     return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
   }
 
-  protected get alternateCadenceLabel(): string {
-    return this.offer?.alternateCadenceLabel(this.billingPeriod) ?? '';
+  protected get cadenceNotes(): string[] {
+    return this.offer?.cadenceNotes(this.billingPeriod) ?? [];
   }
 
   protected get pricePeriodLabel(): string {

@@ -145,6 +145,7 @@ button { font: inherit; }
   align-items: center;
   justify-content: center;
   gap: .375rem;
+  flex: 1;
   padding: .4375rem .75rem;
   border: 0;
   border-radius: 9999px;
@@ -157,34 +158,18 @@ button { font: inherit; }
   transition: background 180ms ease, color 180ms ease;
 }
 
-.billing-toggle button.monthly { flex: 1; }
-.billing-toggle button.annual { flex: 0 0 auto; }
-
+// The toggle carries no badge in either state: the annual discount is said under the price, as
+// arithmetic, and nowhere else.
 .billing-toggle button[aria-pressed='true'] {
   background: var(--paywall-plate-selected);
   color: var(--paywall-plate-selected-ink);
   font-weight: 600;
 }
 
-.chip {
-  padding: .1875rem .4375rem;
-  border-radius: 9999px;
-  background: rgba(217, 139, 168, .28);
-  color: var(--paywall-plate-ink);
-  font-size: .625rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.billing-toggle button[aria-pressed='true'] .chip {
-  background: var(--state-selected);
-  color: var(--brand-primary);
-}
-
 .price-block {
   display: flex;
   flex-direction: column;
-  gap: .1875rem;
+  gap: .25rem;
 }
 
 .price {

@@ -59,7 +59,7 @@
                   class="annual"
                   [attr.aria-pressed]="billingPeriod === 'yearly'"
                   (click)="choosePeriod('yearly')">
-            Annual <span class="chip">2 months free</span>
+            Annual
           </button>
         </div>
 
@@ -71,8 +71,8 @@
                 <s>${{ struckPrice }}</s>
               }
             </div>
-            @if (alternateCadenceLabel) {
-              <div class="price-alt">{{ alternateCadenceLabel }}</div>
+            @for (note of cadenceNotes; track note) {
+              <div class="price-alt">{{ note }}</div>
             }
           </div>
         } @else {

@@ -91,8 +91,8 @@ export class LandingComponent implements OnInit {
     return this.offer?.founderLimitNote ?? '';
   }
 
-  protected get alternateCadenceLabel(): string {
-    return this.offer?.alternateCadenceLabel(this.billingPeriod) ?? '';
+  protected get cadenceNotes(): string[] {
+    return this.offer?.cadenceNotes(this.billingPeriod) ?? [];
   }
 
   protected get pricePeriodLabel(): string {

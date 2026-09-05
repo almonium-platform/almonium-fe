@@ -10,7 +10,7 @@
             </div>
             <div class="billing-toggle" role="group" aria-label="Billing period">
               <button type="button" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
-              <button type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Yearly <span>· 2 months free</span></button>
+              <button type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
             </div>
           </div>
 
@@ -52,6 +52,9 @@
                     <s>${{ struckPrice }}</s>
                   }
                 </div>
+                @for (note of cadenceNotes; track note) {
+                  <span class="cadence-note">{{ note }}</span>
+                }
               } @else {
                 <div class="price-loading">Loading current price…</div>
               }
@@ -96,7 +99,9 @@
             <!-- After eight finished sessions, once. It routes into the same confirmation any switch does. -->
             <div class="annual-offer">
               <strong>Switch to annual and save</strong>
-              <p>Get 12 months for the price of 10.</p>
+              @if (annualPromptLine) {
+                <p>{{ annualPromptLine }}</p>
+              }
               <div class="annual-offer-actions">
                 <button type="button" class="accept" (click)="acceptAnnualOffer()">Switch to annual</button>
                 <button type="button" class="decline" (click)="dismissAnnualOffer()">Keep monthly</button>
