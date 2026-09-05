@@ -67,11 +67,6 @@ export class LandingComponent implements OnInit {
     return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
   }
 
-  protected get alternateStruckPrice(): number | null {
-    const offer = this.offer;
-    return offer ? offer.struckPriceFor(offer.alternatePeriod(this.billingPeriod)) : null;
-  }
-
   protected get founderLimitNote(): string {
     return this.offer?.founderLimitNote ?? '';
   }

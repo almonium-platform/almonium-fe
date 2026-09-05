@@ -105,16 +105,17 @@ export class PlanOffer {
     return period === 'monthly' ? 'yearly' : 'monthly';
   }
 
-  // What the other cadence costs, spelled out rather than shown as a rival price tag.
+  // The selected term owns the price display — one figure and its struck standard price. The other
+  // term is a single line of cross-sell underneath, with no second anchor to weigh against it.
   alternateCadenceLabel(period: BillingPeriod): string {
     const alternate = this.alternatePeriod(period);
     const price = this.priceFor(alternate);
     if (price === null) {
       return '';
     }
-    return period === 'monthly'
-      ? `$${price} a year on annual billing`
-      : `$${price} a month on monthly billing`;
+    return alternate === 'yearly'
+      ? `or $${price} a year — 2 months free`
+      : `or $${price} a month`;
   }
 }
 
@@ -136,15 +137,15 @@ export function freeTierFeatures(savedItems: number | null): string[] {
     'Every book in the library, unlimited reading',
     'Unlimited word lookups',
     savedItemsFeature(savedItems),
-    'One language, unlimited review',
+    'One target language, unlimited review',
     'Confusion feedback',
   ];
 }
 
 export const PAID_TIER_FEATURES: readonly string[] = [
-  'Unlimited saved words, and every language',
+  'Unlimited saved words, and five languages at once',
   'Every book at your level — B1, B2 and C1 editions',
-  'Sync across your devices',
+  'Chat with Almo, who uses the words you’re learning',
   'Narrated audiobooks',
   'Import your own books, 3 a month',
   'Share word packs with friends',

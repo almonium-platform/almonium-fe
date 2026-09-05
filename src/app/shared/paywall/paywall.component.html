@@ -72,12 +72,7 @@
               }
             </div>
             @if (alternateCadenceLabel) {
-              <div class="price-alt">
-                <span>{{ alternateCadenceLabel }}</span>
-                @if (alternateStruckPrice !== null) {
-                  <s>${{ alternateStruckPrice }}</s>
-                }
-              </div>
+              <div class="price-alt">{{ alternateCadenceLabel }}</div>
             }
           </div>
         } @else {

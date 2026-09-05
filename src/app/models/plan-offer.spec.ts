@@ -78,11 +78,11 @@ describe('PlanOffer', () => {
     expect(offer.planId('monthly')).toBe('');
   });
 
-  it('spells out the other cadence rather than showing a rival price tag', () => {
+  it('offers the other cadence as one line of cross-sell, with no second price to anchor on', () => {
     const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
 
-    expect(offer.alternateCadenceLabel('monthly')).toBe('$80 a year on annual billing');
-    expect(offer.alternateCadenceLabel('yearly')).toBe('$8 a month on monthly billing');
+    expect(offer.alternateCadenceLabel('monthly')).toBe('or $80 a year — 2 months free');
+    expect(offer.alternateCadenceLabel('yearly')).toBe('or $8 a month');
     expect(offer.alternatePeriod('monthly')).toBe('yearly');
   });
 
@@ -108,6 +108,7 @@ describe('freeTierFeatures', () => {
   it('prints the plain ceiling until something is saved', () => {
     expect(freeTierFeatures(null)).toContain('100 saved words and phrases');
     expect(freeTierFeatures(0)).toContain('100 saved words and phrases');
+    expect(freeTierFeatures(null)).toContain('One target language, unlimited review');
   });
 
   it('counts against the ceiling once the reader has saved something', () => {
