@@ -12,7 +12,15 @@
   [class.channel-crest]="!!crest"
   [style.--channel-crest-fill]="crest?.fill ?? null"
 >
-  @if (showsImage) {
+  @if (schematicUrl; as schematic) {
+    <img
+      class="avatar-schematic"
+      data-testid="avatar-img"
+      src="{{ schematic }}"
+      alt="{{ initials }}"
+      (error)="isError = true"
+    />
+  } @else if (showsImage) {
     <img
       class="str-chat__avatar-image"
       data-testid="avatar-img"

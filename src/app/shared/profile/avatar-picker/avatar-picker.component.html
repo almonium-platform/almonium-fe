@@ -14,6 +14,9 @@
   <!--
     28b: the letter is one option among six here, drawn in the same monochrome material as the
     five engravings. No hashed hue on a step called "Make it yours" - the colour is not a choice.
+
+    30: the choice discs are 40px, below the 48 the engraving reads at, so they draw the
+    schematics; the engraving of the chosen one is the big disc above.
   -->
   <div class="compact-choices" aria-label="Choose an avatar">
     <button
@@ -36,9 +39,9 @@
         [attr.aria-pressed]="isSelected(choice)"
       >
         @if (userInfo.premium) {
-          <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+          <span class="gradient-artwork avatar-schematic" [style.mask-image]="smallMask(choice)" [style.-webkit-mask-image]="smallMask(choice)"></span>
         } @else {
-          <img [src]="displayChoiceUrl(choice)" alt="" />
+          <img class="avatar-schematic" [src]="choice.small" alt="" />
         }
       </button>
     }

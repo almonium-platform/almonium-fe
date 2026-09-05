@@ -1,7 +1,10 @@
 import {Component, HostBinding, Input} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
-import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
+import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar, schematicAvatarUrl, usesSchematic} from './avatar-display';
+
+/** The disc each Taiga size draws, in rem; `sizeInRem` overrides it. */
+const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
 
 
 @Component({
@@ -18,7 +21,13 @@ import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './a
       [class.premium-letter]="premium && !avatarUrl"
       class="cursor-pointer avatar-disc"
     >
-      @if (premiumDefaultAvatar) {
+      @if (schematicUrl; as schematic) {
+        @if (premium) {
+          <span class="premium-artwork avatar-schematic" [style.mask-image]="mask(schematic)" [style.-webkit-mask-image]="mask(schematic)"></span>
+        } @else {
+          <img class="avatar-schematic" [src]="schematic" alt="" />
+        }
+      } @else if (premiumDefaultAvatar) {
         <span class="premium-artwork" [style.mask-image]="artworkMask" [style.-webkit-mask-image]="artworkMask"></span>
       } @else if (displayAvatarUrl) {
         <img [src]="displayAvatarUrl" alt="" />
@@ -65,6 +74,13 @@ import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './a
       -webkit-mask-position: center;
       -webkit-mask-repeat: no-repeat;
       -webkit-mask-size: contain;
+    }
+
+    /* 30: the schematic is a 64-box line drawing, so it runs at 60% of the disc - the Taiga
+       padding is not part of that disc. */
+    :host .avatar-schematic {
+      inline-size: calc(var(--t-size) * .6);
+      block-size: calc(var(--t-size) * .6);
     }
 
     /* Tier is the gradient on the ink, the same rule the animals follow: pale ground, gradient
@@ -136,7 +152,23 @@ export class AvatarComponent {
   }
 
   get artworkMask(): string | null {
-    return this.avatarUrl ? `url("${this.avatarUrl}")` : null;
+    return this.avatarUrl ? this.mask(this.avatarUrl) : null;
+  }
+
+  /**
+   * 30: below 48px the engraving is a smudge, so a bundled animal is drawn as its schematic.
+   * The breakpoint is the rendered disc, which here is the Taiga size or the rem override.
+   */
+  get schematicUrl(): string | null {
+    return usesSchematic(this.discPx) ? schematicAvatarUrl(this.avatarUrl) : null;
+  }
+
+  mask(url: string): string {
+    return `url("${url}")`;
+  }
+
+  private get discPx(): number {
+    return (this.sizeInRem ?? SIZE_REM[this.size]) * 16;
   }
 
   /**
@@ -180,15 +212,6 @@ export class AvatarComponent {
   }
 
   get letterFontSize(): string {
-    const sizeRem = this.sizeInRem ?? {
-      xs: 1.5,
-      s: 2,
-      m: 2.5,
-      l: 3,
-      xl: 4,
-      xxl: 5,
-    }[this.size];
-
-    return `${sizeRem * .46}rem`;
+    return `${(this.sizeInRem ?? SIZE_REM[this.size]) * .46}rem`;
   }
 }

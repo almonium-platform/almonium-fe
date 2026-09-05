@@ -1,5 +1,26 @@
-// One file per animal: the tier is the gradient on the ink, not a second drawing.
+// 30: two renderings per animal, split by the size of the disc they are drawn on, never by tier.
+// The engraving is the illustration voice and stays wherever the disc is 48px or larger; below
+// that it collapses into a smudge, so a line schematic of the same silhouette takes over. Tier
+// is still the gradient on the ink of whichever one is drawn.
 const DEFAULT_AVATAR_PATH = /assets\/img\/avatars\/default\/(owl|fox|stag|whale|rabbit)\.png(?:[?#].*)?$/;
+
+/** The rendered disc size, in CSS px, below which the engraving stops reading. */
+export const AVATAR_ENGRAVING_MIN_PX = 48;
+
+/** The breakpoint is the rendered disc, not the asset: a 40px disc draws the schematic. */
+export function usesSchematic(discPx: number): boolean {
+  return discPx < AVATAR_ENGRAVING_MIN_PX;
+}
+
+/**
+ * The schematic for a bundled animal, or null for a letter or an uploaded photo, which have no
+ * small tier. The file is plum ink on transparency, so it sits on the same plate the engraving
+ * does; a member paints it through a mask instead, the way the engraving is painted.
+ */
+export function schematicAvatarUrl(avatarUrl: string | null | undefined): string | null {
+  const animal = avatarUrl?.match(DEFAULT_AVATAR_PATH)?.[1];
+  return animal ? `assets/img/avatars/small/${animal}-small-plum.svg` : null;
+}
 
 export function avatarLetter(username: string | null | undefined): string {
   return username?.match(/[\p{L}\p{N}]/u)?.[0].toLocaleUpperCase() ?? '·';

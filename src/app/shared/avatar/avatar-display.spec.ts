@@ -1,4 +1,4 @@
-import {avatarHueClass, avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
+import {avatarHueClass, avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar, schematicAvatarUrl, usesSchematic} from './avatar-display';
 
 describe('avatar display', () => {
   it('uses the first Unicode letter or number from the username', () => {
@@ -17,6 +17,16 @@ describe('avatar display', () => {
 
     expect(isDefaultAvatar(freeUrl)).toBeTrue();
     expect(avatarImageUrl(freeUrl)).toBe(freeUrl);
+  });
+
+  it('draws the schematic of a bundled animal below 48px, and nothing else has one', () => {
+    expect(schematicAvatarUrl('https://example.test/assets/img/avatars/default/stag.png'))
+      .toBe('assets/img/avatars/small/stag-small-plum.svg');
+    expect(schematicAvatarUrl('https://cdn.example.test/avatar.png')).toBeNull();
+    expect(schematicAvatarUrl(null)).toBeNull();
+
+    expect(usesSchematic(40)).toBeTrue();
+    expect(usesSchematic(48)).toBeFalse();
   });
 
   it('does not rewrite uploaded avatars', () => {

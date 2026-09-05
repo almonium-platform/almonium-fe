@@ -3,12 +3,14 @@ import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfoService} from '../../../services/user-info.service';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
-import {avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../avatar/avatar-display';
+import {avatarImageUrl, avatarLetter, isDefaultAvatar, schematicAvatarUrl} from '../../avatar/avatar-display';
 
 interface AvatarChoice {
   label: string;
   path: string;
   url: string;
+  /** 30: the schematic, which is what a 40px choice disc draws; the engraving is on the big disc above. */
+  small: string;
 }
 
 @Component({
@@ -87,19 +89,17 @@ export class AvatarPickerComponent {
     return this.userInfo.avatarUrl === choice.url || this.userInfo.avatarUrl?.endsWith(choice.path) === true;
   }
 
-  protected displayChoiceUrl(choice: AvatarChoice): string {
-    return choice.url;
-  }
-
-  protected choiceMask(choice: AvatarChoice): string {
-    return this.mask(choice.url);
+  protected smallMask(choice: AvatarChoice): string {
+    return this.mask(choice.small);
   }
 
   private choice(label: string, path: string): AvatarChoice {
+    const url = new URL(path, this.document.baseURI).href;
     return {
       label,
       path,
-      url: new URL(path, this.document.baseURI).href,
+      url,
+      small: schematicAvatarUrl(url)!,
     };
   }
 

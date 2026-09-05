@@ -3,13 +3,15 @@ import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
-import {avatarLetter} from '../../../../../shared/avatar/avatar-display';
+import {avatarLetter, schematicAvatarUrl} from '../../../../../shared/avatar/avatar-display';
 import {ProfileSettingsService} from '../../profile-settings.service';
 
 interface SettingsAvatarChoice {
   label: string;
   path: string;
   url: string;
+  /** 30: the schematic drawn below 48px, shown under the engraving so the tile admits both. */
+  small: string;
 }
 
 @Component({
@@ -72,11 +74,17 @@ export class SettingsAvatarPickerComponent {
     return this.mask(choice.url);
   }
 
+  protected smallMask(choice: SettingsAvatarChoice): string {
+    return this.mask(choice.small);
+  }
+
   private choice(label: string, path: string): SettingsAvatarChoice {
+    const url = new URL(path, this.document.baseURI).href;
     return {
       label,
       path,
-      url: new URL(path, this.document.baseURI).href,
+      url,
+      small: schematicAvatarUrl(url)!,
     };
   }
 

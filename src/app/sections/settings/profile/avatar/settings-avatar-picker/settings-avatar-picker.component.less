@@ -16,27 +16,49 @@ button {
 .tile-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: .875rem;
   padding: .25rem 0;
 }
 
+/* 30c: a tile is the pair of discs, engraving over schematic. The button itself draws nothing. */
 .tile {
-  display: grid;
-  overflow: hidden;
-  width: 3.5rem;
-  height: 3.5rem;
+  display: flex;
   flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: .5625rem;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  background: none;
   cursor: pointer;
+}
+
+.disc {
+  display: grid;
+  overflow: hidden;
+  border-radius: 50%;
   place-items: center;
 }
 
-/* Selection is a ring: no bold caption, no check mark, no name. */
-.tile.selected {
+/* 56 keeps the engraving above the 48 it stops reading at; 24 is the row it will mostly be. */
+.disc-large {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.disc-small {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Selection is a ring, and it wraps both discs: no bold caption, no check mark, no name. */
+.tile.selected .disc-large {
   box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);
+}
+
+.tile.selected .disc-small {
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 3px var(--brand-primary);
 }
 
 .letter-tile .avatar-letter {
@@ -46,11 +68,21 @@ button {
   font-weight: 600;
 }
 
-.tile img,
+.letter-tile .disc-small .avatar-letter {
+  font-size: .6875rem;
+}
+
+.disc img,
 .gradient-artwork {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+/* The schematic is a line drawing in a 64 box and runs at 60% of its disc. */
+.disc .avatar-schematic {
+  width: 60%;
+  height: 60%;
 }
 
 /* The tier is the gradient on the ink. The disc does not move on tier - every tile in the row
@@ -88,12 +120,17 @@ button {
     gap: .625rem;
   }
 
-  .tile {
-    width: 2.75rem;
-    height: 2.75rem;
+  /* 48 is the floor the engraving reads at, so the tile shrinks to it and no further. */
+  .disc-large {
+    width: 3rem;
+    height: 3rem;
   }
 
   .letter-tile .avatar-letter {
     font-size: 1.125rem;
+  }
+
+  .letter-tile .disc-small .avatar-letter {
+    font-size: .6875rem;
   }
 }

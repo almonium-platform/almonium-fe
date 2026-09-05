@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, HostBinding, Input, OnChan
 import {Subscription, combineLatest} from 'rxjs';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService, ThemeService,} from 'stream-chat-angular';
-import {avatarHueClass, avatarLetter} from '../../../shared/avatar/avatar-display';
+import {avatarHueClass, avatarLetter, schematicAvatarUrl} from '../../../shared/avatar/avatar-display';
 import {AppConstants} from '../../../app.constants';
 import {ChannelMark, channelMark} from './channel-mark';
 import {crestFill} from './crest-fill';
@@ -198,6 +198,14 @@ export class CustomChatAvatarComponent
    */
   protected get showsImage(): boolean {
     return !this.isSavedMessages && !this.mark && !!(this.imageUrl ?? this.fallbackChannelImage) && !this.isError;
+  }
+
+  /**
+   * 30: every chat disc is below 48px - the row's is 38, the message author's 30 - so a bundled
+   * animal is always drawn as its schematic here, never as the engraving it smudges into.
+   */
+  protected get schematicUrl(): string | null {
+    return this.showsImage ? schematicAvatarUrl(this.imageUrl ?? this.fallbackChannelImage) : null;
   }
 
   protected get isEmblem(): boolean {
