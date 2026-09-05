@@ -6,21 +6,24 @@ export function avatarLetter(username: string | null | undefined): string {
 }
 
 /**
- * The disc under a letter is an identity, not a theme surface: one of four fixed hues, picked
- * by a hash of the name, so the same person keeps the same colour in either mode and wherever
- * they are drawn. Artwork never takes a hue - it brings its own light plate.
+ * One of four identities, picked by a hash of the name, so the same person keeps the same slot
+ * wherever they are drawn. The hue is a sorting aid, not a decoration: it belongs only where
+ * several avatars are scanned at once - the chat list, group threads, the People panel - and is
+ * wrong on any surface that shows exactly one, which has nothing to be told apart from. Each
+ * theme draws the four with its own values; artwork never takes a hue at all, it brings a plate.
  *
- * Two spellings of one answer. `avatarHueClass` pairs with `.avatar-hue-*` in shared-styles
- * and is what to reach for; `avatarHueToken` is for the one disc Taiga owns, where a class of
- * equal specificity loses to the library's own rule and only an inline style wins.
+ * Two spellings of one answer. `avatarHueClass` pairs with `.avatar-hue-*` in shared-styles and
+ * is what to reach for; `avatarHueToken` is for the one disc Taiga owns, where a class of equal
+ * specificity loses to the library's own rule and only an inline style wins. Neither carries the
+ * ink: that is `--avatar-hue-ink`, one value per theme rather than one per hue.
  */
 export function avatarHueClass(name: string | null | undefined): string {
   return `avatar-hue-${avatarHue(name)}`;
 }
 
-export function avatarHueToken(name: string | null | undefined, part: 'fill' | 'ink'): string {
+export function avatarHueToken(name: string | null | undefined, part: 'fill' | 'edge'): string {
   const hue = avatarHue(name);
-  return part === 'fill' ? `var(--avatar-hue-${hue})` : `var(--avatar-hue-${hue}-ink)`;
+  return part === 'fill' ? `var(--avatar-hue-${hue})` : `var(--avatar-hue-${hue}-edge)`;
 }
 
 function avatarHue(name: string | null | undefined): number {

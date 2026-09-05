@@ -448,19 +448,37 @@ tui-data-list button[tuiOption].context-button {
 }
 
 /*
- * The two grounds an avatar can sit on, wherever one is drawn.
+ * The three grounds an avatar can sit on, wherever one is drawn.
  *
  * Portrait art is dark line work on transparency, so the plate under it belongs to the avatar
  * rather than to the theme: the same #EFE9E6 in both modes, with a ring that only materialises
- * on dark, where the plate needs seating. A letter takes a hue hashed from the name instead -
- * see `avatarHueClass`. Neither is a surface token, and neither flips with the theme.
+ * on dark, where the plate needs seating.
+ *
+ * A letter takes one of the other two. `.avatar-ground` is the default and the one a lone
+ * avatar always gets - one ground, one ink, nothing to tell apart. `.avatar-hue-*` is the
+ * hashed identity, and belongs only where several avatars are scanned at once and the tint is
+ * doing the sorting; see `avatarHueClass` and 28c. Both take their theme's own values, so
+ * light is no longer wearing discs drawn for a dark ground.
  */
 .avatar-plate {
   background: var(--avatar-plate);
   box-shadow: 0 0 0 1px var(--avatar-plate-ring);
 }
 
-.avatar-hue-1 { background: var(--avatar-hue-1); color: var(--avatar-hue-1-ink); }
-.avatar-hue-2 { background: var(--avatar-hue-2); color: var(--avatar-hue-2-ink); }
-.avatar-hue-3 { background: var(--avatar-hue-3); color: var(--avatar-hue-3-ink); }
-.avatar-hue-4 { background: var(--avatar-hue-4); color: var(--avatar-hue-4-ink); }
+.avatar-ground {
+  background: var(--avatar-ground);
+  box-shadow: inset 0 0 0 1px var(--avatar-ground-edge);
+  color: var(--avatar-ground-ink);
+}
+
+.avatar-hue-1,
+.avatar-hue-2,
+.avatar-hue-3,
+.avatar-hue-4 {
+  color: var(--avatar-hue-ink);
+}
+
+.avatar-hue-1 { background: var(--avatar-hue-1); box-shadow: inset 0 0 0 1px var(--avatar-hue-1-edge); }
+.avatar-hue-2 { background: var(--avatar-hue-2); box-shadow: inset 0 0 0 1px var(--avatar-hue-2-edge); }
+.avatar-hue-3 { background: var(--avatar-hue-3); box-shadow: inset 0 0 0 1px var(--avatar-hue-3-edge); }
+.avatar-hue-4 { background: var(--avatar-hue-4); box-shadow: inset 0 0 0 1px var(--avatar-hue-4-edge); }

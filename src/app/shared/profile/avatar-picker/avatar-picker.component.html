@@ -11,10 +11,14 @@
     }
   </span>
 
+  <!--
+    28b: the letter is one option among six here, drawn in the same monochrome material as the
+    five engravings. No hashed hue on a step called "Make it yours" - the colour is not a choice.
+  -->
   <div class="compact-choices" aria-label="Choose an avatar">
     <button
       type="button"
-      class="compact-choice letter-choice {{ letterDisc }}"
+      class="compact-choice letter-choice avatar-ground"
       [class.selected]="!userInfo.avatarUrl"
       [disabled]="busyUrl !== undefined"
       (click)="useLetter()"

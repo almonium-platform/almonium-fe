@@ -3,7 +3,7 @@ import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfoService} from '../../../services/user-info.service';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
-import {avatarHueClass, avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../avatar/avatar-display';
+import {avatarImageUrl, avatarLetter, isDefaultAvatar} from '../../avatar/avatar-display';
 
 interface AvatarChoice {
   label: string;
@@ -36,15 +36,10 @@ export class AvatarPickerComponent {
 
   /**
    * Both discs show what the app will actually draw: art keeps its light plate, a letter takes
-   * its hashed hue. A premium letter is the exception - its ink is the gradient, so it wants
-   * the plate's pale ground instead.
+   * the plain ground. Neither moves on tier - premium is the gradient on the ink.
    */
   protected get currentDisc(): string {
-    return this.userInfo.avatarUrl ? 'avatar-plate' : this.letterDisc;
-  }
-
-  protected get letterDisc(): string {
-    return this.userInfo.premium ? 'avatar-plate' : avatarHueClass(this.userInfo.username);
+    return this.userInfo.avatarUrl ? 'avatar-plate' : 'avatar-ground';
   }
 
   protected get letter(): string {

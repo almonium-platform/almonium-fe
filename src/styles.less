@@ -42,7 +42,20 @@ html[data-motion='reduced'] *::after {
   --shadow-color: rgba(0, 0, 0, .55);
   --overlay-shadow: 0 16px 40px var(--shadow-color);
   --scrim: rgba(10, 8, 14, .72);
+  // 28a: the lone disc and the four identities both take a dark-native set. The hues keep their
+  // index, so a hashed user holds their slot across themes; neither needs an edge on this ground.
   --avatar-ground: #332C3C;
+  --avatar-ground-edge: transparent;
+  --avatar-ground-ink: #EFE6EC;
+  --avatar-hue-ink: #EFE6EC;
+  --avatar-hue-1: #453039;
+  --avatar-hue-1-edge: transparent;
+  --avatar-hue-2: #47332E;
+  --avatar-hue-2-edge: transparent;
+  --avatar-hue-3: #3F3A2B;
+  --avatar-hue-3-edge: transparent;
+  --avatar-hue-4: #3F3145;
+  --avatar-hue-4-edge: transparent;
   --state-hover: rgba(241, 234, 239, .06);
   --state-pressed: rgba(241, 234, 239, .1);
   --state-selected: rgba(203, 163, 224, .14);

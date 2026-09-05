@@ -111,6 +111,12 @@ export class AvatarComponent {
   @Input() loading = false;
   /** Draw the member ring. Only where someone else is looking — a people list, a profile card. */
   @Input() ring = false;
+  /**
+   * 28c: take the hashed identity hue instead of the plain ground. Opt-in, and only from a
+   * surface that draws several avatars at once and needs the tint to sort them - a chat list, a
+   * People panel, a member list. One avatar on screen has nothing to be told apart from.
+   */
+  @Input() hashed = false;
 
   @HostBinding('class.premium-ring')
   get memberRing(): boolean {
@@ -134,32 +140,43 @@ export class AvatarComponent {
   }
 
   /**
-   * The bundled artwork is dark line work on transparency, so it needs its plate; a letter
-   * takes a hue hashed from the name. The one exception is a premium letter, whose ink is the
-   * gradient - that wants the plate's pale ground, the same rule the artwork follows. An
+   * The bundled artwork is dark line work on transparency, so it needs its plate. A letter sits
+   * on the plain ground unless the caller asked for the hashed identity, and the tier never
+   * moves it: premium is the gradient on the ink, the same rule the artwork follows. An
    * uploaded photo is opaque and covers the disc, so it gets nothing.
    *
    * Taiga paints the disc from its own rule at the same specificity, so these have to be
-   * inline styles rather than the `.avatar-plate` / `.avatar-hue-*` classes used elsewhere.
+   * inline styles rather than the `.avatar-ground` / `.avatar-hue-*` classes used elsewhere.
    */
   get discBackground(): string | null {
     if (!this.avatarUrl) {
-      return this.premium ? 'var(--avatar-plate)' : avatarHueToken(this.username, 'fill');
+      return this.hashed ? avatarHueToken(this.username, 'fill') : 'var(--avatar-ground)';
     }
 
     return isDefaultAvatar(this.avatarUrl) ? 'var(--avatar-plate)' : null;
   }
 
+  /** A member's letter is filled by the gradient in `.premium-letter`, so it takes no ink here. */
   get discInk(): string | null {
-    return !this.avatarUrl && !this.premium ? avatarHueToken(this.username, 'ink') : null;
+    if (this.avatarUrl || this.premium) {
+      return null;
+    }
+
+    return this.hashed ? 'var(--avatar-hue-ink)' : 'var(--avatar-ground-ink)';
   }
 
+  /**
+   * The plate is seated from outside, because it is a light card on a dark ground. A letter disc
+   * is a tint of its own theme and only needs an edge, which light draws and dark leaves clear.
+   */
   get discRing(): string | null {
-    return this.wearsPlate ? '0 0 0 1px var(--avatar-plate-ring)' : null;
-  }
+    if (!this.avatarUrl) {
+      return this.hashed
+        ? `inset 0 0 0 1px ${avatarHueToken(this.username, 'edge')}`
+        : 'inset 0 0 0 1px var(--avatar-ground-edge)';
+    }
 
-  private get wearsPlate(): boolean {
-    return this.avatarUrl ? isDefaultAvatar(this.avatarUrl) : this.premium;
+    return isDefaultAvatar(this.avatarUrl) ? '0 0 0 1px var(--avatar-plate-ring)' : null;
   }
 
   get letterFontSize(): string {

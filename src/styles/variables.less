@@ -24,7 +24,11 @@
   --control-border-color: #d8cfd6;
   --secondary-control-border-color: var(--control-border-color);
   --secondary-control-fill: var(--card-color);
+  // The disc a lone avatar sits on: one ground, one ink, no identity. See --avatar-hue-* for
+  // the hashed set, which is only for surfaces that draw several avatars at once.
   --avatar-ground: #ece5ea;
+  --avatar-ground-edge: #dcd2da;
+  --avatar-ground-ink: #3d3348;
   --disabled-fill-color: #e8e2e6;
   --disabled-label-color: #8b8290;
   --on-brand-color: #fff;
@@ -56,17 +60,21 @@
   // one value for both modes, and a ring that only appears where the plate needs seating.
   --avatar-plate: #EFE9E6;
   --avatar-plate-ring: transparent;
-  // Four fixed hues for the initial fallback, picked by a hash of the name. Matched in
-  // luminance so no one's disc reads louder than anyone else's, and dark enough to carry
-  // its own near-white letter on either ground.
-  --avatar-hue-1: #5C3B57;
-  --avatar-hue-1-ink: #F6E8EF;
-  --avatar-hue-2: #3E4A6B;
-  --avatar-hue-2-ink: #E6ECF8;
-  --avatar-hue-3: #2F4E47;
-  --avatar-hue-3-ink: #E8F7F4;
-  --avatar-hue-4: #594436;
-  --avatar-hue-4-ink: #F7EEE8;
+  // 28a: four identities for a hashed letter disc, picked by a hash of the name and held at the
+  // same index in both themes - 1 rose, 2 clay, 3 sand, 4 mauve, on hues 340/20/80/300. Light
+  // draws them the way light draws everything else, pale ground and dark serif ink, with a 1px
+  // inset edge so the palest disc still has a boundary on a white card; dark keeps deep discs
+  // and pale ink and needs no edge. The ink is one value per theme rather than one per hue, and
+  // it is the lone disc's ink: a letter reads the same whether or not its surface hashes.
+  --avatar-hue-ink: #3d3348;
+  --avatar-hue-1: #F0DFE9;
+  --avatar-hue-1-edge: #dfcfd9;
+  --avatar-hue-2: #F5E1DD;
+  --avatar-hue-2-edge: #e4d0cb;
+  --avatar-hue-3: #EEE6D5;
+  --avatar-hue-3-edge: #ddd4c1;
+  --avatar-hue-4: #E8E0EF;
+  --avatar-hue-4-edge: #d6cde0;
   // 03: the app's own channels. The emblem is never bare - its blades are a spiky silhouette,
   // and without a disc it reads a size larger than the rows around it - so the brand channel
   // gets a disc of its own. A language channel drops the emblem and fills the disc with that

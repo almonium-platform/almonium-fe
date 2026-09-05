@@ -1,8 +1,13 @@
 <section class="settings-avatar-picker" [class.member]="userInfo.premium">
+  <!--
+    28b: the letter is one option among six in this row, so it is drawn in the same monochrome
+    material as the five engravings - the plain ground, never a hashed hue. A colour the user
+    cannot choose has no place on a control whose whole job is choosing.
+  -->
   <div class="tile-row" role="group" aria-label="How you appear">
     <button
       type="button"
-      class="tile letter-tile {{ letterDisc }}"
+      class="tile letter-tile avatar-ground"
       [class.selected]="!userInfo.avatarUrl"
       [disabled]="busyUrl !== undefined"
       (click)="useLetter()"

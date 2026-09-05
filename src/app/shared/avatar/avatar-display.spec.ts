@@ -1,4 +1,4 @@
-import {avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
+import {avatarHueClass, avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar} from './avatar-display';
 
 describe('avatar display', () => {
   it('uses the first Unicode letter or number from the username', () => {
@@ -23,5 +23,19 @@ describe('avatar display', () => {
     const uploadedUrl = 'https://cdn.example.test/avatar.png';
     expect(isDefaultAvatar(uploadedUrl)).toBeFalse();
     expect(avatarImageUrl(uploadedUrl)).toBe(uploadedUrl);
+  });
+
+  it('holds a name in one of the four identity slots', () => {
+    for (const name of ['familsubs', 'kuzanoleg', 'mirabel', 'olesya.r', '', '·']) {
+      expect(avatarHueClass(name)).toMatch(/^avatar-hue-[1-4]$/);
+      expect(avatarHueClass(name)).toBe(avatarHueClass(name));
+    }
+  });
+
+  it('reads a slot fill and edge off the same hue', () => {
+    const hue = avatarHueClass('kuzanoleg').slice(-1);
+
+    expect(avatarHueToken('kuzanoleg', 'fill')).toBe(`var(--avatar-hue-${hue})`);
+    expect(avatarHueToken('kuzanoleg', 'edge')).toBe(`var(--avatar-hue-${hue}-edge)`);
   });
 });
