@@ -4,7 +4,7 @@
   <main class="app-settings-layout">
     <div class="settings-grid">
       <section class="section-block card">
-        <div class="title">Appearance</div>
+        <div class="eyebrow">Appearance</div>
         <div class="setting-line">
           <span>Theme</span>
           <div class="segmented" role="group" aria-label="Theme">
@@ -24,7 +24,7 @@
       </section>
 
       <section class="section-block card">
-        <div class="title">Reminders</div>
+        <div class="eyebrow">Reminders</div>
         <label class="setting-line">
           <span><strong>Daily review nudge</strong><small>Remind me only when a review is due.</small></span>
           <span class="reminder-control">
@@ -41,7 +41,7 @@
       </section>
 
       <section class="section-block card">
-        <div class="title">What's in the navbar</div>
+        <div class="eyebrow">What's in the navbar</div>
         <div class="setting-line locked"><span><strong>Read · Review</strong></span><span class="always-on">always on</span></div>
         @for (item of primaryNavItems; track item) {
           <label class="setting-line"><strong>{{ item === 'play' ? 'Play' : item === 'write' ? 'Write' : 'Discover' }}</strong><input tuiSwitch type="checkbox" [ngModel]="uiPreferences.navbar[item]" (ngModelChange)="onPreferenceChange(item, $event)" [showIcons]="true" /></label>
@@ -53,7 +53,7 @@
       </section>
 
       <section class="section-block card">
-        <div class="title">Data &amp; storage</div>
+        <div class="eyebrow">Data &amp; storage</div>
         <div class="data-action">
           <span><strong>Offline books</strong><small>Remove downloaded book content and saved reading positions.</small></span>
           <app-button appearance="bw" label="Clear offline books" width="fit" gap=".5rem" (click)="clearOfflineBooks()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.trash"/></app-button>

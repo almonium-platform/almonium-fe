@@ -23,19 +23,13 @@ button { font: inherit; }
   border-radius: 0;
 }
 
-.eyebrow {
-  color: var(--dark-raspberry);
-  font-size: .6875rem;
-  font-weight: 600;
-  letter-spacing: .09375rem;
-  text-transform: uppercase;
-}
-
 .paywall-head {
   display: flex;
   flex-direction: column;
   gap: .4375rem;
 }
+
+.paywall-head .eyebrow { margin-bottom: 0; }
 
 .paywall-back {
   align-self: flex-start;
@@ -110,7 +104,7 @@ button { font: inherit; }
 .tier-label {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: .5625rem;
 }
 
