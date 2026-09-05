@@ -821,6 +821,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.socialService.patchFriendship(candidate.relationshipId, RelationshipAction.ACCEPT)
       .subscribe({
+        // The chat this friendship gets is created by the server and arrives on its own, for
+        // whoever is looking - including the friend, who is not here to make one.
         next: () => {
           this.incomingRequestsCount--;
           this.incomingRequests
@@ -828,11 +830,6 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
           this.acceptInProgressIds.delete(candidate.relationshipId);
           this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
-
-          // The friendship is accepted either way; a chat that fails to open should not leave the
-          // request stuck half-accepted on screen.
-          void this.channels.createPrivateChat(candidate.id.toString(), candidate.relationshipId)
-            .catch(error => logger.error('Could not open the chat for the new friendship', error));
         },
         error: (error) => {
           logger.error(error);

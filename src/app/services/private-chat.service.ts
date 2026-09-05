@@ -21,6 +21,10 @@ export class PrivateChatService {
     return `${AppConstants.PRIVATE_CHAT_TYPE}:${this.channelId(friendshipId)}`;
   }
 
+  /**
+   * The server creates a friendship's chat as the friendship is accepted; this is the fallback for
+   * the ones it never made - a friendship older than that path, or an event that never landed.
+   */
   async create(userId: string, recipientId: string, friendshipId: string): Promise<Channel> {
     if (!this.chatService.chatClient.user) {
       throw new Error('User must be connected before creating a chat.');

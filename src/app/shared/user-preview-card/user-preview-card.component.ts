@@ -14,7 +14,6 @@ import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
 import {StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
-import {PrivateChatService} from "../../services/private-chat.service";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
@@ -50,7 +49,6 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private userInfoService = inject(UserInfoService);
   private socialService = inject(SocialService);
   private chatService = inject(ChatClientService);
-  private privateChats = inject(PrivateChatService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
   private languageNameService = inject(LanguageNameService);
@@ -454,29 +452,22 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   }
 
   private acceptFriendRequest(): void {
-    // Capture values in local variables
-    const userProfileInfo = this.userProfileInfo;
     const relationshipId = this.userProfileInfo?.relationshipId;
-    const userInfo = this.userInfo;
 
-    // Check for null in the captured variables
-    if (!userProfileInfo || !userInfo || !userProfileInfo.relationshipId || !relationshipId) {
+    if (!relationshipId) {
       logger.error('No user profile or invalid relationshipId');
       return;
     }
 
     this.loadingSubject$.next(true);
-    this.socialService.patchFriendship(userProfileInfo.relationshipId, RelationshipAction.ACCEPT)
+    this.socialService.patchFriendship(relationshipId, RelationshipAction.ACCEPT)
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: (userProfileInfo) => {
-          void this.privateChats.create(userInfo.id, userProfileInfo.id, relationshipId)
-            .then(() => {
-              this.userProfileInfo = userProfileInfo;
-              this.setButtonConfig();
+          this.userProfileInfo = userProfileInfo;
+          this.setButtonConfig();
 
-              this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
-            });
+          this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
         },
         error: (error) => logger.error(error),
       });
