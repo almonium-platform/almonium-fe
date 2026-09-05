@@ -32,8 +32,8 @@
 
         <div class="language-explanation">
           <p>{{ selectedLanguageExplanation() }}</p>
-          @if (targetMaxLanguages === 1) {
-            <p>Free covers one language at a time. <a href="/pricing">See plans</a></p>
+          @if (startsActiveNote) {
+            <p>{{ startsActiveNote }} <a href="/pricing">See plans</a></p>
           }
         </div>
 

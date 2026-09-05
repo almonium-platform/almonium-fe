@@ -156,7 +156,7 @@ export function freeTierFeatures(savedItems: number | null): string[] {
 }
 
 // The numbers the card was drawn with, and what it prints until the offer lands.
-const PAID_ACTIVE_LANGS_FALLBACK = 5;
+const PAID_ACTIVE_LANGS_FALLBACK = 3;
 const PAID_BOOK_IMPORTS_FALLBACK = 3;
 
 export function paidTierFeatures(offer: PlanOffer | null): string[] {

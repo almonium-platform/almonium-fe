@@ -134,7 +134,7 @@ describe('paidTierFeatures', () => {
   });
 
   it('prints the drawn numbers until the plans land, rather than an empty promise', () => {
-    expect(paidTierFeatures(null)).toContain('Unlimited saved words, and 5 languages at once');
+    expect(paidTierFeatures(null)).toContain('Unlimited saved words, and 3 languages at once');
     expect(paidTierFeatures(null)).toContain('Import your own books, 3 a month');
   });
 

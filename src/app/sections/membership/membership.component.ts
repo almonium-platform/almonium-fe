@@ -130,16 +130,20 @@ export class MembershipComponent implements OnInit {
       : '—';
   }
 
-  protected get targetLanguagesUsed(): number {
-    return this.userInfo?.targetLangs.length ?? 0;
+  protected get activeLanguagesUsed(): number {
+    return this.userInfo?.activeTargetLangs.length ?? 0;
   }
 
   protected get fluentLanguagesUsed(): number {
     return this.userInfo?.fluentLangs.length ?? 0;
   }
 
-  protected get targetLanguageLimit(): number {
-    return this.displayLimit(this.subscription?.getLimit(PlanLimitKeys.MAX_TARGET_LANGS, 1), 1);
+  // The storage ceiling is the same on every plan, so quoting it here would print the same number to a member and
+  // a free account. What the plan actually moves is how many may be active. Absent means unlimited, which the row
+  // prints rather than flattening to a fallback digit.
+  protected get activeLanguageLimit(): number {
+    const limit = this.subscription?.getLimit(PlanLimitKeys.MAX_ACTIVE_LANGS, -1);
+    return limit === undefined || !Number.isFinite(limit) ? -1 : limit;
   }
 
   protected get fluentLanguageLimit(): number {

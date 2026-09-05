@@ -21,8 +21,8 @@
               <progress [value]="usagePercent(savedWords, 100)" max="100">{{ usagePercent(savedWords, 100) }}%</progress>
             </div>
             <div class="usage-row">
-              <div><span>Target languages</span><code>{{ targetLanguagesUsed }} / {{ targetLanguageLimit }}</code></div>
-              <progress [value]="usagePercent(targetLanguagesUsed, targetLanguageLimit)" max="100">{{ usagePercent(targetLanguagesUsed, targetLanguageLimit) }}%</progress>
+              <div><span>Active languages</span><code>{{ activeLanguagesUsed }} / {{ activeLanguageLimit < 0 ? 'unlimited' : activeLanguageLimit }}</code></div>
+              <progress [value]="usagePercent(activeLanguagesUsed, activeLanguageLimit)" max="100">{{ usagePercent(activeLanguagesUsed, activeLanguageLimit) }}%</progress>
             </div>
             <div class="usage-row">
               <div><span>Fluent languages</span><code>{{ fluentLanguagesUsed }} / {{ fluentLanguageLimit }}</code></div>

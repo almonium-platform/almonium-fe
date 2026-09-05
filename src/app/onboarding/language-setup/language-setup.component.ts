@@ -28,7 +28,7 @@ import {UserInfoService} from "../../services/user-info.service";
 import {LanguageNameService} from "../../services/language-name.service";
 import {ValidationMessagesService} from "./validation-messages-service";
 import {SupportedLanguagesService} from "../../services/supported-langs.service";
-import {CEFRLevel, Learner, SetupStep, UserInfo} from "../../models/userinfo.model";
+import {CEFRLevel, Learner, PlanLimitKeys, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {reconcileSubmittedLearnerLevels, TargetLanguageWithProficiency} from "./language-setup.model";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
@@ -160,6 +160,8 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   protected targetMaxLanguages = 1;
   protected totalTargetSlots = 1;
   protected existingTargetLanguageCount = 0;
+  /** How many of the picks will start active. -1 is unlimited, and asks nothing of the reader. */
+  protected activeAllowance = -1;
   protected fluentMaxLanguages = 3;
 
   constructor() {
@@ -238,6 +240,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
         const limit = this.userInfo.subscription.getMaxTargetLanguages();
         this.totalTargetSlots = limit;
+        this.activeAllowance = this.userInfo.subscription.getLimit(PlanLimitKeys.MAX_ACTIVE_LANGS, -1);
         this.existingTargetLanguageCount = info.targetLangs.length;
         const availableSlots = this.embeddedMode ? Math.max(0, limit - info.targetLangs.length) : limit;
         setValidationForTargetLanguages.call(this, availableSlots);
@@ -499,6 +502,27 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   get atTargetLimit(): boolean {
     return (this.targetLanguagesControl.value?.length ?? 0) >= this.targetMaxLanguages;
+  }
+
+  /**
+   * What the account will do with the picks past the allowance, said before it does it rather than discovered
+   * afterwards. Picking is free; only how many start active is bounded, and the order here is the order the backend
+   * activates in, so the sentence names the language it will really pick.
+   */
+  protected get startsActiveNote(): string | null {
+    const picked: string[] = this.targetLanguagesControl.value ?? [];
+    if (this.activeAllowance < 0 || picked.length <= this.activeAllowance) {
+      return null;
+    }
+    const starting = picked.slice(0, this.activeAllowance);
+    const waiting = picked.length - this.activeAllowance;
+    return `${this.joinNames(starting)} ${starting.length === 1 ? 'starts' : 'start'} active. `
+      + `The other ${waiting === 1 ? 'one waits' : waiting + ' wait'} — kept in full, ready whenever you switch or upgrade.`;
+  }
+
+  private joinNames(names: string[]): string {
+    if (names.length <= 1) return names[0] ?? '';
+    return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
   }
 
   protected submitFirstStepForm(): void {
