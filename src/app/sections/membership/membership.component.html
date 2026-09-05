@@ -78,11 +78,45 @@
             <div><dt>Plan</dt><dd>{{ subscription?.name }}</dd></div>
             <div><dt>Status</dt><dd>{{ renewalLabel }}</dd></div>
             <div><dt>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
+            @if (scheduledChange; as change) {
+              <!-- Exists only while a change is pending, and carries its own undo. Same row shape as the rest. -->
+              <div class="scheduled-row">
+                <dt>Scheduled change</dt>
+                <dd>
+                  {{ scheduledChangeLabel(change) }}
+                  <button type="button" class="undo" [disabled]="cadenceLoading" (click)="undoScheduledChange()">
+                    Keep {{ subscription?.type === 'YEARLY' ? 'annual' : 'monthly' }} instead
+                  </button>
+                </dd>
+              </div>
+            }
           </dl>
 
+          @if (annualOfferVisible) {
+            <!-- After eight finished sessions, once. It routes into the same confirmation any switch does. -->
+            <div class="annual-offer">
+              <strong>Switch to annual and save</strong>
+              <p>Get 12 months for the price of 10.</p>
+              <div class="annual-offer-actions">
+                <button type="button" class="accept" (click)="acceptAnnualOffer()">Switch to annual</button>
+                <button type="button" class="decline" (click)="dismissAnnualOffer()">Keep monthly</button>
+              </div>
+            </div>
+          }
+
+          @if (oppositeCadence && !scheduledChange) {
+            <button class="portal-action" type="button" [disabled]="cadenceLoading" (click)="openCadenceChange()">
+              {{ cadenceLoading ? 'Checking…' : cadenceSwitchLabel }}
+            </button>
+          }
+
           <button class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
-            {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage plan, card and invoices' }}
+            {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage card and invoices' }}
           </button>
+
+          @if (subscription?.autoRenewal !== false && subscription?.type !== 'LIFETIME') {
+            <button class="cancel-action" type="button" (click)="openCancellation()">Cancel subscription</button>
+          }
         </div>
 
         <div class="membership-usage">
@@ -108,3 +142,27 @@
     <section class="membership-shell loading-state" aria-live="polite">Loading your membership…</section>
   }
 </main>
+
+<app-cadence-change-modal
+  [isVisible]="cadenceModalVisible"
+  [preview]="cadencePreview"
+  [pending]="cadencePending"
+  (closed)="closeCadenceModal()"
+  (confirmed)="confirmCadenceChange($event)"
+/>
+
+<!--
+  One step, in plum, with no countdown: cancelling is reversible until the period ends, so it is a question and not
+  a warning. The founder line rides inside it rather than raising a modal of its own.
+-->
+<app-confirm-modal
+  [isVisible]="cancelModalVisible"
+  tone="default"
+  title="Cancel your subscription?"
+  [message]="'You keep everything until ' + cancellationAccessEndsOn + '. After that your saved words and reviews stay, and one language stays active.'"
+  [note]="subscription?.founder ? 'Founding-member pricing ends with your subscription and can\'t be restored later.' : ''"
+  confirmText="Cancel subscription"
+  cancelText="Keep it"
+  (closed)="closeCancellation()"
+  (confirm)="confirmCancellation()"
+/>

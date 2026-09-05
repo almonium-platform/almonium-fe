@@ -1,0 +1,132 @@
+@keyframes cadenceFadeSlideIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cadenceFadeSlideOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(30px); }
+}
+
+.fade-slide-in { animation: cadenceFadeSlideIn .2s ease-out; }
+.fade-slide-out { animation: cadenceFadeSlideOut .2s ease-out; }
+
+.cadence-backdrop {
+  position: fixed;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  inset: 0;
+  background: rgba(44, 37, 48, .75);
+}
+
+.cadence-surface {
+  position: relative;
+  display: grid;
+  width: min(100%, 25rem);
+  gap: .75rem;
+  padding: 1.75rem;
+  border-radius: 28px;
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+  color: var(--text-color);
+}
+
+.eyebrow {
+  color: var(--dark-raspberry);
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .0875rem;
+  text-transform: uppercase;
+}
+
+h2 {
+  margin: 0;
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.lede {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+/* The figures are the commitment. They read as a receipt, not as prose. */
+.figures {
+  display: grid;
+  gap: .5rem;
+  margin: .35rem 0 0;
+  padding: .9rem 1rem;
+  border-radius: 18px;
+  background: var(--nested-color);
+}
+
+.figures > div { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+dt { color: var(--subhead-color); font-size: .82rem; }
+dd { margin: 0; color: var(--brand-ink); font-size: .86rem; font-weight: 600; text-align: right; }
+
+/* Load-bearing: without it, a switch that lands next year reads as stalling rather than as already paid for. */
+.explanation {
+  margin: .15rem 0 0;
+  color: var(--subhead-color);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: .35rem; }
+.actions.stacked { flex-direction: column; align-items: stretch; }
+
+button {
+  min-height: 2.6rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+}
+
+/* A cadence change is reversible, so it commits in plum. Red is reserved for what cannot be undone. */
+.commit {
+  flex: 1 1 auto;
+  padding: .65rem 1.25rem;
+  border: 0;
+  background: var(--brand-ink);
+  color: var(--on-brand-color);
+}
+
+.secondary {
+  padding: .65rem 1.25rem;
+  border: 1px solid var(--control-border-color);
+  background: transparent;
+  color: var(--brand-ink);
+}
+
+.cancel {
+  flex: 0 0 auto;
+  padding: .65rem 1rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-color);
+}
+
+button:disabled { cursor: wait; opacity: .65; }
+
+.footnote {
+  margin: .15rem 0 0;
+  color: var(--metadata-color);
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .cadence-surface { padding: 1.25rem; border-radius: 22px; }
+  .actions { align-items: stretch; flex-direction: column-reverse; }
+  .cancel { width: 100%; }
+}

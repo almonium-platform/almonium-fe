@@ -1,0 +1,38 @@
+<main class="checkout-page">
+  <div class="checkout-shell">
+    <header>
+      <span class="eyebrow">Checkout</span>
+      @if (summary) {
+        <h1>{{ summary.planLabel }}</h1>
+      } @else if (failed) {
+        <h1>Checkout unavailable</h1>
+      } @else {
+        <h1>Preparing secure checkout…</h1>
+      }
+    </header>
+
+    <div class="checkout-columns">
+      <section class="summary" aria-label="Order summary">
+        @if (summary) {
+          <dl>
+            <div><dt>Charged now</dt><dd class="headline">{{ summary.chargedNow }}</dd></div>
+            <div><dt>Billed</dt><dd>{{ summary.billed }}</dd></div>
+            @if (summary.equivalent) {
+              <div><dt>Equivalent</dt><dd class="muted">{{ summary.equivalent }}</dd></div>
+            }
+            @if (summary.renews) {
+              <div><dt>Renews</dt><dd>{{ summary.renews }}</dd></div>
+            }
+          </dl>
+          <p class="guarantee">14-day money-back guarantee</p>
+          <p class="footnote">Your founding-member price remains available while your subscription stays active.</p>
+        } @else if (!failed) {
+          <p class="loading">Loading your order…</p>
+        }
+      </section>
+
+      <!-- Paddle renders the card fields and the pay button into this element. Everything else on the page is ours. -->
+      <section class="paddle-frame" aria-label="Payment details"></section>
+    </div>
+  </div>
+</main>

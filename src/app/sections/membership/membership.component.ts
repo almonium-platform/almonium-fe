@@ -6,14 +6,23 @@ import {TuiNotificationService} from '@taiga-ui/core/components';
 import {BehaviorSubject, catchError, finalize, forkJoin, map, of, take} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {PlanDto} from '../../models/plan.model';
-import {PlanLimitKeys, PlanType, Subscription, UserInfo} from '../../models/userinfo.model';
+import {
+  PlanLimitKeys,
+  PlanType,
+  ScheduledCadenceChange,
+  Subscription,
+  UserInfo,
+} from '../../models/userinfo.model';
+import {CadenceChangeKind, CadenceChangePreview} from '../../models/cadence-change.model';
+import {CadenceChangeModalComponent} from '../../shared/modals/cadence-change/cadence-change-modal.component';
+import {ConfirmModalComponent} from '../../shared/modals/confirm-modal/confirm-modal.component';
 import {CardService} from '../../services/card.service';
 import {PlanService} from '../../services/plan.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {ReadService} from '../read/read.service';
 import {BookImportQuota} from '../read/book-import.model';
 import {getErrorMessage} from '../../shared/http-error';
-import {expectNumber, expectRecord} from '../../shared/runtime-validation';
+import {expectBoolean, expectNumber, expectRecord} from '../../shared/runtime-validation';
 import {UrlService} from '../../services/url.service';
 
 type BillingPeriod = 'monthly' | 'yearly';
@@ -25,6 +34,7 @@ interface FoundingMemberStatus {
 
 @Component({
   selector: 'app-membership',
+  imports: [CadenceChangeModalComponent, ConfirmModalComponent],
   templateUrl: './membership.component.html',
   styleUrl: './membership.component.less',
 })
@@ -47,6 +57,17 @@ export class MembershipComponent implements OnInit {
   protected foundingStatus: FoundingMemberStatus | null = null;
   protected readonly actionLoading$ = new BehaviorSubject(false);
 
+  protected cadencePreview: CadenceChangePreview | null = null;
+  protected cadenceModalVisible = false;
+  protected cadenceLoading = false;
+  protected cadencePending = false;
+
+  protected cancelModalVisible = false;
+  protected cancelPending = false;
+
+  protected annualNudgeEligible = false;
+  protected annualOfferDismissed = readAnnualOfferDismissed();
+
   protected readonly premiumFeatures = [
     'Unlimited saved words',
     'Every target and fluent language',
@@ -63,6 +84,7 @@ export class MembershipComponent implements OnInit {
         if (!userInfo) return;
         this.userInfo = userInfo;
         this.loadUsage(userInfo);
+        this.loadAnnualNudge(userInfo);
       });
 
     forkJoin({
@@ -205,6 +227,131 @@ export class MembershipComponent implements OnInit {
     });
   }
 
+  // ---- Billing cadence -------------------------------------------------------------------
+
+  protected get scheduledChange(): ScheduledCadenceChange | null {
+    return this.subscription?.scheduledChange ?? null;
+  }
+
+  protected get oppositeCadence(): PlanType | null {
+    if (!this.subscription || this.subscription.type === PlanType.LIFETIME) return null;
+    return this.subscription.type === PlanType.MONTHLY ? PlanType.YEARLY : PlanType.MONTHLY;
+  }
+
+  protected get cadenceSwitchLabel(): string {
+    return this.oppositeCadence === PlanType.YEARLY ? 'Switch to annual billing' : 'Switch to monthly billing';
+  }
+
+  protected scheduledChangeLabel(change: ScheduledCadenceChange): string {
+    const cadence = change.type === PlanType.YEARLY ? 'Annual' : 'Monthly';
+    return `${cadence} from ${this.formatDate(change.effectiveAt)}`;
+  }
+
+  protected openCadenceChange(): void {
+    const target = this.oppositeCadence;
+    if (!target || this.cadenceLoading) return;
+
+    this.cadenceLoading = true;
+    this.planService.previewCadenceChange(target).pipe(
+      finalize(() => this.cadenceLoading = false),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: preview => {
+        this.cadencePreview = preview;
+        this.cadenceModalVisible = true;
+      },
+      error: error => this.showError(error, 'Could not work out what that change would cost'),
+    });
+  }
+
+  protected confirmCadenceChange(option: CadenceChangeKind): void {
+    const target = this.cadencePreview?.targetType;
+    if (!target || this.cadencePending) return;
+
+    this.cadencePending = true;
+    this.planService.changeCadence(target, option).pipe(
+      finalize(() => this.cadencePending = false),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.cadenceModalVisible = false;
+        this.dismissAnnualOffer();
+        this.userInfoService.fetchUserInfoFromServer().subscribe();
+        this.alerts.open('Your billing has been updated.', {appearance: 'positive'}).subscribe();
+      },
+      error: error => this.showError(error, 'Could not change your billing'),
+    });
+  }
+
+  protected closeCadenceModal(): void {
+    this.cadenceModalVisible = false;
+  }
+
+  /** A pending change must be reversible in one action. One without an undo generates support mail. */
+  protected undoScheduledChange(): void {
+    if (this.cadenceLoading) return;
+
+    this.cadenceLoading = true;
+    this.planService.undoCadenceChange().pipe(
+      finalize(() => this.cadenceLoading = false),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => this.userInfoService.fetchUserInfoFromServer().subscribe(),
+      error: error => this.showError(error, 'Could not cancel the scheduled change'),
+    });
+  }
+
+  // ---- The annual offer, after eight sessions --------------------------------------------
+
+  protected get annualOfferVisible(): boolean {
+    return this.annualNudgeEligible && !this.annualOfferDismissed && !this.scheduledChange;
+  }
+
+  protected acceptAnnualOffer(): void {
+    this.dismissAnnualOffer();
+    this.openCadenceChange();
+  }
+
+  /** Shown once. Opening the switch yourself counts as having seen it. */
+  protected dismissAnnualOffer(): void {
+    this.annualOfferDismissed = true;
+    try {
+      localStorage.setItem(ANNUAL_OFFER_SEEN_KEY, 'true');
+    } catch {
+      // A browser that refuses storage shows the offer again next visit. Not a reason to fail the click.
+    }
+  }
+
+  // ---- Cancellation ----------------------------------------------------------------------
+
+  protected get cancellationAccessEndsOn(): string {
+    return this.formatDate(this.subscription?.endDate ?? null);
+  }
+
+  protected openCancellation(): void {
+    this.cancelModalVisible = true;
+  }
+
+  protected closeCancellation(): void {
+    this.cancelModalVisible = false;
+  }
+
+  protected confirmCancellation(): void {
+    if (this.cancelPending) return;
+
+    this.cancelPending = true;
+    this.planService.cancelSubscription().pipe(
+      finalize(() => this.cancelPending = false),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.cancelModalVisible = false;
+        this.userInfoService.fetchUserInfoFromServer().subscribe();
+      },
+      error: error => this.showError(error, 'Could not cancel your subscription'),
+    });
+  }
+
   private loadUsage(userInfo: UserInfo): void {
     const languages = [...new Set(userInfo.targetLangs)];
     const cardRequests = languages.map(language => this.cardService.getCardsInLanguage(language).pipe(
@@ -224,6 +371,17 @@ export class MembershipComponent implements OnInit {
     }
   }
 
+  /** One request, and only for a paying member: nobody else can be offered a cheaper cadence. */
+  private loadAnnualNudge(userInfo: UserInfo): void {
+    if (!userInfo.premium || this.annualOfferDismissed) return;
+
+    this.http.get<unknown>(`${AppConstants.SUBSCRIPTION_URL}/annual-nudge`).pipe(
+      map(value => expectBoolean(expectRecord(value, 'annual nudge')['eligible'], 'annual nudge.eligible')),
+      catchError(() => of(false)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(eligible => this.annualNudgeEligible = eligible);
+  }
+
   private displayLimit(limit: number | undefined, fallback: number): number {
     return limit === undefined || !Number.isFinite(limit) || limit < 0 ? fallback : limit;
   }
@@ -235,6 +393,16 @@ export class MembershipComponent implements OnInit {
 
   private showError(error: unknown, fallback: string): void {
     this.alerts.open(getErrorMessage(error, fallback), {appearance: 'negative'}).subscribe();
+  }
+}
+
+const ANNUAL_OFFER_SEEN_KEY = 'almonium.annualOfferSeen';
+
+function readAnnualOfferDismissed(): boolean {
+  try {
+    return localStorage.getItem(ANNUAL_OFFER_SEEN_KEY) === 'true';
+  } catch {
+    return false;
   }
 }
 

@@ -98,7 +98,7 @@
       <div class="pricing-grid">
         <article><span class="eyebrow">Free</span><h3>€0</h3><p>Read every book, look up any word, keep 100 words. One language, unlimited review, confusion feedback included.</p><a class="button button-outline button-compact" routerLink="/read">Start reading</a></article>
         <article><span class="eyebrow">Premium</span><h3>$12 <small>/ month</small></h3><p>Everything unlimited, synced across devices, every level-adapted edition, ten hours of audio, three of your own books a month.</p><a class="button button-primary button-compact" routerLink="/pricing">Go Premium</a></article>
-        <article class="founding-plan"><span class="eyebrow">Founding member</span><h3>$8 <small>/ month</small></h3><p>Everything in Premium, at a price that never rises while you stay subscribed. Fifty places, and 38 are left.</p><a class="button button-primary button-compact" routerLink="/pricing">Take a place</a></article>
+        <article class="founding-plan"><span class="eyebrow">Founding member</span><h3>$8 <small>/ month</small></h3><p>Everything in Premium, at a price that never rises while you stay subscribed.@if (placesLeft !== null) { {{ placesLeft }} {{ placesLeft === 1 ? 'place' : 'places' }} left.}</p><a class="button button-primary button-compact" routerLink="/pricing">Take a place</a></article>
       </div>
       <p class="pricing-note">Prices in Ukraine, Central Europe, Latin America and South-East Asia are set lower to match local purchasing power. Cancel from your account page at any time.</p>
     </section>

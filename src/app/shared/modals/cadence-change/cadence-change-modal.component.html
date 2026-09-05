@@ -1,0 +1,65 @@
+@if (isVisible && preview) {
+  <div class="cadence-backdrop" (pointerdown)="onBackdropPointerDown($event)">
+    <div
+      class="cadence-surface"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cadence-change-title"
+      [class.fade-slide-in]="isVisible"
+      [class.fade-slide-out]="fadeOutAnimating"
+    >
+      <app-dismiss-button (closed)="onClose()"/>
+      <span class="eyebrow">Confirm change</span>
+      <h2 id="cadence-change-title">{{ title }}</h2>
+
+      @if (explanation && refundOption) {
+        <p class="lede">{{ explanation }}</p>
+      }
+
+      <dl class="figures">
+        @for (figure of figures; track figure.label) {
+          <div>
+            <dt>{{ figure.label }}</dt>
+            <dd>{{ figure.value }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (explanation && !refundOption) {
+        <p class="explanation">{{ explanation }}</p>
+      }
+
+      <div class="actions" [class.stacked]="refundOption">
+        @if (refundOption) {
+          <button
+            class="commit"
+            type="button"
+            [disabled]="pending"
+            (click)="commit(CadenceChangeKind.REFUND_AND_SWITCH)"
+          >
+            {{ pending ? 'Working…' : 'Refund and switch to ' + (preview.targetType === 'YEARLY' ? 'annual' : 'monthly') }}
+          </button>
+          @if (scheduledOption) {
+            <button class="secondary" type="button" [disabled]="pending" (click)="commit(CadenceChangeKind.SCHEDULED)">
+              {{ scheduleButtonLabel }}
+            </button>
+          }
+        } @else if (scheduledOption) {
+          <button class="commit" type="button" [disabled]="pending" (click)="commit(CadenceChangeKind.SCHEDULED)">
+            {{ pending ? 'Working…' : scheduleButtonLabel }}
+          </button>
+          <button class="cancel" type="button" [disabled]="pending" (click)="onClose()">Cancel</button>
+        } @else if (proratedOption) {
+          <button class="commit" type="button" [disabled]="pending" (click)="commit(CadenceChangeKind.PRORATED_NOW)">
+            {{ pending ? 'Working…' : 'Confirm switch' }}
+          </button>
+          <button class="cancel" type="button" [disabled]="pending" (click)="onClose()">Cancel</button>
+        }
+      </div>
+
+      @if (footnote) {
+        <p class="footnote">{{ footnote }}</p>
+      }
+    </div>
+  </div>
+}

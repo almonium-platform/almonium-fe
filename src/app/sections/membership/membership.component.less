@@ -129,6 +129,40 @@ dd { margin: 0; color: var(--brand-ink); text-align: right; }
 .membership-usage { padding: .15rem 1.5rem; }
 .membership-usage dd { font-family: var(--font-family-mono); font-size: .75rem; color: var(--subhead-color); }
 .membership-note { padding: .8rem 1rem; border-radius: 16px; background: var(--nested-color); color: var(--subhead-color); font-size: .78rem; line-height: 1.5; }
+
+/* A pending change is information, not an alarm: same row shape as the rest, no badge and no colour. */
+.scheduled-row dd { display: grid; gap: .15rem; justify-items: end; }
+.scheduled-row .undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font-size: .76rem;
+  font-weight: 500;
+  text-decoration: underline;
+}
+.scheduled-row .undo:disabled { cursor: wait; opacity: .6; }
+
+.annual-offer { display: grid; gap: .2rem; padding: .9rem 1rem; border-radius: 18px; background: var(--card-color); }
+.annual-offer strong { color: var(--brand-ink); font-family: var(--font-family-reading); font-size: .95rem; }
+.annual-offer p { margin: 0; color: var(--subhead-color); font-size: .8rem; }
+.annual-offer-actions { display: flex; gap: .6rem; margin-top: .5rem; }
+.annual-offer-actions button { min-height: 2.2rem; border-radius: 9999px; cursor: pointer; font-size: .78rem; font-weight: 600; }
+.annual-offer-actions .accept { padding: .4rem 1rem; border: 0; background: var(--brand-ink); color: var(--on-brand-color); }
+.annual-offer-actions .decline { padding: .4rem .75rem; border: 0; background: transparent; color: var(--subhead-color); }
+
+/* Cancelling is reversible until the period ends, so it is a quiet link and not a red button. */
+.cancel-action {
+  width: 100%;
+  padding: .5rem;
+  border: 0;
+  background: none;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: .78rem;
+}
+.cancel-action:hover { color: var(--brand-ink); }
 .loading-state { color: var(--subhead-color); text-align: center; }
 
 @media (max-width: 640px) {

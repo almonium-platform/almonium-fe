@@ -32,6 +32,9 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
           </div>
           <p class="confirm-modal-copy mb-6 mt-6 text-sm">{{ message }}</p>
+          @if (note) {
+            <p class="confirm-modal-copy mb-6 -mt-3 text-sm">{{ note }}</p>
+          }
           @if (confirmationWord) {
             <label class="confirm-modal-copy block text-sm mb-5">
               Type <strong>{{ confirmationWord }}</strong> to confirm
@@ -51,7 +54,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
               class="confirm-modal-cancel font-bold"
               [class.danger]="tone === 'danger'"
             >
-              Cancel
+              {{ cancelText }}
             </button>
             <button
               (click)="onConfirm()"
@@ -71,7 +74,14 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() isVisible = false;
   @Input() title = '';
   @Input() message = '';
+  /**
+   * A second line in the same body grey, for something the reader deserves to know before they commit. It stays
+   * inside the step: information a member is owed is not a reason to raise a second modal at them.
+   */
+  @Input() note = '';
   @Input() confirmText = '';
+  /** The way out. It is worth naming what staying means when "Cancel" would sit next to "Cancel subscription". */
+  @Input() cancelText = 'Cancel';
   @Input() useCountdown = false;
   @Input() confirmationWord = '';
   /**

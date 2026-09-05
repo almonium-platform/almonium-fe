@@ -1,0 +1,59 @@
+:host { display: block; }
+
+.checkout-page {
+  min-height: 100vh;
+  padding: 3rem 1rem 4rem;
+  background: var(--page-ground);
+}
+
+.checkout-shell {
+  display: grid;
+  width: min(100%, 54rem);
+  margin: 0 auto;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 28px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+
+.eyebrow {
+  color: var(--dark-raspberry);
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .0875rem;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: .3rem 0 0;
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.checkout-columns { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
+
+.summary { display: grid; gap: .75rem; padding: 1.25rem; border-radius: 22px; background: var(--nested-color); }
+.summary dl { display: grid; gap: .55rem; margin: 0; }
+.summary dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+dt { color: var(--subhead-color); font-size: .82rem; }
+dd { margin: 0; color: var(--brand-ink); font-size: .86rem; font-weight: 600; text-align: right; }
+
+/* The full charge is the headline number. The monthly equivalent below it is arithmetic, and is drawn as such. */
+.headline { font-family: var(--font-family-reading); font-size: 1.5rem; }
+.muted { color: var(--subhead-color); font-size: .8rem; font-weight: 400; }
+
+.guarantee { margin: .2rem 0 0; color: var(--brand-ink); font-size: .78rem; }
+.footnote { margin: 0; color: var(--metadata-color); font-size: .74rem; line-height: 1.5; }
+.loading { margin: 0; color: var(--subhead-color); font-size: .85rem; }
+
+.paddle-frame { min-height: 28rem; }
+
+@media (max-width: 720px) {
+  .checkout-page { padding: 1.25rem .5rem 2rem; }
+  .checkout-shell { padding: 1.25rem; border-radius: 22px; }
+  .checkout-columns { grid-template-columns: minmax(0, 1fr); }
+}

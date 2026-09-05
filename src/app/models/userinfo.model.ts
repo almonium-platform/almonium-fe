@@ -199,7 +199,14 @@ export class Subscription {
     public type: PlanType,
     public autoRenewal: boolean | null,
     public startDate: Date,
-    public endDate: Date | null
+    public endDate: Date | null,
+    /** Whether this member holds a founding place, which is what lets a screen promise the price is locked. */
+    public founder = false,
+    /**
+     * Set only while a cadence change is pending. A downgrade reads as already made in Paddle from the moment it is
+     * requested, so this is what tells the difference between "billed monthly" and "billed annually until September".
+     */
+    public scheduledChange: ScheduledCadenceChange | null = null,
   ) {
   }
 
@@ -225,6 +232,8 @@ export class Subscription {
       data['endDate'] === null || data['endDate'] === undefined
         ? null
         : expectDate(data['endDate'], 'user.subscription.endDate'),
+      data['founder'] === undefined ? false : expectBoolean(data['founder'], 'user.subscription.founder'),
+      parseScheduledCadenceChange(data['scheduledChange']),
     );
   }
 
@@ -241,6 +250,20 @@ export class Subscription {
   }
 }
 
+export interface ScheduledCadenceChange {
+  type: PlanType;
+  effectiveAt: Date;
+}
+
+function parseScheduledCadenceChange(value: unknown): ScheduledCadenceChange | null {
+  if (value === null || value === undefined) return null;
+  const data = expectRecord(value, 'user.subscription.scheduledChange');
+  return {
+    type: expectEnum(data['type'], Object.values(PlanType), 'user.subscription.scheduledChange.type'),
+    effectiveAt: expectDate(data['effectiveAt'], 'user.subscription.scheduledChange.effectiveAt'),
+  };
+}
+
 export interface SubscriptionDto {
   name: string;
   limits: Record<string, number>;
@@ -248,6 +271,8 @@ export interface SubscriptionDto {
   autoRenewal: boolean | null;
   startDate: string | Date;
   endDate: string | Date | null;
+  founder?: boolean;
+  scheduledChange?: {type: PlanType; effectiveAt: string | Date} | null;
 }
 
 export const PlanLimitKeys = {
