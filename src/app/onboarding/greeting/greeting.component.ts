@@ -32,9 +32,12 @@ export class GreetingComponent implements OnInit, OnDestroy {
     const learner = this.userInfo?.learners[0];
     const language = learner ? this.languageNameService.getLanguageName(learner.language) : 'Your language';
     const level = learner?.selfReportedLevel ?? 'B1';
+    const parts = [language, level];
     const interestCount = this.userInfo?.interests.length ?? 0;
-    const interests = `${interestCount} ${interestCount === 1 ? 'interest' : 'interests'}`;
-    return `${language}, ${level}, ${interests}. You can change any of it later.`;
+    if (interestCount > 0) {
+      parts.push(`${interestCount} ${interestCount === 1 ? 'interest' : 'interests'}`);
+    }
+    return `${parts.join(', ')}. You can change any of it later.`;
   }
 
   ngOnInit(): void {
