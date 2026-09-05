@@ -2,9 +2,10 @@ import {Component, DestroyRef, OnInit, inject} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {HttpClient} from '@angular/common/http';
 import {RouterLink} from '@angular/router';
-import {catchError, map, of} from 'rxjs';
+import {catchError, forkJoin, map, of} from 'rxjs';
 import {AppConstants} from '../../app.constants';
-import {expectNumber, expectRecord} from '../../shared/runtime-validation';
+import {PlanService} from '../../services/plan.service';
+import {BillingPeriod, parseFoundingMemberStatus, periodLabel, PlanOffer} from '../../models/plan-offer';
 
 @Component({
   selector: 'app-landing',
@@ -14,25 +15,67 @@ import {expectNumber, expectRecord} from '../../shared/runtime-validation';
 })
 export class LandingComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly planService = inject(PlanService);
   private readonly destroyRef = inject(DestroyRef);
 
   /**
-   * How many founding places are left, from the same endpoint the pricing page uses. It was a pair of hardcoded
-   * numbers, which is how a landing page ends up advertising fifty places against a ceiling of twenty. Until it
-   * arrives the sentence simply omits the count rather than guessing at one.
+   * The same offer the paywall prices, from the same public endpoints. It was a pair of hardcoded
+   * numbers, which is how a landing page ends up advertising a plan the checkout no longer sells.
+   * Until it arrives the card shows no figure rather than guessing at one.
    */
-  protected placesLeft: number | null = null;
+  protected offer: PlanOffer | null = null;
+
+  protected billingPeriod: BillingPeriod = 'monthly';
+
+  protected readonly freeFeatures: readonly string[] = [
+    'Every book in the library, unlimited reading',
+    'Unlimited lookups',
+    'Up to 100 saved items',
+    'One language, unlimited review',
+    'Confusion feedback',
+  ];
+
+  protected readonly paidFeatures: readonly string[] = [
+    'Unlimited reading and lookups',
+    'Unlimited saved items and languages',
+    'Sync across your devices',
+    '10 hours of book audio',
+    '3 book imports a month',
+  ];
 
   ngOnInit(): void {
-    this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`).pipe(
-      map(value => {
-        const status = expectRecord(value, 'founding-member status');
-        const capacity = expectNumber(status['capacity'], 'founding-member status.capacity');
-        const claimed = expectNumber(status['claimed'], 'founding-member status.claimed');
-        return Math.max(0, capacity - claimed);
-      }),
-      catchError(() => of(null)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(left => this.placesLeft = left);
+    forkJoin({
+      plans: this.planService.getPlans().pipe(catchError(() => of([]))),
+      founder: this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`).pipe(
+        map(parseFoundingMemberStatus),
+        catchError(() => of(null)),
+      ),
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({plans, founder}) => {
+      const offer = new PlanOffer(plans, founder);
+      this.offer = offer;
+      // The founder card leads with monthly, where the barrier matters more than the fee ratio;
+      // plain Premium leads with annual.
+      this.billingPeriod = offer.founderOfferAvailable ? 'monthly' : 'yearly';
+    });
+  }
+
+  protected choosePeriod(period: BillingPeriod): void {
+    this.billingPeriod = period;
+  }
+
+  protected get paidPrice(): number | null {
+    return this.offer?.priceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get struckPrice(): number | null {
+    return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get alternateCadenceLabel(): string {
+    return this.offer?.alternateCadenceLabel(this.billingPeriod) ?? '';
+  }
+
+  protected get pricePeriodLabel(): string {
+    return periodLabel(this.billingPeriod);
   }
 }

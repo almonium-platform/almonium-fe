@@ -12,14 +12,12 @@ import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userin
 import {OnboardingService} from "../../onboarding/onboarding.service";
 import {CardService} from "../../services/card.service";
 import {AppConstants} from '../../app.constants';
-import {expectNumber, expectRecord} from '../runtime-validation';
-
-type BillingPeriod = 'monthly' | 'yearly';
-
-interface FoundingMemberStatus {
-  capacity: number;
-  claimed: number;
-}
+import {
+  BillingPeriod,
+  parseFoundingMemberStatus,
+  periodLabel,
+  PlanOffer,
+} from '../../models/plan-offer';
 
 // The free tier's saved-item ceiling. The backend has no plan-limit key for it, so the number
 // lives here and prints in both the static line and the signed-in usage line.
@@ -64,10 +62,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
     '3 book imports a month',
   ];
 
-  private premiumPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
-  private founderPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
-  private planIds: Record<BillingPeriod, string> = {monthly: '', yearly: ''};
-  private foundingStatus: FoundingMemberStatus | null = null;
+  private offer: PlanOffer | null = null;
 
   protected readonly freeLoading$ = new BehaviorSubject(false);
   protected readonly paidLoading$ = new BehaviorSubject(false);
@@ -105,19 +100,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
       ),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: ({plans, founder}) => {
-        this.foundingStatus = founder;
-        const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
-        const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
-        if (monthlyPremium) {
-          this.premiumPrice.monthly = monthlyPremium.price;
-          this.founderPrice.monthly = monthlyPremium.founderPrice;
-          this.planIds.monthly = String(monthlyPremium.id);
-        }
-        if (yearlyPremium) {
-          this.premiumPrice.yearly = yearlyPremium.price;
-          this.founderPrice.yearly = yearlyPremium.founderPrice;
-          this.planIds.yearly = String(yearlyPremium.id);
-        }
+        this.offer = new PlanOffer(plans, founder);
         // Premium preselects annual; the founder card preselects monthly, because the barrier
         // matters more there than the fee ratio.
         this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
@@ -167,19 +150,19 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   protected get founderOfferAvailable(): boolean {
-    return !!this.foundingStatus && this.foundingStatus.claimed < this.foundingStatus.capacity;
+    return !!this.offer?.founderOfferAvailable;
   }
 
   protected get founderSoldOut(): boolean {
-    return !!this.foundingStatus && this.foundingStatus.claimed >= this.foundingStatus.capacity;
+    return !!this.offer?.founderSoldOut;
   }
 
   protected get founderCapacity(): number {
-    return this.foundingStatus?.capacity ?? 0;
+    return this.offer?.capacity ?? 0;
   }
 
   protected get founderClaimed(): number {
-    return this.foundingStatus?.claimed ?? 0;
+    return this.offer?.claimed ?? 0;
   }
 
   protected get claimedCountVisible(): boolean {
@@ -187,61 +170,32 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   protected get paidTierLabel(): string {
-    return this.founderOfferAvailable ? 'Founding member' : 'Premium';
+    return this.offer?.tierLabel ?? 'Premium';
   }
 
-  // The one price that applies to this visitor for the selected cadence — never a band, never
-  // a range.
   protected get paidPrice(): number | null {
-    const founderValue = this.founderPrice[this.billingPeriod];
-    if (this.founderOfferAvailable && founderValue !== null) {
-      return founderValue;
-    }
-    return this.premiumPrice[this.billingPeriod];
+    return this.offer?.priceFor(this.billingPeriod) ?? null;
   }
 
-  // Once the last place is gone the founder price is struck through: proof the offer was real,
-  // in muted ink at body size so it never reads as something still selectable.
+  // The struck founder price renders in muted ink at body size, so it never reads as something
+  // still selectable.
   protected get struckPrice(): number | null {
-    if (!this.founderSoldOut) {
-      return null;
-    }
-    const founderValue = this.founderPrice[this.billingPeriod];
-    return founderValue === this.paidPrice ? null : founderValue;
-  }
-
-  protected get alternatePeriod(): BillingPeriod {
-    return this.billingPeriod === 'monthly' ? 'yearly' : 'monthly';
-  }
-
-  protected get alternatePrice(): number | null {
-    const period = this.alternatePeriod;
-    const founderValue = this.founderPrice[period];
-    if (this.founderOfferAvailable && founderValue !== null) {
-      return founderValue;
-    }
-    return this.premiumPrice[period];
+    return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
   }
 
   protected get alternateStruckPrice(): number | null {
-    if (!this.founderSoldOut) {
+    if (!this.offer) {
       return null;
     }
-    const founderValue = this.founderPrice[this.alternatePeriod];
-    return founderValue === this.alternatePrice ? null : founderValue;
+    return this.offer.struckPriceFor(this.offer.alternatePeriod(this.billingPeriod));
   }
 
   protected get alternateCadenceLabel(): string {
-    if (this.alternatePrice === null) {
-      return '';
-    }
-    return this.billingPeriod === 'monthly'
-      ? `$${this.alternatePrice} a year on annual billing`
-      : `$${this.alternatePrice} a month on monthly billing`;
+    return this.offer?.alternateCadenceLabel(this.billingPeriod) ?? '';
   }
 
   protected get pricePeriodLabel(): string {
-    return this.billingPeriod === 'monthly' ? '/ month' : '/ year';
+    return periodLabel(this.billingPeriod);
   }
 
   protected get paidButtonText(): string {
@@ -251,7 +205,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
     if (this.premium) {
       return 'Manage subscription';
     }
-    return this.founderOfferAvailable ? 'Take a place' : 'Go Premium';
+    return this.offer?.ctaLabel ?? 'Go Premium';
   }
 
   protected choosePeriod(period: BillingPeriod) {
@@ -303,7 +257,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
     this.paidLoading$.next(true);
 
-    this.planService.subscribeToPlan(this.planIds[this.billingPeriod], this.founderOfferAvailable)
+    this.planService.subscribeToPlan(this.offer?.planId(this.billingPeriod) ?? '', this.founderOfferAvailable)
       .pipe(finalize(() => this.paidLoading$.next(false)))
       .subscribe({
         next: url => {
@@ -334,12 +288,4 @@ export class PaywallComponent implements OnInit, OnDestroy {
         ).subscribe(),
       });
   }
-}
-
-function parseFoundingMemberStatus(value: unknown): FoundingMemberStatus {
-  const status = expectRecord(value, 'founding-member status');
-  return {
-    capacity: expectNumber(status['capacity'], 'founding-member status.capacity'),
-    claimed: expectNumber(status['claimed'], 'founding-member status.claimed'),
-  };
 }

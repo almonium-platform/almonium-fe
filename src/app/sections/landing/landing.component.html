@@ -34,7 +34,7 @@
         <div><span class="eyebrow">Try it now</span><h2>Paste a German sentence.</h2><p>No sign-up, no email.</p></div>
         <div class="lookup">
           <div class="lookup-row"><span lang="de">Er hatte das Zimmer nicht verlassen wollen.</span><a class="button button-primary button-compact" routerLink="/discover">Look up</a></div>
-          <small>The full word sheet opens on the page. Saving is the only thing that needs an account.</small>
+          <small>The full word sheet opens here on the page. Saving is the only thing that needs an account.</small>
         </div>
       </div>
     </section>
@@ -62,6 +62,16 @@
       </div>
     </section>
 
+    <section class="section container" id="levels">
+      <div class="section-heading"><span class="eyebrow">The ladder</span><h2>The same book, at the level you can read</h2><p>Almonium adapts real novels to B1 and B2. Same plot, same voice, shorter sentences. Start where reading feels possible, step up when it feels easy, and finish with the author’s own words.</p></div>
+      <div class="ladder-grid">
+        <article><div class="ladder-top"><span class="level">B1</span><small>Adapted edition</small></div><p lang="de">Eines Morgens wachte Gregor Samsa aus unruhigen Träumen auf. Er lag in seinem Bett. Sein Körper war jetzt der Körper eines <mark>riesigen Insekts</mark>.</p></article>
+        <article><div class="ladder-top"><span class="level">B2</span><small>Adapted edition</small></div><p lang="de">Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett in ein <mark>riesiges Insekt</mark> verwandelt.</p></article>
+        <article><div class="ladder-top"><span class="level level-original">Original</span><small>Kafka, 1915</small></div><p lang="de">Als Gregor Samsa eines Morgens aus unruhigen Träumen erwachte, fand er sich in seinem Bett zu einem <mark>ungeheueren Ungeziefer</mark> verwandelt.</p></article>
+      </div>
+      <p class="ladder-note">Die Verwandlung, first sentence. Adapted editions are machine-assisted, reviewed, and labelled in the reader. Preview any of them free; the full ladder comes with Premium.</p>
+    </section>
+
     <section class="section review-section">
       <div class="container">
         <div class="section-heading review-heading"><span class="eyebrow">Review</span><h2>Most apps say “wrong.” Almonium says which word you were thinking of.</h2><p>If you answer with the meaning of a different word you are learning, Almonium recognises it, shows you both, and schedules the two together until you stop mixing them up.</p><p>It also rewords the answer every time, so you learn the word instead of memorising the shape of the card.</p></div>
@@ -86,7 +96,7 @@
 
     <section class="section container">
       <div class="section-heading"><span class="eyebrow">The difference</span><h2>What Almonium does that other tools do not</h2></div>
-      <div class="difference-grid"><article><span>01</span>Shows a word’s meaning in every language you already speak, not just one</article><article><span>02</span>Knows the difference between understanding a word and being able to use it</article><article><span>03</span>Notices which words you confuse with each other</article><article><span>04</span>Gives you the same book at the level you can actually read</article><article><span>05</span>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
+      <div class="difference-grid"><article>Shows a word’s meaning in every language you already speak, not just one</article><article>Knows the difference between understanding a word and being able to use it</article><article>Notices which words you confuse with each other</article><article>Gives you the same book at the level you can actually read</article><article>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
     </section>
 
     <section class="section section-white" id="founder">
@@ -96,11 +106,62 @@
     <section class="section container" id="pricing">
       <div class="section-heading"><span class="eyebrow">Pricing</span><h2>Reading is free, and stays free</h2><p>Paying covers the parts that cost something every time you use them.</p></div>
       <div class="pricing-grid">
-        <article><span class="eyebrow">Free</span><h3>€0</h3><p>Read every book, look up any word, keep 100 words. One language, unlimited review, confusion feedback included.</p><a class="button button-outline button-compact" routerLink="/read">Start reading</a></article>
-        <article><span class="eyebrow">Premium</span><h3>$12 <small>/ month</small></h3><p>Everything unlimited, synced across devices, every level-adapted edition, ten hours of audio, three of your own books a month.</p><a class="button button-primary button-compact" routerLink="/pricing">Go Premium</a></article>
-        <article class="founding-plan"><span class="eyebrow">Founding member</span><h3>$8 <small>/ month</small></h3><p>Everything in Premium, at a price that never rises while you stay subscribed.@if (placesLeft !== null) { {{ placesLeft }} {{ placesLeft === 1 ? 'place' : 'places' }} left.}</p><a class="button button-primary button-compact" routerLink="/pricing">Take a place</a></article>
+        <article class="plan-free">
+          <span class="eyebrow">Free</span>
+          <div class="plan-price">$0</div>
+          <ul class="plan-features">
+            @for (feature of freeFeatures; track feature) {
+              <li>{{ feature }}</li>
+            }
+          </ul>
+          <a class="button button-outline button-compact" routerLink="/read">Start reading</a>
+        </article>
+
+        <article class="plan-paid">
+          <div class="plan-label">
+            <span class="eyebrow">{{ offer?.tierLabel ?? 'Premium' }}</span>
+            @if (offer?.founderSoldOut) {
+              <span class="pill">Founding memberships sold out</span>
+            }
+          </div>
+
+          <div class="billing-toggle" role="group" aria-label="Billing period">
+            <button type="button" class="monthly" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
+            <button type="button" class="annual" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual <span class="chip">2 months free</span></button>
+          </div>
+
+          @if (paidPrice !== null) {
+            <div class="plan-price">
+              <span>${{ paidPrice }}<small>{{ pricePeriodLabel }}</small></span>
+              @if (struckPrice !== null) {
+                <s>${{ struckPrice }}</s>
+              }
+            </div>
+            @if (alternateCadenceLabel) {
+              <p class="plan-alt">{{ alternateCadenceLabel }}</p>
+            }
+          } @else {
+            <p class="plan-alt">Loading current price…</p>
+          }
+
+          <ul class="plan-features">
+            @for (feature of paidFeatures; track feature) {
+              <li>{{ feature }}</li>
+            }
+          </ul>
+
+          <a class="button button-founding button-compact" routerLink="/pricing">{{ offer?.ctaLabel ?? 'Go Premium' }}</a>
+
+          @if (offer?.founderOfferAvailable) {
+            <div class="plan-notes">
+              <span>Only {{ offer?.capacity }} founding memberships available.</span>
+              <span>Keep this price while your subscription stays active.</span>
+              <span>Monthly and annual memberships use the same {{ offer?.capacity }}-member limit.</span>
+            </div>
+          }
+        </article>
       </div>
-      <p class="pricing-note">Prices in Ukraine, Central Europe, Latin America and South-East Asia are set lower to match local purchasing power. Cancel from your account page at any time.</p>
+      <p class="pricing-note">The price shown is the one for your region. 14-day money-back guarantee, and you can cancel from your account page at any time.</p>
     </section>
 
     <section class="final-cta"><h2>Start with one page of a book.</h2><a class="button button-primary" routerLink="/read">Start reading, no account needed</a></section>
