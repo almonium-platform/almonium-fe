@@ -214,7 +214,18 @@ export class CustomChatAvatarComponent
       return 'avatar-plate';
     }
 
-    return !this.isError && (this.imageUrl || this.fallbackChannelImage) ? 'avatar-plate' : this.hueClass;
+    return !this.isError && this.artUrl ? 'avatar-plate' : this.hueClass;
+  }
+
+  /**
+   * The one place the art is resolved. Stream hands a channel with no picture an empty string,
+   * not undefined, and `??` would take that string as a picture: the plate would go on and the
+   * image would not. So the empty string is spelled out as absence here, and the plate, the
+   * image and the schematic all read this rather than asking the inputs themselves.
+   */
+  protected get artUrl(): string | undefined {
+    const candidates = [this.imageUrl, this.fallbackChannelImage];
+    return candidates.find((url) => !!url);
   }
 
   /**
@@ -226,7 +237,7 @@ export class CustomChatAvatarComponent
       !this.isSavedMessages &&
       !this.mark &&
       !this.isDeletedAccount &&
-      !!(this.imageUrl ?? this.fallbackChannelImage) &&
+      !!this.artUrl &&
       !this.isError
     );
   }
@@ -236,7 +247,7 @@ export class CustomChatAvatarComponent
    * animal is always drawn as its schematic here, never as the engraving it smudges into.
    */
   protected get schematicUrl(): string | null {
-    return this.showsImage ? schematicAvatarUrl(this.imageUrl ?? this.fallbackChannelImage) : null;
+    return this.showsImage ? schematicAvatarUrl(this.artUrl) : null;
   }
 
   protected get isEmblem(): boolean {
