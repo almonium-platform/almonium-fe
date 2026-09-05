@@ -225,8 +225,8 @@ async function createFixture(
   planService.undoCadenceChange.and.returnValue(of(undefined));
   planService.cancelSubscription.and.returnValue(of(undefined));
   planService.getPlans.and.returnValue(of([
-    {id: 2, name: 'PREMIUM', type: 'MONTHLY', description: '', price: 12, founderPrice: 8},
-    {id: 3, name: 'PREMIUM', type: 'YEARLY', description: '', price: 120, founderPrice: 80},
+    {id: 2, name: 'PREMIUM', type: 'MONTHLY', description: '', price: 12, founderPrice: 8, limits: {}},
+    {id: 3, name: 'PREMIUM', type: 'YEARLY', description: '', price: 120, founderPrice: 80, limits: {}},
   ]));
 
   const readService = jasmine.createSpyObj<ReadService>('ReadService', ['getBookImportQuota']);

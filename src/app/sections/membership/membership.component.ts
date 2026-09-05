@@ -7,7 +7,7 @@ import {BehaviorSubject, catchError, finalize, forkJoin, map, of, take} from 'rx
 import {AppConstants} from '../../app.constants';
 import {
   BillingPeriod,
-  PAID_TIER_FEATURES,
+  paidTierFeatures,
   parseFoundingMemberStatus,
   PlanOffer,
 } from '../../models/plan-offer';
@@ -67,7 +67,6 @@ export class MembershipComponent implements OnInit {
   protected annualNudgeEligible = false;
   protected annualOfferDismissed = readAnnualOfferDismissed();
 
-  protected readonly premiumFeatures = PAID_TIER_FEATURES;
 
   ngOnInit(): void {
     this.userInfoService.userInfo$
@@ -145,6 +144,10 @@ export class MembershipComponent implements OnInit {
 
   protected get fluentLanguageLimit(): number {
     return this.displayLimit(this.subscription?.getLimit(PlanLimitKeys.MAX_FLUENT_LANGS, 1), 1);
+  }
+
+  protected get premiumFeatures(): string[] {
+    return paidTierFeatures(this.offer);
   }
 
   protected get selectedPlanId(): string {

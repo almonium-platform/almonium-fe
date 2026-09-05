@@ -276,8 +276,14 @@ export interface SubscriptionDto {
 }
 
 export const PlanLimitKeys = {
+  // The storage ceiling: how many languages may exist on the account. The same on every plan and
+  // never shrinking, so it is not what a paid tier sells.
   MAX_TARGET_LANGS: 'MAX_TARGET_LANGS',
+  // How many of those may be active at once. This is the plan entitlement, and the one the
+  // pricing card quotes.
+  MAX_ACTIVE_LANGS: 'MAX_ACTIVE_LANGS',
   MAX_FLUENT_LANGS: 'MAX_FLUENT_LANGS',
+  MAX_BOOK_IMPORTS_PER_MONTH: 'MAX_BOOK_IMPORTS_PER_MONTH',
 };
 
 export enum PlanType {

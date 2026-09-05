@@ -8,7 +8,7 @@ import {PlanService} from '../../services/plan.service';
 import {
   BillingPeriod,
   freeTierFeatures,
-  PAID_TIER_FEATURES,
+  paidTierFeatures,
   parseFoundingMemberStatus,
   periodLabel,
   PlanOffer,
@@ -37,7 +37,6 @@ export class LandingComponent implements OnInit {
   // Signed out, so there is nothing to count against the ceiling.
   protected readonly freeFeatures: readonly string[] = freeTierFeatures(null);
 
-  protected readonly paidFeatures = PAID_TIER_FEATURES;
 
   ngOnInit(): void {
     forkJoin({
@@ -61,6 +60,10 @@ export class LandingComponent implements OnInit {
 
   protected get paidPrice(): number | null {
     return this.offer?.priceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get paidFeatures(): string[] {
+    return paidTierFeatures(this.offer);
   }
 
   protected get struckPrice(): number | null {

@@ -1,4 +1,5 @@
 import {PlanDto} from './plan.model';
+import {PlanLimitKeys} from './userinfo.model';
 import {expectNumber, expectRecord} from '../shared/runtime-validation';
 
 export type BillingPeriod = 'monthly' | 'yearly';
@@ -28,6 +29,8 @@ export class PlanOffer {
   private readonly premiumPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
   private readonly founderPrice: Record<BillingPeriod, number | null> = {monthly: null, yearly: null};
   private readonly planIds: Record<BillingPeriod, string> = {monthly: '', yearly: ''};
+  // Both cadences grant the same entitlement, so one map answers for the tier.
+  private readonly limits: Record<string, number> = {};
 
   constructor(plans: PlanDto[], private readonly foundingStatus: FoundingMemberStatus | null) {
     for (const period of Object.keys(PLAN_TYPE) as BillingPeriod[]) {
@@ -38,6 +41,7 @@ export class PlanOffer {
       this.premiumPrice[period] = plan.price;
       this.founderPrice[period] = plan.founderPrice;
       this.planIds[period] = String(plan.id);
+      Object.assign(this.limits, plan.limits);
     }
   }
 
@@ -63,6 +67,15 @@ export class PlanOffer {
 
   get ctaLabel(): string {
     return this.founderOfferAvailable ? 'Claim your place' : 'Go Premium';
+  }
+
+  /**
+   * What the paid tier grants, from the server that enforces it. The fallback is the figure the
+   * card was drawn with: the plans request has to land before any price renders anyway, so this
+   * only covers that window and the error path — the same bargain Subscription.getLimit strikes.
+   */
+  limitFor(key: string, fallback: number): number {
+    return this.limits[key] ?? fallback;
   }
 
   // What a place is worth: how many there are, and the price the offer reverts to without one.
@@ -142,14 +155,24 @@ export function freeTierFeatures(savedItems: number | null): string[] {
   ];
 }
 
-export const PAID_TIER_FEATURES: readonly string[] = [
-  'Unlimited saved words, and five languages at once',
-  'Every book at your level — B1, B2 and C1 editions',
-  'Chat with Almo, who uses the words you’re learning',
-  'Narrated audiobooks',
-  'Import your own books, 3 a month',
-  'Share word packs with friends',
-];
+// The numbers the card was drawn with, and what it prints until the offer lands.
+const PAID_ACTIVE_LANGS_FALLBACK = 5;
+const PAID_BOOK_IMPORTS_FALLBACK = 3;
+
+export function paidTierFeatures(offer: PlanOffer | null): string[] {
+  const languages = offer?.limitFor(PlanLimitKeys.MAX_ACTIVE_LANGS, PAID_ACTIVE_LANGS_FALLBACK)
+    ?? PAID_ACTIVE_LANGS_FALLBACK;
+  const imports = offer?.limitFor(PlanLimitKeys.MAX_BOOK_IMPORTS_PER_MONTH, PAID_BOOK_IMPORTS_FALLBACK)
+    ?? PAID_BOOK_IMPORTS_FALLBACK;
+  return [
+    `Unlimited saved words, and ${languages} languages at once`,
+    'Every book at your level — B1, B2 and C1 editions',
+    'Chat with Almo, who uses the words you’re learning',
+    'Narrated audiobooks',
+    `Import your own books, ${imports} a month`,
+    'Share word packs with friends',
+  ];
+}
 
 // The saved entry counts only for a reader who is signed in and has saved something. A new
 // account reads the plain ceiling: "0 of 100" is a scold, not information.

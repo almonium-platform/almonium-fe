@@ -15,7 +15,7 @@ import {AppConstants} from '../../app.constants';
 import {
   BillingPeriod,
   freeTierFeatures,
-  PAID_TIER_FEATURES,
+  paidTierFeatures,
   parseFoundingMemberStatus,
   periodLabel,
   PlanOffer,
@@ -56,7 +56,6 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   protected billingPeriod: BillingPeriod = 'yearly';
 
-  protected readonly premiumFeatures = PAID_TIER_FEATURES;
 
   private offer: PlanOffer | null = null;
 
@@ -131,6 +130,10 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   protected get freeFeatures(): string[] {
     return freeTierFeatures(this.savedItems);
+  }
+
+  protected get premiumFeatures(): string[] {
+    return paidTierFeatures(this.offer);
   }
 
   protected get onFreePlan(): boolean {

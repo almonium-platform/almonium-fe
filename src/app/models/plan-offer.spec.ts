@@ -1,5 +1,6 @@
 import {
   freeTierFeatures,
+  paidTierFeatures,
   parseFoundingMemberStatus,
   periodLabel,
   PlanOffer,
@@ -7,9 +8,11 @@ import {
 import {PlanDto} from './plan.model';
 import {ApiContractError} from '../shared/runtime-validation';
 
+const LIMITS = {MAX_ACTIVE_LANGS: 5, MAX_BOOK_IMPORTS_PER_MONTH: 3};
+
 const PLANS: PlanDto[] = [
-  {id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8},
-  {id: 2, name: 'Yearly', type: 'YEARLY', description: '', price: 120, founderPrice: 80},
+  {id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8, limits: LIMITS},
+  {id: 2, name: 'Yearly', type: 'YEARLY', description: '', price: 120, founderPrice: 80, limits: LIMITS},
 ];
 
 describe('PlanOffer', () => {
@@ -88,7 +91,7 @@ describe('PlanOffer', () => {
 
   it('keeps a plan without a founder price at its list price', () => {
     const offer = new PlanOffer(
-      [{id: 3, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: null}],
+      [{id: 3, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: null, limits: {}}],
       {capacity: 20, claimed: 7},
     );
 
@@ -113,6 +116,39 @@ describe('freeTierFeatures', () => {
 
   it('counts against the ceiling once the reader has saved something', () => {
     expect(freeTierFeatures(72)).toContain('72 of 100 saved words and phrases');
+  });
+});
+
+describe('paidTierFeatures', () => {
+  it('quotes the allowances the server enforces', () => {
+    const offer = new PlanOffer(
+      [{
+        id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8,
+        limits: {MAX_ACTIVE_LANGS: 8, MAX_BOOK_IMPORTS_PER_MONTH: 10},
+      }],
+      {capacity: 20, claimed: 7},
+    );
+
+    expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
+    expect(paidTierFeatures(offer)).toContain('Import your own books, 10 a month');
+  });
+
+  it('prints the drawn numbers until the plans land, rather than an empty promise', () => {
+    expect(paidTierFeatures(null)).toContain('Unlimited saved words, and 5 languages at once');
+    expect(paidTierFeatures(null)).toContain('Import your own books, 3 a month');
+  });
+
+  it('falls back per key when the server sends limits it does not model yet', () => {
+    const offer = new PlanOffer(
+      [{
+        id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8,
+        limits: {MAX_ACTIVE_LANGS: 8},
+      }],
+      null,
+    );
+
+    expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
+    expect(paidTierFeatures(offer)).toContain('Import your own books, 3 a month');
   });
 });
 
