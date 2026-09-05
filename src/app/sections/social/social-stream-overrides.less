@@ -590,6 +590,100 @@
 }
 
 /*
+ * ---- 10: a message that did not land ----
+ *
+ * A send that failed must not look like one that arrived, so the bubble inverts: the fill goes and
+ * the pill is drawn instead. Not opacity - a plum fill at 55% under cream text fails contrast on
+ * both halves at once, and a faded message reads as sending rather than as stopped.
+ *
+ * Stream states the failure inside the bubble, which on an own message means danger copy on a plum
+ * ground. Ours goes in the metadata slot below, which is outside the bubble on the message list's
+ * own ground, so the line is legible and is a tap target of its own rather than a word inside one.
+ */
+::ng-deep .chat-window {
+  .str-chat__message--error-message {
+    display: none;
+  }
+
+  // Both classes are named so the rules below land at four, which is what it takes to outrun the
+  // own-bubble fill and ink - they are set at three each, and a tie would leave this to source order.
+  .str-chat__message.str-chat__message--failed {
+    .str-chat__message-bubble {
+      background-color: var(--card-color);
+      border: 1.5px solid var(--chat-refused-border);
+    }
+
+    .str-chat__message-text-value {
+      color: var(--subhead-color);
+    }
+
+    // Stream also hangs an exclamation off the bubble's edge for the same failure, and shows it
+    // through three classes of its own. One mark, not two: the line below already carries it,
+    // and unlike this one it is the mark you can act on.
+    .str-chat__message-error-icon {
+      display: none;
+    }
+  }
+
+  // A refused message is stated in muted ink; a failed one is still yours to send, so it keeps
+  // full ink and the border warms to say which of the two it is.
+  .str-chat__message.str-chat__message--failed.str-chat__message-send-can-be-retried {
+    .str-chat__message-bubble {
+      border-color: var(--chat-failed-border);
+    }
+
+    .str-chat__message-text-value {
+      color: var(--text-color);
+    }
+  }
+
+  // The clock inside an unsent pill is on the card, not on plum, so it takes the ordinary
+  // metadata ink rather than the cream the own bubble tints it with.
+  .str-chat__message.str-chat__message--failed .message-stamp.mine {
+    color: var(--metadata-color);
+  }
+}
+
+/* The line below the bubble: one mark, one sentence, and on a retryable send, one target. */
+::ng-deep .chat-window .message-failure {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  font: 400 .75rem/1.35 var(--font-family-ui);
+  gap: .375rem;
+  padding: .25rem 0 0;
+  text-align: left;
+
+  &.retry {
+    color: var(--chat-failed-ink);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      text-decoration: underline;
+    }
+  }
+
+  // Muted grey on the mark says it is not tappable; the sentence stays at body ink, because
+  // metadata grey at this size is the contrast failure the inverted bubble just avoided.
+  &.refused {
+    color: var(--subhead-color);
+
+    lucide-icon {
+      color: var(--metadata-color);
+    }
+  }
+}
+
+/* An own message's footer belongs under its own edge. */
+::ng-deep .chat-window .str-chat__message--me .str-chat__custom-message-metadata {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/*
  * 03: every post carries the thing it announces as a footer action - one strip across the foot of
  * the card, divided from the text by the same hairline that draws the card.
  */

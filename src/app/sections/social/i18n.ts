@@ -1,3 +1,5 @@
+import {SOCIAL_COPY} from './social-copy';
+
 export const EN_CODE = 'eng';
 
 export const STREAM_CHAT_TRANSLATIONS = {
@@ -35,9 +37,10 @@ export const STREAM_CHAT_TRANSLATIONS = {
   'Error: {{ errorMessage }}': 'Error: {{ errorMessage }}',
   Flag: 'Flag',
   'Message Failed': 'Message Failed',
-  'Message Failed · Unauthorized': 'Unauthorized to send message',
-  'Message Failed · Click to try again':
-    "Message couldn't be sent, click to try again",
+  // 10: the two failure strings the SDK renders are the same two this section renders itself,
+  // so both read from the one table rather than being kept in step by hand.
+  'Message Failed · Unauthorized': SOCIAL_COPY.sendRefused,
+  'Message Failed · Click to try again': SOCIAL_COPY.sendFailed,
   'Message deleted': 'Message deleted',
   'Message has been successfully flagged':
     'Message has been successfully flagged',

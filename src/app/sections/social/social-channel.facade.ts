@@ -2,6 +2,7 @@ import {Injectable, inject} from '@angular/core';
 import {Channel} from 'stream-chat';
 import {ChannelService, ChatClientService} from 'stream-chat-angular';
 import {AppConstants} from '../../app.constants';
+import {DELETED_ACCOUNT_NAME} from './social-copy';
 import {PrivateChatService} from '../../services/private-chat.service';
 
 /** Encapsulates Stream channel naming, membership, and command semantics. */
@@ -18,6 +19,11 @@ export class SocialChannelFacade {
 
   friendshipCid(friendshipId: string): string {
     return this.privateChats.cid(friendshipId);
+  }
+
+  /** Which friendship a private channel belongs to, for the actions that are keyed on one. */
+  friendshipIdOf(channel: Channel): string | null {
+    return this.privateChats.friendshipId(channel.id);
   }
 
   async createPrivateChat(recipientId: string, friendshipId: string): Promise<Channel> {
@@ -41,8 +47,27 @@ export class SocialChannelFacade {
    * were created with from ever reaching the screen.
    */
   name(channel: Channel, fallback: string): string {
-    if (this.isPrivate(channel)) return this.interlocutorName(channel) ?? fallback;
+    if (this.isPrivate(channel)) {
+      // A handle belongs to somebody. Once nobody answers for it, the row says so instead of
+      // going on addressing a person who is not there.
+      if (this.isInterlocutorDeleted(channel)) return DELETED_ACCOUNT_NAME;
+      return this.interlocutorName(channel) ?? fallback;
+    }
     return channel.data?.name ?? fallback;
+  }
+
+  /**
+   * 10: deleting an account leaves its private threads standing. The server drops the person from
+   * the rooms and deletes their Saved Messages, but a DM has two members and only one of them
+   * left, so the other keeps the history - and Stream soft-deletes the user, which is what makes
+   * the date below readable at all rather than the member simply vanishing.
+   */
+  isInterlocutorDeleted(channel: Channel): boolean {
+    if (!this.isPrivate(channel)) return false;
+    const user = this.interlocutor(channel);
+    // Deactivation is reversible and deletion is not, but a thread cannot be written to under
+    // either, and both read the same way to the person still holding it.
+    return !!user && (!!user.deleted_at || !!user.deactivated_at);
   }
 
   private interlocutorName(channel: Channel): string | undefined {
@@ -58,7 +83,8 @@ export class SocialChannelFacade {
    * read on every change detection, so an absent channel has to mean "no ring" rather than a throw.
    */
   isInterlocutorPremium(channel: Channel | undefined): boolean {
-    return !!channel && this.isPrivate(channel) && this.interlocutor(channel)?.premium === true;
+    if (!channel || !this.isPrivate(channel) || this.isInterlocutorDeleted(channel)) return false;
+    return this.interlocutor(channel)?.premium === true;
   }
 
   private interlocutor(channel: Channel) {

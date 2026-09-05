@@ -46,6 +46,9 @@
         <span class="emblem-mark" aria-hidden="true"></span>
       } @else if (crest; as crest) {
         {{ crest.code }}
+      } @else if (isDeletedAccount) {
+        <!-- 10: an initial names somebody. There is nobody to name, so the disc asks instead. -->
+        <span class="deleted-mark">?</span>
       } @else {
         {{ initials }}
       }

@@ -64,6 +64,8 @@ export class CustomChatAvatarComponent
   protected mark: ChannelMark | null = null;
   protected crest: {code: string; fill: string} | null = null;
   hueClass = avatarHueClass('');
+  /** 10: nobody answers for this disc any more, so it carries a mark rather than a face. */
+  protected isDeletedAccount = false;
   fallbackChannelImage: string | undefined;
   private langColors: Record<string, string> = {};
   private isDark = false;
@@ -90,6 +92,7 @@ export class CustomChatAvatarComponent
             this.setInitials();
             this.setFallbackChannelImage();
             this.setChannelMark();
+            this.setDeletedAccount();
           }
           if (this.isViewInited) {
             this.cdRef.detectChanges();
@@ -104,9 +107,10 @@ export class CustomChatAvatarComponent
       this.setInitials();
     }
 
-    if (changes['type'] || changes['channel']) {
+    if (changes['type'] || changes['channel'] || changes['user']) {
       this.setFallbackChannelImage();
       this.setChannelMark();
+      this.setDeletedAccount();
     }
   }
 
@@ -119,6 +123,15 @@ export class CustomChatAvatarComponent
     this.crest = this.mark?.kind === 'crest'
       ? {code: this.mark.code, fill: crestFill(this.langColors[this.mark.code], this.isDark)}
       : null;
+  }
+
+  /**
+   * Stream soft-deletes a user, so the member is still on the channel with a date on it. The row
+   * this draws is the one place the absence has to be visible before the thread is opened.
+   */
+  private setDeletedAccount() {
+    const user = this.type === 'channel' ? this.getOtherMemberIfOneToOneChannel() : this.user;
+    this.isDeletedAccount = !!user && (!!user.deleted_at || !!user.deactivated_at);
   }
 
   private setFallbackChannelImage() {
@@ -173,7 +186,8 @@ export class CustomChatAvatarComponent
 
   @HostBinding('class.premium-ring')
   get memberRing(): boolean {
-    return this.premium && !this.isSavedMessages;
+    // The ring says "member", which is a thing a person is. A deleted account is not one.
+    return this.premium && !this.isSavedMessages && !this.isDeletedAccount;
   }
 
   protected get isSavedMessages(): boolean {
@@ -189,6 +203,12 @@ export class CustomChatAvatarComponent
       return '';
     }
 
+    // The hashed hue stands for a particular person, so a vacated disc takes the neutral plate
+    // instead: it is the same disc every deleted account gets, which is the point.
+    if (this.isDeletedAccount) {
+      return 'avatar-plate';
+    }
+
     return !this.isError && (this.imageUrl || this.fallbackChannelImage) ? 'avatar-plate' : this.hueClass;
   }
 
@@ -197,7 +217,13 @@ export class CustomChatAvatarComponent
    * size the app's own rooms ignore it and paint the disc themselves.
    */
   protected get showsImage(): boolean {
-    return !this.isSavedMessages && !this.mark && !!(this.imageUrl ?? this.fallbackChannelImage) && !this.isError;
+    return (
+      !this.isSavedMessages &&
+      !this.mark &&
+      !this.isDeletedAccount &&
+      !!(this.imageUrl ?? this.fallbackChannelImage) &&
+      !this.isError
+    );
   }
 
   /**

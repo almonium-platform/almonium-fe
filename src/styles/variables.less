@@ -116,6 +116,15 @@
   --violet: #9A49D2;
   --success-color: #16BA7F;
   --success-bg-color: #E7F8F2;
+  /*
+   * 10: the three states where a message did not land. A failed bubble inverts rather than
+   * fading - 55% plum under cream text fails contrast twice over - so the fill is the card and
+   * the pill is drawn instead. The error line sits on the message ground at 12px, which is why
+   * it takes its own red: --danger-text-color is tuned for larger text and misses 4.5:1 here.
+   */
+  --chat-failed-ink: #C0203C;
+  --chat-failed-border: #C98FAE;
+  --chat-refused-border: #DCD3D9;
   --dark-raspberry: #872657;
   // Saved Messages emblem: flat plum disc, cream bookmark. Never the premium gradient —
   // the gradient means "premium user", and Saved Messages is not a user.

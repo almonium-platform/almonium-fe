@@ -29,7 +29,9 @@
 <ng-template #messageStamp let-message="message">
   <span class="message-stamp" [class.mine]="isOwnMessage(message)">
     <span class="message-stamp-time">{{ message.created_at | date: 'h:mm a' }}</span>
-    @if (isOwnMessage(message)) {
+    <!-- 10: a receipt reports on a journey. An unsent message did not make one, and its mark
+         is on the line below the bubble instead, so the pill carries only its clock. -->
+    @if (isOwnMessage(message) && !messageFailure(message)) {
       <lucide-icon class="message-stamp-receipt"
                    [name]="receiptIcon(message)"
                    [size]="13"
@@ -39,10 +41,33 @@
   </span>
 </ng-template>
 
-<!-- 03: every post carries the thing it announces as a footer action. -->
-<ng-template #postCta let-message="message">
-  @if (postCtaLabel(message); as label) {
-    <button type="button" class="post-cta" (click)="openPostCta(message)">{{ label }}</button>
+<!--
+  03/10: the slot under a message, outside the bubble. A post carries the thing it announces; a
+  message that did not land carries what happened to it. Both belong on the ground below the pill
+  rather than inside it - which is where Stream puts its own error line, on a plum fill that
+  danger copy cannot be read against.
+-->
+<ng-template #messageFooter let-message="message">
+  @switch (messageFailure(message)) {
+    @case ('failed') {
+      <!-- One mark and one line, and the whole of it is the retry. -->
+      <button type="button" class="message-failure retry" (click)="retrySend(message)">
+        <lucide-icon name="circle-x" [size]="13" [strokeWidth]="2"></lucide-icon>
+        <span>{{ copy.sendFailed }}</span>
+      </button>
+    }
+    @case ('refused') {
+      <!-- Nothing to retry, so nothing to press: the lock says the rule, not the remedy. -->
+      <span class="message-failure refused">
+        <lucide-icon name="lock" [size]="13" [strokeWidth]="1.9"></lucide-icon>
+        <span>{{ copy.sendRefused }}</span>
+      </span>
+    }
+    @default {
+      @if (postCtaLabel(message); as label) {
+        <button type="button" class="post-cta" (click)="openPostCta(message)">{{ label }}</button>
+      }
+    }
   }
 </ng-template>
 
@@ -580,8 +605,23 @@
               <span class="muted-pill">Muted while you read</span>
             }
           </div>
+        } @else if (isActiveChannelDeleted) {
+          <!-- 10: the composer is replaced, never disabled. A field the app will reject is worse
+               than no field, because it invites a message that has nowhere to go. -->
+          <div class="channel-dead-footer">{{ copy.deletedAccount }}</div>
         } @else {
-          <stream-message-input></stream-message-input>
+          @if (blockedInterlocutor; as blocked) {
+            <div class="channel-blocked-footer">
+              <span class="blocked-note">{{ copy.blocked(blocked.handle) }}</span>
+              <!-- Blocking is reversible, so the way back sits in the same row that states it. -->
+              <button type="button"
+                      class="unblock-action"
+                      [disabled]="unblockInProgressIds.has(blocked.friendshipId)"
+                      (click)="unblockInterlocutor(blocked)">Unblock</button>
+            </div>
+          } @else {
+            <stream-message-input></stream-message-input>
+          }
         }
       </stream-channel>
     </div>

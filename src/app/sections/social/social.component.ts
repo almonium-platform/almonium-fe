@@ -36,6 +36,7 @@ import {
   MessageActionsBoxContext,
   MessageActionsService,
   CustomMetadataContext,
+  MessageInputComponent,
   MessageService,
   parseDate,
   StreamMessage,
@@ -57,6 +58,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
 import {SocialChannelFacade} from './social-channel.facade';
+import {MAX_MESSAGE_LENGTH, SOCIAL_COPY} from './social-copy';
 import {SocialSidebarResizeDirective} from './social-sidebar-resize.directive';
 import {SocialConfirmationService} from './social-confirmation.service';
 
@@ -139,8 +141,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
   @ViewChild('emptyMessageListPlaceholder', {static: true}) emptyMessageListPlaceholder!: TemplateRef<void>;
   @ViewChild('messageStamp', {static: true}) messageStamp!: TemplateRef<CustomMetadataContext>;
-  @ViewChild('postCta', {static: true}) postCta!: TemplateRef<CustomMetadataContext>;
+  @ViewChild('messageFooter', {static: true}) messageFooter!: TemplateRef<CustomMetadataContext>;
   @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
+
+  /**
+   * 10: the composer comes and goes with the thread it belongs to, so the guard is attached as it
+   * arrives rather than once at start-up.
+   */
+  @ViewChild(MessageInputComponent) set composer(input: MessageInputComponent | undefined) {
+    this.guardComposerLength(input);
+  }
 
   private readonly destroy$ = new Subject<void>();
   private readonly scheduledTasks = new Set<ReturnType<typeof setTimeout>>();
@@ -156,6 +166,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected incomingRequests: RelatedUserProfile[] = [];
   protected peopleUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
+  /**
+   * 10: who this account has blocked, by Stream id. Stream hands the list over with the connected
+   * user, so the thread can answer "can I write here" without a request of its own; block and
+   * unblock keep it in step for the rest of the session.
+   */
+  private readonly blockedUserIds = new Set<string>();
+  private guardedComposer?: MessageInputComponent;
+  protected readonly copy = SOCIAL_COPY;
   protected friends: RelatedUserProfile[] = [];
   protected incomingRequestsCount = 0;
   /** Two characters is enough to be looking for a handle; three hid too many people. */
@@ -242,6 +260,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.setupChatFormControl();
     this.setupPostTimestamps();
+    this.setupBlockedUsers();
 
     combineLatest([
       this.userInfoService.userInfo$.pipe(filter(info => !!info)),
@@ -307,6 +326,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
    */
   private setupPostTimestamps(): void {
     this.dateParser.customDateTimeParser = date => parseDate(date, 'time');
+  }
+
+  /**
+   * 10: Stream sends the blocked list down with the connected user, so this is a subscription
+   * rather than a request, and block and unblock keep it in step for the rest of the session.
+   */
+  private setupBlockedUsers(): void {
+    this.chatService.user$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+      if (!user) return;
+      this.blockedUserIds.clear();
+      (user.blocked_user_ids ?? []).forEach(id => this.blockedUserIds.add(id));
+    });
   }
 
   private setupActiveChannelSubscription() {
@@ -377,7 +408,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
     this.customTemplatesService.emptyMainMessageListPlaceholder$.next(this.emptyMessageListPlaceholder);
     this.customTemplatesService.customMessageMetadataInsideBubbleTemplate$.next(this.messageStamp);
-    this.customTemplatesService.customMessageMetadataTemplate$.next(this.postCta);
+    this.customTemplatesService.customMessageMetadataTemplate$.next(this.messageFooter);
   }
 
   private setChatTitle(channel: Channel) {
@@ -871,6 +902,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.unblockInProgressIds.add(friendshipId);
 
     void this.chatClient.unBlockUser(friendId.toString());
+    this.blockedUserIds.delete(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.UNBLOCK)
       .pipe(finalize(() => this.unblockInProgressIds.delete(friendshipId)))
       .subscribe({
@@ -935,6 +967,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   block(friendId: string, friendshipId: string) {
     void this.chatClient.blockUser(friendId.toString());
+    this.blockedUserIds.add(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.BLOCK).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
@@ -980,6 +1013,78 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected get isActiveChannelReadingColumn(): boolean {
     if (!this.activeChannel) return false;
     return this.channels.isPublic(this.activeChannel) || this.channels.isSelf(this.activeChannel);
+  }
+
+  /**
+   * 10: the account on the other side is gone. The thread stays readable - the history is as much
+   * the survivor's as it was the other person's - but there is nobody to send to, so the composer
+   * is replaced rather than disabled: a field the app will reject should not be on screen at all.
+   */
+  protected get isActiveChannelDeleted(): boolean {
+    return !!this.activeChannel && this.channels.isInterlocutorDeleted(this.activeChannel);
+  }
+
+  /**
+   * 10: the person on the other side, when this account has blocked them. Blocking is reversible,
+   * so the thread keeps its history and the composer states who and offers the way back, rather
+   * than the conversation disappearing. The private channel is addressed by its friendship, which
+   * is what makes the id the unblock call needs recoverable from the channel alone.
+   */
+  protected get blockedInterlocutor(): {id: string; handle: string; friendshipId: string} | null {
+    const channel = this.activeChannel;
+    if (!channel || !this.channels.isPrivate(channel) || !this.userInfo) return null;
+
+    const other = Object.values(channel.state.members).find(member => member.user?.id !== this.userInfo!.id)?.user;
+    if (!other || !this.blockedUserIds.has(other.id)) return null;
+
+    const friendshipId = this.channels.friendshipIdOf(channel);
+    if (!friendshipId) return null;
+
+    return {id: other.id, handle: other.name ?? other.id, friendshipId};
+  }
+
+  protected unblockInterlocutor(blocked: {id: string; friendshipId: string}): void {
+    this.unblock(blocked.id, blocked.friendshipId);
+  }
+
+  /**
+   * 10: refuse an over-long message before it is sent, not after Stream bounces it.
+   *
+   * The cap is the channel type's `max_message_length`, which Stream enforces itself; without a
+   * check here that enforcement arrives as a failed bubble, which says a send went wrong rather
+   * than that it was never going to fit. There is no live counter by design - the number only
+   * matters at the moment it stops you.
+   *
+   * The guard has to sit in front of the SDK's own send handler rather than around
+   * `ChannelService.sendMessage`, because the composer empties the textarea before it awaits that
+   * call: refusing any further in would take the message away as it told the user it was too long.
+   */
+  private guardComposerLength(input?: MessageInputComponent): void {
+    if (!input || input === this.guardedComposer) return;
+    this.guardedComposer = input;
+
+    const send = input.messageSent.bind(input);
+    input.messageSent = async () => {
+      if ((input.textareaValue ?? '').length > MAX_MESSAGE_LENGTH) {
+        this.alertService.open(SOCIAL_COPY.tooLong, {appearance: 'negative'}).subscribe();
+        return;
+      }
+      await send();
+    };
+  }
+
+  /**
+   * 10: why a message is sitting in the thread unsent. `failed` is a send that never reached
+   * Stream and can be tried again; `refused` is one Stream rejected outright, which retrying
+   * cannot fix - the SDK draws the same distinction to decide whether a tap resends.
+   */
+  protected messageFailure(message: StreamMessage): 'failed' | 'refused' | null {
+    if (message.status !== 'failed') return null;
+    return message.errorStatusCode === 403 ? 'refused' : 'failed';
+  }
+
+  protected retrySend(message: StreamMessage): void {
+    void this.channelService.resendMessage(message);
   }
 
   protected get activeChannelTopic(): string {
@@ -1230,7 +1335,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private hoverOpenTimeout?: ReturnType<typeof setTimeout>;
 
   startAvatarHover(channel: Channel | undefined, location: string) {
-    if (!channel || this.isPreviewCardPinned) return;
+    if (!channel || this.isPreviewCardPinned || this.channels.isInterlocutorDeleted(channel)) return;
     clearTimeout(this.timeout);
     clearTimeout(this.hoverOpenTimeout);
     this.hoverOpenTimeout = this.schedule(() => {
@@ -1241,7 +1346,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Click and keyboard focus open the same card, and pin it until it is dismissed. */
   protected togglePreviewCard(channel: Channel | undefined, location: AvatarLocation) {
-    if (!channel || !this.channels.isPrivate(channel)) return;
+    // 10: there is no profile behind a deleted account, so the disc stops being a way in to one.
+    if (!channel || !this.channels.isPrivate(channel) || this.channels.isInterlocutorDeleted(channel)) return;
     clearTimeout(this.timeout);
     clearTimeout(this.hoverOpenTimeout);
 

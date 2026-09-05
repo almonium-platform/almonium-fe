@@ -21,6 +21,13 @@ export class PrivateChatService {
     return `${AppConstants.PRIVATE_CHAT_TYPE}:${this.channelId(friendshipId)}`;
   }
 
+  /** The same rule read backwards: which friendship a private channel belongs to. */
+  friendshipId(channelId: string | undefined): string | null {
+    const prefix = this.channelId('');
+    if (!channelId?.startsWith(prefix)) return null;
+    return channelId.slice(prefix.length) || null;
+  }
+
   /**
    * The server creates a friendship's chat as the friendship is accepted; this is the fallback for
    * a chat it never made, so asking for one that is missing opens a conversation rather than fail.
