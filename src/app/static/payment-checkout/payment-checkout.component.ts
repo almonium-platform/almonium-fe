@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, ViewChild, inject} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild, inject} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {initializePaddle, Environments} from '@paddle/paddle-js';
 import {catchError, EMPTY, map} from 'rxjs';
@@ -48,6 +48,8 @@ interface CheckoutSummary {
 export class PaymentCheckoutComponent implements AfterViewInit {
   private readonly http = inject(HttpClient);
   private readonly alerts = inject(TuiNotificationService);
+  private readonly zone = inject(NgZone);
+  private readonly changes = inject(ChangeDetectorRef);
 
   @ViewChild('frameHost') private frameHost!: ElementRef<HTMLElement>;
 
@@ -120,13 +122,25 @@ export class PaymentCheckoutComponent implements AfterViewInit {
   }
 
   private fail(message: string): void {
-    this.failed = true;
+    this.zone.run(() => {
+      this.failed = true;
+      this.changes.detectChanges();
+    });
     this.alerts.open(message, {appearance: 'negative'}).subscribe();
   }
 
+  /**
+   * Paddle calls back from outside Angular, and mid-cycle: assigning the summary directly changed a template
+   * expression after it had been checked. Re-entering the zone lets the assignment start its own round instead of
+   * landing in the middle of one.
+   */
   private onCheckoutEvent(event: {name?: string; data?: unknown}): void {
     if (event.name !== 'checkout.loaded' && event.name !== 'checkout.updated') return;
-    this.summary = buildSummary(event.data);
+    const summary = buildSummary(event.data);
+    this.zone.run(() => {
+      this.summary = summary;
+      this.changes.detectChanges();
+    });
   }
 }
 
