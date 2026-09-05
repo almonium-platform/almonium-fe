@@ -16,7 +16,7 @@ import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/compone
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {AsyncPipe, DatePipe, DecimalPipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit/components";
-import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, filter, finalize, of, Subject, switchMap, takeUntil} from "rxjs";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
@@ -423,11 +423,20 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }
 
     learner.active = active;
+    this.updatingLearnerIds.add(learner.id);
 
-    this.languageApiService.updateLearner(learner.language, {active: active}).subscribe({
-      next: () => {
+    this.languageApiService.updateLearner(learner.language, {active: active}).pipe(
+      // Taking a language up at the allowance sets another one aside on the server, and only the server knows which:
+      // it picks by reading history. Re-read the account instead of guessing, so the list never shows two active.
+      switchMap(() => active ? this.userInfoService.fetchUserInfoFromServer() : of(null)),
+      finalize(() => this.updatingLearnerIds.delete(learner.id)),
+    ).subscribe({
+      next: (refreshed) => {
         this.loadPolicy();
-        this.userInfoService.updateUserInfo({learners: this.learners});
+        if (!refreshed) {
+          // Setting aside touches one row, and a failed re-read still leaves the local flip as the best picture.
+          this.userInfoService.updateUserInfo({learners: this.learners});
+        }
         if (!active) {
           this.targetLanguageDropdownService.removeTargetLanguage(learner.language);
         } else {

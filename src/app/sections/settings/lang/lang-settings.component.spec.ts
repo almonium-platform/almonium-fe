@@ -13,7 +13,7 @@ import {UtilsService} from '../../../services/utils.service';
 import {RecentAuthGuardService} from '../../../authentication/auth/recent-auth-guard.service';
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 import {LanguageCode} from '../../../models/language.enum';
-import {CEFRLevel, Learner} from '../../../models/userinfo.model';
+import {CEFRLevel, Learner, UserInfo} from '../../../models/userinfo.model';
 import {LangSettingsComponent} from './lang-settings.component';
 
 describe('LangSettingsComponent', () => {
@@ -52,6 +52,83 @@ describe('LangSettingsComponent', () => {
     expect(languageApi.updateLearner.calls.allArgs()).toEqual([[LanguageCode.DE, {level: CEFRLevel.B2}]]);
     expect(languageSettings.learners[0].selfReportedLevel).toBe(CEFRLevel.B2);
     expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: languageSettings.learners}]]);
+  });
+
+  function activeStatusHarness(fetched: UserInfo | null) {
+    const languageApi = jasmine.createSpyObj<LanguageApiService>(
+      'LanguageApiService', ['updateLearner', 'getActiveLanguagePolicy']);
+    const userInfo = jasmine.createSpyObj<UserInfoService>(
+      'UserInfoService', ['updateUserInfo', 'fetchUserInfoFromServer']);
+    const dropdown = jasmine.createSpyObj<TargetLanguageDropdownService>(
+      'TargetLanguageDropdownService', ['initializeLanguages', 'removeTargetLanguage']);
+    languageApi.updateLearner.and.returnValue(of(null));
+    languageApi.getActiveLanguagePolicy.and.returnValue(of({
+      allowance: 1, allowanceWithoutPlan: 1, nextSwitchAllowedAt: null, languages: [],
+    }));
+    userInfo.fetchUserInfoFromServer.and.returnValue(of(fetched));
+
+    TestBed.configureTestingModule({
+      providers: [
+        {provide: LanguageApiService, useValue: languageApi},
+        {provide: LanguageNameService, useValue: {}},
+        {provide: UserInfoService, useValue: userInfo},
+        {provide: TuiNotificationService, useValue: {}},
+        {provide: ChangeDetectorRef, useValue: {}},
+        {provide: TargetLanguageDropdownService, useValue: dropdown},
+        {provide: PopupTemplateStateService, useValue: {}},
+        {provide: ActivatedRoute, useValue: {}},
+        {provide: UrlService, useValue: {}},
+        {provide: RecentAuthGuardService, useValue: {}},
+        {provide: SupportedLanguagesService, useValue: {}},
+        {provide: UtilsService, useValue: {}},
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(() => new LangSettingsComponent()) as unknown as {
+      learners: Learner[];
+      onToggleActiveStatus(active: boolean, learner: Learner): void;
+    };
+    return {component, languageApi, userInfo, dropdown};
+  }
+
+  it('re-reads the account after making a language active, since the server picks which one it sets aside', () => {
+    const german = new Learner('learner-de', LanguageCode.DE, CEFRLevel.B1, true);
+    const english = new Learner('learner-en', LanguageCode.EN, CEFRLevel.B2, false);
+    const {component, languageApi, userInfo, dropdown} = activeStatusHarness({} as UserInfo);
+    component.learners = [german, english];
+
+    component.onToggleActiveStatus(true, english);
+
+    expect(languageApi.updateLearner.calls.allArgs()).toEqual([[LanguageCode.EN, {active: true}]]);
+    expect(userInfo.fetchUserInfoFromServer.calls.count()).toBe(1);
+    expect(userInfo.updateUserInfo.calls.count()).toBe(0);
+    expect(dropdown.initializeLanguages.calls.count()).toBe(1);
+  });
+
+  it('pushes the local flip when the re-read fails, so the toggle never reverts a saved change', () => {
+    const german = new Learner('learner-de', LanguageCode.DE, CEFRLevel.B1, true);
+    const english = new Learner('learner-en', LanguageCode.EN, CEFRLevel.B2, false);
+    const {component, userInfo} = activeStatusHarness(null);
+    component.learners = [german, english];
+
+    component.onToggleActiveStatus(true, english);
+
+    expect(english.active).toBeTrue();
+    expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: component.learners}]]);
+  });
+
+  it('sets a language aside locally without a round trip, since that touches one row', () => {
+    const german = new Learner('learner-de', LanguageCode.DE, CEFRLevel.B1, true);
+    const english = new Learner('learner-en', LanguageCode.EN, CEFRLevel.B2, true);
+    const {component, userInfo, dropdown} = activeStatusHarness(null);
+    component.learners = [german, english];
+
+    component.onToggleActiveStatus(false, english);
+
+    expect(english.active).toBeFalse();
+    expect(userInfo.fetchUserInfoFromServer.calls.count()).toBe(0);
+    expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: component.learners}]]);
+    expect(dropdown.removeTargetLanguage.calls.allArgs()).toEqual([[LanguageCode.EN]]);
   });
 
   it('keeps the add-language popup open while interacting with portaled dropdowns', fakeAsync(() => {
