@@ -157,10 +157,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   protected get languageCrestLabel(): string {
+    // Before a learning language is known the crest is still on screen, so it gets a label that reads without one
+    // rather than one that opens with an empty name.
     const languageName = this.getLanguageName(this.currentLanguage);
-    return this.hasLanguageChoices
-      ? `${languageName}, current learning language. Choose another language`
-      : `${languageName}, current learning language`;
+    const subject = languageName ? `${languageName}, current learning language` : 'Current learning language';
+    return this.hasLanguageChoices ? `${subject}. Choose another language` : subject;
   }
 
   protected get shortcutModifier(): string {

@@ -13,10 +13,18 @@ export class LanguageNameService {
 
   /**
    * Converts a language code (e.g., 'EN') into its full language name (e.g., 'English').
+   *
+   * Most callers pass a code out of optional data - a book's original language, the learner the navbar has not been
+   * told about yet - so an absent one is an ordinary state and not a fault. It yields an empty name rather than
+   * throwing on `code.length`, which used to take down every render of whatever component asked.
+   *
    * @param code Language code to transform.
-   * @returns Full name of the language, or the code itself if not found.
+   * @returns Full name of the language, the code itself if not found, or an empty string if there is no code.
    */
-  getLanguageName(code: string): string {
+  getLanguageName(code: string | null | undefined): string {
+    if (!code) {
+      return '';
+    }
     let name: string | undefined;
 
     // First, try iso-639-1 (for two-letter codes)
@@ -38,7 +46,7 @@ export class LanguageNameService {
     return name.replace(this.macrolanguageSuffix, '');
   }
 
-  getLanguageNames(codes: string[]): string[] {
+  getLanguageNames(codes: readonly (string | null | undefined)[]): string[] {
     return codes.map((code) => this.getLanguageName(code));
   }
 
