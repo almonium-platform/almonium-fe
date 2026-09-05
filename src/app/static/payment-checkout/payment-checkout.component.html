@@ -31,8 +31,12 @@
         }
       </section>
 
-      <!-- Paddle renders the card fields and the pay button into this element. Everything else on the page is ours. -->
-      <section class="paddle-frame" aria-label="Payment details"></section>
+      <!--
+        Paddle renders the card fields and the pay button in here. The element it actually targets is created in code
+        rather than by this template: Paddle takes ownership of that node and removes it, and a node Angular believes
+        it still owns is not a node to hand over.
+      -->
+      <section #frameHost class="paddle-host" aria-label="Payment details"></section>
     </div>
   </div>
 </main>

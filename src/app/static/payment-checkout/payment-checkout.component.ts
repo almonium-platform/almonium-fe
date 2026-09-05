@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, ViewChild, inject} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {initializePaddle, Environments} from '@paddle/paddle-js';
 import {catchError, EMPTY, map} from 'rxjs';
@@ -7,6 +7,15 @@ import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {expectEnum, expectRecord, expectString} from '../../shared/runtime-validation';
 import {formatMinorUnits} from '../../models/cadence-change.model';
+
+/**
+ * The class Paddle is told to render into, and it has to be one Paddle does not use itself.
+ *
+ * Paddle resolves frameTarget with getElementsByClassName and wraps its own iframe in an element classed
+ * `paddle-frame`, so naming the target that resolves to Paddle's element instead of ours - it throws appendChild on
+ * undefined, tears the target out of the page, and reports nothing.
+ */
+const FRAME_TARGET_CLASS = 'almonium-checkout-frame';
 
 interface PaddleCheckoutConfig {
   clientToken: string;
@@ -36,19 +45,38 @@ interface CheckoutSummary {
   templateUrl: './payment-checkout.component.html',
   styleUrl: './payment-checkout.component.less',
 })
-export class PaymentCheckoutComponent implements OnInit {
+export class PaymentCheckoutComponent implements AfterViewInit {
   private readonly http = inject(HttpClient);
   private readonly alerts = inject(TuiNotificationService);
+
+  @ViewChild('frameHost') private frameHost!: ElementRef<HTMLElement>;
 
   protected summary: CheckoutSummary | null = null;
   protected failed = false;
 
-  ngOnInit(): void {
+  /**
+   * After the view, and opened by hand rather than by Paddle's own URL sniffing.
+   *
+   * Paddle opens a checkout by itself when it finds `_ptxn` in the query string, and that open cannot be configured
+   * from here or waited on - it runs inside Initialize, races the view, and leaves an appendChild on undefined. So
+   * the parameter is taken out of the URL first and the checkout is opened explicitly, which is the same call with a
+   * known ordering.
+   */
+  ngAfterViewInit(): void {
+    const transactionId = new URLSearchParams(window.location.search).get('_ptxn');
+    if (!transactionId) {
+      this.fail('This checkout link is missing its transaction.');
+      return;
+    }
+    // Take the parameter out of the URL before Paddle loads. Paddle opens a checkout of its own the moment it sees
+    // `_ptxn`, and that open races the one below: both claim the same frame target, the loser tears it out of the
+    // page, and the winner has nothing to render into. Removing it leaves exactly one open - ours.
+    stripTransactionFromUrl();
+
     this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/billing/config`).pipe(
       map(parsePaddleCheckoutConfig),
       catchError(() => {
-        this.failed = true;
-        this.alerts.open('Could not load the secure checkout. Please try again.', {appearance: 'negative'}).subscribe();
+        this.fail('Could not load the secure checkout. Please try again.');
         return EMPTY;
       }),
     ).subscribe(config => {
@@ -56,25 +84,57 @@ export class PaymentCheckoutComponent implements OnInit {
         token: config.clientToken,
         environment: config.environment,
         eventCallback: event => this.onCheckoutEvent(event),
-        checkout: {
+      }).then(paddle => {
+        if (!paddle) {
+          this.fail('Could not load the secure checkout. Please try again.');
+          return;
+        }
+        this.createFrameTarget();
+        paddle.Checkout.open({
+          transactionId,
           settings: {
             displayMode: 'inline',
-            frameTarget: 'paddle-frame',
+            frameTarget: FRAME_TARGET_CLASS,
             frameInitialHeight: 450,
             frameStyle: 'width: 100%; min-width: 312px; background-color: transparent; border: none;',
             variant: 'one-page',
             showAddDiscounts: false,
             successUrl: `${environment.feUrl}/payment/success`,
           },
-        },
+        });
       });
     });
+  }
+
+  /**
+   * Paddle's inline checkout claims the element named by frameTarget and removes it on its way in and out, so it is
+   * given a node of its own created here rather than one from the template. Angular keeps the host; Paddle keeps what
+   * is inside it, and neither has to reason about the other's lifecycle.
+   */
+  private createFrameTarget(): void {
+    const host = this.frameHost.nativeElement;
+    host.replaceChildren();
+    const target = document.createElement('div');
+    target.className = FRAME_TARGET_CLASS;
+    host.appendChild(target);
+  }
+
+  private fail(message: string): void {
+    this.failed = true;
+    this.alerts.open(message, {appearance: 'negative'}).subscribe();
   }
 
   private onCheckoutEvent(event: {name?: string; data?: unknown}): void {
     if (event.name !== 'checkout.loaded' && event.name !== 'checkout.updated') return;
     this.summary = buildSummary(event.data);
   }
+}
+
+/** Keeps the transaction out of history too: a back-navigation should not reopen a checkout that was completed. */
+function stripTransactionFromUrl(): void {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('_ptxn');
+  window.history.replaceState({}, '', url.toString());
 }
 
 function parsePaddleCheckoutConfig(value: unknown): PaddleCheckoutConfig {
