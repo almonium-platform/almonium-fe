@@ -17,7 +17,7 @@ import {ButtonComponent} from "../../../shared/button/button.component";
 import {ShareLinkComponent} from "../../../shared/share-link/share-link.component";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {AvatarComponent} from '../../../shared/avatar/avatar.component';
-import {SettingsAvatarPickerComponent} from './avatar/settings-avatar-picker/settings-avatar-picker.component';
+import {AvatarPickerComponent} from '../../../shared/profile/avatar-picker/avatar-picker.component';
 import {ProfileService} from '../../../shared/user-preview-card/profile.service';
 import {UserProfileInfo} from '../../../shared/user-preview-card/user-profile.model';
 import {DecimalPipe} from '@angular/common';
@@ -37,7 +37,7 @@ import {catchError, switchMap} from 'rxjs/operators';
     ReactiveFormsModule,
     UsernameComponent,
     AvatarComponent,
-    SettingsAvatarPickerComponent,
+    AvatarPickerComponent,
     InterestsComponent,
     TuiChip,
     ButtonComponent,

@@ -9,38 +9,90 @@ button {
 .avatar-picker {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: .75rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--hairline-color);
+  gap: .6rem;
 }
 
-.current-avatar,
-.compact-choice {
+/* The letter is a tile in the row, not a separate current-avatar block above it. */
+.tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  /* 32: settings keeps 14px; the onboarding card tightens to 9px so six tiles fit its column. */
+  gap: var(--avatar-tile-gap, .875rem);
+  padding: .25rem 0;
+}
+
+/* 30c: a tile is the pair of discs, engraving over schematic. The button itself draws nothing. */
+.tile {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: .5625rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.disc {
+  display: grid;
   overflow: hidden;
   border-radius: 50%;
+  place-items: center;
 }
 
-.current-avatar {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
+/* 62 keeps the engraving well above the 48 it stops reading at; 24 is the row it will mostly be. */
+.disc-large {
+  width: 3.875rem;
+  height: 3.875rem;
+}
+
+.disc-small {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Selection is a ring, and it wraps both discs: no bold caption, no check mark, no name. */
+.tile.selected .disc-large {
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);
+}
+
+.tile.selected .disc-small {
+  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 3px var(--brand-primary);
+}
+
+.letter-tile .avatar-letter {
+  color: inherit;
   font-family: var(--font-family-reading);
+  font-size: 1.625rem;
   font-weight: 600;
 }
 
-.current-avatar img,
-.compact-choice img,
+.letter-tile .disc-small .avatar-letter {
+  font-size: .6875rem;
+}
+
+.disc img,
 .gradient-artwork {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-/* 30: the schematic is a line drawing in a 64 box and runs at 60% of its disc. */
-.compact-choice .avatar-schematic {
+/* The schematic is a line drawing in a 64 box and runs at 60% of its disc. */
+.disc .avatar-schematic {
   width: 60%;
   height: 60%;
+}
+
+/* The tier is the gradient on the ink. The disc does not move on tier - every tile in the row
+   is the same ground, and only the mark on it says who is paying. */
+.member .avatar-letter {
+  background: var(--premium-gradient);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
 }
 
 .gradient-artwork {
@@ -54,66 +106,32 @@ button {
   -webkit-mask-size: contain;
 }
 
-.onboarding-current {
-  width: 5.125rem;
-  height: 5.125rem;
-  font-size: 2.8125rem;
-}
-
-.compact-choices {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .8rem;
-  padding: .25rem 0;
-}
-
-.compact-choice {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-}
-
-.letter-choice {
-  font-family: var(--font-family-reading);
-  font-size: 1.375rem;
-  font-weight: 600;
-}
-
-/* Selection is a ring, offset by the surface it sits on — never a caption or a check mark. */
-.compact-choice.selected {
-  box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);
-}
-
-.avatar-picker.member .letter-choice > span,
-.avatar-picker.member .current-avatar > span:not(.gradient-artwork) {
-  background: var(--premium-gradient);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-}
-
-.compact-choice:disabled {
+.tile:disabled {
   cursor: wait;
 }
 
 .picker-caption {
   margin: 0;
-  color: #7e7e7e;
+  color: var(--metadata-color);
   font-size: .75rem;
 }
 
 @media (max-width: 520px) {
-  .compact-choices {
-    gap: .75rem;
+  .tile-row {
+    gap: .625rem;
   }
 
-  .compact-choice {
-    width: 2.25rem;
-    height: 2.25rem;
+  /* 48 is the floor the engraving reads at, so the tile shrinks to it and no further. */
+  .disc-large {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .letter-tile .avatar-letter {
+    font-size: 1.125rem;
+  }
+
+  .letter-tile .disc-small .avatar-letter {
+    font-size: .6875rem;
   }
 }

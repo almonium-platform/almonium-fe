@@ -77,10 +77,15 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
     }
 
     /* 30: the schematic is a 64-box line drawing, so it runs at 60% of the disc - the Taiga
-       padding is not part of that disc. */
+       padding is not part of that disc. Taiga pins any image in the disc to its top-left corner
+       and stretches it to fill, so a smaller one has to be seated in the middle by hand. */
     :host .avatar-schematic {
+      position: absolute;
+      inset: 0;
+      margin: auto;
       inline-size: calc(var(--t-size) * .6);
       block-size: calc(var(--t-size) * .6);
+      object-fit: contain;
     }
 
     /* Tier is the gradient on the ink, the same rule the animals follow: pale ground, gradient

@@ -1,18 +1,25 @@
 import {DOCUMENT} from '@angular/common';
-import {Component, EventEmitter, Input, Output, inject} from '@angular/core';
+import {Component, Input, inject} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
+import {UserInfo} from '../../../models/userinfo.model';
 import {UserInfoService} from '../../../services/user-info.service';
+import {avatarLetter, schematicAvatarUrl} from '../../avatar/avatar-display';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
-import {avatarImageUrl, avatarLetter, isDefaultAvatar, schematicAvatarUrl} from '../../avatar/avatar-display';
 
 interface AvatarChoice {
   label: string;
   path: string;
   url: string;
-  /** 30: the schematic, which is what a 40px choice disc draws; the engraving is on the big disc above. */
+  /** 30: the schematic drawn below 48px, shown under the engraving so the tile admits both. */
   small: string;
 }
 
+/**
+ * 32: the one picker. Settings and the onboarding profile step draw the same row, because the
+ * picker is the one place where the avatar is the subject rather than incidental: 62px
+ * engravings with the schematic ghost under each, and no preview circle, since the engraving is
+ * the preview. A host sets `--avatar-tile-gap` to fit its column; nothing else changes.
+ */
 @Component({
   selector: 'app-avatar-picker',
   templateUrl: './avatar-picker.component.html',
@@ -24,8 +31,7 @@ export class AvatarPickerComponent {
   private readonly userInfoService = inject(UserInfoService);
   private readonly alertService = inject(TuiNotificationService);
 
-  @Input({required: true}) userInfo!: {avatarUrl: string | null; username: string; premium: boolean};
-  @Output() avatarChanged = new EventEmitter<string | null>();
+  @Input({required: true}) userInfo!: UserInfo;
 
   protected busyUrl: string | null | undefined;
   protected readonly choices: AvatarChoice[] = [
@@ -36,35 +42,12 @@ export class AvatarPickerComponent {
     this.choice('Hare', 'assets/img/avatars/default/rabbit.png'),
   ];
 
-  /**
-   * Both discs show what the app will actually draw: art keeps its light plate, a letter takes
-   * the plain ground. Neither moves on tier - premium is the gradient on the ink.
-   */
-  protected get currentDisc(): string {
-    return this.userInfo.avatarUrl ? 'avatar-plate' : 'avatar-ground';
-  }
-
   protected get letter(): string {
     return avatarLetter(this.userInfo.username);
   }
 
-  protected get displayAvatarUrl(): string | null {
-    return avatarImageUrl(this.userInfo.avatarUrl);
-  }
-
-  protected get currentAvatarMask(): string | null {
-    return this.userInfo.avatarUrl ? this.mask(this.userInfo.avatarUrl) : null;
-  }
-
-  protected get premiumCurrentAvatar(): boolean {
-    return this.userInfo.premium && isDefaultAvatar(this.userInfo.avatarUrl);
-  }
-
   protected useLetter(): void {
-    if (this.busyUrl !== undefined) {
-      return;
-    }
-    if (!this.userInfo.avatarUrl) {
+    if (this.busyUrl !== undefined || !this.userInfo.avatarUrl) {
       return;
     }
     this.busyUrl = null;
@@ -89,6 +72,14 @@ export class AvatarPickerComponent {
     return this.userInfo.avatarUrl === choice.url || this.userInfo.avatarUrl?.endsWith(choice.path) === true;
   }
 
+  protected displayChoiceUrl(choice: AvatarChoice): string {
+    return choice.url;
+  }
+
+  protected choiceMask(choice: AvatarChoice): string {
+    return this.mask(choice.url);
+  }
+
   protected smallMask(choice: AvatarChoice): string {
     return this.mask(choice.small);
   }
@@ -109,7 +100,6 @@ export class AvatarPickerComponent {
 
   private finish(avatarUrl: string | null): void {
     this.userInfoService.updateUserInfo({avatarUrl});
-    this.avatarChanged.emit(avatarUrl);
     this.busyUrl = undefined;
   }
 

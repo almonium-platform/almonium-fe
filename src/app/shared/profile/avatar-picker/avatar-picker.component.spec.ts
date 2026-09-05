@@ -27,7 +27,7 @@ describe('AvatarPickerComponent', () => {
       avatarUrl: 'https://example.test/assets/img/avatars/default/stag.png',
       username: 'kuzanoleg',
       premium: false,
-    };
+    } as AvatarPickerComponent['userInfo'];
 
     (component as unknown as {useLetter(): void}).useLetter();
 
