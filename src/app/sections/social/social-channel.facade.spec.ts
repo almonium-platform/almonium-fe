@@ -34,6 +34,21 @@ describe('SocialChannelFacade', () => {
     facade = TestBed.inject(SocialChannelFacade);
   });
 
+  it("tells Almo's channel from a DM by its id, and keeps it out of both private and public", () => {
+    const almo = channel(AppConstants.PRIVATE_CHAT_TYPE, {name: 'Almo · Deutsch'}, [
+      {id: 'me', name: 'Me'},
+      {id: 'almo', name: 'Almo'},
+    ]);
+    (almo as unknown as {id: string}).id = 'almo_me_de';
+
+    expect(facade.isAlmo(almo)).toBeTrue();
+    expect(facade.isPrivate(almo)).toBeFalse();
+    expect(facade.isPublic(almo)).toBeFalse();
+    // The server minted the name, and the other member is not a person to draw a card for.
+    expect(facade.name(almo, 'fallback')).toBe('Almo · Deutsch');
+    expect(facade.isInterlocutorPremium(almo)).toBeFalse();
+  });
+
   it('identifies a private chat by its channel type, not its name', () => {
     expect(facade.isPrivate(channel(AppConstants.PRIVATE_CHAT_TYPE, {}, []))).toBeTrue();
     expect(facade.isPrivate(channel('broadcast', {name: 'Private Chat'}, []))).toBeFalse();

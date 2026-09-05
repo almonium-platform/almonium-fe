@@ -136,3 +136,25 @@
   font-family: var(--font-family-mono);
   font-weight: 400;
 }
+
+/*
+ * 11: Almo's disc. The tint every selected row already uses, never a plate and never the hashed
+ * hue: he is not a person and not a portrait. The illustration is plum line work, so the disc is
+ * light in both themes - #272130 in dark is as far as it goes - and runs at 82% of the slot.
+ */
+.str-chat__avatar.almo-disc {
+  background: var(--almo-disc-color);
+
+  .str-chat__avatar-fallback {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+  }
+
+  .almo-mark {
+    display: block;
+    height: 82%;
+    object-fit: contain;
+    width: 82%;
+  }
+}

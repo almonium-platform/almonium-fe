@@ -9,6 +9,7 @@
   [class.has-image]="showsImage"
   [class.saved-messages]="isSavedMessages"
   [class.brand-emblem]="isEmblem"
+  [class.almo-disc]="isAlmo"
   [class.channel-crest]="!!crest"
   [style.--channel-crest-fill]="crest?.fill ?? null"
 >
@@ -46,6 +47,9 @@
         <span class="emblem-mark" aria-hidden="true"></span>
       } @else if (crest; as crest) {
         {{ crest.code }}
+      } @else if (isAlmo) {
+        <!-- 11: rest pose on the tint, at the 31-in-38 the design draws. No pose ever reacts to a message. -->
+        <img class="almo-mark" src="assets/img/almo/rest.webp" alt="">
       } @else if (isDeletedAccount) {
         <!-- 10: an initial names somebody. There is nobody to name, so the disc asks instead. -->
         <span class="deleted-mark">?</span>

@@ -15,6 +15,7 @@ import {AsyncPipe, DatePipe, NgClass, NgStyle} from "@angular/common";
 import {environment} from "../../../../environments/environment";
 import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
 import {LocalStorageService} from "../../../services/local-storage.service";
+import {isAlmoChannel} from "../almo/almo-channel";
 
 /** "Almonium — Deutsch" -> "Deutsch"; falls back to the whole name. */
 function topicOf(name: string): string {
@@ -34,7 +35,16 @@ function topicOf(name: string): string {
       [ngClass]="!isSelfChat ? 'pb-1 pt-1' : ''"
       [ngStyle]="{'row-gap': isSelfChat ? 'unset' : ''}">
       @if (!isSelfChat) {
-        @if (isBroadcastChannel) {
+        @if (isAlmoChat) {
+          <!-- 11: the name only. No presence dot, no "online", no tagline; typing reads as a contact's does. -->
+          @if (canReceiveConnectEvents) {
+            @if ((usersTyping$ | async); as typingUsers) {
+              @if (typingUsers.length === 1) {
+                <span>typing...</span>
+              }
+            }
+          }
+        } @else if (isBroadcastChannel) {
           <!-- A room is a channel: the subtitle carries the type, so nobody tries to talk. -->
           <span>Channel &middot; updates about {{ topic }}</span>
         } @else {
@@ -123,6 +133,7 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
   protected canReceiveConnectEvents: boolean | undefined;
   protected isPrivateChat: boolean | undefined;
   protected isSelfChat: boolean | undefined;
+  protected isAlmoChat = false;
   protected isBroadcastChannel = false;
   protected topic = '';
   protected usersTyping$: Observable<UserResponse[]> = of([]);
@@ -141,9 +152,10 @@ export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
     this.subscriptions.push(
       this.channelService.activeChannel$.subscribe((c) => {
         this.activeChannel = c;
-        this.isPrivateChat = c?.type === AppConstants.PRIVATE_CHAT_TYPE;
+        this.isAlmoChat = isAlmoChannel(c);
+        this.isPrivateChat = c?.type === AppConstants.PRIVATE_CHAT_TYPE && !this.isAlmoChat;
         this.isSelfChat = c?.type === AppConstants.SELF_CHAT_TYPE;
-        this.isBroadcastChannel = !!c && !this.isPrivateChat && !this.isSelfChat;
+        this.isBroadcastChannel = !!c && !this.isPrivateChat && !this.isSelfChat && !this.isAlmoChat;
         this.topic = this.isBroadcastChannel ? topicOf(c!.data?.name ?? '') : '';
         const capabilities = this.activeChannel?.data?.own_capabilities;
         if (capabilities) {

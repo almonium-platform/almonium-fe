@@ -299,6 +299,7 @@
               >
                 <div
                   class="preview-tile"
+                  [class.almo-row]="channels.isAlmo(channel)"
                   (contextmenu)="openRowMenu(rowMenu, $event)"
                   (keydown.enter)="closeRowMenu()" tabindex="0" (click)="closeRowMenu()"
                 >
@@ -595,6 +596,8 @@
 
         <stream-channel-header></stream-channel-header>
         <stream-message-list></stream-message-list>
+        <!-- 11: Almo's marks in the bubbles, and his openers above an empty composer. Nothing in a human chat. -->
+        <app-almo-chat></app-almo-chat>
         @if (isActiveChannelReadOnly) {
           <div class="channel-readonly-footer">
             <span class="readonly-note">
@@ -620,7 +623,7 @@
                       (click)="unblockInterlocutor(blocked)">Unblock</button>
             </div>
           } @else {
-            <stream-message-input></stream-message-input>
+            <stream-message-input appAlmoComposer></stream-message-input>
           }
         }
       </stream-channel>

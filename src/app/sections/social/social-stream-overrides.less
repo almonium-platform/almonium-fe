@@ -706,3 +706,46 @@
     outline: none;
   }
 }
+
+/*
+ * ---- 11: chat with Almo ----
+ *
+ * His rows are pinned above the human chats, and a hairline sits under the last of them: the list
+ * item after a pinned Almo row that is not one itself carries the rule. Every row is one item of
+ * the paginated list, so the sibling combinator is exact.
+ */
+::ng-deep .stream-chat__paginated-list-item:has(.almo-row) + .stream-chat__paginated-list-item:not(:has(.almo-row)) {
+  border-top: 1px solid var(--hairline-color);
+  margin-top: .375rem;
+  padding-top: .375rem;
+}
+
+/*
+ * The two marks a bubble in his channel carries. The dotted line is provenance - the word is in
+ * this learner's queue - and lands on his words and the learner's alike, so on the plum bubble it
+ * is drawn in cream. The confusion pair is plum medium weight in one plain bubble: no overlay, no
+ * red, no separate block.
+ */
+::ng-deep .almo-text .almo-word {
+  text-decoration: underline dotted var(--dark-raspberry);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+::ng-deep .str-chat__message--me .almo-text .almo-word {
+  text-decoration-color: color-mix(in srgb, var(--chat-own-ink) 75%, transparent);
+}
+
+::ng-deep .almo-text .almo-contrast {
+  color: var(--dark-raspberry);
+  font-weight: 500;
+}
+
+/* Held: the bubble goes to the tint and the text to muted ink, the timestamp stays, and there is no label. */
+::ng-deep .str-chat__message--other .str-chat__message-bubble:has(.almo-text.held) {
+  background-color: var(--chat-selected-color);
+
+  .almo-text {
+    color: var(--subhead-color);
+  }
+}

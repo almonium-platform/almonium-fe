@@ -57,7 +57,10 @@ import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-m
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
-import {SocialChannelFacade} from './social-channel.facade';
+import {CHANNEL_SORT, SocialChannelFacade} from './social-channel.facade';
+import {AlmoChatComponent} from './almo/almo-chat.component';
+import {AlmoChatCoordinator} from './almo/almo-chat.coordinator';
+import {AlmoComposerDirective} from './almo/almo-composer.directive';
 import {MAX_MESSAGE_LENGTH, SOCIAL_COPY} from './social-copy';
 import {SocialSidebarResizeDirective} from './social-sidebar-resize.directive';
 import {SocialConfirmationService} from './social-confirmation.service';
@@ -108,8 +111,10 @@ interface MessageHit {
     TuiTextfieldOptionsDirective,
     SocialSidebarResizeDirective,
     DatePipe,
+    AlmoChatComponent,
+    AlmoComposerDirective,
   ],
-  providers: [SocialChannelFacade, SocialConfirmationService, DateParserService],
+  providers: [SocialChannelFacade, SocialConfirmationService, DateParserService, AlmoChatCoordinator],
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private socialService = inject(SocialService);
@@ -286,7 +291,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         }, 300);
       } else {
-        void this.channelService.init({members: {$in: [this.userInfo.id]}}, undefined, undefined, false);
+        void this.channelService.init({members: {$in: [this.userInfo.id]}}, CHANNEL_SORT, undefined, false);
       }
 
       void this.refreshArchiveSummary();
@@ -632,6 +637,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   /** An empty row says what the chat is, rather than repeating one generic absence. */
   protected emptyPreview(channel: Channel): string {
     if (this.channels.isSelf(channel)) return 'Only you can see this';
+    if (this.channels.isAlmo(channel)) return 'Nothing said yet';
     if (this.channels.isPublic(channel)) return 'No updates yet';
     return 'No messages yet';
   }
@@ -1093,11 +1099,16 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   protected get emptyChannelTitle(): string {
     if (this.activeChannel && this.channels.isSelf(this.activeChannel)) return 'Your own notebook';
+    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) return 'Nothing said yet';
     if (this.isActiveChannelReadOnly) return 'Nothing posted yet';
     return 'No messages yet';
   }
 
   protected get emptyChannelBody(): string {
+    // 11: same voice as his channel: short, plain, no praise. The openers below are the other way in.
+    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) {
+      return 'Almo answers in the language of this chat. Write first, or take one of the openers below.';
+    }
     if (this.activeChannel && this.channels.isSelf(this.activeChannel)) {
       return 'Forward messages here, or write to yourself. Nobody else can see this chat.';
     }

@@ -50,6 +50,8 @@ export class AppConstants {
 
   // SOCIAL
   public static RELATIONSHIPS_URL = AppConstants.API_URL + '/relationships';
+  // 11: Almo's channels, and the reply he is asked for. The messages themselves travel through Stream.
+  public static ALMO_CHATS_URL = AppConstants.API_URL + '/almo/chats';
   public static NOTIFICATIONS_URL = AppConstants.API_URL + '/notifications';
 
   // UTILS

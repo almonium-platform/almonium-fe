@@ -5,6 +5,7 @@ import {AvatarLocation, AvatarType, ChatClientService, ThemeService,} from 'stre
 import {avatarHueClass, avatarLetter, schematicAvatarUrl} from '../../../shared/avatar/avatar-display';
 import {AppConstants} from '../../../app.constants';
 import {ChannelMark, channelMark} from './channel-mark';
+import {isAlmoUser} from '../almo/almo-channel';
 import {crestFill} from './crest-fill';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 
@@ -119,7 +120,8 @@ export class CustomChatAvatarComponent
   }
 
   private setChannelMark() {
-    this.mark = this.type === 'channel' ? channelMark(this.channel) : null;
+    // 11: a bubble's avatar arrives as a user, not a channel; his is the same disc either way.
+    this.mark = this.type === 'channel' ? channelMark(this.channel) : isAlmoUser(this.user) ? {kind: 'almo'} : null;
     this.crest = this.mark?.kind === 'crest'
       ? {code: this.mark.code, fill: crestFill(this.langColors[this.mark.code], this.isDark)}
       : null;
@@ -236,5 +238,9 @@ export class CustomChatAvatarComponent
 
   protected get isEmblem(): boolean {
     return this.mark?.kind === 'emblem';
+  }
+
+  protected get isAlmo(): boolean {
+    return this.mark?.kind === 'almo';
   }
 }

@@ -1,5 +1,6 @@
 import {Channel} from 'stream-chat';
 import {AppConstants} from '../../../app.constants';
+import {isAlmoChannel} from '../../social/almo/almo-channel';
 
 /**
  * 03: what a broadcast channel puts in its disc.
@@ -13,7 +14,9 @@ import {AppConstants} from '../../../app.constants';
  */
 export type ChannelMark =
   | {kind: 'emblem'}
-  | {kind: 'crest'; code: string};
+  | {kind: 'crest'; code: string}
+  // 11: the one place Almo sits in a disc, because every contact's slot is one. Rest pose, no ring.
+  | {kind: 'almo'};
 
 /** Stream ids: the app-wide room is `almonium`, a language room `almonium-<code>`. */
 const BRAND_CHANNEL_ID = AppConstants.DEFAULT_CHANNEL_NAME.toLowerCase();
@@ -23,6 +26,7 @@ const BRAND_CHANNEL_ID = AppConstants.DEFAULT_CHANNEL_NAME.toLowerCase();
  * already knows how to draw, not a case to add here.
  */
 export function channelMark(channel: Channel | undefined): ChannelMark | null {
+  if (isAlmoChannel(channel)) return {kind: 'almo'};
   if (channel?.type !== AppConstants.BROADCAST_CHAT_TYPE) return null;
 
   const id = channel.id ?? '';

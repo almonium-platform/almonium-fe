@@ -1,9 +1,16 @@
 import {Injectable, inject} from '@angular/core';
-import {Channel} from 'stream-chat';
+import {Channel, ChannelSort} from 'stream-chat';
 import {ChannelService, ChatClientService} from 'stream-chat-angular';
 import {AppConstants} from '../../app.constants';
 import {DELETED_ACCOUNT_NAME} from './social-copy';
 import {PrivateChatService} from '../../services/private-chat.service';
+import {isAlmoChannel} from './almo/almo-channel';
+
+/**
+ * 11: the order every channel query asks for. Almo's rows are pinned, and a pinned row sits above
+ * every human chat however recent theirs is; within each group the newest message wins.
+ */
+export const CHANNEL_SORT: ChannelSort = [{pinned_at: -1}, {last_message_at: -1}];
 
 /** Encapsulates Stream channel naming, membership, and command semantics. */
 @Injectable()
@@ -47,6 +54,8 @@ export class SocialChannelFacade {
    * were created with from ever reaching the screen.
    */
   name(channel: Channel, fallback: string): string {
+    // 11: his channel is named for its language - "Almo · Deutsch" - and the server minted that name.
+    if (this.isAlmo(channel)) return channel.data?.name ?? fallback;
     if (this.isPrivate(channel)) {
       // A handle belongs to somebody. Once nobody answers for it, the row says so instead of
       // going on addressing a person who is not there.
@@ -94,8 +103,17 @@ export class SocialChannelFacade {
       ?.user;
   }
 
+  /**
+   * 11: a thread with Almo. It shares the DMs' channel type, so every rule about bubbles and typing
+   * holds; what it is not is a conversation with a person, so presence, profile cards, blocking
+   * and deletion all read `isPrivate`, and that says no.
+   */
+  isAlmo(channel: Channel): boolean {
+    return isAlmoChannel(channel);
+  }
+
   isPrivate(channel: Channel): boolean {
-    return channel.type === AppConstants.PRIVATE_CHAT_TYPE;
+    return channel.type === AppConstants.PRIVATE_CHAT_TYPE && !isAlmoChannel(channel);
   }
 
   isSelf(channel: Channel): boolean {
@@ -113,7 +131,7 @@ export class SocialChannelFacade {
   }
 
   isPublic(channel: Channel): boolean {
-    return !this.isPrivate(channel) && !this.isSelf(channel);
+    return !this.isPrivate(channel) && !this.isSelf(channel) && !this.isAlmo(channel);
   }
 
   isMember(channel: Channel): boolean {
@@ -128,7 +146,7 @@ export class SocialChannelFacade {
   reload(hidden: boolean): void {
     if (!this.userId) return;
     this.channelService.reset();
-    void this.channelService.init({hidden, members: {$in: [this.userId]}}, undefined, undefined, false);
+    void this.channelService.init({hidden, members: {$in: [this.userId]}}, CHANNEL_SORT, undefined, false);
   }
 
   async join(channel: Channel): Promise<void> {
