@@ -12,9 +12,12 @@ button { font: inherit; }
   background: var(--page-ground);
 }
 
-// On the pricing page the ground is already the page, so the shell only holds the grid.
+// On the pricing page the ground is already the page, so the shell only holds the grid. It keeps
+// the dialog's measure rather than growing with the viewport: two tiers read as a pair of cards,
+// not as two halves of a wide screen.
 .paywall.page-layout {
-  width: 100%;
+  width: 46rem;
+  max-width: 100%;
   padding: 0;
   background: transparent;
   border-radius: 0;
