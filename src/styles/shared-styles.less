@@ -70,18 +70,29 @@ tui-hint {
   --tui-radius-m: .625rem;
 }
 
-// The preview card brings its own surface — border, background, shadow, radius. A
-// dropdown that hosts one must not draw a second: Taiga's panel is squarer, so its
-// corners show up behind the card's. Demote the panel to a bare positioner and let
-// the card's shadow out of the clip. The transparent border stays for layout, since
-// Taiga offsets the content by -1px to sit under it.
+// The preview card brings its own surface — border, background, shadow, radius. A dropdown
+// that hosts one must not draw a second, and must not clip the one it hosts. The panel's own
+// overflow is only half the clip: Taiga wraps the content in a scroller, and a scroller is a
+// square box the size of the card, so the card's shadow survived only where the card's rounded
+// corners left room for it — four grey wedges filling the pill out to a rectangle.
+//
+// The clip itself has to stay, since it is what holds a card taller than the space Taiga
+// measured to that space. So the panel keeps it, and takes the card's radius and the card's
+// shadow instead, which is painted outside the clip and so escapes it. The border goes, along
+// with the -1px the scroller uses to sit under it, leaving the clip exactly on the card's own
+// edge with its hairline intact.
 // !important: Taiga's :host rules outrank any element selector written here.
 tui-dropdown:has(app-user-preview-card) {
-  border-color: transparent !important;
+  border: 0 !important;
   border-radius: var(--card-radius) !important;
   background: transparent !important;
-  box-shadow: none !important;
-  overflow: visible !important;
+  box-shadow: var(--overlay-shadow) !important;
+  overflow: hidden !important;
+
+  tui-scrollbar {
+    max-inline-size: 100% !important;
+    margin: 0 !important;
+  }
 }
 
 tui-data-list button[tuiOption].context-button {
