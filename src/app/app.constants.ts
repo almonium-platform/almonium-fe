@@ -16,6 +16,9 @@ export class AppConstants {
   public static CARDS_URL = AppConstants.API_URL + '/cards';
   public static CARDS_IN_LANG = AppConstants.CARDS_URL + '/lang';
   public static REVIEW_URL = AppConstants.API_URL + '/review';
+  public static DECKS_URL = AppConstants.API_URL + '/decks';
+  public static SHARES_URL = AppConstants.API_URL + '/shares';
+  public static PUBLIC_SHARES_URL = AppConstants.PUBLIC_URL + '/shares';
 
   // LEARNING RHYTHM
   public static LEARNING_URL = AppConstants.API_URL + '/learning';

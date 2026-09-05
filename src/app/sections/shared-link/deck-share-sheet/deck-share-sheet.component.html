@@ -1,0 +1,50 @@
+<ng-template #sheet>
+  <div class="sheet">
+    <h1 class="sheet-title">Share this deck</h1>
+
+    <div class="link-row">
+      <div class="link-field" [class.off]="!deck.shareEnabled" [attr.aria-disabled]="!deck.shareEnabled">{{ displayLink }}</div>
+      <button type="button" class="copy-button" [class.copied]="copied" (click)="copy()" [disabled]="!deck.shareEnabled">
+        <span aria-live="polite">{{ copied ? 'Copied' : 'Copy link' }}</span>
+      </button>
+    </div>
+
+    <div class="tool-row">
+      <button type="button" class="tool-button" (click)="toggleQr()" [attr.aria-pressed]="showQr" [disabled]="!deck.shareEnabled">
+        <lucide-icon name="qr-code" [size]="14" [strokeWidth]="1.7"></lucide-icon>
+        QR code
+      </button>
+    </div>
+
+    @if (showQr && deck.shareEnabled) {
+      <app-qr-code class="qr" [linkToEncode]="link"></app-qr-code>
+    }
+
+    <div class="hairline"></div>
+
+    <div class="switch-row">
+      <div class="switch-copy">
+        <div class="switch-label" id="deck-link-switch-label">{{ deck.shareEnabled ? 'Link is on' : 'Link is off' }}</div>
+        <div class="switch-note">
+          @if (deck.shareEnabled) {
+            Anyone with it can read the deck and add its words. Your handle and avatar are shown.
+          } @else {
+            Nobody can open it. Turning it back on makes the same link work again.
+          }
+        </div>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        class="switch"
+        [class.on]="deck.shareEnabled"
+        [attr.aria-checked]="deck.shareEnabled"
+        aria-labelledby="deck-link-switch-label"
+        [disabled]="switching"
+        (click)="setShareEnabled(!deck.shareEnabled)"
+      >
+        <span class="knob"></span>
+      </button>
+    </div>
+  </div>
+</ng-template>

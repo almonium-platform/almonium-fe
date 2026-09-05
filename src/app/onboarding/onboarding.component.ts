@@ -12,6 +12,7 @@ import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
 import {LevelSetupComponent} from './level-setup/level-setup.component';
 import {GreetingComponent} from './greeting/greeting.component';
+import {ReturnPathService} from '../services/return-path.service';
 
 @Component({
   selector: 'app-onboarding',
@@ -32,6 +33,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   private userInfoService = inject(UserInfoService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
+  private returnPath = inject(ReturnPathService);
 
   protected readonly SetupStep = SetupStep;
   private readonly destroy$ = new Subject<void>();// @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
@@ -67,7 +69,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       this.activeStep = this.storedStep; // Default active step is the stored step initially
       this.cdr.detectChanges();
       if (this.storedStep === SetupStep.COMPLETED) {
-        void this.router.navigate(['/home']).then();
+        void this.router.navigateByUrl(this.returnPath.consume() ?? '/home').then();
       }
     });
 

@@ -20,6 +20,7 @@ import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.se
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
+import {ReturnPathService} from "../../services/return-path.service";
 
 @Component({
   selector: 'app-auth',
@@ -56,6 +57,7 @@ import {UserInfo} from "../../models/userinfo.model";
 })
 export class AuthComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
+  private returnPath = inject(ReturnPathService);
   private authSettingsService = inject(AuthSettingsService);
   private alertService = inject(TuiNotificationService);
   private router = inject(Router);
@@ -352,7 +354,7 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (userInfo) => {
           if (userInfo) {
-            void this.router.navigate(['/home']).then();
+            void this.router.navigateByUrl(this.returnPath.peek() ?? '/home').then();
             this.popupTemplateStateService.close();
           } else {
             this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'negative'}).subscribe();
@@ -409,7 +411,7 @@ export class AuthComponent implements OnInit, OnDestroy {
             void this.router.navigate([this.router.url], {queryParams: {intent: this.intent}}).then();
             this.popupTemplateStateService.close();
           } else {
-            void this.router.navigate(['/home']).then();
+            void this.router.navigateByUrl(this.returnPath.peek() ?? '/home').then();
           }
         },
         error: error => this.alertService

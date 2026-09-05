@@ -1,0 +1,197 @@
+<div class="shared-page">
+  <main class="shared-main" [class.with-sticky]="showStickyAsk">
+    @if (loading) {
+      <div class="skeleton-block" aria-busy="true" aria-label="Opening the deck"></div>
+    } @else if (loadError) {
+      <section class="panel">
+        <h2>The deck could not be opened</h2>
+        <p>{{ loadError }}</p>
+      </section>
+    } @else if (view && view.status !== 'ACTIVE') {
+      <app-dead-link [status]="view.status" object="deck" [signedIn]="signedIn"></app-dead-link>
+    } @else if (view) {
+
+      @if (panel === 'owner') {
+        <div class="owner-banner">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6-6M8.5 12.5l-2 2a3.5 3.5 0 0 0 5 5l2-2M15.5 11.5l2-2a3.5 3.5 0 0 0-5-5l-2 2"></path></svg>
+          <span>Your deck. Anyone with this link sees this page.</span>
+        </div>
+      }
+
+      @if (panel === 'language-added') {
+        <div class="status-line settled">
+          <span class="tick"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+          <span>Your account is ready. {{ languageName }} is one of your languages.</span>
+        </div>
+      }
+
+      <header class="page-head deck-head">
+        <div class="head-copy">
+          <p class="eyebrow">{{ panel === 'owner' ? 'Your deck' : 'Shared deck' }}</p>
+          <h1>{{ view.title }}</h1>
+          @if (subhead) {
+            <p class="subhead">{{ subhead }}</p>
+          }
+          @if (view.sharer && panel !== 'owner') {
+            <div class="attribution">
+              <app-avatar [avatarUrl]="view.sharer.avatarUrl" [username]="view.sharer.username" [premium]="view.sharer.premium" [ring]="true" size="xs"></app-avatar>
+              @if (sharerProfileLink; as link) {
+                <a [routerLink]="link">{{ view.sharer.username }}</a>
+              } @else {
+                <span>{{ view.sharer.username }}</span>
+              }
+              @if (view.sharer.premium) {
+                <span class="premium-star" role="img" aria-label="Member">
+                  <svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"></path></svg>
+                </span>
+              }
+            </div>
+          }
+        </div>
+        @if (panel === 'select') {
+          <button type="button" class="primary-button head-action" (click)="add()" [disabled]="adding$ | async">{{ addLabel }}</button>
+        }
+      </header>
+
+      @switch (panel) {
+        @case ('all-held') {
+          <section class="panel">
+            <div class="status-line">
+              <span class="tick"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+              <span>{{ allHeldLine }}</span>
+            </div>
+            <div class="actions">
+              <a routerLink="/review" class="outline-button">Go to Review</a>
+              <span class="status-note">{{ dueNote }}</span>
+            </div>
+          </section>
+        }
+        @case ('owner') {
+          <section class="panel owner-panel">
+            <div class="actions">
+              <button type="button" class="outline-button" (click)="manageLink()" [disabled]="!ownDeck">Manage the link</button>
+            </div>
+          </section>
+        }
+        @case ('empty') {
+          <section class="panel empty-panel">
+            <div class="hairline"></div>
+            <p class="empty-lead">This deck has no words in it yet.</p>
+            <p>{{ view.sharer?.username ?? 'The owner' }} may still be filling it. The link keeps working, so it is worth another look later.</p>
+          </section>
+        }
+        @case ('free-wrong-language') {
+          <section class="panel">
+            <p class="eyebrow">Shared deck</p>
+            <p class="lead">{{ wrongLanguageLead }} You are learning {{ viewerLanguageName }}, and Free covers one language at a time. <a routerLink="/membership" class="inline-link">Member covers five</a>.</p>
+            <div class="actions">
+              <a routerLink="/membership" class="gradient-button-link">See Member</a>
+              <button type="button" class="text-link" (click)="scrollToWords()">Keep reading the deck</button>
+            </div>
+          </section>
+        }
+        @case ('add-language') {
+          <section class="panel">
+            <div class="language-line">
+              <span class="language-badge" [style.--language-badge-fill]="badgeFill">{{ view.language }}</span>
+              <span class="lead">{{ languageName }} would be your {{ languageOrdinal }}</span>
+            </div>
+            <p>Adding it gives {{ languageName }} its own words, its own review queue and its own place in the language switcher. {{ viewerLanguageName }} keeps everything it has, and nothing moves between them.</p>
+            <div class="actions">
+              <button type="button" class="primary-button" (click)="addLanguageThenWords()" [disabled]="adding$ | async">{{ addLanguageLabel }}</button>
+              <button type="button" class="text-link" (click)="scrollToWords()">Not now</button>
+            </div>
+          </section>
+        }
+        @case ('language-added') {
+          <section class="panel">
+            <p class="lead">{{ languageAddedLine }}</p>
+            <p>{{ viewerLanguageName }} is still your active language. Switch from the navbar when you want to.</p>
+          </section>
+        }
+        @case ('select') {
+          @if (lastAdded && lastAdded.added > 0) {
+            <div class="status-line settled">
+              <span class="tick"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+              <span>{{ addedLine }}</span>
+              <a routerLink="/review" class="text-link push-right">Open in Review</a>
+            </div>
+          }
+        }
+      }
+
+      @if (words.length > 0) {
+        <section class="word-list" [class.selectable]="canSelect" aria-label="Words in this deck">
+          @if (canSelect) {
+            <div class="selection-bar">
+              <span class="summary">{{ selectionSummary }}</span>
+              @if (heldSummary; as held) {
+                <span class="held">{{ held }}</span>
+              }
+              <span class="selection-actions">
+                <button type="button" class="text-link" (click)="selectAll()">Select all</button>
+                <button type="button" class="text-link" (click)="clearSelection()">Clear</button>
+              </span>
+            </div>
+          }
+          @for (word of words; track word.id; let first = $first) {
+            @if (!first) {
+              <div class="hairline"></div>
+            }
+            <div
+              #wordRow
+              class="row"
+              [class.held]="isHeld(word)"
+              [class.checked]="isSelected(word)"
+              [attr.role]="canSelect && !isHeld(word) ? 'checkbox' : null"
+              [attr.aria-checked]="canSelect && !isHeld(word) ? isSelected(word) : null"
+              [attr.tabindex]="canSelect && !isHeld(word) ? 0 : -1"
+              (click)="toggle(word)"
+              (keydown.space)="$event.preventDefault(); toggle(word)"
+              (keydown.enter)="toggle(word)"
+            >
+              @if (canSelect) {
+                <span class="checkbox" aria-hidden="true">
+                  @if (isSelected(word) || isHeld(word)) {
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+                  }
+                </span>
+              }
+              <app-shared-word class="row-body" [word]="word"></app-shared-word>
+              @if (showHeldMarks && isHeld(word)) {
+                <span class="in-your-words">In your words</span>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (panel === 'sign-up') {
+        <section class="panel sign-up-card">
+          <p class="eyebrow">Keeping them</p>
+          <h2>{{ signUpHeading }}</h2>
+          <p>An account puts these in a review queue that spaces them out over weeks, and lets you keep the ones you want and drop the rest. Free covers one language at a time.</p>
+          <div class="actions">
+            <button type="button" class="primary-button" (click)="createAccount()">Create an account</button>
+            <button type="button" class="text-link" (click)="signIn()">I already have one</button>
+          </div>
+        </section>
+      }
+    }
+  </main>
+
+  @if (showStickyAsk) {
+    <div class="sticky-ask">
+      <p>An account keeps these and schedules them.</p>
+      <button type="button" class="primary-button" (click)="createAccount()">Create an account</button>
+    </div>
+  }
+
+  @if (sessionChecked && !signedIn) {
+    <app-shared-footer></app-shared-footer>
+  }
+</div>
+
+@if (ownDeck) {
+  <app-deck-share-sheet [deck]="ownDeck" (changed)="onDeckChanged($event)"></app-deck-share-sheet>
+}

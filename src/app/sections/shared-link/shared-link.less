@@ -1,0 +1,265 @@
+// The calm register for a page that holds content: cream ground, white cards, one primary action per page.
+// Everything reads from the theme tokens so the dark theme steps down with the rest of the app.
+
+.shared-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--page-ground);
+  color: var(--text-color);
+  font-family: var(--font-family-ui);
+}
+
+.shared-main {
+  flex: 1;
+  width: min(100% - 2rem, 40rem);
+  margin: 0 auto;
+  padding: 1.875rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--dark-raspberry);
+  font: 600 .6875rem/1.2 var(--font-family-ui);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.page-head {
+  display: flex;
+  flex-direction: column;
+  gap: .5625rem;
+}
+
+.page-head h1 {
+  margin: 0;
+  font: 600 1.9375rem/1.15 var(--font-family-reading);
+  color: var(--text-color);
+  overflow-wrap: anywhere;
+}
+
+.page-head .subhead {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: .90625rem;
+}
+
+.attribution {
+  display: flex;
+  align-items: center;
+  gap: .5625rem;
+  margin-top: .1875rem;
+  color: var(--subhead-color);
+  font-size: .8125rem;
+}
+
+.attribution app-avatar {
+  --avatar-ring-gap: var(--page-ground);
+}
+
+.attribution a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.attribution a:hover {
+  color: var(--dark-raspberry);
+}
+
+.premium-star {
+  display: grid;
+  width: .875rem;
+  height: .875rem;
+  flex: 0 0 .875rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--premium-gradient);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45), inset 0 -1px 0 rgba(20, 6, 30, .3), 0 2px 6px rgba(72, 23, 125, .3);
+}
+
+.premium-star svg {
+  display: block;
+  fill: #FFF1F6;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: .6875rem;
+  padding: 1.5rem 1.875rem 1.625rem;
+  border-radius: 1.25rem;
+  background: var(--card-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+}
+
+.panel h2 {
+  margin: 0;
+  font: 600 1.375rem/1.2 var(--font-family-reading);
+  color: var(--text-color);
+}
+
+.panel p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--subhead-color);
+  font-size: .90625rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.panel .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: .25rem;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  color: var(--text-color);
+  font-size: .84375rem;
+}
+
+.status-line .tick {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success-bg-color);
+}
+
+.status-line .tick svg {
+  display: block;
+  stroke: var(--success-color);
+}
+
+.status-note {
+  color: var(--disabled-label-color);
+  font-size: .78125rem;
+}
+
+.primary-button,
+.outline-button,
+.gradient-button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: .6875rem 1.375rem;
+  border: 0;
+  border-radius: 9999px;
+  font: 600 .875rem/1 var(--font-family-ui);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  white-space: nowrap;
+}
+
+.primary-button {
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  box-shadow: 0 1px 2px rgba(72, 23, 125, .2);
+}
+
+.primary-button:hover:not(:disabled) {
+  background: var(--brand-hover);
+  box-shadow: 0 6px 16px rgba(72, 23, 125, .28);
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.outline-button {
+  padding: .5625rem 1.125rem;
+  border: 1.5px solid var(--text-color);
+  background: transparent;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.outline-button:hover:not(:disabled) {
+  background: var(--state-hover);
+}
+
+.gradient-button-link {
+  background: var(--premium-gradient);
+  color: #FFF1F6;
+  box-shadow: 0 2px 8px rgba(72, 23, 125, .28);
+}
+
+.gradient-button-link:hover {
+  transform: translateY(-1px);
+}
+
+.text-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dark-raspberry);
+  font: inherit;
+  font-size: .84375rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.text-link:hover {
+  color: var(--brand-primary);
+  text-decoration: underline;
+}
+
+.primary-button:focus-visible,
+.outline-button:focus-visible,
+.gradient-button-link:focus-visible,
+.text-link:focus-visible {
+  outline: 3px solid var(--brand-margin);
+  outline-offset: 3px;
+}
+
+.hairline {
+  height: 1px;
+  background: var(--hairline-color);
+}
+
+// The only place a language colour appears on the signed-out page: a small mono badge on the card.
+.language-badge {
+  align-self: flex-start;
+  padding: .25rem .5625rem;
+  border-radius: .4375rem;
+  background: var(--language-badge-fill, #5c5580);
+  color: #F1EAEF;
+  font: 500 .6875rem/1 var(--font-family-mono);
+  letter-spacing: .3px;
+}
+
+.skeleton-block {
+  min-height: 12rem;
+  border-radius: 1.25rem;
+  background: var(--card-color);
+}
+
+@media (max-width: 40rem) {
+  .shared-main {
+    padding-top: 1.375rem;
+  }
+
+  .panel {
+    padding: 1.25rem 1.125rem;
+  }
+
+  .page-head h1 {
+    font-size: 1.4375rem;
+  }
+}

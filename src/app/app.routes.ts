@@ -50,6 +50,10 @@ export const routes: Routes = [
 
   {path: 'users/:username', loadComponent: () => import('./shared/user-card/user-card.component').then(m => m.UserCardComponent)},
 
+  // Shared links: a card or a deck opened by anyone, signed in or not
+  {path: 'c/:id', loadComponent: () => import('./sections/shared-link/shared-card/shared-card.component').then(m => m.SharedCardComponent)},
+  {path: 'd/:id', loadComponent: () => import('./sections/shared-link/shared-deck/shared-deck.component').then(m => m.SharedDeckComponent)},
+
   // Static pages
   {path: 'terms-of-use', loadComponent: () => import('./static/legal/terms-of-use/terms-of-use.component').then(m => m.TermsOfUseComponent)},
   {path: 'privacy-policy', loadComponent: () => import('./static/legal/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent)},

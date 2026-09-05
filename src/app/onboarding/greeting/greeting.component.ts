@@ -8,6 +8,7 @@ import {SetupStep, UserInfo} from '../../models/userinfo.model';
 import {ButtonComponent} from '../../shared/button/button.component';
 import {logger} from '../../shared/logger';
 import {LanguageNameService} from '../../services/language-name.service';
+import {ReturnPathService} from '../../services/return-path.service';
 
 @Component({
   selector: 'app-onboarding-greeting',
@@ -21,6 +22,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly alertService = inject(TuiNotificationService);
   private readonly languageNameService = inject(LanguageNameService);
+  private readonly returnPath = inject(ReturnPathService);
   private readonly destroy$ = new Subject<void>();
   private readonly loadingSubject$ = new BehaviorSubject(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -51,7 +53,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({setupStep: SetupStep.COMPLETED});
-          void this.router.navigate(['/home']);
+          void this.router.navigateByUrl(this.returnPath.consume() ?? '/home');
         },
         error: error => {
           logger.error('Failed to finish onboarding', error);

@@ -1,0 +1,106 @@
+<div class="shared-page">
+  <main class="shared-main">
+    @if (loading) {
+      <div class="skeleton-block" aria-busy="true" aria-label="Opening the card"></div>
+    } @else if (deleted) {
+      <app-dead-link status="DELETED" object="card" [signedIn]="signedIn"></app-dead-link>
+    } @else if (loadError) {
+      <section class="panel">
+        <h2>The card could not be opened</h2>
+        <p>{{ loadError }}</p>
+      </section>
+    } @else if (view) {
+
+      @if (panel === 'owner') {
+        <div class="owner-banner">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 15l6-6M8.5 12.5l-2 2a3.5 3.5 0 0 0 5 5l2-2M15.5 11.5l2-2a3.5 3.5 0 0 0-5-5l-2 2"></path></svg>
+          <span>Your card. Anyone with this link sees this page.</span>
+        </div>
+      }
+
+      <header class="page-head">
+        <p class="eyebrow">{{ panel === 'owner' ? 'Your card' : 'Shared card' }}</p>
+        @if (panel !== 'owner') {
+          <div class="attribution">
+            <app-avatar [avatarUrl]="view.sharer.avatarUrl" [username]="view.sharer.username" [premium]="view.sharer.premium" [ring]="true" size="xs"></app-avatar>
+            @if (sharerProfileLink; as link) {
+              <a [routerLink]="link">{{ view.sharer.username }}</a>
+            } @else {
+              <span>{{ view.sharer.username }}</span>
+            }
+            @if (view.sharer.premium) {
+              <span class="premium-star" role="img" aria-label="Member">
+                <svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"></path></svg>
+              </span>
+            }
+          </div>
+        }
+      </header>
+
+      <app-shared-word [word]="view.word" [expanded]="true" [languageBadge]="view.language" [badgeFill]="badgeFill"></app-shared-word>
+
+      @switch (panel) {
+        @case ('sign-up') {
+          <section class="panel">
+            <p class="eyebrow">Keeping it</p>
+            <h2>One word, then it comes back</h2>
+            <p>An account saves this card and returns it for review on a widening interval, so you meet it again shortly before you would have forgotten it. Free covers one language at a time.</p>
+            <div class="actions">
+              <button type="button" class="primary-button" (click)="createAccount()">Create an account</button>
+              <button type="button" class="text-link" (click)="signIn()">I already have one</button>
+            </div>
+          </section>
+        }
+        @case ('add') {
+          <section class="panel">
+            <div class="actions">
+              <button type="button" class="primary-button" (click)="add()" [disabled]="adding$ | async">Add to my words</button>
+              <span class="status-note">{{ languageName }} · goes to Review</span>
+            </div>
+          </section>
+        }
+        @case ('added') {
+          <section class="panel">
+            <div class="status-line">
+              <span class="tick"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+              <span>Added. It is due tomorrow.</span>
+              <a routerLink="/review" class="text-link push-right">Open in Review</a>
+            </div>
+          </section>
+        }
+        @case ('held') {
+          <section class="panel">
+            <div class="status-line">
+              <span class="tick"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"></path></svg></span>
+              <span>This one is already in your words.</span>
+            </div>
+            <div class="actions">
+              <a routerLink="/review" class="outline-button">Go to Review</a>
+              <span class="status-note">{{ dueNote }}</span>
+            </div>
+          </section>
+        }
+        @case ('wrong-language') {
+          <section class="panel">
+            <p class="lead">This word is {{ languageName }}, which is not one of your languages yet.</p>
+            @if (userInfo?.premium) {
+              <p>Add {{ languageName }} from Settings and this card can go into its own queue.</p>
+              <div class="actions">
+                <a routerLink="/settings/lang" class="outline-button">Add {{ languageName }}</a>
+              </div>
+            } @else {
+              <p>Free covers one language at a time. <a routerLink="/membership" class="inline-link">Member covers five</a>.</p>
+              <div class="actions">
+                <a routerLink="/membership" class="gradient-button-link">See Member</a>
+              </div>
+            }
+          </section>
+        }
+      }
+    }
+  </main>
+
+  @if (sessionChecked && !signedIn) {
+    <app-shared-footer></app-shared-footer>
+  }
+</div>
