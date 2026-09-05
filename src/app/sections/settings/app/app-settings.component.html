@@ -24,7 +24,11 @@
       </section>
 
       <section class="section-block card">
-        <div class="eyebrow">Reminders</div>
+        <div class="eyebrow">Notifications</div>
+        <label class="setting-line">
+          <span><strong>Connection emails</strong><small>When someone asks to connect, or accepts your request. The bell in the app stays on.</small></span>
+          <input tuiSwitch type="checkbox" [ngModel]="notifications.socialEmails" (ngModelChange)="onSocialEmailsChange($event)" [showIcons]="true" />
+        </label>
         <label class="setting-line">
           <span><strong>Daily review nudge</strong><small>Remind me only when a review is due.</small></span>
           <span class="reminder-control">

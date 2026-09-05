@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../../../app.constants";
-import {UIPreferences} from "../../../models/userinfo.model";
+import {NotificationPreferences, UIPreferences} from "../../../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -52,5 +52,10 @@ export class ProfileSettingsService {
   toggleHidden(hidden: boolean): Observable<unknown> {
     const url = `${AppConstants.PROFILE_URL}/hidden`;
     return this.http.patch(url, {hidden}, {withCredentials: true});
+  }
+
+  updateNotificationPreferences(preferences: NotificationPreferences): Observable<unknown> {
+    const url = `${AppConstants.PROFILE_URL}/notifications`;
+    return this.http.patch(url, preferences, {withCredentials: true});
   }
 }

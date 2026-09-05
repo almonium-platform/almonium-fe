@@ -30,6 +30,7 @@ export class UserInfo {
     public learners: Learner[],
     public interests: Interest[],
     public uiPreferences: UIPreferences,
+    public notifications: NotificationPreferences,
   ) {
   }
 
@@ -52,6 +53,7 @@ export class UserInfo {
       updates.learners ?? this.learners,
       updates.interests ?? this.interests,
       updates.uiPreferences ?? this.uiPreferences,
+      updates.notifications ?? this.notifications,
     );
   }
 
@@ -79,6 +81,7 @@ export class UserInfo {
         parseInterest(interest, `user.interests[${index}]`)
       ),
       parseUiPreferences(data['uiPreferences']),
+      parseNotificationPreferences(data['notifications']),
     );
   }
 
@@ -122,6 +125,7 @@ export interface UserInfoData {
   learners: LearnerDto[];
   interests: Interest[];
   uiPreferences: UIPreferences;
+  notifications: NotificationPreferences;
 }
 
 export interface UserInfoDto extends UserInfoData {
@@ -354,6 +358,28 @@ function parseInterest(value: unknown, path: string): Interest {
   return {
     id: expectNumber(data['id'], `${path}.id`),
     name: expectString(data['name'], `${path}.name`),
+  };
+}
+
+/** Which emails the account receives. The in-app bell and push are not governed here. */
+export interface NotificationPreferences {
+  /** Connection requests received and requests accepted. */
+  socialEmails: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  socialEmails: true,
+};
+
+function parseNotificationPreferences(value: unknown): NotificationPreferences {
+  if (value === null || value === undefined) {
+    return {...DEFAULT_NOTIFICATION_PREFERENCES};
+  }
+  const preferences = expectRecord(value, 'user.notifications');
+  return {
+    socialEmails: preferences['socialEmails'] === undefined
+      ? DEFAULT_NOTIFICATION_PREFERENCES.socialEmails
+      : expectBoolean(preferences['socialEmails'], 'user.notifications.socialEmails'),
   };
 }
 

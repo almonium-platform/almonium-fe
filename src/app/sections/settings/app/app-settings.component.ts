@@ -3,7 +3,12 @@ import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
-import {DEFAULT_UI_PREFERENCES, UIPreferences} from "../../../models/userinfo.model";
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  DEFAULT_UI_PREFERENCES,
+  NotificationPreferences,
+  UIPreferences,
+} from "../../../models/userinfo.model";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {TuiSwitch} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
@@ -47,6 +52,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
+  protected notifications: NotificationPreferences = {...DEFAULT_NOTIFICATION_PREFERENCES};
   protected appearance: 'light' | 'dark' | 'system' = 'system';
   protected reduceMotion = false;
   protected dailyReview = false;
@@ -78,8 +84,21 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
       .subscribe((userInfo) => {
         if (userInfo) {
           this.uiPreferences = structuredClone(userInfo.uiPreferences);
+          this.notifications = {...userInfo.notifications};
         }
       });
+  }
+
+  protected onSocialEmailsChange(socialEmails: boolean): void {
+    const previous = this.notifications;
+    this.notifications = {...this.notifications, socialEmails};
+    this.profileSettingsService.updateNotificationPreferences(this.notifications).subscribe({
+      next: () => this.userInfoService.updateUserInfo({notifications: this.notifications}),
+      error: (error) => {
+        logger.error('Failed to save notification preferences:', error);
+        this.notifications = previous;
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -196,6 +215,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
             // Update local state if needed (e.g., this.uiPreferences)
             this.uiPreferences = {...userInfo.uiPreferences};
+            this.notifications = {...userInfo.notifications};
 
             this.alertService.open('Data has been reloaded', {appearance: 'positive'}).subscribe();
           } else {
