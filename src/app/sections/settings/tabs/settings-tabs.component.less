@@ -5,7 +5,7 @@
 
 .settings-tabs {
   display: flex;
-  width: min(100% - 2rem, 56.25rem);
+  width: min(calc(100% - 2rem), 56.25rem);
   gap: 1.625rem;
   overflow-x: auto;
   margin: 0 auto;
@@ -35,5 +35,5 @@
 }
 
 @media (max-width: 520px) {
-  .settings-tabs { width: min(100% - 1rem, 30rem); gap: 1.25rem; }
+  .settings-tabs { width: min(calc(100% - 1rem), 30rem); gap: 1.25rem; }
 }

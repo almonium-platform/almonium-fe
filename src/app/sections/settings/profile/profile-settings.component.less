@@ -14,7 +14,7 @@ button { font: inherit; }
   grid-template-columns: minmax(0, 1fr) 18.75rem;
   align-items: start;
   gap: 1.25rem;
-  width: min(100% - 2rem, 56.25rem);
+  width: min(calc(100% - 2rem), 56.25rem);
   margin: 0 auto 2rem;
 }
 
@@ -159,7 +159,7 @@ button { font: inherit; }
 }
 
 @media (max-width: 520px) {
-  .profile-layout { width: min(100% - 1rem, 30rem); gap: .75rem; }
+  .profile-layout { width: min(calc(100% - 1rem), 30rem); gap: .75rem; }
   .profile-card,
   .plan-card { padding: 1.25rem; }
   .identity-row { gap: .875rem; }
