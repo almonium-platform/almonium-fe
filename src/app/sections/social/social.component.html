@@ -546,7 +546,9 @@
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
     <!-- 25: a channel post is published, not said, so its feed drops the chat grammar. -->
-    <div class="chat-window" [class.broadcast]="isActiveChannelReadOnly">
+    <div class="chat-window"
+         [class.broadcast]="isActiveChannelReadOnly"
+         [class.reading-column]="isActiveChannelReadingColumn">
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">
           <app-chat-header [channel]="channel"></app-chat-header>

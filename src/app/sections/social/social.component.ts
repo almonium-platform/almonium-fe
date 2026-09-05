@@ -973,6 +973,15 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return !!this.activeChannel && this.channels.isPublic(this.activeChannel);
   }
 
+  /**
+   * A channel post and a note to yourself are read, so their feed is capped to a reading measure
+   * instead of the pane. A 1:1 exchange is not: those bubbles are already capped and edge-aligned.
+   */
+  protected get isActiveChannelReadingColumn(): boolean {
+    if (!this.activeChannel) return false;
+    return this.channels.isPublic(this.activeChannel) || this.channels.isSelf(this.activeChannel);
+  }
+
   protected get activeChannelTopic(): string {
     return this.activeChannel ? this.channels.topic(this.activeChannel) : '';
   }

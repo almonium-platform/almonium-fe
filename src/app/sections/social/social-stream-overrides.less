@@ -8,6 +8,9 @@
 @chat-reaction-chip-height: 1.5rem;
 @chat-reaction-row-gap: .25rem;
 
+// The reading measure a published post is set to - 640px, the design's column inside its 880px pane.
+@chat-reading-column: 40rem;
+
 // for tui-badge-notification red dot
 ::ng-deep .t-badge_top {
   top: 2px !important;
@@ -476,6 +479,28 @@
 
 ::ng-deep .str-chat__message--other {
   column-gap: .625rem;
+}
+
+/*
+ * ---- 26: the reading column ----
+ *
+ * A channel post and a note to yourself are read rather than exchanged, so the column they sit in
+ * is measured against a paragraph, not against the pane. Left to fill the pane, a one-line update
+ * on a wide screen is a card some 1,400px across - a band rather than a card, because a post takes
+ * the width it is given while a chat bubble takes the width of its sentence.
+ *
+ * The cap goes on the list element so the day divider is capped alongside the posts: a full-bleed
+ * rule drawn over a centred column is the tell that the cap reached the cards only. The header and
+ * the read-only footer are siblings of this element and stay full width - they belong to the pane.
+ * A 1:1 exchange keeps the pane it has: its bubbles are already capped and edge-aligned, so
+ * `.reading-column` is not set for one.
+ *
+ * Stream sets `margin: 0` here through three classes of its own, so this selector outruns it
+ * rather than resting on which stylesheet the cascade happens to read last.
+ */
+::ng-deep .chat-window.reading-column .str-chat__message-list-scroll .str-chat__ul {
+  margin-inline: auto;
+  max-width: @chat-reading-column;
 }
 
 /*
