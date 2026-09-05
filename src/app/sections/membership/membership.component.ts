@@ -375,7 +375,7 @@ export class MembershipComponent implements OnInit {
   private loadAnnualNudge(userInfo: UserInfo): void {
     if (!userInfo.premium || this.annualOfferDismissed) return;
 
-    this.http.get<unknown>(`${AppConstants.SUBSCRIPTION_URL}/annual-nudge`).pipe(
+    this.http.get<unknown>(`${AppConstants.SUBSCRIPTION_URL}/annual-nudge`, {withCredentials: true}).pipe(
       map(value => expectBoolean(expectRecord(value, 'annual nudge')['eligible'], 'annual nudge.eligible')),
       catchError(() => of(false)),
       takeUntilDestroyed(this.destroyRef),
