@@ -1,5 +1,18 @@
 # Repository agent guidance
 
+## Product stage: pre-launch
+
+Almonium has no live users. The owner drops and reseeds state whenever it is
+convenient - the backend database, the Stream application, Firebase, all of it -
+so nothing already stored is worth preserving for its own sake.
+
+- Do not write code whose only purpose is to carry existing state across a
+  change: backfills, migrations of cached or persisted client state, branches
+  that read an old shape. Change the shape and start clean.
+- Prefer the simpler change even when it invalidates what is stored. Say plainly
+  in the handoff that it does, and let the owner reseed.
+- Revisit this section the moment the product has real users.
+
 ## Almonium ecosystem
 
 This Angular client is part of a coordinated workspace with neighboring

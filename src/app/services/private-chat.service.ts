@@ -23,7 +23,7 @@ export class PrivateChatService {
 
   /**
    * The server creates a friendship's chat as the friendship is accepted; this is the fallback for
-   * the ones it never made - a friendship older than that path, or an event that never landed.
+   * a chat it never made, so asking for one that is missing opens a conversation rather than fail.
    */
   async create(userId: string, recipientId: string, friendshipId: string): Promise<Channel> {
     if (!this.chatService.chatClient.user) {
