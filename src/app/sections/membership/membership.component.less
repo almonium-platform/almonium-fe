@@ -54,8 +54,7 @@ h2 { font-size: 1.35rem; }
 .billing-toggle button[aria-pressed='true'] { background: var(--brand-ink); color: var(--on-brand-color); }
 
 .usage-block { display: grid; gap: .7rem; margin-top: 1.25rem; }
-.usage-block > p,
-.membership-usage > p { margin: 0 0 .1rem; color: var(--subhead-color); font-size: .8rem; }
+.usage-block > p { margin: 0 0 .1rem; color: var(--subhead-color); font-size: .8rem; }
 .usage-row { display: grid; gap: .3rem; }
 .usage-row > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--brand-ink); font-size: .82rem; }
 code { color: var(--subhead-color); font-family: var(--font-family-mono); font-size: .75rem; }
@@ -119,7 +118,9 @@ progress::-moz-progress-bar { border-radius: 9999px; background: var(--dark-rasp
 .membership-usage dl > div { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font-size: .84rem; }
 dt { color: var(--subhead-color); }
 dd { margin: 0; color: var(--brand-ink); text-align: right; }
-.membership-usage { padding: .15rem 1.5rem; }
+/* Same grid and gap as the free card's usage block, so the heading stands off the first row instead of reading as one. */
+.membership-usage { display: grid; gap: .7rem; padding: .15rem 1.5rem; }
+.membership-usage > p { margin: 0; color: var(--brand-ink); font-size: .8rem; }
 .membership-usage dd { font-family: var(--font-family-mono); font-size: .75rem; color: var(--subhead-color); }
 .membership-note { padding: .8rem 1rem; border-radius: 16px; background: var(--nested-color); color: var(--subhead-color); font-size: .78rem; line-height: 1.5; }
 
