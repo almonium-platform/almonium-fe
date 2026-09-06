@@ -117,6 +117,12 @@ html[data-theme='dark'] {
   .dark-theme-tokens();
 }
 
+/* The animated emblem keeps the ramp on light grounds; on dark it flattens to
+   the tint, like the static flat logo does. Mono emblems keep currentColor. */
+html[data-theme='dark'] app-emblem svg:not(.mono) path {
+  fill: var(--brand-flat-logo);
+}
+
 html[data-theme='dark'] .auth-body .wordmark-light {
   display: none;
 }
@@ -128,6 +134,10 @@ html[data-theme='dark'] .auth-body .wordmark-dark {
 @media (prefers-color-scheme: dark) {
   html[data-theme='system'] {
     .dark-theme-tokens();
+  }
+
+  html[data-theme='system'] app-emblem svg:not(.mono) path {
+    fill: var(--brand-flat-logo);
   }
 
   html[data-theme='system'] .auth-body .wordmark-light {
