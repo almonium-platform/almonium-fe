@@ -43,9 +43,6 @@
               </tui-textfield>
               <tui-error formControlName="emailValue"></tui-error>
             </form>
-            @if (emailUnchanged()) {
-              <span class="field-note">Enter a different address to save.</span>
-            }
           } @else {
             <strong class="email-address">{{ userInfo?.email }}</strong>
             <button type="button" class="email-status" [class.unverified]="!emailVerified"
@@ -70,6 +67,10 @@
           </button>
         }
       </div>
+      <!-- Outside the row: inside it the note grows the flex box and drags Save off the field's centreline. -->
+      @if (emailUnchanged()) {
+        <p class="field-note row-note">Enter a different address to save.</p>
+      }
     </section>
 
     <section class="account-card card">
