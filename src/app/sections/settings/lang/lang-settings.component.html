@@ -86,16 +86,47 @@
               </div>
 
               <div class="learner-controls">
-                <label class="level-select" [attr.aria-label]="'Level for ' + getLanguageName(learner.language)">
-                  <select
-                    [ngModel]="learner.selfReportedLevel"
+                <!-- The code is what is stored, but the sentence is what was chosen at onboarding, so the open
+                     list carries both. Closed, it is still the bare code: a row holds three of these. -->
+                <div
+                  #levelSelect
+                  class="level-select"
+                  [clickOutsideEnabled]="levelPickerLearnerId === learner.id"
+                  (clickOutside)="closeLevelPicker()">
+                  <button
+                    #levelTrigger
+                    type="button"
+                    class="level-trigger"
+                    [class.open]="levelPickerLearnerId === learner.id"
                     [disabled]="updatingLearnerIds.has(learner.id)"
-                    (ngModelChange)="onCefrLevelChange(learner, $event)">
-                    @for (level of cefrLevels; track level) {
-                      <option [value]="level">{{ level }}</option>
-                    }
-                  </select>
-                </label>
+                    aria-haspopup="listbox"
+                    [attr.aria-expanded]="levelPickerLearnerId === learner.id"
+                    [attr.aria-label]="'Level for ' + getLanguageName(learner.language) + ': ' + levelSentence(learner.selfReportedLevel)"
+                    (click)="toggleLevelPicker(learner, levelSelect)">
+                    {{ learner.selfReportedLevel }}
+                  </button>
+
+                  @if (levelPickerLearnerId === learner.id) {
+                    <div
+                      class="level-list"
+                      role="listbox"
+                      tabindex="-1"
+                      [attr.aria-label]="'Level for ' + getLanguageName(learner.language)"
+                      (keydown)="onLevelListKeydown($event, levelTrigger)">
+                      @for (level of cefrLevelEntries; track level[0]) {
+                        <button
+                          type="button"
+                          role="option"
+                          class="level-option"
+                          [class.selected]="learner.selfReportedLevel === level[0]"
+                          [attr.aria-selected]="learner.selfReportedLevel === level[0]"
+                          (click)="selectLevel(learner, level[0], levelTrigger)">
+                          <code>{{ level[0] }}</code><span>{{ level[1] }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
 
                 <div
                   tuiHintAppearance="dark"

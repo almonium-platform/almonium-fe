@@ -10,15 +10,7 @@ import {ButtonComponent} from '../../shared/button/button.component';
 import {logger} from '../../shared/logger';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {OnboardingDraftService} from '../onboarding-draft.service';
-
-const LEVEL_COPY: Record<CEFRLevel, string> = {
-  [CEFRLevel.A1]: 'I know some words and set phrases.',
-  [CEFRLevel.A2]: 'I can follow short, direct sentences about familiar things.',
-  [CEFRLevel.B1]: 'I can get through a simple story if I look words up often.',
-  [CEFRLevel.B2]: 'I can follow a novel with a dictionary nearby.',
-  [CEFRLevel.C1]: 'I read fluently and stop only at unusual or literary words.',
-  [CEFRLevel.C2]: 'I read anything, including older and specialised prose.',
-};
+import {CEFR_LEVEL_ENTRIES} from '../../shared/cefr-level-copy';
 
 @Component({
   selector: 'app-level-setup',
@@ -37,7 +29,7 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
 
   @Output() continue = new EventEmitter<SetupStep>();
   @Output() back = new EventEmitter<void>();
-  protected readonly levels = Object.entries(LEVEL_COPY) as [CEFRLevel, string][];
+  protected readonly levels = CEFR_LEVEL_ENTRIES;
   protected readonly levelControls = new Map<string, FormControl<CEFRLevel>>();
   protected readonly loading$ = this.loadingSubject$.asObservable();
   protected userInfo: UserInfo | null = null;

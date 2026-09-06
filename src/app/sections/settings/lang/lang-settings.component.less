@@ -6,8 +6,7 @@
   --tui-radius-m: 2rem;
 }
 
-button,
-select { font: inherit; }
+button { font: inherit; }
 
 .base-container { gap: 1rem; }
 
@@ -98,21 +97,15 @@ select { font: inherit; }
 .learner-controls { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
 
 .level-select { position: relative; }
-.level-select::after {
-  position: absolute;
-  top: 50%;
-  right: .55rem;
-  color: var(--metadata-color);
-  content: '▾';
-  font-size: .5625rem;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
 
-.level-select select {
+/* Closed, this is the same pill the native select was: three of them stack in a card that must not grow. */
+.level-trigger {
+  display: flex;
   min-width: 3.75rem;
-  padding: .3125rem 1.35rem .3125rem .5625rem;
-  appearance: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: .625rem;
+  padding: .3125rem .5625rem;
   border: 1px solid var(--control-border-color);
   border-radius: .5625rem;
   outline: none;
@@ -124,7 +117,58 @@ select { font: inherit; }
   font-weight: 500;
 }
 
-.level-select select:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(90, 26, 116, .1); }
+.level-trigger::after {
+  color: var(--metadata-color);
+  content: '▾';
+  font-size: .5625rem;
+}
+
+.level-trigger:focus-visible,
+.level-trigger.open { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(90, 26, 116, .1); }
+.level-trigger:disabled { cursor: default; opacity: .5; }
+
+/* Only the open list is wide: it carries the onboarding sentence beside each code. */
+.level-list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + .375rem);
+  right: 0;
+  display: flex;
+  width: 22.5rem;
+  flex-direction: column;
+  padding: .375rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: .875rem;
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+}
+
+.level-option {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  padding: .5625rem .75rem;
+  border: 0;
+  border-radius: .5625rem;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.level-option code {
+  flex: 0 0 1.375rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.level-option span { font-size: .84375rem; line-height: 1.4; }
+.level-option:hover { background: var(--state-hover); }
+.level-option.selected { background: var(--state-selected); }
+.level-option.selected code { color: var(--brand-primary); }
+.level-option:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: -2px; }
 
 .delete-language,
 .add-language {
@@ -182,6 +226,11 @@ select { font: inherit; }
   .language-name { min-width: 0; flex: 1; }
   .learner-controls { gap: .625rem; }
   .delete-language { opacity: .7; }
+
+  /* Narrower than the panel, so the panel stops hanging off the control and spans the row instead. */
+  .level-select { position: static; }
+  .learner-row { position: relative; }
+  .level-list { right: 0; left: 0; width: auto; }
 }
 
 @media (max-width: 410px) {

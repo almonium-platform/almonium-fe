@@ -31,6 +31,8 @@ import {LanguageSetupComponent} from "../../../onboarding/language-setup/languag
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../../services/utils.service";
 import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
+import {CEFR_LEVEL_COPY, CEFR_LEVEL_ENTRIES} from "../../../shared/cefr-level-copy";
+import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
   selector: 'app-lang-settings',
@@ -50,6 +52,7 @@ import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
     TuiSwitch,
     TuiHintDirective,
     RouterLink,
+    NgClickOutsideDirective,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
@@ -95,9 +98,13 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected addTargetLangModalVisible = false;
   protected targetLanguageSelectControl = new FormControl('', {nonNullable: true});
   protected colourPickerLanguage: LanguageCode | null = null;
-  protected readonly cefrLevels = Object.values(CEFRLevel);
+  /** Which row's level list is open. One at a time: the panel is wider than the control it hangs off. */
+  protected levelPickerLearnerId: string | null = null;
+  protected readonly cefrLevelEntries = CEFR_LEVEL_ENTRIES;
   protected readonly languageColours = LANGUAGE_COLOURS;
   protected readonly updatingLearnerIds = new Set<string>();
+  /** The control the list was opened from: it greys while the save is in flight, so focus has to be handed back. */
+  private levelTriggerToRefocus: HTMLElement | null = null;
   private langColors: Record<string, string> = {};
 
   // TL deletion modal
@@ -181,7 +188,10 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.updatingLearnerIds.add(learner.id);
 
     this.languageApiService.updateLearner(learner.language, {level: newValue}).pipe(
-      finalize(() => this.updatingLearnerIds.delete(learner.id)),
+      finalize(() => {
+        this.updatingLearnerIds.delete(learner.id);
+        this.returnLevelFocus();
+      }),
     ).subscribe({
       next: (savedLearner) => {
         const persistedLearner = savedLearner ?? optimisticLearner;
@@ -487,7 +497,70 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected toggleColourPicker(languageCode: LanguageCode): void {
+    this.levelPickerLearnerId = null;
     this.colourPickerLanguage = this.colourPickerLanguage === languageCode ? null : languageCode;
+  }
+
+  /** The sentence behind a code, so the closed control still reads as the answer that was given. */
+  protected levelSentence(level: CEFRLevel): string {
+    return CEFR_LEVEL_COPY[level];
+  }
+
+  protected toggleLevelPicker(learner: Learner, anchor: HTMLElement): void {
+    if (this.levelPickerLearnerId === learner.id) {
+      this.closeLevelPicker();
+      return;
+    }
+    this.colourPickerLanguage = null;
+    this.levelPickerLearnerId = learner.id;
+    // The list opens on the level already held, so the first arrow key steps from there rather than from the top.
+    // Event coalescing defers the render past a timeout, so draw the list before reaching into it for the option.
+    this.cdr.detectChanges();
+    anchor.querySelector<HTMLElement>('.level-option.selected')?.focus();
+  }
+
+  protected closeLevelPicker(): void {
+    this.levelPickerLearnerId = null;
+  }
+
+  protected selectLevel(learner: Learner, level: CEFRLevel, trigger: HTMLElement): void {
+    this.closeLevelPicker();
+    trigger.focus();
+    this.levelTriggerToRefocus = learner.selfReportedLevel === level ? null : trigger;
+    this.onCefrLevelChange(learner, level);
+  }
+
+  /** A disabled control cannot hold focus, so the keyboard would be left on the body once the save lands. */
+  private returnLevelFocus(): void {
+    const trigger = this.levelTriggerToRefocus;
+    this.levelTriggerToRefocus = null;
+    if (!trigger) {
+      return;
+    }
+    this.cdr.detectChanges();
+    trigger.focus();
+  }
+
+  /** Arrow keys walk the list, Escape hands focus back to the control that opened it. */
+  protected onLevelListKeydown(event: KeyboardEvent, trigger: HTMLElement): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeLevelPicker();
+      trigger.focus();
+      return;
+    }
+
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    if (!step) {
+      return;
+    }
+    event.preventDefault();
+    const options = Array.from(
+      (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('.level-option'),
+    );
+    const current = options.indexOf(document.activeElement as HTMLButtonElement);
+    const next = (current + step + options.length) % options.length;
+    options[next]?.focus();
   }
 
   protected selectLanguageColour(languageCode: LanguageCode, colour: string): void {

@@ -261,7 +261,7 @@ const CARDS = [
                   <span class="read-only-note" data-readonly hidden>Read-only · 214 words kept</span>
                 </div>
                 <div class="learner-controls">
-                  <label class="level-select"><select><option>B1</option></select></label>
+                  <div class="level-select"><button type="button" class="level-trigger">B1</button></div>
                   <span class="harness-stub-switch" data-blocked data-on></span>
                   <button type="button" class="make-active" data-blocked data-make-active hidden>Make active</button>
                 </div>
