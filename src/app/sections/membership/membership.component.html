@@ -78,7 +78,7 @@
           </div>
 
           <dl class="membership-details">
-            <div><dt>Plan</dt><dd>{{ subscription?.name }}</dd></div>
+            <div><dt>Plan</dt><dd>{{ planLabel }}</dd></div>
             <div><dt>Status</dt><dd>{{ renewalLabel }}</dd></div>
             <div><dt>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
             @if (scheduledChange; as change) {

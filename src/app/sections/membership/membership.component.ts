@@ -119,6 +119,16 @@ export class MembershipComponent implements OnInit {
     return 'Premium member';
   }
 
+  /**
+   * `subscription.name` is the plan's database key ("PREMIUM"), which the backend also looks plans
+   * up by, so the row prints a label rather than letting the identifier through in caps.
+   */
+  protected get planLabel(): string {
+    const name = this.subscription?.name;
+    if (!name) return '—';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+
   protected get renewalLabel(): string {
     if (this.subscription?.type === PlanType.LIFETIME) return 'No renewal needed';
     if (!this.subscription?.endDate) return 'Active membership';

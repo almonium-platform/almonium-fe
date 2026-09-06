@@ -353,10 +353,10 @@ tui-data-list button[tuiOption].context-button {
   align-self: stretch; /* Ensure it spans the full height of the container */
 }
 
+/* Solid, not the gradient: this word sits above the gradient button, and the intended
+   hierarchy is solid ink, solid plum word, gradient button. The gradient is the plan card's. */
 .premium-text {
-  background: var(--premium-gradient);
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--brand-primary);
   line-height: 1.5;
   font-weight: bold;
 }
