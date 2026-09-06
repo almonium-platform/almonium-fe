@@ -39,6 +39,7 @@ import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {LANGUAGE_COLOURS} from "../../shared/language-colours";
 import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
+import {OnboardingDraftService} from "../onboarding-draft.service";
 
 type CefrFormGroup = FormGroup<{
   language: FormControl<string>;
@@ -90,6 +91,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private utilsService = inject(UtilsService);
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private draft = inject(OnboardingDraftService);
 
   @ViewChild('langSetup', {static: true}) content!: TemplateRef<unknown>;
   private readonly destroy$ = new Subject<void>();
@@ -251,7 +253,9 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           : this.detectNativeLanguage(languages);
         this.selectedFluentLanguages = this.cachedFluentLanguages;
 
-        const targetLangNames = this.languageNameService.mapLanguageCodesToNames(languages, info.targetLangs);
+        // Onboarding resumes with whatever was picked before a drop-off, else with what the server already has.
+        const draftTargetLangs = this.embeddedMode ? undefined : this.draft.read('targetLangs');
+        const targetLangNames = this.languageNameService.mapLanguageCodesToNames(languages, draftTargetLangs ?? info.targetLangs);
         this.targetLanguagesControl.setValue(this.embeddedMode ? [] : targetLangNames);
         this.initializeCefrForm(info.learners, targetLangNames);
 
@@ -276,6 +280,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
         // sanitize current control after (re)building allowed list
         this.sanitizeTargetControl();
+        this.revealSelectedTargetLanguages();
 
       })
     });
@@ -286,7 +291,21 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       this.updateSelectedFeatures();
       const selectedLangNames = this.targetLanguagesControl.value || [];
       this.updateCefrForm(selectedLangNames);
+      if (!this.embeddedMode) {
+        this.draft.write('targetLangs', this.languageNameService.mapLanguageNamesToCodes(this.supportedLanguages, selectedLangNames));
+      }
     });
+  }
+
+  /** A restored pick that sits past the first six cards would otherwise be selected but out of sight. */
+  private revealSelectedTargetLanguages(): void {
+    if (this.showAllLanguages) {
+      return;
+    }
+    const shown = new Set(this.visibleTargetLanguages.map(language => language.name));
+    if (this.targetLanguagesControl.value.some(name => !shown.has(name))) {
+      this.showAllLanguages = true;
+    }
   }
 
   private sanitizeTargetControl(): void {
@@ -569,6 +588,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: (learners) => {
+          this.draft.discard('targetLangs');
           this.userInfoService.updateUserInfo({
             fluentLangs: fluentLanguageCodes,
             learners,

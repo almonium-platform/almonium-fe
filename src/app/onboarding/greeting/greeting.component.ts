@@ -9,6 +9,7 @@ import {ButtonComponent} from '../../shared/button/button.component';
 import {logger} from '../../shared/logger';
 import {LanguageNameService} from '../../services/language-name.service';
 import {ReturnPathService} from '../../services/return-path.service';
+import {OnboardingDraftService} from '../onboarding-draft.service';
 
 @Component({
   selector: 'app-onboarding-greeting',
@@ -23,6 +24,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
   private readonly alertService = inject(TuiNotificationService);
   private readonly languageNameService = inject(LanguageNameService);
   private readonly returnPath = inject(ReturnPathService);
+  private readonly draft = inject(OnboardingDraftService);
   private readonly destroy$ = new Subject<void>();
   private readonly loadingSubject$ = new BehaviorSubject(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -55,6 +57,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
+          this.draft.discardAll();
           this.userInfoService.updateUserInfo({setupStep: SetupStep.COMPLETED});
           void this.router.navigateByUrl(this.returnPath.consume() ?? '/home');
         },

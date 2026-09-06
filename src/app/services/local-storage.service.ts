@@ -15,6 +15,7 @@ const SUPPORTED_LANGUAGES_KEY = 'supported_languages';
 const LAST_SEEN_KEY = 'last_seen_users';
 const TIMER_END_TIMESTAMP_KEY = 'timer_end_timestamp';
 const READER_POSITIONS_KEY = 'reader_positions';
+const ONBOARDING_DRAFTS_KEY = 'onboarding_drafts';
 
 @Injectable({
   providedIn: 'root'
@@ -145,6 +146,21 @@ export class LocalStorageService {
     this.removeItem(READER_POSITIONS_KEY);
   }
 
+  /** Unsubmitted onboarding answers, kept per user so a second account on the same browser never inherits them. */
+  saveOnboardingDraft<T>(userId: string, draft: T): void {
+    const drafts = this.getItem<Record<string, T>>(ONBOARDING_DRAFTS_KEY) ?? {};
+    drafts[userId] = draft;
+    this.saveItem(ONBOARDING_DRAFTS_KEY, drafts);
+  }
+
+  getOnboardingDraft<T>(userId: string): T | null {
+    return this.getItem<Record<string, T>>(ONBOARDING_DRAFTS_KEY)?.[userId] ?? null;
+  }
+
+  clearOnboardingDrafts(): void {
+    this.removeItem(ONBOARDING_DRAFTS_KEY);
+  }
+
   saveParallelMode(mode: ParallelMode): void {
     this.saveItem(PARALLEL_MODE_KEY, mode);
   }
@@ -167,6 +183,7 @@ export class LocalStorageService {
     this.clearAuthMethods();
     this.clearParallelMode();
     this.clearReaderPositions();
+    this.clearOnboardingDrafts();
   }
 
   public clearAllData(): void {
