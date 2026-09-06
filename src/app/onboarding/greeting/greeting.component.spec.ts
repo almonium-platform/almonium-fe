@@ -12,17 +12,17 @@ import {GreetingComponent} from './greeting.component';
 describe('GreetingComponent', () => {
   it('leaves interests out of the summary when none were picked', async () => {
     const fixture = await createFixture(userInfo([]));
-    expect(summary(fixture.nativeElement)).toBe('German, B1. You can change any of it later.');
+    expect(summary(fixture.nativeElement)).toBe('German, B1. Almo has it noted; change any of it later.');
   });
 
   it('counts a single interest in the singular', async () => {
     const fixture = await createFixture(userInfo([{id: 1, name: 'Music'}]));
-    expect(summary(fixture.nativeElement)).toBe('German, B1, 1 interest. You can change any of it later.');
+    expect(summary(fixture.nativeElement)).toBe('German, B1, 1 interest. Almo has it noted; change any of it later.');
   });
 
   it('counts several interests in the plural', async () => {
     const fixture = await createFixture(userInfo([{id: 1, name: 'Music'}, {id: 2, name: 'Film'}, {id: 3, name: 'Food'}]));
-    expect(summary(fixture.nativeElement)).toBe('German, B1, 3 interests. You can change any of it later.');
+    expect(summary(fixture.nativeElement)).toBe('German, B1, 3 interests. Almo has it noted; change any of it later.');
   });
 });
 

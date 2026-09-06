@@ -13,7 +13,7 @@
           <button class="primary-button" type="button" (click)="startSession()" [disabled]="submitting">{{ submitting ? 'Starting…' : 'Start' }}</button>
         } @else {
           <h1>Nothing is due right now</h1>
-          <p>Your queue is caught up for {{ displayLanguageName }}. Words return when the scheduler has useful work for you.</p>
+          <p>Your queue is caught up for {{ displayLanguageName }}. Almo brings words back when there is useful work in them.</p>
           <a class="primary-button link-button" routerLink="/discover">Find something worth keeping</a>
         }
       </div>

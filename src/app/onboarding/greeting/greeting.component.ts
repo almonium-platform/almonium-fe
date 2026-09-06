@@ -37,7 +37,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
     if (interestCount > 0) {
       parts.push(`${interestCount} ${interestCount === 1 ? 'interest' : 'interests'}`);
     }
-    return `${parts.join(', ')}. You can change any of it later.`;
+    return `${parts.join(', ')}. Almo has it noted; change any of it later.`;
   }
 
   ngOnInit(): void {
