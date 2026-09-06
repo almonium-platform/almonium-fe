@@ -43,6 +43,11 @@ export class OpsComponent implements OnInit {
     reason: ['', [Validators.required]],
   });
 
+  protected limitsForm = this.fb.nonNullable.group({
+    userId: ['', [Validators.required]],
+    reason: [''],
+  });
+
   protected announcementForm = this.fb.nonNullable.group({
     language: new FormControl<BroadcastLanguage | ''>('', {nonNullable: true}),
     text: ['', [Validators.required, Validators.maxLength(5000)]],
@@ -79,6 +84,8 @@ export class OpsComponent implements OnInit {
 
   protected lookingUp = false;
   protected submitting = false;
+  protected resettingQuota = false;
+  protected clearingSwitchCooldown = false;
   protected publishing = false;
   /** A post is irreversible and lands in front of everyone in the room, so it asks twice. */
   protected awaitingPublishConfirmation = false;
@@ -96,6 +103,7 @@ export class OpsComponent implements OnInit {
         next: (result) => {
           this.lookupResult = result;
           this.form.controls.userId.setValue(result.id);
+          this.limitsForm.controls.userId.setValue(result.id);
         },
         error: (error) => {
           this.lookupResult = null;
@@ -153,6 +161,49 @@ export class OpsComponent implements OnInit {
           this.refreshLookup(userId);
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to revoke access grant'), 'negative'),
+      });
+  }
+
+  protected onResetImportQuota(): void {
+    const {userId, reason} = this.limitsForm.getRawValue();
+    if (this.resettingQuota || !userId || !reason.trim()) {
+      this.limitsForm.markAllAsTouched();
+      // The backend refuses a reasonless reset, so say which half is missing rather than let the
+      // request come back as a bare 400.
+      this.notify(userId ? 'A reason is required to reset the quota.' : 'A user ID is required.', 'negative');
+      return;
+    }
+    // The flag goes up with the request, not before it: a dismissed identity prompt would otherwise
+    // leave the button disabled with nothing on the way back to lower it. Both resets are idempotent.
+    this.recentAuthGuardService.guardAction(() => this.performResetImportQuota(userId, reason.trim()), false, 'Reset');
+  }
+
+  private performResetImportQuota(userId: string, reason: string): void {
+    this.resettingQuota = true;
+    this.opsService.resetBookImportQuota(userId, reason)
+      .pipe(finalize(() => this.resettingQuota = false))
+      .subscribe({
+        next: () => this.notify(`Book-import quota reset for ${userId}.`, 'positive'),
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to reset the book-import quota'), 'negative'),
+      });
+  }
+
+  protected onResetLanguageSwitch(): void {
+    const userId = this.limitsForm.controls.userId.value;
+    if (this.clearingSwitchCooldown || !userId) {
+      this.limitsForm.controls.userId.markAsTouched();
+      return;
+    }
+    this.recentAuthGuardService.guardAction(() => this.performResetLanguageSwitch(userId), false, 'Clear');
+  }
+
+  private performResetLanguageSwitch(userId: string): void {
+    this.clearingSwitchCooldown = true;
+    this.opsService.resetActiveLanguageSwitch(userId)
+      .pipe(finalize(() => this.clearingSwitchCooldown = false))
+      .subscribe({
+        next: () => this.notify(`Active-language switch cleared for ${userId}.`, 'positive'),
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to clear the switch cooldown'), 'negative'),
       });
   }
 

@@ -90,6 +90,23 @@ export class OpsService {
   }
 
   /**
+   * Credits back the book imports the user has spent this period. The reason is kept with the
+   * adjustment, which is the only record that the allowance was ever moved.
+   */
+  resetBookImportQuota(userId: string, reason: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/users/${userId}/book-import-quota/reset`;
+    return this.http.post(url, {reason}, {withCredentials: true});
+  }
+
+  /**
+   * Hands back the once-a-month active-language switch, whatever the calendar says.
+   */
+  resetActiveLanguageSwitch(userId: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/users/${userId}/active-language-switch/reset`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  /**
    * Stream users with no row in our database: a dropped database or a half-failed deletion leaves
    * accounts behind that nothing else can notice. Read-only, so it is safe to look.
    */
