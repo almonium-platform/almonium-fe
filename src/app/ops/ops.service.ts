@@ -59,6 +59,37 @@ export interface OpsUserSummary {
   activeGrant: OpsActiveGrant | null;
 }
 
+/** One feature's share of the model bill, from our own ledger. `estimatedUsd` is null when the model has no price. */
+export interface SpendEstimatedLine {
+  source: 'almo' | 'books';
+  feature: string;
+  model: string;
+  requests: number;
+  inputTokens: number;
+  cachedInputTokens: number;
+  outputTokens: number;
+  estimatedUsd: number | null;
+}
+
+/** One day's charge for one line item, as OpenAI billed it. */
+export interface SpendActualLine {
+  day: string;
+  projectId: string;
+  lineItem: string;
+  usd: number;
+}
+
+export interface SpendReport {
+  since: string;
+  until: string;
+  estimated: SpendEstimatedLine[];
+  estimatedUsd: number;
+  actual: SpendActualLine[];
+  actualUsd: number;
+  actualFetchedAt: string | null;
+  warnings: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -68,6 +99,12 @@ export class OpsService {
   /**
    * Looks up a user by email so an operator can find their ID without querying the database directly.
    */
+  /** What the models cost over the last `days` days: our ledgers priced by our table, and the bill itself. */
+  spendReport(days: number): Observable<SpendReport> {
+    const url = `${AppConstants.OPS_URL}/spend`;
+    return this.http.get<SpendReport>(url, {params: {days}, withCredentials: true});
+  }
+
   findUserByEmail(email: string): Observable<OpsUserSummary> {
     const url = `${AppConstants.OPS_URL}/users`;
     return this.http.get<OpsUserSummary>(url, {params: {email}, withCredentials: true});

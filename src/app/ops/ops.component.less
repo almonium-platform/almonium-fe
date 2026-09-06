@@ -562,3 +562,134 @@
     width: 100%;
   }
 }
+
+.ops-card--spend .ops-card__heading--plain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ops-spend__windows {
+  display: flex;
+  flex: 0 0 auto;
+  gap: .35rem;
+}
+
+.ops-button--selected {
+  border-color: color-mix(in srgb, var(--ops-accent) 45%, var(--ops-border));
+  background: color-mix(in srgb, var(--ops-accent) 12%, var(--ops-surface));
+  color: var(--ops-accent);
+}
+
+.ops-spend__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1.25rem 0 .5rem;
+}
+
+.ops-spend__total {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: .85rem;
+  background: var(--ops-soft);
+}
+
+.ops-spend__total strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-spend__total small {
+  color: var(--ops-muted);
+  font-size: .78rem;
+}
+
+.ops-spend__gap--wide {
+  color: var(--ops-danger);
+}
+
+.ops-spend__warnings {
+  margin: .75rem 0 0;
+  padding: .75rem 1rem .75rem 2rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 30%, var(--ops-border));
+  border-radius: .85rem;
+  background: color-mix(in srgb, var(--ops-danger) 6%, var(--ops-surface));
+  color: var(--ops-ink);
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+.ops-spend__subtitle {
+  margin: 1.5rem 0 .5rem;
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ops-muted);
+}
+
+.ops-table-scroll {
+  overflow-x: auto;
+}
+
+.ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-table th,
+.ops-table td {
+  padding: .55rem .6rem;
+  border-bottom: 1px solid var(--ops-border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.ops-table th {
+  color: var(--ops-muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.ops-table__number {
+  text-align: right;
+}
+
+.ops-table td small {
+  color: var(--ops-muted);
+}
+
+.ops-spend__unpriced {
+  color: var(--ops-danger);
+  font-size: .82rem;
+}
+
+.ops-spend__days {
+  margin-top: .75rem;
+}
+
+.ops-spend__days summary {
+  cursor: pointer;
+  color: var(--ops-muted);
+  font-size: .85rem;
+}
+
+@media (max-width: 760px) {
+  .ops-card--spend .ops-card__heading--plain {
+    flex-direction: column;
+  }
+
+  .ops-spend__totals {
+    grid-template-columns: 1fr;
+  }
+}

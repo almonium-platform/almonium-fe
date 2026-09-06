@@ -174,6 +174,161 @@
     </div>
   </section>
 
+  <section class="ops-card ops-card--spend" aria-labelledby="spend-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="spend-title">Model spend</h2>
+        <p>
+          Two views of the same money. The estimate is our own token ledger priced by the table in the backend
+          config, so it knows which feature spent what. The bill is what OpenAI charged, which knows only project and
+          line item. When the gap grows, the price table is stale.
+        </p>
+      </div>
+      <div class="ops-spend__windows" role="group" aria-label="Window">
+        @for (days of spendWindows; track days) {
+          <button
+            class="ops-button ops-button--quiet"
+            [class.ops-button--selected]="days === spendDays"
+            type="button"
+            [disabled]="loadingSpend"
+            [attr.aria-pressed]="days === spendDays"
+            (click)="onSpendWindow(days)"
+          >
+            {{ days }} days
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (spendError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ spendError }}</span>
+      </div>
+    } @else if (!spend) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-spend__totals" aria-live="polite">
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Estimated</span>
+          <strong>{{ spend.estimatedUsd | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Billed</span>
+          @if (spend.actualFetchedAt) {
+            <strong>{{ spend.actualUsd | currency:'USD':'symbol':'1.2-2' }}</strong>
+            <small>as of {{ spend.actualFetchedAt | date:'MMM d, HH:mm' }}</small>
+          } @else {
+            <strong>—</strong>
+          }
+        </div>
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Gap</span>
+          @if (spendGap !== null) {
+            <strong [class.ops-spend__gap--wide]="spendGapWide">
+              {{ spendGap | currency:'USD':'symbol':'1.2-2' }}
+            </strong>
+          } @else {
+            <strong>—</strong>
+          }
+        </div>
+      </div>
+
+      @if (spend.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of spend.warnings; track warning) {
+            <li>{{ warning }}</li>
+          }
+        </ul>
+      }
+
+      <h3 class="ops-spend__subtitle">Estimated, by feature</h3>
+      @if (spend.estimated.length) {
+        <div class="ops-table-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th scope="col">Feature</th>
+                <th scope="col">Model</th>
+                <th scope="col" class="ops-table__number">Requests</th>
+                <th scope="col" class="ops-table__number">Input tokens</th>
+                <th scope="col" class="ops-table__number">Output tokens</th>
+                <th scope="col" class="ops-table__number">USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of spend.estimated; track line.source + line.feature + line.model) {
+                <tr>
+                  <td>{{ spendFeatureLabel(line) }}</td>
+                  <td><code>{{ line.model }}</code></td>
+                  <td class="ops-table__number">{{ line.requests | number }}</td>
+                  <td class="ops-table__number">
+                    {{ line.inputTokens | number }}
+                    @if (line.cachedInputTokens) {
+                      <small>({{ line.cachedInputTokens | number }} cached)</small>
+                    }
+                  </td>
+                  <td class="ops-table__number">{{ line.outputTokens | number }}</td>
+                  <td class="ops-table__number">
+                    @if (line.estimatedUsd !== null) {
+                      {{ line.estimatedUsd | currency:'USD':'symbol':'1.2-4' }}
+                    } @else {
+                      <span class="ops-spend__unpriced" title="No price configured for this model">unpriced</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">No model calls in this window.</p>
+      }
+
+      <h3 class="ops-spend__subtitle">Billed, by line item</h3>
+      @if (spendByLineItem.length) {
+        <div class="ops-table-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th scope="col">Project</th>
+                <th scope="col">Line item</th>
+                <th scope="col" class="ops-table__number">USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (total of spendByLineItem; track total.projectId + total.lineItem) {
+                <tr>
+                  <td><code>{{ total.projectId || '—' }}</code></td>
+                  <td>{{ total.lineItem }}</td>
+                  <td class="ops-table__number">{{ total.usd | currency:'USD':'symbol':'1.2-4' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <details class="ops-spend__days">
+          <summary>By day</summary>
+          <div class="ops-table-scroll">
+            <table class="ops-table">
+              <tbody>
+                @for (row of spendByDay; track row.day) {
+                  <tr>
+                    <td>{{ row.day | date:'EEE, MMM d' }}</td>
+                    <td class="ops-table__number">{{ row.usd | currency:'USD':'symbol':'1.2-4' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </details>
+      } @else if (spend.actualFetchedAt) {
+        <p class="ops-maintenance__more">OpenAI has billed nothing in this window yet. The bill lags by hours.</p>
+      }
+    }
+  </section>
+
   <section class="ops-card ops-card--announce" aria-labelledby="announce-title">
     <div class="ops-card__heading ops-card__heading--plain">
       <div>

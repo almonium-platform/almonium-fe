@@ -1,5 +1,5 @@
 import {Component, OnInit, inject} from '@angular/core';
-import {DatePipe} from '@angular/common';
+import {CurrencyPipe, DatePipe, DecimalPipe} from '@angular/common';
 import {FormBuilder, FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {finalize} from 'rxjs';
@@ -14,11 +14,30 @@ import {
   Entitlement,
   OpsService,
   OpsUserSummary,
+  SpendActualLine,
+  SpendEstimatedLine,
+  SpendReport,
 } from './ops.service';
+
+/** The ledgers name features by their internal purpose; the page names them for a reader. */
+const SPEND_FEATURE_LABELS: Record<string, string> = {
+  chat: 'Almo chat',
+  translation: 'Book translation',
+  literary_translation: 'Book translation',
+  alignment_adjudication: 'Book alignment',
+  import_metadata: 'Import metadata',
+};
+
+/** Charges summed over the window for one line item of one project. */
+export interface SpendLineItemTotal {
+  projectId: string;
+  lineItem: string;
+  usd: number;
+}
 
 @Component({
   selector: 'app-ops',
-  imports: [ReactiveFormsModule, RecentAuthGuardComponent, DatePipe],
+  imports: [ReactiveFormsModule, RecentAuthGuardComponent, DatePipe, DecimalPipe, CurrencyPipe],
   templateUrl: './ops.component.html',
   styleUrl: './ops.component.less',
 })
@@ -81,6 +100,14 @@ export class OpsComponent implements OnInit {
   protected awaitingPurgeConfirmation = false;
   protected syncingArtwork = false;
   protected provisioningAccounts = false;
+
+  protected readonly spendWindows = [7, 30, 90];
+  protected spendDays = 30;
+  protected spend: SpendReport | null = null;
+  protected spendByLineItem: SpendLineItemTotal[] = [];
+  protected spendByDay: {day: string; usd: number}[] = [];
+  protected loadingSpend = false;
+  protected spendError = '';
 
   protected lookingUp = false;
   protected submitting = false;
@@ -251,6 +278,8 @@ export class OpsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadSpend();
+
     // The backend names the environment in the phrase, so the console shows what it will accept
     // rather than guessing: a client pointed at a different backend than you assume is exactly the
     // mistake this is here to catch.
@@ -424,6 +453,70 @@ export class OpsComponent implements OnInit {
       return;
     }
     this.opsService.findUserByEmail(this.lookupResult.email).subscribe((result) => this.lookupResult = result);
+  }
+
+  protected onSpendWindow(days: number): void {
+    if (this.loadingSpend || days === this.spendDays) {
+      return;
+    }
+    this.spendDays = days;
+    this.loadSpend();
+  }
+
+  protected loadSpend(): void {
+    this.loadingSpend = true;
+    this.spendError = '';
+    this.opsService.spendReport(this.spendDays)
+      .pipe(finalize(() => this.loadingSpend = false))
+      .subscribe({
+        next: (report) => {
+          this.spend = report;
+          this.spendByLineItem = this.sumByLineItem(report.actual);
+          this.spendByDay = this.sumByDay(report.actual);
+        },
+        error: (error) => {
+          this.spend = null;
+          this.spendError = getErrorMessage(error, 'The spend report could not be loaded');
+        },
+      });
+  }
+
+  /** Billed minus estimated: positive means the price table undercounts, negative that it overcounts. */
+  protected get spendGap(): number | null {
+    const spend = this.spend;
+    if (!spend?.actualFetchedAt) {
+      return null;
+    }
+    return spend.actualUsd - spend.estimatedUsd;
+  }
+
+  /** A tenth off is more than rounding: the price table, or a feature outside both ledgers. */
+  protected get spendGapWide(): boolean {
+    const gap = this.spendGap;
+    return gap !== null && Math.abs(gap) > (this.spend?.estimatedUsd ?? 0) * 0.1;
+  }
+
+  protected spendFeatureLabel(line: SpendEstimatedLine): string {
+    return SPEND_FEATURE_LABELS[line.feature] ?? line.feature.replace(/_/g, ' ');
+  }
+
+  private sumByLineItem(lines: SpendActualLine[]): SpendLineItemTotal[] {
+    const totals = new Map<string, SpendLineItemTotal>();
+    for (const line of lines) {
+      const key = `${line.projectId}\u0000${line.lineItem}`;
+      const total = totals.get(key) ?? {projectId: line.projectId, lineItem: line.lineItem, usd: 0};
+      total.usd += line.usd;
+      totals.set(key, total);
+    }
+    return [...totals.values()].sort((a, b) => b.usd - a.usd);
+  }
+
+  private sumByDay(lines: SpendActualLine[]): {day: string; usd: number}[] {
+    const totals = new Map<string, number>();
+    for (const line of lines) {
+      totals.set(line.day, (totals.get(line.day) ?? 0) + line.usd);
+    }
+    return [...totals.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([day, usd]) => ({day, usd}));
   }
 
   private notify(message: string, appearance: 'positive' | 'negative'): void {
