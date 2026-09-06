@@ -10,6 +10,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {BehaviorSubject, finalize, forkJoin, of, switchMap} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AvatarComponent} from '../../../shared/avatar/avatar.component';
+import {PremiumStarComponent} from '../../../shared/premium-star/premium-star.component';
 import {SharedWordComponent} from '../shared-word/shared-word.component';
 import {SharedFooterComponent} from '../shared-footer/shared-footer.component';
 import {DeadLinkComponent} from '../dead-link/dead-link.component';
@@ -31,7 +32,7 @@ type CardPanel = 'none' | 'sign-up' | 'add' | 'added' | 'held' | 'owner' | 'wron
   selector: 'app-shared-card',
   templateUrl: './shared-card.component.html',
   styleUrls: ['./shared-card.component.less'],
-  imports: [RouterLink, AsyncPipe, AvatarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent],
+  imports: [RouterLink, AsyncPipe, AvatarComponent, PremiumStarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent],
 })
 export class SharedCardComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);

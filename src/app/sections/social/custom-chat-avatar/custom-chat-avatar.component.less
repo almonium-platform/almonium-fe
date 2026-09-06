@@ -40,45 +40,6 @@
 }
 
 /*
- * 08: the member ring. The disc keeps the size it has in every other row and the ring is drawn
- * around it, out of the space between the avatar and the name, so nothing in the row reflows and
- * no avatar in the column is smaller than its neighbours.
- */
-:host(.premium-ring) {
-  --premium-ring-width: 2px;
-  /* ring plus the gap inside it */
-  --premium-ring-inset: 4px;
-
-  display: inline-grid;
-  position: relative;
-  /* Its own stacking context, so the two rings behind the disc stay in front of the row. */
-  z-index: 0;
-}
-
-:host(.premium-ring)::before,
-:host(.premium-ring)::after {
-  border-radius: 50%;
-  content: '';
-  position: absolute;
-  z-index: -1;
-}
-
-:host(.premium-ring)::before {
-  background: var(--premium-gradient);
-  inset: calc(var(--premium-ring-inset) * -1);
-}
-
-/*
- * The gap is the row showing through, and the selected row's tint is translucent on dark, so it
- * is painted as a layer over the list's own ground rather than as a flat colour of its own.
- */
-:host(.premium-ring)::after {
-  background-color: var(--card-color);
-  background-image: linear-gradient(var(--avatar-ring-gap, transparent), var(--avatar-ring-gap, transparent));
-  inset: calc((var(--premium-ring-inset) - var(--premium-ring-width)) * -1);
-}
-
-/*
  * 03: the app's own channels. Every avatar in the column is this one disc and only the fill
  * changes, so neither of these ever goes transparent and neither carries two marks. The
  * composed `logo-XX` artwork the channel data points at is drawn for 64px and up - its badge is

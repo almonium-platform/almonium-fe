@@ -8,6 +8,7 @@ import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMa
 import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus, UserSearchResult} from "./social.model";
 import {LanguageNameService} from "../../services/language-name.service";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
+import {PremiumStarComponent} from '../../shared/premium-star/premium-star.component';
 import {TuiDataList, TuiIcon, TuiNotificationService, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
 import {TuiDropdownDirective, TuiDropdownManual, TuiDropdownOptionsDirective, TuiHintDirective} from "@taiga-ui/core/portals";
 import {DatePipe, NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
@@ -80,6 +81,7 @@ interface MessageHit {
   imports: [
     ReactiveFormsModule,
     AvatarComponent,
+    PremiumStarComponent,
     SharedLucideIconsModule,
     NgClass,
     TuiSegmented,

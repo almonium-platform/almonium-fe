@@ -248,8 +248,6 @@
                      (focusin)="togglePreviewCard(channel, location)"
                 >
 
-                  <!-- 08: the member ring is for people, and never in the rail, where the plum
-                       selection ring is already on those pixels. -->
                   <app-custom-chat-avatar
                     class="custom-chat-avatar"
                     [type]="type"
@@ -258,7 +256,6 @@
                     [name]="name"
                     [imageUrl]="imageUrl"
                     [location]="location"
-                    [premium]="!sidebar.isCollapsed && channels.isInterlocutorPremium(channel)"
                     [tuiHint]="sidebar.isCollapsed ? name : ''"
                     tuiHintAppearance="dark"
                     tuiHintDirection="end"
@@ -471,11 +468,15 @@
 
                   <div class="str-chat__channel-preview-end-first-row">
                     <div class="str-chat__channel-preview-messenger--name">
-                                  <!-- 10: a name in muted ink is a name nobody answers to any more. -->
-                                  <span data-testid="channel-preview-title"
-                                        [class.deleted-account]="channels.isInterlocutorDeleted(channel)">
-                                    {{ channels.name(channel, channelDisplayTitle) }}
-                                  </span>
+                      <!-- 10: a name in muted ink is a name nobody answers to any more. -->
+                      <span data-testid="channel-preview-title"
+                            [class.deleted-account]="channels.isInterlocutorDeleted(channel)">
+                        {{ channels.name(channel, channelDisplayTitle) }}
+                      </span>
+                      <!-- 08: the member mark. The row prints a name, so the star follows it. -->
+                      @if (channels.isInterlocutorPremium(channel)) {
+                        <app-premium-star />
+                      }
                     </div>
                     @if (latestMessageTime) {
                       <div
@@ -649,12 +650,16 @@
           <app-avatar [avatarUrl]="candidate.avatarUrl"
                       [username]="candidate.username"
                       [premium]="candidate.premium"
-                      [ring]="true"
                       [hashed]="true"
                       [size]="'m'"
           ></app-avatar>
           <span class="tile-body">
-            <span class="username">{{ candidate.username }}</span>
+            <span class="username-line">
+              <span class="username">{{ candidate.username }}</span>
+              @if (candidate.premium) {
+                <app-premium-star />
+              }
+            </span>
             <!-- A friend has already said what they are; everyone else is what they study. -->
             @if (personSubtitle(candidate, candidateState(candidate)); as subtitle) {
               <span class="person-subtitle">{{ subtitle }}</span>
@@ -814,11 +819,17 @@
                       <app-avatar [avatarUrl]="friend.avatarUrl"
                                   [username]="friend.username"
                                   [premium]="friend.premium"
-                                  [ring]="true"
                                   [hashed]="true"
                                   [size]="'m'"
                       ></app-avatar>
-                      <span class="tile-body"><span class="username">{{ friend.username }}</span></span>
+                      <span class="tile-body">
+                        <span class="username-line">
+                          <span class="username">{{ friend.username }}</span>
+                          @if (friend.premium) {
+                            <app-premium-star />
+                          }
+                        </span>
+                      </span>
 
                       @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
                         <lucide-icon name="loader-circle"
@@ -848,11 +859,17 @@
                       <app-avatar [avatarUrl]="friend.avatarUrl"
                                   [username]="friend.username"
                                   [premium]="friend.premium"
-                                  [ring]="true"
                                   [hashed]="true"
                                   [size]="'m'"
                       ></app-avatar>
-                      <span class="tile-body"><span class="username">{{ friend.username }}</span></span>
+                      <span class="tile-body">
+                        <span class="username-line">
+                          <span class="username">{{ friend.username }}</span>
+                          @if (friend.premium) {
+                            <app-premium-star />
+                          }
+                        </span>
+                      </span>
 
                       @if (cancelInProgressIds.has(friend.relationshipId)) {
                         <lucide-icon name="loader-circle"
@@ -873,12 +890,16 @@
                   <app-avatar [avatarUrl]="friend.avatarUrl"
                               [username]="friend.username"
                               [premium]="friend.premium"
-                              [ring]="true"
                               [hashed]="true"
                               [size]="'m'"
                   ></app-avatar>
                   <span class="tile-body">
-                    <span class="username">{{ friend.username }}</span>
+                    <span class="username-line">
+                      <span class="username">{{ friend.username }}</span>
+                      @if (friend.premium) {
+                        <app-premium-star />
+                      }
+                    </span>
                     @if (peopleMode === 'friends' && personSubtitle(friend); as subtitle) {
                       <span class="person-subtitle">{{ subtitle }}</span>
                     }

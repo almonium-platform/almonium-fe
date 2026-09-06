@@ -147,8 +147,6 @@
     // selected chat preview
     background-color: var(--chat-selected-color);
     color: var(--text-color);
-    // 08: the gap inside a member ring is whatever the row itself is painted with.
-    --avatar-ring-gap: var(--chat-selected-color);
 
     .muted-icon {
       color: var(--text-color);
@@ -157,7 +155,6 @@
     // Ensure hover does not affect active state
     &:hover {
       background-color: var(--chat-selected-color) !important;
-      --avatar-ring-gap: var(--chat-selected-color);
     }
 
     .str-chat__icon {
@@ -179,7 +176,6 @@
 
   &:hover {
     background-color: var(--gray-bg);
-    --avatar-ring-gap: var(--gray-bg);
 
     .online-indicator-buffer {
       background-color: var(--gray-bg);

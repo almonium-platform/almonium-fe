@@ -1,6 +1,7 @@
 import {Component, HostBinding, Input} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
+import {PremiumStarComponent} from '../premium-star/premium-star.component';
 import {avatarHueToken, avatarImageUrl, avatarLetter, isDefaultAvatar, schematicAvatarUrl, usesSchematic} from './avatar-display';
 
 /** The disc each Taiga size draws, in rem; `sizeInRem` overrides it. */
@@ -33,10 +34,15 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
         <img [src]="displayAvatarUrl" alt="" />
       }
     </span>
+
+    @if (memberStar) {
+      <app-premium-star class="corner-star" label="Premium member" />
+    }
   `,
   imports: [
     TuiAvatar,
-    TuiSkeleton
+    TuiSkeleton,
+    PremiumStarComponent
   ],
   styles: [`
     /* The mark is the first letter of the username in Literata 600, per the type scale --
@@ -101,25 +107,28 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
       -webkit-background-clip: text;
     }
 
-    /* Tier beside other people is a ring, not a star. Never on your own profile, where the plan card says it. */
-    :host(.premium-ring) {
+    /*
+     * Tier beside other people is the star, never a ring: a gradient ring around a disc is the
+     * most-learned avatar gesture there is and it means "unseen story", not "member".
+     *
+     * On an avatar the star is seated in the corner, and only where the disc is large enough to
+     * spare one - the profile card's 96px. Anywhere a name is printed the star follows the name
+     * instead, and no card carries both. Never on your own avatar, where the plan card says it.
+     */
+    :host(.premium-star-host) {
       position: relative;
       display: inline-grid;
-      padding: 3px;
-      border-radius: 50%;
-      background: var(--premium-gradient);
     }
 
-    :host(.premium-ring)::before {
+    :host .corner-star {
+      --premium-star-size: 1.75rem;
+      --premium-star-glyph: .875rem;
+      /* The keyline is the surface behind the avatar, so the star reads as sitting on top of it. */
+      --premium-star-keyline: 0 0 0 2px var(--avatar-star-keyline, var(--card-color));
+
       position: absolute;
-      background: var(--avatar-ring-gap, var(--card-color));
-      border-radius: 50%;
-      content: '';
-      inset: 2px;
-    }
-
-    :host(.premium-ring) .avatar-disc {
-      position: relative;
+      right: -.125rem;
+      bottom: -.125rem;
     }
   `],
 })
@@ -130,8 +139,11 @@ export class AvatarComponent {
   @Input() size: 'xs' | 's' | 'm' | 'l' | 'xl' | 'xxl' = 'm';
   @Input() sizeInRem: number | null = null;
   @Input() loading = false;
-  /** Draw the member ring. Only where someone else is looking — a people list, a profile card. */
-  @Input() ring = false;
+  /**
+   * Seat the member star in the avatar's corner. Only on a disc large enough to hold it - the
+   * profile card - and only where no name is printed beside it to carry the star instead.
+   */
+  @Input() star = false;
   /**
    * 28c: take the hashed identity hue instead of the plain ground. Opt-in, and only from a
    * surface that draws several avatars at once and needs the tint to sort them - a chat list, a
@@ -139,9 +151,9 @@ export class AvatarComponent {
    */
   @Input() hashed = false;
 
-  @HostBinding('class.premium-ring')
-  get memberRing(): boolean {
-    return this.ring && this.premium;
+  @HostBinding('class.premium-star-host')
+  get memberStar(): boolean {
+    return this.star && this.premium;
   }
 
   get letter(): string {

@@ -81,12 +81,12 @@ export class SocialChannelFacade {
   }
 
   /**
-   * Membership is a field on the Stream user, so the chat list can ring a member's avatar without
-   * a request of its own - and without the person having to be a friend.
+   * Membership is a field on the Stream user, so the chat list can mark a member's row without a
+   * request of its own - and without the person having to be a friend.
    *
-   * Stream hands the avatar template a channel only where the avatar stands for one. A message
-   * sender, a header, a typing indicator all arrive with `channel` undefined, and this binding is
-   * read on every change detection, so an absent channel has to mean "no ring" rather than a throw.
+   * The mark is the star after the row's name; a ring around the disc would say "unseen story".
+   * Stream hands the row template a channel only where the row stands for one, and this binding
+   * is read on every change detection, so an absent channel has to mean "no mark", not a throw.
    */
   isInterlocutorPremium(channel: Channel | undefined): boolean {
     if (!channel || !this.isPrivate(channel) || this.isInterlocutorDeleted(channel)) return false;

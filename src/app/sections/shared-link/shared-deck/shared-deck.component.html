@@ -34,16 +34,14 @@
           }
           @if (view.sharer && panel !== 'owner') {
             <div class="attribution">
-              <app-avatar [avatarUrl]="view.sharer.avatarUrl" [username]="view.sharer.username" [premium]="view.sharer.premium" [ring]="true" size="xs"></app-avatar>
+              <app-avatar [avatarUrl]="view.sharer.avatarUrl" [username]="view.sharer.username" [premium]="view.sharer.premium" size="xs"></app-avatar>
               @if (sharerProfileLink; as link) {
                 <a [routerLink]="link">{{ view.sharer.username }}</a>
               } @else {
                 <span>{{ view.sharer.username }}</span>
               }
               @if (view.sharer.premium) {
-                <span class="premium-star" role="img" aria-label="Member">
-                  <svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"></path></svg>
-                </span>
+                <app-premium-star />
               }
             </div>
           }

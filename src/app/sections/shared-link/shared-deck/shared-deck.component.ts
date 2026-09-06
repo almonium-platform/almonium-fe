@@ -22,6 +22,7 @@ import {AsyncPipe} from '@angular/common';
 import {BehaviorSubject, finalize, forkJoin, of, switchMap} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {AvatarComponent} from '../../../shared/avatar/avatar.component';
+import {PremiumStarComponent} from '../../../shared/premium-star/premium-star.component';
 import {SharedWordComponent} from '../shared-word/shared-word.component';
 import {SharedFooterComponent} from '../shared-footer/shared-footer.component';
 import {DeadLinkComponent} from '../dead-link/dead-link.component';
@@ -58,7 +59,7 @@ type DeckPanel =
   selector: 'app-shared-deck',
   templateUrl: './shared-deck.component.html',
   styleUrls: ['./shared-deck.component.less'],
-  imports: [RouterLink, AsyncPipe, AvatarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent, DeckShareSheetComponent],
+  imports: [RouterLink, AsyncPipe, AvatarComponent, PremiumStarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent, DeckShareSheetComponent],
 })
 export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
   private route = inject(ActivatedRoute);

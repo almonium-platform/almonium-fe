@@ -15,20 +15,13 @@
         [username]="profile.username"
         [avatarUrl]="profile.avatarUrl"
         [premium]="profile.isPremium"
-        [ring]="true"
-        [sizeInRem]="3.25"
+        [star]="true"
+        [sizeInRem]="6"
       ></app-avatar>
 
       <div class="identity">
         <div class="username-row">
           <h2>{{ profile.username }}</h2>
-          @if (profile.isPremium) {
-            <span class="premium-star" role="img" aria-label="Premium member">
-              <svg viewBox="0 0 24 24" width="10" height="10" aria-hidden="true">
-                <path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z" />
-              </svg>
-            </span>
-          }
         </div>
         @if (connectionSummary; as summary) {
           <p class="connection-summary">{{ summary }}</p>
@@ -174,7 +167,7 @@
     </footer>
   } @else {
     <header class="profile-header loading-profile">
-      <app-avatar [sizeInRem]="3.25" [loading]="true"></app-avatar>
+      <app-avatar [sizeInRem]="6" [loading]="true"></app-avatar>
       <div class="identity">
         <span class="loading-line title" [tuiSkeleton]="true">Loading username</span>
         <span class="loading-line" [tuiSkeleton]="true">Loading profile</span>
