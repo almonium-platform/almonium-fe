@@ -15,7 +15,7 @@ import {isAlmoChannel} from '../../social/almo/almo-channel';
 export type ChannelMark =
   | {kind: 'emblem'}
   | {kind: 'crest'; code: string}
-  // 11: the one place Almo sits in a disc, because every contact's slot is one. Rest pose, no ring.
+  // 11: the one place Almo sits in a disc, because every contact's slot is one. Canon pose, no ring.
   | {kind: 'almo'};
 
 /** Stream ids: the app-wide room is `almonium`, a language room `almonium-<code>`. */
