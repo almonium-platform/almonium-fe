@@ -7,6 +7,11 @@
     30c / 32: every tile is a pair - the engraving at 62px above, the schematic at 24px below -
     because the small one is what people will mostly see. One tap selects both; the ring wraps
     both. Onboarding draws this same row, with no preview circle: the engraving is the preview.
+
+    33: the selected tile is the only place on your own pages that wears the member star, and it
+    wears it in the corner of the engraving, because that is where other readers will see it -
+    the row is a preview of how you appear, not another badge for a tier you already know you
+    hold. The schematic below stays bare: beside a name the star follows the name.
   -->
   <div class="tile-row" role="group" aria-label="How you appear">
     <button
@@ -18,7 +23,12 @@
       aria-label="Use your letter"
       [attr.aria-pressed]="!userInfo.avatarUrl"
     >
-      <span class="disc disc-large avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
+      <span class="engraving">
+        <span class="disc disc-large avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
+        @if (userInfo.premium && !userInfo.avatarUrl) {
+          <app-premium-star class="corner-star" label="Premium member" />
+        }
+      </span>
       <span class="disc disc-small avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
     </button>
 
@@ -32,11 +42,16 @@
         [attr.aria-label]="'Use the ' + choice.label + ' drawing'"
         [attr.aria-pressed]="isSelected(choice)"
       >
-        <span class="disc disc-large avatar-plate">
-          @if (userInfo.premium) {
-            <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
-          } @else {
-            <img [src]="displayChoiceUrl(choice)" alt="" />
+        <span class="engraving">
+          <span class="disc disc-large avatar-plate">
+            @if (userInfo.premium) {
+              <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+            } @else {
+              <img [src]="displayChoiceUrl(choice)" alt="" />
+            }
+          </span>
+          @if (userInfo.premium && isSelected(choice)) {
+            <app-premium-star class="corner-star" label="Premium member" />
           }
         </span>
         <span class="disc disc-small avatar-plate">

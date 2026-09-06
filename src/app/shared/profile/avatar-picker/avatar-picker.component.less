@@ -53,6 +53,24 @@ button {
   height: 1.5rem;
 }
 
+/* The engraving carries the corner star, so it needs a box the star can hang off; the disc
+   itself clips its artwork to the circle and would clip the star with it. */
+.engraving {
+  position: relative;
+  display: inline-grid;
+}
+
+/* One star, one size - 16px, the same mark the profile card seats in the corner of its disc.
+   The keyline is the card behind the tile, so the star reads as sitting over the selection ring
+   rather than being fenced in by it. */
+.engraving .corner-star {
+  --premium-star-keyline: 0 0 0 2px var(--card-color);
+
+  position: absolute;
+  right: -.125rem;
+  bottom: -.125rem;
+}
+
 /* Selection is a ring, and it wraps both discs: no bold caption, no check mark, no name. */
 .tile.selected .disc-large {
   box-shadow: 0 0 0 2px var(--card-color), 0 0 0 4px var(--brand-primary);

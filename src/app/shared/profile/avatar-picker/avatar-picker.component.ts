@@ -4,6 +4,7 @@ import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../models/userinfo.model';
 import {UserInfoService} from '../../../services/user-info.service';
 import {avatarLetter, schematicAvatarUrl} from '../../avatar/avatar-display';
+import {PremiumStarComponent} from '../../premium-star/premium-star.component';
 import {ProfileSettingsService} from '../../../sections/settings/profile/profile-settings.service';
 
 interface AvatarChoice {
@@ -24,6 +25,7 @@ interface AvatarChoice {
   selector: 'app-avatar-picker',
   templateUrl: './avatar-picker.component.html',
   styleUrl: './avatar-picker.component.less',
+  imports: [PremiumStarComponent],
 })
 export class AvatarPickerComponent {
   private readonly document = inject(DOCUMENT);
