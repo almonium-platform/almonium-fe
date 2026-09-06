@@ -1,13 +1,13 @@
 import {logger} from "./shared/logger";
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {DowngradePickComponent} from './shared/downgrade-pick/downgrade-pick.component';
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {UrlService} from "./services/url.service";
-import {StreamI18nService, ThemeService} from "stream-chat-angular";
+import {StreamI18nService} from "stream-chat-angular";
 import {EN_CODE, STREAM_CHAT_TRANSLATIONS} from "./sections/social/i18n";
 import {FirebaseNotificationService} from "./services/firebase-notification.service";
 import {filter} from "rxjs";
@@ -16,10 +16,7 @@ import {environment} from '../environments/environment'
 import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {LocalStorageService} from './services/local-storage.service';
-import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
-import {applyThemeAssets} from './services/theme-assets';
-import {applyMotionPreference, resolveReducedMotion} from './services/motion-preference';
+import {AppearanceService} from './services/appearance.service';
 
 // Declare gtag function to make TypeScript aware of it globally
 declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
@@ -40,11 +37,7 @@ export class AppComponent implements OnInit {
   private timerMonitorService = inject(TimerMonitorService);
   private userInfoService = inject(UserInfoService);
   private destroyRef = inject(DestroyRef);
-  private localStorageService = inject(LocalStorageService);
-  private taigaDarkMode = inject(TUI_DARK_MODE);
-  private streamThemeService = inject(ThemeService);
-  private systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
-  private systemMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  private appearanceService = inject(AppearanceService);
 
   title = 'almonium-fe';
   protected showNavbar = false;
@@ -69,31 +62,24 @@ export class AppComponent implements OnInit {
   private measurementId = environment.googleAnalyticsId;
 
   constructor() {
-    this.applyDisplayPreferences();
-    const syncSystemTheme = () => this.applyDisplayPreferences();
-    this.systemTheme.addEventListener('change', syncSystemTheme);
-    this.systemMotion.addEventListener('change', syncSystemTheme);
+    this.appearanceService.apply();
+    const stopFollowingSystem = this.appearanceService.followSystem();
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
     this.timerMonitorService.startMonitoring();
     this.destroyRef.onDestroy(() => {
       this.timerMonitorService.stopMonitoring();
-      this.systemTheme.removeEventListener('change', syncSystemTheme);
-      this.systemMotion.removeEventListener('change', syncSystemTheme);
+      stopFollowingSystem();
     });
   }
 
-  private applyDisplayPreferences(): void {
-    const preferences = this.localStorageService.getItem<{appearance?: 'light' | 'dark' | 'system'; reduceMotion?: boolean}>('app_preferences');
-    const root = document.documentElement;
-    const isDark = preferences?.appearance === 'dark' || (preferences?.appearance !== 'light' && this.systemTheme.matches);
-    root.dataset['theme'] = preferences?.appearance ?? 'system';
-    applyMotionPreference(root, resolveReducedMotion(preferences, this.systemMotion));
-    root.style.colorScheme = preferences?.appearance === 'dark' ? 'dark' : preferences?.appearance === 'light' ? 'light' : 'light dark';
-    this.taigaDarkMode.set(isDark);
-    this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
-    applyThemeAssets(isDark);
+  /** Ctrl/Cmd+Shift+L flips light and dark from any page, inputs included: the chord types nothing. */
+  @HostListener('window:keydown', ['$event'])
+  handleAppearanceShortcut(event: KeyboardEvent): void {
+    if (!AppearanceService.isToggleShortcut(event)) return;
+    event.preventDefault();
+    this.appearanceService.toggle();
   }
 
   ngOnInit(): void {

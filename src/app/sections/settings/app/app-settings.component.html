@@ -6,7 +6,7 @@
       <section class="section-block card">
         <div class="eyebrow">Appearance</div>
         <div class="setting-line">
-          <span>Theme</span>
+          <span><strong>Theme</strong><small><kbd>{{ appearanceShortcut }}</kbd> switches between light and dark from any page.</small></span>
           <div class="segmented" role="group" aria-label="Theme">
             @for (theme of ['light', 'dark', 'system']; track theme) {
               <button type="button" [class.active]="appearance === theme" (click)="appearance = $any(theme); saveLocalPreferences()">{{ theme }}</button>

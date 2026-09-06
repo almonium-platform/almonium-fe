@@ -2,7 +2,7 @@ import {logger} from "../../../shared/logger";
 import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, of, Subject, take, takeUntil} from "rxjs";
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
   DEFAULT_UI_PREFERENCES,
@@ -18,10 +18,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {catchError} from "rxjs/operators";
-import {TUI_DARK_MODE} from '@taiga-ui/core/tokens';
-import {ThemeService} from 'stream-chat-angular';
-import {applyThemeAssets} from '../../../services/theme-assets';
-import {applyMotionPreference, resolveReducedMotion} from '../../../services/motion-preference';
+import {resolveReducedMotion} from '../../../services/motion-preference';
+import {Appearance, AppearanceService} from '../../../services/appearance.service';
 
 @Component({
   selector: 'app-app-settings',
@@ -36,15 +34,14 @@ import {applyMotionPreference, resolveReducedMotion} from '../../../services/mot
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
-  private static readonly APP_PREFERENCES_KEY = 'app_preferences';
+  private static readonly APP_PREFERENCES_KEY = AppearanceService.PREFERENCES_KEY;
   private profileSettingsService = inject(ProfileSettingsService);
   private userInfoService = inject(UserInfoService);
   private localStorageService = inject(LocalStorageService);
   private supportedLanguagesService = inject(SupportedLanguagesService);
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private alertService = inject(TuiNotificationService);
-  private taigaDarkMode = inject(TUI_DARK_MODE);
-  private streamThemeService = inject(ThemeService);
+  private appearanceService = inject(AppearanceService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -53,7 +50,8 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
   uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
   protected notifications: NotificationPreferences = {...DEFAULT_NOTIFICATION_PREFERENCES};
-  protected appearance: 'light' | 'dark' | 'system' = 'system';
+  protected appearance: Appearance = 'system';
+  protected readonly appearanceShortcut = AppearanceService.SHORTCUT_LABEL;
   protected reduceMotion = false;
   protected dailyReview = false;
   protected dailyReviewTime = '19:00';
@@ -63,7 +61,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const localPreferences = this.localStorageService.getItem<{
-      appearance?: 'light' | 'dark' | 'system';
+      appearance?: Appearance;
       reduceMotion?: boolean;
       dailyReview?: boolean;
       dailyReviewTime?: string;
@@ -77,7 +75,8 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.dailyReview = localPreferences?.dailyReview ?? false;
     this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
     this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
-    this.applyAppearancePreferences();
+    // The shortcut can flip the theme while this page is open; the control follows.
+    this.appearanceService.appearance$.pipe(takeUntil(this.destroy$)).subscribe(appearance => this.appearance = appearance);
 
     this.userInfoService.userInfo$
       .pipe(take(1)) // Only listen to the first emission
@@ -140,18 +139,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
       dailyReviewTime: this.dailyReviewTime,
       weeklyEmail: this.weeklyEmail,
     });
-    this.applyAppearancePreferences();
-  }
-
-  private applyAppearancePreferences(): void {
-    const root = document.documentElement;
-    const isDark = this.appearance === 'dark' || (this.appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    root.dataset['theme'] = this.appearance;
-    applyMotionPreference(root, this.reduceMotion);
-    root.style.colorScheme = this.appearance === 'system' ? 'light dark' : this.appearance;
-    this.taigaDarkMode.set(isDark);
-    this.streamThemeService.theme$.next(isDark ? 'dark' : 'light');
-    applyThemeAssets(isDark);
+    this.appearanceService.apply();
   }
 
   protected clearOfflineBooks() {
