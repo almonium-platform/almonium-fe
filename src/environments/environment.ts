@@ -9,7 +9,6 @@ export const environment = {
     apiKey: "AIzaSyCQbbBZzwOcG5p91bldcsL4hQCPbK9ywUo",
     authDomain: "almonium-dev.firebaseapp.com",
     projectId: "almonium-dev",
-    storageBucket: "almonium-dev.firebasestorage.app",
     messagingSenderId: "767352091621",
     appId: "1:767352091621:web:47c3b5263f23267a01b50c",
     measurementId: "G-ZJJGR3F5LX",
