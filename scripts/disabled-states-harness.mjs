@@ -21,6 +21,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCOPES = {
   'language-setup': 'src/app/onboarding/language-setup/language-setup.component.less',
   'onboarding': 'src/app/onboarding/onboarding.component.less',
+  'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
@@ -90,11 +91,36 @@ const CARDS = [
       </div>`,
   },
   {
+    id: 'interests-floor',
+    title: 'Onboarding — Continue under the soft floor of three interests',
+    source: 'interests-setup.component.html:12,16',
+    rule: 'Soft floor: outline until three are picked, then solid. Never blocks, and the line under it says the floor is advice.',
+    control: {label: 'atFloor (three or more picked)', type: 'checkbox', checked: false},
+    body: `
+      <div class="scope-interests-setup harness-frame">
+        <div class="card step">
+          <div class="tui-header header-row">What do you like to read?</div>
+          <section class="content">
+            <span class="harness-chip selected">Travel</span>
+            <span class="harness-chip selected">History</span>
+            <span class="harness-chip">Space</span>
+            <span class="harness-chip">Philosophy</span>
+            <span class="harness-chip">Food &amp; Cooking</span>
+          </section>
+          <div class="step-actions">
+            <button type="button" class="solid-button" data-satisfiable>Continue</button>
+            <button type="button" class="back-link">Back</button>
+          </div>
+          <p class="floor-note" data-note>Pick three or more so Almo has something to go on. Fewer works too.</p>
+        </div>
+      </div>`,
+  },
+  {
     id: 'stepper',
     title: 'Onboarding — steps you have not reached yet',
-    source: 'onboarding.component.html:27',
-    rule: 'State block, one line for the whole nav rather than one per greyed step.',
-    control: {label: 'hasLockedStep', type: 'checkbox', checked: true},
+    source: 'onboarding.component.html:9',
+    rule: 'State block with no line: the grey numbers plus a live Continue already say it, and clicking a future step does nothing.',
+    control: {label: 'a later step is still locked', type: 'checkbox', checked: true},
     body: `
       <div class="scope-onboarding harness-frame">
         <div class="stepper-container card">
@@ -105,7 +131,6 @@ const CARDS = [
             <span class="progress-separator">·</span>
             <button type="button" class="progress-step" data-blocked><span class="progress-marker">3</span><span>Welcome</span></button>
           </nav>
-          <p class="stepper-note" data-note>Finish the step you are on to unlock the rest.</p>
         </div>
       </div>`,
   },
@@ -319,6 +344,8 @@ const CHROME_CSS = `
   .harness-caption { margin: 0 0 .6rem; color: #5f5560; font-size: .78rem; }
   .harness-caption code { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
   /* Stand-ins for the Taiga controls, sized to the real ones so the alignment case still means something. */
+  .harness-chip { display: inline-flex; align-items: center; height: 1.75rem; padding: 0 .75rem; border: 1px solid var(--hairline-color); border-radius: 999px; font-size: .8rem; }
+  .harness-chip.selected { background: color-mix(in srgb, #C66AA0 18%, var(--card-color)); color: color-mix(in srgb, #C66AA0 72%, var(--text-color)); border-color: color-mix(in srgb, #C66AA0 45%, var(--hairline-color)); }
   .harness-stub-field { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; height: 2.75rem; padding: 0 1rem; background: #fff; border: 1px solid var(--control-border-color); border-radius: 999px; font-size: 1rem; }
   .harness-stub-clear { color: var(--metadata-color); }
   .harness-stub-switch { display: inline-block; width: 2.5rem; height: 1.4rem; background: var(--brand-primary); border-radius: 999px; }

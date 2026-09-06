@@ -85,11 +85,6 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     return stepIndex <= maxAllowedStepIndex; // Allow steps up to the stored step
   }
 
-  /** True while a later step is still greyed, so the stepper can say why rather than showing dead tabs. */
-  protected get hasLockedStep(): boolean {
-    return this.progressSteps.some(step => !this.canNavigateTo(this.steps.indexOf(step)));
-  }
-
   protected goToStep(stepIndex: number): void {
     if (this.canNavigateTo(stepIndex)) {
       this.activeStep = this.steps[stepIndex];

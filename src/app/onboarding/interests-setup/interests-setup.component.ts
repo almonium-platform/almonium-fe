@@ -28,6 +28,8 @@ export class InterestsSetupComponent {
   @Input() currentInterests: Interest[] = [];
   @Output() back = new EventEmitter<void>();
   protected selectedInterests: Interest[] = [];
+  /** A soft floor: below it the button is outlined and a line says why, but it never blocks. */
+  protected readonly softFloor = 3;
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -46,6 +48,10 @@ export class InterestsSetupComponent {
           this.alertService.open('Failed to save interests', {appearance: 'negative'}).subscribe();
         }
       });
+  }
+
+  protected get atFloor(): boolean {
+    return this.selectedInterests.length >= this.softFloor;
   }
 
   onSelectedInterestsChange(interests: Interest[]) {

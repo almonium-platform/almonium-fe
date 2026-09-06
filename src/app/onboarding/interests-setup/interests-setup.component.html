@@ -10,7 +10,10 @@
   </app-interests>
 
   <div class="step-actions">
-    <app-button label="Continue" (click)="submit()" appearance="solid" [loading$]="loading$" />
+    <app-button label="Continue" (click)="submit()" appearance="solid" [satisfiable]="atFloor" [loading$]="loading$" />
     <button type="button" class="back-link" (click)="back.emit()">Back</button>
   </div>
+  @if (!atFloor) {
+    <p class="floor-note">Pick three or more so Almo has something to go on. Fewer works too.</p>
+  }
 </div>
