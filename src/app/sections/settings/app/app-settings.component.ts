@@ -198,7 +198,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           if (userInfo && supportedLangs) {
             // Both succeeded, UserInfoService & SupportedLanguagesService have updated.
             // Re-initialize dependent services
-            this.targetLanguageDropdownService.loadLangColors();
             this.targetLanguageDropdownService.initializeLanguages(userInfo); // Pass the fetched userInfo
 
             // Update local state if needed (e.g., this.uiPreferences)

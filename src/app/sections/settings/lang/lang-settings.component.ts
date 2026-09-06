@@ -568,21 +568,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.colourPickerLanguage = null;
   }
 
+  /** The list covers the languages set aside too, which the navbar's own pass over the active ones never reaches. */
   private syncLanguageColours(): void {
-    const allowedColours = new Set<string>(this.languageColours.map((colour) => colour.hex));
-    const normalizedColours = {...this.langColors};
-    let changed = false;
-
-    this.learners.forEach((learner, index) => {
-      if (!allowedColours.has(normalizedColours[learner.language])) {
-        normalizedColours[learner.language] = this.languageColours[index % this.languageColours.length].hex;
-        changed = true;
-      }
-    });
-
-    if (changed) {
-      this.targetLanguageDropdownService.setLanguageColors(normalizedColours);
-    }
+    this.targetLanguageDropdownService.ensurePaletteColours(this.learners.map((learner) => learner.language));
   }
 
   protected getActiveToggleTooltip(learner: Learner): string {
