@@ -5,8 +5,8 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .stepper-container {
@@ -76,13 +76,15 @@
   color: var(--control-border-color);
 }
 
+// The page scrolls, not this box: a step taller than the viewport (levels for several languages) used to
+// be clipped here, with its Continue button out of reach.
 .step-content {
   margin-top: 1rem;
   flex: 1;
-  overflow-x: auto;
   display: flex;
   justify-content: center;
   width: 100%;
+  padding-bottom: 1.5rem;
 }
 
 .card.step.upgraded {

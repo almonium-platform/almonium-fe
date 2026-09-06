@@ -904,8 +904,8 @@ tui-data-list button[tuiOption].context-button.negative {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  width: 100%;
 }
 .scope-onboarding .stepper-container {
   width: 35.5rem;
@@ -969,10 +969,10 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-onboarding .step-content {
   margin-top: 1rem;
   flex: 1;
-  overflow-x: auto;
   display: flex;
   justify-content: center;
   width: 100%;
+  padding-bottom: 1.5rem;
 }
 .scope-onboarding .card.step.upgraded {
   max-width: min(40rem, 92%);

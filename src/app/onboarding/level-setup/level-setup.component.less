@@ -1,14 +1,21 @@
 @import '../onboarding.styles.less';
 
-.level-step { max-width: 42rem; align-items: stretch; }
+// Two classes, so this beats the centring in .card.step and the questions fill the card.
+.card.step.level-step { max-width: min(42rem, calc(100vw - 2rem)); align-items: stretch; gap: 1.75rem; }
 .level-question h1 { margin: 0; font-family: var(--font-family-reading); font-size: 1.65rem; color: var(--text-color); }
-.level-question p { margin: .5rem 0 1.25rem; color: var(--subhead-color); }
+.level-question p { margin: .5rem 0 0; color: var(--subhead-color); }
+.level-question .level-options { margin-top: 1.25rem; }
 .level-options { display: flex; flex-direction: column; gap: .5rem; }
 .level-option { display: flex; align-items: baseline; gap: .9rem; width: 100%; padding: .85rem 1rem; text-align: left; border: 1px solid var(--hairline-color); border-radius: 1rem; background: var(--nested-color); color: var(--text-color); cursor: pointer; }
 .level-option:hover, .level-option.selected { border-color: var(--brand-margin); background: var(--state-selected); }
 .level-option.selected { border-width: 2px; padding: calc(.85rem - 1px) calc(1rem - 1px); }
 .level-option code { width: 1.8rem; color: var(--brand-margin); font-weight: 600; }
 .level-option span { font-family: var(--font-family-reading); }
-.step-actions { display: flex; align-items: center; gap: 1rem; width: 100%; }
+
+// One question per language stacks past the viewport, so the actions ride the bottom of the screen rather
+// than waiting at the end of a long scroll. The bleed is the card's own padding, and the radius its 35px
+// inner curve, so the bar reads as the foot of the card wherever it comes to rest.
+.step-actions { position: sticky; bottom: 0; align-self: stretch; display: flex; align-items: center; gap: 1rem; margin: 0 -1.5rem -1.5rem; padding: 1rem 1.5rem 1.5rem; background: var(--card-color); border-radius: 0 0 34px 34px; }
+.step-actions::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 1.5rem; background: linear-gradient(to top, var(--card-color), transparent); pointer-events: none; }
 .step-actions app-button { flex: 1; }
 .back-link { border: 0; background: none; color: var(--metadata-color); cursor: pointer; font: inherit; font-size: .9rem; }

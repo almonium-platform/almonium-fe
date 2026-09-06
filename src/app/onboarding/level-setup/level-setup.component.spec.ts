@@ -2,6 +2,7 @@ import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {Router} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {BehaviorSubject, of} from 'rxjs';
+import {LanguageCode} from '../../models/language.enum';
 import {SetupStep, UserInfo} from '../../models/userinfo.model';
 import {UserInfoService} from '../../services/user-info.service';
 import {OnboardingService} from '../onboarding.service';
@@ -32,6 +33,27 @@ describe('LevelSetupComponent', () => {
     expect(storedDraft()).toEqual({levels: {DE: 'A2'}});
   });
 
+  it('asks once per language, and explains the choice only once', async () => {
+    const fixture = await createFixture([LanguageCode.DE, LanguageCode.FR, LanguageCode.ES]);
+
+    const questions = host(fixture).querySelectorAll('.level-question');
+    expect(Array.from(questions).map(question => question.querySelector('h1')!.textContent.trim()))
+      .toEqual(['How much German can you read?', 'How much French can you read?', 'How much Spanish can you read?']);
+    expect(host(fixture).querySelectorAll('.level-question p').length).toBe(1);
+    expect(questions[0].querySelector('p')).not.toBeNull();
+  });
+
+  it('keeps each language on its own level', async () => {
+    const fixture = await createFixture([LanguageCode.DE, LanguageCode.FR]);
+
+    levelButton(fixture, 'A2', 1).click();
+    fixture.detectChanges();
+
+    expect(selectedLevel(fixture, 0)).toBe('B1');
+    expect(selectedLevel(fixture, 1)).toBe('A2');
+    expect(storedDraft()).toEqual({levels: {DE: 'B1', FR: 'A2'}});
+  });
+
   it('drops the draft once the server has the level', async () => {
     seedDraft({levels: {DE: 'C1'}, interests: [{id: 1, name: 'Travel'}]});
     const fixture = await createFixture();
@@ -43,21 +65,26 @@ describe('LevelSetupComponent', () => {
   });
 });
 
-function selectedLevel(fixture: ComponentFixture<LevelSetupComponent>): string {
-  return host(fixture).querySelector('.level-option.selected code')?.textContent?.trim() ?? '';
+function selectedLevel(fixture: ComponentFixture<LevelSetupComponent>, question = 0): string {
+  return questionAt(fixture, question).querySelector('.level-option.selected code')?.textContent?.trim() ?? '';
 }
 
-function levelButton(fixture: ComponentFixture<LevelSetupComponent>, level: string): HTMLButtonElement {
-  const buttons = Array.from(host(fixture).querySelectorAll<HTMLButtonElement>('.level-option'));
+function levelButton(fixture: ComponentFixture<LevelSetupComponent>, level: string, question = 0): HTMLButtonElement {
+  const buttons = Array.from(questionAt(fixture, question).querySelectorAll<HTMLButtonElement>('.level-option'));
   return buttons.find(button => button.querySelector('code')?.textContent?.trim() === level)!;
+}
+
+function questionAt(fixture: ComponentFixture<LevelSetupComponent>, question: number): HTMLElement {
+  return host(fixture).querySelectorAll<HTMLElement>('.level-question')[question];
 }
 
 function host(fixture: ComponentFixture<LevelSetupComponent>): HTMLElement {
   return fixture.nativeElement as HTMLElement;
 }
 
-async function createFixture(): Promise<ComponentFixture<LevelSetupComponent>> {
+async function createFixture(languages: LanguageCode[] = [LanguageCode.DE]): Promise<ComponentFixture<LevelSetupComponent>> {
   const info = onboardingUserInfo(SetupStep.LEVEL);
+  info.learners = languages.map((language, index) => ({...info.learners[0], id: `learner-${index}`, language}));
   const userInfo$ = new BehaviorSubject<UserInfo | null>(info);
   await TestBed.configureTestingModule({
     imports: [LevelSetupComponent],
