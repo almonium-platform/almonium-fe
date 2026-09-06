@@ -441,10 +441,10 @@ tui-data-list button[tuiOption].context-button.negative {
   align-self: stretch;
   /* Ensure it spans the full height of the container */
 }
+/* Solid, not the gradient: this word sits above the gradient button, and the intended
+   hierarchy is solid ink, solid plum word, gradient button. The gradient is the plan card's. */
 .premium-text {
-  background: var(--premium-gradient);
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--brand-primary);
   line-height: 1.5;
   font-weight: bold;
 }
@@ -1179,6 +1179,72 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-book-import .secondary-action:hover {
   background: var(--state-hover);
 }
+.scope-book-import .details-card {
+  margin-top: 2rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1.25rem;
+  background: var(--nested-color);
+}
+.scope-book-import .details-card h2 {
+  margin: 0.15rem 0 0;
+  color: var(--text-color);
+  font-size: 1.25rem;
+}
+.scope-book-import .details-card form {
+  margin-top: 1rem;
+}
+.scope-book-import .details-card input,
+.scope-book-import .details-card textarea,
+.scope-book-import .details-card select {
+  background: var(--card-color);
+}
+.scope-book-import .details-copy {
+  margin: 0.5rem 0 0;
+  color: var(--subhead-color);
+  line-height: 1.5;
+}
+.scope-book-import .details-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-book-import .details-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-book-import .provenance {
+  color: var(--metadata-color);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+.scope-book-import .details-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem 1.5rem;
+  margin: 1rem 0 0;
+}
+.scope-book-import .details-list div {
+  display: grid;
+  gap: 0.2rem;
+}
+.scope-book-import .details-list .wide {
+  grid-column: 1 / -1;
+}
+.scope-book-import .details-list dt {
+  color: var(--metadata-color);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-book-import .details-list dd {
+  margin: 0;
+  color: var(--text-color);
+  line-height: 1.5;
+}
 .scope-book-import .progress {
   display: flex;
   align-items: center;
@@ -1214,7 +1280,8 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 @media (max-width: 560px) {
   .scope-book-import .details-grid,
-  .scope-book-import .row {
+  .scope-book-import .row,
+  .scope-book-import .details-list {
     grid-template-columns: 1fr;
   }
   .scope-book-import .quota-card {
