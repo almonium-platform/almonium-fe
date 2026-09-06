@@ -482,6 +482,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Save greys while the address is untouched, and no validator fires on that, so the row says it itself. */
+  protected emailUnchanged(): boolean {
+    return this.emailEditable && this.emailForm.valid && this.getEmailFieldValue() === this.userInfo?.email;
+  }
+
   protected emailConfirmEnabled(): boolean {
     if (!this.emailEditable) {
       return true;

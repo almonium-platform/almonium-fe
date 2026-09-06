@@ -43,6 +43,9 @@
               </tui-textfield>
               <tui-error formControlName="emailValue"></tui-error>
             </form>
+            @if (emailUnchanged()) {
+              <span class="field-note">Enter a different address to save.</span>
+            }
           } @else {
             <strong class="email-address">{{ userInfo?.email }}</strong>
             <button type="button" class="email-status" [class.unverified]="!emailVerified"
@@ -78,9 +81,11 @@
             <div class="method-copy">
               <strong>{{ provider === 'google' ? 'Google' : 'Apple' }}</strong>
               <span>{{ getProviderDetail(provider) }}</span>
+              @if (isLastLinkedProvider(provider)) {
+                <span class="field-note">Your only sign-in method. Add another before disconnecting it.</span>
+              }
             </div>
             <button type="button" class="settings-action" [disabled]="isLastLinkedProvider(provider)"
-              [title]="isLastLinkedProvider(provider) ? 'You cannot disconnect your only sign-in method.' : ''"
               (click)="handleProviderWrapped(provider)()">
               {{ isProviderLinked(provider) ? 'Disconnect' : 'Connect' }}
             </button>

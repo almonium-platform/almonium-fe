@@ -505,6 +505,16 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * At the limit the remaining cards grey out. The line says what would free one up, so the grid reads as a rule
+   * rather than as half the options having quietly stopped responding.
+   */
+  protected get targetLimitNote(): string {
+    return this.targetMaxLanguages === 1
+      ? 'One language to start. Deselect it to pick a different one.'
+      : `That is all ${this.targetMaxLanguages} picks. Deselect one to choose another.`;
+  }
+
+  /**
    * What the account will do with the picks past the allowance, said before it does it rather than discovered
    * afterwards. Picking is free; only how many start active is bounded, and the order here is the order the backend
    * activates in, so the sentence names the language it will really pick.
@@ -606,7 +616,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     }
 
     if (this.cefrForm.invalid) {
-      logger.error('Form is invalid. Please fill in all fields.');
+      this.alertService.open('Pick a level for every language', {appearance: 'negative'}).subscribe();
       return;
     }
 

@@ -142,6 +142,10 @@
               </div>
             </div>
 
+            @if (learnerLockNote(learner); as note) {
+              <p class="switch-wait-note">{{ note }}</p>
+            }
+
             @if (colourPickerLanguage === learner.language) {
               <div class="colour-picker" aria-label="Language colour">
                 <div class="colour-title">Colour</div>

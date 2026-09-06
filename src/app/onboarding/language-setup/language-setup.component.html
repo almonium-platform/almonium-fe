@@ -22,6 +22,10 @@
           }
         </div>
 
+        @if (atTargetLimit) {
+          <p class="limit-note">{{ targetLimitNote }}</p>
+        }
+
         <p class="native-language">
           Reading from <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">{{ detectedNativeLanguage }}</button>
           — detected, <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">change it</button>
@@ -76,7 +80,7 @@
               <button type="button" class="members-link" (click)="upgrade.emit()"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</button>
             }
           </div>
-          <app-button label="Continue" appearance="solid" class="w-full" [disabled]="languageForm.invalid" />
+          <app-button label="Continue" appearance="solid" class="w-full" [satisfiable]="languageForm.valid" />
         </form>
       } @else {
         <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
@@ -97,7 +101,7 @@
           <p class="level-note">Not sure? Leave it at A1 — a placement check in your first session will move it.</p>
           <div class="sheet-actions">
             <button type="button" class="back-link" (click)="returnToLanguageSelection()">Back</button>
-            <app-button label="Start learning" appearance="solid" class="w-full" [loading$]="loading$" [disabled]="cefrForm.invalid" />
+            <app-button label="Start learning" appearance="solid" class="w-full" [loading$]="loading$" [satisfiable]="cefrForm.valid" />
           </div>
         </form>
       }

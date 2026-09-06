@@ -391,6 +391,34 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * One visible line per row for whatever is greying that row's control: the last active language cannot be
+   * switched off, and past the allowance "Make active" waits out the cooldown. Hover text says neither on touch.
+   */
+  protected learnerLockNote(learner: Learner): string | null {
+    if (learner.active && this.getActiveLearnersCount() === 1) {
+      return this.learners.length === 1
+        ? 'This is your only language. Add another before you can turn it off.'
+        : 'This is your only active language. Make another one active to turn it off.';
+    }
+    if (!learner.active && this.atAllowance && !this.switchAvailable) {
+      return this.switchWaitNote;
+    }
+    return null;
+  }
+
+  /**
+   * "Make active" greys for the rest of the cooldown. Naming the day it lifts is the whole explanation; without it
+   * the row shows the exit and hides the lock.
+   */
+  protected get switchWaitNote(): string {
+    const next = this.nextSwitchOn;
+    const used = 'This month\'s language switch is used.';
+    return next
+      ? `${used} You can change again on ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
+      : used;
+  }
+
+  /**
    * At the allowance the toggle is display-only: turning one language on has to turn another off, and that swap is
    * one atomic call made through "Make active" so the account can never sit at zero active languages.
    */

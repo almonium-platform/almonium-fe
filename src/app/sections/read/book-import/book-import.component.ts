@@ -97,6 +97,13 @@ export class BookImportComponent implements OnInit, OnDestroy {
     return this.quota !== null && (this.quota.limit < 0 || this.quota.limit > this.quota.used);
   }
 
+  /** The allowance card states the rule; this restates it where the greyed button is, so the button is not a dead end. */
+  protected get importBlockedNote(): string {
+    if (!this.quota) return 'Your import allowance could not be read. Reload the page to try again.';
+    if (this.quota.limit === 0) return 'Importing books is a Premium feature.';
+    return 'No imports left this month.';
+  }
+
   protected get quotaMessage(): string {
     if (!this.quota) return 'Checking your import allowance…';
     if (this.quota.limit < 0) return 'Unlimited imports';

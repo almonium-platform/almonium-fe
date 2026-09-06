@@ -55,6 +55,9 @@
         </div>
         @if (error) { <p class="error">{{ error }}</p> }
         <button class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
+        @if (!quotaLoading && !canImport) {
+          <p class="blocked-note">{{ importBlockedNote }}</p>
+        }
       </form>
     </section>
   }
