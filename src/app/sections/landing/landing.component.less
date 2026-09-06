@@ -1,5 +1,9 @@
 :host { display: block; }
+@import (reference) '../../../styles/variables.less';
+
 .landing-page {
+  // Light-only page: the shared paywall inside it keeps its light face in dark mode.
+  .light-theme-tokens();
   --ink: #2c2530; --copy: #5f5560; --muted: #a99aa8; --ground: #f9f6f5;
   --white: #fff; --line: #edebe8; --plum: #5a1a74; --berry: #872657;
   min-width: 0; overflow: hidden; background: var(--ground); color: var(--ink); font-family: var(--font-family-ui);
@@ -8,8 +12,10 @@
 a { color: inherit; text-decoration: none; }
 .container { width: min(calc(100% - 64px), 1056px); margin-inline: auto; }
 .footer-inner { display: flex; align-items: center; }
-.brand { display: inline-flex; align-items: center; gap: 12px; font: 600 22px/1 var(--font-family-reading); }
-.brand img { display: block; width: 31px; height: 31px; }
+/* Horizontal lockup: the emblem's ink at the wordmark's cap-height, one cap-height between. */
+.brand { display: inline-flex; align-items: center; gap: 1rem; }
+.brand-emblem { display: block; width: 1.0625rem; height: 1.0625rem; }
+.brand-wordmark { display: block; width: 8rem; height: auto; }
 .footer-inner nav { display: flex; align-items: center; gap: 24px; margin-left: auto; }
 footer a:hover { color: var(--berry); }
 .button { display: inline-flex; width: fit-content; align-items: center; justify-content: center; border: 0; border-radius: 999px; padding: 15px 32px; font: 600 16px/1.2 var(--font-family-ui); transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease; }
@@ -112,39 +118,15 @@ mark { border-radius: 4px; padding: 1px 3px; background: #efd6e1; color: #65183e
 .founder-photo { display: grid; height: 300px; place-items: center; border-radius: 20px; background: radial-gradient(circle at 50% 35%, #c9a8c4 0 17%, transparent 17.5%), radial-gradient(ellipse at 50% 105%, #6c1d6a 0 46%, transparent 46.5%), #eee5ea; }
 .founder-photo span { translate: 0 52px; color: rgba(255,255,255,.7); font: 500 12px var(--font-family-mono); letter-spacing: .15em; }
 .founder blockquote { max-width: 60ch; margin: 7px 0 0; color: #33292e; font: 19px/1.65 var(--font-family-reading); } .founder p { color: var(--copy); }
-.pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 27px; align-items: start; }
-.pricing-grid article { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; border-radius: 24px; padding: 30px 32px; }
-.plan-free { background: #fff; box-shadow: 0 1px 3px rgba(44, 37, 48, .1); }
-.plan-paid { background: var(--ink); color: var(--ground); }
-.plan-paid .eyebrow { color: #c9a8c4; }
-.plan-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; }
-.plan-label .pill { border-radius: 999px; padding: 4px 10px; background: rgba(249, 246, 245, .09); color: rgba(249, 246, 245, .82); font-size: 11px; font-weight: 600; }
-.plan-price { display: flex; align-items: baseline; gap: 10px; font: 600 34px var(--font-family-reading); }
-.plan-price small { margin-left: 4px; color: var(--muted); font: 500 17px var(--font-family-reading); }
-.plan-paid .plan-price small { color: rgba(249, 246, 245, .55); }
-.plan-paid .plan-price s { color: rgba(249, 246, 245, .55); font-family: var(--font-family-ui); font-size: 14px; font-weight: 400; }
-.plan-paid .plan-alt { margin: -8px 0 0; color: rgba(249, 246, 245, .55); font-size: 13px; }
-.plan-paid .plan-alt + .plan-alt { margin-top: -12px; }
-.plan-features { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; color: var(--copy); font-size: 14.5px; line-height: 1.5; list-style: none; }
-.plan-paid .plan-features { color: rgba(249, 246, 245, .82); }
-.plan-notes { display: flex; flex-direction: column; gap: 5px; color: rgba(249, 246, 245, .6); font-size: 13px; line-height: 1.5; }
-// The whole toggle is one control: a track, and the selected cadence lifted out of it.
-.billing-toggle { display: flex; align-items: center; gap: 9px; width: 100%; padding: 4px; border-radius: 999px; background: rgba(249, 246, 245, .09); }
-.billing-toggle button { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px 14px; border: 0; border-radius: 999px; background: transparent; color: rgba(249, 246, 245, .8); cursor: pointer; font: 500 13.5px var(--font-family-ui); white-space: nowrap; transition: background 180ms ease, color 180ms ease; }
-.billing-toggle button[aria-pressed='true'] { background: var(--ground); color: var(--ink); font-weight: 600; }
-.button-founding { background: linear-gradient(135deg, #8f2356, #5a1a74); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 2px 6px rgba(72, 23, 125, .3); }
-.button-founding:hover { color: #fff; box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 6px 16px rgba(72, 23, 125, .34); }
-.pricing-note { max-width: 72ch; margin: 20px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
 .final-cta { display: flex; flex-direction: column; align-items: center; gap: 26px; border-top: 1px solid var(--line); padding: 94px 32px 102px; text-align: center; }
 .final-cta h2 { max-width: 20ch; font-size: clamp(36px, 5vw, 46px); line-height: 1.15; }
-footer { background: #2c2530; color: #f9f6f5; } .footer-inner { min-height: 104px; gap: 18px; } .brand-light { font-size: 18px; } .brand-light img { width: 25px; height: 25px; } .footer-inner p { color: #a99aa8; font-size: 13px; } .footer-inner nav { font-size: 13px; } .footer-inner nav a { color: #c9c0cc; }
+footer { background: #2c2530; color: #f9f6f5; } .footer-inner { min-height: 104px; gap: 18px; } .footer-inner p { color: #a99aa8; font-size: 13px; } .footer-inner nav { font-size: 13px; } .footer-inner nav a { color: #c9c0cc; }
 @media (max-width: 900px) {
   .shelf-action { flex-basis: 100%; max-width: 38ch; padding-top: 8px; }
   .split { gap: 40px; } .ladder-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .container { width: min(calc(100% - 36px), 1056px); }
-  .brand { font-size: 19px; } .brand img { width: 27px; height: 27px; }
   .hero { padding-block: 50px 70px; } .hero-copy > p { font-size: 17px; } .cta-row { align-items: flex-start; flex-direction: column; }
   .reader-demo { margin-top: 38px; } .reader-columns { grid-template-columns: 1fr; } .reader-columns article { padding: 27px 25px 32px; } .reader-columns article + article { border-top: 1px solid var(--line); border-left: 0; } .reader-columns .faded { display: none; } .word-chip { top: 47%; }
   .try-inner, .split, .review-grid, .founder, .pricing-grid { grid-template-columns: 1fr; } .try-inner { gap: 28px; } .lookup-row { align-items: stretch; flex-direction: column; } .lookup-row .button { width: 100%; }

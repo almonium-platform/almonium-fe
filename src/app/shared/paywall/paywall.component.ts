@@ -201,8 +201,9 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   protected chooseFreePlan() {
+    // Reading needs no account, so "Start reading" means exactly that for a visitor.
     if (!this.userInfo) {
-      void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
+      void this.router.navigate(['/read']).then();
       return;
     }
     if (this.planChosen) {

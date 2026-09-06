@@ -1,14 +1,26 @@
 @import '../navbar-base.less';
 
+/* Horizontal lockup: the emblem's ink at the wordmark's cap-height, one cap-height between.
+   At 11rem the wordmark's cap-height is about 1.375rem; the flat logo's ink fills 93% of its box. */
 .public-brand {
-  gap: .2rem;
-  color: var(--text-color);
+  gap: 1.375rem;
+}
+
+.public-brand .app-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-basis: 1.5rem;
+  margin: 0;
 }
 
 .wordmark {
-  font-family: var(--font-family-reading);
-  font-size: 1.3rem;
-  font-weight: 600;
+  display: block;
+  width: 11rem;
+  height: auto;
+}
+
+.wordmark-dark {
+  display: none;
 }
 
 .public-links {
@@ -95,8 +107,18 @@
     padding-inline: .7rem;
   }
 
-  .app-icon {
-    margin-left: 0;
+  .public-brand {
+    gap: 1.0625rem;
+  }
+
+  .public-brand .app-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-basis: 1.125rem;
+  }
+
+  .wordmark {
+    width: 8.5rem;
   }
 
   .auth-btn {

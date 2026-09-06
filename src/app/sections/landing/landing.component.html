@@ -104,68 +104,12 @@
     </section>
 
     <section class="section container" id="pricing">
-      <div class="section-heading"><span class="eyebrow">Pricing</span><h2>Reading is free, and stays free</h2><p>Paying covers the parts that cost something every time you use them.</p></div>
-      <div class="pricing-grid">
-        <article class="plan-free">
-          <span class="eyebrow">Free</span>
-          <div class="plan-price">$0</div>
-          <ul class="plan-features">
-            @for (feature of freeFeatures; track feature) {
-              <li>{{ feature }}</li>
-            }
-          </ul>
-          <a class="button button-outline button-compact" routerLink="/read">Start reading</a>
-        </article>
-
-        <article class="plan-paid">
-          <div class="plan-label">
-            <span class="eyebrow">{{ offer?.tierLabel ?? 'Premium' }}</span>
-            @if (offer?.founderSoldOut) {
-              <span class="pill">Founding memberships sold out</span>
-            }
-          </div>
-
-          <div class="billing-toggle" role="group" aria-label="Billing period">
-            <button type="button" class="monthly" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
-            <button type="button" class="annual" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
-          </div>
-
-          @if (paidPrice !== null) {
-            <div class="plan-price">
-              <span>${{ paidPrice }}<small>{{ pricePeriodLabel }}</small></span>
-              @if (struckPrice !== null) {
-                <s>${{ struckPrice }}</s>
-              }
-            </div>
-            @for (note of cadenceNotes; track note) {
-              <p class="plan-alt">{{ note }}</p>
-            }
-          } @else {
-            <p class="plan-alt">Loading current price…</p>
-          }
-
-          <ul class="plan-features">
-            @for (feature of paidFeatures; track feature) {
-              <li>{{ feature }}</li>
-            }
-          </ul>
-
-          <a class="button button-founding button-compact" routerLink="/pricing">{{ offer?.ctaLabel ?? 'Go Premium' }}</a>
-
-          @if (offer?.founderOfferAvailable) {
-            <div class="plan-notes">
-              <span>{{ founderLimitNote }}</span>
-              <span>Keep this price while your subscription stays active.</span>
-              <span>Monthly and annual memberships use the same {{ offer?.capacity }}-member limit.</span>
-            </div>
-          }
-        </article>
-      </div>
-      <p class="pricing-note">The price shown is the one for your region. 14-day money-back guarantee, and you can cancel from your account page at any time.</p>
+      <app-paywall #paywall layout="page"></app-paywall>
+      <ng-container *ngTemplateOutlet="paywall.content"></ng-container>
     </section>
 
     <section class="final-cta"><h2>Start with one page of a book.</h2><a class="button button-primary" routerLink="/read">Start reading, no account needed</a></section>
   </main>
 
-  <footer><div class="container footer-inner"><a class="brand brand-light" routerLink="/"><img src="/assets/img/logo/logo.svg" alt=""><span>Almonium</span></a><p>Read anything. Keep every word.</p><nav aria-label="Footer navigation"><a href="#books">Books</a><a href="#pricing">Pricing</a><a routerLink="/terms-of-use">Terms</a><a routerLink="/privacy-policy">Privacy</a></nav></div></footer>
+  <footer><div class="container footer-inner"><a class="brand" routerLink="/" aria-label="Almonium home"><img class="brand-emblem" src="/assets/img/logo/logo-flat-tint.svg" alt=""><img class="brand-wordmark" src="/email/wordmark-white.png" alt=""></a><p>Read anything. Keep every word.</p><nav aria-label="Footer navigation"><a href="#books">Books</a><a href="#pricing">Pricing</a><a routerLink="/terms-of-use">Terms</a><a routerLink="/privacy-policy">Privacy</a></nav></div></footer>
 </div>

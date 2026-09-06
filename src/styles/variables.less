@@ -1,4 +1,6 @@
-:root {
+// The light tokens are a mixin as well as the root default: a light-only surface (the
+// landing page) applies them locally so shared components keep their light face there.
+.light-theme-tokens() {
   // Design tokens: this is the authoritative application layer. Tailwind and
   // Taiga UI consume these values; neither defines the product palette.
   // Brand ramp (steps 1–6 match the emblem; 7–8 are application-only).
@@ -154,4 +156,8 @@
   --card-radius: 1.375rem;
   --box-shadow: 0 1px 3px 0 rgba(44, 37, 48, .1), 0 1px 2px -1px rgba(44, 37, 48, .1);
   --header-height: 4.33rem; /* 69px */
+}
+
+:root {
+  .light-theme-tokens();
 }
