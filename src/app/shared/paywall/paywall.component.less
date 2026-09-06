@@ -6,8 +6,8 @@ button { font: inherit; }
   width: 46rem;
   max-width: 100%;
   flex-direction: column;
-  gap: 1.375rem;
-  padding: 1.875rem 2rem;
+  gap: 1.125rem;
+  padding: 1.5rem 1.75rem;
   border-radius: 1.5rem;
   background: var(--page-ground);
 }
@@ -65,9 +65,11 @@ button { font: inherit; }
   line-height: 1.6;
 }
 
+// The two tiers are a pair, so they share a height. Ragged cards over a gap of bare ground read
+// as one plan trailing off rather than as a choice between two.
 .tiers {
   display: grid;
-  align-items: start;
+  align-items: stretch;
   gap: 1rem;
   grid-template-columns: 1fr 1fr;
 }
@@ -75,8 +77,8 @@ button { font: inherit; }
 .tier {
   display: flex;
   flex-direction: column;
-  gap: .8125rem;
-  padding: 1.375rem 1.5rem;
+  gap: .75rem;
+  padding: 1.25rem 1.375rem;
   border-radius: 1.25rem;
 }
 

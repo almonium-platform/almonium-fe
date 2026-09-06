@@ -13,7 +13,8 @@ import {Subject, takeUntil} from "rxjs";
         [ngClass]="{
         'fixed inset-0 z-50 flex bg-overlay': true,
         'flex-col': fullscreen,
-        'items-center justify-center overlay-inset': !fullscreen
+        'overlay-scroll overlay-inset': !fullscreen,
+        'overlay-inset-roomy': !fullscreen && drawerState.closeBtnOutside
       }"
         [class.bg-darkening]="drawerState.visible && !drawerState.closing"
         [class.bg-lightening]="drawerState.closing"
@@ -34,10 +35,8 @@ import {Subject, takeUntil} from "rxjs";
           ></app-dismiss-button>
           <!-- Render the content if we have it -->
           @if (drawerState.content) {
-            <div class="popup-scroll">
-              <ng-container *ngTemplateOutlet="drawerState.content">
-              </ng-container>
-            </div>
+            <ng-container *ngTemplateOutlet="drawerState.content">
+            </ng-container>
           }
         </div>
       </div>
@@ -45,33 +44,33 @@ import {Subject, takeUntil} from "rxjs";
   `,
   styles: [
     `
-      /* Room for the dialog to breathe, and for the outside close button to stay reachable. */
+      /* Room for the dialog to breathe without spending height a tall dialog needs. */
       .overlay-inset {
-        padding: 1.5rem 1rem;
+        padding: 1.25rem;
+      }
+
+      /* The close button that hangs outside the shell needs its corner kept on screen. */
+      .overlay-inset-roomy {
+        padding: 2.75rem;
+      }
+
+      /* A dialog taller than the viewport is scrolled by the overlay, not by a box inside the
+         card: the scrollbar then rides the backdrop instead of carving a gutter out of the
+         content. Centring is done with auto margins, which give way under overflow where
+         align-items: center would crop the top. */
+      .overlay-scroll {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(250, 246, 248, 0.32) transparent;
       }
 
       .embedded {
+        margin: auto;
         border-radius: 1rem;
         width: fit-content;
         box-shadow: 0 10px 15px -3px rgba(44, 37, 48, 0.1), 0 4px 6px -4px rgba(44, 37, 48, 0.1);
         max-width: min(48rem, 95%);
-        /* A dialog taller than the viewport scrolls inside itself; centring alone would crop it
-           at both ends with no way to reach either. */
-        max-height: 100%;
-      }
-
-      .relative {
-        display: flex;
-        flex-direction: column;
-      }
-
-      /* The close button is positioned against the shell, so only the content scrolls under it. */
-      .popup-scroll {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        border-radius: inherit;
       }
 
       .bg-overlay {
