@@ -111,8 +111,8 @@ progress::-moz-progress-bar { border-radius: 9999px; background: var(--dark-rasp
 .paid-summary { display: grid; gap: .9rem; }
 .paid-summary > .eyebrow { margin-bottom: 0; }
 .member-title { display: flex; align-items: center; gap: .65rem; }
-.premium-star { display: grid; width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 50%; background: var(--premium-gradient); }
-.premium-star img { width: .8rem; height: .8rem; }
+/* Beside the title the mark is set larger than beside a name, and the glyph does not scale with it. */
+.member-title app-premium-star { --premium-star-size: 1.35rem; --premium-star-glyph: .8rem; }
 .membership-details,
 .membership-usage dl { display: grid; gap: .55rem; margin: 0; }
 .membership-details > div,

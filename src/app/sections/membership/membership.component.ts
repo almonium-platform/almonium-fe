@@ -21,6 +21,7 @@ import {
 import {CadenceChangeKind, CadenceChangePreview} from '../../models/cadence-change.model';
 import {CadenceChangeModalComponent} from '../../shared/modals/cadence-change/cadence-change-modal.component';
 import {ConfirmModalComponent} from '../../shared/modals/confirm-modal/confirm-modal.component';
+import {PremiumStarComponent} from '../../shared/premium-star/premium-star.component';
 import {CardService} from '../../services/card.service';
 import {PlanService} from '../../services/plan.service';
 import {UserInfoService} from '../../services/user-info.service';
@@ -32,7 +33,7 @@ import {UrlService} from '../../services/url.service';
 
 @Component({
   selector: 'app-membership',
-  imports: [CadenceChangeModalComponent, ConfirmModalComponent],
+  imports: [CadenceChangeModalComponent, ConfirmModalComponent, PremiumStarComponent],
   templateUrl: './membership.component.html',
   styleUrl: './membership.component.less',
 })
