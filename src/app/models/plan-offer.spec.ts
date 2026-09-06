@@ -38,13 +38,13 @@ describe('PlanOffer', () => {
   it('names the price a place saves the reader from, so the limit reads as an offer', () => {
     const offer = new PlanOffer(PLANS, {capacity: 20, claimed: 7});
 
-    expect(offer.founderLimitNote).toBe('Only 20 founding memberships available, then $12 a month.');
+    expect(offer.founderLimitNote).toBe('20 founding memberships, then $12 a month.');
   });
 
   it('drops the reverted price from the limit note when no monthly plan arrived', () => {
     const offer = new PlanOffer([], {capacity: 20, claimed: 7});
 
-    expect(offer.founderLimitNote).toBe('Only 20 founding memberships available.');
+    expect(offer.founderLimitNote).toBe('20 founding memberships.');
   });
 
   it('falls back to the list price once the last place is gone, and strikes the founder price', () => {

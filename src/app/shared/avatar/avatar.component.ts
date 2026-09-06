@@ -112,8 +112,11 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
      * most-learned avatar gesture there is and it means "unseen story", not "member".
      *
      * On an avatar the star is seated in the corner, and only where the disc is large enough to
-     * spare one - the profile card's 96px. Anywhere a name is printed the star follows the name
+     * spare one - the profile card's. Anywhere a name is printed the star follows the name
      * instead, and no card carries both. Never on your own avatar, where the plan card says it.
+     *
+     * It keeps the size it has beside a name. One star, one size, and only its host changes:
+     * a mark that grows with its perch reads as a different mark.
      */
     :host(.premium-star-host) {
       position: relative;
@@ -121,8 +124,6 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
     }
 
     :host .corner-star {
-      --premium-star-size: 1.75rem;
-      --premium-star-glyph: .875rem;
       /* The keyline is the surface behind the avatar, so the star reads as sitting on top of it. */
       --premium-star-keyline: 0 0 0 2px var(--avatar-star-keyline, var(--card-color));
 

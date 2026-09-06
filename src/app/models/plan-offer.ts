@@ -82,8 +82,8 @@ export class PlanOffer {
   get founderLimitNote(): string {
     const standard = this.premiumPrice.monthly;
     return standard === null
-      ? `Only ${this.capacity} founding memberships available.`
-      : `Only ${this.capacity} founding memberships available, then $${standard} a month.`;
+      ? `${this.capacity} founding memberships.`
+      : `${this.capacity} founding memberships, then $${standard} a month.`;
   }
 
   planId(period: BillingPeriod): string {

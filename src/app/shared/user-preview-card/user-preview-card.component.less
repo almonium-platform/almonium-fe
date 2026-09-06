@@ -13,12 +13,8 @@
 .profile-header { position: relative; display: flex; align-items: flex-start; gap: .8125rem; }
 .identity { min-width: 0; flex: 1; }
 
-/*
- * Capped so the name never runs under the absolutely positioned More button. The 96px disc and
- * its .8125rem gutter take 6.8rem of the card's 19.5rem of content, and More is about 3.3rem
- * wide, which leaves this.
- */
-.username-row { display: flex; max-width: 9.375rem; align-items: center; }
+/* Capped so the name never runs under the absolutely positioned More button. */
+.username-row { display: flex; max-width: 12rem; align-items: center; }
 
 /*
  * The ellipsis needs overflow: hidden, which clips vertically too, so the line box has to be tall
@@ -41,10 +37,9 @@ h2 {
 
 /*
  * Premium is the bevelled star, never the word — constitution §4. This is the one card that
- * carries it on the avatar rather than after the name: the disc is 96px, big enough for the
- * 28px star to sit in the corner without eating the animal, and it is the surface where someone
- * is deliberately looking at who this person is. Never both marks on one card, so the name here
- * carries nothing.
+ * carries it on the avatar rather than after the name: it is the surface where someone is
+ * deliberately looking at who this person is, and the disc is the thing they are looking at.
+ * Never both marks on one card, so the name here carries nothing.
  *
  * The keyline is the card's own ground, which is the overlay rather than the card token: this
  * draws as a dropdown as often as it draws as a page.
