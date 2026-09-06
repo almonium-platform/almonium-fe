@@ -405,6 +405,7 @@ const body = `<div class="harness-page">
 </div>
 <script>${SCRIPT}</script>`;
 
+// Two outputs from one source: the page to open locally, and the head+body fragment the Artifact publisher wraps.
 const page = `<!doctype html>
 <html lang="en">
 <head>
@@ -418,4 +419,6 @@ ${body}
 </html>`;
 
 await writeFile(join(root, 'tools/disabled-states-harness.html'), page, 'utf8');
+await writeFile(join(root, 'tools/disabled-states-harness.artifact.html'), `${head}\n${body}`, 'utf8');
 console.log(`tools/disabled-states-harness.html — ${CARDS.length} cards, ${Math.round(page.length / 1024)} kB`);
+console.log('tools/disabled-states-harness.artifact.html — the same page, for publishing as an Artifact');
