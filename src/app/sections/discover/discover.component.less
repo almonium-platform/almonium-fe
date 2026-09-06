@@ -23,8 +23,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .sentence-copy button:hover, .sentence-copy button.active { border-bottom-color: var(--brand-margin); color: var(--brand-margin); }
 .sentence-card small { color: var(--metadata-color); }
 .loading-card, .message { margin-top: 1rem; padding: 1rem 1.2rem; border-radius: 14px; background: var(--card-color); box-shadow: var(--box-shadow); }
-.unfold-mark { display: inline-block; margin-right: .55rem; color: var(--brand-primary); animation: unfold 900ms ease-in-out infinite alternate; }
-@keyframes unfold { from { transform: scale(.65) rotate(0); opacity: .55; } to { transform: scale(1) rotate(45deg); opacity: 1; } }
+.unfold-mark { width: 1.2em; height: 1.2em; margin-right: .55rem; vertical-align: -.25em; }
 .error { background: var(--danger-bg-color); color: var(--danger-text-color); }
 .word-sheet { margin-top: 1.4rem; overflow: hidden; border-radius: 24px; }
 .entry-header { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 2rem; align-items: start; padding: 2rem; }
@@ -60,6 +59,7 @@ blockquote { margin: 0 2rem 2rem; padding: 1.1rem 1.25rem; border-left: 3px soli
 .meaning-field input { padding: .85rem 1rem; background: #37303d; border-color: #5a505d; color: #fff; }
 .keep-action { margin-top: 1rem; min-width: 160px; padding: .75rem 1.4rem; background: var(--premium-gradient); }
 .keep-action.kept { background: var(--success-color); }
+.fold-mark { width: 1em; height: 1em; margin-right: .4rem; vertical-align: -.15em; }
 .save-note { display: inline; margin-left: .8rem; color: #c9c0cc; font-size: .76rem; }
 .signup-callout { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #5a505d; }
 .signup-callout div { display: flex; flex-direction: column; gap: .25rem; }
@@ -79,4 +79,3 @@ blockquote { margin: 0 2rem 2rem; padding: 1.1rem 1.25rem; border-left: 3px soli
   .signup-callout a { justify-content: center; }
   .save-note { display: block; margin: .6rem 0 0; }
 }
-@media (prefers-reduced-motion: reduce) { .unfold-mark { animation: none; } }

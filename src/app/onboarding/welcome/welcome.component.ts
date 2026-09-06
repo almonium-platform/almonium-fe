@@ -5,13 +5,13 @@ import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
-import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
+import {EmblemComponent} from "../../shared/emblem/emblem.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 
 @Component({
   selector: 'app-welcome',
   imports: [
-    GifPlayerComponent,
+    EmblemComponent,
     ButtonComponent
   ],
   templateUrl: './welcome.component.html',

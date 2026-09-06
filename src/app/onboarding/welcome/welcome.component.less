@@ -51,15 +51,12 @@
     position: relative;
     padding-top: 100%; /* Create a square aspect ratio */
 
-    app-gif-player {
-      position: absolute; /* Place the image inside the square */
+    app-emblem {
+      position: absolute; /* Place the emblem inside the square */
       top: 0;
       left: 0;
       padding: 3.5rem;
-
-      img {
-        object-fit: contain; /* Maintain aspect ratio */
-      }
+      box-sizing: content-box;
     }
   }
 

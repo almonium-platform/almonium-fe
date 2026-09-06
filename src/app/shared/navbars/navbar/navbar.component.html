@@ -3,7 +3,7 @@
 <nav class="navbar">
   <div class="navbar-content">
     <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
-      <span class="app-icon" role="img" aria-label="Almonium"></span>
+      <app-emblem class="app-emblem" [playOnLoad]="false" [replayTrigger]="logoUnfold" label="Almonium"></app-emblem>
     </div>
 
     <div #langDropdown class="lang-dropdown" (clickOutside)="langsOnClickOutside()">

@@ -13,7 +13,7 @@
 
         <div class="tui-col_8">
           @if (mode === 'default') {
-            <h3 class="greeting" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
+            <h3 class="greeting" [class.fading]="greetingFading" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
                 (mouseleave)="onMouseLeave()">
               {{ currentGreeting }}
             </h3>

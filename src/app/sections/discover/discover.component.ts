@@ -1,6 +1,7 @@
 import {Component, DestroyRef, OnInit, inject} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, RouterLink} from '@angular/router';
+import {EmblemComponent} from '../../shared/emblem/emblem.component';
 import {finalize} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {LanguageCode} from '../../models/language.enum';
@@ -13,7 +14,7 @@ import {DiscoverLookup, DiscoverSense, DiscoverService} from './discover.service
 
 @Component({
   selector: 'app-discover',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, EmblemComponent],
   templateUrl: './discover.component.html',
   styleUrls: ['./discover.component.less'],
 })

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 
-import {interval, Subject, Subscription} from 'rxjs';
-import {GifPlayerComponent} from '../gif-player/gif-player.component'; // Adjust path if needed
+import {interval, Subscription} from 'rxjs';
+import {EmblemComponent} from '../emblem/emblem.component';
 
 @Component({
   selector: 'app-loading-indicator',
   imports: [
-    GifPlayerComponent
+    EmblemComponent
   ],
   templateUrl: './loading-indicator.component.html',
   styleUrls: ['./loading-indicator.component.less'],
@@ -19,19 +19,14 @@ export class LoadingIndicatorComponent implements OnInit, OnDestroy {
 
   animatedText = '';
   private intervalSubscription: Subscription | null = null;
-  private replayTimeout?: ReturnType<typeof setTimeout>;
   private readonly animationInterval = 350; // Animation speed
-  protected replayGifTrigger = new Subject<void>();
 
   ngOnInit(): void {
     this.startAnimation();
-    // Trigger the gif replay shortly after init to ensure view is ready
-    this.replayTimeout = setTimeout(() => this.replayGifTrigger.next(), 0);
   }
 
   ngOnDestroy(): void {
     this.stopAnimation();
-    clearTimeout(this.replayTimeout);
   }
 
   private startAnimation(): void {

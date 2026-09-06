@@ -36,7 +36,7 @@
   }
 
   @if (loading) {
-    <section class="loading-card" aria-live="polite"><span class="unfold-mark" aria-hidden="true">✦</span> Opening the entry…</section>
+    <section class="loading-card" aria-live="polite"><app-emblem class="unfold-mark" [looped]="true"></app-emblem> Opening the entry…</section>
   }
   @if (errorMessage) {
     <section class="message error" role="alert">{{ errorMessage }}</section>
@@ -108,6 +108,7 @@
         </label>
         @if (signedIn) {
           <button type="button" class="keep-action" [class.kept]="saved" [disabled]="saving || saved || !meaning.trim()" (click)="keepWord()">
+            @if (saved) { <app-emblem class="fold-mark" motion="fold" [mono]="true"></app-emblem> }
             {{ saved ? 'Kept' : saving ? 'Keeping…' : 'Keep the word' }}
           </button>
           <p class="save-note">It stays on this sheet and enters Review immediately.</p>

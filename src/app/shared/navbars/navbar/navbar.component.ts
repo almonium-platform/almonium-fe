@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestro
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
+import {EmblemComponent} from "../../emblem/emblem.component";
 import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
@@ -50,6 +51,7 @@ const REQUEST_ANSWER_FAILED = 'Could not answer the friend request';
     RouterLink,
     AvatarComponent,
     ManageAvatarComponent,
+    EmblemComponent,
     LucideAngularModule,
     SharedLucideIconsModule,
     TuiBadgedContentComponent,
@@ -96,6 +98,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected isNotificationOpen = false;
   protected isTimerOpen = false;
   protected isMobile = false;
+  protected readonly logoUnfold = new Subject<void>();
 
   // User info
   protected userInfo: UserInfo | null = null;
@@ -497,6 +500,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   onLogoClick(): void {
+    this.logoUnfold.next();
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {

@@ -22,6 +22,8 @@ import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
 import {ReturnPathService} from "../../services/return-path.service";
 
+const GREETING_FADE_MS = 180; // matches the .greeting opacity transition
+
 @Component({
   selector: 'app-auth',
   imports: [
@@ -70,6 +72,8 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private greetingInterval?: ReturnType<typeof setInterval>;
+  private greetingSwapTimer?: ReturnType<typeof setTimeout>;
+  protected greetingFading = false;
   @ViewChild('auth', {static: true}) content!: TemplateRef<unknown>;
 
   private userInfo: UserInfo | null = null;
@@ -158,10 +162,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     this.greetingInterval = setInterval(() => {
       if (!this.isHovering && Object.keys(this.greetings).length > 0) {
-        const greetingKeys = Object.keys(this.greetings);
-        this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
-        this.currentLanguage = this.greetings[this.currentGreeting];
-        this.cdr.detectChanges();
+        this.crossFadeGreeting();
       }
     }, 2000);
   }
@@ -195,6 +196,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     clearInterval(this.greetingInterval);
+    clearTimeout(this.greetingSwapTimer);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -430,6 +432,21 @@ export class AuthComponent implements OnInit, OnDestroy {
     } else {
       return 'Sign In';
     }
+  }
+
+  /* Fade out, swap the text while it is invisible, fade back in. The greeting
+     line keeps a fixed height so the swap never moves the form below it. */
+  private crossFadeGreeting(): void {
+    this.greetingFading = true;
+    this.cdr.detectChanges();
+    clearTimeout(this.greetingSwapTimer);
+    this.greetingSwapTimer = setTimeout(() => {
+      const greetingKeys = Object.keys(this.greetings);
+      this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
+      this.currentLanguage = this.greetings[this.currentGreeting];
+      this.greetingFading = false;
+      this.cdr.detectChanges();
+    }, GREETING_FADE_MS);
   }
 
   // Hovering over the greeting
