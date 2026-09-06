@@ -206,19 +206,37 @@ tui-data-list button[tuiOption].context-button {
   outline-offset: 3px;
 }
 
+/*
+ * The black-and-white button: an outline that fills toward ink, never toward plum, so it can
+ * sit beside a plum primary without competing. The fill is the theme's own ink and the label
+ * the theme's own ground, which inverts correctly in both modes.
+ */
 .secondary-outline-button {
   padding: 0.5em 1em;
   box-sizing: border-box;
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 550;
+  background-color: transparent;
   border: 1px solid var(--text-color);
   color: var(--text-color);
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.secondary-outline-button:hover {
-  background-color: var(--state-hover);
-  color: var(--text-color);
+.secondary-outline-button:hover:not(:disabled) {
+  background-color: var(--text-color);
+  color: var(--page-ground);
+}
+
+.secondary-outline-button:active:not(:disabled) {
+  background-color: var(--text-color);
+  color: var(--page-ground);
+  transform: translateY(1px);
+}
+
+.secondary-outline-button:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
 }
 
 .secondary-outline-button:disabled {
