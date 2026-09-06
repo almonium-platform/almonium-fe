@@ -13,7 +13,7 @@ import {Subject, takeUntil} from "rxjs";
         [ngClass]="{
         'fixed inset-0 z-50 flex bg-overlay': true,
         'flex-col': fullscreen,
-        'items-center justify-center': !fullscreen
+        'items-center justify-center overlay-inset': !fullscreen
       }"
         [class.bg-darkening]="drawerState.visible && !drawerState.closing"
         [class.bg-lightening]="drawerState.closing"
@@ -34,8 +34,10 @@ import {Subject, takeUntil} from "rxjs";
           ></app-dismiss-button>
           <!-- Render the content if we have it -->
           @if (drawerState.content) {
-            <ng-container *ngTemplateOutlet="drawerState.content">
-            </ng-container>
+            <div class="popup-scroll">
+              <ng-container *ngTemplateOutlet="drawerState.content">
+              </ng-container>
+            </div>
           }
         </div>
       </div>
@@ -43,11 +45,33 @@ import {Subject, takeUntil} from "rxjs";
   `,
   styles: [
     `
+      /* Room for the dialog to breathe, and for the outside close button to stay reachable. */
+      .overlay-inset {
+        padding: 1.5rem 1rem;
+      }
+
       .embedded {
         border-radius: 1rem;
         width: fit-content;
         box-shadow: 0 10px 15px -3px rgba(44, 37, 48, 0.1), 0 4px 6px -4px rgba(44, 37, 48, 0.1);
         max-width: min(48rem, 95%);
+        /* A dialog taller than the viewport scrolls inside itself; centring alone would crop it
+           at both ends with no way to reach either. */
+        max-height: 100%;
+      }
+
+      .relative {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* The close button is positioned against the shell, so only the content scrolls under it. */
+      .popup-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        border-radius: inherit;
       }
 
       .bg-overlay {
