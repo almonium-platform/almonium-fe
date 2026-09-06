@@ -55,10 +55,23 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand-margi
 .primary-action:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: wait; }
 .secondary-action { padding: .65rem .9rem; background: transparent; color: var(--dark-raspberry); }
 .secondary-action:hover { background: var(--state-hover); }
+.details-card { margin-top: 2rem; padding: 1.25rem 1.35rem; border: 1px solid var(--border-color); border-radius: 1.25rem; background: var(--nested-color); }
+.details-card h2 { margin: .15rem 0 0; color: var(--text-color); font-size: 1.25rem; }
+.details-card form { margin-top: 1rem; }
+.details-card input, .details-card textarea, .details-card select { background: var(--card-color); }
+.details-copy { margin: .5rem 0 0; color: var(--subhead-color); line-height: 1.5; }
+.details-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.details-actions { display: flex; align-items: center; gap: .5rem; }
+.provenance { color: var(--metadata-color); font-size: .76rem; font-weight: 400; }
+.details-list { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.5rem; margin: 1rem 0 0; }
+.details-list div { display: grid; gap: .2rem; }
+.details-list .wide { grid-column: 1 / -1; }
+.details-list dt { color: var(--metadata-color); font-size: .76rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.details-list dd { margin: 0; color: var(--text-color); line-height: 1.5; }
 .progress { display: flex; align-items: center; gap: 1rem; margin-top: 2rem; padding: 1rem 0; }
 .progress p { margin: .25rem 0 0; color: var(--subhead-color); }
 .spinner { width: 2rem; height: 2rem; border: 3px solid var(--control-border-color); border-top-color: var(--brand-margin); border-radius: 50%; animation: spin .8s linear infinite; }
 .error { margin: 0; color: var(--danger-text-color); }
 .blocked-note { margin: -.75rem 0 0; color: var(--subhead-color); font-size: .85rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width: 560px) { .details-grid, .row { grid-template-columns: 1fr; } .quota-card { align-items: flex-start; flex-direction: column; } .primary-action { width: 100%; } }
+@media (max-width: 560px) { .details-grid, .row, .details-list { grid-template-columns: 1fr; } .quota-card { align-items: flex-start; flex-direction: column; } .primary-action { width: 100%; } }

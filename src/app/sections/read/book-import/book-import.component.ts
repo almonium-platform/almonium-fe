@@ -7,7 +7,13 @@ import {LanguageCode} from '../../../models/language.enum';
 import {Language} from '../../../models/language.model';
 import {SupportedLanguagesService} from '../../../services/supported-langs.service';
 import {getErrorMessage} from '../../../shared/http-error';
-import {BookImport, BookImportQuota, BookImportStatus} from '../book-import.model';
+import {
+  BookImport,
+  BookImportMetadataField,
+  BookImportMetadataStatus,
+  BookImportQuota,
+  BookImportStatus,
+} from '../book-import.model';
 import {ReadService} from '../read.service';
 import {PaywallComponent} from '../../../shared/paywall/paywall.component';
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
@@ -28,6 +34,7 @@ export class BookImportComponent implements OnInit, OnDestroy {
 
   protected languages: Language[] = [];
   protected readonly status = BookImportStatus;
+  protected readonly metadataStatus = BookImportMetadataStatus;
   protected bookImport: BookImport | null = null;
   protected selectedFile: File | null = null;
   protected submitting = false;
@@ -35,13 +42,24 @@ export class BookImportComponent implements OnInit, OnDestroy {
   protected quota: BookImportQuota | null = null;
   protected quotaLoading = true;
 
+  /** The confirmation card: shown once the processor has proposed details, editable until confirmed. */
+  protected editingDetails = false;
+  protected savingDetails = false;
+  protected detailsError = '';
+  protected detailsSavedFor: string | null = null;
+
   @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
 
+  /** Upload asks for the file only; the language is optional and otherwise read from the file. */
   protected readonly form = new FormGroup({
+    language: new FormControl<LanguageCode | ''>('', {nonNullable: true}),
+  });
+
+  protected readonly detailsForm = new FormGroup({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(500)]}),
     author: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(300)]}),
     description: new FormControl('', {nonNullable: true}),
-    language: new FormControl(LanguageCode.EN, {nonNullable: true, validators: [Validators.required]}),
+    language: new FormControl<LanguageCode | ''>('', {nonNullable: true, validators: [Validators.required]}),
     publicationYear: new FormControl<number | null>(null, [Validators.min(1), Validators.max(9999)]),
   });
 
@@ -69,20 +87,15 @@ export class BookImportComponent implements OnInit, OnDestroy {
   }
 
   protected submit(): void {
-    if (this.form.invalid || !this.selectedFile || this.submitting || !this.canImport) {
-      this.form.markAllAsTouched();
+    if (!this.selectedFile || this.submitting || !this.canImport) {
       return;
     }
     this.submitting = true;
     this.error = '';
-    const value = this.form.getRawValue();
     const body = new FormData();
     body.append('file', this.selectedFile);
-    body.append('title', value.title);
-    body.append('author', value.author);
-    body.append('description', value.description);
-    body.append('language', value.language);
-    if (value.publicationYear !== null) body.append('publicationYear', String(value.publicationYear));
+    const language = this.form.getRawValue().language;
+    if (language) body.append('language', language);
 
     this.readService.createBookImport(body).subscribe({
       next: bookImport => void this.router.navigate(['/my-books', bookImport.id]),
@@ -117,6 +130,67 @@ export class BookImportComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Where a detail came from, so a reader knows which values deserve a second look. */
+  protected provenanceOf(field: BookImportMetadataField): string {
+    switch (this.bookImport?.metadataProvenance[field]) {
+      case 'ai': return 'Suggested by AI';
+      case 'source': return 'From the file';
+      case 'user': return 'Yours';
+      default: return '';
+    }
+  }
+
+  protected languageName(code: LanguageCode | null): string {
+    if (!code) return 'Not detected yet';
+    return this.languages.find(language => language.code === code)?.name ?? code;
+  }
+
+  protected startEditingDetails(): void {
+    if (!this.bookImport) return;
+    this.detailsForm.reset({
+      title: this.bookImport.title,
+      author: this.bookImport.author,
+      description: this.bookImport.description,
+      language: this.bookImport.language ?? '',
+      publicationYear: this.bookImport.publicationYear,
+    });
+    this.detailsError = '';
+    this.editingDetails = true;
+  }
+
+  protected cancelEditingDetails(): void {
+    this.editingDetails = false;
+    this.detailsError = '';
+  }
+
+  protected saveDetails(): void {
+    const value = this.detailsForm.getRawValue();
+    if (!this.bookImport || this.savingDetails || this.detailsForm.invalid || !value.language) {
+      this.detailsForm.markAllAsTouched();
+      return;
+    }
+    this.savingDetails = true;
+    this.detailsError = '';
+    this.readService.updateBookImportMetadata(this.bookImport.id, {
+      title: value.title.trim(),
+      author: value.author.trim(),
+      description: value.description.trim(),
+      language: value.language,
+      publicationYear: value.publicationYear,
+    }).subscribe({
+      next: bookImport => {
+        this.bookImport = bookImport;
+        this.savingDetails = false;
+        this.editingDetails = false;
+        this.detailsSavedFor = bookImport.id;
+      },
+      error: error => {
+        this.savingDetails = false;
+        this.detailsError = getErrorMessage(error, 'Could not save these details.');
+      },
+    });
+  }
+
   private loadQuota(): void {
     this.quotaLoading = true;
     this.readService.getBookImportQuota().pipe(takeUntil(this.destroy$)).subscribe({
@@ -135,13 +209,39 @@ export class BookImportComponent implements OnInit, OnDestroy {
   private pollImport(id: string): void {
     interval(3000).pipe(
       startWith(0),
-      switchMap(() => this.bookImport && [BookImportStatus.READY, BookImportStatus.FAILED].includes(this.bookImport.status)
-        ? EMPTY
-        : this.readService.getBookImport(id)),
+      switchMap(() => this.bookImport && this.pollingFinished(this.bookImport) ? EMPTY : this.readService.getBookImport(id)),
       takeUntil(this.destroy$),
     ).subscribe({
-      next: bookImport => this.bookImport = bookImport,
+      next: bookImport => this.applyPolledImport(bookImport),
       error: error => this.error = getErrorMessage(error, 'Could not load import status.'),
     });
+  }
+
+  private pollingFinished(bookImport: BookImport): boolean {
+    return [BookImportStatus.READY, BookImportStatus.FAILED].includes(bookImport.status);
+  }
+
+  /** The details card opens by itself when a proposal arrives, or when a ready book never got one. */
+  private applyPolledImport(bookImport: BookImport): void {
+    const previous = this.bookImport;
+    const firstProposal = previous?.metadataStatus !== BookImportMetadataStatus.PROPOSED
+      && bookImport.metadataStatus === BookImportMetadataStatus.PROPOSED;
+    const readyWithoutDetails = bookImport.status === BookImportStatus.READY
+      && bookImport.metadataStatus === BookImportMetadataStatus.PENDING;
+    // Never overwrite a form the reader is in the middle of editing: keep the
+    // details they started from and take only the processing state.
+    if (this.editingDetails && previous && !firstProposal) {
+      this.bookImport = {
+        ...bookImport,
+        title: previous.title,
+        author: previous.author,
+        description: previous.description,
+        language: previous.language,
+        publicationYear: previous.publicationYear,
+      };
+      return;
+    }
+    this.bookImport = bookImport;
+    if (firstProposal || (readyWithoutDetails && !this.editingDetails)) this.startEditingDetails();
   }
 }

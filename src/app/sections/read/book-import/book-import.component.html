@@ -5,7 +5,7 @@
       <a routerLink="/read" class="back-link">← Back to Read</a>
       <p class="eyebrow">Your private library</p>
       <h1>{{ bookImport.title }}</h1>
-      <p class="book-author">{{ bookImport.author }}</p>
+      @if (bookImport.author) { <p class="book-author">{{ bookImport.author }}</p> }
 
       @if (bookImport.status === status.READY) {
         <p class="status-copy">Your book is ready. It is visible only to you.</p>
@@ -21,6 +21,62 @@
           </div>
         </div>
       }
+
+      @if (bookImport.status !== status.FAILED) {
+        <section class="details-card" aria-labelledby="details-heading">
+          @if (bookImport.metadataStatus === metadataStatus.PENDING && bookImport.status !== status.READY) {
+            <p class="eyebrow">Book details</p>
+            <h2 id="details-heading">Reading the file…</h2>
+            <p class="details-copy">Title, author, language, and a short description are filled in from the book itself. You will be able to check them here.</p>
+          } @else if (editingDetails) {
+            <p class="eyebrow">Book details</p>
+            @switch (bookImport.metadataStatus) {
+              @case (metadataStatus.PROPOSED) {
+                <h2 id="details-heading">Does this look right?</h2>
+                <p class="details-copy">Read from the file and completed by AI. Correct anything that is off, then confirm.</p>
+              }
+              @case (metadataStatus.PENDING) {
+                <h2 id="details-heading">Add the book's details</h2>
+                <p class="details-copy">We could not read these from the file, so please fill them in.</p>
+              }
+              @default {
+                <h2 id="details-heading">Edit details</h2>
+              }
+            }
+            <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()">
+              <div class="details-grid">
+                <label>Title <span class="provenance">{{ provenanceOf('title') }}</span><input formControlName="title" maxlength="500"></label>
+                <label>Author <span class="provenance">{{ provenanceOf('author') }}</span><input formControlName="author" maxlength="300"></label>
+              </div>
+              <label>Description <span class="provenance">{{ provenanceOf('description') || 'Optional' }}</span><textarea formControlName="description" rows="4"></textarea></label>
+              <div class="row">
+                <label>Language <span class="provenance">{{ provenanceOf('language') }}</span><select formControlName="language"><option value="" disabled>Choose a language</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+                <label>First published <span class="provenance">{{ provenanceOf('publication_year') || 'Optional' }}</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
+              </div>
+              @if (detailsError) { <p class="error">{{ detailsError }}</p> }
+              <div class="details-actions">
+                <button class="primary-action" type="submit" [disabled]="savingDetails">{{ savingDetails ? 'Saving…' : 'Confirm details' }}</button>
+                @if (bookImport.metadataStatus === metadataStatus.CONFIRMED) {
+                  <button class="secondary-action" type="button" (click)="cancelEditingDetails()">Cancel</button>
+                }
+              </div>
+            </form>
+          } @else {
+            <div class="details-heading">
+              <div>
+                <p class="eyebrow">Book details</p>
+                <h2 id="details-heading">{{ detailsSavedFor === bookImport.id ? 'Details saved' : 'Confirmed details' }}</h2>
+              </div>
+              <button class="secondary-action" type="button" (click)="startEditingDetails()">Edit</button>
+            </div>
+            <dl class="details-list">
+              <div><dt>Language</dt><dd>{{ languageName(bookImport.language) }}</dd></div>
+              @if (bookImport.publicationYear) { <div><dt>First published</dt><dd>{{ bookImport.publicationYear }}</dd></div> }
+              @if (bookImport.description) { <div class="wide"><dt>Description</dt><dd>{{ bookImport.description }}</dd></div> }
+            </dl>
+          }
+        </section>
+      }
     </section>
   } @else {
     <section class="import-card">
@@ -28,7 +84,7 @@
         <a routerLink="/read" class="back-link">← Back to Read</a>
         <p class="eyebrow">Your private library</p>
         <h1>Import a book you want to keep close.</h1>
-        <p>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported.</p>
+        <p>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported. Title, author, and a description are read from the book itself; you confirm them once it is in.</p>
       </div>
 
       <div class="quota-card" [class.exhausted]="quota && !canImport">
@@ -44,19 +100,13 @@
 
       <form [formGroup]="form" (ngSubmit)="submit()">
         <label class="file-input">Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required><span>{{ selectedFile?.name || 'Choose an EPUB or TEI XML file' }}</span></label>
-        <div class="details-grid">
-          <label>Title<input formControlName="title" maxlength="500"></label>
-          <label>Author<input formControlName="author" maxlength="300"></label>
-        </div>
-        <label>Description <span class="optional">Optional</span><textarea formControlName="description" rows="4"></textarea></label>
-        <div class="row">
-          <label>Language<select formControlName="language">@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
-          <label>Publication year <span class="optional">Optional</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
-        </div>
+        <label>Language <span class="optional">Optional — detected from the file</span><select formControlName="language"><option value="">Detect from the file</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
         @if (error) { <p class="error">{{ error }}</p> }
-        <button class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
+        <button class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport || !selectedFile">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
         @if (!quotaLoading && !canImport) {
           <p class="blocked-note">{{ importBlockedNote }}</p>
+        } @else if (!selectedFile) {
+          <p class="blocked-note">Choose a file to import.</p>
         }
       </form>
     </section>

@@ -47,7 +47,7 @@
       @if (privateBooks.length > 0) {
         <div class="shelf" [class.cover-shelf]="privateView === 'covers'">
           @for (book of privateBooks; track book.id) {
-            <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="book.status === importStatus.READY ? ['/reader/private', book.id] : ['/my-books', book.id]" [attr.aria-label]="book.title + ' by ' + book.author">
+            <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="book.status === importStatus.READY ? ['/reader/private', book.id] : ['/my-books', book.id]" [attr.aria-label]="book.author ? book.title + ' by ' + book.author : book.title">
               <span class="spine-title">{{ book.title }}</span>@if (privateView === 'covers' || showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }
               @if (book.status !== importStatus.READY) { <span class="spine-status">{{ book.status === importStatus.FAILED ? 'Needs attention' : 'Preparing' }}</span> }
               <span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span>
@@ -68,7 +68,7 @@
             @if (libraryView === 'covers') {
               <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span></a>
             } @else {
-              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="book.title + ' by ' + book.author"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span></a>
+              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="book.author ? book.title + ' by ' + book.author : book.title"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span></a>
             }
           </div>
         }

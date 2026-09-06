@@ -13,6 +13,7 @@ import {
 } from "./book.model";
 import {
   BookImport,
+  BookImportMetadataUpdate,
   BookImportQuota,
   parseBookImport,
   parseBookImportQuota,
@@ -61,6 +62,11 @@ export class ReadService {
 
   getBookImport(id: string): Observable<BookImport> {
     return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  updateBookImportMetadata(id: string, metadata: BookImportMetadataUpdate): Observable<BookImport> {
+    return this.http.put<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/metadata`, metadata, {withCredentials: true})
       .pipe(map(parseBookImport));
   }
 

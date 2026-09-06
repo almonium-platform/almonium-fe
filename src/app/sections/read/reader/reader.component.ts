@@ -231,8 +231,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.trackProgress = false;
     this.readService.getBookImport(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: book => {
-        this.targetLangCode = book.language;
-        this.startCountingReadingTime(book.language);
+        // A ready private book always has a detected language; only a stale link could reach here without one.
+        if (book.language) {
+          this.targetLangCode = book.language;
+          this.startCountingReadingTime(book.language);
+        }
         this.loadBookHtml(id, true);
       },
       error: error => this.handleError(getErrorMessage(error, 'Could not load private book.')),
