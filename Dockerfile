@@ -1,15 +1,7 @@
-FROM --platform=$BUILDPLATFORM node:20.19.0-alpine AS build
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-
-# Default to production, but allow CI to override it for staging
-ARG BUILD_CONFIGURATION=production
-RUN npm run build -- --configuration $BUILD_CONFIGURATION
-
+# Serves an already built bundle. Build it first:
+#   npm run build -- --configuration <staging|production>
+# CI builds once natively, then copies the result in here, so the image build
+# is a file copy on any runner and never emulates the target CPU.
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist/almonium-fe/browser/ /usr/share/nginx/html/
+COPY dist/almonium-fe/browser/ /usr/share/nginx/html/
