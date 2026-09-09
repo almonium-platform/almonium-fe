@@ -39,6 +39,20 @@ describe('MembershipComponent', () => {
     expect(element.textContent).not.toContain('Become a member');
   });
 
+  it('never calls a granted member Free, or their access Lifetime', async () => {
+    // An operator grant leaves the free billing row in place: name FREE, type LIFETIME.
+    const userInfo$ = new BehaviorSubject(userInfo(true, {name: 'FREE', type: PlanType.LIFETIME, autoRenewal: false, endDate: null}));
+    const fixture = await createFixture(userInfo$, 12);
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('h1')?.textContent).toContain('Premium member');
+    expect(element.textContent).toContain('Premium, granted');
+    expect(element.textContent).toContain('Granted access');
+    expect(element.textContent).not.toContain('Free');
+    expect(element.textContent).not.toContain('Lifetime');
+    expect(element.textContent).not.toContain('Manage card and invoices');
+  });
+
   it('shows a pending cadence change with the undo beside it', async () => {
     const userInfo$ = new BehaviorSubject(userInfo(true, {
       scheduledChange: {type: PlanType.MONTHLY, effectiveAt: '2027-09-04T00:00:00Z'},

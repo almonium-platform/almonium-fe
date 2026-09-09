@@ -113,7 +113,13 @@ export class MembershipComponent implements OnInit {
     return this.userInfo?.subscription ?? null;
   }
 
+  /** No price, renewal date or billing portal exists for a membership that was granted, not bought. */
+  protected get billingManaged(): boolean {
+    return this.subscription?.describesMembership() ?? false;
+  }
+
   protected get membershipTitle(): string {
+    if (!this.billingManaged) return 'Premium member';
     if (this.subscription?.type === PlanType.LIFETIME) return 'Lifetime member';
     if (this.subscription?.autoRenewal === false) return 'Premium until ' + this.formatDate(this.subscription.endDate);
     return 'Premium member';
@@ -126,10 +132,12 @@ export class MembershipComponent implements OnInit {
   protected get planLabel(): string {
     const name = this.subscription?.name;
     if (!name) return '—';
+    if (!this.billingManaged) return 'Premium, granted';
     return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
   }
 
   protected get renewalLabel(): string {
+    if (!this.billingManaged) return 'Granted access';
     if (this.subscription?.type === PlanType.LIFETIME) return 'No renewal needed';
     if (!this.subscription?.endDate) return 'Active membership';
     return `${this.subscription.autoRenewal ? 'Renews' : 'Access ends'} ${this.formatDate(this.subscription.endDate)}`;

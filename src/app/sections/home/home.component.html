@@ -94,7 +94,7 @@
       <aside class="side-column" aria-label="Learning overview">
         <section class="home-card review-card"><p class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span>{{ reviewCount === 1 ? 'word' : 'words' }} ready to come back</span></div><p>Review the vocabulary you chose to learn in {{ selectedLanguage }}.</p><a class="secondary-action" routerLink="/review">Start review</a></section>
         <app-harness></app-harness>
-        <section class="home-card plan-card"><p class="eyebrow">Your plan</p><p>You’re on {{ userInfo?.subscription?.name ?? (userInfo?.premium ? 'Premium' : 'Free') }} with {{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }} in {{ selectedLanguage }}.</p>@if (!userInfo?.premium) { <a routerLink="/pricing">See what Premium adds</a> }</section>
+        <section class="home-card plan-card"><p class="eyebrow">Your plan</p><p>You’re on {{ planName }} with {{ cards.length }} saved {{ cards.length === 1 ? 'word' : 'words' }} in {{ selectedLanguage }}.</p>@if (!userInfo?.premium) { <a routerLink="/pricing">See what Premium adds</a> }</section>
       </aside>
     </div>
   }

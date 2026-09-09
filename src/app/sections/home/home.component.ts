@@ -128,6 +128,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.languageNameService.getLanguageName(this.selectedLanguage);
   }
 
+  /**
+   * The free plan is a billing row named FREE that stays put when premium is granted rather than
+   * bought, so the row can only name the plan once it describes the membership. See
+   * `Subscription.describesMembership`.
+   */
+  protected get planName(): string {
+    const subscription = this.userInfo?.subscription;
+    if (!this.userInfo?.premium) return 'Free';
+    if (!subscription?.describesMembership()) return 'Premium';
+    return subscription.name.charAt(0).toUpperCase() + subscription.name.slice(1).toLowerCase();
+  }
+
   protected get learnerLevel(): string | null {
     return this.userInfo?.learners.find(learner => learner.language === this.selectedLanguage)?.selfReportedLevel ?? null;
   }

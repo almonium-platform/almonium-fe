@@ -245,6 +245,16 @@ export class Subscription {
     );
   }
 
+  /**
+   * The free plan is a billing row named FREE whose type is LIFETIME, and it stays on the account
+   * when premium arrives from an operator grant rather than a purchase. So the row describes the
+   * membership only when it is a paid plan; otherwise `premium` is the whole story, and the row's
+   * name and dates would say "Free" and "Lifetime" about the same person.
+   */
+  describesMembership(): boolean {
+    return this.name.trim().toUpperCase() !== 'FREE';
+  }
+
   getLimit(key: string, defaultValue = Infinity): number {
     return this.limits[key] ?? defaultValue;
   }

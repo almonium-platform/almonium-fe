@@ -109,17 +109,19 @@
             </div>
           }
 
-          @if (oppositeCadence && !scheduledChange) {
+          @if (billingManaged && oppositeCadence && !scheduledChange) {
             <button class="portal-action" type="button" [disabled]="cadenceLoading" (click)="openCadenceChange()">
               {{ cadenceLoading ? 'Checking…' : cadenceSwitchLabel }}
             </button>
           }
 
-          <button class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
-            {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage card and invoices' }}
-          </button>
+          @if (billingManaged) {
+            <button class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
+              {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage card and invoices' }}
+            </button>
+          }
 
-          @if (subscription?.autoRenewal !== false && subscription?.type !== 'LIFETIME') {
+          @if (billingManaged && subscription?.autoRenewal !== false && subscription?.type !== 'LIFETIME') {
             <button class="cancel-action" type="button" (click)="openCancellation()">Cancel subscription</button>
           }
         </div>
