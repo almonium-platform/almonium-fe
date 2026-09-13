@@ -23,6 +23,8 @@ import {UserProfileInfo} from '../../../shared/user-preview-card/user-profile.mo
 import {DecimalPipe} from '@angular/common';
 import {LanguageCode} from '../../../models/language.enum';
 import {LanguageNameService} from '../../../services/language-name.service';
+import {LanguageApiService} from '../../../services/language-api.service';
+import {ActiveLanguagePolicy} from '../../../models/active-language-policy.model';
 import {LearningStats, LearningStatsService} from '../../../services/learning-stats.service';
 import {TargetLanguageDropdownService} from '../../../services/target-language-dropdown.service';
 import {LanguageRhythm, Rhythm, bandWeeks, cadenceLabel, hasTarget, paceFraction} from '../../../shared/rhythm/rhythm.model';
@@ -59,6 +61,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   private profileService = inject(ProfileService);
   private languageService = inject(TargetLanguageDropdownService);
   private languageNameService = inject(LanguageNameService);
+  private languageApiService = inject(LanguageApiService);
   private learningStatsService = inject(LearningStatsService);
   private rhythmService = inject(RhythmService);
 
@@ -80,6 +83,8 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   protected stats: LearningStats | null = null;
   protected rhythm: Rhythm | null = null;
   protected activeLanguage: LanguageCode | null = null;
+  /** Words kept per language, for the set-aside footnote; the record page shows the rest. */
+  private policy: ActiveLanguagePolicy | null = null;
   private langColors: Record<string, string> = {};
 
   private readonly loadingSubjectInterests$ = new BehaviorSubject<boolean>(false);
@@ -110,6 +115,9 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     this.rhythmService.load().subscribe({
       error: error => logger.error('Failed to load your rhythm:', error),
     });
+    this.languageApiService.getActiveLanguagePolicy()
+      .pipe(catchError(() => of(null)), takeUntil(this.destroy$))
+      .subscribe(policy => this.policy = policy);
 
     this.languageService.currentLanguage$.pipe(
       switchMap(language => {
@@ -134,9 +142,37 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     return RhythmService.forLanguage(this.rhythm, this.activeLanguage);
   }
 
+  /** "English · B2": the record's header names its language and level, so the numbers are never anonymous. */
+  protected get recordLabel(): string {
+    const level = this.userInfo?.learners.find(learner => learner.language === this.activeLanguage)?.selfReportedLevel;
+    return level ? `${this.activeLanguageName} · ${level}` : this.activeLanguageName;
+  }
+
+  protected get firstSessionPhrase(): string {
+    return this.activeLanguage ? `a first ${this.activeLanguageName} session` : 'a first session';
+  }
+
   /** The languages beside the active one, collapsed to a name and how many weeks they kept. */
   protected get otherLanguages(): LanguageRhythm[] {
     return (this.rhythm?.languages ?? []).filter(entry => entry.language !== this.activeLanguage);
+  }
+
+  /** "Also learning" is only true of a language being learned; a card of set-aside languages is titled so. */
+  protected get allOthersSetAside(): boolean {
+    const others = this.otherLanguages;
+    return others.length > 0 && others.every(entry => !entry.editable);
+  }
+
+  /**
+   * Under a set-aside language's name. Beside an active one the word is the state; when the card's title already
+   * says it, the line says what is kept instead - and "Nothing read yet" rather than a zero.
+   */
+  protected asideNote(rhythm: LanguageRhythm): string {
+    if (!this.allOthersSetAside) {
+      return 'Set aside';
+    }
+    const kept = this.policy?.languages.find(choice => choice.language === rhythm.language)?.wordsKept ?? 0;
+    return kept > 0 ? `${new Intl.NumberFormat().format(kept)} words kept` : 'Nothing read yet';
   }
 
   /**

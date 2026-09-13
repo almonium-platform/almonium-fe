@@ -21,6 +21,7 @@ button { font: inherit; }
 .profile-card,
 .plan-card { box-sizing: border-box; box-shadow: var(--box-shadow); }
 .profile-card { min-width: 0; padding: 1.75rem 1.875rem; border-radius: 28px; }
+.sidebar { display: flex; min-width: 0; flex-direction: column; gap: .875rem; }
 .plan-card { display: flex; flex-direction: column; gap: .875rem; padding: 1.375rem 1.5rem; border-radius: 24px; }
 
 .identity-row { display: flex; align-items: flex-start; gap: 1.125rem; margin-top: 1rem; }
@@ -159,8 +160,17 @@ button { font: inherit; }
 }
 
 .record-strip { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.125rem; padding-top: 1.125rem; border-top: 1px solid var(--hairline-color); }
-.record-head { display: flex; align-items: baseline; gap: .6rem; }
-.record-language { margin-left: auto; font-family: var(--font-family-reading); font-size: .95rem; }
+.record-head { display: flex; align-items: center; gap: .6rem; }
+.record-language {
+  display: inline-flex;
+  align-items: center;
+  gap: .4375rem;
+  margin-left: auto;
+  color: var(--subhead-color);
+  font-family: var(--font-family-mono);
+  font-size: .6875rem;
+}
+.record-crest { width: .875rem; height: .875rem; flex: 0 0 auto; border-radius: .25rem; }
 .record-numbers { display: flex; flex-wrap: wrap; gap: 1.9rem; }
 .record-number { display: flex; flex-direction: column; gap: .2rem; }
 .record-number .figure { font-family: var(--font-family-reading); font-size: 1.6rem; font-weight: 600; line-height: 1; }
@@ -176,6 +186,11 @@ button { font: inherit; }
 .also-row:hover { color: var(--text-color); background: var(--state-hover); }
 .also-chevron { color: var(--metadata-color); font-size: .9rem; }
 .also-chip { width: 1.1rem; height: 1.1rem; border-radius: .32rem; }
-.also-name { display: flex; flex: 1; align-items: baseline; gap: .4rem; font-size: .82rem; }
-.also-name small { color: var(--metadata-color); font-size: .66rem; }
+.also-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .0625rem; }
+.also-name { font-size: .82rem; }
+.also-copy small { color: var(--metadata-color); font-size: .6875rem; }
 .also-count { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .69rem; }
+
+/* A set-aside row is dimmed the way its swatch is on the settings row: same colour, less of it. */
+.also-row.aside .also-chip { opacity: .45; }
+.also-row.aside .also-name { color: var(--metadata-color); }

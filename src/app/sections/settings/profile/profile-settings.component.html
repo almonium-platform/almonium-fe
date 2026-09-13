@@ -59,9 +59,15 @@
         }
 
         <section class="record-strip" aria-labelledby="record-strip-title">
+          <!-- The header always names its language, so the numbers are never anonymous. -->
           <div class="record-head">
             <span id="record-strip-title" class="eyebrow">Your record</span>
-            @if (hasRecord) { <span class="record-language">{{ activeLanguageName }}</span> }
+            @if (activeLanguage) {
+              <span class="record-language">
+                <span class="record-crest" [style.background]="crestColour(activeLanguage)" aria-hidden="true"></span>
+                {{ recordLabel }}
+              </span>
+            }
           </div>
 
           @if (hasRecord && activeRhythm; as loadedRhythm) {
@@ -92,8 +98,8 @@
             </div>
           } @else {
             <p class="record-empty">
-              Nothing here until you finish a first session. Then this holds the words you can read, the books you
-              finished, and the weeks you kept pace.
+              Nothing here until you finish {{ firstSessionPhrase }}. Then this holds the words you can read, the
+              books you finished, and the weeks you kept pace.
             </p>
             <a class="record-action" routerLink="/read">Open the library</a>
           }
@@ -156,7 +162,10 @@
       }
     </section>
 
-    <aside class="plan-card card">
+    <!-- One sidebar column: the plan, and under it the languages beside the active one. A second-language card is a
+         sidebar object; rendered at body width under the main card it reads as a stray section. -->
+    <aside class="sidebar">
+    <section class="plan-card card">
       <div class="eyebrow">Plan</div>
       <div class="plan-name">
         <strong>{{ premium ? 'Premium' : 'Free' }}</strong>
@@ -171,23 +180,32 @@
         {{ premium ? 'View membership' : 'View limits and upgrade' }}
         <lucide-icon name="chevron-right" [size]="15" />
       </a>
-    </aside>
+    </section>
 
+    <!-- "Also learning" is only true of a language being learned. When every language here is set aside the card
+         says so in its title, and the weeks fraction goes: 0/0 is not a number. -->
     @if (otherLanguages.length) {
-      <aside class="also-card card">
-        <div class="eyebrow">Also learning</div>
+      <section class="also-card card">
+        <div class="eyebrow">{{ allOthersSetAside ? 'Set aside' : 'Also learning' }}</div>
         @for (other of otherLanguages; track other.language) {
-          <a class="also-row" [routerLink]="['/settings/me/language', other.language.toLowerCase()]">
+          <a
+            class="also-row"
+            [class.aside]="!other.editable"
+            [routerLink]="['/settings/me/language', other.language.toLowerCase()]"
+          >
             <span class="also-chip" [style.background]="crestColour(other.language)" aria-hidden="true"></span>
-            <span class="also-name">
-              {{ languageName(other.language) }}
-              @if (!other.editable) { <small>Set aside</small> }
+            <span class="also-copy">
+              <span class="also-name">{{ languageName(other.language) }}</span>
+              @if (!other.editable) { <small>{{ asideNote(other) }}</small> }
             </span>
-            <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
+            @if (other.editable || !allOthersSetAside) {
+              <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
+            }
             <span class="also-chevron" aria-hidden="true">›</span>
           </a>
         }
-      </aside>
+      </section>
     }
+    </aside>
   </main>
 </div>
