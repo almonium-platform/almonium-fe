@@ -35,7 +35,7 @@ a { color: var(--dark-raspberry); text-decoration: none; } a:hover { color: var(
 .book-row { display: flex; align-items: flex-end; gap: .75rem; min-height: 9rem; margin-top: 1rem; }
 .book-spine { display: flex; align-items: flex-end; width: 3.2rem; height: 8.2rem; padding: .7rem .5rem; overflow: hidden; border-radius: .35rem; background: var(--brand-margin); color: var(--on-brand-color); transition: transform 160ms ease; }
 .book-spine:hover { color: var(--on-brand-color); transform: translateY(-3px); }
-.book-spine span { overflow: hidden; font-family: var(--font-family-reading); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; writing-mode: vertical-rl; transform: rotate(180deg); }
+.book-spine span { max-height: 100%; overflow: hidden; font-family: var(--font-family-reading); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; writing-mode: vertical-rl; transform: rotate(180deg); }
 .spine-2 { height: 7rem; background: var(--brand-premium); } .spine-3 { width: 3.65rem; height: 7.7rem; background: var(--brand-hover); } .spine-4 { height: 6.5rem; background: var(--brand-ink); }
 .book-row p { display: flex; flex-direction: column; gap: .45rem; max-width: 17rem; margin: 0 0 .5rem .25rem; color: var(--subhead-color); font-size: .8rem; line-height: 1.55; }
 .side-column p:not(.eyebrow) { margin: .8rem 0 0; color: var(--subhead-color); font-size: .83rem; line-height: 1.6; }
