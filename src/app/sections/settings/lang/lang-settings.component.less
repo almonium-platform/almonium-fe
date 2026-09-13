@@ -51,6 +51,20 @@ button { font: inherit; }
 
 .fluent-language-selector { display: block; max-width: 30rem; margin-top: .625rem; }
 
+// Editing: the eyebrow stays above the field, so centring the flex row put Save on the middle of
+// eyebrow + field. A grid gives the field its own row; Save then sits on the field's first line
+// (the multi textfield's 3.5rem min-height) even when chips wrap or the selector shows an error.
+.known-card.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: .625rem;
+}
+
+.known-card.editing .known-copy { display: contents; }
+.known-card.editing .eyebrow { grid-row: 1; grid-column: 1; margin-bottom: 0; }
+.known-card.editing .fluent-language-selector { grid-row: 2; grid-column: 1; margin-top: 0; }
+.known-card.editing .settings-action { grid-row: 2; grid-column: 2; align-self: start; margin-top: calc((3.5rem - 2rem) / 2); }
+
 .learning-card { padding: 1.125rem 1.25rem 1rem; }
 .learner-list { margin-top: .875rem; }
 

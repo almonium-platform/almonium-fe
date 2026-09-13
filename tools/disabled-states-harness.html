@@ -1581,6 +1581,32 @@ tui-data-list button[tuiOption].context-button.negative {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+.scope-auth-settings .method-row.editing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  row-gap: 0.125rem;
+}
+.scope-auth-settings .method-row.editing .method-copy,
+.scope-auth-settings .method-row.editing .password-form {
+  display: contents;
+}
+.scope-auth-settings .method-row.editing strong,
+.scope-auth-settings .method-row.editing tui-textfield,
+.scope-auth-settings .method-row.editing tui-error {
+  grid-column: 2;
+}
+.scope-auth-settings .method-row.editing .method-icon,
+.scope-auth-settings .method-row.editing tui-textfield,
+.scope-auth-settings .method-row.editing .settings-action {
+  grid-row: 2;
+}
+.scope-auth-settings .method-row.editing .method-icon {
+  grid-column: 1;
+}
+.scope-auth-settings .method-row.editing .settings-action {
+  grid-column: 3;
+}
 .scope-auth-settings .delete-account-row {
   display: flex;
   align-items: center;
@@ -1614,10 +1640,15 @@ tui-data-list button[tuiOption].context-button.negative {
     min-width: 4.75rem;
   }
   .scope-auth-settings .method-row.editing {
-    flex-wrap: wrap;
+    align-items: center;
   }
-  .scope-auth-settings .method-row.editing .method-copy {
-    min-width: calc(100% - 2.75rem);
+  .scope-auth-settings .method-row.editing tui-error {
+    grid-row: 3;
+  }
+  .scope-auth-settings .method-row.editing .settings-action {
+    grid-row: 4;
+    grid-column: 2;
+    justify-self: start;
   }
 }
 .scope-lang-settings {
@@ -1678,6 +1709,30 @@ tui-data-list button[tuiOption].context-button.negative {
   display: block;
   max-width: 30rem;
   margin-top: 0.625rem;
+}
+.scope-lang-settings .known-card.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 0.625rem;
+}
+.scope-lang-settings .known-card.editing .known-copy {
+  display: contents;
+}
+.scope-lang-settings .known-card.editing .eyebrow {
+  grid-row: 1;
+  grid-column: 1;
+  margin-bottom: 0;
+}
+.scope-lang-settings .known-card.editing .fluent-language-selector {
+  grid-row: 2;
+  grid-column: 1;
+  margin-top: 0;
+}
+.scope-lang-settings .known-card.editing .settings-action {
+  grid-row: 2;
+  grid-column: 2;
+  align-self: start;
+  margin-top: calc((3.5rem - 2rem) / 2);
 }
 .scope-lang-settings .learning-card {
   padding: 1.125rem 1.25rem 1rem;

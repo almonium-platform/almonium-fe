@@ -76,6 +76,27 @@ button { font: inherit; }
 .method-copy strong { color: var(--brand-ink); font-size: .85rem; font-weight: 500; }
 .method-copy > span { color: var(--metadata-color); font-size: .68rem; line-height: 1.4; overflow-wrap: anywhere; }
 
+// Editing: the label stays above the field, so centring the flex row put the icon and Save on the
+// middle of label + field (+ error, once it showed). A grid gives the field its own row and centres
+// them on that row alone, whatever appears above or below it.
+.method-row.editing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: .75rem;
+  row-gap: .125rem;
+}
+
+.method-row.editing .method-copy,
+.method-row.editing .password-form { display: contents; }
+.method-row.editing strong,
+.method-row.editing tui-textfield,
+.method-row.editing tui-error { grid-column: 2; }
+.method-row.editing .method-icon,
+.method-row.editing tui-textfield,
+.method-row.editing .settings-action { grid-row: 2; }
+.method-row.editing .method-icon { grid-column: 1; }
+.method-row.editing .settings-action { grid-column: 3; }
+
 .delete-account-row {
   display: flex;
   align-items: center;
@@ -100,6 +121,8 @@ button { font: inherit; }
   .account-card { padding-right: 1rem; padding-left: 1rem; }
   .method-row { align-items: flex-start; padding: .75rem 0; }
   .settings-action { min-width: 4.75rem; }
-  .method-row.editing { flex-wrap: wrap; }
-  .method-row.editing .method-copy { min-width: calc(100% - 2.75rem); }
+  // Save moves under the field so the field keeps its width.
+  .method-row.editing { align-items: center; }
+  .method-row.editing tui-error { grid-row: 3; }
+  .method-row.editing .settings-action { grid-row: 4; grid-column: 2; justify-self: start; }
 }
