@@ -48,7 +48,8 @@
 .progress-hairline i { display: block; height: 100%; border-radius: 2px; background: #fff; }
 
 // The shelf. Spines stand on a hairline; thickness and height vary, colour comes from the palette.
-.shelf { display: flex; align-items: end; gap: 5px; min-height: 184px; padding: .5rem .4rem 2px; overflow-x: auto; border-bottom: 3px solid var(--control-border-color); }
+// It scrolls sideways, which also clips vertically, so the headroom is what the raised spine and its hover label need.
+.shelf { display: flex; align-items: end; gap: 5px; min-height: 184px; padding: 4.75rem .4rem 2px; overflow-x: auto; border-bottom: 3px solid var(--control-border-color); }
 .book-context { flex: 0 0 auto; }
 .shelf-book { position: relative; display: flex; flex-direction: column; color: #fff; text-decoration: none; }
 .book-spine { justify-content: flex-start; width: var(--spine-width); height: var(--spine-height); padding: 8px 5px; overflow: visible; border-radius: 4px 4px 2px 2px; background: var(--book-color); box-shadow: 0 2px 5px rgba(44, 37, 48, .16); transition: transform .15s ease, box-shadow .15s ease; }
@@ -59,10 +60,12 @@
 .ink-spine { --book-color: #3d3d3d; }
 .ink-spine .spine-title { font-family: var(--font-family-mono); font-size: .66rem; font-weight: 400; opacity: .85; }
 .spine-status { position: absolute; right: 2px; bottom: 3px; left: 2px; padding: 2px; overflow: hidden; background: rgba(44, 37, 48, .72); font-size: .52rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 50%; display: none; min-width: 9.5rem; padding: .55rem .7rem; border-radius: .75rem; background: var(--overlay-color); color: var(--text-color); box-shadow: 0 8px 22px rgba(44, 37, 48, .18); transform: translateX(-50%); }
-.hover-label strong { display: block; font-family: var(--font-family-reading); font-size: .78rem; font-weight: 600; line-height: 1.25; }
+.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 4px); left: 50%; display: none; width: max-content; min-width: 9.5rem; max-width: 14rem; padding: .55rem .7rem; border-radius: .75rem; background: var(--overlay-color); color: var(--text-color); box-shadow: 0 8px 22px rgba(44, 37, 48, .18); transform: translateX(-50%); }
+.hover-label strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-family: var(--font-family-reading); font-size: .78rem; font-weight: 600; line-height: 1.25; }
 .hover-label small { display: block; margin-top: .15rem; color: var(--metadata-color); font-size: .66rem; }
 .shelf-book:hover .hover-label, .shelf-book:focus-visible .hover-label { display: block; }
+// The shelf cannot scroll left of its first spine, so the first few labels hang from the spine's left edge instead of its centre.
+.shelf > :nth-child(-n+3) .hover-label { left: 0; transform: none; }
 .cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem 0 1rem; border: 0; }
 .cover-book, .private-cover { display: flex; flex: 0 0 8.5rem; width: 8.5rem; flex-direction: column; gap: .45rem; color: var(--text-color); text-decoration: none; }
 .cover-book app-book-cover { display: block; width: 8.5rem; height: 12.2rem; overflow: hidden; border-radius: .45rem; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
