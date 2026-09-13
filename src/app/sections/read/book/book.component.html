@@ -1,6 +1,13 @@
 <ng-template #requestSheet>
   <div class="sheet">
-    @if (sheetLanguage; as language) {
+    @if (!sheetLanguage) {
+      <h2 class="sheet__title" i18n>Another language for <em>{{ book?.title }}</em></h2>
+      <p class="sheet__copy" i18n>Pick the language you would read it alongside. We add requested translations as we go; when this one is ready, you get an email.</p>
+      <label class="sheet__picker"><span i18n>Language</span><select [ngModel]="pickedLanguage" (ngModelChange)="pickLanguage($event)"><option i18n value="" disabled>Choose a language</option>@for (language of otherLanguages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+      <div class="sheet__actions">
+        <button i18n type="button" class="sheet__quiet" (click)="closeSheet()">Not now</button>
+      </div>
+    } @else if (sheetLanguage; as language) {
       @if (!atRequestCap) {
         <h2 class="sheet__title" i18n>{{ languageName(language) }} for <em>{{ book?.title }}</em></h2>
         <p class="sheet__copy" i18n>We add requested translations as we go. There is no date and no queue position — when this one is ready, you get an email.</p>
@@ -60,7 +67,7 @@
       <section class="parallel" aria-labelledby="parallel-heading">
         <h2 i18n id="parallel-heading" class="eyebrow">Parallel text</h2>
         <div class="chip-row">
-          @for (chip of languageChips; track chip.code) {
+          @for (chip of languageChips; track chip.code ?? 'other') {
             @switch (chip.state) {
               @case ('reading') {
                 <a class="lang-chip lang-chip--solid" [routerLink]="['/reader', bookSlug]" [queryParams]="{parallel: chip.code}">{{ chip.name }}</a>
@@ -69,10 +76,13 @@
                 <a class="lang-chip lang-chip--outline" [routerLink]="['/reader', bookSlug]" [queryParams]="{parallel: chip.code}">{{ chip.name }}</a>
               }
               @case ('asked') {
-                <button type="button" class="lang-chip lang-chip--asked" [disabled]="withdrawing === chip.code" (click)="cancelOrder(chip.code)" [tuiHint]="askedHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">{{ chip.name }}<small i18n>asked</small></button>
+                <button type="button" class="lang-chip lang-chip--asked" [disabled]="withdrawing === chip.code" (click)="chip.code && cancelOrder(chip.code)" [tuiHint]="askedHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">{{ chip.name }}<small i18n>asked</small></button>
               }
               @case ('requestable') {
                 <button type="button" class="lang-chip lang-chip--dashed" (click)="openRequestSheet(chip.code)"><span aria-hidden="true">+</span>{{ chip.name }}</button>
+              }
+              @case ('other') {
+                <button type="button" class="lang-chip lang-chip--dashed lang-chip--other" (click)="openRequestSheet(null)"><span aria-hidden="true">+</span>{{ chip.name }}</button>
               }
             }
           }

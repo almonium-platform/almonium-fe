@@ -18,11 +18,15 @@ import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
 import {BookCoverComponent} from '../book-cover/book-cover.component';
 import {UserInfoService} from '../../../services/user-info.service';
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
+import {SupportedLanguagesService} from '../../../services/supported-langs.service';
+import {Language} from '../../../models/language.model';
+import {FormsModule} from '@angular/forms';
 
-type ChipState = 'reading' | 'available' | 'asked' | 'requestable';
+/** `other` is the one dashed chip that stands for every language not on the reader's fluent list. */
+type ChipState = 'reading' | 'available' | 'asked' | 'requestable' | 'other';
 
 interface LanguageChip {
-  code: LanguageCode;
+  code: LanguageCode | null;
   name: string;
   state: ChipState;
 }
@@ -36,6 +40,7 @@ interface LanguageChip {
     TuiSkeleton,
     RouterLink,
     DatePipe,
+    FormsModule,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
@@ -51,6 +56,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private pageTitle = inject(Title);
   private meta = inject(Meta);
   private popupTemplateStateService = inject(PopupTemplateStateService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
 
   @ViewChild('requestSheet', {static: true}) private requestSheet!: TemplateRef<unknown>;
 
@@ -62,6 +68,9 @@ export class BookComponent implements OnInit, OnDestroy {
   protected book: Book | null = null;
   protected bookLanguage = "";
   private fluentLanguages: LanguageCode[] = [];
+  private supportedLanguages: Language[] = [];
+  /** The language picked in the sheet when it was opened from the "another language" chip. */
+  protected pickedLanguage: LanguageCode | '' = '';
   /** Every request this reader has open, across books; the cap sheet lists this period's. */
   private orders: TranslationOrder[] = [];
   protected quota: TranslationRequestQuota | null = null;
@@ -75,6 +84,9 @@ export class BookComponent implements OnInit, OnDestroy {
     this.authenticated = user !== null;
     this.premium = user?.premium ?? false;
     this.fluentLanguages = user?.fluentLangs ?? [];
+    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe(languages => {
+      if (languages) this.supportedLanguages = languages;
+    });
 
     this.activatedRoute.paramMap
       .pipe(
@@ -192,12 +204,30 @@ export class BookComponent implements OnInit, OnDestroy {
       if (code === book.language || available.includes(code) || asked.includes(code)) continue;
       chips.push({code, name: this.languageName(code), state: 'requestable'});
     }
+    if (this.otherLanguages.length > 0) {
+      chips.push({code: null, name: $localize`Another language`, state: 'other'});
+    }
     return chips;
+  }
+
+  /** Every supported language the book is not in, does not have, and nobody here has asked for or is fluent in. */
+  protected get otherLanguages(): Language[] {
+    const book = this.book;
+    if (!book || !this.authenticated) return [];
+    const taken = new Set<LanguageCode>([
+      book.language,
+      ...book.languageVariants.map(variant => variant.language),
+      ...this.askedHere,
+      ...this.fluentLanguages,
+    ]);
+    return this.supportedLanguages.filter(language => !taken.has(language.code));
   }
 
   protected get parallelNote(): string | null {
     const requestable = this.languageChips.filter(chip => chip.state === 'requestable');
-    if (requestable.length === 0) return null;
+    if (requestable.length === 0) {
+      return this.otherLanguages.length > 0 ? $localize`Missing a language you read? You can ask for it.` : null;
+    }
     const names = requestable.map(chip => chip.name);
     return names.length === 1
       ? $localize`${names[0]}:language: is not aligned for this book yet. You can ask for it.`
@@ -206,18 +236,26 @@ export class BookComponent implements OnInit, OnDestroy {
 
   // --- The request sheet (G7) ---
 
-  protected openRequestSheet(language: LanguageCode): void {
+  protected openRequestSheet(language: LanguageCode | null): void {
     if (!this.authenticated) {
       void this.router.navigate(['/auth'], {queryParams: {returnUrl: `/books/${this.bookSlug}`}});
       return;
     }
     this.sheetLanguage = language;
+    this.pickedLanguage = '';
     this.popupTemplateStateService.open(this.requestSheet, 'translation-request');
+  }
+
+  /** The picker settles the sheet on a language; from there it is the same ask as a fluent chip. */
+  protected pickLanguage(code: LanguageCode | ''): void {
+    this.pickedLanguage = code;
+    this.sheetLanguage = code || null;
   }
 
   protected closeSheet(): void {
     this.popupTemplateStateService.close();
     this.sheetLanguage = null;
+    this.pickedLanguage = '';
   }
 
   protected get atRequestCap(): boolean {

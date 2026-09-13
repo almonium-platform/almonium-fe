@@ -31,6 +31,8 @@
 .lang-chip--dashed { border-style: dashed; border-color: color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); background: transparent; color: var(--dark-raspberry); }
 .lang-chip--dashed:hover { background: var(--state-selected); }
 .lang-chip--dashed span { font-size: 1rem; line-height: 1; }
+.lang-chip--other { color: var(--subhead-color); border-color: var(--control-border-color); }
+.lang-chip--other:hover { color: var(--dark-raspberry); }
 .lang-chip--asked { border-color: color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); background: var(--state-selected); color: var(--dark-raspberry); }
 .lang-chip--asked small { color: var(--metadata-color); font-size: .66rem; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
 .lang-chip:disabled { cursor: wait; opacity: .6; }
@@ -52,6 +54,8 @@
 .sheet__link { border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .76rem; font-weight: 500; }
 .sheet__link:disabled { color: var(--disabled-label-color); cursor: wait; }
 .sheet__upsell { margin: 0; padding: .7rem .9rem; border-radius: .75rem; background: var(--premium-gradient); color: #fff; font-size: .76rem; line-height: 1.5; }
+.sheet__picker { display: flex; flex-direction: column; gap: .4rem; color: var(--subhead-color); font-size: .76rem; font-weight: 600; }
+.sheet__picker select { min-height: 2.6rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: .75rem; background: var(--nested-color); color: var(--text-color); font: inherit; font-size: .88rem; font-weight: 400; }
 .sheet__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
 .sheet__primary { min-height: 2.6rem; padding: .6rem 1.25rem; border: 0; border-radius: 999px; background: var(--dark-raspberry); color: #fff; cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
 .sheet__primary:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: wait; }
