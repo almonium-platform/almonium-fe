@@ -40,11 +40,18 @@ export class DiscoverComponent implements OnInit {
   protected currentLanguage = LanguageCode.EN;
   protected readonly diacritics = ['ä', 'ö', 'ü', 'ß', 'é', 'è', 'ç', 'ñ', 'ł'];
   protected readonly intentOptions: {value: LearningIntent; label: string; detail: string}[] = [
-    {value: 'UNDERSTAND', label: 'Understand it', detail: 'Recognise it while reading'},
-    {value: 'PRODUCE', label: 'Say it too', detail: 'Recall the word from its meaning'},
-    {value: 'DISAMBIGUATE', label: 'Tell it apart', detail: 'Practise it against confusing words'},
+    {value: 'UNDERSTAND', label: $localize`Understand it`, detail: $localize`Recognise it while reading`},
+    {value: 'PRODUCE', label: $localize`Say it too`, detail: $localize`Recall the word from its meaning`},
+    {value: 'DISAMBIGUATE', label: $localize`Tell it apart`, detail: $localize`Practise it against confusing words`},
   ];
+  protected readonly wordFallback = $localize`word`;
+  protected readonly meaningFallback = $localize`Meaning not supplied`;
   protected selectedIntents = new Set<LearningIntent>(['UNDERSTAND']);
+
+  protected get keepActionLabel(): string {
+    if (this.saved) return $localize`Kept`;
+    return this.saving ? $localize`Keeping…` : $localize`Keep the word`;
+  }
 
   protected get signedIn(): boolean {
     return this.userInfoService.currentUserInfo !== null;
@@ -96,7 +103,7 @@ export class DiscoverComponent implements OnInit {
           this.selectedSenseIndex = 0;
           this.meaning = lookup.senses[0]?.translations.join(', ') ?? '';
         },
-        error: error => this.errorMessage = getErrorMessage(error, 'This word sheet could not be loaded. Please try again.'),
+        error: error => this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`),
       });
   }
 
@@ -136,7 +143,7 @@ export class DiscoverComponent implements OnInit {
       priority: 0,
     }).pipe(finalize(() => this.saving = false), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.saved = true,
-      error: error => this.saveError = getErrorMessage(error, 'The word could not be kept. Please try again.'),
+      error: error => this.saveError = getErrorMessage(error, $localize`The word could not be kept. Please try again.`),
     });
   }
 

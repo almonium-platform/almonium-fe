@@ -26,7 +26,7 @@ export class PricingComponent implements OnInit {
   ngOnInit(): void {
     this.activatedRoute.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['canceled'] === 'true') {
-        this.alertService.open('Something went wrong with your payment. Please try again.', {appearance: 'warning'}).subscribe();
+        this.alertService.open($localize`Something went wrong with your payment. Please try again.`, {appearance: 'warning'}).subscribe();
         this.urlService.clearUrl();
       }
     });

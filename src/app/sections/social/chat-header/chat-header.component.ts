@@ -31,7 +31,7 @@ function topicOf(name: string): string {
     <ng-template #typingIndicator let-usersTyping$="usersTyping$">
     </ng-template>
     <p
-      data-testid="info"
+      [attr.data-testid]="'info'"
       class="str-chat__header-livestream-left--members str-chat__channel-header-info"
       [ngClass]="hasSubtitle ? 'pb-1 pt-1' : ''"
       [ngStyle]="{'row-gap': hasSubtitle ? '' : 'unset'}">
@@ -41,13 +41,13 @@ function topicOf(name: string): string {
           @if (canReceiveConnectEvents) {
             @if ((usersTyping$ | async); as typingUsers) {
               @if (typingUsers.length === 1) {
-                <span>typing...</span>
+                <span i18n>typing...</span>
               }
             }
           }
         } @else if (isBroadcastChannel) {
           <!-- A room is a channel: the subtitle carries the type, so nobody tries to talk. -->
-          <span>Channel &middot; updates about {{ topic }}</span>
+          <span i18n>Channel &middot; updates about {{ topic }}</span>
         } @else {
           @if (!isPrivateChat) {
             @if ((usersTyping$ | async); as typingUsers) {
@@ -60,15 +60,19 @@ function topicOf(name: string): string {
             @if (isPrivateChat) {
               @if ((usersTyping$ | async); as typingUsers) {
                 @if (typingUsers.length === 1) {
-                  <span>typing...</span>
+                  <span i18n>typing...</span>
                 }
                 @if (typingUsers.length === 0) {
                   <!-- Presence reads as a dot plus a word, so "online" never has to shout in colour. -->
                   @if (isInterlocutorOnline) {
-                    <span class="presence"><span class="presence-dot"></span>online</span>
+                    <span i18n class="presence"><span class="presence-dot"></span>online</span>
                   } @else {
                     <span class="presence">
-                      {{ lastActiveTime ? ('last seen ' + (lastActiveTime | relativeTime)) : 'offline' }}
+                      @if (lastActiveTime) {
+                        <ng-container i18n>last seen {{ lastActiveTime | relativeTime }}</ng-container>
+                      } @else {
+                        <ng-container i18n>offline</ng-container>
+                      }
                     </span>
                   }
                 }
@@ -79,9 +83,9 @@ function topicOf(name: string): string {
                 @if (typingUsers.length === 0) {
                   <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
                 } @else if (typingUsers.length === 1) {
-                  {{ typingUsers[0].name || typingUsers[0].id }} is typing...
+                  <ng-container i18n>{{ typingUsers[0].name || typingUsers[0].id }} is typing...</ng-container>
                 } @else {
-                  {{ typingUsers.length }} people typing...
+                  <ng-container i18n>{{ typingUsers.length }} people typing...</ng-container>
                 }
               }
             }

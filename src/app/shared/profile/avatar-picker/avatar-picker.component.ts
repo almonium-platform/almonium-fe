@@ -37,12 +37,16 @@ export class AvatarPickerComponent {
 
   protected busyUrl: string | null | undefined;
   protected readonly choices: AvatarChoice[] = [
-    this.choice('Owl', 'assets/img/avatars/default/owl.png'),
-    this.choice('Fox', 'assets/img/avatars/default/fox.png'),
-    this.choice('Stag', 'assets/img/avatars/default/stag.png'),
-    this.choice('Whale', 'assets/img/avatars/default/whale.png'),
-    this.choice('Hare', 'assets/img/avatars/default/rabbit.png'),
+    this.choice($localize`Owl`, 'assets/img/avatars/default/owl.png'),
+    this.choice($localize`Fox`, 'assets/img/avatars/default/fox.png'),
+    this.choice($localize`Stag`, 'assets/img/avatars/default/stag.png'),
+    this.choice($localize`Whale`, 'assets/img/avatars/default/whale.png'),
+    this.choice($localize`Hare`, 'assets/img/avatars/default/rabbit.png'),
   ];
+
+  protected choiceLabel(choice: AvatarChoice): string {
+    return $localize`Use the ${choice.label}:animal: drawing`;
+  }
 
   protected get letter(): string {
     return avatarLetter(this.userInfo.username);
@@ -107,6 +111,6 @@ export class AvatarPickerComponent {
 
   private fail(): void {
     this.busyUrl = undefined;
-    this.alertService.open('Failed to update avatar', {appearance: 'negative'}).subscribe();
+    this.alertService.open($localize`Failed to update avatar`, {appearance: 'negative'}).subscribe();
   }
 }

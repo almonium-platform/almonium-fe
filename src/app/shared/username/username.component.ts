@@ -110,7 +110,9 @@ export class UsernameComponent implements OnInit, OnDestroy {
     return this.savePromise;
   }
 
-  protected get availabilityText(): string {
+  protected readonly savingText = $localize`:username status|Shown beside the username field:saving`;
+
+  protected get availability(): 'checking' | 'taken' | 'available' | '' {
     if (this.usernameControl.pending) {
       return 'checking';
     }
@@ -123,28 +125,41 @@ export class UsernameComponent implements OnInit, OnDestroy {
     return '';
   }
 
+  protected get availabilityText(): string {
+    switch (this.availability) {
+      case 'checking':
+        return $localize`:username status|Shown beside the username field:checking`;
+      case 'taken':
+        return $localize`:username status|Shown beside the username field:taken`;
+      case 'available':
+        return $localize`:username status|Shown beside the username field:available`;
+      default:
+        return '';
+    }
+  }
+
   protected get errorText(): string {
     const control = this.usernameControl;
     if (!control.touched || !control.invalid || control.pending) {
       return '';
     }
     if (control.hasError('required')) {
-      return 'Enter a username.';
+      return $localize`Enter a username.`;
     }
     if (control.hasError('minlength') || control.hasError('maxlength')) {
-      return `Use ${AppConstants.MIN_USERNAME_LENGTH}–${AppConstants.MAX_USERNAME_LENGTH} characters.`;
+      return $localize`Use ${AppConstants.MIN_USERNAME_LENGTH}:min:–${AppConstants.MAX_USERNAME_LENGTH}:max: characters.`;
     }
     if (control.hasError('pattern')) {
-      return 'Use lowercase letters, numbers, and underscores only.';
+      return $localize`Use lowercase letters, numbers, and underscores only.`;
     }
     if (control.hasError('appNameForbidden')) {
-      return 'The app name cannot be part of a username.';
+      return $localize`The app name cannot be part of a username.`;
     }
     if (control.hasError('usernameTaken')) {
-      return 'That username is already taken.';
+      return $localize`That username is already taken.`;
     }
     if (control.hasError('availabilityServerError')) {
-      return 'Could not check availability. Try again.';
+      return $localize`Could not check availability. Try again.`;
     }
     return '';
   }
@@ -182,7 +197,7 @@ export class UsernameComponent implements OnInit, OnDestroy {
       this.userInfoService.updateUserInfo({username});
       return true;
     } catch {
-      this.alertService.open('Failed to update username', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Failed to update username`, {appearance: 'negative'}).subscribe();
       return false;
     } finally {
       this.isSaving = false;

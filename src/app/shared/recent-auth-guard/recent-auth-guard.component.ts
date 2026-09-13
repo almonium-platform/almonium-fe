@@ -33,7 +33,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
   @ViewChild('cancelButton') cancelButton?: ElementRef<HTMLButtonElement>;
 
   protected isAuthModalVisible = false;
-  protected actionLabel = 'Continue';
+  protected actionLabel = $localize`Continue`;
   protected authMethods: AuthMethod[] = [];
   protected email = '';
   protected loading = false;
@@ -75,6 +75,11 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /** The delete flow paints its commit button red. Both sides are the same message, so they match in every locale. */
+  protected get destructive(): boolean {
+    return this.actionLabel === $localize`Delete account`;
+  }
+
   protected hasMethod(provider: string): boolean {
     return this.authMethods.some(method => method.provider.toLowerCase() === provider);
   }
@@ -104,8 +109,8 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }))
       .subscribe({
-        next: () => this.fieldError = 'A password reset link has been sent. This action will wait for you.',
-        error: error => this.fieldError = getErrorMessage(error, 'Could not send the password reset link'),
+        next: () => this.fieldError = $localize`A password reset link has been sent. This action will wait for you.`,
+        error: error => this.fieldError = getErrorMessage(error, $localize`Could not send the password reset link`),
       });
   }
 
@@ -128,7 +133,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
         },
         error: error => {
           this.methodsLoading = false;
-          this.fieldError = getErrorMessage(error, 'Could not load your sign-in methods');
+          this.fieldError = getErrorMessage(error, $localize`Could not load your sign-in methods`);
           this.cdr.markForCheck();
         },
       });
@@ -146,7 +151,7 @@ export class RecentAuthGuardComponent implements OnInit, OnDestroy {
         this.recentAuthService.updateStatusAndShowAlert();
       },
       error: error => {
-        this.fieldError = getErrorMessage(error, 'Identity verification failed');
+        this.fieldError = getErrorMessage(error, $localize`Identity verification failed`);
         this.cdr.markForCheck();
       },
     });

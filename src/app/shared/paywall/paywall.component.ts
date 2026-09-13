@@ -101,7 +101,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
         this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
       },
       error: error => this.alertService.open(
-        getErrorMessage(error, 'Could not load subscription plans'),
+        getErrorMessage(error, $localize`Could not load subscription plans`),
         {appearance: 'negative'},
       ).subscribe(),
     });
@@ -165,7 +165,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
   }
 
   protected get paidTierLabel(): string {
-    return this.offer?.tierLabel ?? 'Premium';
+    return this.offer?.tierLabel ?? $localize`Premium`;
   }
 
   protected get paidPrice(): number | null {
@@ -188,12 +188,12 @@ export class PaywallComponent implements OnInit, OnDestroy {
 
   protected get paidButtonText(): string {
     if (this.paidLoading$.value) {
-      return 'Opening checkout…';
+      return $localize`Opening checkout…`;
     }
     if (this.premium) {
-      return 'Manage subscription';
+      return $localize`Manage subscription`;
     }
-    return this.offer?.ctaLabel ?? 'Go Premium';
+    return this.offer?.ctaLabel ?? $localize`Go Premium`;
   }
 
   protected choosePeriod(period: BillingPeriod) {
@@ -221,7 +221,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           logger.error('Failed to choose free plan:', error);
-          this.alertService.open(getErrorMessage(error, 'Couldn\'t choose free plan'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't choose free plan`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -253,7 +253,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
           window.location.href = url.sessionUrl;
         },
         error: error => this.alertService.open(
-          getErrorMessage(error, 'Could not start checkout'),
+          getErrorMessage(error, $localize`Could not start checkout`),
           {appearance: 'negative'},
         ).subscribe(),
       });
@@ -272,7 +272,7 @@ export class PaywallComponent implements OnInit, OnDestroy {
           window.location.href = url.sessionUrl;
         },
         error: error => this.alertService.open(
-          getErrorMessage(error, 'Could not open subscription management'),
+          getErrorMessage(error, $localize`Could not open subscription management`),
           {appearance: 'negative'},
         ).subscribe(),
       });

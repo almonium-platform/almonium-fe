@@ -101,7 +101,7 @@ export class BookImportComponent implements OnInit, OnDestroy {
       next: bookImport => void this.router.navigate(['/my-books', bookImport.id]),
       error: error => {
         this.submitting = false;
-        this.error = getErrorMessage(error, 'Could not import this book.');
+        this.error = getErrorMessage(error, $localize`Could not import this book.`);
       },
     });
   }
@@ -112,16 +112,30 @@ export class BookImportComponent implements OnInit, OnDestroy {
 
   /** The allowance card states the rule; this restates it where the greyed button is, so the button is not a dead end. */
   protected get importBlockedNote(): string {
-    if (!this.quota) return 'Your import allowance could not be read. Reload the page to try again.';
-    if (this.quota.limit === 0) return 'Importing books is a Premium feature.';
-    return 'No imports left this month.';
+    if (!this.quota) return $localize`Your import allowance could not be read. Reload the page to try again.`;
+    if (this.quota.limit === 0) return $localize`Importing books is a Premium feature.`;
+    return $localize`No imports left this month.`;
   }
 
   protected get quotaMessage(): string {
-    if (!this.quota) return 'Checking your import allowance…';
-    if (this.quota.limit < 0) return 'Unlimited imports';
+    if (!this.quota) return $localize`Checking your import allowance…`;
+    if (this.quota.limit < 0) return $localize`Unlimited imports`;
     const remaining = Math.max(0, this.quota.limit - this.quota.used);
-    return `${remaining} of ${this.quota.limit} imports left this month`;
+    const limit = this.quota.limit;
+    return limit === 1
+      ? $localize`${remaining}:remaining: of 1 import left this month`
+      : $localize`${remaining}:remaining: of ${limit}:limit: imports left this month`;
+  }
+
+  protected readonly importFailedFallback = $localize`The processor could not import this file.`;
+  protected readonly optionalLabel = $localize`Optional`;
+
+  protected get fileLabel(): string {
+    return this.selectedFile?.name ?? $localize`Choose an EPUB or TEI XML file`;
+  }
+
+  protected get detailsJustSaved(): boolean {
+    return this.bookImport !== null && this.detailsSavedFor === this.bookImport.id;
   }
 
   protected openPaywall(): void {
@@ -133,15 +147,15 @@ export class BookImportComponent implements OnInit, OnDestroy {
   /** Where a detail came from, so a reader knows which values deserve a second look. */
   protected provenanceOf(field: BookImportMetadataField): string {
     switch (this.bookImport?.metadataProvenance[field]) {
-      case 'ai': return 'Suggested by AI';
-      case 'source': return 'From the file';
-      case 'user': return 'Yours';
+      case 'ai': return $localize`Suggested by AI`;
+      case 'source': return $localize`From the file`;
+      case 'user': return $localize`Yours`;
       default: return '';
     }
   }
 
   protected languageName(code: LanguageCode | null): string {
-    if (!code) return 'Not detected yet';
+    if (!code) return $localize`Not detected yet`;
     return this.languages.find(language => language.code === code)?.name ?? code;
   }
 
@@ -186,7 +200,7 @@ export class BookImportComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.savingDetails = false;
-        this.detailsError = getErrorMessage(error, 'Could not save these details.');
+        this.detailsError = getErrorMessage(error, $localize`Could not save these details.`);
       },
     });
   }

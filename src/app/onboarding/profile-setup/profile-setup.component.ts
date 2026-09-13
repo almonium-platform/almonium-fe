@@ -75,7 +75,7 @@ export class ProfileSetupComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           logger.error('Failed to finish profile setup', err);
-          this.alertService.open('Failed to finish profile setup', {appearance: 'negative'}).subscribe();
+          this.alertService.open($localize`Failed to finish profile setup`, {appearance: 'negative'}).subscribe();
         }
       });
   }

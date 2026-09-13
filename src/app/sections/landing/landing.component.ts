@@ -27,7 +27,7 @@ export class LandingComponent implements OnInit {
    */
   private acknowledgeDeletedAccount(): void {
     if (this.route.snapshot.queryParamMap.get(LANDING_ACCOUNT_DELETED_PARAM) !== '1') return;
-    this.alerts.open('Your account has been deleted.', {appearance: 'positive'}).subscribe();
+    this.alerts.open($localize`Your account has been deleted.`, {appearance: 'positive'}).subscribe();
     void this.router.navigate([], {queryParams: {[LANDING_ACCOUNT_DELETED_PARAM]: null}, replaceUrl: true});
   }
 }

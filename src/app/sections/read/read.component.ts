@@ -70,6 +70,14 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   cefrLevels: (CEFRLevel | 'Any level')[] = ['Any level', ...Object.values(CEFRLevel)];
   cefrLevelControl = new FormControl<CEFRLevel | 'Any level'>('Any level');
+  /** The sort keys stay English in the control; only the option text is translated. */
+  protected readonly sortLabels: Record<string, string> = {
+    'Best rated first': $localize`Best rated first`,
+    'Newest first': $localize`Newest first`,
+    'Oldest first': $localize`Oldest first`,
+    'Level: low to high': $localize`Level: low to high`,
+    'Level: high to low': $localize`Level: high to low`,
+  };
 
   selectedBook: Book | null = null;
   parallelTranslationToggle = false;
@@ -219,15 +227,26 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   protected importActionLabel(): string {
-    if (!this.isAuthenticated) return 'Sign up to import';
-    return this.isPremium ? 'Import a book' : 'Unlock private imports';
+    if (!this.isAuthenticated) return $localize`Sign up to import`;
+    return this.isPremium ? $localize`Import a book` : $localize`Unlock private imports`;
   }
 
   protected quotaLabel(): string | null {
     if (!this.importQuota) return null;
-    if (this.importQuota.limit < 0) return 'Unlimited imports';
+    if (this.importQuota.limit < 0) return $localize`Unlimited imports`;
     const remaining = Math.max(0, this.importQuota.limit - this.importQuota.used);
-    return `${remaining} of ${this.importQuota.limit} imports left this month`;
+    const limit = this.importQuota.limit;
+    return limit === 1
+      ? $localize`${remaining}:remaining: of 1 import left this month`
+      : $localize`${remaining}:remaining: of ${limit}:limit: imports left this month`;
+  }
+
+  protected levelLabel(level: CEFRLevel | 'Any level'): string {
+    return level === 'Any level' ? $localize`Any level` : level;
+  }
+
+  protected bookAriaLabel(book: {title: string; author: string | null}): string {
+    return book.author ? $localize`${book.title}:title: by ${book.author}:author:` : book.title;
   }
 
   private loadPrivateLibrary(): void {
@@ -274,7 +293,7 @@ export class ReadComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             logger.error('Error deleting progress:', error);
-            this.alertService.open('Failed to reset book progress', {appearance: 'negative'}).subscribe();
+            this.alertService.open($localize`Failed to reset book progress`, {appearance: 'negative'}).subscribe();
           }
         });
     });

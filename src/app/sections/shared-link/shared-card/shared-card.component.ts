@@ -81,7 +81,7 @@ export class SharedCardComponent implements OnInit, OnDestroy {
         this.view = view;
         this.userInfo = user;
         this.sessionChecked = true;
-        this.pageTitle.setTitle(`${view.word.entry} · Shared card | Almonium`);
+        this.pageTitle.setTitle($localize`${view.word.entry}:word: · Shared card | Almonium`);
         if (user && this.returnPath.peek() === this.router.url) this.returnPath.consume();
         if (user && user.setupStep !== SetupStep.COMPLETED) {
           this.returnPath.remember(this.router.url);
@@ -107,7 +107,7 @@ export class SharedCardComponent implements OnInit, OnDestroy {
           return;
         }
         logger.error('Could not open the shared card', error);
-        this.loadError = getErrorMessage(error, 'The card could not be opened. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`The card could not be opened. Please try again.`);
       },
     });
   }
@@ -141,7 +141,7 @@ export class SharedCardComponent implements OnInit, OnDestroy {
   }
 
   get dueNote(): string {
-    return (this.viewer?.dueAmongHeld ?? 0) > 0 ? 'it is due' : 'it is not due yet';
+    return (this.viewer?.dueAmongHeld ?? 0) > 0 ? $localize`it is due` : $localize`it is not due yet`;
   }
 
   add(): void {
@@ -154,7 +154,7 @@ export class SharedCardComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         },
         error: (error: unknown) => this.alertService
-          .open(getErrorMessage(error, 'The word could not be added. Please try again.'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`The word could not be added. Please try again.`), {appearance: 'negative'})
           .subscribe(),
       });
   }

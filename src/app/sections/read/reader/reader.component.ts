@@ -183,7 +183,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       const slug = params.get('slug');
       if (privateId) this.openPrivateBook(privateId);
       else if (slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) this.openPublicBook(slug);
-      else this.handleError("Invalid book reference.");
+      else this.handleError($localize`Invalid book reference.`);
     });
   }
 
@@ -216,13 +216,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
         this.loadBookHtml(slug, true);
       },
-      error: error => this.handleError(getErrorMessage(error, 'Could not load book details.')),
+      error: error => this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
     });
   }
 
   private openPrivateBook(id: string): void {
     if (!isUuid(id)) {
-      this.handleError('Invalid private book ID.');
+      this.handleError($localize`Invalid private book ID.`);
       return;
     }
     this.privateBookId = id;
@@ -238,7 +238,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
         this.loadBookHtml(id, true);
       },
-      error: error => this.handleError(getErrorMessage(error, 'Could not load private book.')),
+      error: error => this.handleError(getErrorMessage(error, $localize`Could not load private book.`)),
     });
   }
 
@@ -322,7 +322,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // Specific handler for load errors
   private handleLoadError(loadType: 'base' | 'parallel', message: string): void {
-    this.handleError(`Error loading ${loadType} content: ${message}`); // Show error
+    this.handleError(loadType === 'parallel'
+      ? $localize`Error loading parallel content: ${message}:message:`
+      : $localize`Error loading base content: ${message}:message:`); // Show error
     this.isLoading = false;
     this.isLoadingParallel = false;
     // Option: Revert to base content if parallel load failed?
@@ -443,13 +445,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.needsHeightSync = true;
             }
           } catch (e) {
-            this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
+            this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to decode content: ${e instanceof Error ? e.message : String(e)}:reason:`);
           }
         } else {
-          this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to load content. Status: ${response.status}`);
+          this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to load content. Status: ${response.status}:status:`);
         }
       },
-      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, 'Unknown error loading content.')),
+      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, $localize`Unknown error loading content.`)),
     });
     if (isBase) {
       this.baseLoadSubscription = subscription;
@@ -1025,7 +1027,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }),
         catchError(error => {
           // Handle error within the stream (from original 'catchError')
-          this.handleLoadError('parallel', getErrorMessage(error, 'Unknown error fetching parallel content.'));
+          this.handleLoadError('parallel', getErrorMessage(error, $localize`Unknown error fetching parallel content.`));
           this.revertToBaseContent(); // Revert UI on error
           return EMPTY; // Prevent observable from completing incorrectly
         })
@@ -1054,12 +1056,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
             } catch (e) {
               // Handle decoding error
-              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
+              this.handleLoadError('parallel', $localize`Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}:reason:`);
               this.revertToBaseContent(); // Revert UI on decoding error
             }
           } else {
             // Handle non-200 success status
-            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
+            this.handleLoadError('parallel', $localize`Failed to load parallel content. Status: ${response.status}:status:`);
             this.revertToBaseContent(); // Revert UI on load failure
           }
           // isLoadingParallel is handled by finalize
@@ -1068,7 +1070,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         // Error handler in subscribe is less likely due to catchError, but good practice
         error: (err) => {
           logger.error("Unexpected error in parallel load subscription:", err);
-          this.handleLoadError('parallel', 'An unexpected error occurred during parallel load.');
+          this.handleLoadError('parallel', $localize`An unexpected error occurred during parallel load.`);
           this.revertToBaseContent(); // Revert UI on unexpected error
           // isLoadingParallel is handled by finalize
           this.cdRef.markForCheck();

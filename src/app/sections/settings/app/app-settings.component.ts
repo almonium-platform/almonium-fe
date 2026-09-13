@@ -20,6 +20,8 @@ import {TargetLanguageDropdownService} from "../../../services/target-language-d
 import {catchError} from "rxjs/operators";
 import {resolveReducedMotion} from '../../../services/motion-preference';
 import {Appearance, AppearanceService} from '../../../services/appearance.service';
+import {UiLocaleService} from '../../../services/ui-locale.service';
+import {UI_LOCALE_AUTO, UiLocalePreference} from '../../../services/ui-locale';
 
 @Component({
   selector: 'app-app-settings',
@@ -42,6 +44,7 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
   private alertService = inject(TuiNotificationService);
   private appearanceService = inject(AppearanceService);
+  protected readonly uiLocaleService = inject(UiLocaleService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -53,6 +56,8 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
   protected appearance: Appearance = 'system';
   protected readonly appearanceShortcut = AppearanceService.SHORTCUT_LABEL;
   protected reduceMotion = false;
+  protected readonly uiLocaleAuto = UI_LOCALE_AUTO;
+  protected uiLocale: UiLocalePreference = this.uiLocaleService.preference;
   protected dailyReview = false;
   protected dailyReviewTime = '19:00';
   protected weeklyEmail = false;
@@ -86,6 +91,12 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           this.notifications = {...userInfo.notifications};
         }
       });
+  }
+
+  /** The page reloads when the language shown changes; the stored choice survives either way. */
+  protected onUiLocaleChange(preference: UiLocalePreference): void {
+    this.uiLocale = preference;
+    this.uiLocaleService.set(preference);
   }
 
   protected onSocialEmailsChange(socialEmails: boolean): void {
@@ -154,11 +165,11 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
 
     void cacheClear$.then(() => {
       this.loadingSubject$.next(false);
-      this.alertService.open('Offline books cleared', {appearance: 'positive'}).subscribe();
+      this.alertService.open($localize`Offline books cleared`, {appearance: 'positive'}).subscribe();
     }).catch(error => {
       this.loadingSubject$.next(false);
       logger.error('Failed to clear offline books:', error);
-      this.alertService.open('Failed to clear offline books', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Failed to clear offline books`, {appearance: 'negative'}).subscribe();
     });
   }
 
@@ -204,17 +215,17 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
             this.uiPreferences = {...userInfo.uiPreferences};
             this.notifications = {...userInfo.notifications};
 
-            this.alertService.open('Data has been reloaded', {appearance: 'positive'}).subscribe();
+            this.alertService.open($localize`Data has been reloaded`, {appearance: 'positive'}).subscribe();
           } else {
             // Handle cases where one or both fetches failed
-            this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'negative'}).subscribe();
+            this.alertService.open($localize`Failed to reload all data. Please refresh the page.`, {appearance: 'negative'}).subscribe();
             logger.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
           }
         },
         error: (error) => {
           // Handle errors from forkJoin itself (less likely with catchError on sources)
           logger.error('Critical failure during data reload:', error);
-          this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'negative'}).subscribe();
+          this.alertService.open($localize`Failed to reload data. Please refresh the page.`, {appearance: 'negative'}).subscribe();
         },
       });
   }

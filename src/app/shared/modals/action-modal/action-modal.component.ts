@@ -23,7 +23,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           </div>
           <p class="text-gray-700 mb-6 mt-6 text-sm" [innerHTML]="message"></p>
           <div class="flex justify-between">
-            <button (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close
+            <button i18n (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close
             </button>
             @if (secondaryActionText) {
               <button (click)="onConfirmTwo()"

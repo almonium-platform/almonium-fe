@@ -1,8 +1,8 @@
 <ng-template #langSetup>
   <div class="card step language-step">
     @if (!embeddedMode) {
-      <div class="tui-header header-row">What are you learning?</div>
-      <p class="step-description">Pick one to begin. You can add more later.</p>
+      <div i18n class="tui-header header-row">What are you learning?</div>
+      <p i18n class="step-description">Pick one to begin. You can add more later.</p>
 
       <form [formGroup]="languageForm" (ngSubmit)="submitOnboardingLanguageForm()">
         <div class="language-grid">
@@ -16,8 +16,8 @@
           }
           @if (!showAllLanguages && remainingLanguageCount > 0) {
             <button type="button" class="language-card another-language" (click)="showAllLanguages = true">
-              <span class="language-name">Another language</span>
-              <span class="language-features">Search all {{ supportedLanguages.length }} languages</span>
+              <span i18n class="language-name">Another language</span>
+              <span i18n class="language-features">Search all {{ supportedLanguages.length }} languages</span>
             </button>
           }
         </div>
@@ -26,38 +26,38 @@
           <p class="limit-note">{{ targetLimitNote }}</p>
         }
 
-        <p class="native-language">
+        <p i18n class="native-language">
           Reading from <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">{{ detectedNativeLanguage }}</button>
           — detected, <button type="button" (click)="showNativeLanguageNote = !showNativeLanguageNote">change it</button>
         </p>
         @if (showNativeLanguageNote) {
-          <p class="native-note">You can update your reading languages later in Settings.</p>
+          <p i18n class="native-note">You can update your reading languages later in Settings.</p>
         }
 
         <div class="language-explanation">
           <p>{{ selectedLanguageExplanation() }}</p>
           @if (startsActiveNote) {
-            <p>{{ startsActiveNote }} <a href="/pricing">See plans</a></p>
+            <p>{{ startsActiveNote }} <a i18n href="/pricing">See plans</a></p>
           }
         </div>
 
         <tui-error [formControl]="targetLanguagesControl" />
         <div class="step-actions">
-          <app-button label="Continue" appearance="solid" [satisfiable]="languageForm.valid" [loading$]="loading$" />
-          <button type="button" class="back-link" (click)="back.emit()">Back</button>
+          <app-button label="Continue" i18n-label appearance="solid" [satisfiable]="languageForm.valid" [loading$]="loading$" />
+          <button i18n type="button" class="back-link" (click)="back.emit()">Back</button>
         </div>
       </form>
     } @else {
       <div class="sheet-heading">
-        <div class="tui-header header-row">{{ onSecondForm ? 'Where are you now?' : 'Add languages' }}</div>
-        <div class="sheet-step">Step {{ onSecondForm ? '2' : '1' }} of 2{{ onSecondForm ? ' · change it any time' : '' }}</div>
+        <div i18n class="tui-header header-row">{onSecondForm, select, true {Where are you now?} other {Add languages}}</div>
+        <div i18n class="sheet-step">{onSecondForm, select, true {Step 2 of 2 · change it any time} other {Step 1 of 2}}</div>
       </div>
       @if (!onSecondForm) {
         <form [formGroup]="languageForm" (ngSubmit)="submitFirstStepForm()">
           <div class="form-group">
-            <label class="form-label" for="target-language-input">Languages</label>
+            <label i18n class="form-label" for="target-language-input">Languages</label>
             <tui-textfield multi tuiChevron [ngClass]="{ 'target-disabled': atTargetLimit }">
-              <input id="target-language-input" #targetInput tuiInputChip [formControl]="targetLanguagesControl" placeholder="Type to search…"
+              <input id="target-language-input" #targetInput tuiInputChip [formControl]="targetLanguagesControl" placeholder="Type to search…" i18n-placeholder
                 (input)="onTypeTarget($event)" (keydown)="trapSeparatorsTarget($any($event))"
                 (keydown.enter)="onEnterTarget($any($event))" />
               <tui-input-chip *tuiItem />
@@ -75,12 +75,12 @@
             <tui-error [formControl]="targetLanguagesControl" />
           </div>
           <div class="slot-summary">
-            <span>{{ usedTargetSlots }} of {{ totalTargetSlots }} slots used</span>
+            <span i18n>{{ usedTargetSlots }} of {{ totalTargetSlots }} slots used</span>
             @if (!userInfo?.premium) {
-              <button type="button" class="members-link" (click)="upgrade.emit()"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</button>
+              <button i18n type="button" class="members-link" (click)="upgrade.emit()"><i class="fa-solid fa-lock" aria-hidden="true"></i> more with Members</button>
             }
           </div>
-          <app-button label="Continue" appearance="solid" class="w-full" [satisfiable]="languageForm.valid" />
+          <app-button label="Continue" i18n-label appearance="solid" class="w-full" [satisfiable]="languageForm.valid" />
         </form>
       } @else {
         <form [formGroup]="cefrForm" (ngSubmit)="submitSecondStepForm()">
@@ -89,7 +89,7 @@
               <div [formGroupName]="idx" class="cefr-language-row">
                 <span class="language-swatch" [style.background]="getTargetLanguageColour(languages.at(idx).controls.language.value, idx)"></span>
                 <span class="cefr-language-name">{{ languages.at(idx).controls.language.value }}</span>
-                <div class="cefr-pills" [attr.aria-label]="'Level for ' + languages.at(idx).controls.language.value">
+                <div class="cefr-pills" [attr.aria-label]="levelLabelFor(languages.at(idx).controls.language.value)">
                   @for (level of cefrLevels; track level) {
                     <button type="button" [class.selected]="getCefrLevelControl(idx).value === level"
                       (click)="getCefrLevelControl(idx).setValue(level)">{{ level }}</button>
@@ -98,10 +98,10 @@
               </div>
             }
           </div>
-          <p class="level-note">Not sure? Leave it at A1 — a placement check in your first session will move it.</p>
+          <p i18n class="level-note">Not sure? Leave it at A1 — a placement check in your first session will move it.</p>
           <div class="sheet-actions">
-            <button type="button" class="back-link" (click)="returnToLanguageSelection()">Back</button>
-            <app-button label="Start learning" appearance="solid" class="w-full" [loading$]="loading$" [satisfiable]="cefrForm.valid" />
+            <button i18n type="button" class="back-link" (click)="returnToLanguageSelection()">Back</button>
+            <app-button label="Start learning" i18n-label appearance="solid" class="w-full" [loading$]="loading$" [satisfiable]="cefrForm.valid" />
           </div>
         </form>
       }

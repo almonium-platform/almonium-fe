@@ -52,6 +52,6 @@ export class TimerMonitorService {
    */
   private triggerTimerEndAlert() {
     logger.debug("⏳ Timer expired! Triggering alert...");
-    this.alertService.open("⏳ Time's up!", {appearance: "warning"}).subscribe();
+    this.alertService.open($localize`⏳ Time's up!`, {appearance: "warning"}).subscribe();
   }
 }

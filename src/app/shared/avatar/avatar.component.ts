@@ -36,7 +36,7 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
     </span>
 
     @if (memberStar) {
-      <app-premium-star class="corner-star" label="Premium member" />
+      <app-premium-star class="corner-star" label="Premium member" i18n-label />
     }
   `,
   imports: [

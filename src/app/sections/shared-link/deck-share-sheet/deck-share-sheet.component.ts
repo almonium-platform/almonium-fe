@@ -69,7 +69,7 @@ export class DeckShareSheetComponent {
         },
         error: (error: unknown) => {
           this.switching = false;
-          this.alertService.open(getErrorMessage(error, 'The link could not be changed. Please try again.'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`The link could not be changed. Please try again.`), {appearance: 'negative'}).subscribe();
         },
       });
   }

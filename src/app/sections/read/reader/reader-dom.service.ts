@@ -205,7 +205,7 @@ export class ReaderDomService {
           ? heading.querySelector<HTMLElement>(`span.segment[lang="${CSS.escape(targetLanguage)}"]`)
           : null;
         const rawTitle = [titleSpan?.innerText, heading.innerText]
-          .find(candidate => candidate?.trim()) ?? `Chapter ${index + 1}`;
+          .find(candidate => candidate?.trim()) ?? $localize`Chapter ${index + 1}:number:`;
         const title = rawTitle
           .replace(/\s+/g, ' ')
           .trim();

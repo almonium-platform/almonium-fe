@@ -22,7 +22,8 @@
             "browser": "src/main.ts",
             "poll": 1000,
             "polyfills": [
-              "zone.js"
+              "zone.js",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "less",
@@ -147,7 +148,9 @@
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n",
           "options": {
-            "buildTarget": "almonium-fe:build"
+            "buildTarget": "almonium-fe:build",
+            "format": "json",
+            "outputPath": "src/locale"
           }
         },
         "test": {
@@ -155,7 +158,8 @@
           "options": {
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "less",

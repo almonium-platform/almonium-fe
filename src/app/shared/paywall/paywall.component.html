@@ -6,17 +6,17 @@
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> {{ backLabel }}
         </button>
       }
-      <span class="eyebrow">Pricing</span>
-      <h1>Reading is free, and stays free</h1>
-      <p>Paying covers the parts that cost something every time you use them.</p>
+      <span i18n class="eyebrow">Pricing</span>
+      <h1 i18n>Reading is free, and stays free</h1>
+      <p i18n>Paying covers the parts that cost something every time you use them.</p>
     </header>
 
     <div class="tiers">
       <article class="tier free" [class.is-current]="onFreePlan">
         <div class="tier-label">
-          <span class="eyebrow">Free</span>
+          <span i18n class="eyebrow">Free</span>
           @if (onFreePlan) {
-            <span class="pill current">Your current plan</span>
+            <span i18n class="pill current">Your current plan</span>
           }
         </div>
 
@@ -31,11 +31,11 @@
         </ul>
 
         @if (!onFreePlan) {
-          <button type="button"
+          <button i18n type="button"
                   class="cta ghost"
                   [disabled]="freeLoading$.value"
                   (click)="chooseFreePlan()">
-            {{ freeLoading$.value ? 'One moment…' : 'Start reading' }}
+            {freeLoading$.value, select, true {One moment…} other {Start reading}}
           </button>
         }
       </article>
@@ -44,18 +44,18 @@
         <div class="tier-label">
           <span class="eyebrow">{{ paidTierLabel }}</span>
           @if (founderSoldOut) {
-            <span class="pill sold-out">Founding memberships sold out</span>
+            <span i18n class="pill sold-out">Founding memberships sold out</span>
           }
         </div>
 
-        <div class="billing-toggle" role="group" aria-label="Billing period">
-          <button type="button"
+        <div class="billing-toggle" role="group" aria-label="Billing period" i18n-aria-label>
+          <button i18n type="button"
                   class="monthly"
                   [attr.aria-pressed]="billingPeriod === 'monthly'"
                   (click)="choosePeriod('monthly')">
             Monthly
           </button>
-          <button type="button"
+          <button i18n type="button"
                   class="annual"
                   [attr.aria-pressed]="billingPeriod === 'yearly'"
                   (click)="choosePeriod('yearly')">
@@ -77,7 +77,7 @@
           </div>
         } @else {
           <div class="price-block">
-            <div class="price-loading">Loading current price…</div>
+            <div i18n class="price-loading">Loading current price…</div>
           </div>
         }
 
@@ -98,16 +98,16 @@
           <div class="founder-notes">
             <span>{{ founderLimitNote }}</span>
             @if (claimedCountVisible) {
-              <span>{{ founderClaimed }} of {{ founderCapacity }} claimed</span>
+              <span i18n>{{ founderClaimed }} of {{ founderCapacity }} claimed</span>
             }
-            <span>Keep this price while your subscription stays active.</span>
-            <span>Monthly and annual memberships use the same {{ founderCapacity }}-member limit.</span>
+            <span i18n>Keep this price while your subscription stays active.</span>
+            <span i18n>Monthly and annual memberships use the same {{ founderCapacity }}-member limit.</span>
           </div>
         }
       </article>
     </div>
 
-    <p class="paywall-foot">
+    <p i18n class="paywall-foot">
       The price shown is the one for your region. 14-day money-back guarantee, and you can cancel
       from your account page at any time.
     </p>

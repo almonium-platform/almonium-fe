@@ -20,7 +20,7 @@ export class RecentAuthGuardService {
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
   // universal live token auth guard
-  public guardAction(onValidToken: () => void, forceReauthentication = false, actionLabel = 'Continue') {
+  public guardAction(onValidToken: () => void, forceReauthentication = false, actionLabel: string = $localize`Continue`) {
     this.pendingAction = onValidToken;
     if (forceReauthentication) {
       this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
@@ -35,7 +35,7 @@ export class RecentAuthGuardService {
 
   public updateStatusAndShowAlert() {
     this.getRecentAuthStatus(() => {
-      this.alertService.open('You successfully verified your identity!', {appearance: 'positive'}).subscribe();
+      this.alertService.open($localize`You successfully verified your identity!`, {appearance: 'positive'}).subscribe();
       this.runPendingAction();
     });
   }
@@ -63,7 +63,7 @@ export class RecentAuthGuardService {
           return;
         }
         this.pendingAction = null;
-        this.alertService.open(getErrorMessage(error, 'Failed to check access token'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to check access token`), {appearance: 'negative'}).subscribe();
         logger.error('Error checking access token:', error);
       }
     });

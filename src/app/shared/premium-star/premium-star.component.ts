@@ -56,5 +56,5 @@ import {Component, Input} from '@angular/core';
 })
 export class PremiumStarComponent {
   /** What a screen reader says. "Member" beside a name, "Premium member" where the name is the subject. */
-  @Input() label = 'Member';
+  @Input() label = $localize`Member`;
 }

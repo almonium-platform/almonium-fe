@@ -12,15 +12,15 @@ import {RouterLink} from '@angular/router';
   template: `
     <footer class="shared-footer">
       <div class="footer-inner">
-        <a routerLink="/" class="brand" aria-label="Almonium home">
+        <a routerLink="/" class="brand" aria-label="Almonium home" i18n-aria-label>
           <span class="app-icon" role="img" aria-hidden="true"></span>
-          <span>Reading in another language</span>
+          <span i18n>Reading in another language</span>
         </a>
-        <nav aria-label="Footer navigation">
-          <a routerLink="/about">About</a>
-          <a routerLink="/privacy-policy">Privacy</a>
-          <a routerLink="/terms-of-use">Terms</a>
-          <a href="mailto:support@almonium.com?subject=Report%20a%20shared%20page">Report</a>
+        <nav aria-label="Footer navigation" i18n-aria-label>
+          <a i18n routerLink="/about">About</a>
+          <a i18n routerLink="/privacy-policy">Privacy</a>
+          <a i18n routerLink="/terms-of-use">Terms</a>
+          <a i18n href="mailto:support@almonium.com?subject=Report%20a%20shared%20page">Report</a>
         </nav>
       </div>
     </footer>

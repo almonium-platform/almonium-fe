@@ -1,7 +1,7 @@
 <div class="card step profile-step">
   <div class="profile-heading">
-    <h1>Make it yours</h1>
-    <p>Both are already set — continue to keep them.</p>
+    <h1 i18n>Make it yours</h1>
+    <p i18n>Both are already set — continue to keep them.</p>
   </div>
 
   @if (userInfo) {
@@ -9,13 +9,13 @@
   }
 
   <div class="username-section">
-    <span>Username</span>
+    <span i18n>Username</span>
     <app-username />
-    <p>Only used if you share a word pack.</p>
+    <p i18n>Only used if you share a word pack.</p>
   </div>
 
   <div class="step-actions">
-    <app-button label="Continue" (click)="submit()" appearance="solid" [loading$]="loading$" />
-    <button type="button" class="back-link" (click)="back.emit()">Back</button>
+    <app-button label="Continue" i18n-label (click)="submit()" appearance="solid" [loading$]="loading$" />
+    <button i18n type="button" class="back-link" (click)="back.emit()">Back</button>
   </div>
 </div>

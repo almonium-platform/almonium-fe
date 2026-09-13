@@ -33,7 +33,7 @@ export class EmailVerificationComponent implements OnInit {
   private readonly REDIRECT_TIMEOUT = 3000;  // Time to wait before redirecting after verification completes
   private readonly MINIMUM_ROTATE_TIME = 2000;  // Minimum rotate time for animation
 
-  message = 'Verifying...';
+  message = $localize`Verifying...`;
   pendingMessage = '';  // Use this to store the final message until both processes complete
   verificationCompleted = false;
   verificationSuccess = false;
@@ -58,19 +58,19 @@ export class EmailVerificationComponent implements OnInit {
             tap(() => {
               this.verificationSuccess = true;
               this.pendingMessage = this.isChangeEmailRoute
-                ? 'Email changed successfully!'
-                : 'Email verified successfully!';
+                ? $localize`Email changed successfully!`
+                : $localize`Email verified successfully!`;
             }),
             catchError(error => {
               this.verificationSuccess = false;
-              this.pendingMessage = getErrorMessage(error, `${this.isChangeEmailRoute ? 'Email change' : 'Email verification'} failed`);
+              this.pendingMessage = getErrorMessage(error, this.isChangeEmailRoute ? $localize`Email change failed` : $localize`Email verification failed`);
               return of(null);
             })
           )]);
         } else {
           // No token provided, set error message
           this.verificationSuccess = false;
-          this.pendingMessage = 'No token provided';
+          this.pendingMessage = $localize`No token provided`;
           return combineLatest([minRotateTimer$, of(null)]);
         }
       }),
@@ -85,7 +85,7 @@ export class EmailVerificationComponent implements OnInit {
       error: (error) => {
         // If an error occurs while fetching query params, show a generic error message
         logger.error('Error fetching query params:', error);
-        this.pendingMessage = 'Verification process failed';
+        this.pendingMessage = $localize`Verification process failed`;
         this.verificationSuccess = false;
         this.stopRotation();
         this.message = this.pendingMessage;

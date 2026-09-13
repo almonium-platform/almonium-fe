@@ -13,20 +13,20 @@
     the row is a preview of how you appear, not another badge for a tier you already know you
     hold. The schematic below stays bare: beside a name the star follows the name.
   -->
-  <div class="tile-row" role="group" aria-label="How you appear">
+  <div class="tile-row" role="group" aria-label="How you appear" i18n-aria-label>
     <button
       type="button"
       class="tile letter-tile"
       [class.selected]="!userInfo.avatarUrl"
       [disabled]="busyUrl !== undefined"
       (click)="useLetter()"
-      aria-label="Use your letter"
+      aria-label="Use your letter" i18n-aria-label
       [attr.aria-pressed]="!userInfo.avatarUrl"
     >
       <span class="engraving">
         <span class="disc disc-large avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
         @if (userInfo.premium && !userInfo.avatarUrl) {
-          <app-premium-star class="corner-star" label="Premium member" />
+          <app-premium-star class="corner-star" label="Premium member" i18n-label />
         }
       </span>
       <span class="disc disc-small avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
@@ -39,7 +39,7 @@
         [class.selected]="isSelected(choice)"
         [disabled]="busyUrl !== undefined"
         (click)="chooseAvatar(choice)"
-        [attr.aria-label]="'Use the ' + choice.label + ' drawing'"
+        [attr.aria-label]="choiceLabel(choice)"
         [attr.aria-pressed]="isSelected(choice)"
       >
         <span class="engraving">
@@ -51,7 +51,7 @@
             }
           </span>
           @if (userInfo.premium && isSelected(choice)) {
-            <app-premium-star class="corner-star" label="Premium member" />
+            <app-premium-star class="corner-star" label="Premium member" i18n-label />
           }
         </span>
         <span class="disc disc-small avatar-plate">
@@ -65,5 +65,5 @@
     }
   </div>
 
-  <p class="picker-caption">Your letter, or one of five drawings. The small one is how you appear in chats.</p>
+  <p i18n class="picker-caption">Your letter, or one of five drawings. The small one is how you appear in chats.</p>
 </section>

@@ -20,7 +20,7 @@ import {AlmoSegment, segmentAlmoText} from './almo-text-segments';
   template: `
     @if (marks; as marks) {
       <p class="str-chat__message-text-value almo-text"
-         data-testid="text"
+         [attr.data-testid]="'text'"
          [class.held]="held()"
          [class.holdable]="!!marks.translation"
          (pointerdown)="hold($event)"

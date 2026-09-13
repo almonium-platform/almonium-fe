@@ -71,6 +71,11 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   private allowed = new Set<string>();
   private _maxLanguages = DEFAULT_MAX_LANGUAGES;
 
+  get placeholder(): string {
+    if (this.atLanguageLimit) return $localize`Limit reached`;
+    return (this.fluentLanguageControl.value?.length ?? 0) ? '' : $localize`Start typing...`;
+  }
+
   get atLanguageLimit(): boolean {
     return (this.fluentLanguageControl.value?.length ?? 0) >= this.maxLanguages;
   }

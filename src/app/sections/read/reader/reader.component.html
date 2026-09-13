@@ -13,7 +13,7 @@
 
   <!-- Loading and Error States -->
   @if (isLoading) {
-    <app-loading-indicator baseText="Loading book"></app-loading-indicator>
+    <app-loading-indicator baseText="Loading book" i18n-baseText></app-loading-indicator>
   }
 
   @if (errorMessage) {
@@ -30,8 +30,8 @@
     >
       <div class="reader-reading-layout" [class.has-content-map]="chapterNav.length > 0 && !isParallelViewActive">
         @if (chapterNav.length > 0 && !isParallelViewActive) {
-          <nav class="content-map" aria-label="Contents">
-            <span>Contents</span>
+          <nav class="content-map" aria-label="Contents" i18n-aria-label>
+            <span i18n>Contents</span>
             @for (chapter of chapterNav; track chapter; let i = $index) {
               <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
             }
@@ -58,9 +58,9 @@
     </div>
     @if (selectedLookupText) {
       <aside class="selection-lookup" aria-live="polite">
-        <span><strong>{{ selectedLookupText }}</strong><small>Keep it with this sentence in Discover</small></span>
-        <button type="button" (click)="openSelectionInDiscover()">Look up</button>
-        <button type="button" class="dismiss" aria-label="Dismiss word lookup" (click)="dismissLookupSelection()">×</button>
+        <span><strong>{{ selectedLookupText }}</strong><small i18n>Keep it with this sentence in Discover</small></span>
+        <button i18n type="button" (click)="openSelectionInDiscover()">Look up</button>
+        <button type="button" class="dismiss" aria-label="Dismiss word lookup" i18n-aria-label (click)="dismissLookupSelection()">×</button>
       </aside>
     }
   }
@@ -80,8 +80,8 @@
               (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
               [tuiDropdown]="tocDropdownContent"
               class="chapter-nav-trigger"
-              aria-label="Open chapter navigation"
-              title="Chapters"
+              aria-label="Open chapter navigation" i18n-aria-label
+              title="Chapters" i18n-title
               tuiDropdown
             >
               <lucide-icon name="table-of-contents" size="26" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
@@ -112,7 +112,7 @@
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
           [disabled]="isAtScrollTop"
-          title="Previous Page (Click) / Scroll Up (Hold)">
+          title="Previous Page (Click) / Scroll Up (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-left"
                        size="28"
                        [strokeWidth]=1
@@ -128,7 +128,7 @@
                  [max]="100"
                  [ngModel]="currentScrollPercentage"
                  (input)="onSliderInput($event)"
-                 aria-label="Scroll Position Slider"/>
+                 aria-label="Scroll Position Slider" i18n-aria-label/>
           <span class="pagination-info">{{ currentScrollPercentage }}%</span>
         </div>
         <!-- Next Button -->
@@ -141,7 +141,7 @@
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
           [disabled]="isAtScrollBottom"
-          title="Next Page (Click) / Scroll Down (Hold)">
+          title="Next Page (Click) / Scroll Down (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-right" size="28"
                        strokeWidth="1.5"
                        [absoluteStrokeWidth]="true"
@@ -166,7 +166,7 @@
                 tuiDataListDropdownManager
                 class="context-menu"
               >
-                <tui-opt-group label="Languages">
+                <tui-opt-group label="Languages" i18n-label>
                   @for (lang of availableLangs; track lang) {
                     <button
                       tuiOption
@@ -179,7 +179,7 @@
                 </tui-opt-group>
                 <tui-opt-group label="">
                   @if (fluentLangCode) {
-                    <button
+                    <button i18n
                       tuiOption
                       type="button"
                       (click)="selectOption(null); langDropdown.toggle(false)"
@@ -190,7 +190,7 @@
                 </tui-opt-group>
                 <!-- Група налаштувань із підписом -->
                 <tui-opt-group label="">
-                  <button
+                  <button i18n
                     tuiOption
                     type="button"
                     (click)="openParallelSettings(); langDropdown.toggle(false)"

@@ -1,32 +1,32 @@
 <nav class="navbar">
   <div class="navbar-content">
-    <a class="logo-container public-brand" routerLink="/" aria-label="Almonium home">
+    <a class="logo-container public-brand" routerLink="/" aria-label="Almonium home" i18n-aria-label>
       <span class="app-icon" aria-hidden="true"></span>
       <img class="wordmark wordmark-light" src="/assets/img/titles/title-purple.svg" alt="" />
       <img class="wordmark wordmark-dark" src="/email/wordmark-white.png" alt="" aria-hidden="true" />
     </a>
 
     @if (!isMobile) {
-      <div class="public-links" aria-label="Main navigation">
-        <a
+      <div class="public-links" aria-label="Main navigation" i18n-aria-label>
+        <a i18n
           routerLink="/read"
           class="nav-link section"
           [ngClass]="{'active-link': currentRoute.startsWith('/read') || currentRoute.startsWith('/books') || currentRoute.startsWith('/reader')}">
           Read
         </a>
-        <a
+        <a i18n
           routerLink="/"
-          fragment="books"
+          [fragment]="'books'"
           class="nav-link section">
           Books
         </a>
-        <a
+        <a i18n
           routerLink="/pricing"
           class="nav-link section"
           [ngClass]="{'active-link': currentRoute === '/pricing'}">
           Pricing
         </a>
-        <a
+        <a i18n
           routerLink="/about"
           class="nav-link section"
           [ngClass]="{'active-link': currentRoute === '/about'}">
@@ -36,22 +36,22 @@
     }
     <div class="nav-actions">
       @if (isMobile) {
-        <button type="button" class="menu-toggle" aria-label="Open navigation" [attr.aria-expanded]="isDiscoverMenuOpen" (click)="toggleDiscoverMenu()">
+        <button type="button" class="menu-toggle" aria-label="Open navigation" i18n-aria-label [attr.aria-expanded]="isDiscoverMenuOpen" (click)="toggleDiscoverMenu()">
           <lucide-icon name="menu" [size]="22" [strokeWidth]="1.5"></lucide-icon>
         </button>
       }
-      <a routerLink="/auth" class="auth-btn">Sign in</a>
+      <a i18n routerLink="/auth" class="auth-btn">Sign in</a>
     </div>
   </div>
 </nav>
 
 @if (isDiscoverMenuOpen) {
   <div class="popover-menu public-popover mobile-only" (clickOutside)="discoverOnClickOutside()">
-    <nav class="menu-items" aria-label="Mobile navigation">
-      <a routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Read</a>
-      <a routerLink="/" fragment="books" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
-      <a routerLink="/pricing" class="menu-item" (click)="discoverOnClickOutside()">Pricing</a>
-      <a routerLink="/about" class="menu-item" (click)="discoverOnClickOutside()">About</a>
+    <nav class="menu-items" aria-label="Mobile navigation" i18n-aria-label>
+      <a i18n routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Read</a>
+      <a i18n routerLink="/" [fragment]="'books'" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
+      <a i18n routerLink="/pricing" class="menu-item" (click)="discoverOnClickOutside()">Pricing</a>
+      <a i18n routerLink="/about" class="menu-item" (click)="discoverOnClickOutside()">About</a>
     </nav>
   </div>
 }

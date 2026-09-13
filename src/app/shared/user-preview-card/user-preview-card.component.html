@@ -29,15 +29,15 @@
       </div>
 
       @if (canManageRelationship) {
-        <button
+        <button i18n
           type="button"
           class="overflow-trigger"
-          aria-label="More profile actions"
+          aria-label="More profile actions" i18n-aria-label
           #friendDropdown="tuiDropdown"
           tuiDropdown
           (tuiActiveZoneChange)="closeActionsDropdown($event, friendDropdown)"
           [tuiDropdown]="friendDropdownTemplate"
-          tuiDropdownAlign="end"
+          [tuiDropdownAlign]="'end'"
           (click)="friendDropdown.toggle(true)"
         >
           More
@@ -46,7 +46,7 @@
         <ng-template #friendDropdownTemplate>
           <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
             @if (canViewProfile) {
-              <button
+              <button i18n
                 tuiOption
                 type="button"
                 class="context-button"
@@ -59,7 +59,7 @@
               <div class="context-separator" role="separator"></div>
             }
             @if (profile.relationshipStatus === 'FRIENDS') {
-              <button
+              <button i18n
                 tuiOption
                 type="button"
                 class="context-button"
@@ -70,7 +70,7 @@
               </button>
             }
             @if (profile.relationshipStatus === 'BLOCKED') {
-              <button
+              <button i18n
                 tuiOption
                 type="button"
                 class="context-button"
@@ -80,7 +80,7 @@
                 Unblock
               </button>
             } @else {
-              <button
+              <button i18n
                 tuiOption
                 type="button"
                 class="context-button negative"
@@ -99,14 +99,14 @@
       <div class="language-details">
         @if (fluentLanguages) {
           <div class="detail-row speaks-row">
-            <span class="section-label">Speaks</span>
+            <span i18n class="section-label">Speaks</span>
             <span class="fluent-languages">{{ fluentLanguages }}</span>
           </div>
         }
 
         @if (targetLanguages.length) {
           <div class="detail-row">
-            <span class="section-label">Learning</span>
+            <span i18n class="section-label">Learning</span>
             <div class="chip-list">
               @for (target of targetLanguages.slice(0, targetLanguagesExpanded ? targetLanguages.length : MAX_TARGET_LANGS); track target.language) {
                 <span class="profile-chip language-chip" [class.shared]="isSharedTargetLanguage(target.language)">
@@ -127,7 +127,7 @@
       @if (interests.length) {
         <div class="separator"></div>
         <section class="interests-section">
-          <span class="section-label">Likes</span>
+          <span i18n class="section-label">Likes</span>
           <div class="chip-list">
             @for (interest of interests.slice(0, interestsExpanded ? interests.length : MAX_INTERESTS); track interest) {
               <span class="profile-chip interest-chip" [class.shared]="isSharedInterest(interest)">
@@ -143,12 +143,12 @@
         </section>
       }
     } @else {
-      <p class="private-profile">This profile is private.</p>
+      <p i18n class="private-profile">This profile is private.</p>
     }
 
     <footer class="profile-footer">
       <div class="profile-metadata">
-        <span>Joined {{ formatDate(profile.registeredAt) }}</span>
+        <span i18n>Joined {{ formatDate(profile.registeredAt) }}</span>
       </div>
 
       @if (canUseRelationshipAction && buttonConfig.label) {
@@ -169,8 +169,8 @@
     <header class="profile-header loading-profile">
       <app-avatar [sizeInRem]="3.25" [loading]="true"></app-avatar>
       <div class="identity">
-        <span class="loading-line title" [tuiSkeleton]="true">Loading username</span>
-        <span class="loading-line" [tuiSkeleton]="true">Loading profile</span>
+        <span i18n class="loading-line title" [tuiSkeleton]="true">Loading username</span>
+        <span i18n class="loading-line" [tuiSkeleton]="true">Loading profile</span>
       </div>
     </header>
   }

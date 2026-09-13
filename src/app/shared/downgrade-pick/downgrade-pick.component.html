@@ -2,16 +2,16 @@
   @if (policy; as loadedPolicy) {
     <div class="downgrade-pick">
       <div class="pick-heading">
-        <span class="ends-on">Premium ends {{ endsOn | date: 'd MMMM' }}</span>
-        <h1>Which language stays active?</h1>
-        <p>
-          Free keeps {{ loadedPolicy.allowanceWithoutPlan === 1 ? 'one language' : loadedPolicy.allowanceWithoutPlan + ' languages' }}
-          editable. The {{ surplus.length === 1 ? 'other one stays' : 'other ' + surplus.length + ' stay' }} open to
+        <span i18n class="ends-on">Premium ends {{ endsOn | date: 'd MMMM' }}</span>
+        <h1 i18n>Which language stays active?</h1>
+        <p i18n>
+          Free keeps {loadedPolicy.allowanceWithoutPlan, plural, =1 {one language} other {{{ loadedPolicy.allowanceWithoutPlan }} languages}}
+          editable. The {surplus.length, plural, =1 {other one stays} other {other {{ surplus.length }} stay}} open to
           read &mdash; every word, every review &mdash; you just cannot add to them.
         </p>
       </div>
 
-      <div class="choices" role="radiogroup" aria-label="Which language stays active">
+      <div class="choices" role="radiogroup" aria-label="Which language stays active" i18n-aria-label>
         @for (choice of loadedPolicy.languages; track choice.language) {
           @if (choice.active) {
             <button
@@ -28,7 +28,7 @@
                 <span class="choice-name">{{ languageName(choice.language) }}</span>
                 <span class="choice-meta">
                   @if (choice.cefrLevel) { {{ choice.cefrLevel }} &middot; }
-                  {{ choice.wordsKept | number }} {{ choice.wordsKept === 1 ? 'word' : 'words' }} &middot;
+                  <ng-container i18n>{choice.wordsKept, plural, =1 {1 word} other {{{ choice.wordsKept | number }} words}}</ng-container> &middot;
                   {{ lastRead(choice) }}
                 </span>
               </span>
@@ -38,13 +38,13 @@
       </div>
 
       <div class="pick-actions">
-        <button type="button" class="keep-action" [disabled]="saving || !selected" (click)="keep()">
+        <button i18n type="button" class="keep-action" [disabled]="saving || !selected" (click)="keep()">
           Keep {{ selectedName }}
         </button>
-        <button type="button" class="stay-link" (click)="stayOnPremium()">Or stay on Premium</button>
+        <button i18n type="button" class="stay-link" (click)="stayOnPremium()">Or stay on Premium</button>
       </div>
 
-      <p class="pick-note">
+      <p i18n class="pick-note">
         Nothing changes until {{ endsOn | date: 'd MMMM' }}, and this choice does not count as your monthly switch.
       </p>
     </div>

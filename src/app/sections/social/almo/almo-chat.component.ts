@@ -36,7 +36,7 @@ import {AlmoSegment, segmentAlmoText} from './almo-text-segments';
     @if (coordinator.activeChat(); as chat) {
       <!-- Written in the target language at the learner's level, and sent as written. -->
       @if (coordinator.composerEmpty() && chat.openers.length) {
-        <div class="almo-openers" role="group" aria-label="Ways to start">
+        <div class="almo-openers" role="group" aria-label="Ways to start" i18n-aria-label>
           @for (opener of chat.openers; track opener.text) {
             <button type="button" class="almo-opener" (click)="send(opener.text)">
               @for (segment of segmentsOf(opener); track $index) {

@@ -87,24 +87,21 @@
           <div class="m-0.5">
             <lucide-icon name="menu"
                          class="cursor-pointer"
-                         aria-label="Open people panel"
+                         aria-label="Open people panel" i18n-aria-label
                          (click)="openPeopleAndSetupData()"
                          color="var(--brand-ink)"
             ></lucide-icon>
           </div>
           @if (incomingRequestsCount > 0) {
-            <tui-badge-notification
-              size="xs"
-              tuiSlot="top"
-            />
+            <tui-badge-notification size="xs" tuiSlot="top" />
           }
         </tui-badged-content>
 
-        <p class="header-text chats">Chats</p>
+        <p i18n class="header-text chats">Chats</p>
 
         <button type="button"
                 class="new-chat"
-                aria-label="New chat"
+                aria-label="New chat" i18n-aria-label
                 (click)="startNewChat()">
           <lucide-icon name="square-pen" [size]="18"></lucide-icon>
         </button>
@@ -125,18 +122,18 @@
           <input
             [formControl]="chatFormControl"
             tuiInput
-            tuiTextfieldSize="m"
+            [tuiTextfieldSize]="'m'"
             type="text"
             autocomplete="off"
             autocapitalize="none"
             spellcheck="false"
-            placeholder="Search"
+            placeholder="Search" i18n-placeholder
           />
         </tui-textfield>
         @if (searchQuery) {
           <button type="button"
                   class="search-clear"
-                  aria-label="Clear search"
+                  aria-label="Clear search" i18n-aria-label
                   (click)="clearSearch($event)">
             <lucide-icon name="x" [size]="16"></lucide-icon>
           </button>
@@ -151,7 +148,7 @@
             <!-- 01: search answers in sections, and joining happens on the row. -->
             <div class="search-results">
               @if (searchChats.length) {
-                <p class="list-section">Chats</p>
+                <p i18n class="list-section">Chats</p>
                 @for (channel of searchChats; track channel.cid) {
                   <button type="button" class="result-row" (click)="openSearchResult(channel)">
                     <app-custom-chat-avatar
@@ -160,7 +157,7 @@
                       [channel]="channel"
                       [name]="channels.name(channel, '')"
                       [imageUrl]="channelImage(channel)"
-                      location="channel-preview"
+                      [location]="'channel-preview'"
                     ></app-custom-chat-avatar>
                     <span class="result-body">
                       <span class="result-name">{{ channels.name(channel, '') }}</span>
@@ -171,7 +168,7 @@
               }
 
               @if (searchJoinable.length) {
-                <p class="list-section">Channels you can join</p>
+                <p i18n class="list-section">Channels you can join</p>
                 @for (channel of searchJoinable; track channel.cid) {
                   <div class="result-row static">
                     <app-custom-chat-avatar
@@ -180,12 +177,12 @@
                       [channel]="channel"
                       [name]="channels.name(channel, '')"
                       [imageUrl]="channelImage(channel)"
-                      location="channel-preview"
+                      [location]="'channel-preview'"
                     ></app-custom-chat-avatar>
                     <span class="result-body">
                       <span class="result-name">{{ channels.name(channel, '') }}</span>
                     </span>
-                    <button type="button"
+                    <button i18n type="button"
                             class="row-join"
                             (click)="joinFromSearch(channel)">Join</button>
                   </div>
@@ -193,7 +190,7 @@
               }
 
               @if (searchMessages.length) {
-                <p class="list-section">Messages</p>
+                <p i18n class="list-section">Messages</p>
                 @for (hit of searchMessages; track hit.id) {
                   <button type="button" class="result-row" (click)="openMessageHit(hit)">
                     <span class="result-body">
@@ -205,7 +202,7 @@
               }
 
               @if (!isSearching && !searchChats.length && !searchJoinable.length && !searchMessages.length) {
-                <p class="list-empty">No chats match &ldquo;{{ searchQuery }}&rdquo;.</p>
+                <p i18n class="list-empty">No chats match &ldquo;{{ searchQuery }}&rdquo;.</p>
               }
             </div>
           }
@@ -217,16 +214,16 @@
                 <span class="archive-emblem">
                   <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
                 </span>
-                <span class="archive-label">Archived</span>
+                <span i18n class="archive-label">Archived</span>
               </button>
             } @else if (archivedCount > 0) {
               <button type="button" class="archive-row" (click)="openArchive()">
                 <span class="archive-emblem">
                   <lucide-icon name="archive" [size]="18"></lucide-icon>
                 </span>
-                <span class="archive-label">Archived</span>
+                <span i18n class="archive-label">Archived</span>
                 @if (archiveHasUnread) {
-                  <span class="archive-dot" aria-label="Unread messages in the archive"></span>
+                  <span class="archive-dot" aria-label="Unread messages in the archive" i18n-aria-label></span>
                 } @else {
                   <span class="archive-count">{{ archivedCount }}</span>
                 }
@@ -257,13 +254,13 @@
                     [imageUrl]="imageUrl"
                     [location]="location"
                     [tuiHint]="sidebar.isCollapsed ? name : ''"
-                    tuiHintAppearance="dark"
+                    [tuiHintAppearance]="'dark'"
                     tuiHintDirection="end"
                     [tuiDropdownManual]="shouldShowDropdown(channel, location)"
                     [tuiDropdown]="dropdownTemplate"
                     tabindex="0"
                     role="button"
-                    [attr.aria-label]="'Show profile of ' + name"
+                    [attr.aria-label]="profileAriaLabel(name)"
                     (click)="togglePreviewCard(channel, location)"
                     (keydown.enter)="togglePreviewCard(channel, location)"
                   >
@@ -280,7 +277,7 @@
                   </app-custom-chat-avatar>
 
                   @if (sidebar.isCollapsed && location === 'channel-preview' && isUnread(channel)) {
-                    <span class="rail-unread" aria-label="Unread messages"></span>
+                    <span class="rail-unread" aria-label="Unread messages" i18n-aria-label></span>
                   }
                 </div>
               </ng-template>
@@ -309,7 +306,7 @@
 
                       @if (channels.isMember(channel)) {
                         @if (!isArchived(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -322,7 +319,7 @@
                             Archive
                           </button>
                         } @else {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -339,7 +336,7 @@
 
                       @if (!channels.isPublic(channel)) {
                         @if (isUnread(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -352,7 +349,7 @@
                             Mark as read
                           </button>
                         } @else if (isLastMessageFromOtherUser(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -369,7 +366,7 @@
 
                       @if (channels.isMember(channel) && !channels.isSelf(channel)) {
                         @if (isChannelMuted(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -382,7 +379,7 @@
                             Unmute
                           </button>
                         } @else {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -400,7 +397,7 @@
                       <!-- Clearing and deleting throw messages away, so a rule sets them off. -->
                       @if (channels.isPrivate(channel) || channels.isSelf(channel)) {
                         <div class="context-separator" role="separator"></div>
-                        <button
+                        <button i18n
                           tuiOption
                           type="button"
                           class="context-button"
@@ -416,7 +413,7 @@
 
                       <!-- Delete is the only red item in this menu. -->
                       @if (channels.isPrivate(channel)) {
-                        <button
+                        <button i18n
                           tuiOption
                           type="button"
                           class="context-button negative"
@@ -432,7 +429,7 @@
 
                       @if (channels.isPublic(channel)) {
                         @if (!channels.isMember(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -448,7 +445,7 @@
 
                         <!-- Leaving is reversible, so it stays in normal ink. -->
                         @if (channels.isMember(channel)) {
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -469,7 +466,7 @@
                   <div class="str-chat__channel-preview-end-first-row">
                     <div class="str-chat__channel-preview-messenger--name">
                       <!-- 10: a name in muted ink is a name nobody answers to any more. -->
-                      <span data-testid="channel-preview-title"
+                      <span [attr.data-testid]="'channel-preview-title'"
                             [class.deleted-account]="channels.isInterlocutorDeleted(channel)">
                         {{ channels.name(channel, channelDisplayTitle) }}
                       </span>
@@ -480,7 +477,7 @@
                     </div>
                     @if (latestMessageTime) {
                       <div
-                        data-testid="latest-message-time"
+                        [attr.data-testid]="'latest-message-time'"
                         class="str-chat__channel-preview-messenger--time"
                       >
                         {{ latestMessageTime }}
@@ -490,7 +487,7 @@
 
                   <div class="str-chat__channel-preview-end-second-row">
                     <div
-                      data-testid="latest-message"
+                      [attr.data-testid]="'latest-message'"
                       class="str-chat__channel-preview-messenger--last-message"
                     >
                       @if (!channel.state.messages.length) {
@@ -499,14 +496,14 @@
                         {{ latestMessageText | translate }}
                       } @else {
                         <span
-                          data-testid="html-content"
+                          [attr.data-testid]="'html-content'"
                           [innerHTML]="latestMessageText | translate"
                         ></span>
                       }
                     </div>
                     @if (latestMessageStatus) {
                       <div
-                        data-testid="latest-message-status"
+                        [attr.data-testid]="'latest-message-status'"
                         class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
                       latestMessageStatus
                         }}"
@@ -518,7 +515,7 @@
                     }
                     @if (unreadCount) {
                       <div
-                        data-testid="unread-badge"
+                        [attr.data-testid]="'unread-badge'"
                         class="str-chat__channel-preview-unread-badge"
                         [ngClass]="{'single-digit': unreadCount <= 9}">
                         {{ unreadCount }}
@@ -537,17 +534,17 @@
                     @if (isArchived(channel)) {
                       <button type="button"
                               class="row-control"
-                              aria-label="Unarchive chat"
+                              aria-label="Unarchive chat" i18n-aria-label
                               (click)="unarchiveChat(channel, rowMenu, $event)">
                         <lucide-icon name="archive-restore" [size]="16"></lucide-icon>
                       </button>
                     }
                     <button type="button"
                             class="row-control row-menu-trigger"
-                            aria-label="Chat actions"
+                            aria-label="Chat actions" i18n-aria-label
                             #rowMenu="tuiDropdown"
                             tuiDropdown
-                            tuiDropdownAlign="end"
+                            [tuiDropdownAlign]="'end'"
                             [tuiDropdown]="contextMenu"
                             (tuiActiveZoneChange)="!$event && closeRowMenu(rowMenu)"
                             (click)="openRowMenu(rowMenu, $event)">
@@ -566,7 +563,7 @@
   <div class="resizer"
        role="separator"
        aria-orientation="vertical"
-       aria-label="Resize chat list"
+       aria-label="Resize chat list" i18n-aria-label
        [class.dragging]="sidebar.isDragging"
        (dblclick)="sidebar.toggleRail()"
        (mousedown)="sidebar.start()">
@@ -603,12 +600,12 @@
         <app-almo-chat></app-almo-chat>
         @if (isActiveChannelReadOnly) {
           <div class="channel-readonly-footer">
-            <span class="readonly-note">
+            <span i18n class="readonly-note">
               <lucide-icon name="lock" [size]="15" [strokeWidth]="1.7"></lucide-icon>
               Only Almonium posts in this channel
             </span>
             @if (activeChannel && isChannelMuted(activeChannel)) {
-              <span class="muted-pill">Muted while you read</span>
+              <span i18n class="muted-pill">Muted while you read</span>
             }
           </div>
         } @else if (isActiveChannelDeleted) {
@@ -620,7 +617,7 @@
             <div class="channel-blocked-footer">
               <span class="blocked-note">{{ copy.blocked(blocked.handle) }}</span>
               <!-- Blocking is reversible, so the way back sits in the same row that states it. -->
-              <button type="button"
+              <button i18n type="button"
                       class="unblock-action"
                       [disabled]="unblockInProgressIds.has(blocked.friendshipId)"
                       (click)="unblockInterlocutor(blocked)">Unblock</button>
@@ -674,23 +671,23 @@
           } @else {
             @switch (candidateState(candidate)) {
               @case ('friend') {
-                <button type="button"
+                <button i18n type="button"
                         class="friend-action action-button positive"
                         (click)="messageCandidate(candidate)">Message</button>
               }
               @case ('requested') {
-                <button type="button"
+                <button i18n type="button"
                         class="friend-action action-button request-sent"
                         disabled>Requested</button>
               }
               @case ('blocked') {
-                <button type="button"
+                <button i18n type="button"
                         class="friend-action action-button"
                         disabled>Blocked</button>
               }
               @default {
                 <!-- Add is the row's commitment, so it is filled the way Accept is. -->
-                <button type="button"
+                <button i18n type="button"
                         class="friend-action action-button primary-action"
                         (click)="sendFriendRequest(candidate.id)">Add</button>
               }
@@ -701,7 +698,7 @@
 
       <header class="header">
         <div class="header-inner">
-          <p class="header-text people">People</p>
+          <p i18n class="header-text people">People</p>
           <app-dismiss-button [relative]="true" (closed)="closePeople()"></app-dismiss-button>
         </div>
       </header>
@@ -713,9 +710,9 @@
           [activeItemIndex]="peopleIndex"
           (activeItemIndexChange)="onPeopleIndexChange($event)"
         >
-          <button type="button">Friends</button>
-          <button type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
-          <button type="button">Blocked</button>
+          <button i18n type="button">Friends</button>
+          <button i18n type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
+          <button i18n type="button">Blocked</button>
         </tui-segmented>
 
         <!--
@@ -740,12 +737,12 @@
               autocomplete="off"
               autocapitalize="none"
               spellcheck="false"
-              placeholder="Search people"/>
+              placeholder="Search people" i18n-placeholder/>
           </tui-textfield>
           @if (usernameFormControl.value) {
             <button type="button"
                     class="search-clear"
-                    aria-label="Clear search"
+                    aria-label="Clear search" i18n-aria-label
                     (click)="clearPeopleSearch()">
               <lucide-icon name="x" [size]="16"></lucide-icon>
             </button>
@@ -761,19 +758,19 @@
                 }
               } @else if (matchedUsers.length === 0) {
                 <!-- The empty line renders only when both sections come back empty. -->
-                <p class="no-results">
+                <p i18n class="no-results">
                   No account with that handle.
                 </p>
               } @else {
                 @if (friendMatches.length > 0) {
-                  <p class="section-heading">Your friends</p>
+                  <p i18n class="section-heading">Your friends</p>
                   @for (candidate of friendMatches; track candidate.id) {
                     <ng-container [ngTemplateOutlet]="candidateRow"
                                   [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
                   }
                 }
                 @if (otherMatches.length > 0) {
-                  <p class="section-heading">Everyone else</p>
+                  <p i18n class="section-heading">Everyone else</p>
                   @for (candidate of otherMatches; track candidate.id) {
                     <ng-container [ngTemplateOutlet]="candidateRow"
                                   [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
@@ -799,7 +796,7 @@
                 <!-- 05: this does not navigate anywhere - it points at the field above it. -->
                 <app-button
                   appearance="bw"
-                  label="Search people"
+                  label="Search people" i18n-label
                   gap="1rem"
                   width="fit"
                   [fontSize]=18
@@ -813,7 +810,7 @@
               }
               @if (peopleMode === 'requests') {
                 @if (incomingRequests.length > 0) {
-                  <p class="section-heading">Received</p>
+                  <p i18n class="section-heading">Received</p>
                   @for (friend of incomingRequests; track friend.relationshipId) {
                     <div class="user-tile card">
                       <app-avatar [avatarUrl]="friend.avatarUrl"
@@ -837,12 +834,12 @@
                                      [size]="20"
                         ></lucide-icon>
                       } @else if (friend.relationshipStatus === FriendshipStatus.PENDING_INCOMING) {
-                        <button type="button" class="friend-action action-button primary-action"
+                        <button i18n type="button" class="friend-action action-button primary-action"
                                 (click)="acceptFriendRequest(friend)">Accept</button>
-                        <button type="button" class="friend-action action-button secondary"
+                        <button i18n type="button" class="friend-action action-button secondary"
                                 (click)="rejectFriendRequest(friend.relationshipId)">Decline</button>
                       } @else if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
-                        <button type="button" class="friend-action action-button positive"
+                        <button i18n type="button" class="friend-action action-button positive"
                                 (click)="openChatWithFriend(friend)">
                           <lucide-icon name="message-circle" [size]="17"></lucide-icon>
                           Message
@@ -853,7 +850,7 @@
                 }
 
                 @if (outgoingRequests.length > 0) {
-                  <p class="section-heading">Sent</p>
+                  <p i18n class="section-heading">Sent</p>
                   @for (friend of outgoingRequests; track friend.relationshipId) {
                     <div class="user-tile card">
                       <app-avatar [avatarUrl]="friend.avatarUrl"
@@ -877,7 +874,7 @@
                                      [size]="20"
                         ></lucide-icon>
                       } @else {
-                        <button type="button" class="friend-action action-button secondary"
+                        <button i18n type="button" class="friend-action action-button secondary"
                                 (click)="cancelFriendRequest(friend.relationshipId)">Cancel</button>
                       }
                     </div>
@@ -908,7 +905,7 @@
                   @if (peopleMode === 'friends') {
                     <lucide-icon name="ellipsis"
                                  class="friend-action positive"
-                                 aria-label="Friend actions"
+                                 aria-label="Friend actions" i18n-aria-label
                                  [size]="20"
                                  #friendDropdown="tuiDropdown"
                                  tuiDropdown
@@ -921,7 +918,7 @@
                           role="menu"
                           tuiDataListDropdownManager
                           class="context-menu">
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -933,7 +930,7 @@
                             ></lucide-icon>
                             Message
                           </button>
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button"
@@ -945,7 +942,7 @@
                             ></lucide-icon>
                             Unfriend
                           </button>
-                          <button
+                          <button i18n
                             tuiOption
                             type="button"
                             class="context-button negative"
@@ -969,7 +966,7 @@
                                    [size]="20"
                       ></lucide-icon>
                     } @else {
-                      <button type="button" class="friend-action action-button secondary"
+                      <button i18n type="button" class="friend-action action-button secondary"
                               (click)="unblock(friend.id, friend.relationshipId)">Unblock</button>
                     }
                   }

@@ -72,7 +72,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.submitting = false;
-        this.loadError = getErrorMessage(error, 'Could not start your review session. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`Could not start your review session. Please try again.`);
       },
     });
   }
@@ -106,7 +106,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.submitting = false;
-        this.loadError = getErrorMessage(error, 'Your answer could not be recorded. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`Your answer could not be recorded. Please try again.`);
       },
     });
   }
@@ -135,7 +135,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.submitting = false;
-        this.loadError = getErrorMessage(error, 'Could not record the mistype correction.');
+        this.loadError = getErrorMessage(error, $localize`Could not record the mistype correction.`);
       },
     });
   }
@@ -163,27 +163,41 @@ export class ReviewComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.submitting = false;
-        this.loadError = getErrorMessage(error, 'Could not prepare a new prompt for this word.');
+        this.loadError = getErrorMessage(error, $localize`Could not prepare a new prompt for this word.`);
       },
     });
   }
 
   protected intentLabel(intent: LearningIntent): string {
-    return ({UNDERSTAND: 'Understand', PRODUCE: 'Produce', PRONOUNCE: 'Pronounce', DISAMBIGUATE: 'Tell apart', CHUNK: 'Use the chunk'})[intent];
+    return ({
+      UNDERSTAND: $localize`Understand`,
+      PRODUCE: $localize`Produce`,
+      PRONOUNCE: $localize`Pronounce`,
+      DISAMBIGUATE: $localize`Tell apart`,
+      CHUNK: $localize`Use the chunk`,
+    })[intent];
+  }
+
+  protected answerPlaceholder(intent: LearningIntent): string {
+    return intent === 'PRODUCE' ? $localize`Word, with the article` : $localize`Meaning in your own words`;
+  }
+
+  protected get isLastItem(): boolean {
+    return this.session !== null && this.currentIndex === this.session.items.length - 1;
   }
 
   protected intentInstruction(intent: LearningIntent): string {
     return intent === 'UNDERSTAND'
-      ? 'Write what this means.'
+      ? $localize`Write what this means.`
       : intent === 'DISAMBIGUATE'
-        ? 'Write the exact word that fits this meaning.'
-        : 'Write it in the language you are learning.';
+        ? $localize`Write the exact word that fits this meaning.`
+        : $localize`Write it in the language you are learning.`;
   }
 
   protected savedAgo(savedAt: Date): string {
     const days = Math.max(0, Math.floor((Date.now() - savedAt.getTime()) / 86_400_000));
-    if (days === 0) return 'Saved today';
-    return `Saved ${days} ${days === 1 ? 'day' : 'days'} ago`;
+    if (days === 0) return $localize`Saved today`;
+    return days === 1 ? $localize`Saved 1 day ago` : $localize`Saved ${days}:days: days ago`;
   }
 
   private resetAndLoad(): void {
@@ -208,7 +222,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
       error: error => {
         this.summary = null;
         this.loading = false;
-        this.loadError = getErrorMessage(error, 'Could not load your review queue. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`Could not load your review queue. Please try again.`);
       },
     });
   }
@@ -225,7 +239,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
       },
       error: error => {
         this.submitting = false;
-        this.loadError = getErrorMessage(error, 'Could not load the session record. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`Could not load the session record. Please try again.`);
       },
     });
   }

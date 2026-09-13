@@ -25,7 +25,11 @@ import {RhythmService} from '../rhythm.service';
 /** Weeks the card shows. The band keeps more; twelve is what the sentence talks about. */
 const WEEKS_SHOWN = 12;
 const DEFAULT_CREST = '#7A6BB8';
-const SESSION_WORD: Record<number, string> = {1: 'one session', 2: 'two sessions', 4: 'four sessions'};
+const SESSION_WORD: Record<number, string> = {
+  1: $localize`one session`,
+  2: $localize`two sessions`,
+  4: $localize`four sessions`,
+};
 
 interface RecordView {
   language: LanguageCode;
@@ -91,10 +95,13 @@ export class HarnessComponent implements OnInit {
   protected readonly tint = weekLevel;
 
   protected weekLabel(week: RhythmWeek): string {
-    if (week.frozen) return `Week of ${week.weekStart}: set aside`;
+    const weekStart = week.weekStart;
+    if (week.frozen) return $localize`Week of ${weekStart}:weekStart:: set aside`;
     const minutes = weekMinutes(week);
-    if (minutes === 0) return `Week of ${week.weekStart}: nothing recorded`;
-    return `Week of ${week.weekStart}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+    if (minutes === 0) return $localize`Week of ${weekStart}:weekStart:: nothing recorded`;
+    return minutes === 1
+      ? $localize`Week of ${weekStart}:weekStart:: 1 minute`
+      : $localize`Week of ${weekStart}:weekStart:: ${minutes}:minutes: minutes`;
   }
 
   protected cadence(target: WeeklyTarget): string {
@@ -106,21 +113,25 @@ export class HarnessComponent implements OnInit {
     const {met, counted} = paceFraction(rhythm, WEEKS_SHOWN);
 
     if (!rhythm.editable) {
-      const aside = rhythm.setAsideAt ? ` on ${this.formatDate(rhythm.setAsideAt)}` : '';
-      return `${numberWord(met)} ${met === 1 ? 'week' : 'weeks'} met your target before you set ${languageName}`
-        + ` aside${aside}. The weeks since are not counted against you.`;
+      const asideDate = rhythm.setAsideAt ? this.formatDate(rhythm.setAsideAt) : '';
+      const aside = asideDate ? $localize` on ${asideDate}:date:` : '';
+      const count = numberWord(met);
+      return met === 1
+        ? $localize`One week met your target before you set ${languageName}:language: aside${aside}:asideOn:. The weeks since are not counted against you.`
+        : $localize`${count}:count: weeks met your target before you set ${languageName}:language: aside${aside}:asideOn:. The weeks since are not counted against you.`;
     }
     if (this.isEmpty(rhythm)) {
-      return 'Twelve weeks, filling in as you learn. You can set a target once there is something to measure.';
+      return $localize`Twelve weeks, filling in as you learn. You can set a target once there is something to measure.`;
     }
     if (!hasTarget(rhythm.target)) {
-      return 'Twelve weeks with no bar to meet. Tint shows time learning, not a score.';
+      return $localize`Twelve weeks with no bar to meet. Tint shows time learning, not a score.`;
     }
     // "No of the last twelve weeks" is not a sentence; the attributive "No weeks" only works before the noun.
-    const kept = met === 0 ? 'None' : numberWord(met);
-    return `${kept} of the last ${numberWord(counted)} weeks met your target of`
-      + ` ${SESSION_WORD[rhythm.target] ?? `${rhythm.target} sessions`}.`
-      + ' Tint shows time learning, not a score.';
+    const kept = met === 0 ? $localize`None` : numberWord(met);
+    const total = numberWord(counted);
+    const target = rhythm.target;
+    const sessions = SESSION_WORD[target] ?? $localize`${target}:count: sessions`;
+    return $localize`${kept}:kept: of the last ${total}:counted: weeks met your target of ${sessions}:sessions:. Tint shows time learning, not a score.`;
   }
 
   protected startEditing(rhythm: LanguageRhythm): void {
@@ -168,6 +179,6 @@ export class HarnessComponent implements OnInit {
 
   private formatDate(date: string): string {
     const [year, month, day] = date.split('-').map(Number);
-    return new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(new Date(year, month - 1, day));
+    return new Intl.DateTimeFormat($localize.locale, {day: 'numeric', month: 'long'}).format(new Date(year, month - 1, day));
   }
 }

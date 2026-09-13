@@ -54,11 +54,22 @@ export class CadenceChangeModalComponent {
   }
 
   protected get title(): string {
-    return this.refundOption ? "You're still within your 14-day guarantee." : this.switchHeading;
+    return this.refundOption ? $localize`You're still within your 14-day guarantee.` : this.switchHeading;
   }
 
   protected get switchHeading(): string {
-    return `Switch to ${this.cadenceWord(this.preview?.targetType)} billing`;
+    return this.preview?.targetType === PlanType.YEARLY
+      ? $localize`Switch to annual billing`
+      : $localize`Switch to monthly billing`;
+  }
+
+  protected readonly workingLabel = $localize`Working…`;
+  protected readonly confirmSwitchLabel = $localize`Confirm switch`;
+
+  protected get refundButtonLabel(): string {
+    return this.preview?.targetType === PlanType.YEARLY
+      ? $localize`Refund and switch to annual`
+      : $localize`Refund and switch to monthly`;
   }
 
   /** The figures for whichever shape this is. Labels name the actual cadences, never "current" and "new". */
@@ -68,35 +79,35 @@ export class CadenceChangeModalComponent {
     const refund = this.refundOption;
     if (refund) {
       return [
-        {label: 'Refund to your card', value: this.amount(refund.refundMinorUnits ?? 0)},
-        {label: `${this.capitalised(this.cadenceWord(preview.targetType))} billing starts`, value: this.when(refund.effectiveAt)},
-        {label: 'Due now', value: this.amount(refund.dueNowMinorUnits)},
+        {label: $localize`Refund to your card`, value: this.amount(refund.refundMinorUnits ?? 0)},
+        {label: this.billingStartsLabel(preview.targetType), value: this.when(refund.effectiveAt)},
+        {label: $localize`Due now`, value: this.amount(refund.dueNowMinorUnits)},
       ];
     }
     const option = this.scheduledOption ?? this.proratedOption;
     if (!option) return [];
     const figures: Figure[] = [
-      {label: 'New cadence', value: this.cadenceValue(preview)},
+      {label: $localize`New cadence`, value: this.cadenceValue(preview)},
     ];
     // Credit before the amount due, so the smaller number explains the larger one rather than following it.
     if (option.creditMinorUnits !== null) {
       figures.push({
-        label: `Credit for this ${this.periodWord(preview.currentType)}`,
+        label: preview.currentType === PlanType.YEARLY ? $localize`Credit for this year` : $localize`Credit for this month`,
         value: `−${this.amount(option.creditMinorUnits)}`,
       });
     }
-    figures.push({label: 'Due now', value: this.amount(option.dueNowMinorUnits)});
+    figures.push({label: $localize`Due now`, value: this.amount(option.dueNowMinorUnits)});
     if (option.kind === CadenceChangeKind.SCHEDULED) {
       figures.push({
-        label: `${this.capitalised(this.cadenceWord(preview.currentType))} plan runs until`,
+        label: preview.currentType === PlanType.YEARLY ? $localize`Annual plan runs until` : $localize`Monthly plan runs until`,
         value: this.when(preview.currentPeriodEndsAt),
       });
       figures.push({
-        label: `${this.capitalised(this.cadenceWord(preview.targetType))} billing starts`,
+        label: this.billingStartsLabel(preview.targetType),
         value: this.when(option.effectiveAt),
       });
     } else {
-      figures.push({label: 'Next billed', value: this.when(option.nextBilledAt)});
+      figures.push({label: $localize`Next billed`, value: this.when(option.nextBilledAt)});
     }
     return figures;
   }
@@ -108,32 +119,34 @@ export class CadenceChangeModalComponent {
   private cadenceValue(preview: CadenceChangePreview): string {
     const amount = this.amount(preview.targetPriceMinorUnits);
     return preview.targetType === PlanType.YEARLY
-      ? `${amount} billed annually`
-      : `${amount} / ${this.periodWord(preview.targetType)}`;
+      ? $localize`${amount}:amount: billed annually`
+      : $localize`${amount}:amount: / month`;
   }
 
   /** Only the scheduled shape needs it: it is the sentence that explains why nothing happens today. */
   protected get explanation(): string | null {
     if (this.refundOption) {
-      return 'We can refund your annual payment and start you on monthly billing today.';
+      return $localize`We can refund your annual payment and start you on monthly billing today.`;
     }
     if (!this.scheduledOption || !this.preview) return null;
-    return `You've already paid through ${this.when(this.preview.currentPeriodEndsAt)}, so nothing changes until then.`;
+    const paidThrough = this.when(this.preview.currentPeriodEndsAt);
+    return $localize`You've already paid through ${paidThrough}:date:, so nothing changes until then.`;
   }
 
   protected get footnote(): string | null {
     if (!this.preview?.founderPrice) return null;
     return this.refundOption
-      ? 'Either way you keep your founding-member price.'
-      : 'Your founding-member price stays locked as long as your subscription remains active.';
+      ? $localize`Either way you keep your founding-member price.`
+      : $localize`Your founding-member price stays locked as long as your subscription remains active.`;
   }
 
   protected get scheduleButtonLabel(): string {
     const option = this.scheduledOption;
-    if (!option) return 'Schedule switch';
+    if (!option) return $localize`Schedule switch`;
+    const monthAndYear = this.monthAndYear(option.effectiveAt);
     return this.refundOption
-      ? `Schedule the switch for ${this.monthAndYear(option.effectiveAt)}`
-      : 'Schedule switch';
+      ? $localize`Schedule the switch for ${monthAndYear}:monthAndYear:`
+      : $localize`Schedule switch`;
   }
 
   protected commit(kind: CadenceChangeKind): void {
@@ -175,7 +188,7 @@ export class CadenceChangeModalComponent {
 
   /** A date the member reaches today is "Today"; a switch that lands in 359 days deserves its full date. */
   private when(date: Date): string {
-    return this.isToday(date) ? 'Today' : this.fullDate(date);
+    return this.isToday(date) ? $localize`Today` : this.fullDate(date);
   }
 
   private isToday(date: Date): boolean {
@@ -190,15 +203,7 @@ export class CadenceChangeModalComponent {
     return date.toLocaleDateString('en-GB', {month: 'long', year: 'numeric'});
   }
 
-  private cadenceWord(type: PlanType | undefined): string {
-    return type === PlanType.YEARLY ? 'annual' : 'monthly';
-  }
-
-  private periodWord(type: PlanType | undefined): string {
-    return type === PlanType.YEARLY ? 'year' : 'month';
-  }
-
-  private capitalised(word: string): string {
-    return word.charAt(0).toUpperCase() + word.slice(1);
+  private billingStartsLabel(type: PlanType | undefined): string {
+    return type === PlanType.YEARLY ? $localize`Annual billing starts` : $localize`Monthly billing starts`;
   }
 }

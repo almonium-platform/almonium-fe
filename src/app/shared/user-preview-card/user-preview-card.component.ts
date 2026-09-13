@@ -173,7 +173,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     switch (this.userProfileInfo.relationshipStatus) {
       case RelationshipStatus.FRIENDS:
         this.buttonConfig = {
-          label: 'Message',
+          label: $localize`Message`,
           icon: 'message-circle',
           appearance: 'secondary',
           action: this.openChat.bind(this),
@@ -181,7 +181,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         break;
       case RelationshipStatus.PENDING_INCOMING:
         this.buttonConfig = {
-          label: 'Accept Request',
+          label: $localize`Accept Request`,
           icon: 'user-round-plus',
           appearance: 'primary',
           action: this.acceptFriendRequest.bind(this),
@@ -189,7 +189,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         break;
       case RelationshipStatus.PENDING_OUTGOING:
         this.buttonConfig = {
-          label: 'Cancel Request',
+          label: $localize`Cancel Request`,
           icon: 'x',
           appearance: 'secondary',
           action: this.cancelFriendRequest.bind(this),
@@ -199,7 +199,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         if (this.userProfileInfo.acceptsRequests) {
           logger.debug('User accepts requests');
           this.buttonConfig = {
-            label: 'Add friend',
+            label: $localize`Add friend`,
             icon: 'user-round-plus',
             appearance: 'primary',
             action: this.sendFriendRequest.bind(this),
@@ -228,7 +228,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     if (isNaN(date.getTime())) {
       throw new Error('Invalid date');
     }
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString($localize.locale, {
       month: 'long',
       year: 'numeric'
     });
@@ -265,11 +265,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected get connectionSummary(): string | null {
     const sharedLanguage = this.targetLanguages.find(target => this.isSharedTargetLanguage(target.language));
     if (sharedLanguage) {
-      return `Learning ${this.languageName(sharedLanguage.language)}, like you`;
+      const languageName = this.languageName(sharedLanguage.language);
+      return $localize`Learning ${languageName}:language:, like you`;
     }
 
     const sharedInterest = this.interests.find(interest => this.isSharedInterest(interest));
-    return sharedInterest ? `Also interested in ${sharedInterest}` : null;
+    return sharedInterest ? $localize`Also interested in ${sharedInterest}:interest:` : null;
   }
 
   protected get canManageRelationship(): boolean {
@@ -309,9 +310,9 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   }
 
   protected prepareUnfriendModal() {
-    this.modalTitle = 'Unfriend';
-    this.modalMessage = 'Are you sure you want to unfriend this user?';
-    this.modalConfirmText = 'Unfriend';
+    this.modalTitle = $localize`Unfriend`;
+    this.modalMessage = $localize`Are you sure you want to unfriend this user?`;
+    this.modalConfirmText = $localize`Unfriend`;
     this.modalAction = () => this.unfriend();
     this.isConfirmModalVisible = true;
   }
@@ -331,9 +332,9 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   }
 
   prepareBlockModal() {
-    this.modalTitle = 'Block User';
-    this.modalMessage = 'Are you sure you want to block this user?';
-    this.modalConfirmText = 'Block';
+    this.modalTitle = $localize`Block User`;
+    this.modalMessage = $localize`Are you sure you want to block this user?`;
+    this.modalConfirmText = $localize`Block`;
     this.modalAction = () => this.block();
     this.isConfirmModalVisible = true;
   }
@@ -355,12 +356,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = profileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User blocked', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`User blocked`, {appearance: 'positive'}).subscribe();
           this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to block user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -384,11 +385,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`User unblocked`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to unblock user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -408,11 +409,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`That user is no longer your friend`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to remove friend`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -444,11 +445,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Friend request cancelled`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to cancel friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -469,7 +470,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Friend request accepted`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => logger.error(error),
       });
@@ -497,11 +498,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('We notified user about your request', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`We notified user about your request`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to send friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }

@@ -92,7 +92,7 @@ export class MembershipComponent implements OnInit {
         // the fee ratio; without it, annual leads.
         this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
       },
-      error: error => this.showError(error, 'Could not load membership options'),
+      error: error => this.showError(error, $localize`Could not load membership options`),
     });
 
     this.route.queryParams.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -119,10 +119,10 @@ export class MembershipComponent implements OnInit {
   }
 
   protected get membershipTitle(): string {
-    if (!this.billingManaged) return 'Premium member';
-    if (this.subscription?.type === PlanType.LIFETIME) return 'Lifetime member';
-    if (this.subscription?.autoRenewal === false) return 'Premium until ' + this.formatDate(this.subscription.endDate);
-    return 'Premium member';
+    if (!this.billingManaged) return $localize`Premium member`;
+    if (this.subscription?.type === PlanType.LIFETIME) return $localize`Lifetime member`;
+    if (this.subscription?.autoRenewal === false) return $localize`Premium until ${this.formatDate(this.subscription.endDate)}:date:`;
+    return $localize`Premium member`;
   }
 
   /**
@@ -132,15 +132,32 @@ export class MembershipComponent implements OnInit {
   protected get planLabel(): string {
     const name = this.subscription?.name;
     if (!name) return '—';
-    if (!this.billingManaged) return 'Premium, granted';
+    if (!this.billingManaged) return $localize`Premium, granted`;
     return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
   }
 
   protected get renewalLabel(): string {
-    if (!this.billingManaged) return 'Granted access';
-    if (this.subscription?.type === PlanType.LIFETIME) return 'No renewal needed';
-    if (!this.subscription?.endDate) return 'Active membership';
-    return `${this.subscription.autoRenewal ? 'Renews' : 'Access ends'} ${this.formatDate(this.subscription.endDate)}`;
+    if (!this.billingManaged) return $localize`Granted access`;
+    if (this.subscription?.type === PlanType.LIFETIME) return $localize`No renewal needed`;
+    if (!this.subscription?.endDate) return $localize`Active membership`;
+    return this.subscription.autoRenewal
+      ? $localize`Renews ${this.accessEndsOn}:date:`
+      : $localize`Access ends ${this.accessEndsOn}:date:`;
+  }
+
+  /** The day paid access stops, on its own for the note under a cancelled membership. */
+  protected get accessEndsOn(): string {
+    return this.formatDate(this.subscription?.endDate ?? null);
+  }
+
+  /** "unlimited" is printed, not flattened to a fallback digit. */
+  protected get activeLanguageLimitLabel(): string {
+    return this.activeLanguageLimit < 0 ? $localize`unlimited` : String(this.activeLanguageLimit);
+  }
+
+  protected get importLimitLabel(): string {
+    const limit = this.importQuota?.limit ?? -1;
+    return limit < 0 ? $localize`unlimited` : String(limit);
   }
 
   protected get memberSinceLabel(): string {
@@ -216,7 +233,7 @@ export class MembershipComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: response => window.location.href = response.sessionUrl,
-      error: error => this.showError(error, 'Could not start checkout'),
+      error: error => this.showError(error, $localize`Could not start checkout`),
     });
   }
 
@@ -229,7 +246,7 @@ export class MembershipComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: response => window.location.href = response.sessionUrl,
-      error: error => this.showError(error, 'Could not open subscription management'),
+      error: error => this.showError(error, $localize`Could not open subscription management`),
     });
   }
 
@@ -245,12 +262,12 @@ export class MembershipComponent implements OnInit {
   }
 
   protected get cadenceSwitchLabel(): string {
-    return this.oppositeCadence === PlanType.YEARLY ? 'Switch to annual billing' : 'Switch to monthly billing';
+    return this.oppositeCadence === PlanType.YEARLY ? $localize`Switch to annual billing` : $localize`Switch to monthly billing`;
   }
 
   protected scheduledChangeLabel(change: ScheduledCadenceChange): string {
-    const cadence = change.type === PlanType.YEARLY ? 'Annual' : 'Monthly';
-    return `${cadence} from ${this.formatDate(change.effectiveAt)}`;
+    const date = this.formatDate(change.effectiveAt);
+    return change.type === PlanType.YEARLY ? $localize`Annual from ${date}:date:` : $localize`Monthly from ${date}:date:`;
   }
 
   protected openCadenceChange(): void {
@@ -266,7 +283,7 @@ export class MembershipComponent implements OnInit {
         this.cadencePreview = preview;
         this.cadenceModalVisible = true;
       },
-      error: error => this.showError(error, 'Could not work out what that change would cost'),
+      error: error => this.showError(error, $localize`Could not work out what that change would cost`),
     });
   }
 
@@ -283,9 +300,9 @@ export class MembershipComponent implements OnInit {
         this.cadenceModalVisible = false;
         this.dismissAnnualOffer();
         this.userInfoService.fetchUserInfoFromServer().subscribe();
-        this.alerts.open('Your billing has been updated.', {appearance: 'positive'}).subscribe();
+        this.alerts.open($localize`Your billing has been updated.`, {appearance: 'positive'}).subscribe();
       },
-      error: error => this.showError(error, 'Could not change your billing'),
+      error: error => this.showError(error, $localize`Could not change your billing`),
     });
   }
 
@@ -303,7 +320,7 @@ export class MembershipComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => this.userInfoService.fetchUserInfoFromServer().subscribe(),
-      error: error => this.showError(error, 'Could not cancel the scheduled change'),
+      error: error => this.showError(error, $localize`Could not cancel the scheduled change`),
     });
   }
 
@@ -335,8 +352,14 @@ export class MembershipComponent implements OnInit {
 
   // ---- Cancellation ----------------------------------------------------------------------
 
-  protected get cancellationAccessEndsOn(): string {
-    return this.formatDate(this.subscription?.endDate ?? null);
+  protected get cancellationMessage(): string {
+    return $localize`You keep everything until ${this.accessEndsOn}:date:. After that your saved words and reviews stay, and one language stays active.`;
+  }
+
+  protected get cancellationNote(): string {
+    return this.subscription?.founder
+      ? $localize`Founding-member pricing ends with your subscription and can't be restored later.`
+      : '';
   }
 
   protected openCancellation(): void {
@@ -359,7 +382,7 @@ export class MembershipComponent implements OnInit {
         this.cancelModalVisible = false;
         this.userInfoService.fetchUserInfoFromServer().subscribe();
       },
-      error: error => this.showError(error, 'Could not cancel your subscription'),
+      error: error => this.showError(error, $localize`Could not cancel your subscription`),
     });
   }
 
@@ -398,7 +421,7 @@ export class MembershipComponent implements OnInit {
   }
 
   private formatDate(date: Date | null): string {
-    if (!date) return 'your billing date';
+    if (!date) return $localize`your billing date`;
     return date.toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric'});
   }
 

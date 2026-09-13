@@ -18,7 +18,7 @@ import {TuiHeader} from "@taiga-ui/layout/components";
         appearance="primary"
         size="s"
       ></span>
-      <div tuiHeader="h6">
+      <div [tuiHeader]="'h6'">
         <h3 tuiTitle>
           {{ text }}
         </h3>

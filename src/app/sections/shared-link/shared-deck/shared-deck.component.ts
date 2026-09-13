@@ -35,7 +35,7 @@ import {LanguageApiService} from '../../../services/language-api.service';
 import {ReturnPathService} from '../../../services/return-path.service';
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 import {CEFRLevel, SetupStep, UserInfo} from '../../../models/userinfo.model';
-import {capitalise, wordsAsLabel, wordsInProse} from '../count-words';
+import {capitalise, numberInWords, wordsAsLabel, wordsInProse} from '../count-words';
 import {languageBadgeFill, ordinalInWords} from '../language-badge';
 
 /** The one panel that takes the Add button's place, chosen by who is looking and what they already hold. */
@@ -150,7 +150,7 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
         logger.error('Could not open the shared deck', error);
-        this.loadError = getErrorMessage(error, 'The deck could not be opened. Please try again.');
+        this.loadError = getErrorMessage(error, $localize`The deck could not be opened. Please try again.`);
       },
     });
   }
@@ -174,7 +174,7 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private setTitle(): void {
     const title = this.view?.title;
-    this.pageTitle.setTitle(title ? `${title} · Shared deck | Almonium` : 'Shared deck | Almonium');
+    this.pageTitle.setTitle(title ? $localize`${title}:title: · Shared deck | Almonium` : $localize`Shared deck | Almonium`);
   }
 
   // --- what the page shows -------------------------------------------------------------------------
@@ -199,7 +199,7 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
   get subhead(): string {
     const count = this.words.length;
     if (count === 0) return '';
-    return `${capitalise(wordsInProse(count))} in ${this.languageName}.`;
+    return $localize`${capitalise(wordsInProse(count))}:words: in ${this.languageName}:language:.`;
   }
 
   get heldIds(): Set<string> {
@@ -234,27 +234,27 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
 
   get addLabel(): string {
     const count = this.selected.size;
-    return count === 0 ? 'Add words' : `Add ${wordsAsLabel(count)}`;
+    return count === 0 ? $localize`Add words` : $localize`Add ${wordsAsLabel(count)}:words:`;
   }
 
   get selectionSummary(): string {
-    return `${this.selected.size} of ${this.words.length} selected`;
+    return $localize`${this.selected.size}:selected: of ${this.words.length}:total: selected`;
   }
 
   get heldSummary(): string | null {
     const held = this.heldIds.size;
     if (held === 0) return null;
-    return held === 1 ? '1 is already in your words' : `${held} are already in your words`;
+    return held === 1 ? $localize`1 is already in your words` : $localize`${held}:count: are already in your words`;
   }
 
   get dueNote(): string {
     const due = this.viewer?.dueAmongHeld ?? 0;
-    if (due === 0) return 'none are due yet';
-    return due === 1 ? 'one is due' : `${wordsInProse(due).replace(/ words?$/, '')} are due`;
+    if (due === 0) return $localize`none are due yet`;
+    return due === 1 ? $localize`one is due` : $localize`${numberInWords(due)}:count: are due`;
   }
 
   get allHeldLine(): string {
-    return `All ${wordsInProse(this.words.length).replace(/ words?$/, '')} are in your words.`;
+    return $localize`All ${numberInWords(this.words.length)}:count: are in your words.`;
   }
 
   get viewerLanguageName(): string {
@@ -267,29 +267,37 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get addLanguageLabel(): string {
-    return `Add ${this.languageName}, then ${wordsAsLabel(this.words.length)}`;
+    return $localize`Add ${this.languageName}:language:, then ${wordsAsLabel(this.words.length)}:words:`;
   }
 
   /** "Twenty-four words, scheduled" - the sign-up card names the payload rather than the product. */
   get signUpHeading(): string {
-    return `${capitalise(wordsInProse(this.words.length))}, scheduled`;
+    return $localize`${capitalise(wordsInProse(this.words.length))}:words:, scheduled`;
   }
 
   get wrongLanguageLead(): string {
     const count = this.words.length;
     return count === 1
-      ? `This word is ${this.languageName}.`
-      : `These ${wordsInProse(count)} are ${this.languageName}.`;
+      ? $localize`This word is ${this.languageName}:language:.`
+      : $localize`These ${wordsInProse(count)}:words: are ${this.languageName}:language:.`;
   }
 
   get languageAddedLine(): string {
     const added = this.lastAdded?.added ?? 0;
-    if (added === 0) return `${this.languageName} added. Nothing new went into its queue.`;
-    return `${this.languageName} added. ${capitalise(wordsInProse(added))} ${added === 1 ? 'is' : 'are'} in its queue.`;
+    if (added === 0) return $localize`${this.languageName}:language: added. Nothing new went into its queue.`;
+    const words = capitalise(wordsInProse(added));
+    return added === 1
+      ? $localize`${this.languageName}:language: added. ${words}:words: is in its queue.`
+      : $localize`${this.languageName}:language: added. ${words}:words: are in its queue.`;
   }
 
   get addedLine(): string {
-    return `Added. ${(this.lastAdded?.added ?? 0) === 1 ? 'It is' : 'They are'} due tomorrow.`;
+    return (this.lastAdded?.added ?? 0) === 1 ? $localize`Added. It is due tomorrow.` : $localize`Added. They are due tomorrow.`;
+  }
+
+  /** The empty deck names who is filling it; a deck shared without a profile says "The owner". */
+  get sharerName(): string {
+    return this.view?.sharer?.username ?? $localize`The owner`;
   }
 
   get sharerProfileLink(): string | null {
@@ -341,7 +349,7 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         next: viewer => this.applyViewer(viewer),
         error: (error: unknown) => this.alertService
-          .open(getErrorMessage(error, 'The words could not be added. Please try again.'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`The words could not be added. Please try again.`), {appearance: 'negative'})
           .subscribe(),
       });
   }
@@ -371,7 +379,7 @@ export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {
           this.applyViewer(viewer);
         },
         error: (error: unknown) => this.alertService
-          .open(getErrorMessage(error, `${this.languageName} could not be added. Please try again.`), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`${this.languageName}:language: could not be added. Please try again.`), {appearance: 'negative'})
           .subscribe(),
       });
   }

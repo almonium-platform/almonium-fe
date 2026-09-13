@@ -1,8 +1,8 @@
 <div class="card step greeting-step">
-  <img src="assets/img/almo/canon-512.webp" alt="Almo, ready to read with you" />
+  <img src="assets/img/almo/canon-512.webp" alt="Almo, ready to read with you" i18n-alt />
   <div>
-    <h1>You're all set, {{ userInfo?.username }}.</h1>
+    <h1 i18n>You're all set, {{ userInfo?.username }}.</h1>
     <p>{{ setupSummary }}</p>
   </div>
-  <app-button label="Start reading" appearance="solid" class="w-full" [loading$]="loading$" (click)="startReading()" />
+  <app-button label="Start reading" i18n-label appearance="solid" class="w-full" [loading$]="loading$" (click)="startReading()" />
 </div>

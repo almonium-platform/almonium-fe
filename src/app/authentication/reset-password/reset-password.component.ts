@@ -32,11 +32,11 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
-        required: 'Value is required',
+        required: $localize`Value is required`,
         minlength: ({requiredLength, actualLength}: {
           requiredLength: number;
           actualLength: number;
-        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+        }) => $localize`Password is too short: ${actualLength}:actualLength:/${requiredLength}:requiredLength: characters`,
       },
     },
   ]
@@ -64,7 +64,7 @@ export class ResetPasswordComponent implements OnInit {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.token = params.get('oobCode') ?? params.get('token') ?? '';
       if (!this.token) {
-        this.alertService.open('No token provided', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`No token provided`, {appearance: 'negative'}).subscribe();
         void this.router.navigate(['/auth']).then();
       }
 
@@ -72,10 +72,10 @@ export class ResetPasswordComponent implements OnInit {
       this.authService.validateResetPasswordToken(this.token).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (isValid) => {
           if (!isValid) {
-            this.showErrorAndRedirect('Invalid or expired reset token');
+            this.showErrorAndRedirect($localize`Invalid or expired reset token`);
           }
         },
-        error: () => this.showErrorAndRedirect('Failed to validate reset token'),
+        error: () => this.showErrorAndRedirect($localize`Failed to validate reset token`),
       });
     });
   }
@@ -92,11 +92,11 @@ export class ResetPasswordComponent implements OnInit {
         )
         .subscribe({
           next: () => {
-            this.alertService.open('Password reset successfully!', {appearance: 'positive'}).subscribe();
+            this.alertService.open($localize`Password reset successfully!`, {appearance: 'positive'}).subscribe();
             void this.router.navigate(['/auth']).then();
           },
           error: (error) => {
-            const message = getErrorMessage(error, 'Password reset failed');
+            const message = getErrorMessage(error, $localize`Password reset failed`);
             this.showErrorAndRedirect(message);
           },
         });

@@ -67,7 +67,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           logger.error('Failed to start onboarding', error);
-          this.alertService.open('Failed to start onboarding', {appearance: 'negative'}).subscribe()
+          this.alertService.open($localize`Failed to start onboarding`, {appearance: 'negative'}).subscribe()
         },
       });
   }

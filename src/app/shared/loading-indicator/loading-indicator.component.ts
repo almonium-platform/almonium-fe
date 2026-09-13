@@ -15,7 +15,7 @@ import {EmblemComponent} from '../emblem/emblem.component';
 export class LoadingIndicatorComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
 
-  @Input() baseText = 'Loading';
+  @Input() baseText = $localize`Loading`;
 
   animatedText = '';
   private intervalSubscription: Subscription | null = null;

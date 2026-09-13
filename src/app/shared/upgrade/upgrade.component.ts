@@ -37,6 +37,10 @@ export class UpgradeComponent implements OnInit {
     });
   }
 
+  protected get buttonLabel(): string {
+    return this.onboardingMode ? $localize`Continue` : $localize`Enjoy the platform`;
+  }
+
   protected handleClick() {
     if (this.onboardingMode) {
       const nextStep = getNextStep(this.step);

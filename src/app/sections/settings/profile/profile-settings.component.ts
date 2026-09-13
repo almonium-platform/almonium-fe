@@ -149,7 +149,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected get firstSessionPhrase(): string {
-    return this.activeLanguage ? `a first ${this.activeLanguageName} session` : 'a first session';
+    return this.activeLanguage ? $localize`a first ${this.activeLanguageName}:language: session` : $localize`a first session`;
   }
 
   /** The languages beside the active one, collapsed to a name and how many weeks they kept. */
@@ -169,10 +169,10 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
    */
   protected asideNote(rhythm: LanguageRhythm): string {
     if (!this.allOthersSetAside) {
-      return 'Set aside';
+      return $localize`Set aside`;
     }
     const kept = this.policy?.languages.find(choice => choice.language === rhythm.language)?.wordsKept ?? 0;
-    return kept > 0 ? `${new Intl.NumberFormat().format(kept)} words kept` : 'Nothing read yet';
+    return kept > 0 ? $localize`${kept.toLocaleString($localize.locale)}:count: words kept` : $localize`Nothing read yet`;
   }
 
   /**
@@ -191,9 +191,9 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected recordCaption(rhythm: LanguageRhythm): string {
-    const bar = hasTarget(rhythm.target) ? cadenceLabel(rhythm.target) : 'No bar set';
+    const bar = hasTarget(rhythm.target) ? cadenceLabel(rhythm.target) : $localize`No bar set`;
     const since = this.sinceLabel(rhythm.startedAt);
-    return `${bar} ${since}. Tint shows time learning, not a score.`;
+    return $localize`${bar}:bar: ${since}:since:. Tint shows time learning, not a score.`;
   }
 
   protected languageName(language: LanguageCode): string {
@@ -205,7 +205,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     const started = new Date(year, month - 1, day);
     const sameYear = started.getFullYear() === new Date().getFullYear();
     const format: Intl.DateTimeFormatOptions = sameYear ? {month: 'long'} : {month: 'long', year: 'numeric'};
-    return `since ${new Intl.DateTimeFormat(undefined, format).format(started)}`;
+    return $localize`since ${new Intl.DateTimeFormat($localize.locale, format).format(started)}:date:`;
   }
 
   protected crestColour(language: LanguageCode): string {
@@ -232,32 +232,33 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
   /** The one true fact a new account has: when it arrived, and what it is here to learn. */
   protected get memberSince(): string {
     if (!this.profileInfo?.registeredAt) {
-      return 'Your profile';
+      return $localize`Your profile`;
     }
-    const here = `Here since ${new Date(this.profileInfo.registeredAt).toLocaleDateString('en-US', {
+    const since = new Date(this.profileInfo.registeredAt).toLocaleDateString($localize.locale, {
       month: 'long',
       year: 'numeric',
-    })}`;
-    return this.activeLanguage ? `${here} · learning ${this.activeLanguageName}` : here;
+    });
+    const here = $localize`Here since ${since}:date:`;
+    return this.activeLanguage ? $localize`${here}:here: · learning ${this.activeLanguageName}:language:` : here;
   }
 
   protected get planSummary(): string {
     const subscription = this.userInfo?.subscription;
     if (!this.premium || !subscription) {
-      return 'Reading essentials with plan limits.';
+      return $localize`Reading essentials with plan limits.`;
     }
     if (subscription.type === PlanType.LIFETIME) {
-      return 'Lifetime membership';
+      return $localize`Lifetime membership`;
     }
     if (!subscription.endDate) {
-      return 'Active membership';
+      return $localize`Active membership`;
     }
-    const date = subscription.endDate.toLocaleDateString('en-US', {
+    const date = subscription.endDate.toLocaleDateString($localize.locale, {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
     });
-    return `${subscription.autoRenewal ? 'Renews' : 'Ends'} ${date}`;
+    return subscription.autoRenewal ? $localize`Renews ${date}:date:` : $localize`Ends ${date}:date:`;
   }
 
   protected editInterests() {
@@ -287,11 +288,11 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
       this.interestsEdit = false;
       this.userInfoService.updateUserInfo({interests: this.interests});
       this.alertService
-        .open('Interests updated', {appearance: 'positive'})
+        .open($localize`Interests updated`, {appearance: 'positive'})
         .subscribe();
     } catch {
       this.alertService
-        .open('Failed to update interests', {appearance: 'negative'})
+        .open($localize`Failed to update interests`, {appearance: 'negative'})
         .subscribe();
     } finally {
       this.loadingSubjectInterests$.next(false);
@@ -314,7 +315,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
     const link = this.getProfileLink();
     navigator.clipboard.writeText(link).then(
       () => {
-        this.alertService.open('Link copied to clipboard', {appearance: 'neutral'}).subscribe();
+        this.alertService.open($localize`Link copied to clipboard`, {appearance: 'neutral'}).subscribe();
       },
       (err) => {
         logger.error('Failed to copy: ', err);
@@ -324,6 +325,10 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
 
   protected getProfileLink() {
     return `${window.location.origin}/users/${encodeURIComponent(this.userInfo?.username ?? '')}`;
+  }
+
+  protected get visibilitySwitchLabel(): string {
+    return this.userInfo?.hidden ? $localize`Make profile visible` : $localize`Hide profile`;
   }
 
   protected toggleHidden(): void {
@@ -347,7 +352,7 @@ export class ProfileSettingsComponent implements OnInit, OnDestroy {
           this.userInfo.hidden = oldValue;
         }
         logger.error('Failed to save preferences:', error);
-        this.alertService.open('Failed to save preferences', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`Failed to save preferences`, {appearance: 'negative'}).subscribe();
       },
     });
   }

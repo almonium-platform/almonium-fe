@@ -14,17 +14,17 @@ import {SharedLinkStatus} from '../shared-link.model';
     <section class="dead-link" [class.deleted]="status === 'DELETED'">
       @if (status === 'DELETED') {
         <img src="/assets/img/almo/rest.webp" alt="" class="almo almo-rest">
-        <h1>{{ object === 'deck' ? 'This deck was deleted' : 'This card was deleted' }}</h1>
-        <p>Its words went with it. Nothing you added from it earlier has been touched.</p>
+        <h1 i18n>{object, select, deck {This deck was deleted} other {This card was deleted}}</h1>
+        <p i18n>Its words went with it. Nothing you added from it earlier has been touched.</p>
       } @else {
         <img src="/assets/img/almo/searching.webp" alt="" class="almo almo-searching">
-        <h1>This link no longer works</h1>
-        <p>The owner turned it off, so there is nothing here to open. If you still want the words, ask them for a new link.</p>
+        <h1 i18n>This link no longer works</h1>
+        <p i18n>The owner turned it off, so there is nothing here to open. If you still want the words, ask them for a new link.</p>
       }
       @if (signedIn) {
-        <a routerLink="/review" class="action outline">Go to Review</a>
+        <a i18n routerLink="/review" class="action outline">Go to Review</a>
       } @else {
-        <a routerLink="/" class="action solid">See what Almonium is</a>
+        <a i18n routerLink="/" class="action solid">See what Almonium is</a>
       }
     </section>
   `,

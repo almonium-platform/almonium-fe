@@ -47,12 +47,12 @@ const GREETING_FADE_MS = 180; // matches the .greeting opacity transition
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
+        required: $localize`Value is required`,
+        email: $localize`Invalid email address`,
         minlength: ({requiredLength, actualLength}: {
           requiredLength: number;
           actualLength: number;
-        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+        }) => $localize`Password is too short: ${actualLength}:actualLength:/${requiredLength}:requiredLength: characters`,
       },
     },
   ]
@@ -267,7 +267,7 @@ export class AuthComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         },
         error: (error) => this.alertService
-          .open(getErrorMessage(error, 'Could not check this email address'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`Could not check this email address`), {appearance: 'negative'})
           .subscribe(),
       });
   }
@@ -288,11 +288,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account linked', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Local account linked`, {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to link local account`), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -305,11 +305,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Local account with new email created successfully, please verify it`, {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to link local account'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to link local account`), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -323,12 +323,12 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.alertService
-            .open(response.message || 'Next step, verify your email!', {appearance: 'positive'})
+            .open(response.message || $localize`Next step, verify your email!`, {appearance: 'positive'})
             .subscribe();
           this.changeIdentifiedEmail();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Registration failed'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Registration failed`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -345,7 +345,7 @@ export class AuthComponent implements OnInit, OnDestroy {
             this.popupTemplateStateService.close();
           },
           error: (error) => {
-            this.alertService.open(getErrorMessage(error, 'Identity verification failed'), {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, $localize`Identity verification failed`), {appearance: 'negative'}).subscribe();
           },
         });
       return;
@@ -359,11 +359,11 @@ export class AuthComponent implements OnInit, OnDestroy {
             void this.router.navigateByUrl(this.returnPath.peek() ?? '/home').then();
             this.popupTemplateStateService.close();
           } else {
-            this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'negative'}).subscribe();
+            this.alertService.open($localize`Login successful, but failed to retrieve user data.`, {appearance: 'negative'}).subscribe();
           }
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Login failed'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Login failed`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -375,16 +375,16 @@ export class AuthComponent implements OnInit, OnDestroy {
   protected onForgotPassword() {
     const emailValue = this.authForm.controls.emailValue.value ?? '';
     if (!emailValue) {
-      this.alertService.open('Please enter your email address', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Please enter your email address`, {appearance: 'negative'}).subscribe();
       return;
     }
     this.authService.forgotPassword(emailValue).subscribe({
       next: (response) => {
-        this.alertService.open(response.message || 'Password reset link sent!', {appearance: 'positive'}).subscribe();
+        this.alertService.open(response.message || $localize`Password reset link sent!`, {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
         this.alertService
-          .open(getErrorMessage(error, 'Failed to send password reset link'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`Failed to send password reset link`), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -417,20 +417,20 @@ export class AuthComponent implements OnInit, OnDestroy {
           }
         },
         error: error => this.alertService
-          .open(getErrorMessage(error, `${provider === 'apple' ? 'Apple' : 'Google'} authentication failed`), {appearance: 'negative'})
+          .open(getErrorMessage(error, provider === 'apple' ? $localize`Apple authentication failed` : $localize`Google authentication failed`), {appearance: 'negative'})
           .subscribe(),
       });
   };
 
   get actionBtnText(): string {
     if (this.mode === 'linkLocal' || this.mode === 'changeEmail') {
-      return 'Link Account';
+      return $localize`Link Account`;
     } else if (this.mode === 'default' && !this.emailIdentified) {
-      return 'Continue';
+      return $localize`Continue`;
     } else if (this.isSignUp) {
-      return 'Create account';
+      return $localize`Create account`;
     } else {
-      return 'Sign In';
+      return $localize`Sign In`;
     }
   }
 

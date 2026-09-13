@@ -6,7 +6,7 @@
         @if (mode === 'default') {
           <div class="logo-div">
             <span class="logo-emblem" aria-hidden="true"></span>
-            <img class="wordmark wordmark-light" src="/assets/img/titles/title-purple.svg" alt="Almonium" />
+            <img class="wordmark wordmark-light" src="/assets/img/titles/title-purple.svg" [alt]="'Almonium'" />
             <img class="wordmark wordmark-dark" src="/email/wordmark-white.png" alt="" aria-hidden="true" />
           </div>
         }
@@ -22,14 +22,14 @@
           @if (mode === 'default') {
             @if (!emailIdentified) {
               <div class="auth-field">
-                <label for="auth-email">Email address</label>
-                <tui-textfield tuiTextfieldSize="l" data-size="l">
+                <label i18n for="auth-email">Email address</label>
+                <tui-textfield [tuiTextfieldSize]="'l'" [attr.data-size]="'l'">
                   <input
                     id="auth-email"
                     tuiInput
                     formControlName="emailValue"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="you@example.com" i18n-placeholder
                     maxlength="320"
                     autocomplete="email"
                   />
@@ -40,23 +40,23 @@
               <button class="identified-email" type="button" (click)="changeIdentifiedEmail()">
                 <tui-icon icon="@tui.chevron-left" />
                 <span>{{ authForm.controls.emailValue.value }}</span>
-                <strong>Change</strong>
+                <strong i18n>Change</strong>
               </button>
 
               <div class="auth-field">
                 <div class="password-label">
-                  <label for="auth-password">Password</label>
+                  <label i18n for="auth-password">Password</label>
                   @if (accountExists) {
-                    <a tuiLink (keydown.enter)="onForgotPassword()" tabindex="0" (click)="onForgotPassword()">Forgot?</a>
+                    <a i18n tuiLink (keydown.enter)="onForgotPassword()" tabindex="0" (click)="onForgotPassword()">Forgot?</a>
                   }
                 </div>
-                <tui-textfield tuiTextfieldSize="l" data-size="l">
+                <tui-textfield [tuiTextfieldSize]="'l'" [attr.data-size]="'l'">
                   <input
                     id="auth-password"
                     tuiInput
                     formControlName="passwordValue"
                     type="password"
-                    placeholder="Password"
+                    placeholder="Password" i18n-placeholder
                     maxlength="64"
                     [autocomplete]="accountExists ? 'current-password' : 'new-password'"
                   />
@@ -64,7 +64,7 @@
                 </tui-textfield>
                 <tui-error formControlName="passwordValue"></tui-error>
                 @if (!accountExists) {
-                  <p class="password-rule">Use at least {{ minimumPasswordLength }} characters.</p>
+                  <p i18n class="password-rule">Use at least {{ minimumPasswordLength }} characters.</p>
                 }
               </div>
             }
@@ -76,7 +76,7 @@
             ></app-button>
 
             @if (!emailIdentified) {
-              <div class="separator"><b>OR</b></div>
+              <div class="separator"><b i18n>OR</b></div>
               <div class="social-buttons">
                 @for (provider of providers.slice(0, 2); track provider) {
                   <app-provider-icon
@@ -89,7 +89,7 @@
               </div>
             }
 
-            <p class="auth-legal">
+            <p i18n class="auth-legal">
               By continuing you agree to the
               <a [routerLink]="termsOfUseUrl" target="_blank">Terms</a>
               and
@@ -111,18 +111,18 @@
           @if (mode !== 'default' && this.showSeparatorAndForm) {
             <div>
               @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
-                <div class="separator"><b>OR</b></div>
+                <div class="separator"><b i18n>OR</b></div>
               }
               <div class="row-1">
                 <tui-textfield
-                  tuiTextfieldSize="l"
-                  data-size="l"
+                  [tuiTextfieldSize]="'l'"
+                  [attr.data-size]="'l'"
                 >
                   <input
                     tuiInput
                     formControlName="emailValue"
                     type="email"
-                    placeholder="Email"
+                    placeholder="Email" i18n-placeholder
                     [readOnly]="this.mode === 'linkLocal'"
                     maxlength="320"
                   />
@@ -133,14 +133,14 @@
                    [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
               >
                 <tui-textfield
-                  tuiTextfieldSize="l"
-                  data-size="l"
+                  [tuiTextfieldSize]="'l'"
+                  [attr.data-size]="'l'"
                 >
                   <input
                     tuiInput
                     formControlName="passwordValue"
                     type="password"
-                    placeholder="Password"
+                    placeholder="Password" i18n-placeholder
                     maxlength="64"
                   />
                   <tui-icon tuiPassword/>

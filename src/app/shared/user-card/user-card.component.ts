@@ -38,7 +38,7 @@ export class UserCardComponent implements OnInit {
     this.username = this.route.snapshot.paramMap.get('username');
 
     if (!this.username) {
-      this.alertService.open('No userId provided', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`No userId provided`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -48,7 +48,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, "Couldn't get profile"), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't get profile`), {appearance: 'negative'}).subscribe();
         },
       });
     } else {
@@ -57,7 +57,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, "Couldn't get profile"), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't get profile`), {appearance: 'negative'}).subscribe();
         },
       });
     }

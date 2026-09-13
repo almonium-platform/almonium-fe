@@ -8,7 +8,7 @@ import {LucideAngularModule} from "lucide-angular";
     <lucide-icon
       name="info"
       class="info-btn"
-      tuiHintAppearance="dark"
+      [tuiHintAppearance]="'dark'"
       tuiHintDirection="top"
       [size]=size
       [strokeWidth]="strokeWidth"

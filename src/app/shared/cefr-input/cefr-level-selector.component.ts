@@ -19,14 +19,14 @@ import {TuiChevron} from '@taiga-ui/kit/directives';
   template: `
     <tui-textfield
       tuiChevron
-      tuiTextfieldSize="m"
+      [tuiTextfieldSize]="'m'"
       [tuiTextfieldCleaner]="false"
       class="cefr-select"
     >
       <input
         tuiSelect
         [formControl]="control"
-        placeholder="Select level"
+        placeholder="Select level" i18n-placeholder
       />
 
       <tui-data-list-wrapper

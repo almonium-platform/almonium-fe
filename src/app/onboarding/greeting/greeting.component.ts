@@ -32,14 +32,15 @@ export class GreetingComponent implements OnInit, OnDestroy {
 
   protected get setupSummary(): string {
     const learner = this.userInfo?.learners[0];
-    const language = learner ? this.languageNameService.getLanguageName(learner.language) : 'Your language';
+    const language = learner ? this.languageNameService.getLanguageName(learner.language) : $localize`Your language`;
     const level = learner?.selfReportedLevel ?? 'B1';
     const parts = [language, level];
     const interestCount = this.userInfo?.interests.length ?? 0;
     if (interestCount > 0) {
-      parts.push(`${interestCount} ${interestCount === 1 ? 'interest' : 'interests'}`);
+      parts.push(interestCount === 1 ? $localize`1 interest` : $localize`${interestCount}:count: interests`);
     }
-    return `${parts.join(', ')}. Almo has it noted; change any of it later.`;
+    const summary = parts.join(', ');
+    return $localize`${summary}:summary:. Almo has it noted; change any of it later.`;
   }
 
   ngOnInit(): void {
@@ -63,7 +64,7 @@ export class GreetingComponent implements OnInit, OnDestroy {
         },
         error: error => {
           logger.error('Failed to finish onboarding', error);
-          this.alertService.open('Failed to finish onboarding', {appearance: 'negative'}).subscribe();
+          this.alertService.open($localize`Failed to finish onboarding`, {appearance: 'negative'}).subscribe();
         },
       });
   }

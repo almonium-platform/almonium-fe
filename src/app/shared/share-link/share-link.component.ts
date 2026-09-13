@@ -23,7 +23,7 @@ export class ShareLinkComponent implements OnInit {
   protected copy(): void {
     navigator.clipboard.writeText(this.link).then(
       () => {
-        this.fieldTextValue = 'Copied!';
+        this.fieldTextValue = $localize`Copied!`;
         this.showCopied = true;
         setTimeout(() => {
           this.fieldTextValue = this.link;
@@ -34,6 +34,10 @@ export class ShareLinkComponent implements OnInit {
         logger.error('Failed to copy: ', err);
       }
     );
+  }
+
+  protected get copyActionLabel(): string {
+    return this.showCopied ? $localize`Profile link copied` : $localize`Copy profile link`;
   }
 
   get fieldText(): string {

@@ -11,7 +11,7 @@
             [coverUrl]="book.coverUrl"
           ></app-book-cover>
         } @else {
-          <img [tuiSkeleton]="true" alt="book cover image" src=""/>
+          <img [tuiSkeleton]="true" alt="book cover image" i18n-alt src=""/>
         }
       </div>
     </a>
@@ -62,12 +62,12 @@
               <p class="inner-text">{{ book.cefrLevel }}</p>
             </label>
             •
-            <p class="pages">{{ pages }} pages</p>
+            <p i18n class="pages">{pages, plural, =1 {1 page} other {{{pages}} pages}}</p>
             •
-            <p class="pages">Published in {{ book.publicationYear }}</p>
+            <p i18n class="pages">Published in {{ book.publicationYear }}</p>
             @if (book.isTranslation && originalLanguage) {
               •
-              <p class="pages">Translated by <em>{{ book.translator }}</em></p>
+              <p i18n class="pages">Translated by <em>{{ book.translator }}</em></p>
             }
           </div>
         </div>
@@ -80,7 +80,7 @@
 
         @if (book.isTranslation) {
           <div class="block">
-            <p class="label">
+            <p i18n class="label">
               Read in parallel with original
 
             </p>
@@ -99,13 +99,11 @@
         }
 
         <div class="block">
-          <p class="label">
-            @if (book.isTranslation) {
-              Also translated to
-            } @else {
-              Parallel translations
-            }
-          </p>
+          @if (book.isTranslation) {
+            <p i18n class="label">Also translated to</p>
+          } @else {
+            <p i18n class="label">Parallel translations</p>
+          }
           <div class="translation">
             @if (!book.isTranslation) {
               <app-parallel-translation></app-parallel-translation>
@@ -122,18 +120,18 @@
               <span tuiChip
                 class="edit-chip edit-chip--no-hover"
                 appearance="outline"
-                tuiHintAppearance="dark"
+                [tuiHintAppearance]="'dark'"
                 tuiHintDirection="bottom"
                 [tuiHint]="orderTooltip"
                 [tuiSkeleton]="withdrawing === ordered.code"
               >
                 <ng-template #orderTooltip>
-                  <div>
+                  <div i18n>
                     Your AI translation request is queued. We will notify you when it is available.
                   </div>
                 </ng-template>
                 {{ ordered.name }}
-                <p class="inner-text">REQUESTED</p>
+                <p i18n class="inner-text">REQUESTED</p>
                 <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder(ordered.code)"></lucide-icon>
               </span>
             }
@@ -141,14 +139,14 @@
               @if (showLangDropdown) {
                 <tui-textfield
                   tuiChevron
-                  tuiTextfieldSize="s"
+                  [tuiTextfieldSize]="'s'"
                   class="language-select"
                   (clickOutside)="onClickOutsideLanguageDropdown()"
                 >
                   <input
                     tuiSelect
                     [formControl]="languageSelectControl"
-                    placeholder="Language.."
+                    placeholder="Language.." i18n-placeholder
                   />
 
                   <tui-data-list-wrapper
@@ -158,7 +156,7 @@
                   />
                 </tui-textfield>
               } @else {
-                <span tuiChip
+                <span i18n tuiChip
                   class="edit-chip"
                   appearance="outline"
                   (keydown.enter)="openLanguageDropdown()" tabindex="0" (click)="openLanguageDropdown()"

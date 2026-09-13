@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected loading = true;
   protected loadError = false;
   protected reviewDueCount = 0;
-  protected readonly today = new Intl.DateTimeFormat(undefined, {
+  protected readonly today = new Intl.DateTimeFormat($localize.locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -135,8 +135,8 @@ export class HomeComponent implements OnInit, OnDestroy {
    */
   protected get planName(): string {
     const subscription = this.userInfo?.subscription;
-    if (!this.userInfo?.premium) return 'Free';
-    if (!subscription?.describesMembership()) return 'Premium';
+    if (!this.userInfo?.premium) return $localize`Free`;
+    if (!subscription?.describesMembership()) return $localize`Premium`;
     return subscription.name.charAt(0).toUpperCase() + subscription.name.slice(1).toLowerCase();
   }
 
@@ -145,14 +145,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   protected translation(card: CardDto): string {
-    return card.translations[0]?.translation ?? 'Translation not added yet';
+    return card.translations[0]?.translation ?? $localize`Translation not added yet`;
   }
 
   protected cardMeta(card: CardDto): string {
     const details: string[] = [];
     if (card.tags?.[0]?.text) details.push(card.tags[0].text);
-    if (card.iteration) details.push(`reviewed ${card.iteration} ${card.iteration === 1 ? 'time' : 'times'}`);
-    return details.join(' · ') || 'saved vocabulary';
+    if (card.iteration) details.push(card.iteration === 1 ? $localize`reviewed 1 time` : $localize`reviewed ${card.iteration}:count: times`);
+    return details.join(' · ') || $localize`saved vocabulary`;
   }
 
   protected example(card: CardDto): string | null {
@@ -161,8 +161,16 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   protected progressLabel(book: Book): string {
     const progress = book.progressPercentage ?? 0;
-    if (progress >= 90) return 'Almost finished';
-    if (progress >= 50) return 'Well underway';
-    return 'Your place is saved';
+    if (progress >= 90) return $localize`Almost finished`;
+    if (progress >= 50) return $localize`Well underway`;
+    return $localize`Your place is saved`;
+  }
+
+  protected bookAriaLabel(book: Book): string {
+    return $localize`${book.title}:title: by ${book.author}:author:`;
+  }
+
+  protected progressAriaLabel(book: Book): string {
+    return $localize`Reading progress for ${book.title}:title:`;
   }
 }

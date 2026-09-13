@@ -44,12 +44,12 @@ import {LOGOUT_REASON_ACCOUNT_DELETED} from "../../../authentication/logout/logo
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
+        required: $localize`Value is required`,
+        email: $localize`Invalid email address`,
         minlength: ({requiredLength, actualLength}: {
           requiredLength: number;
           actualLength: number;
-        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+        }) => $localize`Password is too short: ${actualLength}:actualLength:/${requiredLength}:requiredLength: characters`,
       },
     },
   ],
@@ -113,6 +113,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
   protected useCountdown = false;
+  /** The word typed to confirm deletion; the modal compares against this same value. */
+  protected readonly deleteConfirmationWord = $localize`DELETE`;
+  protected readonly emailTokenModalTitle = $localize`Verification Requests`;
+  protected readonly emailTokenResendText = $localize`Resend email`;
+  protected readonly emailTokenCancelText = $localize`Cancel request`;
 
 
   private readonly loadingSubjectEmail$ = new BehaviorSubject<boolean>(false);
@@ -143,7 +148,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         this.urlService.clearUrl();
       } else {
         if (params.get('intent') === 'link') {
-          this.alertService.open('Account successfully linked!', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Account successfully linked!`, {appearance: 'positive'}).subscribe();
           this.urlService.clearUrl();
         }
         if (params.get('intent') === 'reauth') {
@@ -161,7 +166,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         logger.error(error);
-        this.alertService.open(getErrorMessage(error, 'Failed to get auth methods'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to get auth methods`), {appearance: 'negative'}).subscribe();
       },
       complete: () => onComplete?.(),
     });
@@ -201,16 +206,16 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private prepareConfirmModalForDeletion() {
-    this.modalTitle = 'Delete account';
-    this.modalMessage = 'This permanently deletes your account and all of its data.';
-    this.modalConfirmText = 'Delete account';
+    this.modalTitle = $localize`Delete account`;
+    this.modalMessage = $localize`This permanently deletes your account and all of its data.`;
+    this.modalConfirmText = $localize`Delete account`;
     this.modalAction = this.confirmDeletion.bind(this);
     this.useCountdown = true;
     this.isConfirmModalVisible = true;
   }
 
   private confirmDeletion() {
-    this.recentAuthGuardService.guardAction(this.deleteAccount.bind(this), !this.authService.currentUser(), 'Delete account');
+    this.recentAuthGuardService.guardAction(this.deleteAccount.bind(this), !this.authService.currentUser(), $localize`Delete account`);
   }
 
   private deleteAccount() {
@@ -223,7 +228,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(getErrorMessage(error, 'Failed to delete account'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`Failed to delete account`), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -247,7 +252,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected getProviderDetail(provider: string): string {
     const method = this.getAuthMethod(provider);
     if (!method) {
-      return 'Not connected';
+      return $localize`Not connected`;
     }
 
     return method.email;
@@ -255,8 +260,8 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   protected getPasswordDetail(): string {
     return this.isProviderLinked('local')
-      ? 'Set'
-      : 'Not set — adds a way back in if a connected account is lost';
+      ? $localize`Set`
+      : $localize`Not set — adds a way back in if a connected account is lost`;
   }
 
   protected handleProviderWrapped = (provider: string) => () => {
@@ -286,20 +291,20 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         : this.authService.googleSignIn('link');
       signIn.subscribe({
         next: () => {
-          this.alertService.open(`${provider === 'apple' ? 'Apple' : 'Google'} account linked!`, {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`${provider === 'apple' ? 'Apple' : 'Google'}:provider: account linked!`, {appearance: 'positive'}).subscribe();
           this.populateAuthMethods();
         },
         error: error => this.alertService
-          .open(getErrorMessage(error, `Failed to link ${provider === 'apple' ? 'Apple' : 'Google'}`), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`Failed to link ${provider === 'apple' ? 'Apple' : 'Google'}:provider:`), {appearance: 'negative'})
           .subscribe(),
       });
     }
   }
 
   private prepareUnlinkConfirmationModal(provider: string) {
-    this.modalTitle = 'Disconnect account';
-    this.modalMessage = `Are you sure you want to disconnect your ${this.getFormattedProvider(provider)} account?`;
-    this.modalConfirmText = 'Disconnect';
+    this.modalTitle = $localize`Disconnect account`;
+    this.modalMessage = $localize`Are you sure you want to disconnect your ${this.getFormattedProvider(provider)}:provider: account?`;
+    this.modalConfirmText = $localize`Disconnect`;
     this.modalAction = () => this.unlinkAuthMethod(provider);
     this.useCountdown = false;
     this.isConfirmModalVisible = true;
@@ -314,10 +319,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
-        this.alertService.open(`${this.getFormattedProvider(provider)} account disconnected`, {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`${this.getFormattedProvider(provider)}:provider: account disconnected`, {appearance: 'positive'}).subscribe();
         this.authMethods = this.authMethods.filter(method => method.provider.toLowerCase() !== provider.toLowerCase());
         if (reauthRequired) {
-          this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {appearance: 'info'}).subscribe();
+          this.alertService.open($localize`Since you used this account to sign in, you will be logged out in 2 seconds.`, {appearance: 'info'}).subscribe();
           setTimeout(() => {
             this.userInfoService.clearUserInfo();
             this.authService.logoutPublic().subscribe();
@@ -326,7 +331,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to unlink account'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to unlink account`), {appearance: 'negative'}).subscribe();
       },
     });
   }
@@ -364,9 +369,9 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   // PENDING EMAIL CHANGE REQUEST
   protected getEmailTokenMessage() {
-    return `
-      Your email <strong>${this.tokenInfo?.email}</strong> is pending verification.
-      Request will expire in <strong>${this.countMinutesLeft()}</strong> minutes.
+    return $localize`
+      Your email <strong>${this.tokenInfo?.email}:email:</strong> is pending verification.
+      Request will expire in <strong>${this.countMinutesLeft()}:minutes:</strong> minutes.
       `;
   }
 
@@ -398,7 +403,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         };
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to get last token'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to get last token`), {appearance: 'negative'}).subscribe();
         logger.error('Error getting last token:', error);
       },
     });
@@ -408,6 +413,13 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     return !!this.tokenInfo;
   }
 
+  protected get emailStatusLabel(): string {
+    if (this.emailVerified) {
+      return $localize`Verified`;
+    }
+    return this.hasPendingEmailVerificationRequest() ? $localize`Verification pending` : $localize`Not verified`;
+  }
+
   protected cancelEmailChangeRequest() {
     this.checkAuth(this.cancelEmailChangeRequestAfterAuth.bind(this));
   }
@@ -415,11 +427,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private cancelEmailChangeRequestAfterAuth() {
     this.settingService.cancelEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email verification request cancelled!', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`Email verification request cancelled!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to cancel email verification request'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to cancel email verification request`), {appearance: 'negative'}).subscribe();
         logger.error('Error cancelling email verification request:', error);
       },
     });
@@ -432,11 +444,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private resendEmailChangeRequestAfterAuth() {
     this.settingService.resendEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email verification request resent!', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`Email verification request resent!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to resend email verification request'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to resend email verification request`), {appearance: 'negative'}).subscribe();
         logger.error('Error resending email verification request:', error);
       },
     });
@@ -463,7 +475,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.passwordForm.valid) {
-      this.alertService.open('Please enter a valid password', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Please enter a valid password`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -473,11 +485,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected requestEmailVerification() {
     this.settingService.requestEmailVerification().subscribe({
       next: () => {
-        this.alertService.open('Verification email sent!', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`Verification email sent!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to send verification email'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to send verification email`), {appearance: 'negative'}).subscribe();
       },
     });
   }
@@ -537,12 +549,12 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.emailForm.valid) {
-      this.alertService.open('Please enter a valid email address', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Please enter a valid email address`, {appearance: 'negative'}).subscribe();
       return;
     }
 
     if (this.emailChanged()) {
-      this.alertService.open('No changes detected in the email address', {appearance: 'info'}).subscribe();
+      this.alertService.open($localize`No changes detected in the email address`, {appearance: 'info'}).subscribe();
       return;
     }
 
@@ -564,11 +576,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubjectPassword$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Password successfully changed!', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Password successfully changed!`, {appearance: 'positive'}).subscribe();
           this.restorePasswordField();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to change password'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to change password`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -581,14 +593,14 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (isAvailable) => {
           if (!isAvailable) {
-            this.alertService.open('Email is already in use', {appearance: 'negative'}).subscribe();
+            this.alertService.open($localize`Email is already in use`, {appearance: 'negative'}).subscribe();
             return;
           }
 
           this.sendEmailChangeRequest();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to check email availability'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to check email availability`), {appearance: 'negative'}).subscribe();
           logger.error('Error checking email availability:', error);
         },
       });
@@ -597,13 +609,13 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private sendEmailChangeRequest() {
     this.settingService.requestEmailChange(this.getEmailFieldValue()).subscribe({
       next: () => {
-        this.alertService.open('Email change request sent!', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`Email change request sent!`, {appearance: 'positive'}).subscribe();
         this.restoreEmailField();
         this.populateAuthMethods();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to send email change request'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to send email change request`), {appearance: 'negative'}).subscribe();
         logger.error('Error sending email change request:', error);
       }
     });

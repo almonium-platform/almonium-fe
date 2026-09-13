@@ -1,7 +1,7 @@
 <section>
   @if (loading) {
     @for (item of skeletonItems; track $index) {
-      <span tuiChip size="s" tuiSkeleton class="interest-skeleton">Loading topic</span>
+      <span i18n tuiChip size="s" tuiSkeleton class="interest-skeleton">Loading topic</span>
     }
   }
   @for (interest of interests; track interest) {

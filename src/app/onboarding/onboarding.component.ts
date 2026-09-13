@@ -95,8 +95,15 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.goToStep(this.steps.indexOf(step));
   }
 
+  private readonly progressStepLabels: Partial<Record<SetupStep, string>> = {
+    [SetupStep.LANGUAGES]: $localize`Languages`,
+    [SetupStep.LEVEL]: $localize`Level`,
+    [SetupStep.INTERESTS]: $localize`Interests`,
+    [SetupStep.PROFILE]: $localize`Profile`,
+  };
+
   protected progressStepLabel(step: SetupStep): string {
-    return step.charAt(0) + step.slice(1).toLowerCase();
+    return this.progressStepLabels[step] ?? step.charAt(0) + step.slice(1).toLowerCase();
   }
 
   protected progressStepNumber(step: SetupStep): number {

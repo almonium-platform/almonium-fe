@@ -54,7 +54,7 @@ export class InterestsSetupComponent implements OnInit {
         },
         error: (error) => {
           logger.error('Failed to save interests', error);
-          this.alertService.open('Failed to save interests', {appearance: 'negative'}).subscribe();
+          this.alertService.open($localize`Failed to save interests`, {appearance: 'negative'}).subscribe();
         }
       });
   }

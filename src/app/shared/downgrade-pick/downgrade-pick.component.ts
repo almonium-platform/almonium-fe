@@ -81,16 +81,17 @@ export class DowngradePickComponent implements OnInit, OnDestroy {
 
   /** "last read yesterday" beats a date here: the sheet is asking which language is still alive for you. */
   protected lastRead(choice: LanguageChoice): string {
-    if (!choice.lastReadOn) return 'not read yet';
+    if (!choice.lastReadOn) return $localize`not read yet`;
     const days = Math.floor((Date.now() - choice.lastReadOn.getTime()) / 86_400_000);
-    if (days <= 0) return 'last read today';
-    if (days === 1) return 'last read yesterday';
-    if (days < 7) return `last read ${days} days ago`;
+    if (days <= 0) return $localize`last read today`;
+    if (days === 1) return $localize`last read yesterday`;
+    if (days < 7) return $localize`last read ${days}:days: days ago`;
     if (days < 35) {
       const weeks = Math.round(days / 7);
-      return `last read ${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
+      return weeks === 1 ? $localize`last read 1 week ago` : $localize`last read ${weeks}:weeks: weeks ago`;
     }
-    return `last read in ${choice.lastReadOn.toLocaleDateString(undefined, {month: 'long'})}`;
+    const month = choice.lastReadOn.toLocaleDateString($localize.locale, {month: 'long'});
+    return $localize`last read in ${month}:month:`;
   }
 
   protected select(language: LanguageCode): void {

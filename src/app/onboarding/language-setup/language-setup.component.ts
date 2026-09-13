@@ -122,7 +122,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   filteredTargetLanguages$: Observable<string[][]>;
 
   // Grouped items for multi-select
-  labels: string[] = ['Languages with Extra Features', 'Other Languages'];
+  labels: string[] = [$localize`Languages with Extra Features`, $localize`Other Languages`];
 
   // Features for selected target languages
   selectedTargetLanguageFeatures: {
@@ -131,12 +131,12 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   } = {special: [], basic: []};
 
   // Define basic features applicable to all languages
-  basicFeatures: string[] = ['Translation', 'Flashcards', 'Statistics', 'Standard Games',];
+  basicFeatures: string[] = [$localize`Translation`, $localize`Flashcards`, $localize`Statistics`, $localize`Standard Games`,];
 
   // Additional features for specific languages
   languageFeatures: Record<string, string[]> = {
-    EN: ['Lexemes', 'Frequency', 'Prepared Decks', 'Parts of Speech'],
-    DE: ['Lexemes', 'Frequency', 'Prepared Decks'],
+    EN: [$localize`Lexemes`, $localize`Frequency`, $localize`Prepared Decks`, $localize`Parts of Speech`],
+    DE: [$localize`Lexemes`, $localize`Frequency`, $localize`Prepared Decks`],
     // Add more if needed
   };
 
@@ -529,8 +529,8 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
    */
   protected get targetLimitNote(): string {
     return this.targetMaxLanguages === 1
-      ? 'One language to start. Deselect it to pick a different one.'
-      : `That is all ${this.targetMaxLanguages} picks. Deselect one to choose another.`;
+      ? $localize`One language to start. Deselect it to pick a different one.`
+      : $localize`That is all ${this.targetMaxLanguages}:count: picks. Deselect one to choose another.`;
   }
 
   /**
@@ -545,18 +545,26 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     }
     const starting = picked.slice(0, this.activeAllowance);
     const waiting = picked.length - this.activeAllowance;
-    return `${this.joinNames(starting)} ${starting.length === 1 ? 'starts' : 'start'} active. `
-      + `The other ${waiting === 1 ? 'one waits' : waiting + ' wait'} — kept in full, ready whenever you switch or upgrade.`;
+    const names = this.joinNames(starting);
+    const startsActive = starting.length === 1
+      ? $localize`${names}:language: starts active.`
+      : $localize`${names}:languages: start active.`;
+    const othersWait = waiting === 1
+      ? $localize`The other one waits — kept in full, ready whenever you switch or upgrade.`
+      : $localize`The other ${waiting}:count: wait — kept in full, ready whenever you switch or upgrade.`;
+    return `${startsActive} ${othersWait}`;
   }
 
   private joinNames(names: string[]): string {
     if (names.length <= 1) return names[0] ?? '';
-    return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+    const head = names.slice(0, -1).join(', ');
+    const last = names[names.length - 1];
+    return $localize`${head}:head: and ${last}:last:`;
   }
 
   protected submitFirstStepForm(): void {
     if (this.languageForm.invalid || !this.fluentFormValid) {
-      this.alertService.open('Please fill in all required fields', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Please fill in all required fields`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -597,7 +605,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           logger.error('Failed to save selected languages', error);
-          this.alertService.open(getErrorMessage(error, 'Failed to save your language'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to save your language`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -620,11 +628,11 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
         this.popupTemplateStateService.closeImmediately();
         this.userInfoService.updateUserInfo({learners: reconciledLearners});
         this.userInfoService.fetchUserInfoFromServer().subscribe();
-        this.alertService.open('New target language added to your profile!', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`New target language added to your profile!`, {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
         logger.error('Error saving languages:', error);
-        this.alertService.open(getErrorMessage(error, 'Failed to add new target languages'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to add new target languages`), {appearance: 'negative'}).subscribe();
       },
       });
   }
@@ -636,7 +644,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     }
 
     if (this.cefrForm.invalid) {
-      this.alertService.open('Pick a level for every language', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Pick a level for every language`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -679,7 +687,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to save your preferences'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to save your preferences`), {appearance: 'negative'}).subscribe();
           logger.error('Error saving languages:', error);
         },
       });
@@ -762,7 +770,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   }
 
   protected get detectedNativeLanguage(): string {
-    return this.cachedFluentLanguages[0] ?? 'your browser language';
+    return this.cachedFluentLanguages[0] ?? $localize`your browser language`;
   }
 
   protected get usedTargetSlots(): number {
@@ -773,6 +781,10 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
     const code = this.languageNameService.mapLanguageNameToCode(this.supportedLanguages, languageName);
     return (code ? this.languageColours[code] : undefined)
       ?? LANGUAGE_COLOURS[(this.existingTargetLanguageCount + index) % LANGUAGE_COLOURS.length].hex;
+  }
+
+  protected levelLabelFor(language: string): string {
+    return $localize`Level for ${language}:language:`;
   }
 
   protected isTargetSelected(name: string): boolean {
@@ -792,7 +804,7 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
 
   protected featuresFor(language: Language): string {
     const specialFeatures = this.languageFeatures[language.code];
-    return specialFeatures?.length ? specialFeatures.join(' · ') : 'Core features';
+    return specialFeatures?.length ? specialFeatures.join(' · ') : $localize`Core features`;
   }
 
   protected hasSpecialFeatures(language: Language): boolean {
@@ -802,12 +814,15 @@ export class LanguageSetupComponent implements OnInit, OnDestroy {
   protected selectedLanguageExplanation(): string {
     const selectedLanguage = this.visibleTargetLanguages.find(language => this.isTargetSelected(language.name));
     if (!selectedLanguage) {
-      return 'Choose a language to see what it adds to your reading tools.';
+      return $localize`Choose a language to see what it adds to your reading tools.`;
     }
     const features = this.languageFeatures[selectedLanguage.code];
-    return features?.length
-      ? `${selectedLanguage.name} adds ${features.join(', ').toLowerCase()}.`
-      : `${selectedLanguage.name} includes all the core reading tools.`;
+    const language = selectedLanguage.name;
+    if (!features?.length) {
+      return $localize`${language}:language: includes all the core reading tools.`;
+    }
+    const featureList = features.join(', ').toLowerCase();
+    return $localize`${language}:language: adds ${featureList}:features:.`;
   }
 
   private detectNativeLanguage(languages: Language[]): string[] {

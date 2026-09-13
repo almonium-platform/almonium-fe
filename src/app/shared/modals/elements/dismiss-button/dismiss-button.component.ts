@@ -10,7 +10,7 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
         (click)="onClose()"
         class="close-button"
         [ngClass]="{'outer-close': isOutside, 'inner-close': !isOutside}"
-        aria-label="Close"
+        aria-label="Close" i18n-aria-label
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -28,7 +28,7 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
         </svg>
       </button>
     } @else {
-      <button
+      <button i18n
         tuiButtonX
         type="button"
         (click)="onClose()"

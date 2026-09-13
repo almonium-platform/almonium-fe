@@ -16,7 +16,7 @@
   @if (schematicUrl; as schematic) {
     <img
       class="avatar-schematic"
-      data-testid="avatar-img"
+      [attr.data-testid]="'avatar-img'"
       src="{{ schematic }}"
       alt="{{ initials }}"
       (error)="isError = true"
@@ -24,14 +24,14 @@
   } @else if (showsImage) {
     <img
       class="str-chat__avatar-image"
-      data-testid="avatar-img"
-      fetchpriority="high"
+      [attr.data-testid]="'avatar-img'"
+      [attr.fetchpriority]="'high'"
       src="{{ artUrl }}"
       alt="{{ initials }}"
       (error)="isError = true"
     />
   } @else {
-    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
+    <div [attr.data-testid]="'fallback-img'" class="str-chat__avatar-fallback">
       @if (isSavedMessages) {
         <svg viewBox="0 0 512 512" aria-hidden="true">
           <path d="M170 148a26 26 0 0 1 26-26h120a26 26 0 0 1 26 26v244l-86-64-86 64z"
@@ -59,7 +59,7 @@
     </div>
   }
   <ng-template #fallback>
-    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
+    <div [attr.data-testid]="'fallback-img'" class="str-chat__avatar-fallback">
       {{ initials }}
     </div>
   </ng-template>

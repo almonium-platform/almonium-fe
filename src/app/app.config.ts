@@ -4,6 +4,7 @@ import {
   ApplicationConfig,
   importProvidersFrom,
   isDevMode,
+  LOCALE_ID,
   provideAppInitializer,
   provideZoneChangeDetection
 } from '@angular/core';
@@ -24,21 +25,24 @@ import {csrfInitializer} from "./initializers/csrf-app-initializer";
 import {initializeUser} from "./initializers/user-app-initializer";
 import {SwBypassInterceptor} from "./authentication/auth/sw-bypass-interceptor";
 import {HttpErrorInterceptor} from './shared/http-error.interceptor';
+import {currentUiLocale} from './services/ui-locale';
 
 const MY_CUSTOM_ERRORS = {
-  required: 'Value is required',
+  required: $localize`Value is required`,
   minlength: ({requiredLength, actualLength}: {requiredLength: number; actualLength: number}) =>
-    `Too short: ${actualLength}/${requiredLength} characters`,
+    $localize`Too short: ${actualLength}:actual:/${requiredLength}:required: characters`,
   maxlength: ({requiredLength, actualLength}: {requiredLength: number; actualLength: number}) =>
-    `Too long: ${actualLength}/${requiredLength} characters`,
-  usernameTaken: 'Username is already taken',
-  serverError: 'Server error',
-  unchanged: 'No changes',
+    $localize`Too long: ${actualLength}:actual:/${requiredLength}:required: characters`,
+  usernameTaken: $localize`Username is already taken`,
+  serverError: $localize`Server error`,
+  unchanged: $localize`No changes`,
 };
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({eventCoalescing: true}),
+    // Dates and numbers follow the interface language settled in main.ts.
+    {provide: LOCALE_ID, useFactory: () => currentUiLocale().angularLocale},
     importProvidersFrom(TranslateModule.forRoot({defaultLanguage: EN_CODE})),
 
     provideRouter(routes, withInMemoryScrolling({anchorScrolling: 'enabled'})),

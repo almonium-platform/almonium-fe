@@ -10,9 +10,10 @@ export function languageBadgeFill(code: string): string {
   return LANGUAGE_COLOURS[hash % LANGUAGE_COLOURS.length].hex;
 }
 
-const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+const ORDINALS = [$localize`first`, $localize`second`, $localize`third`, $localize`fourth`, $localize`fifth`,
+  $localize`sixth`, $localize`seventh`, $localize`eighth`, $localize`ninth`, $localize`tenth`];
 
 /** "second", "third" - how a new language would number among the viewer's. */
 export function ordinalInWords(position: number): string {
-  return ORDINALS[position - 1] ?? `${position}th`;
+  return ORDINALS[position - 1] ?? $localize`${position}:position:th`;
 }

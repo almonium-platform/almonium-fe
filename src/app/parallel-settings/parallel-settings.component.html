@@ -1,7 +1,7 @@
 <ng-template #parallelSettings>
   <div class="popup-container">
     <div class="popup-header">
-      <h1>Parallel Settings</h1>
+      <h1 i18n>Parallel Settings</h1>
     </div>
 
     <div class="content">
@@ -12,16 +12,16 @@
           [(activeItemIndex)]="modeSelectedIndex"
           (activeItemIndexChange)="onModeIndexChange($event)"
         >
-          <button type="button" class="btn-text">Side by side</button>
-          <button type="button" class="btn-text">On demand</button>
-          <button type="button" class="btn-text">Inline</button>
+          <button i18n type="button" class="btn-text">Side by side</button>
+          <button i18n type="button" class="btn-text">On demand</button>
+          <button i18n type="button" class="btn-text">Inline</button>
         </tui-segmented>
 
         <!-- Show image and text based on the selected mode config -->
         <div class="explain-container">
           <img [src]="currentModeConfig.imageSrc" [alt]="currentModeConfig.altText"/>
           <div class="text-container">{{ currentModeConfig.explanation }}</div>
-          <p class="reading-note">Read the original first. Use the translation to check, not to skip.</p>
+          <p i18n class="reading-note">Read the original first. Use the translation to check, not to skip.</p>
         </div>
       </div>
     </div>

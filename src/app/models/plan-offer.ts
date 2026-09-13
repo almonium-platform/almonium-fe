@@ -62,11 +62,11 @@ export class PlanOffer {
   }
 
   get tierLabel(): string {
-    return this.founderOfferAvailable ? 'Founding member' : 'Premium';
+    return this.founderOfferAvailable ? $localize`Founding member` : $localize`Premium`;
   }
 
   get ctaLabel(): string {
-    return this.founderOfferAvailable ? 'Claim your place' : 'Go Premium';
+    return this.founderOfferAvailable ? $localize`Claim your place` : $localize`Go Premium`;
   }
 
   /**
@@ -81,9 +81,10 @@ export class PlanOffer {
   // What a place is worth: how many there are, and the price the offer reverts to without one.
   get founderLimitNote(): string {
     const standard = this.premiumPrice.monthly;
+    const capacity = this.capacity;
     return standard === null
-      ? `${this.capacity} founding memberships.`
-      : `${this.capacity} founding memberships, then $${standard} a month.`;
+      ? $localize`${capacity}:capacity: founding memberships.`
+      : $localize`${capacity}:capacity: founding memberships, then $${standard}:standardPrice: a month.`;
   }
 
   planId(period: BillingPeriod): string {
@@ -130,14 +131,18 @@ export class PlanOffer {
     const monthly = this.priceFor('monthly');
     const yearly = this.priceFor('yearly');
     if (period === 'monthly') {
-      return yearly === null ? [] : [`or $${yearly} a year — that’s ${effectiveMonthlyRate(yearly)} a month`];
+      if (yearly === null) return [];
+      const monthlyRate = effectiveMonthlyRate(yearly);
+      return [$localize`or $${yearly}:yearlyPrice: a year — that’s ${monthlyRate}:monthlyRate: a month`];
     }
     const notes: string[] = [];
     if (yearly !== null) {
-      notes.push(`That’s ${effectiveMonthlyRate(yearly)} a month`);
+      const monthlyRate = effectiveMonthlyRate(yearly);
+      notes.push($localize`That’s ${monthlyRate}:monthlyRate: a month`);
     }
     if (monthly !== null) {
-      notes.push(`or $${monthly * 12} a year, billed monthly at $${monthly}`);
+      const yearAtMonthly = monthly * 12;
+      notes.push($localize`or $${yearAtMonthly}:yearAtMonthly: a year, billed monthly at $${monthly}:monthlyPrice:`);
     }
     return notes;
   }
@@ -153,7 +158,8 @@ export class PlanOffer {
     if (yearly === null || monthly === null) {
       return null;
     }
-    return `$${yearly} a year comes to ${effectiveMonthlyRate(yearly)} a month, instead of $${monthly}.`;
+    const monthlyRate = effectiveMonthlyRate(yearly);
+    return $localize`$${yearly}:yearlyPrice: a year comes to ${monthlyRate}:monthlyRate: a month, instead of $${monthly}:monthlyPrice:.`;
   }
 
   private tierPrice(period: BillingPeriod, founder: boolean): number | null {
@@ -168,7 +174,7 @@ export function effectiveMonthlyRate(yearly: number): string {
 }
 
 export function periodLabel(period: BillingPeriod): string {
-  return period === 'monthly' ? '/ month' : '/ year';
+  return period === 'monthly' ? $localize`/ month` : $localize`/ year`;
 }
 
 // The free tier's saved-item ceiling. The backend has no plan-limit key for it, so the number
@@ -182,11 +188,11 @@ export const FREE_SAVED_ITEMS_LIMIT = 100;
  */
 export function freeTierFeatures(savedItems: number | null): string[] {
   return [
-    'Every book in the library, unlimited reading',
-    'Unlimited word lookups',
+    $localize`Every book in the library, unlimited reading`,
+    $localize`Unlimited word lookups`,
     savedItemsFeature(savedItems),
-    'One target language, unlimited review',
-    'Confusion feedback',
+    $localize`One target language, unlimited review`,
+    $localize`Confusion feedback`,
   ];
 }
 
@@ -200,12 +206,12 @@ export function paidTierFeatures(offer: PlanOffer | null): string[] {
   const imports = offer?.limitFor(PlanLimitKeys.MAX_BOOK_IMPORTS_PER_MONTH, PAID_BOOK_IMPORTS_FALLBACK)
     ?? PAID_BOOK_IMPORTS_FALLBACK;
   return [
-    `Unlimited saved words, and ${languages} languages at once`,
-    'Every book at your level — B1, B2 and C1 editions',
-    'Chat with Almo, who uses the words you’re learning',
-    'Narrated audiobooks',
-    `Import your own books, ${imports} a month`,
-    'Share word packs with friends',
+    $localize`Unlimited saved words, and ${languages}:languages: languages at once`,
+    $localize`Every book at your level — B1, B2 and C1 editions`,
+    $localize`Chat with Almo, who uses the words you’re learning`,
+    $localize`Narrated audiobooks`,
+    $localize`Import your own books, ${imports}:imports: a month`,
+    $localize`Share word packs with friends`,
   ];
 }
 
@@ -213,6 +219,6 @@ export function paidTierFeatures(offer: PlanOffer | null): string[] {
 // account reads the plain ceiling: "0 of 100" is a scold, not information.
 function savedItemsFeature(savedItems: number | null): string {
   return savedItems
-    ? `${savedItems} of ${FREE_SAVED_ITEMS_LIMIT} saved words and phrases`
-    : `${FREE_SAVED_ITEMS_LIMIT} saved words and phrases`;
+    ? $localize`${savedItems}:saved: of ${FREE_SAVED_ITEMS_LIMIT}:limit: saved words and phrases`
+    : $localize`${FREE_SAVED_ITEMS_LIMIT}:limit: saved words and phrases`;
 }

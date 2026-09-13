@@ -1,6 +1,6 @@
 <div class="base-container">
   <main class="record-layout">
-    <a class="back-link" routerLink="/settings/me">‹ Profile</a>
+    <a i18n class="back-link" routerLink="/settings/me">‹ Profile</a>
 
     @if (rhythm; as languageRhythm) {
       <section class="record-card card" aria-labelledby="language-record-title">
@@ -11,7 +11,7 @@
             <p>{{ statusLine }}</p>
           </div>
           @if (setAside) {
-            <button
+            <button i18n
               type="button"
               class="make-active"
               [disabled]="activating || !switchAvailable"
@@ -23,15 +23,15 @@
         <div class="record-numbers">
           <div class="record-number">
             <span class="figure">{{ stats?.wordsKept ?? 0 | number }}</span>
-            <span class="caption">Words you can read</span>
+            <span i18n class="caption">Words you can read</span>
           </div>
           <div class="record-number">
             <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
-            <span class="caption">Books finished</span>
+            <span i18n class="caption">Books finished</span>
           </div>
           <div class="record-number">
             <span class="figure">{{ pace.met }}<span class="of">/{{ pace.counted }}</span></span>
-            <span class="caption">Weeks at pace</span>
+            <span i18n class="caption">Weeks at pace</span>
           </div>
         </div>
 
@@ -41,9 +41,9 @@
 
       <section class="words-card card" aria-labelledby="words-title">
         <header class="words-head">
-          <span class="eyebrow" id="words-title">Your words</span>
-          <span class="due-count">
-            {{ dueCount }} due{{ setAside ? ' when you come back' : '' }}
+          <span i18n class="eyebrow" id="words-title">Your words</span>
+          <span i18n class="due-count">
+            {setAside, select, true {{{ dueCount }} due when you come back} other {{{ dueCount }} due}}
           </span>
         </header>
 
@@ -61,9 +61,9 @@
               </li>
             }
           </ul>
-          <a class="all-words" routerLink="/review">All {{ stats?.wordsKept ?? words.length | number }} words</a>
+          <a i18n class="all-words" routerLink="/review">All {{ stats?.wordsKept ?? words.length | number }} words</a>
         } @else {
-          <p class="words-empty">No words kept in {{ languageName }} yet.</p>
+          <p i18n class="words-empty">No words kept in {{ languageName }} yet.</p>
         }
       </section>
 

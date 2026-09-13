@@ -14,10 +14,10 @@ import {
 export type WeeklyTarget = number | null;
 
 export const TARGET_OPTIONS: {value: number; label: string; note?: string}[] = [
-  {value: 1, label: 'Once a week'},
-  {value: 2, label: 'Twice a week'},
-  {value: 4, label: 'Four times a week'},
-  {value: 0, label: 'No target', note: 'Keep the record, drop the bar'},
+  {value: 1, label: $localize`Once a week`},
+  {value: 2, label: $localize`Twice a week`},
+  {value: 4, label: $localize`Four times a week`},
+  {value: 0, label: $localize`No target`, note: $localize`Keep the record, drop the bar`},
 ];
 
 /** Weeks kept against weeks asked for, fixed at a moment rather than rolling. */
@@ -126,13 +126,18 @@ export function hasTarget(target: WeeklyTarget): target is number {
 }
 
 export function cadenceLabel(target: WeeklyTarget): string {
-  if (target === null) return 'No pace set';
-  return TARGET_OPTIONS.find(option => option.value === target)?.label ?? `${target} times a week`;
+  if (target === null) return $localize`No pace set`;
+  return TARGET_OPTIONS.find(option => option.value === target)?.label ?? $localize`${target}:count: times a week`;
 }
 
 const NUMBER_WORDS = [
-  'No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six',
-  'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve',
+  $localize`:count word|A number of weeks, spelled out:No`, $localize`:count word|A number of weeks, spelled out:One`,
+  $localize`:count word|A number of weeks, spelled out:Two`, $localize`:count word|A number of weeks, spelled out:Three`,
+  $localize`:count word|A number of weeks, spelled out:Four`, $localize`:count word|A number of weeks, spelled out:Five`,
+  $localize`:count word|A number of weeks, spelled out:Six`, $localize`:count word|A number of weeks, spelled out:Seven`,
+  $localize`:count word|A number of weeks, spelled out:Eight`, $localize`:count word|A number of weeks, spelled out:Nine`,
+  $localize`:count word|A number of weeks, spelled out:Ten`, $localize`:count word|A number of weeks, spelled out:Eleven`,
+  $localize`:count word|A number of weeks, spelled out:Twelve`,
 ];
 
 /** The record speaks in words, not figures — it is a sentence about a person, not a readout. */

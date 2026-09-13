@@ -36,14 +36,14 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             <p class="confirm-modal-copy mb-6 -mt-3 text-sm">{{ note }}</p>
           }
           @if (confirmationWord) {
-            <label class="confirm-modal-copy block text-sm mb-5">
+            <label i18n class="confirm-modal-copy block text-sm mb-5">
               Type <strong>{{ confirmationWord }}</strong> to confirm
               <input
                 type="text"
                 class="confirmation-input"
                 [value]="confirmationValue"
                 (input)="confirmationValue = $any($event.target).value"
-                [attr.aria-label]="'Type ' + confirmationWord + ' to confirm'"
+                [attr.aria-label]="confirmationInputLabel"
                 autocomplete="off"
               />
             </label>
@@ -62,7 +62,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
               class="confirm-modal-confirm text-white px-4 py-2 font-bold rounded-3xl disabled:bg-gray-400 disabled:cursor-not-allowed"
               [class.danger]="tone === 'danger'"
             >
-              {{ isButtonDisabled ? 'Proceed in ' + countdown : confirmText }}
+              {{ isButtonDisabled ? proceedInLabel : confirmText }}
             </button>
           </div>
         </div>
@@ -81,7 +81,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   @Input() note = '';
   @Input() confirmText = '';
   /** The way out. It is worth naming what staying means when "Cancel" would sit next to "Cancel subscription". */
-  @Input() cancelText = 'Cancel';
+  @Input() cancelText = $localize`Cancel`;
   @Input() useCountdown = false;
   @Input() confirmationWord = '';
   /**
@@ -133,6 +133,14 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
+  }
+
+  get confirmationInputLabel(): string {
+    return $localize`Type ${this.confirmationWord}:word: to confirm`;
+  }
+
+  get proceedInLabel(): string {
+    return $localize`Proceed in ${this.countdown}:seconds:`;
   }
 
   get isButtonDisabled(): boolean {

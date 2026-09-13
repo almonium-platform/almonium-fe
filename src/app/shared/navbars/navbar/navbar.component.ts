@@ -37,7 +37,7 @@ import {RelationshipAction} from "../../relationship.model";
 const RECENT_LANGUAGES_KEY = 'recent_target_languages';
 const LANGUAGE_CREST_SESSIONS_KEY = 'language_crest_hint_sessions';
 const LANGUAGE_CREST_SESSION_KEY = 'language_crest_hint_seen';
-const REQUEST_ANSWER_FAILED = 'Could not answer the friend request';
+const REQUEST_ANSWER_FAILED = $localize`Could not answer the friend request`;
 
 @Component({
   selector: 'app-navbar',
@@ -161,9 +161,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Before a learning language is known the crest is still on screen, so it gets a label that reads without one
     // rather than one that opens with an empty name.
     const languageName = this.getLanguageName(this.currentLanguage);
-    const subject = languageName ? `${languageName}, current learning language` : 'Current learning language';
-    return this.hasLanguageChoices ? `${subject}. Choose another language` : subject;
+    const subject = languageName
+      ? $localize`${languageName}:language:, current learning language`
+      : $localize`Current learning language`;
+    return this.hasLanguageChoices ? $localize`${subject}:subject:. Choose another language` : subject;
   }
+
+  protected switchToLabel(language: LanguageCode): string {
+    const languageName = this.getLanguageName(language);
+    return $localize`Switch to ${languageName}:language:`;
+  }
+
+  protected senderProfileLabel(notification: Notification): string {
+    const sender = notification.senderUsername ?? $localize`the sender`;
+    return $localize`View profile of ${sender}:sender:`;
+  }
+
+  protected readonly anonymousLearner = $localize`Anonymous Learner`;
+  protected readonly notLoggedIn = $localize`Not logged in`;
 
   protected get shortcutModifier(): string {
     return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
@@ -593,12 +608,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   protected acceptFriendRequest(notification: Notification, event: Event) {
     event.stopPropagation();
-    this.respondToFriendRequest(notification, RelationshipAction.ACCEPT, 'Friend request accepted');
+    this.respondToFriendRequest(notification, RelationshipAction.ACCEPT, $localize`Friend request accepted`);
   }
 
   protected declineFriendRequest(notification: Notification, event: Event) {
     event.stopPropagation();
-    this.respondToFriendRequest(notification, RelationshipAction.REJECT, 'Friend request declined');
+    this.respondToFriendRequest(notification, RelationshipAction.REJECT, $localize`Friend request declined`);
   }
 
   private respondToFriendRequest(notification: Notification, action: RelationshipAction, message: string) {
@@ -626,7 +641,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
               if (ids.has(relationshipId)) {
                 this.alertService.open(getErrorMessage(error, REQUEST_ANSWER_FAILED), {appearance: 'negative'}).subscribe();
               } else {
-                this.alertService.open('That request has already been answered.', {appearance: 'info'}).subscribe();
+                this.alertService.open($localize`That request has already been answered.`, {appearance: 'info'}).subscribe();
               }
             },
             error: () => {
@@ -672,7 +687,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to mark notification as read'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark notification as read`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -708,7 +723,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.unreadNotificationsCount = 0;
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to mark all as read'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark all as read`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -735,7 +750,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to mark as unread'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark as unread`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -752,7 +767,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         dropdown.toggle(false);
       },
       error: (error) => {
-        this.alertService.open(getErrorMessage(error, 'Failed to delete notification'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to delete notification`), {appearance: 'negative'}).subscribe();
       }
     });
   }

@@ -22,7 +22,7 @@
   <main class="learning-layout">
     <section class="known-card card" [class.editing]="fluentEditable">
       <div class="known-copy">
-        <div class="eyebrow">I Know</div>
+        <div i18n class="eyebrow">I Know</div>
 
         @if (fluentEditable) {
           <app-fluent-language-selector
@@ -47,17 +47,17 @@
         @if (loading$ | async) {
           <tui-loader class="action-loader" size="s"></tui-loader>
         }
-        <span [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
-          {{ fluentEditable ? 'Save' : 'Edit' }}
+        <span i18n [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
+          {fluentEditable, select, true {Save} other {Edit}}
         </span>
       </button>
     </section>
 
     <section class="learning-card card">
       <div class="learning-head">
-        <div class="eyebrow">I'm Learning</div>
+        <div i18n class="eyebrow">I'm Learning</div>
         @if (allowance !== null) {
-          <span class="allowance-count">{{ getActiveLearnersCount() }} of {{ allowance }} active</span>
+          <span i18n class="allowance-count">{{ getActiveLearnersCount() }} of {{ allowance }} active</span>
         }
       </div>
 
@@ -74,13 +74,13 @@
                 [class.open]="colourPickerLanguage === learner.language"
                 (click)="toggleColourPicker(learner.language)"
                 [attr.aria-expanded]="colourPickerLanguage === learner.language"
-                [attr.aria-label]="'Choose colour for ' + getLanguageName(learner.language)">
+                [attr.aria-label]="colourTriggerLabel(learner)">
               </button>
 
               <div class="language-copy">
                 <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
                 @if (!learner.active) {
-                  <span class="aside-tag">Set aside</span>
+                  <span i18n class="aside-tag">Set aside</span>
                 }
               </div>
 
@@ -101,7 +101,7 @@
                     [disabled]="!learner.active || updatingLearnerIds.has(learner.id)"
                     aria-haspopup="listbox"
                     [attr.aria-expanded]="levelPickerLearnerId === learner.id"
-                    [attr.aria-label]="'Level for ' + getLanguageName(learner.language) + ': ' + levelSentence(learner.selfReportedLevel)"
+                    [attr.aria-label]="levelTriggerLabel(learner)"
                     (click)="toggleLevelPicker(learner, levelSelect)">
                     {{ learner.selfReportedLevel }}
                   </button>
@@ -111,7 +111,7 @@
                       class="level-list"
                       role="listbox"
                       tabindex="-1"
-                      [attr.aria-label]="'Level for ' + getLanguageName(learner.language)"
+                      [attr.aria-label]="levelListLabel(learner)"
                       (keydown)="onLevelListKeydown($event, levelTrigger)">
                       @for (level of cefrLevelEntries; track level[0]) {
                         <button
@@ -141,7 +141,7 @@
                     [disabled]="activeToggleDisabled(learner)"
                     (ngModelChange)="onToggleActiveStatus($event, learner)"
                     [showIcons]="true"
-                    [attr.aria-label]="(learner.active ? 'Deactivate ' : 'Activate ') + getLanguageName(learner.language)"
+                    [attr.aria-label]="activeToggleLabel(learner)"
                   />
                 </div>
 
@@ -152,14 +152,14 @@
                   <a
                     class="row-action open-record"
                     [routerLink]="['/settings/me/language', learner.language.toLowerCase()]"
-                    [attr.aria-label]="'Open the ' + getLanguageName(learner.language) + ' record'"
+                    [attr.aria-label]="openRecordLabel(learner)"
                   >›</a>
                 } @else if (learners.length > 1) {
                   <button
                     type="button"
                     class="row-action delete-language"
                     (click)="deleteTargetLang(learner)"
-                    [attr.aria-label]="'Delete ' + getLanguageName(learner.language)">
+                    [attr.aria-label]="deleteLanguageLabel(learner)">
                     <tui-icon icon="@tui.trash-2" />
                   </button>
                 } @else {
@@ -173,8 +173,8 @@
             }
 
             @if (colourPickerLanguage === learner.language) {
-              <div class="colour-picker" aria-label="Language colour">
-                <div class="colour-title">Colour</div>
+              <div class="colour-picker" aria-label="Language colour" i18n-aria-label>
+                <div i18n class="colour-title">Colour</div>
                 <div class="colour-grid">
                   @for (colour of languageColours; track colour.hex) {
                     <button
@@ -193,11 +193,11 @@
 
         <div class="add-language-row">
           <span class="empty-colour"></span>
-          <span>Another language</span>
+          <span i18n>Another language</span>
           @if (atLanguageCeiling) {
-            <span class="ceiling-note">{{ languageCeiling }} is all an account can hold</span>
+            <span i18n class="ceiling-note">{{ languageCeiling }} is all an account can hold</span>
           } @else {
-            <button type="button" class="add-language" aria-label="Add another language" (click)="openLangSetupPopup()">
+            <button type="button" class="add-language" aria-label="Add another language" i18n-aria-label (click)="openLangSetupPopup()">
               <tui-icon icon="@tui.plus" />
             </button>
           }
@@ -206,7 +206,7 @@
         @if (atAllowance && !atLanguageCeiling) {
           <p class="allowance-panel">
             {{ allowanceNote }}
-            <button type="button" class="allowance-upgrade" (click)="openPaywall()">See plans</button>
+            <button i18n type="button" class="allowance-upgrade" (click)="openPaywall()">See plans</button>
           </p>
         }
       </div>

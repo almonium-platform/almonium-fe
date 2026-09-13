@@ -4,7 +4,7 @@
 
   @if (showProgressStepper) {
   <div class="stepper-container card">
-    <nav class="setup-progress" aria-label="Profile setup progress">
+    <nav class="setup-progress" aria-label="Profile setup progress" i18n-aria-label>
       @for (step of progressSteps; track step; let last = $last) {
         <button
           type="button"

@@ -3,7 +3,7 @@
 <nav class="navbar">
   <div class="navbar-content">
     <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
-      <app-emblem class="app-emblem" [playOnLoad]="false" [replayTrigger]="logoUnfold" label="Almonium"></app-emblem>
+      <app-emblem class="app-emblem" [playOnLoad]="false" [replayTrigger]="logoUnfold" [label]="'Almonium'"></app-emblem>
     </div>
 
     <div #langDropdown class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
@@ -38,7 +38,7 @@
               <span class="language-code active" [ngStyle]="getLanguageStyles(currentLanguage)">
                 {{ currentLanguage }}
               </span>
-              <span>now studying</span>
+              <span i18n>now studying</span>
             </div>
 
             @if (usesSearchableLanguageMenu) {
@@ -48,20 +48,20 @@
                   #languageSearchInput
                   type="search"
                   autocomplete="off"
-                  placeholder="Type a language or code"
-                  aria-label="Search learning languages"
+                  placeholder="Type a language or code" i18n-placeholder
+                  aria-label="Search learning languages" i18n-aria-label
                   [(ngModel)]="languageSearch"
                   (ngModelChange)="onLanguageSearchChange()">
-                <kbd>{{ shortcutModifier }}L</kbd>
+                <kbd>{{ shortcutModifier + 'L' }}</kbd>
               </label>
 
               @if (!languageSearch) {
-                <div class="language-section-label">Recent</div>
-                <div class="recent-languages" aria-label="Recently used languages">
+                <div i18n class="language-section-label">Recent</div>
+                <div class="recent-languages" aria-label="Recently used languages" i18n-aria-label>
                   @for (lang of recentLanguageOptions; track lang) {
                     <button type="button" class="language-code"
                             [ngStyle]="getLanguageStyles(lang)"
-                            [attr.aria-label]="'Switch to ' + getLanguageName(lang)"
+                            [attr.aria-label]="switchToLabel(lang)"
                             (click)="changeLanguage(lang)">
                       {{ lang }}
                     </button>
@@ -70,10 +70,10 @@
                 <div class="language-divider"></div>
               }
 
-              <div class="language-section-label">All {{ targetLanguages.length }}</div>
+              <div i18n class="language-section-label">All {{ targetLanguages.length }}</div>
             }
 
-            <div class="language-options" role="listbox" aria-label="Learning languages">
+            <div class="language-options" role="listbox" aria-label="Learning languages" i18n-aria-label>
               @for (lang of displayedLanguages; track lang; let i = $index) {
                 <button
                   #dropdownItem
@@ -94,7 +94,7 @@
                   }
                 </button>
               } @empty {
-                <p class="language-empty">No learning languages match “{{ languageSearch }}”.</p>
+                <p i18n class="language-empty">No learning languages match “{{ languageSearch }}”.</p>
               }
             </div>
 
@@ -102,13 +102,13 @@
               <div class="language-divider"></div>
               <button type="button" class="add-language" (click)="openLanguageSettings()">
                 <span aria-hidden="true">+</span>
-                <span>Add a language</span>
+                <span i18n>Add a language</span>
               </button>
             }
 
             <p class="language-shortcut-hint">
-              <span>{{ shortcutModifier }}L opens</span>
-              <span>{{ shortcutModifier }}1–9 switches</span>
+              <span i18n>{{ shortcutModifier }}L opens</span>
+              <span i18n>{{ shortcutModifier }}1–9 switches</span>
             </p>
           </div>
         }
@@ -118,19 +118,19 @@
     <span class="navbar-divider" aria-hidden="true"></span>
 
     @if (!isMobile) {
-      <div class="primary-links" aria-label="App navigation">
+      <div class="primary-links" aria-label="App navigation" i18n-aria-label>
         @if (this.uiPreferences.navbar.discover) {
-          <a
+          <a i18n
             routerLink="/discover"
             class="nav-link ml-8 section"
             [ngClass]="{'active-link': currentRoute === '/discover'}">
             Discover
           </a>
         }
-        <a routerLink="/review" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/review'}">Review</a>
-        <a routerLink="/read" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/read'}">Read</a>
+        <a i18n routerLink="/review" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/review'}">Review</a>
+        <a i18n routerLink="/read" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/read'}">Read</a>
         @if (this.uiPreferences.navbar.play) {
-          <a
+          <a i18n
             routerLink="/play"
             class="nav-link ml-8 section"
             [ngClass]="{'active-link': currentRoute === '/play'}">
@@ -166,7 +166,7 @@
       }
 
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" role="button" aria-label="Open profile menu" [attr.aria-expanded]="isProfilePopoverOpen" (keydown.enter)="toggleProfilePopover()" (keydown.space)="toggleProfilePopover(); $event.preventDefault()" tabindex="0" (click)="toggleProfilePopover()"
+      <div class="user-profile relative" role="button" aria-label="Open profile menu" i18n-aria-label [attr.aria-expanded]="isProfilePopoverOpen" (keydown.enter)="toggleProfilePopover()" (keydown.space)="toggleProfilePopover(); $event.preventDefault()" tabindex="0" (click)="toggleProfilePopover()"
            (clickOutside)="profileOnClickOutside()">
         <app-avatar
           class="profile-circle"
@@ -193,21 +193,21 @@
       <div class="menu-items p-2">
         <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
           <lucide-icon name="home" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-          <span>Home</span>
+          <span i18n>Home</span>
         </a>
 
         @if (uiPreferences.navbar.discover) {
           <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="telescope" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Discover</span>
+            <span i18n>Discover</span>
           </a>
         }
-        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span>Review</span></a>
-        <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span>Read</span></a>
+        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span i18n>Review</span></a>
+        <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span i18n>Read</span></a>
         @if (uiPreferences.navbar.play) {
           <a routerLink="/play" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Play</span>
+            <span i18n>Play</span>
           </a>
         }
       </div>
@@ -221,8 +221,8 @@
     <div class="menu-section">
       <div class="user-details">
         <div class="user-info overflow-hidden flex flex-col gap-0.5">
-          <span class="font-semibold truncate block username">{{ userInfo?.username || 'Anonymous Learner' }}</span>
-          <p class="user-email truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+          <span class="font-semibold truncate block username">{{ userInfo?.username || anonymousLearner }}</span>
+          <p class="user-email truncate block">{{ userInfo?.email || notLoggedIn }}</p>
         </div>
       </div>
       <div class="separator"></div>
@@ -230,16 +230,16 @@
       <div class="menu-items p-2">
         <a routerLink="/settings" class="menu-item flex items-center">
           <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
-          <span>Settings</span>
+          <span i18n>Settings</span>
         </a>
         <a routerLink="/membership" class="menu-item flex items-center">
           <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
-          <span>Membership</span>
+          <span i18n>Membership</span>
         </a>
         <div class="separator"></div>
         <a routerLink="/logout" class="menu-item flex items-center">
           <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
-          <span>Logout</span>
+          <span i18n>Logout</span>
         </a>
       </div>
     </div>
@@ -263,12 +263,12 @@
     @if (notifications.length > 0) {
       <div class="header">
         <div class="title-group">
-          <p class="popover-title">Notifications</p>
+          <p i18n class="popover-title">Notifications</p>
 
         </div>
         @if (unreadNotificationsCount > 0) {
           <app-button appearance="text"
-                      label="Mark all read"
+                      label="Mark all read" i18n-label
                       [fontSize]="13"
                       [fontWeight]="500"
                       (click)="markAllAsRead()"
@@ -284,7 +284,7 @@
       [options]="{scrollbars:{ autoHide: 'leave', autoHideDelay: 0}}">
       <div class="menu-section">
         @if (notifications.length === 0) {
-          <div class="empty-state">
+          <div i18n class="empty-state">
             You have no notifications.
           </div>
         } @else {
@@ -297,7 +297,7 @@
                 (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
                 class="context-menu">
 
-                <button tuiOption
+                <button i18n tuiOption
                         type="button"
                         class="context-button"
                         [disabled]="loadingNotificationAction"
@@ -306,10 +306,10 @@
                   <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
                                [size]="18"
                   ></lucide-icon>
-                  Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
+                  {notification.readAt === null, select, true {Mark as read} other {Mark as unread}}
                 </button>
 
-                <button tuiOption
+                <button i18n tuiOption
                         type="button"
                         class="context-button"
                         [disabled]="loadingNotificationAction"
@@ -334,7 +334,7 @@
                    that spawned it, repeating the row's own actions. The avatar is a link instead. -->
               <button type="button"
                       class="notification-avatar"
-                      [attr.aria-label]="'View profile of ' + (notification.senderUsername ?? 'the sender')"
+                      [attr.aria-label]="senderProfileLabel(notification)"
                       (click)="openSenderProfile(notification)">
                 <app-avatar
                   [avatarUrl]="notification.pictureUrl"
@@ -348,7 +348,7 @@
                   <div class="notification-meta">
                     <time>{{ notification.createdAt | shortRelativeTime }}</time>
                     @if (!notification.readAt) {
-                      <span class="unread-dot" aria-label="Unread"></span>
+                      <span class="unread-dot" aria-label="Unread" i18n-aria-label></span>
                     }
                   </div>
                 </div>
@@ -356,11 +356,11 @@
                      the same list for when the bell has already been cleared. -->
                 @if (isActionableRequest(notification)) {
                   <div class="notification-actions">
-                    <button type="button"
+                    <button i18n type="button"
                             class="request-action accept"
                             [disabled]="requestActionInProgressIds.has(notification.referenceId)"
                             (click)="acceptFriendRequest(notification, $event)">Accept</button>
-                    <button type="button"
+                    <button i18n type="button"
                             class="request-action decline"
                             [disabled]="requestActionInProgressIds.has(notification.referenceId)"
                             (click)="declineFriendRequest(notification, $event)">Decline</button>

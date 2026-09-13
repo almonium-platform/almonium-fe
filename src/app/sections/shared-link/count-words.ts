@@ -1,6 +1,11 @@
-const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
-  'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
-const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+const ONES = [
+  $localize`zero`, $localize`one`, $localize`two`, $localize`three`, $localize`four`, $localize`five`, $localize`six`,
+  $localize`seven`, $localize`eight`, $localize`nine`, $localize`ten`, $localize`eleven`, $localize`twelve`,
+  $localize`thirteen`, $localize`fourteen`, $localize`fifteen`, $localize`sixteen`, $localize`seventeen`,
+  $localize`eighteen`, $localize`nineteen`,
+];
+const TENS = ['', '', $localize`twenty`, $localize`thirty`, $localize`forty`, $localize`fifty`, $localize`sixty`,
+  $localize`seventy`, $localize`eighty`, $localize`ninety`];
 
 /**
  * A count spelled out for prose: "Twenty-four words in German". Numerals stay numerals wherever they label a control
@@ -11,7 +16,7 @@ export function numberInWords(count: number): string {
   if (count < 20) return ONES[count];
   const tens = TENS[Math.floor(count / 10)];
   const ones = count % 10;
-  return ones === 0 ? tens : `${tens}-${ONES[ones]}`;
+  return ones === 0 ? tens : $localize`${tens}:tens:-${ONES[ones]}:ones:`;
 }
 
 export function capitalise(text: string): string {
@@ -20,10 +25,11 @@ export function capitalise(text: string): string {
 
 /** "one word" / "twenty-four words", for sentences. */
 export function wordsInProse(count: number): string {
-  return `${numberInWords(count)} ${count === 1 ? 'word' : 'words'}`;
+  const number = numberInWords(count);
+  return count === 1 ? $localize`${number}:count: word` : $localize`${number}:count: words`;
 }
 
 /** "1 word" / "18 words", for buttons and labels. */
 export function wordsAsLabel(count: number): string {
-  return `${count} ${count === 1 ? 'word' : 'words'}`;
+  return count === 1 ? $localize`${count}:count: word` : $localize`${count}:count: words`;
 }

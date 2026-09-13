@@ -77,7 +77,7 @@ export class ProviderIconComponent {
 
   getProviderLabel(): string {
     return this.provider.toLowerCase() === 'local'
-      ? 'Email'
+      ? $localize`Email`
       : this.provider.charAt(0).toUpperCase() + this.provider.slice(1).toLowerCase();
   }
 

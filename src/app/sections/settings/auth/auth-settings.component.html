@@ -6,16 +6,16 @@
   (closed)="closeConfirmModal()"
   (confirm)="confirmModalAction()"
   [useCountdown]="useCountdown"
-  [confirmationWord]="useCountdown ? 'DELETE' : ''">
+  [confirmationWord]="useCountdown ? deleteConfirmationWord : ''">
 </app-confirm-modal>
 
 <app-action-modal
   [isVisible]="isEmailTokenModalVisible"
-  [title]='"Verification Requests"'
+  [title]="emailTokenModalTitle"
   [titleIcon]='"fa-regular fa-envelope text-xl"'
   [message]="getEmailTokenMessage()"
-  [primaryActionText]="'Resend email'"
-  [secondaryActionText]="'Cancel request'"
+  [primaryActionText]="emailTokenResendText"
+  [secondaryActionText]="emailTokenCancelText"
   (closed)="closeEmailTokenModal()"
   (primaryAction)="resendEmailChangeRequest()"
   (secondaryAction)="cancelEmailChangeRequest()"
@@ -33,13 +33,13 @@
 
   <main class="account-layout">
     <section class="account-card card">
-      <div class="eyebrow">Email</div>
+      <div i18n class="eyebrow">Email</div>
       <div class="email-row">
         <div class="email-content">
           @if (emailEditable) {
             <form [formGroup]="emailForm" class="email-form">
               <tui-textfield #emailField tuiTextfieldSize="m">
-                <input tuiInput formControlName="emailValue" type="email" placeholder="Email" maxlength="320" />
+                <input tuiInput formControlName="emailValue" type="email" placeholder="Email" i18n-placeholder maxlength="320" />
               </tui-textfield>
               <tui-error formControlName="emailValue"></tui-error>
             </form>
@@ -48,33 +48,33 @@
             <button type="button" class="email-status" [class.unverified]="!emailVerified"
               (click)="!emailVerified && hasPendingEmailVerificationRequest() ? onPendingEmailVerificationClick() : null">
               <i [class]="emailVerified ? 'fa-solid fa-check' : 'fa-solid fa-clock'" aria-hidden="true"></i>
-              {{ emailVerified ? 'Verified' : hasPendingEmailVerificationRequest() ? 'Verification pending' : 'Not verified' }}
+              {{ emailStatusLabel }}
             </button>
           }
         </div>
 
         @if (!emailVerified && !hasPendingEmailVerificationRequest() && !emailEditable) {
-          <button type="button" class="settings-action" (click)="requestEmailVerification()">Verify</button>
+          <button i18n type="button" class="settings-action" (click)="requestEmailVerification()">Verify</button>
         } @else if (!hasPendingEmailVerificationRequest()) {
           <button type="button" class="settings-action" [class.committing]="emailEditable"
             [disabled]="!emailConfirmEnabled() || !!(loadingEmail$ | async)" (click)="onEmailEditClick()">
             @if (loadingEmail$ | async) {
               <tui-loader class="action-loader" size="s"></tui-loader>
             }
-            <span [style.visibility]="(loadingEmail$ | async) ? 'hidden' : 'visible'">
-              {{ emailEditable ? 'Save' : 'Change' }}
+            <span i18n [style.visibility]="(loadingEmail$ | async) ? 'hidden' : 'visible'">
+              {emailEditable, select, true {Save} other {Change}}
             </span>
           </button>
         }
       </div>
       <!-- Outside the row: inside it the note grows the flex box and drags Save off the field's centreline. -->
       @if (emailUnchanged()) {
-        <p class="field-note row-note">Enter a different address to save.</p>
+        <p i18n class="field-note row-note">Enter a different address to save.</p>
       }
     </section>
 
     <section class="account-card card">
-      <div class="eyebrow">How you sign in</div>
+      <div i18n class="eyebrow">How you sign in</div>
       <div class="method-list">
         @for (provider of ['google', 'apple']; track provider) {
           <div class="method-row">
@@ -83,12 +83,12 @@
               <strong>{{ provider === 'google' ? 'Google' : 'Apple' }}</strong>
               <span>{{ getProviderDetail(provider) }}</span>
               @if (isLastLinkedProvider(provider)) {
-                <span class="field-note">Your only sign-in method. Add another before disconnecting it.</span>
+                <span i18n class="field-note">Your only sign-in method. Add another before disconnecting it.</span>
               }
             </div>
-            <button type="button" class="settings-action" [disabled]="isLastLinkedProvider(provider)"
+            <button i18n type="button" class="settings-action" [disabled]="isLastLinkedProvider(provider)"
               (click)="handleProviderWrapped(provider)()">
-              {{ isProviderLinked(provider) ? 'Disconnect' : 'Connect' }}
+              {isProviderLinked(provider), select, true {Disconnect} other {Connect}}
             </button>
           </div>
         }
@@ -96,7 +96,7 @@
         <div class="method-row" [class.editing]="passwordEditable">
           <span class="method-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></span>
           <div class="method-copy">
-            <strong>Password</strong>
+            <strong i18n>Password</strong>
             @if (passwordEditable) {
               <form [formGroup]="passwordForm" (ngSubmit)="onPasswordEditClick()" class="password-form">
                 <tui-textfield #passwordField tuiTextfieldSize="m">
@@ -114,20 +114,20 @@
               @if (loadingPassword$ | async) {
                 <tui-loader class="action-loader" size="s"></tui-loader>
               }
-              <span [style.visibility]="(loadingPassword$ | async) ? 'hidden' : 'visible'">
-                {{ passwordEditable ? 'Save' : 'Change' }}
+              <span i18n [style.visibility]="(loadingPassword$ | async) ? 'hidden' : 'visible'">
+                {passwordEditable, select, true {Save} other {Change}}
               </span>
             </button>
           } @else {
-            <button type="button" class="settings-action" (click)="handleProviderWrapped('local')()">Set up</button>
+            <button i18n type="button" class="settings-action" (click)="handleProviderWrapped('local')()">Set up</button>
           }
         </div>
       </div>
     </section>
 
     <div class="delete-account-row">
-      <span>Delete account and all data</span>
-      <button type="button" (click)="onDeleteAccount()">Delete</button>
+      <span i18n>Delete account and all data</span>
+      <button i18n type="button" (click)="onDeleteAccount()">Delete</button>
     </div>
   </main>
 </div>

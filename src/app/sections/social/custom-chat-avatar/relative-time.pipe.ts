@@ -12,9 +12,9 @@ export class RelativeTimePipe implements PipeTransform {
     const timeAgo = formatDistanceToNow(new Date(value));
 
     if (timeAgo.includes('less than a minute')) {
-      return 'just now';
+      return $localize`just now`;
     }
 
-    return timeAgo.replace(/\babout\b/gi, '') + ' ago';
+    return $localize`${timeAgo.replace(/\babout\b/gi, '')}:distance: ago`;
   }
 }

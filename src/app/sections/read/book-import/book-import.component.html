@@ -2,22 +2,22 @@
   <app-paywall></app-paywall>
   @if (bookImport) {
     <section class="status-card">
-      <a routerLink="/read" class="back-link">← Back to Read</a>
-      <p class="eyebrow">Your private library</p>
+      <a i18n routerLink="/read" class="back-link">← Back to Read</a>
+      <p i18n class="eyebrow">Your private library</p>
       <h1>{{ bookImport.title }}</h1>
       @if (bookImport.author) { <p class="book-author">{{ bookImport.author }}</p> }
 
       @if (bookImport.status === status.READY) {
-        <p class="status-copy">Your book is ready. It is visible only to you.</p>
-        <a class="primary-action" [routerLink]="['/reader/private', bookImport.id]">Start reading</a>
+        <p i18n class="status-copy">Your book is ready. It is visible only to you.</p>
+        <a i18n class="primary-action" [routerLink]="['/reader/private', bookImport.id]">Start reading</a>
       } @else if (bookImport.status === status.FAILED) {
-        <p class="error">{{ bookImport.error || 'The processor could not import this file.' }}</p>
+        <p class="error">{{ bookImport.error || importFailedFallback }}</p>
       } @else {
         <div class="progress" role="status">
           <span class="spinner"></span>
           <div>
-            <strong>{{ bookImport.status === status.QUEUED ? 'Queued' : 'Processing' }}</strong>
-            <p>You can close this page. We will notify you when it is ready.</p>
+            <strong i18n>{bookImport.status, select, QUEUED {Queued} other {Processing}}</strong>
+            <p i18n>You can close this page. We will notify you when it is ready.</p>
           </div>
         </div>
       }
@@ -25,54 +25,54 @@
       @if (bookImport.status !== status.FAILED) {
         <section class="details-card" aria-labelledby="details-heading">
           @if (bookImport.metadataStatus === metadataStatus.PENDING && bookImport.status !== status.READY) {
-            <p class="eyebrow">Book details</p>
-            <h2 id="details-heading">Reading the file…</h2>
-            <p class="details-copy">Title, author, language, and a short description are filled in from the book itself. You will be able to check them here.</p>
+            <p i18n class="eyebrow">Book details</p>
+            <h2 i18n id="details-heading">Reading the file…</h2>
+            <p i18n class="details-copy">Title, author, language, and a short description are filled in from the book itself. You will be able to check them here.</p>
           } @else if (editingDetails) {
-            <p class="eyebrow">Book details</p>
+            <p i18n class="eyebrow">Book details</p>
             @switch (bookImport.metadataStatus) {
               @case (metadataStatus.PROPOSED) {
-                <h2 id="details-heading">Does this look right?</h2>
-                <p class="details-copy">Read from the file and completed by AI. Correct anything that is off, then confirm.</p>
+                <h2 i18n id="details-heading">Does this look right?</h2>
+                <p i18n class="details-copy">Read from the file and completed by AI. Correct anything that is off, then confirm.</p>
               }
               @case (metadataStatus.PENDING) {
-                <h2 id="details-heading">Add the book's details</h2>
-                <p class="details-copy">We could not read these from the file, so please fill them in.</p>
+                <h2 i18n id="details-heading">Add the book's details</h2>
+                <p i18n class="details-copy">We could not read these from the file, so please fill them in.</p>
               }
               @default {
-                <h2 id="details-heading">Edit details</h2>
+                <h2 i18n id="details-heading">Edit details</h2>
               }
             }
             <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()">
               <div class="details-grid">
-                <label>Title <span class="provenance">{{ provenanceOf('title') }}</span><input formControlName="title" maxlength="500"></label>
-                <label>Author <span class="provenance">{{ provenanceOf('author') }}</span><input formControlName="author" maxlength="300"></label>
+                <label><span i18n>Title</span> <span class="provenance">{{ provenanceOf('title') }}</span><input formControlName="title" maxlength="500"></label>
+                <label><span i18n>Author</span> <span class="provenance">{{ provenanceOf('author') }}</span><input formControlName="author" maxlength="300"></label>
               </div>
-              <label>Description <span class="provenance">{{ provenanceOf('description') || 'Optional' }}</span><textarea formControlName="description" rows="4"></textarea></label>
+              <label><span i18n>Description</span> <span class="provenance">{{ provenanceOf('description') || optionalLabel }}</span><textarea formControlName="description" rows="4"></textarea></label>
               <div class="row">
-                <label>Language <span class="provenance">{{ provenanceOf('language') }}</span><select formControlName="language"><option value="" disabled>Choose a language</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
-                <label>First published <span class="provenance">{{ provenanceOf('publication_year') || 'Optional' }}</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
+                <label><span i18n>Language</span> <span class="provenance">{{ provenanceOf('language') }}</span><select formControlName="language"><option i18n value="" disabled>Choose a language</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+                <label><span i18n>First published</span> <span class="provenance">{{ provenanceOf('publication_year') || optionalLabel }}</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
               </div>
               @if (detailsError) { <p class="error">{{ detailsError }}</p> }
               <div class="details-actions">
-                <button class="primary-action" type="submit" [disabled]="savingDetails">{{ savingDetails ? 'Saving…' : 'Confirm details' }}</button>
+                <button i18n class="primary-action" type="submit" [disabled]="savingDetails">{savingDetails, select, true {Saving…} other {Confirm details}}</button>
                 @if (bookImport.metadataStatus === metadataStatus.CONFIRMED) {
-                  <button class="secondary-action" type="button" (click)="cancelEditingDetails()">Cancel</button>
+                  <button i18n class="secondary-action" type="button" (click)="cancelEditingDetails()">Cancel</button>
                 }
               </div>
             </form>
           } @else {
             <div class="details-heading">
               <div>
-                <p class="eyebrow">Book details</p>
-                <h2 id="details-heading">{{ detailsSavedFor === bookImport.id ? 'Details saved' : 'Confirmed details' }}</h2>
+                <p i18n class="eyebrow">Book details</p>
+                <h2 i18n id="details-heading">{detailsJustSaved, select, true {Details saved} other {Confirmed details}}</h2>
               </div>
-              <button class="secondary-action" type="button" (click)="startEditingDetails()">Edit</button>
+              <button i18n class="secondary-action" type="button" (click)="startEditingDetails()">Edit</button>
             </div>
             <dl class="details-list">
-              <div><dt>Language</dt><dd>{{ languageName(bookImport.language) }}</dd></div>
-              @if (bookImport.publicationYear) { <div><dt>First published</dt><dd>{{ bookImport.publicationYear }}</dd></div> }
-              @if (bookImport.description) { <div class="wide"><dt>Description</dt><dd>{{ bookImport.description }}</dd></div> }
+              <div><dt i18n>Language</dt><dd>{{ languageName(bookImport.language) }}</dd></div>
+              @if (bookImport.publicationYear) { <div><dt i18n>First published</dt><dd>{{ bookImport.publicationYear }}</dd></div> }
+              @if (bookImport.description) { <div class="wide"><dt i18n>Description</dt><dd>{{ bookImport.description }}</dd></div> }
             </dl>
           }
         </section>
@@ -81,32 +81,32 @@
   } @else {
     <section class="import-card">
       <div class="import-intro">
-        <a routerLink="/read" class="back-link">← Back to Read</a>
-        <p class="eyebrow">Your private library</p>
-        <h1>Import a book you want to keep close.</h1>
-        <p>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported. Title, author, and a description are read from the book itself; you confirm them once it is in.</p>
+        <a i18n routerLink="/read" class="back-link">← Back to Read</a>
+        <p i18n class="eyebrow">Your private library</p>
+        <h1 i18n>Import a book you want to keep close.</h1>
+        <p i18n>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported. Title, author, and a description are read from the book itself; you confirm them once it is in.</p>
       </div>
 
       <div class="quota-card" [class.exhausted]="quota && !canImport">
         <div>
-          <span class="quota-label">Import allowance</span>
+          <span i18n class="quota-label">Import allowance</span>
           <strong>{{ quotaMessage }}</strong>
-          @if (quota) { <span>Resets {{ quota.periodEndsAt | date:'MMM d, y' }}</span> }
+          @if (quota) { <span i18n>Resets {{ quota.periodEndsAt | date:'MMM d, y' }}</span> }
         </div>
         @if (quota && !canImport && quota.limit === 0) {
-          <button type="button" class="secondary-action" (click)="openPaywall()">See Premium</button>
+          <button i18n type="button" class="secondary-action" (click)="openPaywall()">See Premium</button>
         }
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()">
-        <label class="file-input">Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required><span>{{ selectedFile?.name || 'Choose an EPUB or TEI XML file' }}</span></label>
-        <label>Language <span class="optional">Optional — detected from the file</span><select formControlName="language"><option value="">Detect from the file</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+        <label i18n class="file-input">Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required><span>{{ fileLabel }}</span></label>
+        <label><span i18n>Language</span> <span i18n class="optional">Optional — detected from the file</span><select formControlName="language"><option i18n value="">Detect from the file</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
         @if (error) { <p class="error">{{ error }}</p> }
-        <button class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport || !selectedFile">{{ submitting ? 'Uploading…' : 'Import book' }}</button>
+        <button i18n class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport || !selectedFile">{submitting, select, true {Uploading…} other {Import book}}</button>
         @if (!quotaLoading && !canImport) {
           <p class="blocked-note">{{ importBlockedNote }}</p>
         } @else if (!selectedFile) {
-          <p class="blocked-note">Choose a file to import.</p>
+          <p i18n class="blocked-note">Choose a file to import.</p>
         }
       </form>
     </section>

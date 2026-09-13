@@ -5,27 +5,27 @@
         <div class="current-plan panel">
           <div class="plan-heading">
             <div>
-              <span class="eyebrow">Membership</span>
-              <h1 id="membership-title">You're on Free</h1>
+              <span i18n class="eyebrow">Membership</span>
+              <h1 i18n id="membership-title">You're on Free</h1>
             </div>
-            <div class="billing-toggle" role="group" aria-label="Billing period">
-              <button type="button" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
-              <button type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
+            <div class="billing-toggle" role="group" aria-label="Billing period" i18n-aria-label>
+              <button i18n type="button" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
+              <button i18n type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
             </div>
           </div>
 
           <div class="usage-block">
-            <p>Where you are against the free limits</p>
+            <p i18n>Where you are against the free limits</p>
             <div class="usage-row">
-              <div><span>Saved words</span><code>{{ savedWords === null ? '—' : savedWords }} / 100</code></div>
+              <div><span i18n>Saved words</span><code>{{ savedWords === null ? '—' : savedWords }} / 100</code></div>
               <progress [value]="usagePercent(savedWords, 100)" max="100">{{ usagePercent(savedWords, 100) }}%</progress>
             </div>
             <div class="usage-row">
-              <div><span>Active languages</span><code>{{ activeLanguagesUsed }} / {{ activeLanguageLimit < 0 ? 'unlimited' : activeLanguageLimit }}</code></div>
+              <div><span i18n>Active languages</span><code>{{ activeLanguagesUsed }} / {{ activeLanguageLimitLabel }}</code></div>
               <progress [value]="usagePercent(activeLanguagesUsed, activeLanguageLimit)" max="100">{{ usagePercent(activeLanguagesUsed, activeLanguageLimit) }}%</progress>
             </div>
             <div class="usage-row">
-              <div><span>Fluent languages</span><code>{{ fluentLanguagesUsed }} / {{ fluentLanguageLimit }}</code></div>
+              <div><span i18n>Fluent languages</span><code>{{ fluentLanguagesUsed }} / {{ fluentLanguageLimit }}</code></div>
               <progress [value]="usagePercent(fluentLanguagesUsed, fluentLanguageLimit)" max="100">{{ usagePercent(fluentLanguagesUsed, fluentLanguageLimit) }}%</progress>
             </div>
           </div>
@@ -33,8 +33,8 @@
 
         <div class="upgrade-panel panel">
           <div class="premium-heading">
-            <h2>Premium</h2>
-            <span>everything in Free, plus</span>
+            <h2 i18n>Premium</h2>
+            <span i18n>everything in Free, plus</span>
           </div>
           <div class="feature-grid">
             @for (feature of premiumFeatures; track feature) {
@@ -47,7 +47,7 @@
               @if (offerPrice !== null) {
                 <div class="price">
                   <strong>${{ offerPrice }}</strong>
-                  <span>/ {{ billingPeriod === 'monthly' ? 'month' : 'year' }}</span>
+                  <span i18n>/ {billingPeriod, select, monthly {month} other {year}}</span>
                   @if (struckPrice !== null) {
                     <s>${{ struckPrice }}</s>
                   }
@@ -56,14 +56,14 @@
                   <span class="cadence-note">{{ note }}</span>
                 }
               } @else {
-                <div class="price-loading">Loading current price…</div>
+                <div i18n class="price-loading">Loading current price…</div>
               }
               @if (founderOfferAvailable) {
-                <p>{{ founderLimitNote }} Keep this price while your subscription stays active.</p>
+                <p i18n>{{ founderLimitNote }} Keep this price while your subscription stays active.</p>
               }
             </div>
-            <button class="premium-action" type="button" [disabled]="!selectedPlanId || actionLoading$.value" (click)="becomeMember()">
-              {{ actionLoading$.value ? 'Opening checkout…' : 'Become a member' }}
+            <button i18n class="premium-action" type="button" [disabled]="!selectedPlanId || actionLoading$.value" (click)="becomeMember()">
+              {actionLoading$.value, select, true {Opening checkout…} other {Become a member}}
             </button>
           </div>
         </div>
@@ -71,24 +71,24 @@
     } @else {
       <section class="membership-shell paid-membership" aria-labelledby="membership-title">
         <div class="current-plan panel paid-summary">
-          <span class="eyebrow">Membership</span>
+          <span i18n class="eyebrow">Membership</span>
           <div class="member-title">
             <h1 id="membership-title">{{ membershipTitle }}</h1>
-            <app-premium-star label="Premium membership" />
+            <app-premium-star label="Premium membership" i18n-label />
           </div>
 
           <dl class="membership-details">
-            <div><dt>Plan</dt><dd>{{ planLabel }}</dd></div>
-            <div><dt>Status</dt><dd>{{ renewalLabel }}</dd></div>
-            <div><dt>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
+            <div><dt i18n>Plan</dt><dd>{{ planLabel }}</dd></div>
+            <div><dt i18n>Status</dt><dd>{{ renewalLabel }}</dd></div>
+            <div><dt i18n>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
             @if (scheduledChange; as change) {
               <!-- Exists only while a change is pending, and carries its own undo. Same row shape as the rest. -->
               <div class="scheduled-row">
-                <dt>Scheduled change</dt>
+                <dt i18n>Scheduled change</dt>
                 <dd>
                   {{ scheduledChangeLabel(change) }}
-                  <button type="button" class="undo" [disabled]="cadenceLoading" (click)="undoScheduledChange()">
-                    Keep {{ subscription?.type === 'YEARLY' ? 'annual' : 'monthly' }} instead
+                  <button i18n type="button" class="undo" [disabled]="cadenceLoading" (click)="undoScheduledChange()">
+                    {subscription?.type, select, YEARLY {Keep annual instead} other {Keep monthly instead}}
                   </button>
                 </dd>
               </div>
@@ -98,55 +98,55 @@
           @if (annualOfferVisible) {
             <!-- After eight finished sessions, once. It routes into the same confirmation any switch does. -->
             <div class="annual-offer">
-              <strong>Switch to annual and save</strong>
+              <strong i18n>Switch to annual and save</strong>
               @if (annualPromptLine) {
                 <p>{{ annualPromptLine }}</p>
               }
               <div class="annual-offer-actions">
-                <button type="button" class="accept" (click)="acceptAnnualOffer()">Switch to annual</button>
-                <button type="button" class="decline" (click)="dismissAnnualOffer()">Keep monthly</button>
+                <button i18n type="button" class="accept" (click)="acceptAnnualOffer()">Switch to annual</button>
+                <button i18n type="button" class="decline" (click)="dismissAnnualOffer()">Keep monthly</button>
               </div>
             </div>
           }
 
           @if (billingManaged && oppositeCadence && !scheduledChange) {
-            <button class="portal-action" type="button" [disabled]="cadenceLoading" (click)="openCadenceChange()">
-              {{ cadenceLoading ? 'Checking…' : cadenceSwitchLabel }}
+            <button i18n class="portal-action" type="button" [disabled]="cadenceLoading" (click)="openCadenceChange()">
+              {cadenceLoading, select, true {Checking…} other {{{ cadenceSwitchLabel }}}}
             </button>
           }
 
           @if (billingManaged) {
-            <button class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
-              {{ actionLoading$.value ? 'Opening Paddle…' : 'Manage card and invoices' }}
+            <button i18n class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
+              {actionLoading$.value, select, true {Opening Paddle…} other {Manage card and invoices}}
             </button>
           }
 
           @if (billingManaged && subscription?.autoRenewal !== false && subscription?.type !== 'LIFETIME') {
-            <button class="cancel-action" type="button" (click)="openCancellation()">Cancel subscription</button>
+            <button i18n class="cancel-action" type="button" (click)="openCancellation()">Cancel subscription</button>
           }
         </div>
 
         <div class="membership-usage">
-          <p>What's running on it</p>
+          <p i18n>What's running on it</p>
           <dl>
-            <div><dt>Saved words</dt><dd>{{ savedWords === null ? '—' : savedWords }} · unlimited</dd></div>
+            <div><dt i18n>Saved words</dt><dd i18n>{{ savedWords === null ? '—' : savedWords }} · unlimited</dd></div>
             @if (importQuota) {
-              <div><dt>Book imports</dt><dd>{{ importQuota.used }} / {{ importQuota.limit < 0 ? 'unlimited' : importQuota.limit }} this month</dd></div>
+              <div><dt i18n>Book imports</dt><dd i18n>{{ importQuota.used }} / {{ importLimitLabel }} this month</dd></div>
             }
-            <div><dt>Target languages</dt><dd>{{ activeLanguagesUsed }}</dd></div>
-            <div><dt>Fluent languages</dt><dd>{{ fluentLanguagesUsed }}</dd></div>
+            <div><dt i18n>Target languages</dt><dd>{{ activeLanguagesUsed }}</dd></div>
+            <div><dt i18n>Fluent languages</dt><dd>{{ fluentLanguagesUsed }}</dd></div>
           </dl>
         </div>
 
         @if (subscription?.autoRenewal === false && subscription?.type !== 'LIFETIME') {
-          <div class="membership-note">
-            Your premium access stays active until {{ renewalLabel.replace('Access ends ', '') }}. You can restart it from Paddle before then.
+          <div i18n class="membership-note">
+            Your premium access stays active until {{ accessEndsOn }}. You can restart it from Paddle before then.
           </div>
         }
       </section>
     }
   } @else {
-    <section class="membership-shell loading-state" aria-live="polite">Loading your membership…</section>
+    <section i18n class="membership-shell loading-state" aria-live="polite">Loading your membership…</section>
   }
 </main>
 
@@ -164,12 +164,12 @@
 -->
 <app-confirm-modal
   [isVisible]="cancelModalVisible"
-  tone="default"
-  title="Cancel your subscription?"
-  [message]="'You keep everything until ' + cancellationAccessEndsOn + '. After that your saved words and reviews stay, and one language stays active.'"
-  [note]="subscription?.founder ? 'Founding-member pricing ends with your subscription and can\'t be restored later.' : ''"
-  confirmText="Cancel subscription"
-  cancelText="Keep it"
+  [tone]="'default'"
+  title="Cancel your subscription?" i18n-title
+  [message]="cancellationMessage"
+  [note]="cancellationNote"
+  confirmText="Cancel subscription" i18n-confirmText
+  cancelText="Keep it" i18n-cancelText
   (closed)="closeCancellation()"
   (confirm)="confirmCancellation()"
 />

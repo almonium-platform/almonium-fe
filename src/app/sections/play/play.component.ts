@@ -72,7 +72,7 @@ export class PlayComponent implements OnInit, OnDestroy {
 
   protected get crosswordAction(): string {
     return this.deckWordCount > 0
-      ? `Start a ${this.deckWordCount}-word grid`
-      : 'Start a grid';
+      ? $localize`Start a ${this.deckWordCount}:count:-word grid`
+      : $localize`Start a grid`;
   }
 }

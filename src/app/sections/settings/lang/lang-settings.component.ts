@@ -126,7 +126,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['target_lang'] === 'success') {
-        this.alertService.open('Your target language has been successfully saved', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`Your target language has been successfully saved`, {appearance: 'positive'}).subscribe();
         this.urlService.clearUrl();
       }
 
@@ -200,7 +200,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         logger.error('Failed to update CEFR:', err);
-        this.alertService.open('Failed to update CEFR level', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`Failed to update CEFR level`, {appearance: 'negative'}).subscribe();
         this.learners = previousLearners;
       },
     });
@@ -248,12 +248,12 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }).pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Fluent languages saved', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Fluent languages saved`, {appearance: 'positive'}).subscribe();
           this.fluentEditable = false;
           this.userInfoService.updateUserInfo({fluentLangs: fluentLanguageCodes});
         },
         error: (error) => {
-          this.alertService.open(getErrorMessage(error, 'Failed to save fluent languages'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to save fluent languages`), {appearance: 'negative'}).subscribe();
           this.restoreFluent();
         },
       });
@@ -283,9 +283,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   private prepareTargetLangDeletionModal() {
-    this.modalTitle = 'Delete ' + this.getCurrentTargetLanguageName() + ' Profile';
-    this.modalMessage = 'Are you sure? All your cards, progress, and settings will be lost.';
-    this.modalConfirmText = 'Delete';
+    this.modalTitle = $localize`Delete ${this.getCurrentTargetLanguageName()}:language: Profile`;
+    this.modalMessage = $localize`Are you sure? All your cards, progress, and settings will be lost.`;
+    this.modalConfirmText = $localize`Delete`;
     this.modalAction = this.confirmTargetLangDeletion.bind(this);
     this.isConfirmTargetLangDeletionModalVisible = true;
   }
@@ -306,7 +306,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     this.languageApiService.deleteLearner(deletedLanguageCode).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${deletedLanguageName} profile has been deleted`, {appearance: 'positive'})
+          .open($localize`Your ${deletedLanguageName}:language: profile has been deleted`, {appearance: 'positive'})
           .subscribe();
 
         // Remove from UI list
@@ -323,7 +323,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(getErrorMessage(error, 'Failed to delete your target language'), {appearance: 'negative'})
+          .open(getErrorMessage(error, $localize`Failed to delete your target language`), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -337,7 +337,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   // The upsell is a detour, not a destination: the reader still means to add a language, so the
   // plans replace the sheet's content in place rather than routing the page underneath it.
   protected openPaywallFromLangSetup() {
-    this.paywallBackLabel = 'Back to languages';
+    this.paywallBackLabel = $localize`Back to languages`;
     this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
   }
 
@@ -380,9 +380,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
    */
   protected get allowanceNote(): string {
     const allowance = this.allowance;
-    const held = allowance === 1 ? 'one active language' : `${allowance} active languages`;
-    return `Your plan keeps ${held}. Another one is saved with everything in it, `
-      + 'but waits until you make it active or upgrade.';
+    const held = allowance === 1 ? $localize`one active language` : $localize`${allowance}:count: active languages`;
+    return $localize`Your plan keeps ${held}:held:. Another one is saved with everything in it, but waits until you make it active or upgrade.`;
   }
 
   /** Words kept in a language, so a read-only row says what it is holding rather than just that it is off. */
@@ -409,20 +408,20 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         return null;
       }
       return this.learners.length === 1
-        ? 'This is your only language. Add another before you can turn it off.'
-        : 'This is your only active language. Make another one active to turn it off.';
+        ? $localize`This is your only language. Add another before you can turn it off.`
+        : $localize`This is your only active language. Make another one active to turn it off.`;
     }
 
-    const parts = ['Read-only.'];
+    const parts = [$localize`Read-only.`];
     const kept = this.wordsKept(learner);
     if (kept) {
-      parts.push(`${new Intl.NumberFormat().format(kept)} words kept.`);
+      parts.push($localize`${kept.toLocaleString($localize.locale)}:count: words kept.`);
     }
     if (this.atAllowance) {
       const next = this.nextSwitchOn;
       parts.push(!this.switchAvailable && next
-        ? `Next switch ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
-        : 'Make it active from its record.');
+        ? $localize`Next switch ${new Intl.DateTimeFormat($localize.locale, {day: 'numeric', month: 'long'}).format(next)}:date:.`
+        : $localize`Make it active from its record.`);
     }
     return parts.join(' ');
   }
@@ -444,7 +443,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected onToggleActiveStatus(active: boolean, learner: Learner): void {
     if (!active && this.getActiveLearnersCount() === 1) {
-      this.alertService.open('You must have at least one active target language', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`You must have at least one active target language`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -470,7 +469,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        this.alertService.open(getErrorMessage(err, 'Failed to update active status'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(err, $localize`Failed to update active status`), {appearance: 'negative'}).subscribe();
         learner.active = !active;
       },
     });
@@ -478,6 +477,32 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected getLanguageName(languageCode: LanguageCode): string {
     return this.languageNameService.mapLanguageCodesToNames(this.languages, [languageCode])[0] ?? languageCode;
+  }
+
+  /** The row's control labels, built here so each is one message with the language name as a placeholder. */
+  protected colourTriggerLabel(learner: Learner): string {
+    return $localize`Choose colour for ${this.getLanguageName(learner.language)}:language:`;
+  }
+
+  protected levelTriggerLabel(learner: Learner): string {
+    return $localize`Level for ${this.getLanguageName(learner.language)}:language:: ${this.levelSentence(learner.selfReportedLevel)}:level:`;
+  }
+
+  protected levelListLabel(learner: Learner): string {
+    return $localize`Level for ${this.getLanguageName(learner.language)}:language:`;
+  }
+
+  protected activeToggleLabel(learner: Learner): string {
+    const name = this.getLanguageName(learner.language);
+    return learner.active ? $localize`Deactivate ${name}:language:` : $localize`Activate ${name}:language:`;
+  }
+
+  protected openRecordLabel(learner: Learner): string {
+    return $localize`Open the ${this.getLanguageName(learner.language)}:language: record`;
+  }
+
+  protected deleteLanguageLabel(learner: Learner): string {
+    return $localize`Delete ${this.getLanguageName(learner.language)}:language:`;
   }
 
   protected getLanguageColor(languageCode: LanguageCode, index: number): string {
@@ -563,15 +588,15 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected getActiveToggleTooltip(learner: Learner): string {
     if (this.getActiveLearnersCount() === 1 && learner.active) {
-      return 'You must have at least one active target language';
+      return $localize`You must have at least one active target language`;
     }
     if (!learner.active && this.atAllowance) {
-      return 'Open its record to make it active';
+      return $localize`Open its record to make it active`;
     }
     if (learner.active) {
-      return 'Deactivating language removes it from the navbar dropdown';
+      return $localize`Deactivating language removes it from the navbar dropdown`;
     }
-    return 'Activating language adds it to the navbar dropdown';
+    return $localize`Activating language adds it to the navbar dropdown`;
   }
 
   private loadPolicy(): void {

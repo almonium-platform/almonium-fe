@@ -23,7 +23,7 @@ export class LogoutComponent implements OnInit {
   protected accountDeleted = false;
 
   protected get baseText(): string {
-    return this.accountDeleted ? 'Closing your account' : 'Logging out';
+    return this.accountDeleted ? $localize`Closing your account` : $localize`Logging out`;
   }
 
   ngOnInit(): void {

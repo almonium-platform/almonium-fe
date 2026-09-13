@@ -17,11 +17,11 @@
         type="button"
         class="copy-action"
         [class.copied]="showCopied"
-        [attr.aria-label]="showCopied ? 'Profile link copied' : 'Copy profile link'"
+        [attr.aria-label]="copyActionLabel"
         (click)="copy()"
       >
         <tui-icon [icon]="showCopied ? '@tui.check' : '@tui.copy'"></tui-icon>
-        <span aria-live="polite">{{ showCopied ? 'Copied' : 'Copy' }}</span>
+        <span i18n aria-live="polite">{showCopied, select, true {Copied} other {Copy}}</span>
       </button>
     </div>
   </div>

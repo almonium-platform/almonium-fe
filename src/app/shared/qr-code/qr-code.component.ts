@@ -44,7 +44,7 @@ export class QRCodeComponent implements OnInit {
       },
       error: (err) => {
         logger.error('Failed to generate QR code:', err);
-        this.alertService.open('Failed to generate QR code', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`Failed to generate QR code`, {appearance: 'negative'}).subscribe();
       },
     });
   }

@@ -99,7 +99,7 @@ export class AuthService {
       switchMap(() => from(createUserWithEmailAndPassword(this.firebaseAuth, email, password))),
       switchMap(credential => this.requestEmailVerification(credential.user)),
       switchMap(() => from(signOut(this.firebaseAuth))),
-      switchMap(() => of({message: 'Next step, verify your email!'})),
+      switchMap(() => of({message: $localize`Next step, verify your email!`})),
     );
   }
 

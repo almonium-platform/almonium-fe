@@ -1,6 +1,6 @@
 @if (userInfo) {
   <app-share-link [link]="getProfileLink()"
-                  title="Share Your Profile"></app-share-link>
+                  title="Share Your Profile" i18n-title></app-share-link>
 }
 
 <div class="base-container">
@@ -8,11 +8,11 @@
 
   <main class="profile-layout">
     <section class="profile-card card">
-      <div class="eyebrow">Profile</div>
+      <div i18n class="eyebrow">Profile</div>
 
       @if (userInfo) {
         <div class="identity-row">
-          <button type="button" class="avatar-edit" (click)="profileEdit = !profileEdit" aria-label="Edit profile">
+          <button type="button" class="avatar-edit" (click)="profileEdit = !profileEdit" aria-label="Edit profile" i18n-aria-label>
             <app-avatar
               [username]="userInfo.username"
               [avatarUrl]="userInfo.avatarUrl"
@@ -27,15 +27,15 @@
             <h1>&#64;{{ userInfo.username }}</h1>
             <p>{{ memberSince }}</p>
             <div class="profile-actions">
-              <button type="button" class="pill-button" (click)="profileEdit = !profileEdit">
-                {{ profileEdit ? 'Done' : 'Edit' }}
+              <button i18n type="button" class="pill-button" (click)="profileEdit = !profileEdit">
+                {profileEdit, select, true {Done} other {Edit}}
               </button>
               @if (!userInfo.hidden) {
-                <button type="button" class="pill-button" (click)="copyProfileLink()">
+                <button i18n type="button" class="pill-button" (click)="copyProfileLink()">
                   <lucide-icon name="link" [size]="15" /> Copy link
                 </button>
                 @if (hasRecord) {
-                  <button type="button" class="pill-button" (click)="openShareProfile()">
+                  <button i18n type="button" class="pill-button" (click)="openShareProfile()">
                     <lucide-icon name="qr-code" [size]="15" /> QR
                   </button>
                 }
@@ -47,13 +47,13 @@
         @if (profileEdit) {
           <div class="profile-editor">
             <div class="editor-field">
-              <div class="eyebrow">How you appear</div>
+              <div i18n class="eyebrow">How you appear</div>
               <app-avatar-picker [userInfo]="userInfo" />
             </div>
             <div class="editor-field">
-              <div class="eyebrow">Username</div>
+              <div i18n class="eyebrow">Username</div>
               <app-username />
-              <p class="field-note">Only used if you share a word pack.</p>
+              <p i18n class="field-note">Only used if you share a word pack.</p>
             </div>
           </div>
         }
@@ -61,7 +61,7 @@
         <section class="record-strip" aria-labelledby="record-strip-title">
           <!-- The header always names its language, so the numbers are never anonymous. -->
           <div class="record-head">
-            <span id="record-strip-title" class="eyebrow">Your record</span>
+            <span i18n id="record-strip-title" class="eyebrow">Your record</span>
             @if (activeLanguage) {
               <span class="record-language">
                 <span class="record-crest" [style.background]="crestColour(activeLanguage)" aria-hidden="true"></span>
@@ -74,15 +74,15 @@
             <div class="record-numbers">
               <div class="record-number">
                 <span class="figure">{{ stats?.wordsKept | number }}</span>
-                <span class="caption">Words you can read</span>
+                <span i18n class="caption">Words you can read</span>
               </div>
               <div class="record-number">
                 <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
-                <span class="caption">Books finished</span>
+                <span i18n class="caption">Books finished</span>
               </div>
               <div class="record-number">
                 <span class="figure">{{ pace(loadedRhythm).met }}<span class="of">/{{ pace(loadedRhythm).counted }}</span></span>
-                <span class="caption">Weeks at pace</span>
+                <span i18n class="caption">Weeks at pace</span>
               </div>
             </div>
 
@@ -94,31 +94,31 @@
 
             <div class="record-foot">
               <span>{{ recordCaption(loadedRhythm) }}</span>
-              <a routerLink="/home">Change on home</a>
+              <a i18n routerLink="/home">Change on home</a>
             </div>
           } @else {
-            <p class="record-empty">
+            <p i18n class="record-empty">
               Nothing here until you finish {{ firstSessionPhrase }}. Then this holds the words you can read, the
               books you finished, and the weeks you kept pace.
             </p>
-            <a class="record-action" routerLink="/read">Open the library</a>
+            <a i18n class="record-action" routerLink="/read">Open the library</a>
           }
         </section>
 
         <div class="interests-section">
-          <div class="eyebrow">Interests</div>
+          <div i18n class="eyebrow">Interests</div>
           @if (!interestsEdit) {
             <div class="chips-box">
               @for (interest of interests; track interest.id) {
                 <span tuiChip class="interest-chip">{{ interest.name }}</span>
               }
-              <button type="button" class="interest-edit" [class.adding]="!interests.length" (click)="editInterests()">
+              <button i18n type="button" class="interest-edit" [class.adding]="!interests.length" (click)="editInterests()">
                 <lucide-icon [name]="interests.length ? 'pencil' : 'plus'" [size]="14" />
-                {{ interests.length ? 'Edit' : 'Add' }}
+                {interests.length, plural, =0 {Add} other {Edit}}
               </button>
             </div>
             @if (!interests.length) {
-              <p class="empty-interests">Add a few topics so other readers know what you enjoy.</p>
+              <p i18n class="empty-interests">Add a few topics so other readers know what you enjoy.</p>
             }
           } @else {
             <app-interests
@@ -126,9 +126,9 @@
               (selectedInterestsChange)="onSelectedInterestsChange($event)"
             />
             <div class="interest-actions">
-              <button type="button" class="pill-button" (click)="cancelInterestsEdit()">Cancel</button>
+              <button i18n type="button" class="pill-button" (click)="cancelInterestsEdit()">Cancel</button>
               <app-button
-                label="Save interests"
+                label="Save interests" i18n-label
                 [loading$]="loadingInterests$"
                 (clickFunction)="saveInterests()"
                 appearance="bw"
@@ -139,11 +139,9 @@
 
         <div class="visibility-row">
           <div>
-            <strong>Profile is {{ userInfo.hidden ? 'hidden' : 'visible' }}</strong>
-            <p>
-              {{ userInfo.hidden
-                ? 'Only your username is visible, and readers cannot send connection requests.'
-                : 'Others can find you and send connection requests.' }}
+            <strong i18n>{userInfo.hidden, select, true {Profile is hidden} other {Profile is visible}}</strong>
+            <p i18n>
+              {userInfo.hidden, select, true {Only your username is visible, and readers cannot send connection requests.} other {Others can find you and send connection requests.}}
             </p>
           </div>
           <button
@@ -154,7 +152,7 @@
             [attr.aria-checked]="!userInfo.hidden"
             [disabled]="hideProfileLoading"
             (click)="toggleHidden()"
-            [attr.aria-label]="userInfo.hidden ? 'Make profile visible' : 'Hide profile'"
+            [attr.aria-label]="visibilitySwitchLabel"
           >
             <span></span>
           </button>
@@ -166,18 +164,18 @@
          sidebar object; rendered at body width under the main card it reads as a stray section. -->
     <aside class="sidebar">
     <section class="plan-card card">
-      <div class="eyebrow">Plan</div>
+      <div i18n class="eyebrow">Plan</div>
       <div class="plan-name">
-        <strong>{{ premium ? 'Premium' : 'Free' }}</strong>
+        <strong i18n>{premium, select, true {Premium} other {Free}}</strong>
         @if (premium) {
-          <span class="plan-star" aria-label="Premium plan">
+          <span class="plan-star" aria-label="Premium plan" i18n-aria-label>
             <img src="assets/img/icons/premium-star.svg" alt="" width="13" height="13" />
           </span>
         }
       </div>
       <p>{{ planSummary }}</p>
-      <a class="plan-link" routerLink="/membership">
-        {{ premium ? 'View membership' : 'View limits and upgrade' }}
+      <a i18n class="plan-link" routerLink="/membership">
+        {premium, select, true {View membership} other {View limits and upgrade}}
         <lucide-icon name="chevron-right" [size]="15" />
       </a>
     </section>
@@ -186,7 +184,7 @@
          says so in its title, and the weeks fraction goes: 0/0 is not a number. -->
     @if (otherLanguages.length) {
       <section class="also-card card">
-        <div class="eyebrow">{{ allOthersSetAside ? 'Set aside' : 'Also learning' }}</div>
+        <div i18n class="eyebrow">{allOthersSetAside, select, true {Set aside} other {Also learning}}</div>
         @for (other of otherLanguages; track other.language) {
           <a
             class="also-row"

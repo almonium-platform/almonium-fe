@@ -51,7 +51,7 @@ export class InterestsComponent implements OnInit {
       },
       error: (error) => {
         logger.error('Failed to get interests', error);
-        this.alertService.open('Failed to get interests', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`Failed to get interests`, {appearance: 'negative'}).subscribe();
       },
     });
   }

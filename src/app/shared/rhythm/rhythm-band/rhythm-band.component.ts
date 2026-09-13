@@ -18,10 +18,17 @@ export class RhythmBandComponent {
     return bandWeeks(this.rhythm);
   }
 
+  protected get bandLabel(): string {
+    return $localize`Twelve weeks of learning in ${this.languageName}:language:`;
+  }
+
   protected label(week: RhythmWeek): string {
-    if (week.frozen) return `Week of ${week.weekStart}: set aside`;
+    const weekStart = week.weekStart;
+    if (week.frozen) return $localize`Week of ${weekStart}:weekStart:: set aside`;
     const minutes = weekMinutes(week);
-    if (minutes === 0) return `Week of ${week.weekStart}: nothing recorded`;
-    return `Week of ${week.weekStart}: ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
+    if (minutes === 0) return $localize`Week of ${weekStart}:weekStart:: nothing recorded`;
+    return minutes === 1
+      ? $localize`Week of ${weekStart}:weekStart:: 1 minute`
+      : $localize`Week of ${weekStart}:weekStart:: ${minutes}:minutes: minutes`;
   }
 }

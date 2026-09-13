@@ -195,7 +195,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected loadingBlocked = false;
   protected loadingIncomingRequests = false;
   protected loadingOutgoingRequests = false;
-  protected noResultMessage = 'No results found';
+  protected noResultMessage = $localize`No results found`;
 
   protected readonly FriendshipStatus = RelationshipStatus;
 
@@ -595,7 +595,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           id: message.id,
           text: message.text ?? '',
           cid: message.channel?.cid ?? '',
-          channelName: message.channel?.name ?? message.user?.name ?? 'Chat',
+          channelName: message.channel?.name ?? message.user?.name ?? $localize`Chat`,
         }))
         .filter(hit => !!hit.cid);
     } catch (error) {
@@ -608,7 +608,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.messageActionsService.customActions$.next([
       {
         actionName: 'save-to-saved-messages',
-        actionLabelOrTranslationKey: 'Save to Saved Messages',
+        actionLabelOrTranslationKey: $localize`Save to Saved Messages`,
         isVisible: () => true,
         actionHandler: (message: StreamMessage) => void this.saveToSavedMessages(message),
       },
@@ -622,14 +622,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     try {
       const saved = await this.selfChannel();
       if (!saved) {
-        this.alertService.open('Saved Messages is not ready yet.', {appearance: 'negative'}).subscribe();
+        this.alertService.open($localize`Saved Messages is not ready yet.`, {appearance: 'negative'}).subscribe();
         return;
       }
       await saved.sendMessage({text});
-      this.alertService.open('Saved to Saved Messages', {appearance: 'positive'}).subscribe();
+      this.alertService.open($localize`Saved to Saved Messages`, {appearance: 'positive'}).subscribe();
     } catch (error) {
       logger.error('Could not save the message', error);
-      this.alertService.open('Could not save that message.', {appearance: 'negative'}).subscribe();
+      this.alertService.open($localize`Could not save that message.`, {appearance: 'negative'}).subscribe();
     }
   }
 
@@ -640,10 +640,10 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** An empty row says what the chat is, rather than repeating one generic absence. */
   protected emptyPreview(channel: Channel): string {
-    if (this.channels.isSelf(channel)) return 'Only you can see this';
-    if (this.channels.isAlmo(channel)) return 'Nothing said yet';
-    if (this.channels.isPublic(channel)) return 'No updates yet';
-    return 'No messages yet';
+    if (this.channels.isSelf(channel)) return $localize`Only you can see this`;
+    if (this.channels.isAlmo(channel)) return $localize`Nothing said yet`;
+    if (this.channels.isPublic(channel)) return $localize`No updates yet`;
+    return $localize`No messages yet`;
   }
 
   protected lastMessagePreview(channel: Channel): string {
@@ -693,7 +693,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: outgoingRequests => {
         this.outgoingRequests = outgoingRequests;
       },
-      error: error => this.showSocialLoadError('outgoing friend requests', error),
+      error: error => this.showSocialLoadError($localize`outgoing friend requests`, error),
     });
   }
 
@@ -709,7 +709,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           request => request.relationshipStatus === RelationshipStatus.PENDING_INCOMING
         ).length;
       },
-      error: error => this.showSocialLoadError('incoming friend requests', error),
+      error: error => this.showSocialLoadError($localize`incoming friend requests`, error),
     });
   }
 
@@ -723,7 +723,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.friends = friends;
         this.peopleUserTiles = friends;
       },
-      error: error => this.showSocialLoadError('friends', error),
+      error: error => this.showSocialLoadError($localize`friends`, error),
     });
   }
 
@@ -737,13 +737,13 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.blockedUsers = blocked;
         this.peopleUserTiles = blocked;
       },
-      error: error => this.showSocialLoadError('blocked users', error),
+      error: error => this.showSocialLoadError($localize`blocked users`, error),
     });
   }
 
   private showSocialLoadError(resource: string, error: unknown): void {
     logger.error(`Could not load ${resource}`, error);
-    this.alertService.open(`Could not load ${resource}. Please try again.`, {appearance: 'negative'}).subscribe();
+    this.alertService.open($localize`Could not load ${resource}:resource:. Please try again.`, {appearance: 'negative'}).subscribe();
   }
 
   protected candidateState(candidate: UserSearchResult): 'friend' | 'requested' | 'blocked' | 'none' {
@@ -796,9 +796,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
    * search row says "Friend"; everyone else is described by what they study.
    */
   protected personSubtitle(person: PublicUserProfile, relationship?: string): string {
-    if (relationship === 'friend') return 'Friend';
+    if (relationship === 'friend') return $localize`Friend`;
     if (!person.learning.length) return '';
-    return `Learning ${this.languageNames.getLanguageNames(person.learning).join(', ')}`;
+    return $localize`Learning ${this.languageNames.getLanguageNames(person.learning).join(', ')}:languages:`;
+  }
+
+  /** The disc in the chat list opens a profile card, and the label says whose. */
+  protected profileAriaLabel(name: string): string {
+    return $localize`Show profile of ${name}:name:`;
   }
 
   protected messageCandidate(candidate: UserSearchResult): void {
@@ -846,11 +851,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.outgoingRequests = this.outgoingRequests.filter(request => request.relationshipId !== friendshipId);
-          this.alertService.open('Friend request cancelled', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Friend request cancelled`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to cancel friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to cancel friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -873,11 +878,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
             .filter(profile => profile === candidate)
             .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
           this.acceptInProgressIds.delete(candidate.relationshipId);
-          this.alertService.open('Friend request accepted', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Friend request accepted`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to accept friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to accept friendship request`), {appearance: 'negative'}).subscribe();
           this.acceptInProgressIds.delete(candidate.relationshipId);
         }
       });
@@ -895,11 +900,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.incomingRequests = this.incomingRequests.filter(request => request.relationshipId !== id);
-          this.alertService.open('Friend request rejected', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Friend request rejected`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to reject friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to reject friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -919,11 +924,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         next: () => {
           this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
           this.peopleUserTiles = this.blockedUsers;
-          this.alertService.open('User unblocked', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`User unblocked`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to unblock user'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to unblock user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -946,8 +951,8 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           const username = this.matchedUsers.find(candidate => candidate.id === id)?.username;
-          const recipient = username ? `@${username}` : 'that user';
-          this.alertService.open(`Request sent to ${recipient}.`, {appearance: 'positive'}).subscribe();
+          const recipient = username ? `@${username}` : $localize`that user`;
+          this.alertService.open($localize`Request sent to ${recipient}:recipient:.`, {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
           this.matchedUsers = this.matchedUsers.map(user =>
             user.id === id ? {...user, relationshipStatus: RelationshipStatus.PENDING_OUTGOING} : user
@@ -955,7 +960,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         },
         error: (error) => {
           logger.error(error);
-          this.alertService.open(getErrorMessage(error, 'Failed to send friendship request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to send friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -965,12 +970,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.peopleUserTiles = this.friends;
-        this.alertService.open('That user is no longer your friend', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`That user is no longer your friend`, {appearance: 'positive'}).subscribe();
         this.setPeopleMode('friends');
       },
       error: (error) => {
         logger.error(error);
-        this.alertService.open(getErrorMessage(error, 'Failed to remove friend'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to remove friend`), {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -982,12 +987,12 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
         this.peopleUserTiles = this.friends;
-        this.alertService.open('User blocked', {appearance: 'positive'}).subscribe();
+        this.alertService.open($localize`User blocked`, {appearance: 'positive'}).subscribe();
         this.setPeopleMode('blocked');
       },
       error: (error) => {
         logger.error(error);
-        this.alertService.open(getErrorMessage(error, 'Failed to block user'), {appearance: 'negative'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to block user`), {appearance: 'negative'}).subscribe();
       }
     });
   }
@@ -999,14 +1004,14 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       this.peopleUserTiles = [];
       this.getIncomingRequests();
       this.getOutgoingRequests();
-      this.noResultMessage = `You have no friend requests.`;
+      this.noResultMessage = $localize`You have no friend requests.`;
     }
     if (this.peopleMode === 'friends') {
       this.getFriends();
-      this.noResultMessage = 'You have not added anyone yet.';
+      this.noResultMessage = $localize`You have not added anyone yet.`;
     }
     if (this.peopleMode === 'blocked') {
-      this.noResultMessage = `No one is blocked.`;
+      this.noResultMessage = $localize`No one is blocked.`;
       this.getBlocked();
     }
   }
@@ -1102,24 +1107,24 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   protected get emptyChannelTitle(): string {
-    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) return 'Your own notebook';
-    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) return 'Nothing said yet';
-    if (this.isActiveChannelReadOnly) return 'Nothing posted yet';
-    return 'No messages yet';
+    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) return $localize`Your own notebook`;
+    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) return $localize`Nothing said yet`;
+    if (this.isActiveChannelReadOnly) return $localize`Nothing posted yet`;
+    return $localize`No messages yet`;
   }
 
   protected get emptyChannelBody(): string {
     // 11: same voice as his channel: short, plain, no praise. The openers below are the other way in.
     if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) {
-      return 'Almo answers in the language of this chat. Write first, or take one of the openers below.';
+      return $localize`Almo answers in the language of this chat. Write first, or take one of the openers below.`;
     }
     if (this.activeChannel && this.channels.isSelf(this.activeChannel)) {
-      return 'Forward messages here, or write to yourself. Nobody else can see this chat.';
+      return $localize`Forward messages here, or write to yourself. Nobody else can see this chat.`;
     }
     if (this.isActiveChannelReadOnly) {
-      return `New books, packs and features for ${this.activeChannelTopic} will land here.`;
+      return $localize`New books, packs and features for ${this.activeChannelTopic}:topic: will land here.`;
     }
-    return 'Say hello — this is the start of the conversation.';
+    return $localize`Say hello — this is the start of the conversation.`;
   }
 
   protected isPeopleDataLoading() {
@@ -1462,9 +1467,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
     this.closeRowMenu(dropdown);
     this.confirmation.open({
-      title: 'Delete chat',
-      message: 'The chat and its messages are removed for both of you. This cannot be undone.',
-      confirmText: 'Delete',
+      title: $localize`Delete chat`,
+      message: $localize`The chat and its messages are removed for both of you. This cannot be undone.`,
+      confirmText: $localize`Delete`,
       action: () => void channel.delete(),
     });
   }
@@ -1472,9 +1477,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
     this.closeRowMenu(dropdown);
     this.confirmation.open({
-      title: 'Clear history',
-      message: 'Every message in this chat is removed for you. This cannot be undone.',
-      confirmText: 'Clear',
+      title: $localize`Clear history`,
+      message: $localize`Every message in this chat is removed for you. This cannot be undone.`,
+      confirmText: $localize`Clear`,
       action: () => void channel.truncate(),
     });
   }
@@ -1484,11 +1489,11 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
    * row menu; the header carries no permanent Leave button.
    */
   private confirmLeave(channel: Channel) {
-    const name = this.channels.name(channel, 'this channel');
+    const name = this.channels.name(channel, $localize`this channel`);
     this.confirmation.open({
-      title: `Leave ${name}?`,
-      message: `You will stop receiving ${this.channels.topic(channel)} updates here. You can rejoin from search at any time.`,
-      confirmText: 'Leave',
+      title: $localize`Leave ${name}:name:?`,
+      message: $localize`You will stop receiving ${this.channels.topic(channel)}:topic: updates here. You can rejoin from search at any time.`,
+      confirmText: $localize`Leave`,
       tone: 'default',
       action: () => {
         void channel.show();
@@ -1506,9 +1511,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {
     this.closePeople();
     this.confirmation.open({
-      title: 'Unfriend',
-      message: 'Are you sure you want to unfriend this user?',
-      confirmText: 'Unfriend',
+      title: $localize`Unfriend`,
+      message: $localize`Are you sure you want to unfriend this user?`,
+      confirmText: $localize`Unfriend`,
       action: () => this.unfriend(friendId, friendshipId),
     });
   }
@@ -1516,9 +1521,9 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   protected prepareBlockModal(friendId: string, friendshipId: string) {
     this.closePeople();
     this.confirmation.open({
-      title: 'Block User',
-      message: 'Are you sure you want to block this user?',
-      confirmText: 'Block',
+      title: $localize`Block User`,
+      message: $localize`Are you sure you want to block this user?`,
+      confirmText: $localize`Block`,
       action: () => this.block(friendId, friendshipId),
     });
   }

@@ -119,42 +119,47 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
    */
   protected get swapNote(): string {
     if (!this.policy || this.policy.allowance < 1) {
-      return `Making ${this.languageName} active again returns it to your target languages.`;
+      return $localize`Making ${this.languageName}:language: active again returns it to your target languages.`;
     }
     const active = this.policy.languages.find(choice => choice.active && choice.language !== this.language);
-    const replaced = active ? this.languageNameService.getLanguageName(active.language) : 'your active language';
-    const swap = `Making ${this.languageName} active sets ${replaced} aside in its place.`;
+    const replaced = active ? this.languageNameService.getLanguageName(active.language) : $localize`your active language`;
+    const swap = $localize`Making ${this.languageName}:language: active sets ${replaced}:replaced: aside in its place.`;
     const next = this.policy.nextSwitchAllowedAt;
     return next && !this.switchAvailable
-      ? `${swap} You can change again on ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
+      ? $localize`${swap}:swap: You can change again on ${new Intl.DateTimeFormat($localize.locale, {day: 'numeric', month: 'long'}).format(next)}:date:.`
       : swap;
   }
 
   protected get statusLine(): string {
     if (!this.rhythm) return '';
-    if (!this.setAside) return 'Active. Everything you learn here is counted.';
-    const date = this.rhythm.setAsideAt ? ` on ${this.formatDate(this.rhythm.setAsideAt)}` : '';
-    return `Set aside${date}. Everything is kept.`;
+    if (!this.setAside) return $localize`Active. Everything you learn here is counted.`;
+    return this.rhythm.setAsideAt
+      ? $localize`Set aside on ${this.formatDate(this.rhythm.setAsideAt)}:date:. Everything is kept.`
+      : $localize`Set aside. Everything is kept.`;
   }
 
   /** The sentence names the day the count stopped, so a still fraction reads as a record rather than a fault. */
   protected get recordSentence(): string {
     if (!this.rhythm) return '';
     const {met, counted} = this.pace;
-    if (counted === 0) return 'No weeks were counted before this language was set aside.';
+    if (counted === 0) return $localize`No weeks were counted before this language was set aside.`;
 
-    const kept = `${numberWord(met)} of ${numberWord(counted)} ${counted === 1 ? 'week' : 'weeks'}`;
+    const kept = counted === 1
+      ? $localize`${numberWord(met)}:met: of ${numberWord(counted)}:counted: week`
+      : $localize`${numberWord(met)}:met: of ${numberWord(counted)}:counted: weeks`;
     const bar = hasTarget(this.rhythm.target)
-      ? ` met your target of ${cadenceLabel(this.rhythm.target).toLowerCase()}`
-      : ' were learned in';
-    if (!this.setAside) return `${kept}${bar}. Tint shows time learning, not a score.`;
+      ? $localize` met your target of ${cadenceLabel(this.rhythm.target).toLowerCase()}:target:`
+      : $localize` were learned in`;
+    if (!this.setAside) return $localize`${kept}:kept:${bar}:bar:. Tint shows time learning, not a score.`;
 
-    const date = this.rhythm.setAsideAt ? `, when you set ${this.languageName} aside on ${this.formatDate(this.rhythm.setAsideAt)}` : '';
-    return `${kept}${bar}${date}. The weeks since are not counted against you.`;
+    const date = this.rhythm.setAsideAt
+      ? $localize`, when you set ${this.languageName}:language: aside on ${this.formatDate(this.rhythm.setAsideAt)}:date:`
+      : '';
+    return $localize`${kept}:kept:${bar}:bar:${date}:date:. The weeks since are not counted against you.`;
   }
 
   protected wordMeta(card: CardDto): string {
-    return card.iteration ? `seen ${card.iteration}×` : 'not yet reviewed';
+    return card.iteration ? $localize`seen ${card.iteration}:count:×` : $localize`not yet reviewed`;
   }
 
   /** How far a word has come, as pips rather than a number: the record shows keeping, not scoring. */
@@ -196,6 +201,6 @@ export class LanguageRecordComponent implements OnInit, OnDestroy {
 
   private formatDate(date: string): string {
     const [year, month, day] = date.split('-').map(Number);
-    return new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(new Date(year, month - 1, day));
+    return new Intl.DateTimeFormat($localize.locale, {day: 'numeric', month: 'long'}).format(new Date(year, month - 1, day));
   }
 }

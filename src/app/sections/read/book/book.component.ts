@@ -74,7 +74,9 @@ export class BookComponent implements OnInit, OnDestroy {
   /** Open requests this reader has on this book, one per language. */
   protected orderedLanguages: LanguageCode[] = [];
   protected withdrawing: LanguageCode | null = null;
-  protected languageSelectControl = new FormControl("Language");
+  /** Shown in the select until a language is picked; never a real language name, so it orders nothing. */
+  private readonly languagePrompt = $localize`Language`;
+  protected languageSelectControl = new FormControl(this.languagePrompt);
   protected bookLoading = true;
 
   ngOnInit() {
@@ -84,7 +86,7 @@ export class BookComponent implements OnInit, OnDestroy {
         this.supportedLanguages = languages;
       }
     });
-    this.languageSelectControl.setValue("Language");
+    this.languageSelectControl.setValue(this.languagePrompt);
     this.languageSelectControl.valueChanges.pipe(
       distinctUntilChanged(),
       takeUntil(this.destroy$)
@@ -103,7 +105,7 @@ export class BookComponent implements OnInit, OnDestroy {
           return this.readService.getPublicBook(slug).pipe(
             catchError(error => {
               logger.error(`Failed to fetch book data for slug ${slug}:`, error);
-              this.alertService.open('Failed to load book details.', {appearance: 'negative'}).subscribe();
+              this.alertService.open($localize`Failed to load book details.`, {appearance: 'negative'}).subscribe();
               this.book = null; // Clear book data on error
               this.cdr.detectChanges(); // Update view
               // Optional: Hide loading state indication here
@@ -118,8 +120,8 @@ export class BookComponent implements OnInit, OnDestroy {
         if (book) {
           this.book = book;
           this.bookId = book.id;
-          this.pageTitle.setTitle(`${book.title} by ${book.author} | Almonium`);
-          this.meta.updateTag({name: 'description', content: book.description || `Read ${book.title} by ${book.author} on Almonium.`});
+          this.pageTitle.setTitle($localize`${book.title}:title: by ${book.author}:author: | Almonium`);
+          this.meta.updateTag({name: 'description', content: book.description || $localize`Read ${book.title}:title: by ${book.author}:author: on Almonium.`});
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
           // Reset original language info before setting new value
           this.originalLanguage = book.originalLanguage
@@ -140,7 +142,7 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   get actionBtnLabel() {
-    return this.book?.progressPercentage ? "Continue Reading" : "Start Reading";
+    return this.book?.progressPercentage ? $localize`Continue Reading` : $localize`Start Reading`;
   }
 
   /**
@@ -231,16 +233,16 @@ export class BookComponent implements OnInit, OnDestroy {
     this.readService.orderTranslation(id, language)
       .pipe(finalize(() => {
         this.orderLoading = false;
-        this.languageSelectControl.setValue("Language");
+        this.languageSelectControl.setValue(this.languagePrompt);
       }))
       .subscribe({
         next: () => {
           this.orderedLanguages = [...this.orderedLanguages, language];
-          this.alertService.open('Translation requested', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Translation requested`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
           logger.error('Failed to order translation:', error);
-          this.alertService.open(getErrorMessage(error, 'Couldn\'t order translation'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't order translation`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -259,7 +261,7 @@ export class BookComponent implements OnInit, OnDestroy {
     let message: string;
     this.favoriteBlocked = true;
     if (!this.book?.favorite) {
-      message = 'Added to favorites';
+      message = $localize`Added to favorites`;
       this.readService.favoriteBook(this.bookId, this.book?.language)
         .pipe(finalize(() => this.favoriteBlocked = false))
         .subscribe({
@@ -269,11 +271,11 @@ export class BookComponent implements OnInit, OnDestroy {
             this.cdr.detectChanges();
           }, error: (error) => {
             logger.error('Failed to add to favorites:', error);
-            this.alertService.open(getErrorMessage(error, 'Couldn\'t add to favorites'), {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, $localize`Couldn't add to favorites`), {appearance: 'negative'}).subscribe();
           }
         });
     } else {
-      message = 'Removed from favorites'
+      message = $localize`Removed from favorites`;
       this.readService.unfavoriteBook(this.bookId, this.book?.language)
         .pipe(finalize(() => this.favoriteBlocked = false))
         .subscribe({
@@ -283,7 +285,7 @@ export class BookComponent implements OnInit, OnDestroy {
             this.cdr.detectChanges();
           }, error: (error) => {
             logger.error('Failed to add to favorites:', error);
-            this.alertService.open(getErrorMessage(error, 'Couldn\'t remove favorites'), {appearance: 'negative'}).subscribe();
+            this.alertService.open(getErrorMessage(error, $localize`Couldn't remove favorites`), {appearance: 'negative'}).subscribe();
           }
         });
     }
@@ -309,10 +311,10 @@ export class BookComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.orderedLanguages = this.orderedLanguages.filter(code => code !== language);
-          this.alertService.open('Translation request withdrawn', {appearance: 'positive'}).subscribe();
+          this.alertService.open($localize`Translation request withdrawn`, {appearance: 'positive'}).subscribe();
         }, error: (error) => {
           logger.error('Failed to withdraw translation request:', error);
-          this.alertService.open(getErrorMessage(error, 'Couldn\'t withdraw translation request'), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't withdraw translation request`), {appearance: 'negative'}).subscribe();
         }
       });
   }

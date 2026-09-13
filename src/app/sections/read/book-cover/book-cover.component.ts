@@ -20,6 +20,10 @@ export class BookCoverComponent implements OnChanges {
   @Input({required: true}) workSlug = '';
   @Input() coverUrl: string | null = null;
 
+  protected get coverLabel(): string {
+    return $localize`${this.title}:title: by ${this.author}:author: cover`;
+  }
+
   protected imageFailed = false;
   protected color: string = COVER_COLORS[0];
 

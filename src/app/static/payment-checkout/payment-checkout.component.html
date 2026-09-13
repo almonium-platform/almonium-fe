@@ -1,33 +1,33 @@
 <main class="checkout-page">
   <div class="checkout-shell">
     <header>
-      <span class="eyebrow">Checkout</span>
+      <span i18n class="eyebrow">Checkout</span>
       @if (summary) {
         <h1>{{ summary.planLabel }}</h1>
       } @else if (failed) {
-        <h1>Checkout unavailable</h1>
+        <h1 i18n>Checkout unavailable</h1>
       } @else {
-        <h1>Preparing secure checkout…</h1>
+        <h1 i18n>Preparing secure checkout…</h1>
       }
     </header>
 
     <div class="checkout-columns">
-      <section class="summary" aria-label="Order summary">
+      <section class="summary" aria-label="Order summary" i18n-aria-label>
         @if (summary) {
           <dl>
-            <div><dt>Charged now</dt><dd class="headline">{{ summary.chargedNow }}</dd></div>
-            <div><dt>Billed</dt><dd>{{ summary.billed }}</dd></div>
+            <div><dt i18n>Charged now</dt><dd class="headline">{{ summary.chargedNow }}</dd></div>
+            <div><dt i18n>Billed</dt><dd>{{ summary.billed }}</dd></div>
             @if (summary.equivalent) {
-              <div><dt>Equivalent</dt><dd class="muted">{{ summary.equivalent }}</dd></div>
+              <div><dt i18n>Equivalent</dt><dd class="muted">{{ summary.equivalent }}</dd></div>
             }
             @if (summary.renews) {
-              <div><dt>Renews</dt><dd>{{ summary.renews }}</dd></div>
+              <div><dt i18n>Renews</dt><dd>{{ summary.renews }}</dd></div>
             }
           </dl>
-          <p class="guarantee">14-day money-back guarantee</p>
-          <p class="footnote">Your founding-member price remains available while your subscription stays active.</p>
+          <p i18n class="guarantee">14-day money-back guarantee</p>
+          <p i18n class="footnote">Your founding-member price remains available while your subscription stays active.</p>
         } @else if (!failed) {
-          <p class="loading">Loading your order…</p>
+          <p i18n class="loading">Loading your order…</p>
         }
       </section>
 
@@ -36,7 +36,7 @@
         rather than by this template: Paddle takes ownership of that node and removes it, and a node Angular believes
         it still owns is not a node to hand over.
       -->
-      <section #frameHost class="paddle-host" aria-label="Payment details"></section>
+      <section #frameHost class="paddle-host" aria-label="Payment details" i18n-aria-label></section>
     </div>
   </div>
 </main>

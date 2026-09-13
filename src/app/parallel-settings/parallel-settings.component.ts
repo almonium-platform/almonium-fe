@@ -31,18 +31,18 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
   readonly modeConfigs: ModeConfig[] = [
     { // Index 0: Side By Side
       imageSrc: 'assets/img/icons/side.svg', // Replace with actual path
-      altText: 'Side by Side View',
-      explanation: 'Original and translation in aligned columns. Hover a sentence to match the pair.'
+      altText: $localize`Side by Side View`,
+      explanation: $localize`Original and translation in aligned columns. Hover a sentence to match the pair.`
     },
     { // Index 1: Overlay
       imageSrc: 'assets/img/icons/overlay.svg', // Replace with actual path
-      altText: 'Overlay View',
-      explanation: 'Tap a sentence to reveal its translation directly underneath.'
+      altText: $localize`Overlay View`,
+      explanation: $localize`Tap a sentence to reveal its translation directly underneath.`
     },
     { // Index 2: Inline
       imageSrc: 'assets/img/icons/inline.svg', // Replace with actual path
-      altText: 'Inline View',
-      explanation: 'Translation follows each original sentence in smaller grey text.'
+      altText: $localize`Inline View`,
+      explanation: $localize`Translation follows each original sentence in smaller grey text.`
     }
   ];
 

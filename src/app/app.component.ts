@@ -134,7 +134,7 @@ export class AppComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((message) => {
-        this.alertService.open(message?.notification?.body ?? "New Notification", {appearance: "info"}).subscribe();
+        this.alertService.open(message?.notification?.body ?? $localize`New Notification`, {appearance: "info"}).subscribe();
       });
   }
 }

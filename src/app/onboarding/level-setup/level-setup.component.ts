@@ -92,7 +92,7 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
         },
         error: error => {
           logger.error('Failed to save language level', error);
-          this.alertService.open('Failed to save your level', {appearance: 'negative'}).subscribe();
+          this.alertService.open($localize`Failed to save your level`, {appearance: 'negative'}).subscribe();
         },
       });
   }

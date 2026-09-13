@@ -67,7 +67,7 @@ export class PaymentCheckoutComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     const transactionId = new URLSearchParams(window.location.search).get('_ptxn');
     if (!transactionId) {
-      this.fail('This checkout link is missing its transaction.');
+      this.fail($localize`This checkout link is missing its transaction.`);
       return;
     }
     // Take the parameter out of the URL before Paddle loads. Paddle opens a checkout of its own the moment it sees
@@ -78,7 +78,7 @@ export class PaymentCheckoutComponent implements AfterViewInit {
     this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/billing/config`).pipe(
       map(parsePaddleCheckoutConfig),
       catchError(() => {
-        this.fail('Could not load the secure checkout. Please try again.');
+        this.fail($localize`Could not load the secure checkout. Please try again.`);
         return EMPTY;
       }),
     ).subscribe(config => {
@@ -88,7 +88,7 @@ export class PaymentCheckoutComponent implements AfterViewInit {
         eventCallback: event => this.onCheckoutEvent(event),
       }).then(paddle => {
         if (!paddle) {
-          this.fail('Could not load the secure checkout. Please try again.');
+          this.fail($localize`Could not load the secure checkout. Please try again.`);
           return;
         }
         this.createFrameTarget();
@@ -183,20 +183,20 @@ function buildSummary(data: unknown): CheckoutSummary | null {
 
   const charged = formatMoney(total, currency);
   return {
-    planLabel: [typeof productName === 'string' ? productName : 'Membership', cadenceWord(interval)]
+    planLabel: [typeof productName === 'string' ? productName : $localize`Membership`, cadenceWord(interval)]
       .filter(Boolean)
       .join(', '),
     chargedNow: charged,
-    billed: interval === 'year' ? `${charged} billed annually` : `${charged} billed monthly`,
+    billed: interval === 'year' ? $localize`${charged}:amount: billed annually` : $localize`${charged}:amount: billed monthly`,
     // Arithmetic on the figure above, and labelled as such. It is never the price.
-    equivalent: interval === 'year' ? `Equivalent to ${formatMoney(total / 12, currency)}/month` : null,
+    equivalent: interval === 'year' ? $localize`Equivalent to ${formatMoney(total / 12, currency)}:amount:/month` : null,
     renews: interval ? formatDate(addInterval(new Date(), interval, frequency)) : null,
   };
 }
 
 function cadenceWord(interval: string | null): string {
-  if (interval === 'year') return 'annual';
-  if (interval === 'month') return 'monthly';
+  if (interval === 'year') return $localize`annual`;
+  if (interval === 'month') return $localize`monthly`;
   return '';
 }
 
