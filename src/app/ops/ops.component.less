@@ -180,6 +180,23 @@
   letter-spacing: .01em;
 }
 
+/* An input with a small action beside it; the input keeps the width. */
+.ops-form__row {
+  display: flex;
+  align-items: stretch;
+  gap: .5rem;
+}
+
+.ops-form__row input {
+  flex: 1 1 auto;
+}
+
+.ops-button--inline {
+  flex: 0 0 auto;
+  padding-right: .85rem;
+  padding-left: .85rem;
+}
+
 .ops-form__field em {
   color: var(--ops-muted);
   font-size: .68rem;

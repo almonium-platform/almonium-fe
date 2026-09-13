@@ -519,6 +519,17 @@ export class OpsComponent implements OnInit {
     return [...totals.entries()].sort(([a], [b]) => b.localeCompare(a)).map(([day, usd]) => ({day, usd}));
   }
 
+  /** The ID is what support tickets and DB queries speak in, so it is one tap away. */
+  protected onCopyUserId(userId: string): void {
+    if (!userId) {
+      return;
+    }
+    navigator.clipboard.writeText(userId).then(
+      () => this.notify('User ID copied.', 'positive'),
+      () => this.notify('Could not copy the user ID.', 'negative'),
+    );
+  }
+
   private notify(message: string, appearance: 'positive' | 'negative'): void {
     this.alertService.open(message, {appearance}).subscribe();
   }

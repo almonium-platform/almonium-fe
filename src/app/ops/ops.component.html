@@ -81,7 +81,13 @@
       <form [formGroup]="form" class="ops-form">
         <label class="ops-form__field ops-form__field--wide">
           <span>User ID</span>
-          <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+          <div class="ops-form__row">
+            <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+            <button class="ops-button ops-button--quiet ops-button--inline" type="button"
+                    [disabled]="!form.controls.userId.value" (click)="onCopyUserId(form.controls.userId.value)">
+              Copy
+            </button>
+          </div>
         </label>
 
         <div class="ops-form__grid">
@@ -131,7 +137,13 @@
       <div class="ops-form__grid">
         <label class="ops-form__field">
           <span>User ID</span>
-          <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+          <div class="ops-form__row">
+            <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+            <button class="ops-button ops-button--quiet ops-button--inline" type="button"
+                    [disabled]="!limitsForm.controls.userId.value" (click)="onCopyUserId(limitsForm.controls.userId.value)">
+              Copy
+            </button>
+          </div>
         </label>
 
         <label class="ops-form__field">
