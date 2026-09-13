@@ -71,6 +71,17 @@ button { font: inherit; }
 .learner-record + .learner-record,
 .add-language-row { border-top: 1px solid var(--hairline-color); }
 
+/* A set-aside row sits on its own tinted ground, which does the separating a hairline would. */
+.learner-record.aside {
+  margin: 0 -.625rem;
+  padding: .1875rem .625rem .5rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+}
+
+.learner-record.aside,
+.learner-record.aside + .learner-record { border-top: 0; }
+
 .learner-row,
 .add-language-row {
   display: flex;
@@ -95,31 +106,49 @@ button { font: inherit; }
 
 .colour-trigger:hover,
 .colour-trigger.open { box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--brand-primary); }
+.aside .colour-trigger { box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--control-border-color); opacity: .45; }
+.aside .colour-trigger:hover,
+.aside .colour-trigger.open { box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--brand-primary); opacity: 1; }
 
 .empty-colour { border: 1px dashed var(--control-border-color); background: var(--nested-color); }
 
 .language-name,
 .add-language-row > span:nth-child(2) {
-  min-width: 7.5rem;
   color: var(--brand-ink);
   font-family: var(--font-family-reading);
   font-size: 1.0625rem;
   font-weight: 500;
 }
 
-.add-language-row > span:nth-child(2) { color: var(--metadata-color); }
-.learner-controls { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
+.add-language-row > span:nth-child(2) { min-width: 7.5rem; color: var(--metadata-color); }
+.aside .language-name { color: var(--metadata-color); }
+
+/* The state is said once, as a tag beside the name: this row also carries controls, and the word has to hold its
+   own against them. The same word sits under the name on the profile card. */
+.aside-tag {
+  padding: .125rem .375rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: .3125rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .625rem;
+  letter-spacing: .0375rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.learner-controls { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
 
 .level-select { position: relative; }
 
 /* Closed, this is the same pill the native select was: three of them stack in a card that must not grow. */
 .level-trigger {
   display: flex;
-  min-width: 3.75rem;
+  width: 3.875rem;
   align-items: center;
-  justify-content: space-between;
-  gap: .625rem;
-  padding: .3125rem .5625rem;
+  justify-content: center;
+  gap: .5rem;
+  padding: .375rem 0;
   border: 1px solid var(--control-border-color);
   border-radius: .5625rem;
   outline: none;
@@ -140,6 +169,18 @@ button { font: inherit; }
 .level-trigger:focus-visible,
 .level-trigger.open { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(90, 26, 116, .1); }
 .level-trigger:disabled { cursor: default; opacity: .5; }
+
+/* Frozen with the language: dashed, grey, and without the caret that would promise a list. */
+.level-trigger.frozen,
+.level-trigger.frozen:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--metadata-color);
+  opacity: 1;
+}
+
+.level-trigger.frozen::after { content: none; }
+.active-switch { display: flex; flex: 0 0 auto; }
 
 /* Only the open list is wide: it carries the onboarding sentence beside each code. */
 .level-list {
@@ -184,11 +225,12 @@ button { font: inherit; }
 .level-option.selected code { color: var(--brand-primary); }
 .level-option:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: -2px; }
 
-.delete-language,
+.row-action,
 .add-language {
   display: grid;
   width: 2rem;
   height: 2rem;
+  flex: 0 0 auto;
   place-items: center;
   padding: 0;
   border: 1px solid var(--control-border-color);
@@ -204,6 +246,19 @@ button { font: inherit; }
 .delete-language:hover { border-color: var(--danger-text-color); color: var(--danger-text-color); }
 .delete-language tui-icon,
 .add-language tui-icon { width: .9rem; height: .9rem; }
+
+/* A link out to the record, not an expander: the row's decision is taken there. */
+.open-record {
+  border-color: var(--control-border-color);
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.open-record:hover { border-color: var(--brand-primary); background: var(--card-color); }
+.empty-action { border-color: var(--hairline-color); background: transparent; cursor: default; }
 
 .colour-picker {
   width: min(100%, 27rem);
@@ -237,9 +292,9 @@ button { font: inherit; }
   .learning-layout { width: min(calc(100% - 1rem), 30rem); }
   .known-card,
   .learning-card { padding-right: 1rem; padding-left: 1rem; }
-  .language-name { min-width: 0; flex: 1; }
-  .learner-controls { gap: .625rem; }
+  .learner-controls { gap: .5rem; }
   .delete-language { opacity: .7; }
+  .language-copy { flex-wrap: wrap; gap: .25rem .5rem; }
 
   /* Narrower than the panel, so the panel stops hanging off the control and spans the row instead. */
   .level-select { position: static; }
@@ -250,11 +305,9 @@ button { font: inherit; }
 @media (max-width: 410px) {
   .learner-row { flex-wrap: wrap; padding: .75rem 0; }
   .learner-controls { width: 100%; justify-content: flex-end; }
+  .row-note { margin-left: 0; }
   .colour-picker { width: 100%; margin-left: 0; }
 }
-
-.view-record { color: var(--dark-raspberry); font-size: .78rem; white-space: nowrap; }
-.view-record:hover { text-decoration: underline; }
 
 /* The allowance is stated once for the section, not implied by every disabled row. */
 .learning-head {
@@ -274,44 +327,17 @@ button { font: inherit; }
   display: flex;
   min-width: 0;
   flex: 1;
-  flex-direction: column;
-  gap: .0625rem;
+  align-items: baseline;
+  gap: .5625rem;
 }
 
-.read-only-note {
+/* One line under the row, indented to the name, for whatever greys that row's control. */
+.row-note {
+  margin: -.375rem 0 .5rem 2.5rem;
   color: var(--metadata-color);
-  font-size: .71875rem;
-}
-
-.switch-wait-note {
-  margin: -.375rem 0 .75rem 2.5rem;
-  color: var(--metadata-color);
-  font-size: .71875rem;
-}
-
-.make-active {
-  padding: .3125rem .75rem;
-  border: 1px solid var(--secondary-control-border-color);
-  border-radius: 9999px;
-  background: var(--secondary-control-fill);
-  color: var(--brand-ink);
-  cursor: pointer;
   font-size: .75rem;
-  font-weight: 500;
-  white-space: nowrap;
 }
 
-.make-active:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
-}
-
-.make-active:disabled {
-  cursor: default;
-  opacity: .5;
-}
-
-/* Inside the cooldown this panel is the whole explanation. */
 .ceiling-note {
   color: var(--metadata-color);
   font-size: .78125rem;
@@ -337,13 +363,3 @@ button { font: inherit; }
 }
 
 .allowance-upgrade:hover { text-decoration: underline; }
-
-.cooldown-panel {
-  margin: .75rem 0 0;
-  padding: .6875rem .875rem;
-  border-radius: 12px;
-  background: var(--nested-color);
-  color: var(--subhead-color);
-  font-size: .78125rem;
-  line-height: 1.55;
-}

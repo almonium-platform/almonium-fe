@@ -131,6 +131,58 @@ describe('LangSettingsComponent', () => {
     expect(dropdown.removeTargetLanguage.calls.allArgs()).toEqual([[LanguageCode.EN]]);
   });
 
+  describe('the line under a set-aside row', () => {
+    function lockNoteHarness(nextSwitchAllowedAt: Date | null, wordsKept: number) {
+      const languageApi = jasmine.createSpyObj<LanguageApiService>('LanguageApiService', ['getActiveLanguagePolicy']);
+      languageApi.getActiveLanguagePolicy.and.returnValue(of({
+        allowance: 1,
+        allowanceWithoutPlan: 1,
+        nextSwitchAllowedAt,
+        languages: [{
+          language: LanguageCode.DE, cefrLevel: CEFRLevel.B1, wordsKept, lastReadOn: null, active: false, recommended: false,
+        }],
+      }));
+
+      TestBed.configureTestingModule({
+        providers: [
+          {provide: LanguageApiService, useValue: languageApi},
+          {provide: LanguageNameService, useValue: {}},
+          {provide: UserInfoService, useValue: {}},
+          {provide: TuiNotificationService, useValue: {}},
+          {provide: ChangeDetectorRef, useValue: {}},
+          {provide: TargetLanguageDropdownService, useValue: {}},
+          {provide: PopupTemplateStateService, useValue: {}},
+          {provide: ActivatedRoute, useValue: {}},
+          {provide: UrlService, useValue: {}},
+          {provide: RecentAuthGuardService, useValue: {}},
+          {provide: SupportedLanguagesService, useValue: {}},
+          {provide: UtilsService, useValue: {}},
+        ],
+      });
+
+      const component = TestBed.runInInjectionContext(() => new LangSettingsComponent()) as unknown as {
+        learners: Learner[];
+        loadPolicy(): void;
+        learnerLockNote(learner: Learner): string | null;
+      };
+      const german = new Learner('learner-de', LanguageCode.DE, CEFRLevel.B1, false);
+      component.learners = [german, new Learner('learner-en', LanguageCode.EN, CEFRLevel.B2, true)];
+      component.loadPolicy();
+      return {component, german};
+    }
+
+    it('names the day the cooldown lifts, since that is why the switch is greyed', () => {
+      const {component, german} = lockNoteHarness(new Date(Date.now() + 7 * 24 * 3600 * 1000), 3910);
+      const note = component.learnerLockNote(german)!;
+      expect(note.startsWith('Read-only. 3,910 words kept. Next switch ')).withContext(note).toBeTrue();
+    });
+
+    it('sends the reader to the record when the switch is greyed only by the allowance', () => {
+      const {component, german} = lockNoteHarness(null, 0);
+      expect(component.learnerLockNote(german)).toBe('Read-only. Make it active from its record.');
+    });
+  });
+
   it('keeps the add-language popup open while interacting with portaled dropdowns', fakeAsync(() => {
     const popupState = jasmine.createSpyObj<PopupTemplateStateService>('PopupTemplateStateService', ['open']);
     const content = {} as TemplateRef<unknown>;

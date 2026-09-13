@@ -14,7 +14,7 @@ import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
-import {AsyncPipe, DatePipe, DecimalPipe} from "@angular/common";
+import {AsyncPipe} from "@angular/common";
 import {TuiSwitch} from "@taiga-ui/kit/components";
 import {BehaviorSubject, filter, finalize, of, Subject, switchMap, takeUntil} from "rxjs";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
@@ -41,8 +41,6 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
     AsyncPipe,
-    DatePipe,
-    DecimalPipe,
     TuiIcon,
     TuiLoader,
     ConfirmModalComponent,
@@ -388,7 +386,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   /** Words kept in a language, so a read-only row says what it is holding rather than just that it is off. */
-  protected wordsKept(learner: Learner): number | null {
+  private wordsKept(learner: Learner): number | null {
     return this.policy?.languages.find(choice => choice.language === learner.language)?.wordsKept ?? null;
   }
 
@@ -401,53 +399,43 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * One visible line per row for whatever is greying that row's control: the last active language cannot be
-   * switched off, and past the allowance "Make active" waits out the cooldown. Hover text says neither on touch.
+   * One visible line per row for whatever is greying that row's control. An active row only ever says why it cannot
+   * be switched off. A set-aside row is read-only, so its line says what it is holding and, at the allowance where the
+   * switch is greyed, what still has to happen: the cooldown to run out, or the decision to be taken on its record.
    */
   protected learnerLockNote(learner: Learner): string | null {
-    if (learner.active && this.getActiveLearnersCount() === 1) {
+    if (learner.active) {
+      if (this.getActiveLearnersCount() !== 1) {
+        return null;
+      }
       return this.learners.length === 1
         ? 'This is your only language. Add another before you can turn it off.'
         : 'This is your only active language. Make another one active to turn it off.';
     }
-    if (!learner.active && this.atAllowance && !this.switchAvailable) {
-      return this.switchWaitNote;
+
+    const parts = ['Read-only.'];
+    const kept = this.wordsKept(learner);
+    if (kept) {
+      parts.push(`${new Intl.NumberFormat().format(kept)} words kept.`);
     }
-    return null;
+    if (this.atAllowance) {
+      const next = this.nextSwitchOn;
+      parts.push(!this.switchAvailable && next
+        ? `Next switch ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
+        : 'Make it active from its record.');
+    }
+    return parts.join(' ');
   }
 
   /**
-   * "Make active" greys for the rest of the cooldown. Naming the day it lifts is the whole explanation; without it
-   * the row shows the exit and hides the lock.
-   */
-  protected get switchWaitNote(): string {
-    const next = this.nextSwitchOn;
-    const used = 'This month\'s language switch is used.';
-    return next
-      ? `${used} You can change again on ${new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(next)}.`
-      : used;
-  }
-
-  /**
-   * At the allowance the toggle is display-only: turning one language on has to turn another off, and that swap is
-   * one atomic call made through "Make active" so the account can never sit at zero active languages.
+   * At the allowance the toggle is display-only: turning one language on has to turn another off, and that swap is a
+   * decision taken on the record page, with the word count and the next switch date in view.
    */
   protected activeToggleDisabled(learner: Learner): boolean {
     if (learner.active) {
       return this.getActiveLearnersCount() === 1;
     }
     return this.atAllowance;
-  }
-
-  protected makeActiveDisabled(learner: Learner): boolean {
-    return this.updatingLearnerIds.has(learner.id) || !this.switchAvailable;
-  }
-
-  protected makeActive(learner: Learner): void {
-    if (this.makeActiveDisabled(learner)) {
-      return;
-    }
-    this.onToggleActiveStatus(true, learner);
   }
 
   protected getActiveLearnersCount(): number {
@@ -578,7 +566,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       return 'You must have at least one active target language';
     }
     if (!learner.active && this.atAllowance) {
-      return 'Use Make active to change which language is active';
+      return 'Open its record to make it active';
     }
     if (learner.active) {
       return 'Deactivating language removes it from the navbar dropdown';

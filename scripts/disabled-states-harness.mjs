@@ -237,36 +237,49 @@ const CARDS = [
   {
     id: 'learner-lock',
     title: 'Settings · Languages — a locked learner row',
-    source: 'lang-settings.component.html:145',
-    rule: 'Was a tuiHint on one control and nothing on the other. Now one line per row, whichever rule applies.',
+    source: 'lang-settings.component.html:82,172',
+    rule: 'One line per row, whichever rule applies. A set-aside row keeps the same five slots as an active one, so the two align down the right edge.',
     control: {
       label: 'row state',
       type: 'select',
       options: [
         {value: 'only-active', label: 'the only active language', note: 'This is your only active language. Make another one active to turn it off.', blocked: true},
-        {value: 'cooldown', label: 'set aside, switch on cooldown', note: "This month's language switch is used. You can change again on 4 October.", blocked: true},
+        {value: 'cooldown', label: 'set aside, switch on cooldown', note: 'Read-only. 214 words kept. Next switch 4 October.', blocked: true},
+        {value: 'record', label: 'set aside, switch available', note: 'Read-only. 214 words kept. Make it active from its record.', blocked: true},
         {value: 'free', label: 'nothing blocked', note: '', blocked: false},
       ],
     },
     body: `
       <div class="scope-lang-settings harness-frame">
         <div class="learning-card card">
-          <div class="learning-head"><div class="eyebrow">I'm Learning</div><span class="allowance-count">1 of 1 active</span></div>
+          <div class="learning-head"><div class="eyebrow">I'm Learning</div><span class="allowance-count">1 of 2 active</span></div>
           <div class="learner-list">
-            <div class="learner-record">
+            <div class="learner-record" data-aside-row>
               <div class="learner-row">
                 <button type="button" class="colour-trigger" style="background:#7A6BB8"></button>
                 <div class="language-copy">
                   <strong class="language-name">French</strong>
-                  <span class="read-only-note" data-readonly hidden>Read-only · 214 words kept</span>
+                  <span class="aside-tag" data-aside-tag hidden>Set aside</span>
                 </div>
                 <div class="learner-controls">
-                  <div class="level-select"><button type="button" class="level-trigger">B1</button></div>
-                  <span class="harness-stub-switch" data-blocked data-on></span>
-                  <button type="button" class="make-active" data-blocked data-make-active hidden>Make active</button>
+                  <div class="level-select"><button type="button" class="level-trigger" data-level>B1</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-blocked data-on></span></span>
+                  <a class="row-action open-record" href="#learner-lock" data-open-record hidden>›</a>
+                  <span class="row-action empty-action" data-empty-action></span>
                 </div>
               </div>
-              <p class="switch-wait-note" data-note>This is your only active language. Make another one active to turn it off.</p>
+              <p class="row-note" data-note>This is your only active language. Make another one active to turn it off.</p>
+            </div>
+            <div class="learner-record">
+              <div class="learner-row">
+                <button type="button" class="colour-trigger" style="background:#a08a3c"></button>
+                <div class="language-copy"><strong class="language-name">English</strong></div>
+                <div class="learner-controls">
+                  <div class="level-select"><button type="button" class="level-trigger">B2</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-on></span></span>
+                  <span class="row-action empty-action"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -403,10 +416,15 @@ const SCRIPT = `
         card.querySelector('[data-premium-cta]').hidden = select.value !== 'premium';
       }
       if (select.dataset.card === 'learner-lock') {
-        const setAside = select.value === 'cooldown';
-        card.querySelector('[data-readonly]').hidden = !setAside;
-        card.querySelector('[data-make-active]').hidden = !setAside;
-        card.querySelector('.harness-stub-switch').toggleAttribute('data-on', !setAside);
+        const setAside = select.value === 'cooldown' || select.value === 'record';
+        card.querySelector('[data-aside-row]').classList.toggle('aside', setAside);
+        card.querySelector('[data-aside-tag]').hidden = !setAside;
+        card.querySelector('[data-open-record]').hidden = !setAside;
+        card.querySelector('[data-empty-action]').hidden = setAside;
+        const level = card.querySelector('[data-level]');
+        level.classList.toggle('frozen', setAside);
+        level.disabled = setAside;
+        card.querySelector('[data-blocked].harness-stub-switch').toggleAttribute('data-on', !setAside);
       }
     };
     select.addEventListener('change', apply);

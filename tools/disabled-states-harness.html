@@ -1652,10 +1652,15 @@ tui-data-list button[tuiOption].context-button.negative {
   }
 }
 .scope-lang-settings {
+  /* A set-aside row sits on its own tinted ground, which does the separating a hairline would. */
+  /* The state is said once, as a tag beside the name: this row also carries controls, and the word has to hold its
+   own against them. The same word sits under the name on the profile card. */
   /* Closed, this is the same pill the native select was: three of them stack in a card that must not grow. */
+  /* Frozen with the language: dashed, grey, and without the caret that would promise a list. */
   /* Only the open list is wide: it carries the onboarding sentence beside each code. */
+  /* A link out to the record, not an expander: the row's decision is taken there. */
   /* The allowance is stated once for the section, not implied by every disabled row. */
-  /* Inside the cooldown this panel is the whole explanation. */
+  /* One line under the row, indented to the name, for whatever greys that row's control. */
 }
 .scope-lang-settings :host {
   --tui-background-accent-1: var(--brand-primary);
@@ -1744,6 +1749,16 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .add-language-row {
   border-top: 1px solid var(--hairline-color);
 }
+.scope-lang-settings .learner-record.aside {
+  margin: 0 -0.625rem;
+  padding: 0.1875rem 0.625rem 0.5rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+}
+.scope-lang-settings .learner-record.aside,
+.scope-lang-settings .learner-record.aside + .learner-record {
+  border-top: 0;
+}
 .scope-lang-settings .learner-row,
 .scope-lang-settings .add-language-row {
   display: flex;
@@ -1767,25 +1782,48 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .colour-trigger.open {
   box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--brand-primary);
 }
+.scope-lang-settings .aside .colour-trigger {
+  box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--control-border-color);
+  opacity: 0.45;
+}
+.scope-lang-settings .aside .colour-trigger:hover,
+.scope-lang-settings .aside .colour-trigger.open {
+  box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--brand-primary);
+  opacity: 1;
+}
 .scope-lang-settings .empty-colour {
   border: 1px dashed var(--control-border-color);
   background: var(--nested-color);
 }
 .scope-lang-settings .language-name,
 .scope-lang-settings .add-language-row > span:nth-child(2) {
-  min-width: 7.5rem;
   color: var(--brand-ink);
   font-family: var(--font-family-reading);
   font-size: 1.0625rem;
   font-weight: 500;
 }
 .scope-lang-settings .add-language-row > span:nth-child(2) {
+  min-width: 7.5rem;
   color: var(--metadata-color);
+}
+.scope-lang-settings .aside .language-name {
+  color: var(--metadata-color);
+}
+.scope-lang-settings .aside-tag {
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.3125rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.0375rem;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .scope-lang-settings .learner-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-left: auto;
 }
 .scope-lang-settings .level-select {
@@ -1793,11 +1831,11 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-lang-settings .level-trigger {
   display: flex;
-  min-width: 3.75rem;
+  width: 3.875rem;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.625rem;
-  padding: 0.3125rem 0.5625rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
   border: 1px solid var(--control-border-color);
   border-radius: 0.5625rem;
   outline: none;
@@ -1821,6 +1859,20 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .level-trigger:disabled {
   cursor: default;
   opacity: 0.5;
+}
+.scope-lang-settings .level-trigger.frozen,
+.scope-lang-settings .level-trigger.frozen:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--metadata-color);
+  opacity: 1;
+}
+.scope-lang-settings .level-trigger.frozen::after {
+  content: none;
+}
+.scope-lang-settings .active-switch {
+  display: flex;
+  flex: 0 0 auto;
 }
 .scope-lang-settings .level-list {
   position: absolute;
@@ -1872,11 +1924,12 @@ tui-data-list button[tuiOption].context-button.negative {
   outline: 2px solid var(--brand-primary);
   outline-offset: -2px;
 }
-.scope-lang-settings .delete-language,
+.scope-lang-settings .row-action,
 .scope-lang-settings .add-language {
   display: grid;
   width: 2rem;
   height: 2rem;
+  flex: 0 0 auto;
   place-items: center;
   padding: 0;
   border: 1px solid var(--control-border-color);
@@ -1901,6 +1954,23 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .add-language tui-icon {
   width: 0.9rem;
   height: 0.9rem;
+}
+.scope-lang-settings .open-record {
+  border-color: var(--control-border-color);
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+}
+.scope-lang-settings .open-record:hover {
+  border-color: var(--brand-primary);
+  background: var(--card-color);
+}
+.scope-lang-settings .empty-action {
+  border-color: var(--hairline-color);
+  background: transparent;
+  cursor: default;
 }
 .scope-lang-settings .colour-picker {
   width: min(100%, 27rem);
@@ -1965,15 +2035,15 @@ tui-data-list button[tuiOption].context-button.negative {
     padding-right: 1rem;
     padding-left: 1rem;
   }
-  .scope-lang-settings .language-name {
-    min-width: 0;
-    flex: 1;
-  }
   .scope-lang-settings .learner-controls {
-    gap: 0.625rem;
+    gap: 0.5rem;
   }
   .scope-lang-settings .delete-language {
     opacity: 0.7;
+  }
+  .scope-lang-settings .language-copy {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
   }
   .scope-lang-settings .level-select {
     position: static;
@@ -1996,18 +2066,13 @@ tui-data-list button[tuiOption].context-button.negative {
     width: 100%;
     justify-content: flex-end;
   }
+  .scope-lang-settings .row-note {
+    margin-left: 0;
+  }
   .scope-lang-settings .colour-picker {
     width: 100%;
     margin-left: 0;
   }
-}
-.scope-lang-settings .view-record {
-  color: var(--dark-raspberry);
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
-.scope-lang-settings .view-record:hover {
-  text-decoration: underline;
 }
 .scope-lang-settings .learning-head {
   display: flex;
@@ -2024,36 +2089,13 @@ tui-data-list button[tuiOption].context-button.negative {
   display: flex;
   min-width: 0;
   flex: 1;
-  flex-direction: column;
-  gap: 0.0625rem;
+  align-items: baseline;
+  gap: 0.5625rem;
 }
-.scope-lang-settings .read-only-note {
+.scope-lang-settings .row-note {
+  margin: -0.375rem 0 0.5rem 2.5rem;
   color: var(--metadata-color);
-  font-size: 0.71875rem;
-}
-.scope-lang-settings .switch-wait-note {
-  margin: -0.375rem 0 0.75rem 2.5rem;
-  color: var(--metadata-color);
-  font-size: 0.71875rem;
-}
-.scope-lang-settings .make-active {
-  padding: 0.3125rem 0.75rem;
-  border: 1px solid var(--secondary-control-border-color);
-  border-radius: 9999px;
-  background: var(--secondary-control-fill);
-  color: var(--brand-ink);
-  cursor: pointer;
   font-size: 0.75rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.scope-lang-settings .make-active:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
-}
-.scope-lang-settings .make-active:disabled {
-  cursor: default;
-  opacity: 0.5;
 }
 .scope-lang-settings .ceiling-note {
   color: var(--metadata-color);
@@ -2078,15 +2120,6 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-lang-settings .allowance-upgrade:hover {
   text-decoration: underline;
-}
-.scope-lang-settings .cooldown-panel {
-  margin: 0.75rem 0 0;
-  padding: 0.6875rem 0.875rem;
-  border-radius: 12px;
-  background: var(--nested-color);
-  color: var(--subhead-color);
-  font-size: 0.78125rem;
-  line-height: 1.55;
 }
 .scope-discover :host {
   display: block;
@@ -2749,32 +2782,44 @@ tui-data-list button[tuiOption].context-button.negative {
   <section class="harness-card" id="learner-lock">
     <header>
       <h2>Settings · Languages — a locked learner row</h2>
-      <p class="harness-source">lang-settings.component.html:145</p>
-      <p class="harness-rule">Was a tuiHint on one control and nothing on the other. Now one line per row, whichever rule applies.</p>
+      <p class="harness-source">lang-settings.component.html:82,172</p>
+      <p class="harness-rule">One line per row, whichever rule applies. A set-aside row keeps the same five slots as an active one, so the two align down the right edge.</p>
       <label class="harness-toggle">
       <code>row state</code>
-      <select data-card="learner-lock"><option value="only-active" selected>the only active language</option><option value="cooldown">set aside, switch on cooldown</option><option value="free">nothing blocked</option></select>
+      <select data-card="learner-lock"><option value="only-active" selected>the only active language</option><option value="cooldown">set aside, switch on cooldown</option><option value="record">set aside, switch available</option><option value="free">nothing blocked</option></select>
     </label>
     </header>
     
       <div class="scope-lang-settings harness-frame">
         <div class="learning-card card">
-          <div class="learning-head"><div class="eyebrow">I'm Learning</div><span class="allowance-count">1 of 1 active</span></div>
+          <div class="learning-head"><div class="eyebrow">I'm Learning</div><span class="allowance-count">1 of 2 active</span></div>
           <div class="learner-list">
-            <div class="learner-record">
+            <div class="learner-record" data-aside-row>
               <div class="learner-row">
                 <button type="button" class="colour-trigger" style="background:#7A6BB8"></button>
                 <div class="language-copy">
                   <strong class="language-name">French</strong>
-                  <span class="read-only-note" data-readonly hidden>Read-only · 214 words kept</span>
+                  <span class="aside-tag" data-aside-tag hidden>Set aside</span>
                 </div>
                 <div class="learner-controls">
-                  <div class="level-select"><button type="button" class="level-trigger">B1</button></div>
-                  <span class="harness-stub-switch" data-blocked data-on></span>
-                  <button type="button" class="make-active" data-blocked data-make-active hidden>Make active</button>
+                  <div class="level-select"><button type="button" class="level-trigger" data-level>B1</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-blocked data-on></span></span>
+                  <a class="row-action open-record" href="#learner-lock" data-open-record hidden>›</a>
+                  <span class="row-action empty-action" data-empty-action></span>
                 </div>
               </div>
-              <p class="switch-wait-note" data-note>This is your only active language. Make another one active to turn it off.</p>
+              <p class="row-note" data-note>This is your only active language. Make another one active to turn it off.</p>
+            </div>
+            <div class="learner-record">
+              <div class="learner-row">
+                <button type="button" class="colour-trigger" style="background:#a08a3c"></button>
+                <div class="language-copy"><strong class="language-name">English</strong></div>
+                <div class="learner-controls">
+                  <div class="level-select"><button type="button" class="level-trigger">B2</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-on></span></span>
+                  <span class="row-action empty-action"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2806,7 +2851,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"This month's language switch is used. You can change again on 4 October.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {
@@ -2850,10 +2895,15 @@ tui-data-list button[tuiOption].context-button.negative {
         card.querySelector('[data-premium-cta]').hidden = select.value !== 'premium';
       }
       if (select.dataset.card === 'learner-lock') {
-        const setAside = select.value === 'cooldown';
-        card.querySelector('[data-readonly]').hidden = !setAside;
-        card.querySelector('[data-make-active]').hidden = !setAside;
-        card.querySelector('.harness-stub-switch').toggleAttribute('data-on', !setAside);
+        const setAside = select.value === 'cooldown' || select.value === 'record';
+        card.querySelector('[data-aside-row]').classList.toggle('aside', setAside);
+        card.querySelector('[data-aside-tag]').hidden = !setAside;
+        card.querySelector('[data-open-record]').hidden = !setAside;
+        card.querySelector('[data-empty-action]').hidden = setAside;
+        const level = card.querySelector('[data-level]');
+        level.classList.toggle('frozen', setAside);
+        level.disabled = setAside;
+        card.querySelector('[data-blocked].harness-stub-switch').toggleAttribute('data-on', !setAside);
       }
     };
     select.addEventListener('change', apply);

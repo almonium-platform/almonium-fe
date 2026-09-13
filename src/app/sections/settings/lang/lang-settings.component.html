@@ -63,7 +63,9 @@
 
       <div class="learner-list">
         @for (learner of learners; track learner.id; let index = $index) {
-          <div class="learner-record">
+          <!-- Every row fills the same five slots — swatch, name, level, switch, action — so the rows align
+               down the right edge whichever state they are in. -->
+          <div class="learner-record" [class.aside]="!learner.active">
             <div class="learner-row">
               <button
                 type="button"
@@ -77,11 +79,8 @@
 
               <div class="language-copy">
                 <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
-                @if (!learner.active && atAllowance) {
-                  <span class="read-only-note">
-                    Read-only
-                    @if (wordsKept(learner); as kept) { &middot; {{ kept | number }} words kept }
-                  </span>
+                @if (!learner.active) {
+                  <span class="aside-tag">Set aside</span>
                 }
               </div>
 
@@ -98,7 +97,8 @@
                     type="button"
                     class="level-trigger"
                     [class.open]="levelPickerLearnerId === learner.id"
-                    [disabled]="updatingLearnerIds.has(learner.id)"
+                    [class.frozen]="!learner.active"
+                    [disabled]="!learner.active || updatingLearnerIds.has(learner.id)"
                     aria-haspopup="listbox"
                     [attr.aria-expanded]="levelPickerLearnerId === learner.id"
                     [attr.aria-label]="'Level for ' + getLanguageName(learner.language) + ': ' + levelSentence(learner.selfReportedLevel)"
@@ -129,6 +129,7 @@
                 </div>
 
                 <div
+                  class="active-switch"
                   tuiHintAppearance="dark"
                   tuiHintDirection="bottom"
                   tuiHint
@@ -144,37 +145,31 @@
                   />
                 </div>
 
-                @if (!learner.active && atAllowance) {
-                  <button
-                    type="button"
-                    class="make-active"
-                    [disabled]="makeActiveDisabled(learner)"
-                    (click)="makeActive(learner)"
-                  >Make active</button>
-                }
-
+                <!-- The action slot: a set-aside row leaves for its record, where the word count and the next switch
+                     date are in view before deciding to make it active. No delete on a read-only row — removing a
+                     language here is indistinguishable from losing it. -->
                 @if (!learner.active) {
                   <a
-                    class="view-record"
+                    class="row-action open-record"
                     [routerLink]="['/settings/me/language', learner.language.toLowerCase()]"
-                  >View record</a>
-                }
-
-                <!-- No delete on a read-only row: removing a language here is indistinguishable from losing it. -->
-                @if (learners.length > 1 && learner.active) {
+                    [attr.aria-label]="'Open the ' + getLanguageName(learner.language) + ' record'"
+                  >›</a>
+                } @else if (learners.length > 1) {
                   <button
                     type="button"
-                    class="delete-language"
+                    class="row-action delete-language"
                     (click)="deleteTargetLang(learner)"
                     [attr.aria-label]="'Delete ' + getLanguageName(learner.language)">
                     <tui-icon icon="@tui.trash-2" />
                   </button>
+                } @else {
+                  <span class="row-action empty-action" aria-hidden="true"></span>
                 }
               </div>
             </div>
 
             @if (learnerLockNote(learner); as note) {
-              <p class="switch-wait-note">{{ note }}</p>
+              <p class="row-note">{{ note }}</p>
             }
 
             @if (colourPickerLanguage === learner.language) {
@@ -212,12 +207,6 @@
           <p class="allowance-panel">
             {{ allowanceNote }}
             <button type="button" class="allowance-upgrade" (click)="openPaywall()">See plans</button>
-          </p>
-        }
-
-        @if (atAllowance && !switchAvailable && nextSwitchOn) {
-          <p class="cooldown-panel">
-            You can change your active language once a month. Next change available {{ nextSwitchOn | date: 'd MMMM' }}.
           </p>
         }
       </div>
