@@ -1,198 +1,95 @@
-<div class="base-container">
-  <div class="left-section">
-    <a
-      class="game-card ladder-card solo-game">
-      <div class="game-img ladder-img">
-        @if (book) {
-          <app-book-cover
-            [title]="book.title"
-            [author]="book.author"
-            [workSlug]="book.workSlug"
-            [coverUrl]="book.coverUrl"
-          ></app-book-cover>
-        } @else {
-          <img [tuiSkeleton]="true" alt="book cover image" i18n-alt src=""/>
-        }
-      </div>
-    </a>
-    <app-button
-      [label]="actionBtnLabel"
-      width="full"
-      [skeleton]="bookLoading"
-      class="action-btn"
-      (click)="goToReader()"
-    ></app-button>
-
-  </div>
-
-  <!-- Right Section: Show actual content OR skeleton placeholders -->
-  <div class="right-section">
-    @if (book) {
-      <!-- === START: Actual Book Content (Your existing code) === -->
-      <div class="description-section">
-        <h1 class="title">{{ book.title }}</h1>
-        <p class="author">{{ book.author }}</p>
-
-        @if (authenticated) {
-          <div class="book-actions">
-            <lucide-icon
-              [name]="bookmarkIcon"
-              class="bookmark"
-              (click)="onBookmarkClick()"
-              [ngStyle]="{'color': getBookmarkColor() }"
-              [strokeWidth]="1.2"
-            ></lucide-icon>
+<ng-template #requestSheet>
+  <div class="sheet">
+    @if (sheetLanguage; as language) {
+      @if (!atRequestCap) {
+        <h2 class="sheet__title" i18n>{{ languageName(language) }} for <em>{{ book?.title }}</em></h2>
+        <p class="sheet__copy" i18n>We add requested translations as we go. There is no date and no queue position — when this one is ready, you get an email.</p>
+        @if (requestUseLabel(); as note) { <p class="sheet__note">{{ note }}</p> }
+        <div class="sheet__actions">
+          <button type="button" class="sheet__primary" [disabled]="orderLoading" (click)="confirmRequest()">{{ requestButtonLabel(language) }}</button>
+          <button i18n type="button" class="sheet__quiet" (click)="closeSheet()">Not now</button>
+        </div>
+      } @else {
+        <h2 class="sheet__title">{{ capTitle }}</h2>
+        <p class="sheet__copy">{{ capCopy }}</p>
+        @for (order of periodOrders; track order.id) {
+          <div class="sheet__row">
+            <span class="sheet__row-copy"><strong>{{ order.bookTitle }} → {{ languageName(order.language) }}</strong><small i18n>Asked {{ order.createdAt | date:'d MMM' }}</small></span>
+            <button i18n type="button" class="sheet__link" [disabled]="withdrawing === order.language" (click)="withdrawFromSheet(order)">Withdraw</button>
           </div>
         }
+        @if (!premium) { <p i18n class="sheet__upsell">Premium gets three a month, read first.</p> }
+        <div class="sheet__actions">
+          <button i18n type="button" class="sheet__quiet" (click)="closeSheet()">Not now</button>
+        </div>
+      }
+    }
+  </div>
+</ng-template>
 
-        <div class="block">
-          <div class="original">
-            <label
-              tuiChip
-              size="s"
-              class="chip"
-              appearance="neutral"
-              [style.background-color]="bookLanguage | tuiAutoColor"
-            >
-              <input
-                hidden
-                type="checkbox"
-              />
-              {{ bookLanguage }}
-              <p class="inner-text">{{ book.cefrLevel }}</p>
-            </label>
-            •
-            <p i18n class="pages">{pages, plural, =1 {1 page} other {{{pages}} pages}}</p>
-            •
-            <p i18n class="pages">Published in {{ book.publicationYear }}</p>
-            @if (book.isTranslation && originalLanguage) {
-              •
-              <p i18n class="pages">Translated by <em>{{ book.translator }}</em></p>
-            }
+<div class="base-container book-page">
+  <article class="book-card" [class.book-card--loading]="bookLoading">
+    @if (book) {
+      <header class="book-head">
+        <a class="book-thumb" [routerLink]="['/reader', bookSlug]" [attr.aria-label]="actionBtnLabel">
+          <app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover>
+        </a>
+        <div class="book-head__copy">
+          <h1 class="book-title">{{ book.title }}</h1>
+          <p class="book-meta">{{ book.author }} · {{ bookLanguage }} · {{ book.cefrLevel }}</p>
+          <div class="book-pills">
+            <span i18n class="pill">{pages, plural, =1 {1 page} other {{{pages}} pages}}</span>
+            @if (book.publicationYear) { <span i18n class="pill">Published {{ book.publicationYear }}</span> }
+            @if (book.isTranslation && book.translator) { <span i18n class="pill">Translated by {{ book.translator }}</span> }
           </div>
         </div>
-
-        @if (book.description) {
-          <div class="block book-description">
-            <p>{{ book.description }}</p>
-          </div>
-        }
-
-        @if (book.isTranslation) {
-          <div class="block">
-            <p i18n class="label">
-              Read in parallel with original
-
-            </p>
-            <div class="translation">
-              <app-parallel-translation></app-parallel-translation>
-              <span tuiChip
-                class="chip"
-                appearance="neutral"
-                [style.background-color]="originalLanguage! | tuiAutoColor"
-                (keydown.enter)="onOriginalLanguageClick()" tabindex="0" (click)="onOriginalLanguageClick()"
-              >
-                {{ originalLanguage }}
-              </span>
-            </div>
-          </div>
-        }
-
-        <div class="block">
-          @if (book.isTranslation) {
-            <p i18n class="label">Also translated to</p>
-          } @else {
-            <p i18n class="label">Parallel translations</p>
+        <div class="book-head__actions">
+          @if (authenticated) {
+            <button type="button" class="bookmark" [class.bookmark--on]="book.favorite" [attr.aria-pressed]="book.favorite" [attr.aria-label]="bookmarkLabel" (click)="onBookmarkClick()">
+              <lucide-icon [name]="bookmarkIcon" [strokeWidth]="1.4" size="22"></lucide-icon>
+            </button>
           }
-          <div class="translation">
-            @if (!book.isTranslation) {
-              <app-parallel-translation></app-parallel-translation>
-            }
-            @for (language of availableTranslations; track language) {
-              <span tuiChip
-                class="chip"
-                [style.background-color]="language | tuiAutoColor"
-                (keydown.enter)="onTranslatedLanguageClick(language)" tabindex="0" (click)="onTranslatedLanguageClick(language)"
-              >{{ language }}
-              </span>
-            }
-            @for (ordered of orderedLanguageNames; track ordered.code) {
-              <span tuiChip
-                class="edit-chip edit-chip--no-hover"
-                appearance="outline"
-                [tuiHintAppearance]="'dark'"
-                tuiHintDirection="bottom"
-                [tuiHint]="orderTooltip"
-                [tuiSkeleton]="withdrawing === ordered.code"
-              >
-                <ng-template #orderTooltip>
-                  <div i18n>
-                    Your AI translation request is queued. We will notify you when it is available.
-                  </div>
-                </ng-template>
-                {{ ordered.name }}
-                <p i18n class="inner-text">REQUESTED</p>
-                <lucide-icon class="cursor-pointer" name="circle-x" [size]="16" (click)="cancelOrder(ordered.code)"></lucide-icon>
-              </span>
-            }
-            @if (languagesAvailableForOrder.length > 0) {
-              @if (showLangDropdown) {
-                <tui-textfield
-                  tuiChevron
-                  [tuiTextfieldSize]="'s'"
-                  class="language-select"
-                  (clickOutside)="onClickOutsideLanguageDropdown()"
-                >
-                  <input
-                    tuiSelect
-                    [formControl]="languageSelectControl"
-                    placeholder="Language.." i18n-placeholder
-                  />
+          <button type="button" class="read-action" (click)="goToReader()">{{ actionBtnLabel }}</button>
+        </div>
+      </header>
 
-                  <tui-data-list-wrapper
-                    new
-                    *tuiDropdown
-                    [items]="languagesAvailableForOrder"
-                  />
-                </tui-textfield>
-              } @else {
-                <span i18n tuiChip
-                  class="edit-chip"
-                  appearance="outline"
-                  (keydown.enter)="openLanguageDropdown()" tabindex="0" (click)="openLanguageDropdown()"
-                  [tuiSkeleton]="orderLoading"
-                >
-                  <lucide-icon name="plus"
-                               [size]="15"
-                               [strokeWidth]="1.7"
-                  >
-                  </lucide-icon>
-                  Request AI translation
-                </span>
+      @if (book.description) { <p class="book-description">{{ book.description }}</p> }
+
+      <span class="hairline" aria-hidden="true"></span>
+
+      <section class="parallel" aria-labelledby="parallel-heading">
+        <h2 i18n id="parallel-heading" class="eyebrow">Parallel text</h2>
+        <div class="chip-row">
+          @for (chip of languageChips; track chip.code) {
+            @switch (chip.state) {
+              @case ('reading') {
+                <a class="lang-chip lang-chip--solid" [routerLink]="['/reader', bookSlug]" [queryParams]="{parallel: chip.code}">{{ chip.name }}</a>
+              }
+              @case ('available') {
+                <a class="lang-chip lang-chip--outline" [routerLink]="['/reader', bookSlug]" [queryParams]="{parallel: chip.code}">{{ chip.name }}</a>
+              }
+              @case ('asked') {
+                <button type="button" class="lang-chip lang-chip--asked" [disabled]="withdrawing === chip.code" (click)="cancelOrder(chip.code)" [tuiHint]="askedHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">{{ chip.name }}<small i18n>asked</small></button>
+              }
+              @case ('requestable') {
+                <button type="button" class="lang-chip lang-chip--dashed" (click)="openRequestSheet(chip.code)"><span aria-hidden="true">+</span>{{ chip.name }}</button>
               }
             }
-          </div>
+          }
+          @if (languageChips.length === 0) { <p i18n class="chip-row__empty">No parallel text for this book yet.</p> }
         </div>
-      </div>
-      <!-- === END: Actual Book Content === -->
-
+        @if (parallelNote; as note) { <p class="parallel__note">{{ note }}</p> }
+      </section>
     } @else {
-      <!-- === START: Skeleton Placeholder Structure === -->
-        <!-- === START: Skeleton Placeholder Structure with tuiSkeleton === -->
-      <div class="description-section skeleton-container"> <!-- Add a class for targeting -->
-
-        <!-- Title Placeholder Block -->
-        <div class="skeleton-placeholder skeleton-title" [tuiSkeleton]="true"></div>
-
-        <!-- Author Placeholder Block -->
-        <div class="skeleton-placeholder skeleton-author" [tuiSkeleton]="true"></div>
-
-        <div class="skeleton-placeholder skeleton-actions" [tuiSkeleton]="true"></div>
-
-        <!-- Info Block 1 Placeholder Block -->
-        <div class="skeleton-placeholder skeleton-info-chips" [tuiSkeleton]="true"></div>
-
-      </div>
+      <header class="book-head">
+        <div class="book-thumb skeleton-block" [tuiSkeleton]="true"></div>
+        <div class="book-head__copy">
+          <div class="skeleton-block skeleton-title" [tuiSkeleton]="true"></div>
+          <div class="skeleton-block skeleton-meta" [tuiSkeleton]="true"></div>
+        </div>
+      </header>
     }
-  </div> <!-- /.right-section -->
-</div> <!-- /.base-container -->
+  </article>
+</div>
+
+<ng-template #askedHint><div i18n>You asked for this one. Tap to withdraw the request.</div></ng-template>

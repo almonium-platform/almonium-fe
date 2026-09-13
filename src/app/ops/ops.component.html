@@ -299,6 +299,226 @@
     </div>
   </section>
 
+  <section class="ops-card ops-card--books" aria-labelledby="translations-title">
+    <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+      <div>
+        <p class="ops-books__path">/ops / translation requests</p>
+        <h2 id="translations-title" class="ops-books__title">
+          @if (translationQueue; as queue) {
+            {{ queue.open }} open, {{ queue.running }} running
+          } @else {
+            Translation requests
+          }
+        </h2>
+        <p>
+          Readers ask for a language a book is missing; this decides and watches, it never runs a pipeline. Approve posts
+          one job to the book processor and writes the estimate to the ledger. Rows group by book and pair, so the asks
+          column is the whole demand signal.
+        </p>
+      </div>
+      <div class="ops-books__spend">
+        <span class="ops-books__path">{{ monthLabel }} spend</span>
+        @if (translationQueue; as queue) {
+          <div class="ops-books__bar" role="meter" [attr.aria-valuenow]="queue.monthSpendUsd" aria-valuemin="0" [attr.aria-valuemax]="queue.monthBudgetUsd" aria-label="Monthly translation spend">
+            <span class="ops-books__track"><i [style.width.%]="budgetPercent" [class.ops-books__fill--full]="budgetExhausted"></i></span>
+            <code>{{ queue.monthSpendUsd | currency:'USD':'symbol':'1.0-0' }} / {{ queue.monthBudgetUsd | number:'1.0-0' }}</code>
+          </div>
+        }
+        <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingTranslationQueue" (click)="loadTranslationQueue()">
+          {{ loadingTranslationQueue ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (translationQueueError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ translationQueueError }}</span>
+      </div>
+    } @else if (!translationQueue) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-books__chips">
+        <span class="ops-books__chip ops-books__chip--ink">Open {{ translationQueue.open }}</span>
+        <span class="ops-books__chip">Running {{ translationQueue.running }}</span>
+        <span class="ops-books__chip">Published {{ translationQueue.published }}</span>
+        <span class="ops-books__chip">Declined {{ translationQueue.declined }}</span>
+      </div>
+
+      @if (translationQueue.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of translationQueue.warnings; track warning) { <li>{{ warning }}</li> }
+        </ul>
+      }
+
+      @if (budgetExhausted) {
+        <p class="ops-books__ceiling">The month's ceiling is reached, so Approve is off until the month turns. Requests keep collecting.</p>
+      }
+
+      @if (translationQueue.rows.length) {
+        <div class="ops-queue ops-queue--translations">
+          <div class="ops-queue__head"><span>Book</span><span>Pair</span><span>Asks</span><span>Who</span><span>Est.</span><span></span></div>
+          @for (row of translationQueue.rows; track pairKey(row)) {
+            <div class="ops-queue__row" [class.ops-queue__row--live]="isLive(row.job)">
+              <span class="ops-queue__book"><strong>{{ row.bookTitle }}</strong><small>{{ row.bookAuthor }}</small></span>
+              <code>{{ row.sourceLanguage | lowercase }} → {{ row.language | lowercase }}</code>
+              <code>{{ row.asks }}</code>
+              <small>{{ whoLabel(row) }}</small>
+              <code>
+                @if (row.job?.estimatedCostUsd ?? row.estimatedCostUsd; as estimate) { {{ estimate | currency:'USD':'symbol':'1.2-2' }} } @else { — }
+              </code>
+              <span class="ops-queue__actions">
+                @if (row.job; as job) {
+                  @if (isLive(job)) {
+                    <code class="ops-queue__stamp">approved {{ job.approvedAt | date:'HH:mm' }}</code>
+                  } @else if (job.phase === 'PUBLISHED') {
+                    <code class="ops-queue__stamp ops-queue__stamp--done">published {{ job.finishedAt | date:'MMM d' }}</code>
+                  } @else {
+                    <code class="ops-queue__stamp ops-queue__stamp--failed">{{ job.phase | lowercase }}</code>
+                    <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="budgetExhausted || decidingPair === pairKey(row)" (click)="onApproveTranslation(row)">Approve again</button>
+                  }
+                } @else {
+                  <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="budgetExhausted || decidingPair === pairKey(row)" (click)="onApproveTranslation(row)">Approve</button>
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingPair === pairKey(row)" (click)="onDeclineTranslation(row)">Decline</button>
+                }
+              </span>
+            </div>
+            @if (row.job; as job) {
+              @if (isLive(job)) {
+                <div class="ops-queue__job">
+                  <div class="ops-queue__phases">
+                    @for (step of translationPhases; track step.phase; let last = $last) {
+                      <span class="ops-queue__phase" [class.ops-queue__phase--on]="phaseIndex(job.phase) === phaseIndex(step.phase) || (job.phase === 'QUEUED' && step.phase === 'TRANSLATING')" [class.ops-queue__phase--done]="phaseIndex(job.phase) > phaseIndex(step.phase)">{{ step.label }}</span>
+                      @if (!last) { <span class="ops-queue__arrow" aria-hidden="true">→</span> }
+                    }
+                  </div>
+                  <div class="ops-queue__job-foot">
+                    <code>
+                      book processor
+                      @if (job.processorEditionSlug) { · {{ job.processorEditionSlug }} }
+                      @if (job.progressTotal) { · ch {{ job.progressCompleted ?? 0 }}/{{ job.progressTotal }} }
+                      · started {{ job.approvedAt | date:'HH:mm' }}
+                      · {{ job.tier }}, {{ job.mode }}
+                    </code>
+                    <span class="ops-queue__actions">
+                      <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="cancellingJob === job.id" (click)="onCancelTranslationJob(job)">{{ cancellingJob === job.id ? 'Cancelling…' : 'Cancel' }}</button>
+                    </span>
+                  </div>
+                  @if (job.error) { <p class="ops-queue__error">{{ job.error }}</p> }
+                </div>
+              }
+            }
+          }
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">Nobody is asking for a language right now.</p>
+      }
+    }
+  </section>
+
+  <section class="ops-card ops-card--books" aria-labelledby="suggestions-title">
+    <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+      <div>
+        <p class="ops-books__path">/ops / library suggestions</p>
+        <h2 id="suggestions-title" class="ops-books__title">
+          @if (suggestionQueue; as queue) {
+            {{ queue.open }} open, {{ queue.ingesting }} ingesting
+          } @else {
+            Library suggestions
+          }
+        </h2>
+        <p>
+          Private imports their owners think belong in the library. Rows group by title and author. The pd / check flag
+          is the same year rule the suggestion sheet uses, computed here, never a legal verdict. Accept posts one ingest
+          job to the book processor, where staff set the level and cover before publishing. Point to library copy is the
+          duplicate path: no job, the import page flips to the in-library row. Suggestions carry no cost line.
+        </p>
+      </div>
+      <div class="ops-books__spend">
+        @if (suggestionQueue; as queue) {
+          <div class="ops-books__chips">
+            <span class="ops-books__chip ops-books__chip--ink">Open {{ queue.open }}</span>
+            <span class="ops-books__chip">Ingesting {{ queue.ingesting }}</span>
+            <span class="ops-books__chip">Published {{ queue.published }}</span>
+            <span class="ops-books__chip">Declined {{ queue.declined }}</span>
+          </div>
+        }
+        <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingSuggestions" (click)="loadLibrarySuggestions()">
+          {{ loadingSuggestions ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (suggestionsError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ suggestionsError }}</span>
+      </div>
+    } @else if (!suggestionQueue) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      @if (suggestionQueue.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of suggestionQueue.warnings; track warning) { <li>{{ warning }}</li> }
+        </ul>
+      }
+      @if (suggestionQueue.rows.length) {
+        <div class="ops-queue ops-queue--suggestions">
+          <div class="ops-queue__head"><span>Book</span><span>Lang</span><span>Published</span><span>From</span><span></span></div>
+          @for (row of suggestionQueue.rows; track row.id) {
+            <div class="ops-queue__row" [class.ops-queue__row--live]="row.status === 'INGESTING'">
+              <span class="ops-queue__book"><strong>{{ row.title }}</strong><small>{{ row.author }}@if (row.libraryMatch) { · matches library work }</small></span>
+              <code>{{ row.language | lowercase }}</code>
+              <span class="ops-queue__year"><code>{{ row.publicationYear ?? '—' }}</code><code class="ops-queue__flag" [class.ops-queue__flag--pd]="row.publicDomainHint === 'pd'">{{ row.publicDomainHint }}</code></span>
+              <small>{{ whoLabel(row) }} · {{ row.imports }} {{ row.imports === 1 ? 'import' : 'imports' }}</small>
+              <span class="ops-queue__actions">
+                @switch (row.status) {
+                  @case ('SUGGESTED') {
+                    <a class="ops-button ops-button--quiet ops-button--tiny" [href]="suggestionFileUrl(row)" target="_blank" rel="noopener">Open file</a>
+                    @if (row.libraryMatch) {
+                      <button class="ops-button ops-button--ink ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onPointToLibrary(row)">Point to library copy</button>
+                    } @else {
+                      <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onAcceptSuggestion(row)">Accept</button>
+                    }
+                    <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onDeclineSuggestion(row)">Decline</button>
+                  }
+                  @case ('INGESTING') {
+                    <code class="ops-queue__stamp">accepted {{ row.job?.decidedAt | date:'HH:mm' }}</code>
+                  }
+                  @case ('PUBLISHED') {
+                    <code class="ops-queue__stamp ops-queue__stamp--done">in the library</code>
+                  }
+                  @default {
+                    <code class="ops-queue__stamp">{{ row.status | lowercase }}</code>
+                  }
+                }
+              </span>
+            </div>
+            @if (row.status === 'INGESTING' && row.job; as job) {
+              <div class="ops-queue__job">
+                <div class="ops-queue__phases">
+                  @for (step of ingestPhases; track step.phase; let last = $last) {
+                    <span class="ops-queue__phase" [class.ops-queue__phase--on]="ingestPhaseIndex(job.phase) === ingestPhaseIndex(step.phase)" [class.ops-queue__phase--done]="ingestPhaseIndex(job.phase) > ingestPhaseIndex(step.phase)">{{ step.label }}</span>
+                    @if (!last) { <span class="ops-queue__arrow" aria-hidden="true">→</span> }
+                  }
+                </div>
+                <div class="ops-queue__job-foot">
+                  <code>book processor @if (job.processorEditionSlug) { · {{ job.processorEditionSlug }} } · {{ job.progress }}% · started {{ job.decidedAt | date:'HH:mm' }}</code>
+                  <span class="ops-queue__actions">
+                    <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onCancelIngest(row)">Cancel</button>
+                  </span>
+                </div>
+                @if (job.error) { <p class="ops-queue__error">{{ job.error }}</p> }
+              </div>
+            }
+          }
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">No suggestions waiting.</p>
+      }
+    }
+  </section>
+
   <section class="ops-card ops-card--spend" aria-labelledby="spend-title">
     <div class="ops-card__heading ops-card__heading--plain">
       <div>

@@ -15,11 +15,18 @@ import {
   BookImport,
   BookImportMetadataUpdate,
   BookImportQuota,
+  LibrarySuggestion,
   parseBookImport,
   parseBookImportQuota,
   parseBookImports,
+  parseLibrarySuggestion,
 } from './book-import.model';
-import {TranslationOrder, parseTranslationOrders} from './translation-order.model';
+import {
+  TranslationOrder,
+  TranslationRequestQuota,
+  parseTranslationOrders,
+  parseTranslationRequestQuota,
+} from './translation-order.model';
 import {Observable} from "rxjs";
 import {map, tap} from 'rxjs/operators';
 
@@ -80,6 +87,25 @@ export class ReadService {
       .pipe(map(parseBookImportQuota));
   }
 
+  /** Replaces the file behind an import; the details stay, the allowance is not spent again. */
+  replaceBookImportFile(id: string, form: FormData): Observable<BookImport> {
+    return this.http.put<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/file`, form, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  deleteBookImport(id: string): Observable<void> {
+    return this.http.delete<void>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true});
+  }
+
+  suggestForLibrary(id: string): Observable<LibrarySuggestion> {
+    return this.http.post<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/suggestion`, {}, {withCredentials: true})
+      .pipe(map(value => parseLibrarySuggestion(value, 'librarySuggestion')));
+  }
+
+  withdrawLibrarySuggestion(id: string): Observable<void> {
+    return this.http.delete<void>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/suggestion`, {withCredentials: true});
+  }
+
   loadPrivateBook(id: string): Observable<HttpResponse<ArrayBuffer>> {
     return this.http.get(`${AppConstants.BOOK_IMPORTS_URL}/${id}/text`, {
       withCredentials: true,
@@ -117,6 +143,17 @@ export class ReadService {
   getTranslationOrders(): Observable<TranslationOrder[]> {
     const url = `${AppConstants.BOOKS_URL}/orders`;
     return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseTranslationOrders));
+  }
+
+  getTranslationRequestQuota(): Observable<TranslationRequestQuota> {
+    const url = `${AppConstants.BOOKS_URL}/orders/quota`;
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseTranslationRequestQuota));
+  }
+
+  /** The fulfilment notice is shown until the reader opens it once. */
+  markTranslationOrderSeen(orderId: string): Observable<void> {
+    const url = `${AppConstants.BOOKS_URL}/orders/${orderId}/seen`;
+    return this.http.post<void>(url, {}, {withCredentials: true});
   }
 
   orderTranslation(bookId: string, language: string): Observable<unknown> {

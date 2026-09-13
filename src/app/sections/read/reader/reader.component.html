@@ -1,5 +1,3 @@
-<app-parallel-settings></app-parallel-settings>
-
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
      (focus)="onContentHover($event)"
@@ -25,6 +23,7 @@
     <div #readerContentWrapper
          class="reader-content-wrapper"
          [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
+         [class.has-word-card]="wordCard !== null"
          (scroll)="onWrapperScroll($event)"
          (focus)="onContentHover($event)"
     >
@@ -56,6 +55,16 @@
         </div>
       </div>
     </div>
+    @if (wordCard; as card) {
+      <aside class="word-card-panel">
+        <app-word-card [entry]="card.entry" [context]="card.context" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [level]="bookLevel" (closed)="closeWordCard()"></app-word-card>
+      </aside>
+    }
+    @if (parallelSettingsOpen) {
+      <div #settingsPanel class="parallel-settings-panel">
+        <app-parallel-settings></app-parallel-settings>
+      </div>
+    }
     @if (selectedLookupText) {
       <aside class="selection-lookup" aria-live="polite">
         <span><strong>{{ selectedLookupText }}</strong><small i18n>Keep it with this sentence in Discover</small></span>

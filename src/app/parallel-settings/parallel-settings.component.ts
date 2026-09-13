@@ -1,75 +1,58 @@
 import {logger} from "../shared/logger";
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
-import {TuiSegmented} from "@taiga-ui/kit/components";
-import {ParallelMode} from '../sections/read/parallel-mode.type';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../sections/read/parallel-mode.type';
 import {Subject, takeUntil} from "rxjs";
 import {ParallelModeService} from "../sections/read/parallel-mode.service";
 
-interface ModeConfig {
-  imageSrc: string;
-  altText: string;
+interface ModeOption {
+  mode: ParallelMode;
+  label: string;
   explanation: string;
 }
 
+/**
+ * The three parallel modes as three tiles (G5): the diagrams are drawn in ink and grey, the tile
+ * is the selector, and the whole panel sits in the reader's bottom bar so the effect is visible
+ * behind it.
+ */
 @Component({
   selector: 'app-parallel-settings',
-  imports: [
-    TuiSegmented
-  ],
   templateUrl: './parallel-settings.component.html',
-  styleUrl: './parallel-settings.component.less'
+  styleUrl: './parallel-settings.component.less',
 })
 export class ParallelSettingsComponent implements OnInit, OnDestroy {
   private parallelModeService = inject(ParallelModeService);
   private cdRef = inject(ChangeDetectorRef);
 
-  @ViewChild('parallelSettings', {static: true}) content!: TemplateRef<unknown>;
+  protected currentMode: ParallelMode = DEFAULT_PARALLEL_MODE;
 
-  modeSelectedIndex = 0;
-
-  // --- Define the configuration for each mode ---
-  readonly modeConfigs: ModeConfig[] = [
-    { // Index 0: Side By Side
-      imageSrc: 'assets/img/icons/side.svg', // Replace with actual path
-      altText: $localize`Side by Side View`,
-      explanation: $localize`Original and translation in aligned columns. Hover a sentence to match the pair.`
+  protected readonly modeOptions: ModeOption[] = [
+    {
+      mode: 'side',
+      label: $localize`Side by side`,
+      explanation: $localize`Only the pair under your cursor lights, on both sides at once.`,
     },
-    { // Index 1: Overlay
-      imageSrc: 'assets/img/icons/overlay.svg', // Replace with actual path
-      altText: $localize`Overlay View`,
-      explanation: $localize`Tap a sentence to reveal its translation directly underneath.`
+    {
+      mode: 'overlay',
+      label: $localize`On demand`,
+      explanation: $localize`Tap a sentence, its translation opens under that line in grey ink.`,
     },
-    { // Index 2: Inline
-      imageSrc: 'assets/img/icons/inline.svg', // Replace with actual path
-      altText: $localize`Inline View`,
-      explanation: $localize`Translation follows each original sentence in smaller grey text.`
-    }
+    {
+      mode: 'inline',
+      label: $localize`Inline`,
+      explanation: $localize`Whole paragraph, then its translation. Grey, one size down.`,
+    },
   ];
-
-  private readonly modeIndexMap: Record<ParallelMode, number> = {
-    'side': 0,
-    'overlay': 1,
-    'inline': 2
-  };
-
-  private readonly indexModeMap: Record<number, ParallelMode> = {
-    0: 'side',
-    1: 'overlay',
-    2: 'inline'
-  };
 
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    // Subscribe to mode changes from the service to update the segmented control
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
-        const newIndex = this.modeIndexMap[mode];
-        if (this.modeSelectedIndex !== newIndex) {
-          this.modeSelectedIndex = newIndex;
-          this.cdRef.markForCheck(); // Update view if needed
-          logger.debug('Settings component updated index from service:', newIndex);
+        if (this.currentMode !== mode) {
+          this.currentMode = mode;
+          this.cdRef.markForCheck();
         }
       });
   }
@@ -79,21 +62,8 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // --- Getter to easily access the config for the selected mode ---
-  get currentModeConfig(): ModeConfig {
-    // Provide a default or handle out-of-bounds index if necessary
-    return this.modeConfigs[this.modeSelectedIndex] ?? this.modeConfigs[0];
-  }
-
-  onModeIndexChange(newIndex: number): void {
-    // Convert index back to mode string ('side', 'overlay', 'inline')
-    const newMode = this.indexModeMap[newIndex];
-    if (newMode) {
-      logger.debug('Settings component sending mode to service:', newMode);
-      // Set the mode via the service (this will also save to localStorage)
-      this.parallelModeService.setMode(newMode);
-    } else {
-      logger.warn('Invalid index received from segmented control:', newIndex);
-    }
+  protected pick(mode: ParallelMode): void {
+    logger.debug('Settings component sending mode to service:', mode);
+    this.parallelModeService.setMode(mode);
   }
 }

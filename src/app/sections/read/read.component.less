@@ -1,58 +1,114 @@
-.read-container { align-items: stretch; flex-direction: column; justify-content: flex-start; gap: 2.25rem; padding: 1.35rem clamp(1rem, 4vw, 5rem) 4rem; }
-.read-header, .continue-section, .book-shelf { width: min(100%, 76rem); margin: 0 auto; }
-.read-header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
-.read-header h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 1; }
-.read-header p { margin: .4rem 0 0; color: var(--disabled-text-color); }
-.header-actions { display: flex; align-items: center; gap: .65rem; }
-.quota { padding: .3rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; }
-.quota { border: 1px solid var(--border-color); color: var(--disabled-text-color); }
-.import-book-action, .empty-state button { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.65rem; padding: .65rem .9rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-weight: 700; }
-.import-book-action.premium-gate { background: var(--premium-gradient); color: #FDF4F8; box-shadow: inset 0 1px 0 rgba(255, 240, 250, .45); }
-.filter-bar { position: sticky; z-index: 5; top: var(--header-height); display: flex; align-items: center; gap: .55rem; width: min(100%, 76rem); min-height: 44px; margin: -1.1rem auto 0; padding: .35rem; border: 1px solid var(--border-color); border-radius: .9rem; background: color-mix(in srgb, var(--card-color) 96%, transparent); backdrop-filter: blur(10px); }
-.search-input { flex: 1 1 14rem; min-width: 11rem; }
-.native-select select { min-height: 2.5rem; padding: 0 2rem 0 .7rem; border: 1px solid var(--control-border-color); border-radius: .7rem; background: var(--card-color); color: var(--text-color); font: inherit; }
+.read-container { align-items: stretch; flex-direction: column; justify-content: flex-start; gap: 1.75rem; padding: 1.35rem clamp(1rem, 4vw, 5rem) 4rem; }
+.read-header, .continue-section, .book-shelf, .notice-card, .requests-card { width: min(100%, 76rem); margin: 0 auto; }
+
+// The header is the page furniture: one label, one title, the counter and the import button in the
+// height of a single row, with the filter bar sitting inside the same block. No hero.
+.read-header { display: flex; flex-direction: column; gap: 1.1rem; padding: 1.35rem 1.5rem 1.15rem; border-radius: 1.25rem; background: var(--nested-color); }
+.read-header__row { display: flex; align-items: flex-end; gap: 1rem; }
+.read-header__title { display: flex; flex-direction: column; gap: .15rem; }
+.read-header__title .eyebrow { margin: 0; }
+.read-header h1 { margin: 0; font-size: 1.65rem; font-weight: 600; line-height: 1.15; }
+.quota { margin-left: auto; color: var(--metadata-color); font-size: .72rem; white-space: nowrap; }
+.read-header__row .import-book-action { margin-left: auto; }
+.quota + .import-book-action { margin-left: 0; }
+.import-book-action, .empty-state button, .solid-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: .55rem 1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.import-book-action:hover, .solid-pill:hover { background: var(--brand-hover); }
+.import-book-action.premium-gate { background: var(--premium-gradient); color: #FDF4F8; }
+
+// The filter bar: 44px, white, inside the header block. Every control says its state in words.
+.filter-bar { display: flex; align-items: center; gap: .55rem; min-height: 44px; padding: .35rem .5rem .35rem .75rem; border-radius: 1rem; background: var(--card-color); box-shadow: var(--box-shadow); }
+.search-field { display: flex; flex: 1 1 12rem; align-items: center; gap: .5rem; min-width: 9rem; color: var(--metadata-color); }
+.search-field input { width: 100%; min-height: 2.1rem; border: 0; background: transparent; color: var(--text-color); font: inherit; font-size: .84rem; outline: none; }
+.search-field input::placeholder { color: var(--metadata-color); }
+.native-select select { min-height: 2.1rem; padding: 0 1.8rem 0 .7rem; border: 1px solid var(--control-border-color); border-radius: .6rem; background: var(--card-color); color: var(--text-color); font: inherit; font-size: .8rem; }
 .sort-select select { max-width: 11rem; }
-.filter-chip { min-height: 2.35rem; padding: 0 .7rem; border: 1px solid var(--control-border-color); border-radius: 999px; background: transparent; color: var(--text-color); cursor: pointer; white-space: nowrap; }
-.filter-chip.active { border-color: var(--brand-margin); background: var(--state-selected); color: var(--brand-margin); }
-.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
-.section-heading h2, .section-heading p { margin: 0; }
-.section-heading h2 { font-size: clamp(1.35rem, 2.5vw, 1.8rem); }
-.section-heading p { margin-top: .25rem; color: var(--disabled-text-color); font-size: .85rem; }
-.view-toggle { display: flex; padding: .15rem; border: 1px solid var(--control-border-color); border-radius: .65rem; }
-.view-toggle button { padding: .35rem .55rem; border: 0; border-radius: .48rem; background: transparent; color: var(--disabled-text-color); cursor: pointer; font: inherit; font-size: .78rem; }
+.filter-chip { min-height: 2.1rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: 999px; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .8rem; white-space: nowrap; }
+.filter-chip.active { border-color: color-mix(in srgb, var(--brand-margin) 45%, var(--card-color)); background: var(--state-selected); color: var(--brand-margin); }
+
+// Kicker rows: a small plum label, a rule, and whatever control the row owns. Section headers
+// with their own kickers were more structure than a page with three books deserves.
+.kicker-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
+.kicker { margin: 0; color: var(--dark-raspberry); font: 600 .66rem/1.2 var(--font-family-ui); letter-spacing: .085rem; text-transform: uppercase; }
+.kicker__count { color: var(--metadata-color); font-weight: 500; letter-spacing: 0; }
+.rule { flex: 1; height: 1px; background: var(--hairline-color); }
+.view-toggle { display: flex; gap: .15rem; padding: .15rem; border-radius: 999px; background: var(--card-color); box-shadow: inset 0 0 0 1px var(--hairline-color); }
+.view-toggle button { padding: .25rem .7rem; border: 0; border-radius: 999px; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .7rem; font-weight: 600; }
 .view-toggle button.active { background: var(--state-selected); color: var(--brand-margin); }
-.continue-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
-.continue-card { position: relative; display: flex; align-items: center; gap: .8rem; min-width: 0; min-height: 6.2rem; padding: .75rem; overflow: hidden; border: 1px solid var(--border-color); border-radius: .85rem; background: var(--card-color); color: var(--text-color); text-decoration: none; box-shadow: var(--box-shadow); }
-.continue-card app-book-cover { display: block; flex: 0 0 3.25rem; height: 4.6rem; overflow: hidden; border-radius: .25rem; }
-.continue-copy { display: flex; min-width: 0; flex-direction: column; gap: .2rem; }
-.continue-copy strong, .continue-copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.continue-copy small { color: var(--disabled-text-color); }
-.progress-hairline { position: absolute; right: 0; bottom: 0; left: 0; height: 3px; background: var(--border-color); }
-.progress-hairline i { display: block; height: 100%; background: var(--brand-margin); }
-.shelf { display: flex; align-items: end; gap: 2px; min-height: 184px; padding: .5rem .7rem 10px; overflow-x: auto; border-bottom: 8px solid #6f5549; background: linear-gradient(to bottom, transparent calc(100% - 10px), #a78572 calc(100% - 10px)); }
+
+// Continue: two or three books lying flat, face out, with a hairline of progress at the foot.
+.continue-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: flex-end; }
+.continue-card { position: relative; display: flex; width: 7rem; height: 9.4rem; flex-direction: column; justify-content: space-between; padding: .6rem; overflow: hidden; border-radius: .5rem; background: var(--book-color); color: #fff; text-decoration: none; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
+.continue-card:hover { transform: translateY(-2px); }
+.continue-art { position: absolute; inset: 0; }
+.continue-title { position: relative; font-family: var(--font-family-reading); font-size: .82rem; font-weight: 500; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.continue-foot { position: relative; display: flex; flex-direction: column; gap: .35rem; margin-top: auto; }
+.continue-card:has(.continue-art) .continue-foot { padding: .4rem .5rem .1rem; margin: 0 -.6rem -.6rem; background: linear-gradient(to top, rgba(20, 14, 22, .78), rgba(20, 14, 22, 0)); }
+.continue-foot small { overflow: hidden; color: rgba(255, 255, 255, .78); font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
+.progress-hairline { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .35); }
+.progress-hairline i { display: block; height: 100%; border-radius: 2px; background: #fff; }
+
+// The shelf. Spines stand on a hairline; thickness and height vary, colour comes from the palette.
+.shelf { display: flex; align-items: end; gap: 5px; min-height: 184px; padding: .5rem .4rem 2px; overflow-x: auto; border-bottom: 3px solid var(--control-border-color); }
 .book-context { flex: 0 0 auto; }
-.shelf-book { position: relative; display: flex; flex-direction: column; color: white; text-decoration: none; }
-.book-spine { justify-content: flex-start; width: var(--spine-width); height: var(--spine-height); padding: 8px 5px; overflow: visible; border-radius: 2px 5px 2px 2px; background: hsl(var(--spine-hue) 34% 38%); box-shadow: inset -3px 0 rgba(0, 0, 0, .12), inset 2px 0 rgba(255, 255, 255, .12); }
+.shelf-book { position: relative; display: flex; flex-direction: column; color: #fff; text-decoration: none; }
+.book-spine { justify-content: flex-start; width: var(--spine-width); height: var(--spine-height); padding: 8px 5px; overflow: visible; border-radius: 4px 4px 2px 2px; background: var(--book-color); box-shadow: 0 2px 5px rgba(44, 37, 48, .16); transition: transform .15s ease, box-shadow .15s ease; }
+.book-spine:hover, .book-spine:focus-visible { transform: translateY(-8px); box-shadow: 0 6px 14px rgba(44, 37, 48, .28); }
 .spine-title, .spine-author { overflow: hidden; writing-mode: vertical-rl; transform: rotate(180deg); text-overflow: ellipsis; white-space: nowrap; }
-.spine-title { font-family: var(--font-family-reading); font-size: .78rem; font-weight: 700; }
+.spine-title { font-family: var(--font-family-reading); font-size: .78rem; font-weight: 500; }
 .spine-author { margin-top: auto; font-size: .58rem; opacity: .78; }
+.ink-spine { --book-color: #3d3d3d; }
+.ink-spine .spine-title { font-family: var(--font-family-mono); font-size: .66rem; font-weight: 400; opacity: .85; }
 .spine-status { position: absolute; right: 2px; bottom: 3px; left: 2px; padding: 2px; overflow: hidden; background: rgba(44, 37, 48, .72); font-size: .52rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 50%; display: none; min-width: 11rem; padding: .55rem .65rem; border: 1px solid var(--hairline-color); border-radius: .55rem; background: var(--overlay-color); color: var(--text-color); box-shadow: var(--overlay-shadow); transform: translateX(-50%); }
-.hover-label strong, .hover-label small { display: block; }
-.hover-label small { margin-top: .15rem; opacity: .75; }
+.hover-label { position: absolute; z-index: 3; bottom: calc(100% + 8px); left: 50%; display: none; min-width: 9.5rem; padding: .55rem .7rem; border-radius: .75rem; background: var(--overlay-color); color: var(--text-color); box-shadow: 0 8px 22px rgba(44, 37, 48, .18); transform: translateX(-50%); }
+.hover-label strong { display: block; font-family: var(--font-family-reading); font-size: .78rem; font-weight: 600; line-height: 1.25; }
+.hover-label small { display: block; margin-top: .15rem; color: var(--metadata-color); font-size: .66rem; }
 .shelf-book:hover .hover-label, .shelf-book:focus-visible .hover-label { display: block; }
-.cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem 0 1rem; border: 0; background: none; }
+.cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem 0 1rem; border: 0; }
 .cover-book, .private-cover { display: flex; flex: 0 0 8.5rem; width: 8.5rem; flex-direction: column; gap: .45rem; color: var(--text-color); text-decoration: none; }
-.cover-book app-book-cover { display: block; width: 8.5rem; height: 12.2rem; overflow: hidden; border-radius: .45rem; }
-.continue-card app-book-cover, .cover-book app-book-cover { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .35); }
+.cover-book app-book-cover { display: block; width: 8.5rem; height: 12.2rem; overflow: hidden; border-radius: .45rem; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
 .cover-book > span { display: flex; min-width: 0; flex-direction: column; }
 .cover-book strong, .cover-book small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cover-book small { color: var(--disabled-text-color); }
-.private-cover { justify-content: center; min-height: 10rem; padding: 1rem; border-radius: .45rem; background: hsl(var(--spine-hue) 30% 90%); }
-.private-cover .spine-title, .private-cover .spine-author { writing-mode: initial; transform: none; }
-.empty-state { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 7rem; padding: 1rem; border: 1px solid var(--border-color); border-radius: .8rem; color: var(--disabled-text-color); }
+.cover-book strong { font-family: var(--font-family-reading); font-size: .84rem; font-weight: 500; }
+.cover-book small { color: var(--metadata-color); font-size: .7rem; }
+.private-cover { justify-content: space-between; height: 12.2rem; padding: .7rem .75rem; border-radius: .45rem; background: var(--book-color); color: #fff; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
+.private-cover .spine-title, .private-cover .spine-author { writing-mode: initial; transform: none; white-space: normal; }
+.private-cover .spine-title { font-size: .9rem; line-height: 1.25; }
+.private-cover .spine-status { position: static; margin-top: .4rem; border-radius: 3px; }
+.empty-state { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 5.5rem; padding: 1rem 1.15rem; border: 1px solid var(--border-color); border-radius: .9rem; color: var(--subhead-color); font-size: .9rem; }
 .empty-state p { margin: 0; }
-.empty-state button { min-height: 2.3rem; }
+.empty-state button { min-height: 2.2rem; background: transparent; box-shadow: inset 0 0 0 1px var(--control-border-color); color: var(--brand-margin); }
 .loading-row { min-height: 10rem; padding: 2rem; }
-@media (max-width: 900px) { .filter-bar { flex-wrap: wrap; } .continue-row { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .read-header, .section-heading { align-items: flex-start; flex-direction: column; } .header-actions { width: 100%; flex-wrap: wrap; } .filter-bar { position: static; align-items: stretch; flex-direction: column; margin-top: -1rem; } .search-input, .native-select select, .sort-select select { width: 100%; max-width: none; } .filter-chip { text-align: left; } }
+
+// The fulfilment notice and the request list, in the card grammar of the rest of the app.
+.notice-card, .requests-card { padding: 1.4rem 1.6rem; border-radius: var(--card-radius); background: var(--card-color); box-shadow: var(--box-shadow); }
+.notice-card { display: flex; flex-direction: column; gap: 1.25rem; }
+.mono-kicker { margin: 0 0 .6rem; color: var(--metadata-color); font: .66rem/1.4 var(--font-family-mono); letter-spacing: .025rem; }
+.fulfilled h2 { margin: 0 0 .6rem; font-family: var(--font-family-reading); font-size: 1.35rem; font-weight: 600; line-height: 1.25; }
+.fulfilled__copy { max-width: 60ch; margin: 0; color: var(--subhead-color); font-size: .86rem; line-height: 1.65; }
+.fulfilled__actions { display: flex; align-items: center; gap: .9rem; margin-top: .9rem; }
+.fulfilled__left { color: var(--metadata-color); font-size: .78rem; }
+.requests-card .eyebrow { margin-bottom: .35rem; }
+.requests-list { margin: 0; padding: 0; list-style: none; }
+.requests-list li { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem 0; border-bottom: 1px solid var(--hairline-color); font-size: .86rem; }
+.requests-list li:last-child { border-bottom: 0; }
+.requests-list__pair { color: var(--text-color); text-decoration: none; }
+.requests-list__pair:hover { color: var(--brand-margin); }
+.requests-list__state { display: flex; align-items: center; gap: .75rem; }
+.requests-list .ready { color: var(--success-color); font-size: .76rem; font-style: normal; font-weight: 600; }
+.requests-list .asked { color: var(--metadata-color); font-size: .74rem; }
+.text-action { padding: .2rem 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .8rem; font-weight: 500; }
+.text-action--quiet { color: var(--subhead-color); }
+.text-action:disabled { color: var(--disabled-label-color); cursor: wait; }
+
+@media (max-width: 900px) { .filter-bar { flex-wrap: wrap; min-height: 0; } .search-field { flex-basis: 100%; } }
+@media (max-width: 600px) {
+  .read-header { padding: 1.1rem 1rem 1rem; }
+  .read-header__row { flex-wrap: wrap; align-items: flex-start; }
+  .quota { flex-basis: 100%; margin-left: 0; order: 3; }
+  .read-header__row .import-book-action { margin-left: auto; }
+  .filter-bar { align-items: stretch; flex-direction: column; }
+  .native-select select, .sort-select select { width: 100%; max-width: none; }
+  .filter-chip { text-align: left; }
+  .kicker-row { flex-wrap: wrap; }
+  .requests-list li { align-items: flex-start; flex-direction: column; }
+}

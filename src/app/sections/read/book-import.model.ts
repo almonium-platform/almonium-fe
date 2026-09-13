@@ -1,5 +1,5 @@
 import {LanguageCode} from '../../models/language.enum';
-import {expectEnum, expectNumber, expectRecord, expectString, expectUuid} from '../../shared/runtime-validation';
+import {expectArray, expectEnum, expectNumber, expectRecord, expectString, expectUuid} from '../../shared/runtime-validation';
 
 export enum BookImportStatus {
   QUEUED = 'QUEUED',
@@ -18,6 +18,24 @@ export enum BookImportMetadataStatus {
 /** Who supplied a detail: the owner, the file's own header, or the processor's AI proposal. */
 export type BookImportProvenance = 'user' | 'source' | 'ai';
 
+/** Where a private import stands with the library: asked, being ingested, or already there. Declined ones are not returned. */
+export enum LibrarySuggestionStatus {
+  SUGGESTED = 'SUGGESTED',
+  INGESTING = 'INGESTING',
+  PUBLISHED = 'PUBLISHED',
+}
+
+export interface LibrarySuggestion {
+  id: string;
+  status: LibrarySuggestionStatus;
+  createdAt: string;
+  /** Set once the work is in the library, whether it was ingested or merely pointed at an existing copy. */
+  libraryEditionSlug: string | null;
+  libraryTitle: string | null;
+  /** Languages the library copy can be read alongside, other than its own. */
+  libraryParallelLanguages: LanguageCode[];
+}
+
 export interface BookImport {
   id: string;
   title: string;
@@ -32,6 +50,7 @@ export interface BookImport {
   progress: number;
   wordCount: number;
   error: string;
+  librarySuggestion: LibrarySuggestion | null;
 }
 
 export type BookImportMetadataField = 'title' | 'author' | 'description' | 'language' | 'publication_year';
@@ -74,6 +93,24 @@ export function parseBookImport(value: unknown): BookImport {
     progress: expectNumber(data['progress'], 'bookImport.progress'),
     wordCount: expectNumber(data['wordCount'], 'bookImport.wordCount'),
     error: expectString(data['error'], 'bookImport.error'),
+    librarySuggestion: data['librarySuggestion'] === null || data['librarySuggestion'] === undefined
+      ? null
+      : parseLibrarySuggestion(data['librarySuggestion']),
+  };
+}
+
+export function parseLibrarySuggestion(value: unknown, path = 'bookImport.librarySuggestion'): LibrarySuggestion {
+  const data = expectRecord(value, path);
+  return {
+    id: expectUuid(data['id'], `${path}.id`),
+    status: expectEnum(data['status'], Object.values(LibrarySuggestionStatus), `${path}.status`),
+    createdAt: expectString(data['createdAt'], `${path}.createdAt`),
+    libraryEditionSlug: data['libraryEditionSlug'] == null ? null : expectString(data['libraryEditionSlug'], `${path}.libraryEditionSlug`),
+    libraryTitle: data['libraryTitle'] == null ? null : expectString(data['libraryTitle'], `${path}.libraryTitle`),
+    libraryParallelLanguages: data['libraryParallelLanguages'] == null
+      ? []
+      : expectArray(data['libraryParallelLanguages'], `${path}.libraryParallelLanguages`)
+        .map((language, index) => expectEnum(language, Object.values(LanguageCode), `${path}.libraryParallelLanguages[${index}]`)),
   };
 }
 

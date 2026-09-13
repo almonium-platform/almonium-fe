@@ -9,6 +9,11 @@ import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-
 import {
   AccessGrantRequest,
   FirebaseAccountSummary,
+  LibrarySuggestionQueue,
+  LibrarySuggestionRow,
+  TranslationJob,
+  TranslationQueue,
+  TranslationQueueRow,
   BROADCAST_CHANNELS,
   BroadcastLanguage,
   Entitlement,
@@ -295,6 +300,8 @@ export class OpsComponent implements OnInit {
   ngOnInit(): void {
     this.loadStats();
     this.loadSpend();
+    this.loadTranslationQueue();
+    this.loadLibrarySuggestions();
 
     // The backend names the environment in the phrase, so the console shows what it will accept
     // rather than guessing: a client pointed at a different backend than you assume is exactly the
@@ -573,5 +580,205 @@ export class OpsComponent implements OnInit {
 
   private notify(message: string, appearance: 'positive' | 'negative'): void {
     this.alertService.open(message, {appearance}).subscribe();
+  }
+
+  // --- Books: the translation-request queue (G9) ---
+
+  protected translationQueue: TranslationQueue | null = null;
+  protected loadingTranslationQueue = false;
+  protected translationQueueError = '';
+  /** The pair being approved or declined, as "bookId/language", so one row greys at a time. */
+  protected decidingPair: string | null = null;
+  protected cancellingJob: string | null = null;
+
+  protected loadTranslationQueue(): void {
+    this.loadingTranslationQueue = true;
+    this.translationQueueError = '';
+    this.opsService.translationQueue()
+      .pipe(finalize(() => this.loadingTranslationQueue = false))
+      .subscribe({
+        next: (queue) => this.translationQueue = queue,
+        error: (error) => {
+          this.translationQueue = null;
+          this.translationQueueError = getErrorMessage(error, 'The translation queue could not be loaded');
+        },
+      });
+  }
+
+  protected pairKey(row: TranslationQueueRow): string {
+    return `${row.bookId}/${row.language}`;
+  }
+
+  /** The spend bar is a hard ceiling: at the budget Approve greys and the queue keeps collecting. */
+  protected get budgetExhausted(): boolean {
+    return this.translationQueue?.budgetExhausted ?? false;
+  }
+
+  protected get budgetPercent(): number {
+    const queue = this.translationQueue;
+    if (!queue || queue.monthBudgetUsd <= 0) return 0;
+    return Math.min(100, Math.round(queue.monthSpendUsd / queue.monthBudgetUsd * 100));
+  }
+
+  protected get monthLabel(): string {
+    const start = this.translationQueue?.monthStartsAt;
+    return new Intl.DateTimeFormat('en', {month: 'long', timeZone: 'UTC'}).format(start ? new Date(start) : new Date());
+  }
+
+  protected isLive(job: TranslationJob | null): boolean {
+    return !!job && ['QUEUED', 'TRANSLATING', 'ALIGNING', 'QA_GATE', 'PUBLISHING'].includes(job.phase);
+  }
+
+  /** The four states as the processor names them, with the live one lit. */
+  protected readonly translationPhases: {phase: TranslationJob['phase']; label: string}[] = [
+    {phase: 'TRANSLATING', label: 'translating'},
+    {phase: 'ALIGNING', label: 'aligning'},
+    {phase: 'QA_GATE', label: 'qa gate'},
+    {phase: 'PUBLISHING', label: 'publish + notify'},
+  ];
+
+  protected phaseIndex(phase: TranslationJob['phase']): number {
+    const order: TranslationJob['phase'][] = ['QUEUED', 'TRANSLATING', 'ALIGNING', 'QA_GATE', 'PUBLISHING', 'PUBLISHED'];
+    return order.indexOf(phase);
+  }
+
+  protected whoLabel(row: {premiumAsks?: number; freeAsks?: number; premiumCount?: number; freeCount?: number}): string {
+    const premium = row.premiumAsks ?? row.premiumCount ?? 0;
+    const free = row.freeAsks ?? row.freeCount ?? 0;
+    const parts: string[] = [];
+    if (premium) parts.push(`${premium} prem`);
+    if (free) parts.push(`${free} free`);
+    return parts.join(', ') || '—';
+  }
+
+  protected onApproveTranslation(row: TranslationQueueRow): void {
+    if (this.decidingPair || this.budgetExhausted) return;
+    this.recentAuthGuardService.guardAction(() => this.performApproveTranslation(row), false, 'Approve');
+  }
+
+  private performApproveTranslation(row: TranslationQueueRow): void {
+    this.decidingPair = this.pairKey(row);
+    this.opsService.approveTranslation(row.bookId, row.language)
+      .pipe(finalize(() => this.decidingPair = null))
+      .subscribe({
+        next: () => {
+          this.notify(`Approved ${row.bookTitle} → ${row.language}. The job is with the book processor.`, 'positive');
+          this.loadTranslationQueue();
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to approve the translation'), 'negative'),
+      });
+  }
+
+  protected onDeclineTranslation(row: TranslationQueueRow): void {
+    if (this.decidingPair) return;
+    this.recentAuthGuardService.guardAction(() => this.performDeclineTranslation(row), false, 'Decline');
+  }
+
+  private performDeclineTranslation(row: TranslationQueueRow): void {
+    this.decidingPair = this.pairKey(row);
+    this.opsService.declineTranslation(row.bookId, row.language)
+      .pipe(finalize(() => this.decidingPair = null))
+      .subscribe({
+        next: () => {
+          this.notify(`Declined ${row.asks} request${row.asks === 1 ? '' : 's'} for ${row.bookTitle} → ${row.language}. Each requester gets a plain mail.`, 'positive');
+          this.loadTranslationQueue();
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to decline the requests'), 'negative'),
+      });
+  }
+
+  protected onCancelTranslationJob(job: TranslationJob): void {
+    if (this.cancellingJob) return;
+    this.recentAuthGuardService.guardAction(() => this.performCancelTranslationJob(job), false, 'Cancel');
+  }
+
+  private performCancelTranslationJob(job: TranslationJob): void {
+    this.cancellingJob = job.id;
+    this.opsService.cancelTranslationJob(job.id)
+      .pipe(finalize(() => this.cancellingJob = null))
+      .subscribe({
+        next: () => {
+          this.notify('Job cancelled. The requests are back in the open queue.', 'positive');
+          this.loadTranslationQueue();
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to cancel the job'), 'negative'),
+      });
+  }
+
+  // --- Books: library suggestions (G13) ---
+
+  protected suggestionQueue: LibrarySuggestionQueue | null = null;
+  protected loadingSuggestions = false;
+  protected suggestionsError = '';
+  protected decidingSuggestion: string | null = null;
+
+  protected loadLibrarySuggestions(): void {
+    this.loadingSuggestions = true;
+    this.suggestionsError = '';
+    this.opsService.librarySuggestions()
+      .pipe(finalize(() => this.loadingSuggestions = false))
+      .subscribe({
+        next: (queue) => this.suggestionQueue = queue,
+        error: (error) => {
+          this.suggestionQueue = null;
+          this.suggestionsError = getErrorMessage(error, 'The library suggestions could not be loaded');
+        },
+      });
+  }
+
+  protected readonly ingestPhases: {phase: string; label: string}[] = [
+    {phase: 'ingesting', label: 'ingesting'},
+    {phase: 'review', label: 'metadata + level'},
+    {phase: 'ready', label: 'cover'},
+    {phase: 'published', label: 'publish + notify'},
+  ];
+
+  protected ingestPhaseIndex(phase: string | null): number {
+    return ['ingesting', 'review', 'ready', 'published'].indexOf(phase ?? '');
+  }
+
+  protected suggestionFileUrl(row: LibrarySuggestionRow): string {
+    return this.opsService.suggestionFileUrl(row.id);
+  }
+
+  protected onAcceptSuggestion(row: LibrarySuggestionRow): void {
+    if (this.decidingSuggestion) return;
+    this.recentAuthGuardService.guardAction(() => this.performSuggestionDecision(row, 'accept'), false, 'Accept');
+  }
+
+  protected onDeclineSuggestion(row: LibrarySuggestionRow): void {
+    if (this.decidingSuggestion) return;
+    this.recentAuthGuardService.guardAction(() => this.performSuggestionDecision(row, 'decline'), false, 'Decline');
+  }
+
+  protected onPointToLibrary(row: LibrarySuggestionRow): void {
+    if (this.decidingSuggestion || !row.libraryMatch) return;
+    this.recentAuthGuardService.guardAction(() => this.performSuggestionDecision(row, 'point'), false, 'Point');
+  }
+
+  protected onCancelIngest(row: LibrarySuggestionRow): void {
+    if (this.decidingSuggestion) return;
+    this.recentAuthGuardService.guardAction(() => this.performSuggestionDecision(row, 'cancel'), false, 'Cancel');
+  }
+
+  private performSuggestionDecision(row: LibrarySuggestionRow, decision: 'accept' | 'decline' | 'point' | 'cancel'): void {
+    this.decidingSuggestion = row.id;
+    const call = decision === 'accept' ? this.opsService.acceptSuggestion(row.id)
+      : decision === 'decline' ? this.opsService.declineSuggestion(row.id)
+      : decision === 'point' ? this.opsService.pointSuggestionToLibrary(row.id, row.libraryMatch!.bookId)
+      : this.opsService.cancelSuggestionIngest(row.id);
+    const done: Record<typeof decision, string> = {
+      accept: `Accepted ${row.title}. One ingest job is with the book processor; level and cover are set there before it is published.`,
+      decline: `Declined ${row.title}. Each suggester gets a plain mail.`,
+      point: `${row.title} now points at the library copy.`,
+      cancel: `Cancelled. ${row.title} is back in the open queue; purge the processor edition by hand.`,
+    };
+    call.pipe(finalize(() => this.decidingSuggestion = null)).subscribe({
+      next: () => {
+        this.notify(done[decision], 'positive');
+        this.loadLibrarySuggestions();
+      },
+      error: (error) => this.notify(getErrorMessage(error, `Failed to ${decision} the suggestion`), 'negative'),
+    });
   }
 }

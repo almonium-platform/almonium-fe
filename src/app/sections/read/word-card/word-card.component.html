@@ -1,0 +1,45 @@
+<article class="plate" aria-live="polite">
+  <button type="button" class="plate__close" aria-label="Close the word card" i18n-aria-label (click)="closed.emit()">×</button>
+  <header class="plate__head">
+    <span class="plate__kicker">{{ languageLabel }}</span>
+    @if (frequencyBand) { <span class="plate__band">{{ frequencyBand }}</span> }
+  </header>
+
+  <h2 class="plate__word">{{ headword }}</h2>
+
+  <div class="plate__line">
+    @if (transcription) { <span class="plate__ipa">{{ transcription }}</span> }
+    @if (partOfSpeech) { <span class="plate__pos">{{ partOfSpeech }}</span> }
+    @if (article) { <span class="plate__article">{{ article }}</span> }
+    @if (loading) { <span i18n class="plate__loading">Looking it up…</span> }
+  </div>
+
+  @if (error) { <p class="plate__error" role="alert">{{ error }}</p> }
+
+  @if (senses.length > 0) {
+    <ol class="plate__senses">
+      @for (sense of senses; track sense.index) {
+        <li><span class="plate__index">{{ sense.index }}</span><span class="plate__sense"><span class="plate__meaning">{{ sense.meaning }}</span>@if (sense.gloss) { <span class="plate__gloss">{{ sense.gloss }}</span> }</span></li>
+      }
+    </ol>
+  } @else if (!loading && !error) {
+    <p i18n class="plate__empty">No dictionary sense is available for this word yet.</p>
+  }
+
+  @if (contextParts.length > 0) {
+    <section class="plate__context">
+      <span i18n class="plate__context-kicker">Where you met it</span>
+      <blockquote>„@for (part of contextParts; track $index) {@if (part.hit) {<mark>{{ part.text }}</mark>} @else {{{ part.text }}}}“</blockquote>
+      @if (source) { <span class="plate__source">{{ source }}</span> }
+    </section>
+  }
+
+  <footer class="plate__actions">
+    <button type="button" class="plate__save" [class.plate__save--done]="saved" [disabled]="saving || saved || senses.length === 0" (click)="save()">{{ saveLabel }}</button>
+    <button type="button" class="plate__fold" aria-label="Open the full word sheet" i18n-aria-label title="Open in Discover" i18n-title (click)="openInDiscover()">
+      <app-emblem [motion]="'fold'" [mono]="true" [playOnLoad]="false" [label]="''"></app-emblem>
+    </button>
+  </footer>
+  @if (senses.length === 0 && !loading && !error) { <p i18n class="plate__hint">Nothing to save without a meaning; open the full sheet to write one.</p> }
+  @if (saveError) { <p class="plate__error" role="alert">{{ saveError }}</p> }
+</article>

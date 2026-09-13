@@ -26,6 +26,7 @@ const SCOPES = {
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
+  'ops': 'src/app/ops/ops.component.less',
 };
 
 async function appCss() {
@@ -163,6 +164,79 @@ const CARDS = [
           <button class="primary-action" type="submit" data-blocked>Import book</button>
           <p class="blocked-note" data-note>No imports left this month.</p>
         </form>
+      </div>`,
+  },
+  {
+    id: 'suggest-library',
+    title: 'Read — Suggest for the library on an import that is not ready for it',
+    source: 'book-import.component.html:139,141',
+    rule: 'The library takes a finished, named book; the line under the button names the half that is missing.',
+    control: {
+      label: 'bookImport',
+      type: 'select',
+      options: [
+        {value: 'ready', label: 'READY, details confirmed', note: '', blocked: false},
+        {value: 'processing', label: 'still PROCESSING', note: 'Available once the book is ready.', blocked: true},
+        {value: 'unconfirmed', label: 'READY, details not confirmed', note: 'Confirm the title, author and language first.', blocked: true},
+      ],
+    },
+    body: `
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <section class="parallel">
+            <h2 class="eyebrow">Parallel text</h2>
+            <p class="parallel__copy">Not offered for imports. Almonium only aligns books it can publish. If this one is in the public domain, suggest it for the library and it becomes eligible.</p>
+            <div class="parallel__actions">
+              <button type="button" class="suggest-action" data-blocked>Suggest for the library</button>
+            </div>
+            <p class="owner-note" data-note>Available once the book is ready.</p>
+          </section>
+        </article>
+      </div>`,
+  },
+  {
+    id: 're-upload',
+    title: 'Read — Re-upload while the processor is still reading the file',
+    source: 'book-import.component.html:74,77',
+    rule: 'A file in flight cannot be swapped; the owner row says when the action comes back.',
+    control: {label: 'status is QUEUED or PROCESSING', type: 'checkbox', checked: true},
+    body: `
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <div class="owner-row">
+            <button type="button" class="owner-action">Edit details</button>
+            <button type="button" class="owner-action" data-blocked>Re-upload</button>
+            <button type="button" class="owner-action owner-action--quiet">Delete</button>
+          </div>
+          <p class="owner-note" data-note>Re-upload opens once this file has been read.</p>
+        </article>
+      </div>`,
+  },
+  {
+    id: 'ops-approve',
+    title: '/ops — Approve at the month\'s translation ceiling',
+    source: 'ops.component.html (translation requests)',
+    rule: 'The spend bar is a hard ceiling: Approve greys and one line above the queue says so, while the queue keeps collecting.',
+    control: {label: 'budgetExhausted', type: 'checkbox', checked: true},
+    body: `
+      <div class="scope-ops harness-frame">
+        <div class="ops-page" style="padding:0">
+          <p class="ops-books__ceiling" data-note>The month's ceiling is reached, so Approve is off until the month turns. Requests keep collecting.</p>
+          <div class="ops-queue ops-queue--translations">
+            <div class="ops-queue__head"><span>Book</span><span>Pair</span><span>Asks</span><span>Who</span><span>Est.</span><span></span></div>
+            <div class="ops-queue__row">
+              <span class="ops-queue__book"><strong>Effi Briest</strong><small>Theodor Fontane</small></span>
+              <code>de → uk</code>
+              <code>3</code>
+              <small>2 prem, 1 free</small>
+              <code>$1.80</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Approve</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Decline</button>
+              </span>
+            </div>
+          </div>
+        </div>
       </div>`,
   },
   {

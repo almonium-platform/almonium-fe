@@ -122,6 +122,98 @@ export interface SpendReport {
   warnings: string[];
 }
 
+export type TranslationJobPhase = 'QUEUED' | 'TRANSLATING' | 'ALIGNING' | 'QA_GATE' | 'PUBLISHING' | 'PUBLISHED' | 'FAILED' | 'CANCELLED';
+
+/** One approved pair, mirrored read-only from the book processor's own states. */
+export interface TranslationJob {
+  id: string;
+  phase: TranslationJobPhase;
+  progressCompleted: number | null;
+  progressTotal: number | null;
+  estimatedCostUsd: number | null;
+  actualCostUsd: number | null;
+  tier: string;
+  mode: string;
+  processorEditionSlug: string | null;
+  approvedAt: string;
+  finishedAt: string | null;
+  error: string;
+  publishedBookId: string | null;
+  publishedEditionSlug: string | null;
+}
+
+/** One (book, language) pair: the asks are the whole demand signal, no voting UI needed. */
+export interface TranslationQueueRow {
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  editionSlug: string;
+  sourceLanguage: string;
+  language: string;
+  asks: number;
+  premiumAsks: number;
+  freeAsks: number;
+  estimatedCostUsd: number | null;
+  job: TranslationJob | null;
+}
+
+export interface TranslationQueue {
+  open: number;
+  running: number;
+  published: number;
+  declined: number;
+  monthSpendUsd: number;
+  monthBudgetUsd: number;
+  budgetExhausted: boolean;
+  monthStartsAt: string;
+  rows: TranslationQueueRow[];
+  warnings: string[];
+}
+
+export type LibrarySuggestionStatus = 'SUGGESTED' | 'INGESTING' | 'PUBLISHED' | 'DECLINED';
+
+export interface LibraryMatch {
+  bookId: string;
+  editionSlug: string;
+  title: string;
+}
+
+export interface IngestJob {
+  processorEditionId: string | null;
+  processorEditionSlug: string | null;
+  phase: string | null;
+  progress: number;
+  error: string;
+  decidedAt: string | null;
+  publishedBookId: string | null;
+}
+
+/** Suggestions grouped by title and author; the import count is the demand signal. */
+export interface LibrarySuggestionRow {
+  id: string;
+  title: string;
+  author: string;
+  language: string;
+  publicationYear: number | null;
+  publicDomainHint: 'pd' | 'check';
+  imports: number;
+  premiumCount: number;
+  freeCount: number;
+  status: LibrarySuggestionStatus;
+  libraryMatch: LibraryMatch | null;
+  job: IngestJob | null;
+  createdAt: string;
+}
+
+export interface LibrarySuggestionQueue {
+  open: number;
+  ingesting: number;
+  published: number;
+  declined: number;
+  rows: LibrarySuggestionRow[];
+  warnings: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -250,5 +342,57 @@ export class OpsService {
   publishAnnouncement(request: AnnouncementRequest): Observable<unknown> {
     const url = `${AppConstants.OPS_URL}/chat/announcements`;
     return this.http.post(url, request, {withCredentials: true});
+  }
+
+  // --- Books: the translation-request queue (G9) and the library suggestions (G13) ---
+
+  translationQueue(): Observable<TranslationQueue> {
+    const url = `${AppConstants.OPS_URL}/books/translation-requests`;
+    return this.http.get<TranslationQueue>(url, {withCredentials: true});
+  }
+
+  approveTranslation(bookId: string, language: string, tier = 'quality', mode = 'batch'): Observable<TranslationJob> {
+    const url = `${AppConstants.OPS_URL}/books/translation-requests/${bookId}/${language}/approve`;
+    return this.http.post<TranslationJob>(url, {tier, mode}, {withCredentials: true});
+  }
+
+  declineTranslation(bookId: string, language: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/translation-requests/${bookId}/${language}`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  cancelTranslationJob(jobId: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/translation-jobs/${jobId}/cancel`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  librarySuggestions(): Observable<LibrarySuggestionQueue> {
+    const url = `${AppConstants.OPS_URL}/books/library-suggestions`;
+    return this.http.get<LibrarySuggestionQueue>(url, {withCredentials: true});
+  }
+
+  acceptSuggestion(id: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/library-suggestions/${id}/accept`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  declineSuggestion(id: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/library-suggestions/${id}/decline`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  pointSuggestionToLibrary(id: string, bookId: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/library-suggestions/${id}/point-to-library`;
+    return this.http.post(url, {bookId}, {withCredentials: true});
+  }
+
+  cancelSuggestionIngest(id: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/books/library-suggestions/${id}/cancel`;
+    return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  /** The reviewer's read-only copy of the upload; streamed through the backend, never a processor URL. */
+  suggestionFileUrl(id: string): string {
+    return `${AppConstants.OPS_URL}/books/library-suggestions/${id}/file`;
   }
 }

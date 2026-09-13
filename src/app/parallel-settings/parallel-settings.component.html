@@ -1,29 +1,25 @@
-<ng-template #parallelSettings>
-  <div class="popup-container">
-    <div class="popup-header">
-      <h1 i18n>Parallel Settings</h1>
-    </div>
-
-    <div class="content">
-      <div class="mode-container">
-        <tui-segmented
-          size="m"
-          class="requests-toggle"
-          [(activeItemIndex)]="modeSelectedIndex"
-          (activeItemIndexChange)="onModeIndexChange($event)"
-        >
-          <button i18n type="button" class="btn-text">Side by side</button>
-          <button i18n type="button" class="btn-text">On demand</button>
-          <button i18n type="button" class="btn-text">Inline</button>
-        </tui-segmented>
-
-        <!-- Show image and text based on the selected mode config -->
-        <div class="explain-container">
-          <img [src]="currentModeConfig.imageSrc" [alt]="currentModeConfig.altText"/>
-          <div class="text-container">{{ currentModeConfig.explanation }}</div>
-          <p i18n class="reading-note">Read the original first. Use the translation to check, not to skip.</p>
-        </div>
-      </div>
-    </div>
+<div class="settings" role="group" aria-label="Parallel reading mode" i18n-aria-label>
+  <div class="modes">
+    @for (option of modeOptions; track option.mode) {
+      <button type="button" class="mode" [class.mode--active]="option.mode === currentMode" [attr.aria-pressed]="option.mode === currentMode" (click)="pick(option.mode)">
+        <span class="diagram" [attr.data-mode]="option.mode" aria-hidden="true">
+          @switch (option.mode) {
+            @case ('side') {
+              <span class="column"><i></i><i class="lit"></i><i></i><i></i></span>
+              <span class="column"><i></i><i class="lit"></i><i></i><i></i></span>
+            }
+            @case ('overlay') {
+              <span class="column"><i></i><i class="w80"></i><i class="grey w66 indent"></i><i></i></span>
+            }
+            @case ('inline') {
+              <span class="column"><i></i><i></i><i class="grey"></i><i class="grey w70"></i></span>
+            }
+          }
+        </span>
+        <strong>{{ option.label }}</strong>
+        <small>{{ option.explanation }}</small>
+      </button>
+    }
   </div>
-</ng-template>
+  <p i18n class="reading-note">Read the original first. Use the translation to check, not to skip.</p>
+</div>

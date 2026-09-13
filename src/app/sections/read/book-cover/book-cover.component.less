@@ -16,56 +16,67 @@ img {
   object-fit: cover;
 }
 
+// A typographic cover is a face-out spine: the book's own hue as the ground, the title in the
+// reading face, the author small and quiet at the foot. No ornament, no frame, so it sits beside
+// real cover art without pretending to be some.
 .typographic-cover {
   position: relative;
   box-sizing: border-box;
-  overflow: hidden;
-  padding: 15% 9% 12%;
-  background: #f9f1df;
-  color: #282626;
-  font-family: var(--font-family-reading);
-  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.color-field {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 8%;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 9% 8% 8%;
   background: var(--cover-color);
+  color: #fff;
+  font-family: var(--font-family-reading);
+  text-align: left;
 }
 
+.color-field,
+.rule,
 .ornament {
-  color: var(--cover-color);
-  font-size: clamp(.45rem, 4cqw, .7rem);
-  letter-spacing: .22em;
-  margin-bottom: 28%;
+  display: none;
 }
 
 strong {
-  font-size: clamp(.6rem, 11cqw, 1.75rem);
-  font-weight: 700;
-  line-height: 1.18;
+  font-size: clamp(.6rem, 11cqw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.2;
   overflow-wrap: anywhere;
-}
-
-.rule {
-  width: 32%;
-  height: 2px;
-  margin: auto 0 10%;
-  background: var(--cover-color);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  overflow: hidden;
 }
 
 .author {
-  font-size: clamp(.65rem, 5.5cqw, 1rem);
-  font-style: italic;
+  color: rgba(255, 255, 255, .75);
+  font-family: var(--font-family-ui);
+  font-size: clamp(.5rem, 6cqw, .8rem);
+  letter-spacing: .06em;
   line-height: 1.3;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @container (max-width: 70px) {
-  .ornament {
+  .author {
     display: none;
+  }
+}
+
+// A thumbnail (the 64px book-page cover) trims its gutters so a long title can still wrap on syllables.
+@container (max-width: 80px) {
+  .typographic-cover {
+    padding: 8% 6% 7%;
+    hyphens: auto;
+  }
+
+  strong {
+    font-size: clamp(.5rem, 11cqw, 1.5rem);
+    -webkit-line-clamp: 6;
   }
 }

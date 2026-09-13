@@ -7,7 +7,7 @@ import {PopupTemplateStateService} from '../../../shared/modals/popup-template/p
 import {UserInfoService} from '../../../services/user-info.service';
 import {ParallelModeService} from '../parallel-mode.service';
 import {ReadService} from '../read.service';
-import {ReaderComponent} from './reader.component';
+import {ReaderComponent, sentenceAround} from './reader.component';
 import {ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
 
@@ -103,5 +103,21 @@ describe('ReaderComponent', () => {
     expect(host.querySelector('.content-map')).toBeNull();
     expect(trigger).not.toBeNull();
     expect(trigger?.closest('.chapter-nav-container')?.classList.contains('parallel-content-map')).toBeTrue();
+  });
+});
+
+describe('sentenceAround', () => {
+  it('cuts the paragraph to the sentence that holds the word', () => {
+    const paragraph = 'It was late. The Publishers of the Standard Novels expressed a wish. I complied, gladly.';
+    expect(sentenceAround(paragraph, 'Publishers')).toBe('The Publishers of the Standard Novels expressed a wish.');
+  });
+
+  it('keeps a closing quotation mark with its sentence', () => {
+    const paragraph = 'He said "go home." She stayed.';
+    expect(sentenceAround(paragraph, 'home')).toBe('He said "go home."');
+  });
+
+  it('returns the whole paragraph when the word is not in it', () => {
+    expect(sentenceAround('One. Two.', 'three')).toBe('One. Two.');
   });
 });

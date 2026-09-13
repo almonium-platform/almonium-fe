@@ -1038,10 +1038,21 @@ tui-data-list button[tuiOption].context-button.negative {
   padding: clamp(1.5rem, 5vw, 5rem) 1.25rem;
   background: var(--main-bg-color);
 }
+.scope-book-import .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .scope-book-import .import-card,
-.scope-book-import .status-card {
-  width: min(100%, 52rem);
+.scope-book-import .record {
+  width: min(100%, 40rem);
   margin: 0 auto;
+}
+.scope-book-import .import-card {
+  width: min(100%, 52rem);
   padding: clamp(1.5rem, 4vw, 3.25rem);
   border: 1px solid var(--border-color);
   border-radius: 2rem;
@@ -1053,7 +1064,7 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-book-import .back-link {
   display: inline-block;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
   color: var(--dark-raspberry);
   font-size: 0.9rem;
   font-weight: 700;
@@ -1062,19 +1073,276 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-book-import .back-link:hover {
   text-decoration: underline;
 }
-.scope-book-import h1 {
+.scope-book-import .import-card h1 {
   max-width: 36rem;
   margin: 0;
   color: var(--text-color);
   font-size: clamp(2rem, 5vw, 3.1rem);
   line-height: 1.1;
 }
-.scope-book-import .import-intro > p:not(.eyebrow),
-.scope-book-import .status-copy,
-.scope-book-import .book-author {
+.scope-book-import .import-intro > p:not(.eyebrow) {
   margin: 0.8rem 0 0;
   color: var(--subhead-color);
   line-height: 1.55;
+}
+.scope-book-import .book-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: clamp(1.4rem, 4vw, 1.75rem) clamp(1.4rem, 4vw, 1.9rem);
+  border-radius: 1.75rem;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-book-import .book-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.scope-book-import .book-thumb {
+  display: block;
+  flex: 0 0 4rem;
+  width: 4rem;
+  height: 5.75rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(44, 37, 48, 0.18);
+}
+.scope-book-import .book-thumb--ink {
+  --cover-color: #3d3d3d;
+}
+.scope-book-import .book-thumb--ink ::ng-deep .typographic-cover {
+  background: #3d3d3d;
+  font-family: var(--font-family-mono);
+}
+.scope-book-import .book-head__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scope-book-import .book-title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.scope-book-import .book-title--mono {
+  font-family: var(--font-family-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.scope-book-import .book-meta {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  min-height: 1em;
+}
+.scope-book-import .book-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.scope-book-import .pill {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.7rem;
+}
+.scope-book-import .pill--ink {
+  color: var(--text-color);
+}
+.scope-book-import .read-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.scope-book-import .read-action:hover {
+  background: var(--brand-hover);
+}
+.scope-book-import .read-action--small {
+  min-height: 2.2rem;
+  padding: 0.45rem 0.95rem;
+  background: var(--dark-raspberry);
+  font-size: 0.8rem;
+}
+.scope-book-import .status-line {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+}
+.scope-book-import .status-line--error {
+  color: var(--danger-text-color);
+}
+.scope-book-import .spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--control-border-color);
+  border-top-color: var(--brand-margin);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.scope-book-import .owner-row {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.scope-book-import .owner-action {
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.scope-book-import .owner-action:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.scope-book-import .owner-action:disabled {
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-book-import .owner-action--quiet {
+  color: var(--subhead-color);
+}
+.scope-book-import .owner-row .owner-action--quiet {
+  margin-left: auto;
+}
+.scope-book-import .owner-note {
+  margin: -0.6rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.scope-book-import .book-description {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+.scope-book-import .hairline {
+  display: block;
+  height: 1px;
+  background: var(--hairline-color);
+}
+.scope-book-import .parallel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.scope-book-import .parallel .eyebrow {
+  margin: 0;
+}
+.scope-book-import .parallel__copy {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+.scope-book-import .parallel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-book-import .suggest-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.scope-book-import .suggest-action:hover:not(:disabled) {
+  background: var(--state-selected);
+}
+.scope-book-import .suggest-action:disabled {
+  border-color: var(--hairline-color);
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-book-import .parallel .owner-note {
+  margin-top: -0.2rem;
+}
+.scope-book-import .settled-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+}
+.scope-book-import .settled-row__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.scope-book-import .settled-row__copy small {
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+}
+.scope-book-import .details-card {
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1.1rem;
+  background: var(--nested-color);
+}
+.scope-book-import .details-card h2 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+.scope-book-import .details-card form {
+  margin-top: 0.9rem;
+}
+.scope-book-import .details-card input,
+.scope-book-import .details-card textarea,
+.scope-book-import .details-card select {
+  background: var(--card-color);
+}
+.scope-book-import .details-copy {
+  margin: 0.4rem 0 0;
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.scope-book-import .details-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-book-import .provenance {
+  color: var(--metadata-color);
+  font-size: 0.76rem;
+  font-weight: 400;
 }
 .scope-book-import .quota-card {
   display: flex;
@@ -1162,8 +1430,7 @@ tui-data-list button[tuiOption].context-button.negative {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.scope-book-import .details-grid,
-.scope-book-import .row {
+.scope-book-import .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
@@ -1208,94 +1475,14 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-book-import .secondary-action:hover {
   background: var(--state-hover);
 }
-.scope-book-import .details-card {
-  margin-top: 2rem;
-  padding: 1.25rem 1.35rem;
-  border: 1px solid var(--border-color);
-  border-radius: 1.25rem;
-  background: var(--nested-color);
-}
-.scope-book-import .details-card h2 {
-  margin: 0.15rem 0 0;
-  color: var(--text-color);
-  font-size: 1.25rem;
-}
-.scope-book-import .details-card form {
-  margin-top: 1rem;
-}
-.scope-book-import .details-card input,
-.scope-book-import .details-card textarea,
-.scope-book-import .details-card select {
-  background: var(--card-color);
-}
-.scope-book-import .details-copy {
-  margin: 0.5rem 0 0;
-  color: var(--subhead-color);
-  line-height: 1.5;
-}
-.scope-book-import .details-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-.scope-book-import .details-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.scope-book-import .provenance {
-  color: var(--metadata-color);
-  font-size: 0.76rem;
-  font-weight: 400;
-}
-.scope-book-import .details-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.9rem 1.5rem;
-  margin: 1rem 0 0;
-}
-.scope-book-import .details-list div {
-  display: grid;
-  gap: 0.2rem;
-}
-.scope-book-import .details-list .wide {
-  grid-column: 1 / -1;
-}
-.scope-book-import .details-list dt {
-  color: var(--metadata-color);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.scope-book-import .details-list dd {
-  margin: 0;
-  color: var(--text-color);
-  line-height: 1.5;
-}
-.scope-book-import .progress {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding: 1rem 0;
-}
-.scope-book-import .progress p {
-  margin: 0.25rem 0 0;
-  color: var(--subhead-color);
-}
-.scope-book-import .spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid var(--control-border-color);
-  border-top-color: var(--brand-margin);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
 .scope-book-import .error {
   margin: 0;
   color: var(--danger-text-color);
+}
+.scope-book-import .error--floating {
+  width: min(100%, 40rem);
+  margin: 1rem auto 0;
+  font-size: 0.86rem;
 }
 .scope-book-import .blocked-note {
   margin: -0.75rem 0 0;
@@ -1307,10 +1494,103 @@ tui-data-list button[tuiOption].context-button.negative {
     transform: rotate(360deg);
   }
 }
+.scope-book-import .sheet {
+  display: flex;
+  width: min(88vw, 21rem);
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-radius: 1.375rem;
+  background: var(--overlay-color);
+  color: var(--text-color);
+}
+.scope-book-import .sheet__title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-book-import .sheet__copy {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.scope-book-import .sheet__note {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.scope-book-import .sheet__box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 0.75rem;
+}
+.scope-book-import .sheet__box-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+}
+.scope-book-import .sheet__box-note {
+  color: var(--metadata-color);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.scope-book-import .sheet__link {
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+.scope-book-import .sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-book-import .sheet__primary {
+  min-height: 2.6rem;
+  padding: 0.6rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dark-raspberry);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.scope-book-import .sheet__primary--ink {
+  background: var(--brand-ink);
+  color: var(--page-ground);
+}
+.scope-book-import .sheet__primary:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: wait;
+}
+.scope-book-import .sheet__quiet {
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
 @media (max-width: 560px) {
-  .scope-book-import .details-grid,
-  .scope-book-import .row,
-  .scope-book-import .details-list {
+  .scope-book-import .details-grid {
     grid-template-columns: 1fr;
   }
   .scope-book-import .quota-card {
@@ -1319,6 +1599,17 @@ tui-data-list button[tuiOption].context-button.negative {
   }
   .scope-book-import .primary-action {
     width: 100%;
+  }
+  .scope-book-import .book-head {
+    flex-wrap: wrap;
+  }
+  .scope-book-import .book-head .read-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .scope-book-import .settled-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 .scope-auth-settings .base-container {
@@ -2553,6 +2844,919 @@ tui-data-list button[tuiOption].context-button.negative {
     margin: 0.6rem 0 0;
   }
 }
+.scope-ops {
+  /* An input with a small action beside it; the input keeps the width. */
+  /* The publish step asks before it acts; the question should read as a stop, not as chrome. */
+  /* Books: the two queues (G9, G13). Mono headers, plum uppercase, a live row on the nested ground. */
+}
+.scope-ops :host {
+  display: block;
+  min-height: calc(100vh - var(--header-height));
+  background: var(--page-ground);
+}
+.scope-ops .ops-page {
+  --ops-ink: var(--text-color);
+  --ops-muted: var(--subhead-color);
+  --ops-border: var(--hairline-color);
+  --ops-surface: var(--card-color);
+  --ops-soft: var(--nested-color);
+  --ops-accent: var(--brand-margin);
+  --ops-danger: var(--danger-text-color);
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 4vw, 2.5rem) 4rem;
+  color: var(--ops-ink);
+}
+.scope-ops .ops-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+.scope-ops .ops-page h1,
+.scope-ops .ops-card h2 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.scope-ops .ops-page h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.1;
+}
+.scope-ops .ops-page__hint {
+  max-width: 570px;
+  margin: 0.75rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+.scope-ops .ops-page__badge {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ops-accent) 28%, var(--ops-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ops-accent) 10%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+.scope-ops .ops-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--ops-border);
+  border-radius: 1.25rem;
+  background: var(--ops-surface);
+  box-shadow: var(--box-shadow);
+}
+.scope-ops .ops-card--lookup {
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--grant {
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-card--announce {
+  margin-top: 1.25rem;
+  border-top: 3px solid #872657;
+}
+.scope-ops .ops-card--limits {
+  margin-top: 1.25rem;
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-card--limits .ops-form {
+  margin-bottom: 1.25rem;
+}
+.scope-ops .ops-card--maintenance {
+  margin-top: 1.25rem;
+  border-top: 3px solid var(--ops-muted);
+}
+.scope-ops .ops-card--spend {
+  margin-top: 1.25rem;
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--pulse {
+  margin-bottom: 1.25rem;
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--pulse .ops-card__heading--plain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-pulse__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.scope-ops .ops-pulse__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.85rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-pulse__tile strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-pulse__tile small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+}
+.scope-ops .ops-pulse__tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0 1.5rem;
+}
+.scope-ops .ops-pulse__tables td small {
+  margin-left: 0.35rem;
+  color: var(--ops-muted);
+}
+.scope-ops .ops-pulse__stamp {
+  margin: 1rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.8rem;
+}
+.scope-ops .ops-card--danger-zone {
+  margin-top: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 35%, var(--ops-border));
+  border-top: 3px solid var(--ops-danger);
+}
+.scope-ops .ops-card--danger-zone code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.3rem;
+  background: var(--ops-soft);
+  font-family: var(--font-family-mono);
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+.scope-ops .ops-card__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+.scope-ops .ops-card__heading--plain {
+  margin-bottom: 1.25rem;
+}
+.scope-ops .ops-card__step {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.scope-ops .ops-card--grant .ops-card__step {
+  background: color-mix(in srgb, #d5a34a 16%, var(--ops-surface));
+  color: color-mix(in srgb, #d5a34a 72%, var(--ops-ink));
+}
+.scope-ops .ops-card h2 {
+  font-size: 1.25rem;
+}
+.scope-ops .ops-card__heading p {
+  margin: 0.35rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.scope-ops .ops-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.scope-ops .ops-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.scope-ops .ops-form__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.45rem;
+  color: var(--ops-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.scope-ops .ops-form__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.scope-ops .ops-form__row input {
+  flex: 1 1 auto;
+}
+.scope-ops .ops-button--inline {
+  flex: 0 0 auto;
+  padding-right: 0.85rem;
+  padding-left: 0.85rem;
+}
+.scope-ops .ops-form__field em {
+  color: var(--ops-muted);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 400;
+}
+.scope-ops .ops-form__field input,
+.scope-ops .ops-form__field select,
+.scope-ops .ops-form__field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.65rem;
+  outline: none;
+  background: var(--ops-soft);
+  color: var(--ops-ink);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.scope-ops .ops-form__field input::placeholder,
+.scope-ops .ops-form__field textarea::placeholder {
+  color: var(--metadata-color);
+}
+.scope-ops .ops-form__field textarea {
+  min-height: 7rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+.scope-ops .ops-form__field input:hover,
+.scope-ops .ops-form__field select:hover,
+.scope-ops .ops-form__field textarea:hover {
+  border-color: var(--ops-muted);
+}
+.scope-ops .ops-form__field input:focus,
+.scope-ops .ops-form__field select:focus,
+.scope-ops .ops-form__field textarea:focus {
+  border-color: var(--ops-accent);
+  box-shadow: 0 0 0 3px rgba(131, 57, 127, 0.13);
+}
+.scope-ops .ops-form__field input:disabled,
+.scope-ops .ops-form__field select:disabled,
+.scope-ops .ops-form__field textarea:disabled {
+  cursor: not-allowed;
+  background: var(--disabled-fill-color);
+}
+.scope-ops .ops-card--firebase {
+  margin-top: 1.25rem;
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-flag {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-flag--yes {
+  background: var(--success-bg-color);
+  color: var(--success-color);
+}
+.scope-ops .ops-flag--no {
+  background: var(--danger-bg-color);
+  color: var(--ops-danger);
+}
+.scope-ops .ops-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--ops-ink);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.scope-ops .ops-checkbox input {
+  margin-top: 0.15rem;
+  accent-color: var(--ops-danger);
+}
+.scope-ops .ops-checkbox em {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+.scope-ops .ops-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.scope-ops .ops-button {
+  min-height: 2.8rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.scope-ops .ops-button--primary {
+  background: var(--ops-accent);
+  color: var(--on-brand-color);
+}
+.scope-ops .ops-button--primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+.scope-ops .ops-button--danger {
+  border-color: color-mix(in srgb, var(--ops-danger) 45%, var(--ops-border));
+  background: var(--ops-surface);
+  color: var(--ops-danger);
+}
+.scope-ops .ops-button--danger:hover:not(:disabled) {
+  border-color: var(--ops-danger);
+  background: var(--danger-bg-color);
+}
+.scope-ops .ops-button--quiet {
+  border-color: var(--ops-border);
+  background: var(--ops-surface);
+  color: var(--ops-muted);
+}
+.scope-ops .ops-button--quiet:hover:not(:disabled) {
+  border-color: var(--ops-muted);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-confirm {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 40%, var(--ops-border));
+  border-radius: 0.8rem;
+  background: var(--danger-bg-color);
+}
+.scope-ops .ops-confirm p {
+  margin: 0 0 0.75rem;
+  color: var(--ops-ink);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.scope-ops .ops-maintenance {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.scope-ops .ops-maintenance__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-maintenance__row strong {
+  font-size: 0.86rem;
+}
+.scope-ops .ops-maintenance__row p {
+  margin: 0.25rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.scope-ops .ops-maintenance__result {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-surface);
+  font-size: 0.8rem;
+}
+.scope-ops .ops-maintenance__result > p {
+  margin: 0 0 0.6rem;
+}
+.scope-ops .ops-maintenance__result--clean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--disabled-fill-color);
+  color: var(--ops-muted);
+  font-size: 0.76rem;
+}
+.scope-ops .ops-maintenance__ids {
+  margin: 0;
+  padding: 0;
+  color: var(--ops-muted);
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  line-height: 1.7;
+  list-style: none;
+}
+.scope-ops .ops-maintenance__more {
+  margin: 0.4rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-maintenance__result .ops-confirm {
+  margin-top: 0.8rem;
+}
+.scope-ops .ops-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-soft);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-summary__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.scope-ops .ops-summary__avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--premium-gradient);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.scope-ops .ops-summary__identity div:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.scope-ops .ops-summary__identity strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+.scope-ops .ops-summary__identity span,
+.scope-ops .ops-summary__entitlement span,
+.scope-ops .ops-summary__label {
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+}
+.scope-ops .ops-summary__entitlement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ops-border);
+}
+.scope-ops .ops-summary__entitlement strong {
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-summary__grant {
+  padding: 0.75rem;
+  border-radius: 0.55rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-summary__grant--active {
+  border: 1px solid color-mix(in srgb, var(--success-color) 35%, var(--ops-border));
+  background: var(--success-bg-color);
+}
+.scope-ops .ops-summary__grant--active > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.scope-ops .ops-summary__grant--active strong {
+  color: var(--success-color);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+.scope-ops .ops-summary__grant p {
+  margin: 0.4rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-summary__grant--none {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--disabled-fill-color);
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-summary__status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--disabled-label-color);
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .scope-ops .ops-page__header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .scope-ops .ops-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .scope-ops .ops-form__actions {
+    flex-direction: column;
+  }
+  .scope-ops .ops-button {
+    width: 100%;
+  }
+}
+.scope-ops .ops-card--spend .ops-card__heading--plain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-spend__windows {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+.scope-ops .ops-button--selected {
+  border-color: color-mix(in srgb, var(--ops-accent) 45%, var(--ops-border));
+  background: color-mix(in srgb, var(--ops-accent) 12%, var(--ops-surface));
+  color: var(--ops-accent);
+}
+.scope-ops .ops-spend__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.scope-ops .ops-spend__total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.85rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-spend__total strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-spend__total small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+}
+.scope-ops .ops-spend__gap--wide {
+  color: var(--ops-danger);
+}
+.scope-ops .ops-spend__warnings {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 30%, var(--ops-border));
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--ops-danger) 6%, var(--ops-surface));
+  color: var(--ops-ink);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-spend__subtitle {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ops-muted);
+}
+.scope-ops .ops-table-scroll {
+  overflow-x: auto;
+}
+.scope-ops .ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-table th,
+.scope-ops .ops-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--ops-border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.scope-ops .ops-table th {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.scope-ops .ops-table__number {
+  text-align: right;
+}
+.scope-ops .ops-table td small {
+  color: var(--ops-muted);
+}
+.scope-ops .ops-spend__unpriced {
+  color: var(--ops-danger);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-spend__days {
+  margin-top: 0.75rem;
+}
+.scope-ops .ops-spend__days summary {
+  cursor: pointer;
+  color: var(--ops-muted);
+  font-size: 0.85rem;
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-card--spend .ops-card__heading--plain {
+    flex-direction: column;
+  }
+  .scope-ops .ops-spend__totals {
+    grid-template-columns: 1fr;
+  }
+}
+.scope-ops .ops-card--books {
+  margin-top: 1.25rem;
+  border-top: 3px solid #872657;
+}
+.scope-ops .ops-books__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-books__path {
+  margin: 0 0 0.25rem;
+  color: var(--ops-muted);
+  font: 0.7rem/1.4 var(--font-family-mono);
+  letter-spacing: 0.025rem;
+}
+.scope-ops .ops-books__title {
+  font-family: var(--font-family-reading);
+}
+.scope-ops .ops-books__spend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+.scope-ops .ops-books__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-ops .ops-books__bar code {
+  font-size: 0.74rem;
+}
+.scope-ops .ops-books__track {
+  display: block;
+  width: 7.5rem;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--ops-border);
+}
+.scope-ops .ops-books__track i {
+  display: block;
+  height: 100%;
+  background: #872657;
+}
+.scope-ops .ops-books__fill--full {
+  background: var(--ops-danger) !important;
+}
+.scope-ops .ops-books__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+.scope-ops .ops-books__spend .ops-books__chips {
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+.scope-ops .ops-books__chip {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.45rem;
+  color: var(--ops-muted);
+  font: 500 0.72rem/1.2 var(--font-family-mono);
+}
+.scope-ops .ops-books__chip--ink {
+  border-color: var(--brand-ink);
+  background: var(--brand-ink);
+  color: var(--page-ground);
+}
+.scope-ops .ops-books__ceiling {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--ops-danger) 8%, var(--ops-surface));
+  color: var(--ops-ink);
+  font-size: 0.85rem;
+}
+.scope-ops .ops-queue {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-x: auto;
+}
+.scope-ops .ops-queue__head,
+.scope-ops .ops-queue__row {
+  display: grid;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 40rem;
+}
+.scope-ops .ops-queue--translations .ops-queue__head,
+.scope-ops .ops-queue--translations .ops-queue__row {
+  grid-template-columns: 1.55fr 0.72fr 0.5fr 0.86fr 0.62fr 1.2fr;
+}
+.scope-ops .ops-queue--suggestions .ops-queue__head,
+.scope-ops .ops-queue--suggestions .ops-queue__row {
+  grid-template-columns: 1.4fr 0.4fr 0.85fr 0.9fr 15rem;
+}
+.scope-ops .ops-queue__head {
+  padding: 0 0 0.45rem;
+  border-bottom: 1.5px solid var(--brand-ink);
+  color: #872657;
+  font: 500 0.62rem/1.3 var(--font-family-mono);
+  letter-spacing: 0.05rem;
+  text-transform: uppercase;
+}
+.scope-ops .ops-queue__row {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--ops-border);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-queue__row code,
+.scope-ops .ops-queue__job code,
+.scope-ops .ops-queue__stamp {
+  font: 0.74rem/1.4 var(--font-family-mono);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-queue__row small,
+.scope-ops .ops-queue__book small {
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+}
+.scope-ops .ops-queue__book {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+.scope-ops .ops-queue__book strong {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-ops .ops-queue__year {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.scope-ops .ops-queue__flag {
+  color: #872657 !important;
+  font-size: 0.64rem !important;
+}
+.scope-ops .ops-queue__flag--pd {
+  color: var(--success-color) !important;
+}
+.scope-ops .ops-queue__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+.scope-ops .ops-button--tiny {
+  min-height: 1.85rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.74rem;
+}
+.scope-ops .ops-button--ink {
+  border: 1px solid var(--brand-ink);
+  background: transparent;
+  color: var(--brand-ink);
+}
+.scope-ops .ops-queue__stamp {
+  color: var(--ops-muted) !important;
+}
+.scope-ops .ops-queue__stamp--done {
+  color: var(--success-color) !important;
+}
+.scope-ops .ops-queue__stamp--failed {
+  color: var(--ops-danger) !important;
+}
+.scope-ops .ops-queue__row--live {
+  margin: 0 -0.6rem;
+  padding-right: 0.6rem;
+  padding-left: 0.6rem;
+  border-bottom-color: transparent;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background: var(--nested-color);
+}
+.scope-ops .ops-queue__row--live .ops-queue__book strong {
+  font-weight: 600;
+}
+.scope-ops .ops-queue__job {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 40rem;
+  margin: 0 -0.6rem 0.5rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 0 0 0.6rem 0.6rem;
+  background: var(--nested-color);
+}
+.scope-ops .ops-queue__phases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+.scope-ops .ops-queue__phase {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.4rem;
+  color: var(--ops-muted);
+  font: 0.72rem/1.3 var(--font-family-mono);
+}
+.scope-ops .ops-queue__phase--on {
+  border-color: var(--success-color);
+  background: var(--success-color);
+  color: #fff;
+}
+.scope-ops .ops-queue__phase--done {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--success-color) 18%, transparent);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-queue__arrow {
+  color: var(--ops-muted);
+  font: 0.72rem/1 var(--font-family-mono);
+}
+.scope-ops .ops-queue__job-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.scope-ops .ops-queue__job-foot code {
+  color: var(--ops-muted);
+  font-size: 0.7rem;
+}
+.scope-ops .ops-queue__error {
+  margin: 0;
+  color: var(--ops-danger);
+  font-size: 0.78rem;
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-books__heading {
+    flex-direction: column;
+  }
+  .scope-ops .ops-books__spend {
+    align-items: flex-start;
+  }
+  .scope-ops .ops-books__spend .ops-books__chips {
+    justify-content: flex-start;
+  }
+}
 </style>
 </head>
 <body>
@@ -2700,6 +3904,83 @@ tui-data-list button[tuiOption].context-button.negative {
           <button class="primary-action" type="submit" data-blocked>Import book</button>
           <p class="blocked-note" data-note>No imports left this month.</p>
         </form>
+      </div>
+  </section>
+  <section class="harness-card" id="suggest-library">
+    <header>
+      <h2>Read — Suggest for the library on an import that is not ready for it</h2>
+      <p class="harness-source">book-import.component.html:139,141</p>
+      <p class="harness-rule">The library takes a finished, named book; the line under the button names the half that is missing.</p>
+      <label class="harness-toggle">
+      <code>bookImport</code>
+      <select data-card="suggest-library"><option value="ready" selected>READY, details confirmed</option><option value="processing">still PROCESSING</option><option value="unconfirmed">READY, details not confirmed</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <section class="parallel">
+            <h2 class="eyebrow">Parallel text</h2>
+            <p class="parallel__copy">Not offered for imports. Almonium only aligns books it can publish. If this one is in the public domain, suggest it for the library and it becomes eligible.</p>
+            <div class="parallel__actions">
+              <button type="button" class="suggest-action" data-blocked>Suggest for the library</button>
+            </div>
+            <p class="owner-note" data-note>Available once the book is ready.</p>
+          </section>
+        </article>
+      </div>
+  </section>
+  <section class="harness-card" id="re-upload">
+    <header>
+      <h2>Read — Re-upload while the processor is still reading the file</h2>
+      <p class="harness-source">book-import.component.html:74,77</p>
+      <p class="harness-rule">A file in flight cannot be swapped; the owner row says when the action comes back.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="re-upload" checked>
+        <code>status is QUEUED or PROCESSING</code>
+      </label>
+    </header>
+    
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <div class="owner-row">
+            <button type="button" class="owner-action">Edit details</button>
+            <button type="button" class="owner-action" data-blocked>Re-upload</button>
+            <button type="button" class="owner-action owner-action--quiet">Delete</button>
+          </div>
+          <p class="owner-note" data-note>Re-upload opens once this file has been read.</p>
+        </article>
+      </div>
+  </section>
+  <section class="harness-card" id="ops-approve">
+    <header>
+      <h2>/ops — Approve at the month's translation ceiling</h2>
+      <p class="harness-source">ops.component.html (translation requests)</p>
+      <p class="harness-rule">The spend bar is a hard ceiling: Approve greys and one line above the queue says so, while the queue keeps collecting.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="ops-approve" checked>
+        <code>budgetExhausted</code>
+      </label>
+    </header>
+    
+      <div class="scope-ops harness-frame">
+        <div class="ops-page" style="padding:0">
+          <p class="ops-books__ceiling" data-note>The month's ceiling is reached, so Approve is off until the month turns. Requests keep collecting.</p>
+          <div class="ops-queue ops-queue--translations">
+            <div class="ops-queue__head"><span>Book</span><span>Pair</span><span>Asks</span><span>Who</span><span>Est.</span><span></span></div>
+            <div class="ops-queue__row">
+              <span class="ops-queue__book"><strong>Effi Briest</strong><small>Theodor Fontane</small></span>
+              <code>de → uk</code>
+              <code>3</code>
+              <small>2 prem, 1 free</small>
+              <code>$1.80</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Approve</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Decline</button>
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
   </section>
   <section class="harness-card" id="email-save">
@@ -2851,7 +4132,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {

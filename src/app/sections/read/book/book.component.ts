@@ -1,50 +1,41 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal, inject } from "@angular/core";
-import {filter, finalize, of, Subject, takeUntil} from "rxjs";
-import {ActivatedRoute, Router} from "@angular/router";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
+import {filter, finalize, forkJoin, of, Subject, takeUntil} from "rxjs";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {Meta, Title} from '@angular/platform-browser';
-import {TuiInput, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
 import {Book} from "../book.model";
 import {LanguageCode} from "../../../models/language.enum";
-import {TranslationOrder, TranslationOrderStatus} from "../translation-order.model";
-import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiChip, TuiDataListWrapperComponent, TuiSelect} from "@taiga-ui/kit/components";
-import {TuiChevron, TuiSkeleton} from "@taiga-ui/kit/directives";
-import {TuiAutoColorPipe} from "@taiga-ui/kit/pipes";
+import {TranslationOrder, TranslationOrderStatus, TranslationRequestQuota} from "../translation-order.model";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
-import {NgStyle} from "@angular/common";
-import {SupportedLanguagesService} from "../../../services/supported-langs.service";
-import {Language} from "../../../models/language.model";
-import {FormControl, ReactiveFormsModule} from "@angular/forms";
+import {DatePipe} from "@angular/common";
 import {catchError, distinctUntilChanged, map, switchMap} from "rxjs/operators";
-import {NgClickOutsideDirective} from "ng-click-outside2";
-import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 import {BookCoverComponent} from '../book-cover/book-cover.component';
 import {UserInfoService} from '../../../services/user-info.service';
+import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
+
+type ChipState = 'reading' | 'available' | 'asked' | 'requestable';
+
+interface LanguageChip {
+  code: LanguageCode;
+  name: string;
+  state: ChipState;
+}
 
 @Component({
   selector: 'app-book',
   imports: [
-    ButtonComponent,
     BookCoverComponent,
-    TuiAutoColorPipe,
-    TuiChip,
     TuiHintDirective,
     SharedLucideIconsModule,
-    NgStyle,
-    TuiDataListWrapperComponent,
-    ReactiveFormsModule,
-    NgClickOutsideDirective,
     TuiSkeleton,
-    ParallelTranslationComponent,
-    TuiTextfieldComponent,
-    TuiChevron,
-    TuiSelect,
-    TuiInput,
+    RouterLink,
+    DatePipe,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
@@ -54,66 +45,56 @@ export class BookComponent implements OnInit, OnDestroy {
   private alertService = inject(TuiNotificationService);
   private languageNameService = inject(LanguageNameService);
   private readService = inject(ReadService);
-  private supportedLanguagesService = inject(SupportedLanguagesService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private userInfoService = inject(UserInfoService);
   private pageTitle = inject(Title);
   private meta = inject(Meta);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
+  @ViewChild('requestSheet', {static: true}) private requestSheet!: TemplateRef<unknown>;
 
   private readonly destroy$ = new Subject<void>();
   protected bookId: string | null = null;
   protected bookSlug: string | null = null;
   protected authenticated = false;
+  protected premium = false;
   protected book: Book | null = null;
-  protected availableTranslations: string[] = [];
   protected bookLanguage = "";
-  protected originalLanguage: string | undefined = undefined;
-  private supportedLanguages: Language[] = [];
-  protected showLangDropdown = false;
-  /** Open requests this reader has on this book, one per language. */
-  protected orderedLanguages: LanguageCode[] = [];
+  private fluentLanguages: LanguageCode[] = [];
+  /** Every request this reader has open, across books; the cap sheet lists this period's. */
+  private orders: TranslationOrder[] = [];
+  protected quota: TranslationRequestQuota | null = null;
   protected withdrawing: LanguageCode | null = null;
-  /** Shown in the select until a language is picked; never a real language name, so it orders nothing. */
-  private readonly languagePrompt = $localize`Language`;
-  protected languageSelectControl = new FormControl(this.languagePrompt);
+  protected orderLoading = false;
+  protected sheetLanguage: LanguageCode | null = null;
   protected bookLoading = true;
 
   ngOnInit() {
-    this.authenticated = this.userInfoService.currentUserInfo !== null;
-    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
-      if (languages) {
-        this.supportedLanguages = languages;
-      }
-    });
-    this.languageSelectControl.setValue(this.languagePrompt);
-    this.languageSelectControl.valueChanges.pipe(
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => this.orderTranslation());
+    const user = this.userInfoService.currentUserInfo;
+    this.authenticated = user !== null;
+    this.premium = user?.premium ?? false;
+    this.fluentLanguages = user?.fluentLangs ?? [];
 
-    // Extract the 'id' parameter from the route (Path variable)
     this.activatedRoute.paramMap
       .pipe(
         map(params => params.get('slug')),
         filter((slug): slug is string => slug !== null && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)),
-        distinctUntilChanged(),                  // Only proceed if the ID truly changed
-        switchMap(slug => {                        // Switch to the data fetching observable
+        distinctUntilChanged(),
+        switchMap(slug => {
           logger.debug(`Route changed or initial load. Fetching book slug: ${slug}`);
           this.bookSlug = slug;
-          // Optional: Add loading state indication here
           return this.readService.getPublicBook(slug).pipe(
             catchError(error => {
               logger.error(`Failed to fetch book data for slug ${slug}:`, error);
               this.alertService.open($localize`Failed to load book details.`, {appearance: 'negative'}).subscribe();
-              this.book = null; // Clear book data on error
-              this.cdr.detectChanges(); // Update view
-              // Optional: Hide loading state indication here
-              return of(null); // Return an observable of null to keep the stream alive
+              this.book = null;
+              this.cdr.detectChanges();
+              return of(null);
             })
           );
         }),
-        takeUntil(this.destroy$) // Unsubscribe when component is destroyed
+        takeUntil(this.destroy$)
       )
       .subscribe(book => {
         this.bookLoading = false;
@@ -123,15 +104,9 @@ export class BookComponent implements OnInit, OnDestroy {
           this.pageTitle.setTitle($localize`${book.title}:title: by ${book.author}:author: | Almonium`);
           this.meta.updateTag({name: 'description', content: book.description || $localize`Read ${book.title}:title: by ${book.author}:author: on Almonium.`});
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
-          // Reset original language info before setting new value
-          this.originalLanguage = book.originalLanguage
-            ? this.languageNameService.getLanguageName(book.originalLanguage)
-            : undefined; // Explicitly set to undefined if no original language
-          this.availableTranslations = this.languageNameService.getLanguageNames(book.languageVariants.map(t => t.language))
-            .filter(lang => lang !== this.bookLanguage && lang !== this.originalLanguage);
           logger.debug(`Successfully loaded book: ${book.title}`);
-          this.loadTranslationOrders();
-          this.cdr.detectChanges(); // Manually trigger change detection if needed (e.g., with OnPush strategy)
+          this.loadRequests();
+          this.cdr.detectChanges();
         }
       });
   }
@@ -142,38 +117,42 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   get actionBtnLabel() {
-    return this.book?.progressPercentage ? $localize`Continue Reading` : $localize`Start Reading`;
+    return this.book?.progressPercentage ? $localize`Continue reading` : $localize`Start reading`;
+  }
+
+  protected get bookmarkLabel(): string {
+    return this.book?.favorite ? $localize`Remove from favourites` : $localize`Add to favourites`;
   }
 
   /**
    * The book page is public, so request state comes from the reader's own orders rather
    * than the book projection. Without this the chips would vanish on every reload.
    */
-  private loadTranslationOrders() {
+  private loadRequests() {
     if (!this.authenticated) {
-      this.orderedLanguages = [];
+      this.orders = [];
       return;
     }
-    const originalId = this.originalBookId;
-    this.readService.getTranslationOrders()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (orders: TranslationOrder[]) => {
-          this.orderedLanguages = orders
-            .filter(order => order.bookId === originalId && order.status === TranslationOrderStatus.ASKED)
-            .map(order => order.language);
-          this.cdr.detectChanges();
-        },
-        error: (error) => logger.error('Failed to load translation requests:', error),
-      });
+    forkJoin({
+      orders: this.readService.getTranslationOrders().pipe(catchError(() => of([] as TranslationOrder[]))),
+      quota: this.readService.getTranslationRequestQuota().pipe(catchError(() => of(null))),
+    }).pipe(takeUntil(this.destroy$)).subscribe(({orders, quota}) => {
+      this.orders = orders;
+      this.quota = quota;
+      this.cdr.detectChanges();
+    });
   }
 
   private get originalBookId(): string | null {
     return this.book?.originalId ?? this.bookId;
   }
 
-  get orderedLanguageNames(): {code: LanguageCode, name: string}[] {
-    return this.orderedLanguages.map(code => ({code, name: this.languageNameService.getLanguageName(code)}));
+  /** Requests open on this book, by language. */
+  private get askedHere(): LanguageCode[] {
+    const originalId = this.originalBookId;
+    return this.orders
+      .filter(order => order.bookId === originalId && order.status === TranslationOrderStatus.ASKED)
+      .map(order => order.language);
   }
 
   get pages() {
@@ -184,68 +163,171 @@ export class BookComponent implements OnInit, OnDestroy {
     return 0;
   }
 
-  get languagesAvailableForOrder(): string[] {
-    return this.supportedLanguages
-      .filter(lang => !this.book?.languageVariants.map(t => t.language).includes(lang.code))
-      .filter(lang => !this.orderedLanguages.includes(lang.code))
-      .map(lang => lang.name);
+  protected languageName(code: LanguageCode): string {
+    return this.languageNameService.getLanguageName(code);
   }
 
-  onTranslatedLanguageClick(language: string) {
-    const lang = this.languageNameService.getLanguageCode(language)
-    const bookSlugInThisLanguage = this.book?.languageVariants.find(t => t.language === lang)?.editionSlug;
-    if (!bookSlugInThisLanguage) {
-      logger.error("Book ID in this language not found");
-      return;
+  /**
+   * Solid is the pair the reader will open, outline is one tap to switch, dashed with a plus is
+   * requestable: only languages on the fluent list, only on library books, and only when signed in.
+   */
+  protected get languageChips(): LanguageChip[] {
+    const book = this.book;
+    if (!book) return [];
+    const available = book.languageVariants
+      .map(variant => variant.language)
+      .filter(language => language !== book.language);
+    const defaultPair = this.fluentLanguages.find(language => available.includes(language)) ?? available[0] ?? null;
+    const chips: LanguageChip[] = available.map(code => ({
+      code,
+      name: this.languageName(code),
+      state: code === defaultPair ? 'reading' : 'available',
+    }));
+    if (!this.authenticated) return chips;
+    const asked = this.askedHere;
+    for (const code of asked) {
+      chips.push({code, name: this.languageName(code), state: 'asked'});
     }
-    this.navigateToSlug(bookSlugInThisLanguage)
+    for (const code of this.fluentLanguages) {
+      if (code === book.language || available.includes(code) || asked.includes(code)) continue;
+      chips.push({code, name: this.languageName(code), state: 'requestable'});
+    }
+    return chips;
   }
 
-  openLanguageDropdown() {
+  protected get parallelNote(): string | null {
+    const requestable = this.languageChips.filter(chip => chip.state === 'requestable');
+    if (requestable.length === 0) return null;
+    const names = requestable.map(chip => chip.name);
+    return names.length === 1
+      ? $localize`${names[0]}:language: is not aligned for this book yet. You can ask for it.`
+      : $localize`${names.join(', ')}:languages: are not aligned for this book yet. You can ask for them.`;
+  }
+
+  // --- The request sheet (G7) ---
+
+  protected openRequestSheet(language: LanguageCode): void {
     if (!this.authenticated) {
       void this.router.navigate(['/auth'], {queryParams: {returnUrl: `/books/${this.bookSlug}`}});
       return;
     }
-    const bookId = this.bookId;
-    if (!bookId) {
-      logger.error("Book was not found");
-      return;
-    }
-
-    if (this.languagesAvailableForOrder.length === 0) {
-      logger.info("Nothing left to request for this book");
-      return;
-    }
-
-    this.showLangDropdown = true;
+    this.sheetLanguage = language;
+    this.popupTemplateStateService.open(this.requestSheet, 'translation-request');
   }
 
-  protected orderLoading = false;
+  protected closeSheet(): void {
+    this.popupTemplateStateService.close();
+    this.sheetLanguage = null;
+  }
 
-  orderTranslation() {
-    const language = this.languageNameService.getLanguageCode(this.languageSelectControl.value!);
-    if (!this.bookId || !language) {
-      return;
+  protected get atRequestCap(): boolean {
+    const quota = this.quota;
+    return quota !== null && quota.limit >= 0 && quota.used >= quota.limit;
+  }
+
+  /** The requests that spent this period's allowance, oldest first. */
+  protected get periodOrders(): TranslationOrder[] {
+    const quota = this.quota;
+    if (!quota) return [];
+    const start = new Date(quota.periodStartsAt).getTime();
+    return this.orders
+      .filter(order => order.status === TranslationOrderStatus.ASKED && new Date(order.createdAt).getTime() >= start)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  private get periodMonth(): string {
+    return new Intl.DateTimeFormat(undefined, {month: 'long'}).format(new Date());
+  }
+
+  protected requestUseLabel(): string | null {
+    const quota = this.quota;
+    if (!quota || quota.limit < 0) return null;
+    const next = quota.used + 1;
+    const month = this.periodMonth;
+    return quota.limit === 1
+      ? $localize`This uses your one request for ${month}:month:.`
+      : $localize`This uses ${next}:next: of your ${quota.limit}:limit: requests for ${month}:month:.`;
+  }
+
+  protected requestButtonLabel(language: LanguageCode): string {
+    return this.orderLoading ? $localize`Requesting…` : $localize`Request ${this.languageName(language)}:language:`;
+  }
+
+  protected get capTitle(): string {
+    const month = this.periodMonth;
+    return this.quota?.limit === 1
+      ? $localize`You have used your ${month}:month: request`
+      : $localize`You have used your ${month}:month: requests`;
+  }
+
+  protected get capCopy(): string {
+    const resets = this.quota
+      ? new Intl.DateTimeFormat(undefined, {day: 'numeric', month: 'long'}).format(new Date(this.quota.periodEndsAt))
+      : '';
+    const first = this.periodOrders[0];
+    if (first && this.periodOrders.length === 1) {
+      return $localize`It went to ${this.languageName(first.language)}:language: on ${first.bookTitle}:book:. Withdraw that one to spend it here instead, or ask again on ${resets}:date:.`;
     }
-    this.showLangDropdown = false;
+    return $localize`Withdraw one of them to spend it here instead, or ask again on ${resets}:date:.`;
+  }
+
+  protected confirmRequest(): void {
+    const language = this.sheetLanguage;
+    const id = this.originalBookId;
+    if (!language || !id || this.orderLoading) return;
     this.orderLoading = true;
-    const id = this.book?.originalId ?? this.bookId;
     this.readService.orderTranslation(id, language)
-      .pipe(finalize(() => {
-        this.orderLoading = false;
-        this.languageSelectControl.setValue(this.languagePrompt);
-      }))
+      .pipe(finalize(() => this.orderLoading = false))
       .subscribe({
         next: () => {
-          this.orderedLanguages = [...this.orderedLanguages, language];
+          this.closeSheet();
           this.alertService.open($localize`Translation requested`, {appearance: 'positive'}).subscribe();
+          this.loadRequests();
         },
         error: (error) => {
           logger.error('Failed to order translation:', error);
-          this.alertService.open(getErrorMessage(error, $localize`Couldn't order translation`), {appearance: 'negative'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't request the translation`), {appearance: 'negative'}).subscribe();
         }
       });
   }
+
+  protected withdrawFromSheet(order: TranslationOrder): void {
+    this.withdrawing = order.language;
+    this.readService.cancelTranslationOrder(order.bookId, order.language)
+      .pipe(finalize(() => this.withdrawing = null))
+      .subscribe({
+        next: () => {
+          this.orders = this.orders.filter(o => o.id !== order.id);
+          if (this.quota) this.quota = {...this.quota, used: Math.max(0, this.quota.used - 1)};
+          this.cdr.detectChanges();
+        },
+        error: (error) => this.alertService.open(getErrorMessage(error, $localize`Couldn't withdraw the request`), {appearance: 'negative'}).subscribe(),
+      });
+  }
+
+  cancelOrder(language: LanguageCode) {
+    const id = this.originalBookId;
+    if (!this.book || !id) {
+      return;
+    }
+    this.withdrawing = language;
+    this.readService.cancelTranslationOrder(id, language)
+      .pipe(finalize(() => {
+        this.withdrawing = null;
+      }))
+      .subscribe({
+        next: () => {
+          this.orders = this.orders.filter(order => !(order.bookId === id && order.language === language));
+          if (this.quota) this.quota = {...this.quota, used: Math.max(0, this.quota.used - 1)};
+          this.alertService.open($localize`Translation request withdrawn`, {appearance: 'positive'}).subscribe();
+        }, error: (error) => {
+          logger.error('Failed to withdraw translation request:', error);
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't withdraw translation request`), {appearance: 'negative'}).subscribe();
+        }
+      });
+  }
+
+  // --- Favourites ---
 
   private favoriteBlocked = false;
 
@@ -298,56 +380,7 @@ export class BookComponent implements OnInit, OnDestroy {
     return 'bookmark';
   }
 
-  cancelOrder(language: LanguageCode) {
-    const id = this.originalBookId;
-    if (!this.book || !id) {
-      return;
-    }
-    this.withdrawing = language;
-    this.readService.cancelTranslationOrder(id, language)
-      .pipe(finalize(() => {
-        this.withdrawing = null;
-      }))
-      .subscribe({
-        next: () => {
-          this.orderedLanguages = this.orderedLanguages.filter(code => code !== language);
-          this.alertService.open($localize`Translation request withdrawn`, {appearance: 'positive'}).subscribe();
-        }, error: (error) => {
-          logger.error('Failed to withdraw translation request:', error);
-          this.alertService.open(getErrorMessage(error, $localize`Couldn't withdraw translation request`), {appearance: 'negative'}).subscribe();
-        }
-      });
-  }
-
-  getBookmarkColor(): string {
-    return this.book?.favorite ? 'orange' : 'grey';
-  }
-
-  onOriginalLanguageClick() {
-    if (!this.book?.originalId) {
-      logger.warn("Original book ID is missing, cannot navigate.");
-      return;
-    }
-
-    const originalSlug = this.book.languageVariants.find(variant => variant.id === this.book?.originalId)?.editionSlug;
-    if (originalSlug) this.navigateToSlug(originalSlug);
-  }
-
-  private navigateToSlug(slug: string) {
-    void this.router.navigate([`/books/${slug}`]).then(success => {
-      if (!success) {
-        logger.error("Navigation failed!");
-      }
-    });
-  }
-
   goToReader() {
     void this.router.navigate([`/reader/${this.bookSlug}`]).then();
-  }
-
-  protected readonly signal = signal;
-
-  onClickOutsideLanguageDropdown() {
-    this.showLangDropdown = false;
   }
 }

@@ -15,7 +15,6 @@ import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
-import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
@@ -29,6 +28,8 @@ import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
 import {UserInfoService} from '../../../services/user-info.service';
 import {BookHtmlPipe} from './book-html.pipe';
+import {WordCardComponent} from '../word-card/word-card.component';
+import {CEFRLevel} from '../../../models/userinfo.model';
 
 @Component({
   selector: 'app-reader',
@@ -50,6 +51,7 @@ import {BookHtmlPipe} from './book-html.pipe';
     TuiOptGroup,
     TuiDataList,
     BookHtmlPipe,
+    WordCardComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -63,7 +65,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private router = inject(Router);
   private ngZone = inject(NgZone);
   private parallelModeService = inject(ParallelModeService);
-  private popupTemplateStateService = inject(PopupTemplateStateService);
   private readerDom = inject(ReaderDomService);
   private progressTracker = inject(ReaderProgressTracker);
   private learningActivity = inject(LearningActivityService);
@@ -74,6 +75,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
   @ViewChild('tocTrigger', {read: ElementRef}) private tocTrigger?: ElementRef<HTMLElement>;
+  @ViewChild('settingsPanel', {read: ElementRef}) private settingsPanel?: ElementRef<HTMLElement>;
 
   // --- State Properties ---
   protected chapterNav: ReaderChapter[] = [];
@@ -127,6 +129,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
   protected targetLangCode: string | null = null; // Language of the book being read
+  /** The word card (G1): the entry and the sentence it was met in, or null while closed. */
+  protected wordCard: {entry: string; context: string} | null = null;
+  protected bookTitle = '';
+  protected bookLevel: CEFRLevel | null = null;
+  /** The settings panel (G5) lives in the bottom bar, where its effect is visible behind it. */
+  protected parallelSettingsOpen = false;
   protected selectedLookupText = '';
   private selectedLookupContext = '';
 
@@ -197,6 +205,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.parallelVersions = [];
     this.selectedLookupText = '';
     this.selectedLookupContext = '';
+    this.wordCard = null;
+    this.parallelSettingsOpen = false;
+    this.bookTitle = '';
+    this.bookLevel = null;
     this.cdRef.markForCheck();
   }
 
@@ -207,6 +219,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       next: book => {
         this.bookId = book.id;
         this.targetLangCode = book.language;
+        this.bookTitle = book.title;
+        this.bookLevel = book.cefrLevel;
         this.parallelVersions = book.languageVariants.filter(variant => variant.language !== book.language);
         this.trackProgress = this.userInfoService.currentUserInfo !== null;
         this.startCountingReadingTime(book.language);
@@ -215,6 +229,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.fetchBookData(book.id);
         }
         this.loadBookHtml(slug, true);
+        // The book page's chips link straight into a pair: /reader/slug?parallel=EN.
+        const requested = this.route.snapshot.queryParamMap.get('parallel') as LanguageCode | null;
+        if (requested && this.parallelVersions.some(variant => variant.language === requested)) {
+          this.selectOption(requested);
+        }
       },
       error: error => this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
     });
@@ -236,6 +255,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.targetLangCode = book.language;
           this.startCountingReadingTime(book.language);
         }
+        this.bookTitle = book.title;
         this.loadBookHtml(id, true);
       },
       error: error => this.handleError(getErrorMessage(error, $localize`Could not load private book.`)),
@@ -301,9 +321,35 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     const text = selection.toString().trim().replace(/\s+/g, ' ');
     if (!text || text.length > 80) return;
     const sourceElement = selection.anchorNode.parentElement?.closest('p, li, blockquote, div');
-    this.selectedLookupText = text;
-    this.selectedLookupContext = sourceElement?.textContent?.trim().replace(/\s+/g, ' ').slice(0, 500) ?? text;
+    const paragraph = sourceElement?.textContent?.trim().replace(/\s+/g, ' ') ?? text;
+    const context = sentenceAround(paragraph, text).slice(0, 500);
+    // A word or a short phrase opens the card in place; a longer stretch goes to Discover as a sentence.
+    if (text.split(' ').length <= 3) {
+      this.selectedLookupText = '';
+      this.selectedLookupContext = '';
+      this.wordCard = {entry: text, context};
+    } else {
+      this.selectedLookupText = text;
+      this.selectedLookupContext = context;
+    }
     this.cdRef.markForCheck();
+  }
+
+  protected closeWordCard(): void {
+    this.wordCard = null;
+    this.cdRef.markForCheck();
+  }
+
+  /** The language the card translates into: the pair being read, else the reader's first other fluent language. */
+  protected get cardTranslationLanguage(): LanguageCode {
+    if (this.fluentLangCode) return this.fluentLangCode as LanguageCode;
+    const fluent = this.userInfoService.currentUserInfo?.fluentLangs.find(language => language !== this.targetLangCode);
+    if (fluent) return fluent;
+    return this.targetLangCode === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
+  }
+
+  protected get cardLanguage(): LanguageCode {
+    return (this.targetLangCode as LanguageCode | null) ?? LanguageCode.EN;
   }
 
   protected openSelectionInDiscover(): void {
@@ -896,6 +942,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     const target = event.target;
     if (target instanceof Node && this.tocTrigger?.nativeElement.contains(target)) return;
     this.chapterNavigationDropdown?.toggle(false);
+    // The settings panel closes on any click outside it; the menu item that opened it is inside a dropdown list.
+    if (this.parallelSettingsOpen && target instanceof Node
+      && !this.settingsPanel?.nativeElement.contains(target)
+      && !(target instanceof Element && target.closest('tui-data-list'))) {
+      this.closeParallelSettings();
+    }
   }
 
   protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
@@ -1089,9 +1141,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
-  @ViewChild(ParallelSettingsComponent, {static: true}) parallelSettingsComponent!: ParallelSettingsComponent;
-
   openParallelSettings() {
-    this.popupTemplateStateService.open(this.parallelSettingsComponent.content, 'avatar');
+    this.parallelSettingsOpen = !this.parallelSettingsOpen;
+    this.cdRef.markForCheck();
   }
+
+  protected closeParallelSettings(): void {
+    if (!this.parallelSettingsOpen) return;
+    this.parallelSettingsOpen = false;
+    this.cdRef.markForCheck();
+  }
+}
+
+/** The sentence a word was met in: the paragraph cut at the sentence ends on either side of the hit. */
+export function sentenceAround(paragraph: string, hit: string): string {
+  const index = paragraph.toLowerCase().indexOf(hit.toLowerCase());
+  if (index < 0) return paragraph;
+  const boundary = /[.!?…]["”»']?\s/g;
+  let start = 0;
+  let end = paragraph.length;
+  let match: RegExpExecArray | null;
+  while ((match = boundary.exec(paragraph)) !== null) {
+    const cut = match.index + match[0].length;
+    if (cut <= index) start = cut;
+    else if (match.index >= index + hit.length) {
+      end = match.index + match[0].trimEnd().length;
+      break;
+    }
+  }
+  return paragraph.slice(start, end).trim();
 }

@@ -1,13 +1,5 @@
-import {Component, Input, OnChanges} from '@angular/core';
-
-const COVER_COLORS = [
-  '#6f405c',
-  '#315c62',
-  '#8a543f',
-  '#4f5f3d',
-  '#5a4b78',
-  '#9a6a33',
-] as const;
+import {ChangeDetectorRef, Component, Input, OnChanges, inject} from '@angular/core';
+import {BookHue, bookColor, dominantBookHue, hashedBookHue} from '../book-hue';
 
 @Component({
   selector: 'app-book-cover',
@@ -20,28 +12,33 @@ export class BookCoverComponent implements OnChanges {
   @Input({required: true}) workSlug = '';
   @Input() coverUrl: string | null = null;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   protected get coverLabel(): string {
     return $localize`${this.title}:title: by ${this.author}:author: cover`;
   }
 
   protected imageFailed = false;
-  protected color: string = COVER_COLORS[0];
+  /** One of the eight shelf hues: sampled from the cover art when it can be read, hashed from the work otherwise. */
+  protected hue: BookHue = hashedBookHue('');
+
+  protected get color(): string {
+    return bookColor(this.hue);
+  }
 
   ngOnChanges(): void {
     this.imageFailed = false;
-    this.color = COVER_COLORS[this.hash(this.workSlug) % COVER_COLORS.length];
+    this.hue = hashedBookHue(this.workSlug);
+    const url = this.coverUrl;
+    if (!url) return;
+    void dominantBookHue(url).then(sampled => {
+      if (sampled === null || url !== this.coverUrl) return;
+      this.hue = sampled;
+      this.cdr.markForCheck();
+    });
   }
 
   protected onImageError(): void {
     this.imageFailed = true;
-  }
-
-  private hash(value: string): number {
-    let result = 2166136261;
-    for (const character of value) {
-      result ^= character.charCodeAt(0);
-      result = Math.imul(result, 16777619);
-    }
-    return result >>> 0;
   }
 }
