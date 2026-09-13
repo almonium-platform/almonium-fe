@@ -48,8 +48,9 @@
 .progress-hairline i { display: block; height: 100%; border-radius: 2px; background: #fff; }
 
 // The shelf. Spines stand on a hairline; thickness and height vary, colour comes from the palette.
-// It scrolls sideways, which also clips vertically, so the headroom is what the raised spine and its hover label need.
-.shelf { display: flex; align-items: end; gap: 5px; min-height: 184px; padding: 4.75rem .4rem 2px; overflow-x: auto; border-bottom: 3px solid var(--control-border-color); }
+// It scrolls sideways, which clips on every edge, so the padding is the room a raised spine's shadow and its hover label
+// need; the hairline is a background line rather than a border so the spine's shadow can fall past it.
+.shelf { display: flex; align-items: end; gap: 5px; min-height: 184px; padding: 4.75rem 1rem 1.5rem; overflow-x: auto; background: linear-gradient(var(--control-border-color), var(--control-border-color)) left 0 bottom calc(1.5rem - 5px) / 100% 3px no-repeat; }
 .book-context { flex: 0 0 auto; }
 .shelf-book { position: relative; display: flex; flex-direction: column; color: #fff; text-decoration: none; }
 .book-spine { justify-content: flex-start; width: var(--spine-width); height: var(--spine-height); padding: 8px 5px; overflow: visible; border-radius: 4px 4px 2px 2px; background: var(--book-color); box-shadow: 0 2px 5px rgba(44, 37, 48, .16); transition: transform .15s ease, box-shadow .15s ease; }
@@ -66,7 +67,7 @@
 .shelf-book:hover .hover-label, .shelf-book:focus-visible .hover-label { display: block; }
 // The shelf cannot scroll left of its first spine, so the first few labels hang from the spine's left edge instead of its centre.
 .shelf > :nth-child(-n+3) .hover-label { left: 0; transform: none; }
-.cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem 0 1rem; border: 0; }
+.cover-shelf { align-items: start; gap: .85rem; min-height: 0; padding: .5rem .5rem 1rem; background: none; }
 .cover-book, .private-cover { display: flex; flex: 0 0 8.5rem; width: 8.5rem; flex-direction: column; gap: .45rem; color: var(--text-color); text-decoration: none; }
 .cover-book app-book-cover { display: block; width: 8.5rem; height: 12.2rem; overflow: hidden; border-radius: .45rem; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
 .cover-book > span { display: flex; min-width: 0; flex-direction: column; }
