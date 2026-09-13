@@ -6,7 +6,7 @@
   } @else if (stage === 'overview' && summary) {
     <section class="overview-shell">
       <div class="overview-copy">
-        <p i18n class="eyebrow">Review · {{ selectedLanguage }}</p>
+        <p i18n class="eyebrow">Review · {{ displayLanguageName }}</p>
         @if (summary.dueCount > 0) {
           <h1 i18n>{summary.dueCount, plural, =1 {1 word is due} other {{{summary.dueCount}} words are due}}</h1>
           <p i18n>{{ summary.sessionSize }} of them make a session. The rest keep their place; there is no debt to clear.</p>

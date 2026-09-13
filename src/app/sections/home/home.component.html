@@ -57,7 +57,7 @@
       @if (continueBook; as book) {
         <div class="hero-cover"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover></div>
         <div class="continue-copy">
-          <p i18n class="eyebrow">Continue reading</p><h1 id="continue-title">{{ book.title }}</h1><p>{{ book.author }} · {{ book.cefrLevel }} {{ selectedLanguage }}</p>
+          <p i18n class="eyebrow">Continue reading</p><h1 id="continue-title">{{ book.title }}</h1><p>{{ book.author }} · {{ book.cefrLevel }} {{ languageName }}</p>
           <div class="progress-row"><span class="progress-track" role="progressbar" [attr.aria-label]="progressAriaLabel(book)" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="book.progressPercentage ?? 0"><i [style.width.%]="book.progressPercentage ?? 0"></i></span><small>{{ book.progressPercentage ?? 0 }}% · {{ progressLabel(book) }}</small></div>
         </div>
         <div class="continue-actions"><a i18n class="primary-action" [routerLink]="['/reader', book.editionSlug]">Continue</a><a i18n class="text-action" routerLink="/read">Start something else</a></div>
@@ -96,9 +96,9 @@
       </div>
 
       <aside class="side-column" aria-label="Learning overview" i18n-aria-label>
-        <section class="home-card review-card"><p i18n class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ selectedLanguage }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
+        <section class="home-card review-card"><p i18n class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ languageName }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
         <app-harness></app-harness>
-        <section class="home-card plan-card"><p i18n class="eyebrow">Your plan</p><p i18n>{cards.length, plural, =1 {You’re on {{planName}} with 1 saved word in {{selectedLanguage}}.} other {You’re on {{planName}} with {{cards.length}} saved words in {{selectedLanguage}}.}}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
+        <section class="home-card plan-card"><p i18n class="eyebrow">Your plan</p><p i18n>{cards.length, plural, =1 {You’re on {{planName}} with 1 saved word in {{languageName}}.} other {You’re on {{planName}} with {{cards.length}} saved words in {{languageName}}.}}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
       </aside>
     </div>
   }
