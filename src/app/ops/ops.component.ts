@@ -1,5 +1,5 @@
 import {Component, OnInit, inject} from '@angular/core';
-import {CurrencyPipe, DatePipe, DecimalPipe} from '@angular/common';
+import {CurrencyPipe, DatePipe, DecimalPipe, LowerCasePipe} from '@angular/common';
 import {FormBuilder, FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {finalize} from 'rxjs';
@@ -17,6 +17,8 @@ import {
   SpendActualLine,
   SpendEstimatedLine,
   SpendReport,
+  StatsReport,
+  SubscriptionCount,
 } from './ops.service';
 
 /** The ledgers name features by their internal purpose; the page names them for a reader. */
@@ -28,6 +30,15 @@ const SPEND_FEATURE_LABELS: Record<string, string> = {
   import_metadata: 'Import metadata',
 };
 
+/** The backend names subscription states for the reconciliation code; the page names them for a reader. */
+const SUBSCRIPTION_STATUS_LABELS: Record<SubscriptionCount['status'], string> = {
+  ACTIVE: 'Active',
+  ACTIVE_TILL_CYCLE_END: 'Cancelling at cycle end',
+  CANCELED: 'Cancelled',
+  PAUSED: 'Paused',
+  INACTIVE: 'Inactive',
+};
+
 /** Charges summed over the window for one line item of one project. */
 export interface SpendLineItemTotal {
   projectId: string;
@@ -37,7 +48,7 @@ export interface SpendLineItemTotal {
 
 @Component({
   selector: 'app-ops',
-  imports: [ReactiveFormsModule, RecentAuthGuardComponent, DatePipe, DecimalPipe, CurrencyPipe],
+  imports: [ReactiveFormsModule, RecentAuthGuardComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
   templateUrl: './ops.component.html',
   styleUrl: './ops.component.less',
 })
@@ -100,6 +111,10 @@ export class OpsComponent implements OnInit {
   protected awaitingPurgeConfirmation = false;
   protected syncingArtwork = false;
   protected provisioningAccounts = false;
+
+  protected stats: StatsReport | null = null;
+  protected loadingStats = false;
+  protected statsError = '';
 
   protected readonly spendWindows = [7, 30, 90];
   protected spendDays = 30;
@@ -278,6 +293,7 @@ export class OpsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadStats();
     this.loadSpend();
 
     // The backend names the environment in the phrase, so the console shows what it will accept
@@ -453,6 +469,31 @@ export class OpsComponent implements OnInit {
       return;
     }
     this.opsService.findUserByEmail(this.lookupResult.email).subscribe((result) => this.lookupResult = result);
+  }
+
+  protected loadStats(): void {
+    this.loadingStats = true;
+    this.statsError = '';
+    this.opsService.stats()
+      .pipe(finalize(() => this.loadingStats = false))
+      .subscribe({
+        next: (report) => this.stats = report,
+        error: (error: unknown) => {
+          this.stats = null;
+          this.statsError = getErrorMessage(error, 'The stats could not be loaded');
+        },
+      });
+  }
+
+  /** Paying members: everyone on a plan above FREE that is active or running out its cycle. */
+  protected get payingMembers(): number {
+    return (this.stats?.subscriptions ?? [])
+      .filter((line) => line.plan !== 'FREE' && (line.status === 'ACTIVE' || line.status === 'ACTIVE_TILL_CYCLE_END'))
+      .reduce((sum, line) => sum + line.count, 0);
+  }
+
+  protected subscriptionStatusLabel(status: SubscriptionCount['status']): string {
+    return SUBSCRIPTION_STATUS_LABELS[status] ?? status;
   }
 
   protected onSpendWindow(days: number): void {

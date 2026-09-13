@@ -79,6 +79,38 @@ export interface SpendActualLine {
   usd: number;
 }
 
+/** Sign-ups and returning users since `since`; "today" starts at UTC midnight, the others trail the clock. */
+export interface StatsWindow {
+  label: string;
+  since: string;
+  registered: number;
+  active: number;
+}
+
+export interface SubscriptionCount {
+  plan: string;
+  cadence: 'MONTHLY' | 'YEARLY' | 'LIFETIME';
+  status: 'ACTIVE' | 'ACTIVE_TILL_CYCLE_END' | 'CANCELED' | 'PAUSED' | 'INACTIVE';
+  count: number;
+}
+
+export interface GrantCount {
+  entitlement: Entitlement;
+  count: number;
+}
+
+/** How the product is doing, counted from our own tables. Nothing here calls out to Paddle or OpenAI. */
+export interface StatsReport {
+  generatedAt: string;
+  totalUsers: number;
+  windows: StatsWindow[];
+  subscriptions: SubscriptionCount[];
+  activeGrants: GrantCount[];
+  /** Members whose only premium is a grant: no paid plan active or running out its cycle. */
+  grantOnlyMembers: number;
+  foundingMembers: {confirmed: number; reserved: number; available: number};
+}
+
 export interface SpendReport {
   since: string;
   until: string;
@@ -99,6 +131,12 @@ export class OpsService {
   /**
    * Looks up a user by email so an operator can find their ID without querying the database directly.
    */
+  /** Who signed up, who came back, who pays, and who is a member by grant, right now. */
+  stats(): Observable<StatsReport> {
+    const url = `${AppConstants.OPS_URL}/stats`;
+    return this.http.get<StatsReport>(url, {withCredentials: true});
+  }
+
   /** What the models cost over the last `days` days: our ledgers priced by our table, and the bill itself. */
   spendReport(days: number): Observable<SpendReport> {
     const url = `${AppConstants.OPS_URL}/spend`;

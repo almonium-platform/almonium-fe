@@ -11,6 +11,119 @@
     <span class="ops-page__badge">Admin only</span>
   </header>
 
+  <section class="ops-card ops-card--pulse" aria-labelledby="pulse-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="pulse-title">Pulse</h2>
+        <p>
+          Is anyone here. Counted from our own tables just now: sign-ups by registration date, returning users by the
+          last authenticated request from any client, subscriptions as Paddle last reconciled them, and the grants in
+          force. Grant-only members have premium because an operator said so, not because they pay.
+        </p>
+      </div>
+      <button class="ops-button ops-button--quiet" type="button" [disabled]="loadingStats" (click)="loadStats()">
+        {{ loadingStats ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+
+    @if (statsError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ statsError }}</span>
+      </div>
+    } @else if (!stats) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-pulse__tiles" aria-live="polite">
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Users</span>
+          <strong>{{ stats.totalUsers | number }}</strong>
+        </div>
+        @for (window of stats.windows; track window.label) {
+          <div class="ops-pulse__tile">
+            <span class="ops-summary__label">Active {{ window.label }}</span>
+            <strong>{{ window.active | number }}</strong>
+            <small>{{ window.registered | number }} signed up</small>
+          </div>
+        }
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Paying</span>
+          <strong>{{ payingMembers | number }}</strong>
+        </div>
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Grant-only members</span>
+          <strong>{{ stats.grantOnlyMembers | number }}</strong>
+        </div>
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Founding members</span>
+          <strong>{{ stats.foundingMembers.confirmed | number }}</strong>
+          <small>
+            {{ stats.foundingMembers.reserved | number }} reserved,
+            {{ stats.foundingMembers.available | number }} open
+          </small>
+        </div>
+      </div>
+
+      <div class="ops-pulse__tables">
+        <div>
+          <h3 class="ops-spend__subtitle">Subscriptions</h3>
+          @if (stats.subscriptions.length) {
+            <div class="ops-table-scroll">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Plan</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="ops-table__number">People</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of stats.subscriptions; track line.plan + line.cadence + line.status) {
+                    <tr>
+                      <td>{{ line.plan }} <small>{{ line.cadence | lowercase }}</small></td>
+                      <td>{{ subscriptionStatusLabel(line.status) }}</td>
+                      <td class="ops-table__number">{{ line.count | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="ops-maintenance__more">No subscriptions yet.</p>
+          }
+        </div>
+
+        <div>
+          <h3 class="ops-spend__subtitle">Grants in force</h3>
+          @if (stats.activeGrants.length) {
+            <div class="ops-table-scroll">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Entitlement</th>
+                    <th scope="col" class="ops-table__number">People</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of stats.activeGrants; track line.entitlement) {
+                    <tr>
+                      <td>{{ line.entitlement }}</td>
+                      <td class="ops-table__number">{{ line.count | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="ops-maintenance__more">No grants in force.</p>
+          }
+        </div>
+      </div>
+
+      <p class="ops-pulse__stamp">As of {{ stats.generatedAt | date:'MMM d, HH:mm' }}</p>
+    }
+  </section>
+
   <div class="ops-layout">
     <section class="ops-card ops-card--lookup" aria-labelledby="lookup-title">
       <div class="ops-card__heading">
