@@ -1,0 +1,42 @@
+<main class="checkout-page">
+  <div class="checkout-shell">
+    <header>
+      <span i18n class="eyebrow">Checkout</span>
+      @if (summary) {
+        <h1>{{ summary.planLabel }}</h1>
+      } @else if (failed) {
+        <h1 i18n>Checkout unavailable</h1>
+      } @else {
+        <h1 i18n>Preparing secure checkout…</h1>
+      }
+    </header>
+
+    <div class="checkout-columns">
+      <section class="summary" aria-label="Order summary" i18n-aria-label>
+        @if (summary) {
+          <dl>
+            <div><dt i18n>Charged now</dt><dd class="headline">{{ summary.chargedNow }}</dd></div>
+            <div><dt i18n>Billed</dt><dd>{{ summary.billed }}</dd></div>
+            @if (summary.equivalent) {
+              <div><dt i18n>Equivalent</dt><dd class="muted">{{ summary.equivalent }}</dd></div>
+            }
+            @if (summary.renews) {
+              <div><dt i18n>Renews</dt><dd>{{ summary.renews }}</dd></div>
+            }
+          </dl>
+          <p i18n class="guarantee">14-day money-back guarantee</p>
+          <p i18n class="footnote">Your founding-member price remains available while your subscription stays active.</p>
+        } @else if (!failed) {
+          <p i18n class="loading">Loading your order…</p>
+        }
+      </section>
+
+      <!--
+        Paddle renders the card fields and the pay button in here. The element it actually targets is created in code
+        rather than by this template: Paddle takes ownership of that node and removes it, and a node Angular believes
+        it still owns is not a node to hand over.
+      -->
+      <section #frameHost class="paddle-host" aria-label="Payment details" i18n-aria-label></section>
+    </div>
+  </div>
+</main>

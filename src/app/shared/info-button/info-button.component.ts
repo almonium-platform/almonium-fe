@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-import {TuiHint} from "@taiga-ui/core";
+import {TuiHint} from "@taiga-ui/core/portals";
 import {LucideAngularModule} from "lucide-angular";
 
 @Component({
@@ -8,7 +8,7 @@ import {LucideAngularModule} from "lucide-angular";
     <lucide-icon
       name="info"
       class="info-btn"
-      tuiHintAppearance="dark"
+      [tuiHintAppearance]="'dark'"
       tuiHintDirection="top"
       [size]=size
       [strokeWidth]="strokeWidth"
@@ -34,7 +34,7 @@ import {LucideAngularModule} from "lucide-angular";
   ],
 })
 export class InfoIconComponent {
-  @Input() tooltipText: string = '';
-  @Input() size: number = 30;
-  @Input() strokeWidth: number = 1.5;
+  @Input() tooltipText = '';
+  @Input() size = 30;
+  @Input() strokeWidth = 1.5;
 }

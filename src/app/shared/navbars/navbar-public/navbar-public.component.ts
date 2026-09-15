@@ -1,9 +1,7 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {FormsModule} from "@angular/forms";
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import {NgClass} from "@angular/common";
-import {Router, RouterLink} from "@angular/router";
+import {RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
-import {ButtonComponent} from "../../button/button.component";
 import {LucideAngularModule} from "lucide-angular";
 
 @Component({
@@ -11,31 +9,27 @@ import {LucideAngularModule} from "lucide-angular";
   templateUrl: './navbar-public.component.html',
   styleUrls: ['./navbar-public.component.less'],
   imports: [
-    FormsModule,
     NgClass,
     NgClickOutsideDirective,
     RouterLink,
-    ButtonComponent,
     LucideAngularModule
   ]
 })
 export class NavbarPublicComponent implements OnInit, OnDestroy {
-  @Input() currentRoute: string = '';
-  protected isDiscoverMenuOpen: boolean = false;
-  isMobile: boolean = false;
+  private cdr = inject(ChangeDetectorRef);
 
-  constructor(private router: Router,
-              private cdr: ChangeDetectorRef,
-  ) {
-  }
+  @Input() currentRoute = '';
+  protected isDiscoverMenuOpen = false;
+  isMobile = false;
+  private readonly resizeListener = () => this.checkDeviceType();
 
   ngOnInit(): void {
     this.checkDeviceType();
-    window.addEventListener('resize', this.checkDeviceType.bind(this));
+    window.addEventListener('resize', this.resizeListener);
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('resize', this.checkDeviceType.bind(this));
+    window.removeEventListener('resize', this.resizeListener);
   }
 
   private checkDeviceType(): void {
@@ -44,18 +38,10 @@ export class NavbarPublicComponent implements OnInit, OnDestroy {
   }
 
   toggleDiscoverMenu(): void {
-    if (this.isMobile) {
-      this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
-    } else {
-      this.navigateToRoot();
-    }
+    this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
   }
 
-  navigateToRoot() {
-    this.router.navigate(['/']).then();
-  }
-
-  discoverOnClickOutside(_: Event) {
+  discoverOnClickOutside() {
     this.isDiscoverMenuOpen = false;
   }
 }

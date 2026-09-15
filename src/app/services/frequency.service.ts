@@ -1,4 +1,5 @@
-import {Injectable} from '@angular/core';
+import {logger} from "../shared/logger";
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
@@ -26,12 +27,14 @@ interface Ngram {
   providedIn: 'root',
 })
 export class FrequencyService {
+  private http = inject(HttpClient);
+
   private readonly LOWEST_SCORE = 1;
   private readonly EXPONENT = 9;
   private readonly FREQUENCY_THRESHOLD = Math.pow(10, -this.EXPONENT);
 
   // Map language to its specific scale as defined in the backend
-  private readonly languageScale: Map<LanguageCode, number> = new Map([
+  private readonly languageScale = new Map<LanguageCode, number>([
     [LanguageCode.EN, 12.78990589161462],
     [LanguageCode.RU, 10.5], // Replace with actual RU scale
     [LanguageCode.DE, 11.3], // Replace with actual DE scale
@@ -39,15 +42,12 @@ export class FrequencyService {
   ]);
 
   // Map language to corpus name as per ngrams.dev API
-  private readonly corpusName: Map<LanguageCode, string> = new Map([
+  private readonly corpusName = new Map<LanguageCode, string>([
     [LanguageCode.EN, 'eng'],
     [LanguageCode.RU, 'rus'],
     [LanguageCode.DE, 'ger'],
     // Add other languages and their corpus names as needed
   ]);
-
-  constructor(private http: HttpClient) {
-  }
 
   /**
    * Fetches frequency data for a given word using the ngrams.dev API.
@@ -58,7 +58,7 @@ export class FrequencyService {
   getFrequency(word: string, language: LanguageCode = LanguageCode.EN): Observable<number> {
     const corpus = this.corpusName.get(language);
     if (!corpus) {
-      console.error(`Language ${language} is not supported.`);
+      logger.error(`Language ${language} is not supported.`);
       return of(0); // Or handle as per your application's requirement
     }
 
@@ -70,11 +70,11 @@ export class FrequencyService {
           const relFrequency = response.ngrams[0].relTotalMatchCount;
           return this.calculateFrequency(relFrequency, language);
         }
-        console.warn(`No ngrams data found for word: ${word}`);
+        logger.warn(`No ngrams data found for word: ${word}`);
         return 0; // Default frequency if not found
       }),
       catchError(error => {
-        console.error('Error fetching frequency data from ngrams.dev:', error);
+        logger.error('Error fetching frequency data from ngrams.dev:', error);
         return of(0); // Return a default value in case of error
       })
     );
@@ -94,7 +94,7 @@ export class FrequencyService {
     if (frequency < this.FREQUENCY_THRESHOLD) {
       return this.LOWEST_SCORE;
     }
-    const scale = this.languageScale.get(language) || 1; // Default scale if language not found
+    const scale = this.languageScale.get(language) ?? 1; // Default scale if language not found
     const normalizeByZero = Math.log10(frequency) + this.EXPONENT;
     const result = scale * normalizeByZero + this.LOWEST_SCORE;
     return Math.round(result);

@@ -33,7 +33,7 @@
   @if (state === 'ready') {
     <app-button
       appearance="bw"
-      label="Start"
+      label="Start" i18n-label
       width="full"
       [disabled]="getTotalTime() === 0"
       (clickFunction)="startTimer()"
@@ -44,7 +44,7 @@
       <app-button
         appearance="bw"
         label=""
-        customClass="circular-icon"
+        [customClass]="'circular-icon'"
         (clickFunction)="togglePauseTimer()"
       >
         <lucide-icon
@@ -57,7 +57,7 @@
       <app-button
         appearance="bw"
         label=""
-        customClass="circular-icon"
+        [customClass]="'circular-icon'"
         (clickFunction)="stopTimer()"
       >
         <lucide-icon

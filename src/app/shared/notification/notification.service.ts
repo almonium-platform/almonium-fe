@@ -1,37 +1,38 @@
-import {Injectable} from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
+import {map} from 'rxjs/operators';
 import {AppConstants} from "../../app.constants";
-import {Notification} from "./notification.model";
+import {Notification, parseNotifications} from "./notification.model";
 
 @Injectable({
   providedIn: 'root',
 })
 export class NotificationService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getNotifications(): Observable<Notification[]> {
     const url = `${AppConstants.NOTIFICATIONS_URL}`;
-    return this.http.get<Notification[]>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseNotifications));
   }
 
-  markAllAsRead(): Observable<any> {
+  markAllAsRead(): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/read`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  markAsRead(id: string): Observable<any> {
+  markAsRead(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/read`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  markAsUnread(id: string): Observable<any> {
+  markAsUnread(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}/unread`;
     return this.http.patch(url, {}, {withCredentials: true});
   }
 
-  delete(id: string): Observable<any> {
+  delete(id: string): Observable<unknown> {
     const url = `${AppConstants.NOTIFICATIONS_URL}/${id}`;
     return this.http.delete(url, {withCredentials: true});
   }

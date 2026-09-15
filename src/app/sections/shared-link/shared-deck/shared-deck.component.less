@@ -1,0 +1,257 @@
+@import '../shared-link.less';
+
+.deck-head {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.head-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5625rem;
+}
+
+.head-action {
+  flex: 0 0 auto;
+  margin-top: 1.25rem;
+}
+
+.owner-banner {
+  display: flex;
+  align-items: center;
+  gap: .5625rem;
+  padding: .6875rem .875rem;
+  border-radius: .75rem;
+  background: var(--card-color);
+  color: var(--text-color);
+  font-size: .8125rem;
+}
+
+.owner-banner svg {
+  flex: 0 0 auto;
+  color: var(--subhead-color);
+}
+
+.settled {
+  padding: .75rem 1rem;
+  border-radius: .75rem;
+  background: var(--success-bg-color);
+  color: var(--text-color);
+}
+
+.settled .tick {
+  background: transparent;
+}
+
+.push-right {
+  margin-left: auto;
+}
+
+.panel .lead {
+  color: var(--text-color);
+  font-size: .90625rem;
+  line-height: 1.6;
+}
+
+.inline-link {
+  color: var(--dark-raspberry);
+  text-decoration: none;
+}
+
+.inline-link:hover {
+  text-decoration: underline;
+}
+
+.language-line {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+}
+
+.language-line .lead {
+  font: 600 1.125rem/1.2 var(--font-family-reading);
+}
+
+.empty-panel .empty-lead {
+  color: var(--text-color);
+  font-size: .84375rem;
+}
+
+.owner-panel .actions {
+  margin-top: 0;
+}
+
+.word-list {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.25rem;
+  background: var(--card-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
+  overflow: hidden;
+}
+
+.selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .875rem;
+  padding: .75rem 1.5rem;
+  border-bottom: 1px solid var(--hairline-color);
+  background: var(--nested-color);
+  font-size: .8125rem;
+}
+
+.selection-bar .summary {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.selection-bar .held {
+  color: var(--disabled-label-color);
+}
+
+.selection-actions {
+  display: flex;
+  gap: .875rem;
+  margin-left: auto;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: .875rem;
+  min-height: 2.75rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.selectable .row:not(.held) {
+  cursor: pointer;
+}
+
+.selectable .row:not(.held):hover {
+  background: var(--state-hover);
+}
+
+.row:focus-visible {
+  outline: 3px solid var(--brand-margin);
+  outline-offset: -3px;
+}
+
+.row-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkbox {
+  display: grid;
+  flex: 0 0 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: .125rem;
+  place-items: center;
+  border: 1.5px solid var(--control-border-color);
+  border-radius: .375rem;
+  background: var(--card-color);
+  color: var(--on-brand-color);
+}
+
+.checkbox svg {
+  stroke: currentColor;
+}
+
+.checked .checkbox {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+}
+
+.held {
+  color: var(--disabled-label-color);
+}
+
+.held .checkbox {
+  border-color: var(--disabled-fill-color);
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+}
+
+.held .row-body {
+  opacity: .62;
+}
+
+.in-your-words {
+  flex: 0 0 auto;
+  margin-top: .25rem;
+  color: var(--metadata-color);
+  font: .6875rem/1 var(--font-family-mono);
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+.sign-up-card .actions {
+  margin-top: .25rem;
+}
+
+.sticky-ask {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: .4375rem;
+  padding: .75rem 1rem .875rem;
+  border-top: 1px solid var(--hairline-color);
+  background: var(--card-color);
+  box-shadow: 0 -6px 20px rgba(44, 37, 48, .1);
+}
+
+.sticky-ask p {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: .78125rem;
+  line-height: 1.5;
+}
+
+.sticky-ask .primary-button {
+  min-height: 2.875rem;
+  width: 100%;
+}
+
+@media (max-width: 40rem) {
+  .deck-head {
+    flex-direction: column;
+  }
+
+  .head-action {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .row {
+    padding: .9375rem 1rem;
+  }
+
+  .selection-bar {
+    padding: .625rem 1rem;
+  }
+
+  .with-sticky .sign-up-card {
+    display: none;
+  }
+
+  .in-your-words {
+    display: none;
+  }
+
+  .held .row-body::after {
+    content: 'In your words';
+    display: block;
+    margin-top: .375rem;
+    color: var(--metadata-color);
+    font: .6875rem/1 var(--font-family-mono);
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+}

@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   Input,
@@ -7,27 +8,28 @@ import {
   OnInit,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  inject,
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, startWith, switchMap} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, startWith, switchMap} from 'rxjs/operators';
 import {CommonModule} from '@angular/common';
 import {Language} from '../../models/language.model';
 
 import {
-  TUI_VALIDATION_ERRORS,
-  TuiChevron,
   TuiDataListWrapperComponent,
-  TuiFieldErrorPipe,
   TuiInputChipComponent,
   TuiInputChipDirective,
   TuiMultiSelectGroupDirective
-} from '@taiga-ui/kit';
-import {TuiError, TuiTextfieldDropdownDirective, TuiTextfieldMultiComponent} from '@taiga-ui/core';
-import {TuiItem} from '@taiga-ui/cdk';
+} from '@taiga-ui/kit/components';
+import {TuiChevron} from '@taiga-ui/kit/directives';
+import {TuiError, TuiTextfieldMultiComponent} from '@taiga-ui/core/components';
+import {TuiDropdownContent} from '@taiga-ui/core/portals';
+import {TuiItem} from '@taiga-ui/cdk/directives';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
-const MAX_LANGUAGES = 3;
+const DEFAULT_MAX_LANGUAGES = 3;
 
 @Component({
   selector: 'app-fluent-language-selector',
@@ -37,34 +39,46 @@ const MAX_LANGUAGES = 3;
     ReactiveFormsModule,
     CommonModule,
     TuiError,
-    TuiFieldErrorPipe,
     TuiTextfieldMultiComponent,
     TuiChevron,
     TuiInputChipDirective,
     TuiDataListWrapperComponent,
-    TuiTextfieldDropdownDirective,
+    TuiDropdownContent,
     TuiMultiSelectGroupDirective,
     TuiItem,
     TuiInputChipComponent,
   ],
-  providers: [
-    {
-      provide: TUI_VALIDATION_ERRORS,
-      useValue: {
-        required: 'At least one language is required',
-        maxLanguages: () => `You can select up to ${MAX_LANGUAGES} languages`,
-      },
-    },
-  ],
   standalone: true,
 })
 export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() languages: Language[] = [];
   @Input() size: 's' | 'm' | 'l' = 'l';
   @Input() selectedLanguages?: string[] = [];
+  @Input() showLimitMessage = false;
+  @Input() set maxLanguages(value: number) {
+    this._maxLanguages = value;
+    this.sanitizeControl();
+    this.fluentLanguageControl.updateValueAndValidity();
+  }
+
+  get maxLanguages(): number {
+    return this._maxLanguages;
+  }
+
   @Output() selectedFluentLanguages = new EventEmitter<{ languages: string[]; valid: boolean }>();
   @ViewChild('chipInput', {static: true}) chipInput!: ElementRef<HTMLInputElement>;
   private allowed = new Set<string>();
+  private _maxLanguages = DEFAULT_MAX_LANGUAGES;
+
+  get placeholder(): string {
+    if (this.atLanguageLimit) return $localize`Limit reached`;
+    return (this.fluentLanguageControl.value?.length ?? 0) ? '' : $localize`Start typing...`;
+  }
+
+  get atLanguageLimit(): boolean {
+    return (this.fluentLanguageControl.value?.length ?? 0) >= this.maxLanguages;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['languages']) {
@@ -88,11 +102,9 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  maxLanguages = MAX_LANGUAGES;
-
   fluentLanguageControl = new FormControl<string[]>([], [
     Validators.required,
-    this.maxLanguagesValidator(this.maxLanguages),
+    this.maxLanguagesValidator(),
   ]);
 
   // text typed into the input
@@ -109,9 +121,13 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
   private lastFiltered: string[] = [];
 
   ngOnInit(): void {
-    this.filteredFluentLanguages$.subscribe(list => (this.lastFiltered = list));
+    this.filteredFluentLanguages$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(list => (this.lastFiltered = list));
 
-    this.fluentLanguageControl.valueChanges.subscribe(() => {
+    this.fluentLanguageControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
       this.sanitizeControl(); // strip “fre” etc.
       const value = this.fluentLanguageControl.value ?? [];
       this.selectedFluentLanguages.emit({
@@ -127,6 +143,10 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
 
   // capture typing from the native input
   onType(event: Event): void {
+    if (this.atLanguageLimit) {
+      return;
+    }
+
     const value = (event.target as HTMLInputElement).value ?? '';
     this.fluentSearch$.next(value);
   }
@@ -149,6 +169,12 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
 
   // block Enter/Comma/Space from creating free chips
   trapSeparators(event: KeyboardEvent): void {
+    if (this.atLanguageLimit) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const key = event.key;
     if (key === 'Enter' || key === ',' || key === ' ') {
       // if a dropdown item is focused, Taiga will handle Enter via itemClick;
@@ -167,14 +193,18 @@ export class FluentLanguageSelectorComponent implements OnInit, OnChanges {
     }
   }
 
-  private maxLanguagesValidator(max: number) {
-    return (control: FormControl): { [key: string]: any } | null => {
+  private maxLanguagesValidator() {
+    return (control: FormControl): Record<string, boolean> | null => {
       const value = control.value as string[] | null;
-      return value && value.length > max ? {maxLanguages: true} : null;
+      return value && value.length > this.maxLanguages ? {maxLanguages: true} : null;
     };
   }
 
   private filterFluentLanguages(search: string): Observable<string[]> {
+    if (this.atLanguageLimit) {
+      return of([]);
+    }
+
     const q = search.toLowerCase().trim();
     const selected = new Set(this.fluentLanguageControl.value ?? []);
     const filtered = this.languages

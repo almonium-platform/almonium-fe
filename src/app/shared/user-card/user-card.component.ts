@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import {TuiNotificationService} from "@taiga-ui/core/components";
+import { Component, OnInit, inject } from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";
+import {getErrorMessage} from '../http-error';
 import {ActivatedRoute} from "@angular/router";
-import {TuiAlertService} from "@taiga-ui/core";
 import {UserPreviewCardComponent} from "../user-preview-card/user-preview-card.component";
 import {UserProfileInfo} from "../user-preview-card/user-profile.model";
 
@@ -11,10 +12,13 @@ import {UserProfileInfo} from "../user-preview-card/user-profile.model";
   template: `
     <app-particles></app-particles>
     @if (publicProfile) {
-      <div class="flex items-center justify-center w-full h-full base-container">
+      <div class="headless-container">
         <app-user-preview-card class="relative" [publicProfile]="publicProfile"></app-user-preview-card>
       </div>
     }
+  `,
+  styles: `
+    .headless-container { background-color: var(--main-bg-color); }
   `,
   standalone: true,
   imports: [
@@ -23,21 +27,18 @@ import {UserProfileInfo} from "../user-preview-card/user-profile.model";
   ]
 })
 export class UserCardComponent implements OnInit {
+  private profileService = inject(ProfileService);
+  private route = inject(ActivatedRoute);
+  private alertService = inject(TuiNotificationService);
+
   username: string | null = null;  // Store the username
   publicProfile: UserProfileInfo | null = null;
-
-  constructor(
-    private profileService: ProfileService,
-    private route: ActivatedRoute,
-    private alertService: TuiAlertService,
-  ) {
-  }
 
   ngOnInit(): void {
     this.username = this.route.snapshot.paramMap.get('username');
 
     if (!this.username) {
-      this.alertService.open('No userId provided', {appearance: 'error'}).subscribe();
+      this.alertService.open($localize`No userId provided`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -47,7 +48,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't get profile`), {appearance: 'negative'}).subscribe();
         },
       });
     } else {
@@ -56,7 +57,7 @@ export class UserCardComponent implements OnInit {
           this.publicProfile = profileInfo;
         },
         error: (error) => {
-          this.alertService.open(error.error?.message || "Couldn't get profile", {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't get profile`), {appearance: 'negative'}).subscribe();
         },
       });
     }

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {interval, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {ButtonComponent} from "../../../button/button.component";
@@ -17,6 +17,8 @@ import {NgClass} from "@angular/common";
   styleUrls: ['./timer.component.less']
 })
 export class TimerComponent implements OnInit, OnDestroy {
+  private localStorageService = inject(LocalStorageService);
+
   private readonly DEFAULT_FIRST_DIGIT = 1;
   private readonly DEFAULT_SECOND_DIGIT = 5;
 
@@ -24,10 +26,7 @@ export class TimerComponent implements OnInit, OnDestroy {
   protected secondDigit = this.DEFAULT_SECOND_DIGIT;
   protected state: 'ready' | 'going' | 'paused' = 'ready';
 
-  private stopTimer$ = new Subject<void>(); // Used for cleanup when stopping timer
-
-  constructor(private localStorageService: LocalStorageService) {
-  }
+  private stopTimer$ = new Subject<void>();
 
   ngOnInit() {
     this.checkAndResumeTimer();

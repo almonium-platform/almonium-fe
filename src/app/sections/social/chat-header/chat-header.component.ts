@@ -1,0 +1,306 @@
+import {logger} from "../../../shared/logger";
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, Input, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
+import {Channel, Event as StreamEvent, StreamChat, UserResponse} from 'stream-chat';
+import {
+  ChannelActionsContext,
+  ChannelHeaderInfoContext,
+  ChannelService,
+  CustomTemplatesService,
+  TypingIndicatorContext
+} from 'stream-chat-angular';
+import {fromEventPattern, Observable, of, Subscription} from "rxjs";
+import {TranslateModule} from "@ngx-translate/core";
+import {AppConstants} from "../../../app.constants";
+import {AsyncPipe, DatePipe, NgClass, NgStyle} from "@angular/common";
+import {environment} from "../../../../environments/environment";
+import {RelativeTimePipe} from "../custom-chat-avatar/relative-time.pipe";
+import {LocalStorageService} from "../../../services/local-storage.service";
+import {isInterlocutorGone} from '../interlocutor';
+import {isAlmoChannel} from "../almo/almo-channel";
+
+/** "Almonium — Deutsch" -> "Deutsch"; falls back to the whole name. */
+function topicOf(name: string): string {
+  const parts = name.split(/\s[\u2014\u2013-]\s/);
+  return (parts.at(-1) ?? name).trim();
+}
+
+@Component({
+  selector: 'app-chat-header',
+  standalone: true,
+  template: `
+    <ng-template #typingIndicator let-usersTyping$="usersTyping$">
+    </ng-template>
+    <p
+      [attr.data-testid]="'info'"
+      class="str-chat__header-livestream-left--members str-chat__channel-header-info"
+      [ngClass]="hasSubtitle ? 'pb-1 pt-1' : ''"
+      [ngStyle]="{'row-gap': hasSubtitle ? '' : 'unset'}">
+      @if (hasSubtitle) {
+        @if (isAlmoChat) {
+          <!-- 11: the name only. No presence dot, no "online", no tagline; typing reads as a contact's does. -->
+          @if (canReceiveConnectEvents) {
+            @if ((usersTyping$ | async); as typingUsers) {
+              @if (typingUsers.length === 1) {
+                <span i18n>typing...</span>
+              }
+            }
+          }
+        } @else if (isBroadcastChannel) {
+          <!-- A room is a channel: the subtitle carries the type, so nobody tries to talk. -->
+          <span i18n>Channel &middot; updates about {{ topic }}</span>
+        } @else {
+          @if (!isPrivateChat) {
+            @if ((usersTyping$ | async); as typingUsers) {
+              @if (typingUsers.length === 0) {
+                {{ 'streamChat.{{ memberCount }} members' | translate: memberCountParam }}
+              }
+            }
+          }
+          @if (canReceiveConnectEvents) {
+            @if (isPrivateChat) {
+              @if ((usersTyping$ | async); as typingUsers) {
+                @if (typingUsers.length === 1) {
+                  <span i18n>typing...</span>
+                }
+                @if (typingUsers.length === 0) {
+                  <!-- Presence reads as a dot plus a word, so "online" never has to shout in colour. -->
+                  @if (isInterlocutorOnline) {
+                    <span i18n class="presence"><span class="presence-dot"></span>online</span>
+                  } @else {
+                    <span class="presence">
+                      @if (lastActiveTime) {
+                        <ng-container i18n>last seen {{ lastActiveTime | relativeTime }}</ng-container>
+                      } @else {
+                        <ng-container i18n>offline</ng-container>
+                      }
+                    </span>
+                  }
+                }
+              }
+            }
+            @if (!isPrivateChat) {
+              @if ((usersTyping$ | async); as typingUsers) {
+                @if (typingUsers.length === 0) {
+                  <span>{{ 'streamChat.{{ watcherCount }} online' | translate: watcherCountParam }} </span>
+                } @else if (typingUsers.length === 1) {
+                  <ng-container i18n>{{ typingUsers[0].name || typingUsers[0].id }} is typing...</ng-container>
+                } @else {
+                  <ng-container i18n>{{ typingUsers.length }} people typing...</ng-container>
+                }
+              }
+            }
+          }
+        }
+      }
+    </p>
+  `,
+  imports: [
+    TranslateModule,
+    NgStyle,
+    RelativeTimePipe,
+    AsyncPipe,
+    NgClass,
+  ],
+  styles: [`
+    .str-chat__channel-header-info {
+      color: var(--metadata-color);
+    }
+
+    .presence {
+      align-items: center;
+      display: inline-flex;
+      gap: .375rem;
+    }
+
+    .presence-dot {
+      background: var(--success-color);
+      border-radius: 50%;
+      display: block;
+      height: .375rem;
+      width: .375rem;
+    }
+  `],
+  providers: [DatePipe]
+})
+export class ChatHeaderComponent implements OnDestroy, AfterViewInit {
+  private channelService = inject(ChannelService);
+  private customTemplatesService = inject(CustomTemplatesService);
+  private cdRef = inject(ChangeDetectorRef);
+  private localStorageService = inject(LocalStorageService);
+  private destroyRef = inject(DestroyRef);
+
+  @ViewChild('typingIndicator') typingIndicator!: TemplateRef<TypingIndicatorContext>;
+
+  @Input() channel: Channel | undefined;
+  channelActionsTemplate?: TemplateRef<ChannelActionsContext>;
+  channelHeaderInfoTemplate?: TemplateRef<ChannelHeaderInfoContext>;
+  private activeChannel: Channel | undefined;
+  protected canReceiveConnectEvents: boolean | undefined;
+  protected isPrivateChat: boolean | undefined;
+  protected isSelfChat: boolean | undefined;
+  protected isAlmoChat = false;
+  protected isBroadcastChannel = false;
+  /** 10: the other side of this private chat is an account that no longer exists. */
+  protected isDeletedAccount = false;
+
+  /**
+   * Whether anything is drawn under the name. Saved Messages has nobody to report on and a
+   * deleted account has nobody left to report on; either way the name centres against the disc,
+   * and the padding that would hold an empty line open has to go with the line.
+   */
+  protected get hasSubtitle(): boolean {
+    return !this.isSelfChat && !this.isDeletedAccount;
+  }
+  protected topic = '';
+  protected usersTyping$: Observable<UserResponse[]> = of([]);
+
+  private subscriptions: Subscription[] = [];
+  private presenceSubscription: Subscription | undefined;
+
+  private chatClient = StreamChat.getInstance(environment.streamChatApiKey);
+  private interlocutorId: string | undefined;
+  protected lastActiveTime: Date | null | undefined;
+  protected isOnline: boolean | undefined;
+
+  constructor() {
+    this.usersTyping$ = this.channelService.usersTypingInChannel$;
+
+    this.subscriptions.push(
+      this.channelService.activeChannel$.subscribe((c) => {
+        this.activeChannel = c;
+        this.isAlmoChat = isAlmoChannel(c);
+        this.isPrivateChat = c?.type === AppConstants.PRIVATE_CHAT_TYPE && !this.isAlmoChat;
+        this.isSelfChat = c?.type === AppConstants.SELF_CHAT_TYPE;
+        this.isBroadcastChannel = !!c && !this.isPrivateChat && !this.isSelfChat && !this.isAlmoChat;
+        this.topic = this.isBroadcastChannel ? topicOf(c!.data?.name ?? '') : '';
+        const capabilities = this.activeChannel?.data?.own_capabilities;
+        if (capabilities) {
+          this.canReceiveConnectEvents = capabilities.includes('connect-events');
+        }
+        this.isDeletedAccount = isInterlocutorGone(c, this.chatClient.userID);
+        // Presence is a question about a person. There is nobody to ask it of here, so the
+        // subscription is not made rather than made and answered "offline".
+        if (this.isPrivateChat && !this.isDeletedAccount) {
+          const user = this.getOtherMemberIfOneToOneChannel();
+          if (user) {
+            this.interlocutorId = user.id;
+            this.isOnline = user.online;
+          }
+          this.fetchInterlocutorLastActive();
+          this.subscribeToPresenceChanges();
+        } else {
+          this.presenceSubscription?.unsubscribe();
+          this.presenceSubscription = undefined;
+        }
+      })
+    );
+  }
+
+  ngAfterViewInit(): void {
+    this.customTemplatesService.typingIndicatorTemplate$.next(this.typingIndicator);
+    this.subscriptions.push(
+      this.customTemplatesService.channelActionsTemplate$.subscribe((template) => {
+        this.channelActionsTemplate = template;
+        this.cdRef.detectChanges();
+      }),
+      this.customTemplatesService.channelHeaderInfoTemplate$.subscribe((template) => {
+        this.channelHeaderInfoTemplate = template;
+        this.cdRef.detectChanges();
+      }),
+    );
+  }
+
+  private subscribeToPresenceChanges(): void {
+    if (!this.interlocutorId) return;
+
+    this.presenceSubscription?.unsubscribe();
+    this.presenceSubscription = fromEventPattern<StreamEvent>(
+      (handler) => this.chatClient.on('user.presence.changed', handler),
+      (handler) => this.chatClient.off('user.presence.changed', handler)
+    ).subscribe(event => {
+      if (event.user?.id === this.interlocutorId) {
+        if (this.interlocutorId) {
+          this.lastActiveTime = new Date();
+        }
+        this.isOnline = event.user?.online;
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+    if (this.presenceSubscription) {
+      this.presenceSubscription.unsubscribe();
+    }
+    this.saveLastOnline();
+  }
+
+  private saveLastOnline() {
+    if (this.isPrivateChat && this.interlocutorId && this.isInterlocutorOnline) {
+      this.localStorageService.saveLastSeen(this.interlocutorId, new Date());
+    }
+  }
+
+  get memberCountParam() {
+    return {memberCount: this.activeChannel?.data?.member_count ?? 0};
+  }
+
+  get watcherCountParam() {
+    return {watcherCount: this.activeChannel?.state?.watcher_count ?? 0};
+  }
+
+  get isInterlocutorOnline() {
+    return this.isOnline;
+  }
+
+  private fetchInterlocutorLastActive() {
+    const members = this.activeChannel?.state?.members;
+    if (!members) return;
+
+    const interlocutor = Object.values(members).find(
+      (member) => member.user?.id !== this.chatClient.userID
+    );
+
+    if (!interlocutor?.user?.id) return;
+
+    this.interlocutorId = interlocutor.user.id;
+
+    // Set last seen immediately to avoid UI flicker
+    const localLastSeen = this.localStorageService.getLastSeen(this.interlocutorId);
+    this.lastActiveTime = localLastSeen;
+
+    this.chatClient.queryUsers({id: {$in: [this.interlocutorId]}})
+      .then((response) => {
+        if (this.destroyRef.destroyed) return;
+        const user = response.users?.[0];
+        if (!user) return;
+
+        const apiLastActive = user.last_active ? new Date(user.last_active) : null;
+
+        // Use the most recent last seen timestamp
+        this.lastActiveTime = (localLastSeen && apiLastActive && localLastSeen > apiLastActive)
+          ? localLastSeen
+          : apiLastActive;
+
+        // Only update local storage if API has more recent data
+        if (this.interlocutorId && apiLastActive && (!localLastSeen || apiLastActive > localLastSeen)) {
+          this.localStorageService.saveLastSeen(this.interlocutorId, apiLastActive);
+        }
+
+        this.cdRef.detectChanges();
+      })
+      .catch((error) => logger.error('Error querying users:', error));
+  }
+
+  private getOtherMemberIfOneToOneChannel() {
+    const otherMembers = Object.values(
+      this.activeChannel?.state?.members ?? {}
+    ).filter((m) => m.user_id !== this.chatClient.userID);
+    if (otherMembers.length === 1) {
+      return otherMembers[0].user;
+    } else {
+      return undefined;
+    }
+  }
+}

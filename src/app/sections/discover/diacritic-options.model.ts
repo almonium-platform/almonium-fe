@@ -1,5 +1,1 @@
-export interface DiacriticOptions {
-  [language: string]: {
-    [character: string]: string[];
-  };
-}
+export type DiacriticOptions = Record<string, Record<string, string[]>>;

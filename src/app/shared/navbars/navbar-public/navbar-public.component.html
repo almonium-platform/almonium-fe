@@ -1,79 +1,57 @@
 <nav class="navbar">
   <div class="navbar-content">
-    <div class="logo-container relative" (click)="toggleDiscoverMenu()" (clickOutside)="discoverOnClickOutside($event)">
-      <img src="../../../../assets/img/logo/logo.svg" alt="App Logo" class="app-icon" height="1481" width="1456"/>
+    <a class="logo-container public-brand" routerLink="/" aria-label="Almonium home" i18n-aria-label>
+      <span class="app-icon" aria-hidden="true"></span>
+      <img class="wordmark wordmark-light" src="/assets/img/titles/title-purple.svg" alt="" />
+      <img class="wordmark wordmark-dark" src="/email/wordmark-white.png" alt="" aria-hidden="true" />
+    </a>
 
-      <!-- Popover Menu for App Icon (Only on Mobile Screens) -->
-      @if (isDiscoverMenuOpen) {
-        <div
-          class="popover-menu left-4 max-w-1 rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 mobile-only">
-          <div class="menu-section">
-            <hr class="border-gray-200"/>
-            <!-- Menu Items -->
-            <div class="menu-items p-2">
-              <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <lucide-icon name="home" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>Home</span>
-              </a>
-              <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <lucide-icon name="telescope" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>Discover</span>
-              </a>
-              <a routerLink="/play" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>Play</span>
-              </a>
-              <a routerLink="/pricing" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>Pricing</span>
-              </a>
-              <a routerLink="/about" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-                <lucide-icon name="info" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-                <span>About</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      }
-    </div>
     @if (!isMobile) {
-      <div>
-        <a
-          routerLink="/discover"
-          class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/discover'}">
-          Discover
+      <div class="public-links" aria-label="Main navigation" i18n-aria-label>
+        <a i18n
+          routerLink="/read"
+          class="nav-link section"
+          [ngClass]="{'active-link': currentRoute.startsWith('/read') || currentRoute.startsWith('/books') || currentRoute.startsWith('/reader')}">
+          Read
         </a>
-        <a
-          routerLink="/play"
-          class="nav-link ml-8 section"
-          [ngClass]="{'active-link': currentRoute === '/play'}">
-          Play
+        <a i18n
+          routerLink="/"
+          [fragment]="'books'"
+          class="nav-link section">
+          Books
         </a>
-        <a
+        <a i18n
           routerLink="/pricing"
-          class="nav-link ml-8 section"
+          class="nav-link section"
           [ngClass]="{'active-link': currentRoute === '/pricing'}">
           Pricing
         </a>
-        <a
+        <a i18n
           routerLink="/about"
-          class="nav-link ml-8 section"
+          class="nav-link section"
           [ngClass]="{'active-link': currentRoute === '/about'}">
           About
         </a>
       </div>
     }
-    <span class="spacer"></span>
     <div class="nav-actions">
-      <app-button
-        label="Sign In"
-        class="auth-btn"
-        [fontSize]="14"
-        padding="0.7rem 0"
-        redirectUrl="/auth"
-        appearance="gradient"
-      ></app-button>
+      @if (isMobile) {
+        <button type="button" class="menu-toggle" aria-label="Open navigation" i18n-aria-label [attr.aria-expanded]="isDiscoverMenuOpen" (click)="toggleDiscoverMenu()">
+          <lucide-icon name="menu" [size]="22" [strokeWidth]="1.5"></lucide-icon>
+        </button>
+      }
+      <a i18n routerLink="/auth" class="auth-btn">Sign in</a>
     </div>
   </div>
 </nav>
+
+@if (isDiscoverMenuOpen) {
+  <div class="popover-menu public-popover mobile-only" (clickOutside)="discoverOnClickOutside()">
+    <nav class="menu-items" aria-label="Mobile navigation" i18n-aria-label>
+      <a i18n routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Read</a>
+      <a i18n routerLink="/" [fragment]="'books'" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
+      <a i18n routerLink="/pricing" class="menu-item" (click)="discoverOnClickOutside()">Pricing</a>
+      <a i18n routerLink="/about" class="menu-item" (click)="discoverOnClickOutside()">About</a>
+    </nav>
+  </div>
+}

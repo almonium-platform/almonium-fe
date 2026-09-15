@@ -32,7 +32,7 @@ export class XsrfInterceptor implements HttpInterceptor {
     );
   }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     if (!MUTATING.has(req.method)) return next.handle(req);
 
     const origin = typeof location !== 'undefined' ? location.origin : 'http://localhost';

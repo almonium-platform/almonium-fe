@@ -1,14 +1,114 @@
-<div class="base-container">
-  @if (cards.length === 0) {
-    <div class="wrapper">
-      <div class="text">
-        You don't have any cards saved for {{ this.displayLanguageName }}🥺
-        <br> Go to the <a routerLink="/discover">Discover</a>💫 page to add some
+<main class="review-page">
+  @if (loadError) { <div class="error-banner" role="alert">{{ loadError }}</div> }
+
+  @if (loading) {
+    <section i18n class="paper-card loading-card" aria-live="polite">Building your review queue…</section>
+  } @else if (stage === 'overview' && summary) {
+    <section class="overview-shell">
+      <div class="overview-copy">
+        <p i18n class="eyebrow">Review · {{ displayLanguageName }}</p>
+        @if (summary.dueCount > 0) {
+          <h1 i18n>{summary.dueCount, plural, =1 {1 word is due} other {{{summary.dueCount}} words are due}}</h1>
+          <p i18n>{{ summary.sessionSize }} of them make a session. The rest keep their place; there is no debt to clear.</p>
+          <button i18n class="primary-button" type="button" (click)="startSession()" [disabled]="submitting">{submitting, select, true {Starting…} other {Start}}</button>
+        } @else {
+          <h1 i18n>Nothing is due right now</h1>
+          <p i18n>Your queue is caught up for {{ displayLanguageName }}. Almo brings words back when there is useful work in them.</p>
+          <a i18n class="primary-button link-button" routerLink="/discover">Find something worth keeping</a>
+        }
       </div>
-      <div class="img-container">
-        <img src="../../../assets/img/almo/empty_box.png" alt="404 Not Found" class="not-found-img" height="1024"
-             width="1024">
-      </div>
-    </div>
+
+      @if (summary.dueCount > 0) {
+        <section class="paper-card intent-card" aria-labelledby="intent-title">
+          <p i18n class="eyebrow" id="intent-title">What this session asks of you</p>
+          <div class="intent-row"><strong>{{ summary.understandCount }}</strong><div><h2 i18n>Understand</h2><p i18n>Read the word and say what it means.</p></div></div>
+          <div class="intent-row"><strong>{{ summary.produceCount }}</strong><div><h2 i18n>Produce</h2><p i18n>Come up with the word from its meaning.</p></div></div>
+          <div class="intent-row"><strong>{{ summary.disambiguateCount }}</strong><div><h2 i18n>Tell apart</h2><p i18n>Separate words that have crossed before.</p></div></div>
+        </section>
+      }
+
+      @if (summary.leechCount > 0) {
+        <aside class="leech-card">
+          <p i18n class="eyebrow">{summary.leechCount, plural, =1 {1 word has stopped moving} other {{{summary.leechCount}} words have stopped moving}}</p>
+          <h2 i18n>The same prompt has failed four times.</h2>
+          <p i18n>It is out of the queue until it can return in a different form. Repeating the same question would only teach you to escape it.</p>
+          <div class="leech-list">
+            @for (item of summary.leeches; track item.itemId) {
+              <div><strong>{{ item.entry }}</strong><button i18n type="button" (click)="reencounter(item.itemId)" [disabled]="submitting">Meet it another way</button></div>
+            }
+          </div>
+        </aside>
+      }
+    </section>
+  } @else if (stage === 'session' && session && currentItem) {
+    <section class="session-shell">
+      <header class="session-header">
+        <button i18n class="text-button" type="button" (click)="leaveSession()">Leave</button>
+        <div class="progress-wrap">
+          <span>{{ currentIndex + 1 }} / {{ session.items.length }}</span>
+          <div class="progress-track" role="progressbar" [attr.aria-valuenow]="currentIndex + 1" aria-valuemin="1" [attr.aria-valuemax]="session.items.length"><i [style.width.%]="((currentIndex + 1) / session.items.length) * 100"></i></div>
+        </div>
+        <span class="language-badge">{{ currentItem.language }}</span>
+      </header>
+
+      @if (!feedback) {
+        <article class="paper-card prompt-card">
+          <div class="prompt-meta"><span class="intent-badge">{{ intentLabel(currentItem.intent) }}</span><span i18n>{{ savedAgo(currentItem.savedAt) }} · {currentItem.seenCount, plural, =1 {seen 1 time} other {seen {{currentItem.seenCount}} times}}</span></div>
+          <p class="instruction">{{ intentInstruction(currentItem.intent) }}</p>
+          <h1>{{ currentItem.prompt }}</h1>
+          @if (currentItem.sourceContext && currentItem.promptType === 'MEANING_RECALL') { <blockquote>{{ currentItem.sourceContext }}</blockquote> }
+          <form (ngSubmit)="submitAnswer()">
+            <label i18n for="review-answer">Your answer</label>
+            <input id="review-answer" name="answer" [(ngModel)]="answerText" autocomplete="off" [placeholder]="answerPlaceholder(currentItem.intent)" />
+            <button i18n class="primary-button" type="submit" [disabled]="!answerText.trim() || submitting">{submitting, select, true {Checking…} other {Check}}</button>
+          </form>
+          <button i18n class="show-answer" type="button" (click)="submitAnswer(true)" [disabled]="submitting">Show me the answer</button>
+        </article>
+
+        <aside class="paper-card hints-card">
+          <div><p i18n class="eyebrow">Hints</p><p i18n>Each one you open shortens the next gap. Nothing is hidden from you, and nothing is free.</p></div>
+          @for (hint of currentItem.hints; track hint.type) {
+            <button type="button" class="hint-row" (click)="toggleHint(hint.type)" [attr.aria-expanded]="openedHints.has(hint.type)">
+              <span><strong>{{ hint.label }}</strong><small>{{ hint.cost }}</small></span><span class="hint-content">{{ openedHints.has(hint.type) ? hint.content : '+' }}</span>
+            </button>
+          }
+        </aside>
+      } @else {
+        <article class="paper-card feedback-card" [class.confusion]="feedback.outcome === 'CONFUSED'">
+          @if (feedback.outcome === 'CORRECT') {
+            <p i18n class="result-mark">✓ Straight through</p><h1>{{ feedback.expectedAnswer }}</h1><p i18n>Your answer matched without a hint.</p>
+          } @else if (feedback.outcome === 'RECOVERED_WITH_HINT') {
+            <p i18n class="result-mark">Recovered</p><h1>{{ feedback.expectedAnswer }}</h1><p i18n>You got there after a hint. The next gap has already been shortened.</p>
+          } @else if (feedback.confusedWith) {
+            <p i18n class="result-mark">That is a real word, and it is not this one.</p>
+            <div class="comparison-grid">
+              <section><p i18n class="eyebrow">What you wrote</p><h2>{{ feedback.confusedWith.entry }}</h2><p>{{ feedback.confusedWith.meaning }}</p>@if (feedback.confusedWith.example) { <blockquote>{{ feedback.confusedWith.example }}</blockquote> }</section>
+              <section><p i18n class="eyebrow">What was being asked</p><h2>{{ feedback.expectedAnswer }}</h2><p>{{ currentItem.prompt }}</p></section>
+            </div>
+            <div class="together-note"><strong i18n>Together in your deck</strong><span i18n>{feedback.confusedWith.directionCount, plural, =1 {This direction has crossed 1 time. Both will return close together.} other {This direction has crossed {{feedback.confusedWith.directionCount}} times. Both will return close together.}}</span></div>
+            <button i18n class="mistype-button" type="button" (click)="markMistype()" [disabled]="mistypeRecorded || submitting">{mistypeRecorded, select, true {Recorded as a mistype} other {Not a confusion — I just mistyped}}</button>
+          } @else {
+            <p i18n class="result-mark">Not yet</p>@if (feedback.answer) { <p i18n>You wrote <strong>{{ feedback.answer }}</strong>.</p> } @else { <p i18n>You wrote <strong>nothing</strong>.</p> }<h1>{{ feedback.expectedAnswer }}</h1>
+            @if (feedback.leech) { <p i18n class="leech-note">This prompt has now failed four times. The item is leaving the queue so it can return in a different form.</p> }
+          }
+          <button i18n class="primary-button next-button" type="button" (click)="nextItem()" [disabled]="submitting">{isLastItem, select, true {See the record} other {Next word}}</button>
+        </article>
+      }
+    </section>
+  } @else if (stage === 'complete' && result) {
+    <section class="complete-shell">
+      <article class="paper-card complete-card">
+        <p i18n class="eyebrow">Session complete</p><h1 i18n>{result.total, plural, =1 {1 word} other {{{result.total}} words}}</h1>
+        <div class="record-grid">
+          <div><strong>{{ result.straightThrough }}</strong><span i18n>straight through</span></div><div><strong>{{ result.afterHint }}</strong><span i18n>after a hint</span></div>
+          <div><strong>{{ result.confused }}</strong><span i18n>crossed with a word you know</span></div><div><strong>{{ result.stillDue }}</strong><span i18n>still due today</span></div>
+        </div>
+        <p i18n>Nothing is lost if you stop now. The remaining queue keeps its place.</p>
+      </article>
+      @if (result.dessertSentences.length) {
+        <article class="dessert-card"><p i18n class="eyebrow">A short re-encounter</p><h2 i18n>Saved sentences around the words that resisted</h2>@for (sentence of result.dessertSentences; track sentence) { <p>{{ sentence }}</p> }</article>
+      }
+      <button i18n class="primary-button" type="button" (click)="done()">Done for now</button>
+    </section>
   }
-</div>
+</main>

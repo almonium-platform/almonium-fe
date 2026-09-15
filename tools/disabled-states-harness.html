@@ -1,0 +1,4195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greyed Controls Harness</title>
+<style>
+  [hidden] { display: none !important; } /* component rules set display on some of the elements we toggle */
+  body { margin: 0; background: #f4f1ef; color: #2C2530; font: 15px/1.5 'IBM Plex Sans', system-ui, sans-serif; }
+  .harness-page { max-width: 62rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+  .harness-lede { max-width: 44rem; }
+  .harness-lede h1 { margin: 0 0 .35rem; font-size: 1.6rem; font-weight: 600; }
+  .harness-lede p { margin: .5rem 0; color: #5f5560; font-size: .9rem; }
+  .harness-lede code { background: #e9e4e7; border-radius: .25rem; padding: .05rem .3rem; font-size: .85em; }
+  .harness-card { margin-top: 2.5rem; padding: 1.25rem 1.25rem 1.5rem; background: #fff; border: 1px solid #e6e0e4; border-radius: 1rem; }
+  .harness-card h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .harness-source { margin: .2rem 0 0; color: #a99aa8; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .72rem; }
+  .harness-rule { margin: .45rem 0 .75rem; color: #5f5560; font-size: .85rem; }
+  .harness-toggle { display: inline-flex; align-items: center; gap: .5rem; margin-bottom: 1.25rem; padding: .35rem .7rem; background: #f4f1ef; border: 1px solid #e6e0e4; border-radius: 999px; cursor: pointer; font-size: .8rem; }
+  .harness-toggle code { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .75rem; }
+  .harness-toggle select { font: inherit; }
+  .harness-frame { padding: 1.25rem; background: var(--page-ground, #F9F6F5); border-radius: .75rem; }
+  .harness-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 1.5rem; align-items: start; }
+  .harness-split.harness-stack { grid-template-columns: 1fr; gap: 2rem; }
+  .harness-caption { margin: 0 0 .6rem; color: #5f5560; font-size: .78rem; }
+  .harness-caption code { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+  /* Stand-ins for the Taiga controls, sized to the real ones so the alignment case still means something. */
+  .harness-chip { display: inline-flex; align-items: center; height: 1.75rem; padding: 0 .75rem; border: 1px solid var(--hairline-color); border-radius: 999px; font-size: .8rem; }
+  .harness-chip.selected { background: color-mix(in srgb, #C66AA0 18%, var(--card-color)); color: color-mix(in srgb, #C66AA0 72%, var(--text-color)); border-color: color-mix(in srgb, #C66AA0 45%, var(--hairline-color)); }
+  .harness-stub-field { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; height: 2.75rem; padding: 0 1rem; background: #fff; border: 1px solid var(--control-border-color); border-radius: 999px; font-size: 1rem; }
+  .harness-stub-clear { color: var(--metadata-color); }
+  .harness-stub-switch { display: inline-block; width: 2.5rem; height: 1.4rem; background: var(--brand-primary); border-radius: 999px; }
+  .harness-stub-switch:not([data-on]) { background: var(--control-border-color); }
+  .harness-stub-switch.harness-off { opacity: .45; }
+</style>
+<style>/* Compiled from the real component .less files — regenerate with scripts/disabled-states-harness.mjs */
+:root {
+  --brand-raspberry: #A1264C;
+  --brand-premium: #8F2356;
+  --brand-flat-logo: #7D2060;
+  --brand-flat-logo-image: url('/assets/img/logo/logo-flat.svg');
+  --brand-margin: #6C1D6A;
+  --brand-primary: #5A1A74;
+  --brand-hover: #48177D;
+  --brand-pressed: #3A1462;
+  --brand-ink: #2C2530;
+  --reader-text-color: #33292E;
+  --subhead-color: #5f5560;
+  --metadata-color: #a99aa8;
+  --page-ground: #F9F6F5;
+  --card-color: #fff;
+  --nested-color: #F9F6F5;
+  --overlay-color: #fff;
+  --hairline-color: #edebe8;
+  --control-border-color: #d8cfd6;
+  --secondary-control-border-color: var(--control-border-color);
+  --secondary-control-fill: var(--card-color);
+  --avatar-ground: #ece5ea;
+  --avatar-ground-edge: #dcd2da;
+  --avatar-ground-ink: #3d3348;
+  --disabled-fill-color: #e8e2e6;
+  --disabled-label-color: #8b8290;
+  --on-brand-color: #fff;
+  --shadow-color: rgba(44, 37, 48, 0.16);
+  --overlay-shadow: 0 16px 40px var(--shadow-color);
+  --scrim: rgba(43, 43, 43, 0.78);
+  --state-hover: rgba(44, 37, 48, 0.04);
+  --state-pressed: rgba(44, 37, 48, 0.08);
+  --state-selected: #faf6fb;
+  --chat-selected-color: #F3EDF6;
+  --almo-disc-color: #F3EDF6;
+  --notification-unread-color: #F6F0F4;
+  --particle-opacity: 0.9;
+  --wordmark-color: #300b4f;
+  --chat-accent-color: var(--brand-primary);
+  --chat-bg-color: var(--page-ground);
+  --chat-lite: var(--brand-primary);
+  --chat-incoming-bubble-color: var(--card-color);
+  --chat-own-bubble-color: var(--dark-raspberry);
+  --chat-own-ink: #FFF8F5;
+  --chat-unread-fill: var(--chat-accent-color);
+  --chat-unread-ink: var(--on-brand-color);
+  --avatar-plate: #EFE9E6;
+  --avatar-plate-ring: transparent;
+  --avatar-hue-ink: #3d3348;
+  --avatar-hue-1: #F0DFE9;
+  --avatar-hue-1-edge: #dfcfd9;
+  --avatar-hue-2: #F5E1DD;
+  --avatar-hue-2-edge: #e4d0cb;
+  --avatar-hue-3: #EEE6D5;
+  --avatar-hue-3-edge: #ddd4c1;
+  --avatar-hue-4: #E8E0EF;
+  --avatar-hue-4-edge: #d6cde0;
+  --channel-emblem-disc: #F3EDF6;
+  --channel-crest-ink: #F1EAEF;
+  --paywall-plate: var(--brand-ink);
+  --paywall-plate-border: transparent;
+  --paywall-plate-ink: #F9F6F5;
+  --paywall-plate-ink-2: rgba(249, 246, 245, 0.82);
+  --paywall-plate-ink-3: rgba(249, 246, 245, 0.55);
+  --paywall-plate-eyebrow: #c9a8c4;
+  --paywall-plate-fill: rgba(249, 246, 245, 0.09);
+  --paywall-plate-selected: #F9F6F5;
+  --paywall-plate-selected-ink: #2C2530;
+  --pale-purple: #958ba5;
+  --lavender: var(--metadata-color);
+  --purple-dark: var(--brand-margin);
+  --main-bg-color: var(--page-ground);
+  --text-color: var(--brand-ink);
+  --danger-bg-color: #ffe3e9;
+  --danger-text-color: #fa4666;
+  --orange: #ff7f00;
+  --warning-color: #ea6644;
+  --border-color: var(--hairline-color);
+  --grey-color: #f0f0f0;
+  --disabled-color: var(--disabled-fill-color);
+  --disabled-text-color: var(--disabled-label-color);
+  --waiting-color: #f0ad4e;
+  --info-dark-blue: #4767cd;
+  --info-light-blue: #f1f5fb;
+  --gray-bg: #f1f1f1;
+  --gray: #d9d9d9;
+  --violet: #9A49D2;
+  --success-color: #16BA7F;
+  --success-bg-color: #E7F8F2;
+  /*
+   * 10: the three states where a message did not land. A failed bubble inverts rather than
+   * fading - 55% plum under cream text fails contrast twice over - so the fill is the card and
+   * the pill is drawn instead. The error line sits on the message ground at 12px, which is why
+   * it takes its own red: --danger-text-color is tuned for larger text and misses 4.5:1 here.
+   */
+  --chat-failed-ink: #C0203C;
+  --chat-failed-border: #C98FAE;
+  --chat-refused-border: #DCD3D9;
+  --dark-raspberry: #872657;
+  --saved-emblem-fill: #872657;
+  --saved-emblem-ink: #FFF8F5;
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-background-accent-1-pressed: var(--brand-pressed);
+  --tui-text-action: var(--dark-raspberry);
+  --tui-text-action-hover: var(--lavender);
+  --tui-radius-l: 3rem;
+  --premium-gradient: linear-gradient(135deg, var(--brand-premium), var(--brand-primary));
+  --avatar-gradient: linear-gradient(135deg, var(--brand-premium), var(--brand-primary));
+  --font-family-reading: 'Literata', serif;
+  --font-family-ui: 'IBM Plex Sans', sans-serif;
+  --font-family-mono: 'IBM Plex Mono', monospace;
+  --font-family: var(--font-family-ui);
+  --card-radius: 1.375rem;
+  --box-shadow: 0 1px 3px 0 rgba(44, 37, 48, 0.1), 0 1px 2px -1px rgba(44, 37, 48, 0.1);
+  --header-height: 4.33rem;
+  /* 69px */
+}
+.os-theme-dark {
+  --os-size: 8px;
+}
+.os-scrollbar-track {
+  background: var(--nested-color);
+}
+.os-scrollbar-track:hover {
+  background: var(--control-border-color);
+}
+.os-scrollbar-handle {
+  background: var(--metadata-color);
+}
+.os-scrollbar-handle:hover {
+  background: var(--subhead-color);
+}
+.scrollable ::-webkit-scrollbar {
+  width: 8px;
+  /* Adjust width */
+  height: 8px;
+  /* Adjust height for horizontal scrollbars */
+}
+/* Scrollbar track */
+.scrollable ::-webkit-scrollbar-track {
+  background: var(--nested-color);
+}
+/* Scrollbar thumb */
+.scrollable ::-webkit-scrollbar-thumb {
+  background: var(--gray);
+  transition: background 0.3s ease-in-out;
+  border-radius: 0;
+}
+/* Scrollbar thumb on hover */
+.scrollable ::-webkit-scrollbar-thumb:hover {
+  background: var(--gray);
+}
+/* Optional: Hide scrollbar when not scrolling */
+.scrollable ::-webkit-scrollbar-thumb:active {
+  background: var(--gray);
+}
+.loaded-file .t-wrapper .t-text {
+  max-width: 100%;
+}
+.shadowless-input [tuiAppearance][data-appearance=textfield] {
+  --t-shadow: initial;
+}
+.shadowless-input [tuiAppearance][data-appearance=textfield]:hover {
+  --t-shadow: initial;
+}
+tui-dropdown,
+tui-hint {
+  --tui-radius-l: 0.75rem;
+  --tui-radius-m: 0.625rem;
+}
+tui-dropdown:has(app-user-preview-card) {
+  border: 0 !important;
+  border-radius: var(--card-radius) !important;
+  background: transparent !important;
+  box-shadow: var(--overlay-shadow) !important;
+  overflow: hidden !important;
+}
+tui-dropdown:has(app-user-preview-card) tui-scrollbar {
+  max-inline-size: 100% !important;
+  margin: 0 !important;
+}
+tui-data-list button[tuiOption].context-button {
+  display: flex;
+  justify-content: flex-start;
+  gap: 0.8rem;
+}
+tui-data-list button[tuiOption].context-button.negative {
+  color: var(--danger-text-color);
+}
+.context-separator {
+  background: var(--hairline-color);
+  height: 1px;
+  margin: 0.3125rem 0.5rem;
+}
+.chat-icon {
+  color: var(--text-color);
+}
+.chat-icon.negative {
+  color: var(--danger-text-color);
+}
+.gradient-button {
+  width: 100%;
+  display: block;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 1.1rem 1.5rem;
+  background: var(--premium-gradient);
+  color: var(--on-brand-color);
+  font-weight: bold;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, 0.28), 0 2px 8px rgba(72, 23, 125, 0.26);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.gradient-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, 0.28), 0 6px 16px rgba(72, 23, 125, 0.28), 0 2px 4px rgba(72, 23, 125, 0.16);
+}
+.gradient-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, 0.3);
+}
+.gradient-button:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+.solid-button {
+  width: 100%;
+  display: block;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 1.1rem 1.5rem;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  font-weight: bold;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(72, 23, 125, 0.2);
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.solid-button:hover:not(:disabled) {
+  background: var(--brand-hover);
+  box-shadow: 0 6px 16px rgba(72, 23, 125, 0.28), 0 2px 4px rgba(72, 23, 125, 0.16);
+  transform: translateY(-1px);
+}
+.solid-button:active:not(:disabled) {
+  background: var(--brand-pressed);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, 0.3);
+  transform: translateY(1px);
+}
+.solid-button.incomplete-button,
+.solid-button.incomplete-button:hover,
+.solid-button.incomplete-button:active {
+  background: transparent;
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  box-shadow: none;
+  transform: none;
+}
+.solid-button:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+.gradient-button:focus-visible,
+.solid-button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+/*
+ * The black-and-white button: an outline that fills toward ink, never toward plum, so it can
+ * sit beside a plum primary without competing. The fill is the theme's own ink and the label
+ * the theme's own ground, which inverts correctly in both modes.
+ */
+.secondary-outline-button {
+  padding: 0.5em 1em;
+  box-sizing: border-box;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 550;
+  background-color: transparent;
+  border: 1px solid var(--text-color);
+  color: var(--text-color);
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+.secondary-outline-button:hover:not(:disabled) {
+  background-color: var(--text-color);
+  color: var(--page-ground);
+}
+.secondary-outline-button:active:not(:disabled) {
+  background-color: var(--text-color);
+  color: var(--page-ground);
+  transform: translateY(1px);
+}
+.secondary-outline-button:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
+.secondary-outline-button:disabled {
+  background-color: var(--disabled-color);
+  color: var(--disabled-text-color);
+  border-color: var(--disabled-color);
+  cursor: not-allowed;
+}
+.underline-button {
+  padding: 0.5em 1em;
+  box-sizing: border-box;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--text-color);
+  background: none;
+  text-decoration: underline;
+}
+.underline-button:hover {
+  background-color: var(--grey-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+.underline-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.circular-icon {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  /* Ensures the shape is a circle */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.card {
+  box-shadow: var(--box-shadow);
+  border: 1px solid var(--hairline-color);
+  border-radius: 35px;
+  background-color: var(--card-color);
+  z-index: 1;
+}
+.headless-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  padding: 1.2rem;
+  box-sizing: border-box;
+}
+.base-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - var(--header-height));
+  width: 100%;
+  padding: 1.2rem;
+  box-sizing: border-box;
+  background-color: var(--main-bg-color);
+}
+.loader {
+  position: absolute !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.inner-text {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 4px;
+  border: 1px solid var(--brand-margin);
+  color: var(--brand-margin);
+  font-weight: 550;
+  font-size: 0.55rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.badge-btn {
+  border-radius: 25%;
+  padding: 0.3rem 0.6rem;
+  box-shadow: var(--box-shadow);
+  border: 1px solid #402aa3;
+  color: #402aa3;
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  background-color: var(--main-bg-color);
+  overflow: hidden;
+}
+.badge-btn:hover {
+  scale: 1.02;
+}
+.divider {
+  width: 1px;
+  background-color: var(--border-color);
+  height: auto;
+  /* Let it stretch with the content */
+  margin: 0 1rem;
+  /* Space around the divider */
+  align-self: stretch;
+  /* Ensure it spans the full height of the container */
+}
+/* Solid, not the gradient: this word sits above the gradient button, and the intended
+   hierarchy is solid ink, solid plum word, gradient button. The gradient is the plan card's. */
+.premium-text {
+  color: var(--brand-primary);
+  line-height: 1.5;
+  font-weight: bold;
+}
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.625rem;
+  width: 100%;
+}
+.social-buttons app-provider-icon {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+}
+.social-buttons .social-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.75rem;
+  width: 100%;
+  gap: 0.5rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.75rem;
+  background-color: var(--nested-color);
+  color: var(--brand-ink);
+  font-size: 0.84375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.social-buttons .social-button:hover {
+  opacity: 1 !important;
+  border-color: var(--control-border-color);
+  background: linear-gradient(var(--state-hover), var(--state-hover)), var(--nested-color);
+}
+.social-buttons .social-button:focus-visible {
+  outline: 2px solid var(--brand-margin);
+  outline-offset: 2px;
+}
+.social-buttons .social-button .provider-mark {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  flex: 0 0 auto;
+  font-size: 1.0625rem;
+  line-height: 1;
+}
+.social-buttons .social-button .local-mark {
+  color: var(--brand-margin);
+}
+/*
+ * The three grounds an avatar can sit on, wherever one is drawn.
+ *
+ * Portrait art is dark line work on transparency, so the plate under it belongs to the avatar
+ * rather than to the theme: the same #EFE9E6 in both modes, with a ring that only materialises
+ * on dark, where the plate needs seating.
+ *
+ * A letter takes one of the other two. `.avatar-ground` is the default and the one a lone
+ * avatar always gets - one ground, one ink, nothing to tell apart. `.avatar-hue-*` is the
+ * hashed identity, and belongs only where several avatars are scanned at once and the tint is
+ * doing the sorting; see `avatarHueClass` and 28c. Both take their theme's own values, so
+ * light is no longer wearing discs drawn for a dark ground.
+ */
+.avatar-plate {
+  background: var(--avatar-plate);
+  box-shadow: 0 0 0 1px var(--avatar-plate-ring);
+}
+.avatar-ground {
+  background: var(--avatar-ground);
+  box-shadow: inset 0 0 0 1px var(--avatar-ground-edge);
+  color: var(--avatar-ground-ink);
+}
+.avatar-hue-1,
+.avatar-hue-2,
+.avatar-hue-3,
+.avatar-hue-4 {
+  color: var(--avatar-hue-ink);
+}
+.avatar-hue-1 {
+  background: var(--avatar-hue-1);
+  box-shadow: inset 0 0 0 1px var(--avatar-hue-1-edge);
+}
+.avatar-hue-2 {
+  background: var(--avatar-hue-2);
+  box-shadow: inset 0 0 0 1px var(--avatar-hue-2-edge);
+}
+.avatar-hue-3 {
+  background: var(--avatar-hue-3);
+  box-shadow: inset 0 0 0 1px var(--avatar-hue-3-edge);
+}
+.avatar-hue-4 {
+  background: var(--avatar-hue-4);
+  box-shadow: inset 0 0 0 1px var(--avatar-hue-4-edge);
+}
+/*
+ * The eyebrow: the small uppercase label that sits over a section heading, on every surface.
+ * 11px, 550, 1.5px of tracking, raspberry, and 8px of air before whatever it introduces. It is
+ * a block so the gap holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground
+ * may recolour it, and nothing else about it is the surface's to decide.
+ */
+.eyebrow {
+  display: block;
+  margin: 0 0 0.5rem;
+  color: var(--dark-raspberry);
+  font: 550 0.6875rem/1.2 var(--font-family-ui);
+  letter-spacing: 0.09375rem;
+  text-transform: uppercase;
+}
+.scope-language-setup .card.step {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 20rem;
+  max-width: 30rem;
+  width: fit-content;
+  min-height: 10rem;
+  height: fit-content;
+  position: relative;
+  padding: 1.5rem;
+  gap: 2rem;
+  margin: 0.2rem;
+  /* Add margin for lateral spacing */
+}
+.scope-language-setup .tui-header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.scope-language-setup .header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 2rem;
+  padding: 0 1rem;
+}
+.scope-language-setup .content {
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.scope-language-setup .language-step {
+  max-width: 42rem;
+  align-items: stretch;
+}
+.scope-language-setup .language-step:has(.sheet-heading) {
+  width: min(38rem, calc(100vw - 2rem));
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+.scope-language-setup .header-row {
+  justify-content: flex-start;
+  padding: 0;
+  font-family: var(--font-family-reading);
+  color: var(--text-color);
+}
+.scope-language-setup .step-description,
+.scope-language-setup .native-language,
+.scope-language-setup .native-note,
+.scope-language-setup .language-explanation {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+  text-align: left;
+}
+.scope-language-setup .step-description {
+  margin: 0.35rem 0 1.25rem;
+}
+.scope-language-setup .language-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+.scope-language-setup .language-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 8rem;
+  padding: 0.9rem;
+  text-align: left;
+  background: var(--nested-color);
+  border: 1px solid var(--hairline-color);
+  border-radius: 1.1rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+.scope-language-setup .language-card:hover:not(:disabled) {
+  border-color: var(--brand-margin);
+}
+.scope-language-setup .language-card.selected {
+  border: 2px solid var(--brand-margin);
+  background: var(--state-selected);
+  padding: calc(0.9rem - 1px);
+}
+.scope-language-setup .language-card:disabled {
+  cursor: not-allowed;
+  color: var(--disabled-label-color);
+  background: var(--disabled-fill-color);
+}
+.scope-language-setup .language-card-top {
+  display: flex;
+  height: 1.4rem;
+}
+.scope-language-setup .language-code {
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  color: var(--brand-margin);
+  font-family: var(--font-family-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.scope-language-setup .language-name,
+.scope-language-setup .language-features {
+  display: block;
+}
+.scope-language-setup .language-name {
+  margin-top: 0.35rem;
+  font-family: var(--font-family-reading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.scope-language-setup .language-features {
+  margin-top: 0.35rem;
+  color: var(--metadata-color);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+.scope-language-setup .language-features.special-features {
+  color: var(--dark-raspberry);
+}
+.scope-language-setup .another-language {
+  justify-content: center;
+  border-style: dashed;
+}
+.scope-language-setup .another-language .language-name {
+  color: var(--brand-margin);
+}
+.scope-language-setup .native-language {
+  margin-bottom: 0.65rem;
+}
+.scope-language-setup .native-language button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.scope-language-setup .native-language button:last-child {
+  color: var(--metadata-color);
+  font-weight: 400;
+}
+.scope-language-setup .native-note {
+  margin: -0.3rem 0 0.65rem;
+}
+.scope-language-setup .language-explanation {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  background: var(--nested-color);
+  border-radius: 0.8rem;
+  line-height: 1.5;
+}
+.scope-language-setup .language-explanation p {
+  margin: 0;
+}
+.scope-language-setup .language-explanation p + p {
+  margin-top: 0.35rem;
+}
+.scope-language-setup .language-explanation a {
+  color: var(--brand-margin);
+  font-weight: 600;
+  text-decoration: none;
+}
+.scope-language-setup .step-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.scope-language-setup .step-actions app-button {
+  flex: 1;
+}
+.scope-language-setup .back-link {
+  border: 0;
+  background: none;
+  color: var(--metadata-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.scope-language-setup form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.scope-language-setup .form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+.scope-language-setup .form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.scope-language-setup .cefr-rows {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+.scope-language-setup .cefr-language-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.scope-language-setup .cefr-lang-chip {
+  padding: 0.75rem 1rem;
+}
+.scope-language-setup .target-disabled input[tuiInputChip] {
+  cursor: not-allowed;
+}
+.scope-language-setup .sheet-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-right: 2rem;
+}
+.scope-language-setup .sheet-step {
+  color: var(--metadata-color);
+  font-size: 0.72rem;
+}
+.scope-language-setup .slot-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: -1rem 0 1rem;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+}
+.scope-language-setup .slot-summary .members-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: inherit;
+  text-decoration: none;
+}
+.scope-language-setup .slot-summary .members-link:hover {
+  text-decoration: underline;
+}
+.scope-language-setup .cefr-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.25rem 0 1rem;
+}
+.scope-language-setup .cefr-language-row {
+  display: grid;
+  grid-template-columns: 1.375rem minmax(6rem, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+}
+.scope-language-setup .language-swatch {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 0.4375rem;
+}
+.scope-language-setup .cefr-language-name {
+  color: var(--text-color);
+  font-family: var(--font-family-reading);
+  font-size: 0.95rem;
+}
+.scope-language-setup .cefr-pills {
+  display: flex;
+  gap: 0.2rem;
+}
+.scope-language-setup .cefr-pills button {
+  min-width: 2.125rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.45rem;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  font-size: 0.7rem;
+}
+.scope-language-setup .cefr-pills button:hover {
+  border-color: var(--brand-primary);
+}
+.scope-language-setup .cefr-pills button.selected {
+  border-color: var(--brand-margin);
+  background: var(--state-selected);
+  color: var(--brand-margin);
+}
+.scope-language-setup .level-note {
+  margin: 0 0 1rem;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.scope-language-setup .limit-note {
+  margin: -0.5rem 0 1rem;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+  text-align: left;
+}
+.scope-language-setup .sheet-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.scope-language-setup .sheet-actions app-button {
+  flex: 1;
+}
+@media (max-width: 560px) {
+  .scope-language-setup .language-step:has(.sheet-heading) {
+    padding: 1.25rem 1rem 1rem;
+  }
+  .scope-language-setup .cefr-language-row {
+    grid-template-columns: 1.375rem 1fr;
+  }
+  .scope-language-setup .cefr-pills {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .scope-language-setup .language-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.scope-onboarding .top-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+}
+.scope-onboarding .stepper-container {
+  width: 35.5rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 1rem;
+  margin-top: 2rem;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
+  box-sizing: border-box;
+}
+.scope-onboarding .setup-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0.45rem;
+}
+.scope-onboarding .progress-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.15rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--metadata-color);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+.scope-onboarding .progress-step:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.scope-onboarding .progress-step.active {
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+.scope-onboarding .progress-step.complete {
+  color: var(--subhead-color);
+}
+.scope-onboarding .progress-marker {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: var(--page-ground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.scope-onboarding .progress-separator {
+  color: var(--control-border-color);
+}
+.scope-onboarding .step-content {
+  margin-top: 1rem;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding-bottom: 1.5rem;
+}
+.scope-onboarding .card.step.upgraded {
+  max-width: min(40rem, 92%);
+}
+.scope-onboarding .plan {
+  height: fit-content;
+  border-radius: 2rem;
+  background-color: var(--gray-bg);
+  z-index: 2;
+  width: fit-content;
+}
+@media (max-width: 520px) {
+  .scope-onboarding .stepper-container {
+    padding-inline: 0.65rem;
+  }
+  .scope-onboarding .setup-progress {
+    gap: 0.3rem;
+  }
+  .scope-onboarding .progress-step {
+    gap: 0.25rem;
+    font-size: 0.72rem;
+  }
+  .scope-onboarding .progress-marker {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-basis: 1.1rem;
+  }
+}
+.scope-interests-setup .card {
+  max-width: 30rem;
+}
+.scope-interests-setup section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-interests-setup .step-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.scope-interests-setup .step-actions app-button {
+  flex: 1;
+}
+.scope-interests-setup .back-link {
+  border: 0;
+  background: none;
+  color: #7e7e7e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.scope-interests-setup .floor-note {
+  margin: 0.75rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+  text-align: left;
+}
+.scope-book-import .import-page {
+  min-height: calc(100vh - var(--header-height));
+  padding: clamp(1.5rem, 5vw, 5rem) 1.25rem;
+  background: var(--main-bg-color);
+}
+.scope-book-import .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.scope-book-import .import-card,
+.scope-book-import .record {
+  width: min(100%, 40rem);
+  margin: 0 auto;
+}
+.scope-book-import .import-card {
+  width: min(100%, 52rem);
+  padding: clamp(1.5rem, 4vw, 3.25rem);
+  border: 1px solid var(--border-color);
+  border-radius: 2rem;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-book-import .import-intro {
+  max-width: 42rem;
+}
+.scope-book-import .back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  color: var(--dark-raspberry);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.scope-book-import .back-link:hover {
+  text-decoration: underline;
+}
+.scope-book-import .import-card h1 {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--text-color);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  line-height: 1.1;
+}
+.scope-book-import .import-intro > p:not(.eyebrow) {
+  margin: 0.8rem 0 0;
+  color: var(--subhead-color);
+  line-height: 1.55;
+}
+.scope-book-import .book-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: clamp(1.4rem, 4vw, 1.75rem) clamp(1.4rem, 4vw, 1.9rem);
+  border-radius: 1.75rem;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-book-import .book-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.scope-book-import .book-thumb {
+  display: block;
+  flex: 0 0 4rem;
+  width: 4rem;
+  height: 5.75rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(44, 37, 48, 0.18);
+}
+.scope-book-import .book-thumb--ink {
+  --cover-color: #3d3d3d;
+}
+.scope-book-import .book-thumb--ink ::ng-deep .typographic-cover {
+  background: #3d3d3d;
+  font-family: var(--font-family-mono);
+}
+.scope-book-import .book-head__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scope-book-import .book-title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.scope-book-import .book-title--mono {
+  font-family: var(--font-family-mono);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.scope-book-import .book-meta {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  min-height: 1em;
+}
+.scope-book-import .book-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.scope-book-import .pill {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.7rem;
+}
+.scope-book-import .pill--ink {
+  color: var(--text-color);
+}
+.scope-book-import .read-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 1.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.scope-book-import .read-action:hover {
+  background: var(--brand-hover);
+}
+.scope-book-import .read-action--small {
+  min-height: 2.2rem;
+  padding: 0.45rem 0.95rem;
+  background: var(--dark-raspberry);
+  font-size: 0.8rem;
+}
+.scope-book-import .status-line {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+}
+.scope-book-import .status-line--error {
+  color: var(--danger-text-color);
+}
+.scope-book-import .spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--control-border-color);
+  border-top-color: var(--brand-margin);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.scope-book-import .owner-row {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+.scope-book-import .owner-action {
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.scope-book-import .owner-action:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.scope-book-import .owner-action:disabled {
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-book-import .owner-action--quiet {
+  color: var(--subhead-color);
+}
+.scope-book-import .owner-row .owner-action--quiet {
+  margin-left: auto;
+}
+.scope-book-import .owner-note {
+  margin: -0.6rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.scope-book-import .book-description {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  white-space: pre-line;
+}
+.scope-book-import .hairline {
+  display: block;
+  height: 1px;
+  background: var(--hairline-color);
+}
+.scope-book-import .parallel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.scope-book-import .parallel .eyebrow {
+  margin: 0;
+}
+.scope-book-import .parallel__copy {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+.scope-book-import .parallel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-book-import .suggest-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.scope-book-import .suggest-action:hover:not(:disabled) {
+  background: var(--state-selected);
+}
+.scope-book-import .suggest-action:disabled {
+  border-color: var(--hairline-color);
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-book-import .parallel .owner-note {
+  margin-top: -0.2rem;
+}
+.scope-book-import .settled-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+}
+.scope-book-import .settled-row__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.scope-book-import .settled-row__copy small {
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+}
+.scope-book-import .details-card {
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1.1rem;
+  background: var(--nested-color);
+}
+.scope-book-import .details-card h2 {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+.scope-book-import .details-card form {
+  margin-top: 0.9rem;
+}
+.scope-book-import .details-card input,
+.scope-book-import .details-card textarea,
+.scope-book-import .details-card select {
+  background: var(--card-color);
+}
+.scope-book-import .details-copy {
+  margin: 0.4rem 0 0;
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.scope-book-import .details-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-book-import .provenance {
+  color: var(--metadata-color);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+.scope-book-import .quota-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  background: var(--nested-color);
+}
+.scope-book-import .quota-card div {
+  display: grid;
+  gap: 0.15rem;
+}
+.scope-book-import .quota-card strong {
+  color: var(--text-color);
+}
+.scope-book-import .quota-card span:last-child {
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+}
+.scope-book-import .quota-card.exhausted {
+  border-color: color-mix(in srgb, var(--warning-color) 45%, transparent);
+}
+.scope-book-import .quota-label {
+  color: var(--dark-raspberry);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.scope-book-import form {
+  display: grid;
+  gap: 1.15rem;
+  margin-top: 1.5rem;
+}
+.scope-book-import label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--text-color);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.scope-book-import input,
+.scope-book-import textarea,
+.scope-book-import select {
+  width: 100%;
+  padding: 0.78rem 0.85rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--text-color);
+  font: inherit;
+  font-weight: 400;
+}
+.scope-book-import input:focus,
+.scope-book-import textarea:focus,
+.scope-book-import select:focus {
+  outline: 2px solid var(--brand-margin);
+  border-color: var(--brand-margin);
+}
+.scope-book-import .file-input {
+  position: relative;
+  min-height: 6.5rem;
+  padding: 1rem;
+  border: 1px dashed var(--control-border-color);
+  border-radius: 1rem;
+  background: var(--nested-color);
+  cursor: pointer;
+}
+.scope-book-import .file-input input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.scope-book-import .file-input span {
+  overflow: hidden;
+  color: var(--metadata-color);
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-book-import .details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.scope-book-import .optional {
+  color: var(--metadata-color);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+.scope-book-import .primary-action,
+.scope-book-import .secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+.scope-book-import .primary-action {
+  width: fit-content;
+  margin-top: 0.25rem;
+  padding: 0.85rem 1.3rem;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+.scope-book-import .primary-action:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+.scope-book-import .primary-action:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: wait;
+}
+.scope-book-import .secondary-action {
+  padding: 0.65rem 0.9rem;
+  background: transparent;
+  color: var(--dark-raspberry);
+}
+.scope-book-import .secondary-action:hover {
+  background: var(--state-hover);
+}
+.scope-book-import .error {
+  margin: 0;
+  color: var(--danger-text-color);
+}
+.scope-book-import .error--floating {
+  width: min(100%, 40rem);
+  margin: 1rem auto 0;
+  font-size: 0.86rem;
+}
+.scope-book-import .blocked-note {
+  margin: -0.75rem 0 0;
+  color: var(--subhead-color);
+  font-size: 0.85rem;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.scope-book-import .sheet {
+  display: flex;
+  width: min(88vw, 21rem);
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-radius: 1.375rem;
+  background: var(--overlay-color);
+  color: var(--text-color);
+}
+.scope-book-import .sheet__title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-book-import .sheet__copy {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.scope-book-import .sheet__note {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.scope-book-import .sheet__box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 0.75rem;
+}
+.scope-book-import .sheet__box-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+}
+.scope-book-import .sheet__box-note {
+  color: var(--metadata-color);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.scope-book-import .sheet__link {
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+.scope-book-import .sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-book-import .sheet__primary {
+  min-height: 2.6rem;
+  padding: 0.6rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dark-raspberry);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.scope-book-import .sheet__primary--ink {
+  background: var(--brand-ink);
+  color: var(--page-ground);
+}
+.scope-book-import .sheet__primary:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: wait;
+}
+.scope-book-import .sheet__quiet {
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
+@media (max-width: 560px) {
+  .scope-book-import .details-grid {
+    grid-template-columns: 1fr;
+  }
+  .scope-book-import .quota-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .scope-book-import .primary-action {
+    width: 100%;
+  }
+  .scope-book-import .book-head {
+    flex-wrap: wrap;
+  }
+  .scope-book-import .book-head .read-action {
+    width: 100%;
+    justify-content: center;
+  }
+  .scope-book-import .settled-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.scope-auth-settings .base-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 2em;
+  padding: 1.5rem 1rem 2rem;
+}
+.scope-auth-settings .card-container {
+  column-count: 2;
+  column-gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.scope-auth-settings .section-block {
+  min-height: fit-content;
+  width: min(400px, 100%);
+  padding: 1.3em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  border-radius: 20px;
+  break-inside: avoid-column;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  transition: height 0.2s ease;
+}
+@media (max-width: 820px) {
+  .scope-auth-settings .card-container {
+    column-count: 1;
+  }
+}
+.scope-auth-settings .card {
+  box-shadow: unset;
+}
+.scope-auth-settings .title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0 0 0.3em 0.2em;
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+.scope-auth-settings .row-content {
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+}
+.scope-auth-settings .edit-element {
+  margin-left: auto;
+  margin-top: 2px;
+}
+.scope-auth-settings .settings-action {
+  position: relative;
+  display: inline-flex;
+  min-width: 5.5rem;
+  min-height: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 9999px;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.scope-auth-settings .settings-action:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+.scope-auth-settings .settings-action.committing {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+}
+.scope-auth-settings .settings-action.committing:hover:not(:disabled) {
+  border-color: var(--brand-hover);
+  background: var(--brand-hover);
+  color: #fff;
+}
+.scope-auth-settings .settings-action:disabled {
+  border-color: var(--disabled-fill-color);
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-auth-settings .settings-action .action-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.scope-auth-settings .chips-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 1em;
+}
+.scope-auth-settings .danger {
+  background-color: var(--danger-bg-color);
+  color: var(--danger-text-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+}
+.scope-auth-settings .danger-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+.scope-auth-settings .btn-danger {
+  border: 1px solid var(--danger-text-color);
+  border-radius: 35px;
+  padding: 15px 30px;
+  font-size: 15px;
+  background-color: var(--card-color);
+  color: var(--danger-text-color);
+  font-weight: bold;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+.scope-auth-settings .btn-danger:hover {
+  background-color: var(--danger-text-color);
+  color: #33101A;
+}
+.scope-auth-settings .delete-icon {
+  margin-top: 1px;
+}
+@media (max-width: 450px) {
+  .scope-auth-settings .section-block {
+    max-width: 350px;
+    padding: 1em;
+  }
+  .scope-auth-settings .title {
+    font-size: 13px;
+  }
+}
+.scope-auth-settings :host {
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-status-negative: #ac1c1c;
+  --tui-text-negative: #ac1c1c;
+  --tui-radius-m: 2rem;
+}
+.scope-auth-settings button {
+  font: inherit;
+}
+.scope-auth-settings .base-container {
+  gap: 1rem;
+}
+.scope-auth-settings .account-layout {
+  display: flex;
+  width: min(calc(100% - 2rem), 37.5rem);
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 auto 2rem;
+}
+.scope-auth-settings .account-card {
+  box-sizing: border-box;
+  padding: 1.125rem 1.25rem;
+  border-radius: 20px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-auth-settings .email-row,
+.scope-auth-settings .method-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.scope-auth-settings .email-content,
+.scope-auth-settings .method-copy {
+  min-width: 0;
+  flex: 1;
+}
+.scope-auth-settings .email-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.scope-auth-settings .email-address {
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.scope-auth-settings .email-form,
+.scope-auth-settings .password-form {
+  width: 100%;
+}
+.scope-auth-settings .field-note {
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+}
+.scope-auth-settings .row-note {
+  margin: 0.375rem 0 0;
+}
+.scope-auth-settings .email-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--success-color);
+  cursor: default;
+  font-size: 0.7rem;
+}
+.scope-auth-settings .email-status.unverified {
+  color: var(--waiting-color);
+  cursor: pointer;
+}
+.scope-auth-settings .method-list {
+  display: flex;
+  flex-direction: column;
+}
+.scope-auth-settings .method-row {
+  min-height: 3.75rem;
+}
+.scope-auth-settings .method-row + .method-row {
+  border-top: 1px solid #f1ecef;
+}
+.scope-auth-settings .method-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.5625rem;
+  background: var(--page-ground);
+  color: var(--subhead-color);
+  font-size: 0.9375rem;
+}
+.scope-auth-settings .method-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.scope-auth-settings .method-copy strong {
+  color: var(--brand-ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.scope-auth-settings .method-copy > span {
+  color: var(--metadata-color);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.scope-auth-settings .method-row.editing {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 0.75rem;
+  row-gap: 0.125rem;
+}
+.scope-auth-settings .method-row.editing .method-copy,
+.scope-auth-settings .method-row.editing .password-form {
+  display: contents;
+}
+.scope-auth-settings .method-row.editing strong,
+.scope-auth-settings .method-row.editing tui-textfield,
+.scope-auth-settings .method-row.editing tui-error {
+  grid-column: 2;
+}
+.scope-auth-settings .method-row.editing .method-icon,
+.scope-auth-settings .method-row.editing tui-textfield,
+.scope-auth-settings .method-row.editing .settings-action {
+  grid-row: 2;
+}
+.scope-auth-settings .method-row.editing .method-icon {
+  grid-column: 1;
+}
+.scope-auth-settings .method-row.editing .settings-action {
+  grid-column: 3;
+}
+.scope-auth-settings .delete-account-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 1.25rem 0;
+  color: var(--metadata-color);
+  font-size: 0.78rem;
+}
+.scope-auth-settings .delete-account-row button {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid #eccdd6;
+  background: none;
+  color: #b03a5b;
+  cursor: pointer;
+}
+@media (max-width: 520px) {
+  .scope-auth-settings .account-layout {
+    width: min(calc(100% - 1rem), 30rem);
+  }
+  .scope-auth-settings .account-card {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+  .scope-auth-settings .method-row {
+    align-items: flex-start;
+    padding: 0.75rem 0;
+  }
+  .scope-auth-settings .settings-action {
+    min-width: 4.75rem;
+  }
+  .scope-auth-settings .method-row.editing {
+    align-items: center;
+  }
+  .scope-auth-settings .method-row.editing tui-error {
+    grid-row: 3;
+  }
+  .scope-auth-settings .method-row.editing .settings-action {
+    grid-row: 4;
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+.scope-lang-settings {
+  /* A set-aside row sits on its own tinted ground, which does the separating a hairline would. */
+  /* The state is said once, as a tag beside the name: this row also carries controls, and the word has to hold its
+   own against them. The same word sits under the name on the profile card. */
+  /* Closed, this is the same pill the native select was: three of them stack in a card that must not grow. */
+  /* Frozen with the language: dashed, grey, and without the caret that would promise a list. */
+  /* Only the open list is wide: it carries the onboarding sentence beside each code. */
+  /* A link out to the record, not an expander: the row's decision is taken there. */
+  /* The allowance is stated once for the section, not implied by every disabled row. */
+  /* One line under the row, indented to the name, for whatever greys that row's control. */
+}
+.scope-lang-settings :host {
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-radius-m: 2rem;
+}
+.scope-lang-settings button {
+  font: inherit;
+}
+.scope-lang-settings .base-container {
+  gap: 1rem;
+}
+.scope-lang-settings .learning-layout {
+  display: flex;
+  width: min(calc(100% - 2rem), 41.25rem);
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0 auto 2rem;
+}
+.scope-lang-settings .known-card,
+.scope-lang-settings .learning-card {
+  box-sizing: border-box;
+  border-radius: 20px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-lang-settings .known-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
+}
+.scope-lang-settings .known-copy {
+  min-width: 0;
+  flex: 1;
+}
+.scope-lang-settings .known-languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4375rem;
+  margin-top: 0.625rem;
+}
+.scope-lang-settings .known-languages span {
+  padding: 0.375rem 0.8125rem;
+  border-radius: 9999px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.8125rem;
+}
+.scope-lang-settings .fluent-language-selector {
+  display: block;
+  max-width: 30rem;
+  margin-top: 0.625rem;
+}
+.scope-lang-settings .known-card.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 0.625rem;
+}
+.scope-lang-settings .known-card.editing .known-copy {
+  display: contents;
+}
+.scope-lang-settings .known-card.editing .eyebrow {
+  grid-row: 1;
+  grid-column: 1;
+  margin-bottom: 0;
+}
+.scope-lang-settings .known-card.editing .fluent-language-selector {
+  grid-row: 2;
+  grid-column: 1;
+  margin-top: 0;
+}
+.scope-lang-settings .known-card.editing .settings-action {
+  grid-row: 2;
+  grid-column: 2;
+  align-self: start;
+  margin-top: calc((3.5rem - 2rem) / 2);
+}
+.scope-lang-settings .learning-card {
+  padding: 1.125rem 1.25rem 1rem;
+}
+.scope-lang-settings .learner-list {
+  margin-top: 0.875rem;
+}
+.scope-lang-settings .learner-record + .learner-record,
+.scope-lang-settings .add-language-row {
+  border-top: 1px solid var(--hairline-color);
+}
+.scope-lang-settings .learner-record.aside {
+  margin: 0 -0.625rem;
+  padding: 0.1875rem 0.625rem 0.5rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+}
+.scope-lang-settings .learner-record.aside,
+.scope-lang-settings .learner-record.aside + .learner-record {
+  border-top: 0;
+}
+.scope-lang-settings .learner-row,
+.scope-lang-settings .add-language-row {
+  display: flex;
+  min-height: 3.875rem;
+  align-items: center;
+  gap: 0.875rem;
+}
+.scope-lang-settings .colour-trigger,
+.scope-lang-settings .empty-colour {
+  width: 1.625rem;
+  height: 1.625rem;
+  flex: 0 0 auto;
+  border-radius: 0.5rem;
+}
+.scope-lang-settings .colour-trigger {
+  border: 0;
+  box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--control-border-color);
+  cursor: pointer;
+}
+.scope-lang-settings .colour-trigger:hover,
+.scope-lang-settings .colour-trigger.open {
+  box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--brand-primary);
+}
+.scope-lang-settings .aside .colour-trigger {
+  box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--control-border-color);
+  opacity: 0.45;
+}
+.scope-lang-settings .aside .colour-trigger:hover,
+.scope-lang-settings .aside .colour-trigger.open {
+  box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--brand-primary);
+  opacity: 1;
+}
+.scope-lang-settings .empty-colour {
+  border: 1px dashed var(--control-border-color);
+  background: var(--nested-color);
+}
+.scope-lang-settings .language-name,
+.scope-lang-settings .add-language-row > span:nth-child(2) {
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+.scope-lang-settings .add-language-row > span:nth-child(2) {
+  min-width: 7.5rem;
+  color: var(--metadata-color);
+}
+.scope-lang-settings .aside .language-name {
+  color: var(--metadata-color);
+}
+.scope-lang-settings .aside-tag {
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.3125rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.0375rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.scope-lang-settings .learner-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+.scope-lang-settings .level-select {
+  position: relative;
+}
+.scope-lang-settings .level-trigger {
+  display: flex;
+  width: 3.875rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.5625rem;
+  outline: none;
+  background: var(--card-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.scope-lang-settings .level-trigger::after {
+  color: var(--metadata-color);
+  content: '▾';
+  font-size: 0.5625rem;
+}
+.scope-lang-settings .level-trigger:focus-visible,
+.scope-lang-settings .level-trigger.open {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(90, 26, 116, 0.1);
+}
+.scope-lang-settings .level-trigger:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.scope-lang-settings .level-trigger.frozen,
+.scope-lang-settings .level-trigger.frozen:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--metadata-color);
+  opacity: 1;
+}
+.scope-lang-settings .level-trigger.frozen::after {
+  content: none;
+}
+.scope-lang-settings .active-switch {
+  display: flex;
+  flex: 0 0 auto;
+}
+.scope-lang-settings .level-list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 0.375rem);
+  right: 0;
+  display: flex;
+  width: 22.5rem;
+  flex-direction: column;
+  padding: 0.375rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 0.875rem;
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+}
+.scope-lang-settings .level-option {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.75rem;
+  border: 0;
+  border-radius: 0.5625rem;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+}
+.scope-lang-settings .level-option code {
+  flex: 0 0 1.375rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.scope-lang-settings .level-option span {
+  font-size: 0.84375rem;
+  line-height: 1.4;
+}
+.scope-lang-settings .level-option:hover {
+  background: var(--state-hover);
+}
+.scope-lang-settings .level-option.selected {
+  background: var(--state-selected);
+}
+.scope-lang-settings .level-option.selected code {
+  color: var(--brand-primary);
+}
+.scope-lang-settings .level-option:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+.scope-lang-settings .row-action,
+.scope-lang-settings .add-language {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--control-border-color);
+  border-radius: 50%;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+}
+.scope-lang-settings .delete-language {
+  opacity: 0.45;
+  transition: opacity 150ms ease;
+}
+.scope-lang-settings .learner-row:hover .delete-language,
+.scope-lang-settings .delete-language:focus-visible {
+  opacity: 1;
+}
+.scope-lang-settings .delete-language:hover {
+  border-color: var(--danger-text-color);
+  color: var(--danger-text-color);
+}
+.scope-lang-settings .delete-language tui-icon,
+.scope-lang-settings .add-language tui-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+.scope-lang-settings .open-record {
+  border-color: var(--control-border-color);
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+}
+.scope-lang-settings .open-record:hover {
+  border-color: var(--brand-primary);
+  background: var(--card-color);
+}
+.scope-lang-settings .empty-action {
+  border-color: var(--hairline-color);
+  background: transparent;
+  cursor: default;
+}
+.scope-lang-settings .colour-picker {
+  width: min(100%, 27rem);
+  margin: 0 0 0.875rem 2.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--page-ground);
+  border: 1px solid var(--hairline-color);
+  box-shadow: var(--overlay-shadow);
+}
+.scope-lang-settings .colour-title,
+.scope-lang-settings .colour-names {
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+}
+.scope-lang-settings .colour-title {
+  margin-bottom: 0.75rem;
+  font-family: var(--font-family-ui);
+  font-weight: 600;
+  letter-spacing: 0.075rem;
+  text-transform: uppercase;
+}
+.scope-lang-settings .colour-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.625rem;
+}
+.scope-lang-settings .colour-grid button {
+  height: 2.125rem;
+  border: 0;
+  border-radius: 0.625rem;
+  cursor: pointer;
+}
+.scope-lang-settings .colour-grid button.selected {
+  box-shadow: 0 0 0 2px var(--page-ground), 0 0 0 3px var(--brand-primary);
+}
+.scope-lang-settings .colour-names {
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+.scope-lang-settings .add-language-row {
+  padding-top: 0.125rem;
+}
+.scope-lang-settings .add-language-row .add-language,
+.scope-lang-settings .add-language-row .ceiling-note {
+  margin-left: auto;
+}
+.scope-lang-settings .add-language:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+@media (max-width: 600px) {
+  .scope-lang-settings {
+    /* Narrower than the panel, so the panel stops hanging off the control and spans the row instead. */
+  }
+  .scope-lang-settings .learning-layout {
+    width: min(calc(100% - 1rem), 30rem);
+  }
+  .scope-lang-settings .known-card,
+  .scope-lang-settings .learning-card {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+  .scope-lang-settings .learner-controls {
+    gap: 0.5rem;
+  }
+  .scope-lang-settings .delete-language {
+    opacity: 0.7;
+  }
+  .scope-lang-settings .language-copy {
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+  }
+  .scope-lang-settings .level-select {
+    position: static;
+  }
+  .scope-lang-settings .learner-row {
+    position: relative;
+  }
+  .scope-lang-settings .level-list {
+    right: 0;
+    left: 0;
+    width: auto;
+  }
+}
+@media (max-width: 410px) {
+  .scope-lang-settings .learner-row {
+    flex-wrap: wrap;
+    padding: 0.75rem 0;
+  }
+  .scope-lang-settings .learner-controls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .scope-lang-settings .row-note {
+    margin-left: 0;
+  }
+  .scope-lang-settings .colour-picker {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+.scope-lang-settings .learning-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+}
+.scope-lang-settings .allowance-count {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: 0.6875rem;
+}
+.scope-lang-settings .language-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: baseline;
+  gap: 0.5625rem;
+}
+.scope-lang-settings .row-note {
+  margin: -0.375rem 0 0.5rem 2.5rem;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+}
+.scope-lang-settings .ceiling-note {
+  color: var(--metadata-color);
+  font-size: 0.78125rem;
+}
+.scope-lang-settings .allowance-panel {
+  margin: 0.75rem 0 0;
+  padding: 0.6875rem 0.875rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.78125rem;
+  line-height: 1.55;
+}
+.scope-lang-settings .allowance-upgrade {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary);
+  font: inherit;
+  cursor: pointer;
+}
+.scope-lang-settings .allowance-upgrade:hover {
+  text-decoration: underline;
+}
+.scope-discover :host {
+  display: block;
+  min-height: calc(100vh - var(--header-height));
+  background: var(--page-ground);
+  color: var(--text-color);
+}
+.scope-discover .discover-page {
+  width: min(calc(100% - 2rem), 1040px);
+  margin: 0 auto;
+  padding: 3.6rem 0 6rem;
+}
+.scope-discover .discover-intro {
+  max-width: 760px;
+}
+.scope-discover h1,
+.scope-discover h2,
+.scope-discover h3,
+.scope-discover p {
+  margin-top: 0;
+}
+.scope-discover h1 {
+  max-width: 740px;
+  margin-bottom: 0.85rem;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.08;
+}
+.scope-discover .discover-intro > p:last-child {
+  max-width: 650px;
+  color: var(--subhead-color);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.scope-discover .search-card,
+.scope-discover .sentence-card,
+.scope-discover .word-sheet {
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-discover .search-card {
+  margin-top: 2rem;
+  padding: 1.4rem;
+  border-radius: 20px;
+}
+.scope-discover .search-card > label,
+.scope-discover .meaning-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: var(--subhead-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.scope-discover .search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.8rem;
+}
+.scope-discover textarea,
+.scope-discover input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--control-border-color);
+  border-radius: 14px;
+  background: var(--nested-color);
+  color: var(--text-color);
+  font: inherit;
+}
+.scope-discover textarea {
+  min-height: 76px;
+  padding: 1rem 1.1rem;
+  resize: vertical;
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  line-height: 1.45;
+}
+.scope-discover textarea:focus,
+.scope-discover input:focus {
+  outline: 3px solid rgba(90, 26, 116, 0.16);
+  border-color: var(--brand-primary);
+}
+.scope-discover button,
+.scope-discover a {
+  min-height: 44px;
+}
+.scope-discover .primary-action,
+.scope-discover .keep-action,
+.scope-discover .signup-callout a {
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  cursor: pointer;
+  font-weight: 600;
+}
+.scope-discover .primary-action {
+  align-self: center;
+  padding: 0.8rem 1.5rem;
+}
+.scope-discover button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.scope-discover .diacritics {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  color: var(--metadata-color);
+  font-size: 0.72rem;
+}
+.scope-discover .diacritics button {
+  min-width: 34px;
+  min-height: 32px;
+  border: 1px solid var(--hairline-color);
+  border-radius: 8px;
+  background: var(--nested-color);
+  color: var(--brand-margin);
+  cursor: pointer;
+}
+.scope-discover .sentence-card {
+  margin-top: 1rem;
+  padding: 1.4rem;
+  border-radius: 20px;
+}
+.scope-discover .sentence-copy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+.scope-discover .sentence-copy button {
+  min-height: 36px;
+  padding: 0.25rem 0.35rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font: 1.16rem/1.4 var(--font-family-reading);
+}
+.scope-discover .sentence-copy button:hover,
+.scope-discover .sentence-copy button.active {
+  border-bottom-color: var(--brand-margin);
+  color: var(--brand-margin);
+}
+.scope-discover .sentence-card small {
+  color: var(--metadata-color);
+}
+.scope-discover .loading-card,
+.scope-discover .message {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  border-radius: 14px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-discover .unfold-mark {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.55rem;
+  vertical-align: -0.25em;
+}
+.scope-discover .error {
+  background: var(--danger-bg-color);
+  color: var(--danger-text-color);
+}
+.scope-discover .word-sheet {
+  margin-top: 1.4rem;
+  overflow: hidden;
+  border-radius: 24px;
+}
+.scope-discover .entry-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 2rem;
+  align-items: start;
+  padding: 2rem;
+}
+.scope-discover .entry-header h2 {
+  margin-bottom: 0.2rem;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.1;
+}
+.scope-discover .transcription {
+  color: var(--subhead-color);
+  font-family: var(--font-family-mono);
+}
+.scope-discover .frequency {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--nested-color);
+}
+.scope-discover .frequency strong {
+  color: var(--brand-margin);
+}
+.scope-discover .frequency span {
+  font-size: 0.82rem;
+}
+.scope-discover .frequency small {
+  color: var(--metadata-color);
+  font: 0.68rem/1.5 var(--font-family-mono);
+}
+.scope-discover .frequency.unavailable strong {
+  color: var(--subhead-color);
+}
+.scope-discover .senses {
+  padding: 0 2rem 2rem;
+}
+.scope-discover .sense-card {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 15px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.scope-discover .sense-card:hover,
+.scope-discover .sense-card.selected {
+  border-color: var(--brand-primary);
+  background: var(--state-selected);
+}
+.scope-discover .sense-number {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--nested-color);
+  color: var(--brand-margin);
+  font-family: var(--font-family-mono);
+}
+.scope-discover .sense-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scope-discover .sense-body strong {
+  font: 600 1.02rem/1.35 var(--font-family-reading);
+}
+.scope-discover .sense-body small,
+.scope-discover .sense-choice {
+  color: var(--metadata-color);
+}
+.scope-discover .sense-choice {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.scope-discover .empty-sense {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: var(--nested-color);
+}
+.scope-discover .empty-sense span {
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.scope-discover blockquote {
+  margin: 0 2rem 2rem;
+  padding: 1.1rem 1.25rem;
+  border-left: 3px solid var(--brand-margin);
+  background: var(--nested-color);
+  font: 1rem/1.65 var(--font-family-reading);
+}
+.scope-discover .keep-panel {
+  padding: 2rem;
+  background: var(--brand-ink);
+  color: var(--page-ground);
+}
+.scope-discover .keep-panel .eyebrow {
+  color: #c9a8c4;
+}
+.scope-discover .keep-panel h3 {
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+.scope-discover .intent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+.scope-discover .intent-grid label {
+  display: flex;
+  gap: 0.65rem;
+  min-height: 72px;
+  align-items: flex-start;
+  padding: 0.85rem;
+  border: 1px solid #5a505d;
+  border-radius: 13px;
+  cursor: pointer;
+}
+.scope-discover .intent-grid label.selected {
+  border-color: #c9a8c4;
+  background: rgba(255, 255, 255, 0.06);
+}
+.scope-discover .intent-grid input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+.scope-discover .intent-grid span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scope-discover .intent-grid small {
+  color: #c9c0cc;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+.scope-discover .intent-note {
+  margin: 0.65rem 0 0;
+  color: #c9c0cc;
+  font-size: 0.76rem;
+}
+.scope-discover .meaning-field {
+  margin-top: 1rem;
+  color: #c9c0cc;
+}
+.scope-discover .meaning-field input {
+  padding: 0.85rem 1rem;
+  background: #37303d;
+  border-color: #5a505d;
+  color: #fff;
+}
+.scope-discover .keep-action {
+  margin-top: 1rem;
+  min-width: 160px;
+  padding: 0.75rem 1.4rem;
+  background: var(--premium-gradient);
+}
+.scope-discover .keep-action.kept {
+  background: var(--success-color);
+}
+.scope-discover .fold-mark {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.4rem;
+  vertical-align: -0.15em;
+}
+.scope-discover .save-note {
+  display: inline;
+  margin-left: 0.8rem;
+  color: #c9c0cc;
+  font-size: 0.76rem;
+}
+.scope-discover .signup-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #5a505d;
+}
+.scope-discover .signup-callout div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scope-discover .signup-callout span {
+  color: #c9c0cc;
+  font-size: 0.8rem;
+}
+.scope-discover .signup-callout a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 1.3rem;
+  background: #e0c4ee;
+  color: var(--brand-ink);
+}
+.scope-discover .entry-footer {
+  padding: 1rem 2rem;
+  color: var(--metadata-color);
+  font: 0.69rem/1.55 var(--font-family-mono);
+}
+@media (max-width: 720px) {
+  .scope-discover .discover-page {
+    padding-top: 2rem;
+  }
+  .scope-discover .search-row,
+  .scope-discover .entry-header {
+    grid-template-columns: 1fr;
+  }
+  .scope-discover .primary-action {
+    width: 100%;
+  }
+  .scope-discover .diacritics {
+    overflow-x: auto;
+  }
+  .scope-discover .entry-header,
+  .scope-discover .senses,
+  .scope-discover .keep-panel {
+    padding: 1.25rem;
+  }
+  .scope-discover .frequency {
+    width: auto;
+  }
+  .scope-discover .intent-grid {
+    grid-template-columns: 1fr;
+  }
+  .scope-discover blockquote {
+    margin: 0 1.25rem 1.25rem;
+  }
+  .scope-discover .signup-callout {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .scope-discover .signup-callout a {
+    justify-content: center;
+  }
+  .scope-discover .save-note {
+    display: block;
+    margin: 0.6rem 0 0;
+  }
+}
+.scope-ops {
+  /* An input with a small action beside it; the input keeps the width. */
+  /* The publish step asks before it acts; the question should read as a stop, not as chrome. */
+  /* Books: the two queues (G9, G13). Mono headers, plum uppercase, a live row on the nested ground. */
+}
+.scope-ops :host {
+  display: block;
+  min-height: calc(100vh - var(--header-height));
+  background: var(--page-ground);
+}
+.scope-ops .ops-page {
+  --ops-ink: var(--text-color);
+  --ops-muted: var(--subhead-color);
+  --ops-border: var(--hairline-color);
+  --ops-surface: var(--card-color);
+  --ops-soft: var(--nested-color);
+  --ops-accent: var(--brand-margin);
+  --ops-danger: var(--danger-text-color);
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 4vw, 2.5rem) 4rem;
+  color: var(--ops-ink);
+}
+.scope-ops .ops-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+.scope-ops .ops-page h1,
+.scope-ops .ops-card h2 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.scope-ops .ops-page h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1.1;
+}
+.scope-ops .ops-page__hint {
+  max-width: 570px;
+  margin: 0.75rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+.scope-ops .ops-page__badge {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--ops-accent) 28%, var(--ops-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ops-accent) 10%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+.scope-ops .ops-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid var(--ops-border);
+  border-radius: 1.25rem;
+  background: var(--ops-surface);
+  box-shadow: var(--box-shadow);
+}
+.scope-ops .ops-card--lookup {
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--grant {
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-card--announce {
+  margin-top: 1.25rem;
+  border-top: 3px solid #872657;
+}
+.scope-ops .ops-card--limits {
+  margin-top: 1.25rem;
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-card--limits .ops-form {
+  margin-bottom: 1.25rem;
+}
+.scope-ops .ops-card--maintenance {
+  margin-top: 1.25rem;
+  border-top: 3px solid var(--ops-muted);
+}
+.scope-ops .ops-card--spend {
+  margin-top: 1.25rem;
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--pulse {
+  margin-bottom: 1.25rem;
+  border-top: 3px solid var(--ops-accent);
+}
+.scope-ops .ops-card--pulse .ops-card__heading--plain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-pulse__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.scope-ops .ops-pulse__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.85rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-pulse__tile strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-pulse__tile small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+}
+.scope-ops .ops-pulse__tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0 1.5rem;
+}
+.scope-ops .ops-pulse__tables td small {
+  margin-left: 0.35rem;
+  color: var(--ops-muted);
+}
+.scope-ops .ops-pulse__stamp {
+  margin: 1rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.8rem;
+}
+.scope-ops .ops-card--danger-zone {
+  margin-top: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 35%, var(--ops-border));
+  border-top: 3px solid var(--ops-danger);
+}
+.scope-ops .ops-card--danger-zone code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.3rem;
+  background: var(--ops-soft);
+  font-family: var(--font-family-mono);
+  font-size: 0.74rem;
+  font-weight: 400;
+}
+.scope-ops .ops-card__heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+.scope-ops .ops-card__heading--plain {
+  margin-bottom: 1.25rem;
+}
+.scope-ops .ops-card__step {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.scope-ops .ops-card--grant .ops-card__step {
+  background: color-mix(in srgb, #d5a34a 16%, var(--ops-surface));
+  color: color-mix(in srgb, #d5a34a 72%, var(--ops-ink));
+}
+.scope-ops .ops-card h2 {
+  font-size: 1.25rem;
+}
+.scope-ops .ops-card__heading p {
+  margin: 0.35rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.scope-ops .ops-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.scope-ops .ops-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.scope-ops .ops-form__field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.45rem;
+  color: var(--ops-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.scope-ops .ops-form__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.scope-ops .ops-form__row input {
+  flex: 1 1 auto;
+}
+.scope-ops .ops-button--inline {
+  flex: 0 0 auto;
+  padding-right: 0.85rem;
+  padding-left: 0.85rem;
+}
+.scope-ops .ops-form__field em {
+  color: var(--ops-muted);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 400;
+}
+.scope-ops .ops-form__field input,
+.scope-ops .ops-form__field select,
+.scope-ops .ops-form__field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.65rem;
+  outline: none;
+  background: var(--ops-soft);
+  color: var(--ops-ink);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.scope-ops .ops-form__field input::placeholder,
+.scope-ops .ops-form__field textarea::placeholder {
+  color: var(--metadata-color);
+}
+.scope-ops .ops-form__field textarea {
+  min-height: 7rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+.scope-ops .ops-form__field input:hover,
+.scope-ops .ops-form__field select:hover,
+.scope-ops .ops-form__field textarea:hover {
+  border-color: var(--ops-muted);
+}
+.scope-ops .ops-form__field input:focus,
+.scope-ops .ops-form__field select:focus,
+.scope-ops .ops-form__field textarea:focus {
+  border-color: var(--ops-accent);
+  box-shadow: 0 0 0 3px rgba(131, 57, 127, 0.13);
+}
+.scope-ops .ops-form__field input:disabled,
+.scope-ops .ops-form__field select:disabled,
+.scope-ops .ops-form__field textarea:disabled {
+  cursor: not-allowed;
+  background: var(--disabled-fill-color);
+}
+.scope-ops .ops-card--firebase {
+  margin-top: 1.25rem;
+  border-top: 3px solid #d5a34a;
+}
+.scope-ops .ops-flag {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-flag--yes {
+  background: var(--success-bg-color);
+  color: var(--success-color);
+}
+.scope-ops .ops-flag--no {
+  background: var(--danger-bg-color);
+  color: var(--ops-danger);
+}
+.scope-ops .ops-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--ops-ink);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.scope-ops .ops-checkbox input {
+  margin-top: 0.15rem;
+  accent-color: var(--ops-danger);
+}
+.scope-ops .ops-checkbox em {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+.scope-ops .ops-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.scope-ops .ops-button {
+  min-height: 2.8rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.scope-ops .ops-button--primary {
+  background: var(--ops-accent);
+  color: var(--on-brand-color);
+}
+.scope-ops .ops-button--primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+.scope-ops .ops-button--danger {
+  border-color: color-mix(in srgb, var(--ops-danger) 45%, var(--ops-border));
+  background: var(--ops-surface);
+  color: var(--ops-danger);
+}
+.scope-ops .ops-button--danger:hover:not(:disabled) {
+  border-color: var(--ops-danger);
+  background: var(--danger-bg-color);
+}
+.scope-ops .ops-button--quiet {
+  border-color: var(--ops-border);
+  background: var(--ops-surface);
+  color: var(--ops-muted);
+}
+.scope-ops .ops-button--quiet:hover:not(:disabled) {
+  border-color: var(--ops-muted);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-confirm {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 40%, var(--ops-border));
+  border-radius: 0.8rem;
+  background: var(--danger-bg-color);
+}
+.scope-ops .ops-confirm p {
+  margin: 0 0 0.75rem;
+  color: var(--ops-ink);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.scope-ops .ops-maintenance {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.scope-ops .ops-maintenance__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-maintenance__row strong {
+  font-size: 0.86rem;
+}
+.scope-ops .ops-maintenance__row p {
+  margin: 0.25rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.scope-ops .ops-maintenance__result {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-surface);
+  font-size: 0.8rem;
+}
+.scope-ops .ops-maintenance__result > p {
+  margin: 0 0 0.6rem;
+}
+.scope-ops .ops-maintenance__result--clean {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--disabled-fill-color);
+  color: var(--ops-muted);
+  font-size: 0.76rem;
+}
+.scope-ops .ops-maintenance__ids {
+  margin: 0;
+  padding: 0;
+  color: var(--ops-muted);
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  line-height: 1.7;
+  list-style: none;
+}
+.scope-ops .ops-maintenance__more {
+  margin: 0.4rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-maintenance__result .ops-confirm {
+  margin-top: 0.8rem;
+}
+.scope-ops .ops-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.8rem;
+  background: var(--ops-soft);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-summary__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.scope-ops .ops-summary__avatar {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--premium-gradient);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.scope-ops .ops-summary__identity div:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.scope-ops .ops-summary__identity strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+.scope-ops .ops-summary__identity span,
+.scope-ops .ops-summary__entitlement span,
+.scope-ops .ops-summary__label {
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+}
+.scope-ops .ops-summary__entitlement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ops-border);
+}
+.scope-ops .ops-summary__entitlement strong {
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--ops-accent) 14%, var(--ops-surface));
+  color: var(--ops-accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.scope-ops .ops-summary__grant {
+  padding: 0.75rem;
+  border-radius: 0.55rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-summary__grant--active {
+  border: 1px solid color-mix(in srgb, var(--success-color) 35%, var(--ops-border));
+  background: var(--success-bg-color);
+}
+.scope-ops .ops-summary__grant--active > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.scope-ops .ops-summary__grant--active strong {
+  color: var(--success-color);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+.scope-ops .ops-summary__grant p {
+  margin: 0.4rem 0 0;
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-summary__grant--none {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--disabled-fill-color);
+  color: var(--ops-muted);
+  font-size: 0.74rem;
+}
+.scope-ops .ops-summary__status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--disabled-label-color);
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .scope-ops .ops-page__header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .scope-ops .ops-form__grid {
+    grid-template-columns: 1fr;
+  }
+  .scope-ops .ops-form__actions {
+    flex-direction: column;
+  }
+  .scope-ops .ops-button {
+    width: 100%;
+  }
+}
+.scope-ops .ops-card--spend .ops-card__heading--plain {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-spend__windows {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+.scope-ops .ops-button--selected {
+  border-color: color-mix(in srgb, var(--ops-accent) 45%, var(--ops-border));
+  background: color-mix(in srgb, var(--ops-accent) 12%, var(--ops-surface));
+  color: var(--ops-accent);
+}
+.scope-ops .ops-spend__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.scope-ops .ops-spend__total {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.85rem;
+  background: var(--ops-soft);
+}
+.scope-ops .ops-spend__total strong {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-spend__total small {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+}
+.scope-ops .ops-spend__gap--wide {
+  color: var(--ops-danger);
+}
+.scope-ops .ops-spend__warnings {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem 0.75rem 2rem;
+  border: 1px solid color-mix(in srgb, var(--ops-danger) 30%, var(--ops-border));
+  border-radius: 0.85rem;
+  background: color-mix(in srgb, var(--ops-danger) 6%, var(--ops-surface));
+  color: var(--ops-ink);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.scope-ops .ops-spend__subtitle {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ops-muted);
+}
+.scope-ops .ops-table-scroll {
+  overflow-x: auto;
+}
+.scope-ops .ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+.scope-ops .ops-table th,
+.scope-ops .ops-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--ops-border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.scope-ops .ops-table th {
+  color: var(--ops-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.scope-ops .ops-table__number {
+  text-align: right;
+}
+.scope-ops .ops-table td small {
+  color: var(--ops-muted);
+}
+.scope-ops .ops-spend__unpriced {
+  color: var(--ops-danger);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-spend__days {
+  margin-top: 0.75rem;
+}
+.scope-ops .ops-spend__days summary {
+  cursor: pointer;
+  color: var(--ops-muted);
+  font-size: 0.85rem;
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-card--spend .ops-card__heading--plain {
+    flex-direction: column;
+  }
+  .scope-ops .ops-spend__totals {
+    grid-template-columns: 1fr;
+  }
+}
+.scope-ops .ops-card--books {
+  margin-top: 1.25rem;
+  border-top: 3px solid #872657;
+}
+.scope-ops .ops-books__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-ops .ops-books__path {
+  margin: 0 0 0.25rem;
+  color: var(--ops-muted);
+  font: 0.7rem/1.4 var(--font-family-mono);
+  letter-spacing: 0.025rem;
+}
+.scope-ops .ops-books__title {
+  font-family: var(--font-family-reading);
+}
+.scope-ops .ops-books__spend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+.scope-ops .ops-books__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-ops .ops-books__bar code {
+  font-size: 0.74rem;
+}
+.scope-ops .ops-books__track {
+  display: block;
+  width: 7.5rem;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--ops-border);
+}
+.scope-ops .ops-books__track i {
+  display: block;
+  height: 100%;
+  background: #872657;
+}
+.scope-ops .ops-books__fill--full {
+  background: var(--ops-danger) !important;
+}
+.scope-ops .ops-books__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+.scope-ops .ops-books__spend .ops-books__chips {
+  justify-content: flex-end;
+  margin-bottom: 0;
+}
+.scope-ops .ops-books__chip {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--ops-border);
+  border-radius: 0.45rem;
+  color: var(--ops-muted);
+  font: 500 0.72rem/1.2 var(--font-family-mono);
+}
+.scope-ops .ops-books__chip--ink {
+  border-color: var(--brand-ink);
+  background: var(--brand-ink);
+  color: var(--page-ground);
+}
+.scope-ops .ops-books__ceiling {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--ops-danger) 8%, var(--ops-surface));
+  color: var(--ops-ink);
+  font-size: 0.85rem;
+}
+.scope-ops .ops-queue {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-x: auto;
+}
+.scope-ops .ops-queue__head,
+.scope-ops .ops-queue__row {
+  display: grid;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 40rem;
+}
+.scope-ops .ops-queue--translations .ops-queue__head,
+.scope-ops .ops-queue--translations .ops-queue__row {
+  grid-template-columns: 1.55fr 0.72fr 0.5fr 0.86fr 0.62fr 1.2fr;
+}
+.scope-ops .ops-queue--suggestions .ops-queue__head,
+.scope-ops .ops-queue--suggestions .ops-queue__row {
+  grid-template-columns: 1.4fr 0.4fr 0.85fr 0.9fr 15rem;
+}
+.scope-ops .ops-queue__head {
+  padding: 0 0 0.45rem;
+  border-bottom: 1.5px solid var(--brand-ink);
+  color: #872657;
+  font: 500 0.62rem/1.3 var(--font-family-mono);
+  letter-spacing: 0.05rem;
+  text-transform: uppercase;
+}
+.scope-ops .ops-queue__row {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--ops-border);
+  font-size: 0.82rem;
+}
+.scope-ops .ops-queue__row code,
+.scope-ops .ops-queue__job code,
+.scope-ops .ops-queue__stamp {
+  font: 0.74rem/1.4 var(--font-family-mono);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-queue__row small,
+.scope-ops .ops-queue__book small {
+  color: var(--ops-muted);
+  font-size: 0.72rem;
+}
+.scope-ops .ops-queue__book {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+.scope-ops .ops-queue__book strong {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-ops .ops-queue__year {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.scope-ops .ops-queue__flag {
+  color: #872657 !important;
+  font-size: 0.64rem !important;
+}
+.scope-ops .ops-queue__flag--pd {
+  color: var(--success-color) !important;
+}
+.scope-ops .ops-queue__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+.scope-ops .ops-button--tiny {
+  min-height: 1.85rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.74rem;
+}
+.scope-ops .ops-button--ink {
+  border: 1px solid var(--brand-ink);
+  background: transparent;
+  color: var(--brand-ink);
+}
+.scope-ops .ops-queue__stamp {
+  color: var(--ops-muted) !important;
+}
+.scope-ops .ops-queue__stamp--done {
+  color: var(--success-color) !important;
+}
+.scope-ops .ops-queue__stamp--failed {
+  color: var(--ops-danger) !important;
+}
+.scope-ops .ops-queue__row--live {
+  margin: 0 -0.6rem;
+  padding-right: 0.6rem;
+  padding-left: 0.6rem;
+  border-bottom-color: transparent;
+  border-radius: 0.6rem 0.6rem 0 0;
+  background: var(--nested-color);
+}
+.scope-ops .ops-queue__row--live .ops-queue__book strong {
+  font-weight: 600;
+}
+.scope-ops .ops-queue__job {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 40rem;
+  margin: 0 -0.6rem 0.5rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 0 0 0.6rem 0.6rem;
+  background: var(--nested-color);
+}
+.scope-ops .ops-queue__phases {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+.scope-ops .ops-queue__phase {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.4rem;
+  color: var(--ops-muted);
+  font: 0.72rem/1.3 var(--font-family-mono);
+}
+.scope-ops .ops-queue__phase--on {
+  border-color: var(--success-color);
+  background: var(--success-color);
+  color: #fff;
+}
+.scope-ops .ops-queue__phase--done {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--success-color) 18%, transparent);
+  color: var(--ops-ink);
+}
+.scope-ops .ops-queue__arrow {
+  color: var(--ops-muted);
+  font: 0.72rem/1 var(--font-family-mono);
+}
+.scope-ops .ops-queue__job-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.scope-ops .ops-queue__job-foot code {
+  color: var(--ops-muted);
+  font-size: 0.7rem;
+}
+.scope-ops .ops-queue__error {
+  margin: 0;
+  color: var(--ops-danger);
+  font-size: 0.78rem;
+}
+@media (max-width: 760px) {
+  .scope-ops .ops-books__heading {
+    flex-direction: column;
+  }
+  .scope-ops .ops-books__spend {
+    align-items: flex-start;
+  }
+  .scope-ops .ops-books__spend .ops-books__chips {
+    justify-content: flex-start;
+  }
+}
+</style>
+</head>
+<body>
+<div class="harness-page">
+  <div class="harness-lede">
+    <h1>Greyed controls, and the line that says why</h1>
+    <p>Every control in the app that greys out on a condition rather than on a request in flight. Flip each
+      toggle to see the blocked state and the line under it.</p>
+    <p>The CSS here is compiled from the real component <code>.less</code> files, and the markup and copy are
+      copied from the templates named on each card. Taiga textfields and switches, Font Awesome glyphs and the
+      shipping fonts are stand-ins, so treat spacing as indicative and wording as exact.</p>
+  </div>
+  <section class="harness-card" id="language-grid">
+    <header>
+      <h2>Onboarding — the language grid at its pick limit</h2>
+      <p class="harness-source">language-setup.component.html:11,25</p>
+      <p class="harness-rule">Policy block, so the grid says what would free a card up.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="language-grid" checked>
+        <code>atTargetLimit</code>
+      </label>
+    </header>
+    
+      <div class="scope-language-setup harness-frame">
+        <div class="card step language-step">
+          <div class="language-grid">
+            <button type="button" class="language-card selected">
+              <span class="language-card-top"><span class="language-code">FR</span></span>
+              <span class="language-name">French</span>
+              <span class="language-features">Conjugation drills</span>
+            </button>
+            <button type="button" class="language-card" data-blocked>
+              <span class="language-card-top"><span class="language-code">DE</span></span>
+              <span class="language-name">German</span>
+              <span class="language-features">Case tables</span>
+            </button>
+            <button type="button" class="language-card" data-blocked>
+              <span class="language-card-top"><span class="language-code">ES</span></span>
+              <span class="language-name">Spanish</span>
+              <span class="language-features">Conjugation drills</span>
+            </button>
+          </div>
+          <p class="limit-note" data-note>One language to start. Deselect it to pick a different one.</p>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="continue-button">
+    <header>
+      <h2>Onboarding — Continue on an incomplete form</h2>
+      <p class="harness-source">language-setup.component.html:83,104</p>
+      <p class="harness-rule">Form validity, so the button stays live and the click surfaces the field errors.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="continue-button">
+        <code>languageForm.valid</code>
+      </label>
+    </header>
+    
+      <div class="scope-language-setup harness-frame">
+        <div class="harness-split">
+          <div>
+            <p class="harness-caption">Shipped — <code>[satisfiable]</code></p>
+            <button type="button" class="solid-button" data-satisfiable>Continue</button>
+          </div>
+          <div>
+            <p class="harness-caption">Before — <code>[disabled]</code>, no way in and nothing said</p>
+            <button type="button" class="solid-button" disabled>Continue</button>
+          </div>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="interests-floor">
+    <header>
+      <h2>Onboarding — Continue under the soft floor of three interests</h2>
+      <p class="harness-source">interests-setup.component.html:12,16</p>
+      <p class="harness-rule">Soft floor: outline until three are picked, then solid. Never blocks, and the line under it says the floor is advice.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="interests-floor">
+        <code>atFloor (three or more picked)</code>
+      </label>
+    </header>
+    
+      <div class="scope-interests-setup harness-frame">
+        <div class="card step">
+          <div class="tui-header header-row">What do you like to read?</div>
+          <section class="content">
+            <span class="harness-chip selected">Travel</span>
+            <span class="harness-chip selected">History</span>
+            <span class="harness-chip">Space</span>
+            <span class="harness-chip">Philosophy</span>
+            <span class="harness-chip">Food &amp; Cooking</span>
+          </section>
+          <div class="step-actions">
+            <button type="button" class="solid-button" data-satisfiable>Continue</button>
+            <button type="button" class="back-link">Back</button>
+          </div>
+          <p class="floor-note" data-note>Pick three or more so Almo has something to go on. Fewer works too.</p>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="stepper">
+    <header>
+      <h2>Onboarding — steps you have not reached yet</h2>
+      <p class="harness-source">onboarding.component.html:9</p>
+      <p class="harness-rule">State block with no line: the grey numbers plus a live Continue already say it, and clicking a future step does nothing.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="stepper" checked>
+        <code>a later step is still locked</code>
+      </label>
+    </header>
+    
+      <div class="scope-onboarding harness-frame">
+        <div class="stepper-container card">
+          <nav class="setup-progress" aria-label="Profile setup progress">
+            <button type="button" class="progress-step complete"><span class="progress-marker">✓</span><span>Languages</span></button>
+            <span class="progress-separator">·</span>
+            <button type="button" class="progress-step active"><span class="progress-marker">2</span><span>Interests</span></button>
+            <span class="progress-separator">·</span>
+            <button type="button" class="progress-step" data-blocked><span class="progress-marker">3</span><span>Welcome</span></button>
+          </nav>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="book-import">
+    <header>
+      <h2>Read — Import book against the allowance</h2>
+      <p class="harness-source">book-import.component.html:58</p>
+      <p class="harness-rule">Quota block, restated where the greyed button is rather than only in the card above it.</p>
+      <label class="harness-toggle">
+      <code>quota</code>
+      <select data-card="book-import"><option value="left" selected>2 of 3 imports left</option><option value="none">none left this month</option><option value="premium">Premium-only (limit 0)</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-book-import harness-frame">
+        <div class="quota-card" data-quota-card>
+          <div>
+            <span class="quota-label">Import allowance</span>
+            <strong data-quota-message>2 of 3 imports left this month</strong>
+            <span>Resets Oct 1, 2026</span>
+          </div>
+          <button type="button" class="secondary-action" data-premium-cta hidden>See Premium</button>
+        </div>
+        <form onsubmit="return false">
+          <label>Title<input value="Madame Bovary"></label>
+          <button class="primary-action" type="submit" data-blocked>Import book</button>
+          <p class="blocked-note" data-note>No imports left this month.</p>
+        </form>
+      </div>
+  </section>
+  <section class="harness-card" id="suggest-library">
+    <header>
+      <h2>Read — Suggest for the library on an import that is not ready for it</h2>
+      <p class="harness-source">book-import.component.html:139,141</p>
+      <p class="harness-rule">The library takes a finished, named book; the line under the button names the half that is missing.</p>
+      <label class="harness-toggle">
+      <code>bookImport</code>
+      <select data-card="suggest-library"><option value="ready" selected>READY, details confirmed</option><option value="processing">still PROCESSING</option><option value="unconfirmed">READY, details not confirmed</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <section class="parallel">
+            <h2 class="eyebrow">Parallel text</h2>
+            <p class="parallel__copy">Not offered for imports. Almonium only aligns books it can publish. If this one is in the public domain, suggest it for the library and it becomes eligible.</p>
+            <div class="parallel__actions">
+              <button type="button" class="suggest-action" data-blocked>Suggest for the library</button>
+            </div>
+            <p class="owner-note" data-note>Available once the book is ready.</p>
+          </section>
+        </article>
+      </div>
+  </section>
+  <section class="harness-card" id="re-upload">
+    <header>
+      <h2>Read — Re-upload while the processor is still reading the file</h2>
+      <p class="harness-source">book-import.component.html:74,77</p>
+      <p class="harness-rule">A file in flight cannot be swapped; the owner row says when the action comes back.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="re-upload" checked>
+        <code>status is QUEUED or PROCESSING</code>
+      </label>
+    </header>
+    
+      <div class="scope-book-import harness-frame">
+        <article class="book-card">
+          <div class="owner-row">
+            <button type="button" class="owner-action">Edit details</button>
+            <button type="button" class="owner-action" data-blocked>Re-upload</button>
+            <button type="button" class="owner-action owner-action--quiet">Delete</button>
+          </div>
+          <p class="owner-note" data-note>Re-upload opens once this file has been read.</p>
+        </article>
+      </div>
+  </section>
+  <section class="harness-card" id="ops-approve">
+    <header>
+      <h2>/ops — Approve at the month's translation ceiling</h2>
+      <p class="harness-source">ops.component.html (translation requests)</p>
+      <p class="harness-rule">The spend bar is a hard ceiling: Approve greys and one line above the queue says so, while the queue keeps collecting.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="ops-approve" checked>
+        <code>budgetExhausted</code>
+      </label>
+    </header>
+    
+      <div class="scope-ops harness-frame">
+        <div class="ops-page" style="padding:0">
+          <p class="ops-books__ceiling" data-note>The month's ceiling is reached, so Approve is off until the month turns. Requests keep collecting.</p>
+          <div class="ops-queue ops-queue--translations">
+            <div class="ops-queue__head"><span>Book</span><span>Pair</span><span>Asks</span><span>Who</span><span>Est.</span><span></span></div>
+            <div class="ops-queue__row">
+              <span class="ops-queue__book"><strong>Effi Briest</strong><small>Theodor Fontane</small></span>
+              <code>de → uk</code>
+              <code>3</code>
+              <small>2 prem, 1 free</small>
+              <code>$1.80</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Approve</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Decline</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="email-save">
+    <header>
+      <h2>Settings · Account — Save on an unchanged address</h2>
+      <p class="harness-source">auth-settings.component.html:46,72</p>
+      <p class="harness-rule">No validator fires on "unchanged", so the row says it. The note sits under the row, not inside it.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="email-save" checked>
+        <code>emailUnchanged()</code>
+      </label>
+    </header>
+    
+      <div class="scope-auth-settings harness-frame">
+        <div class="harness-split harness-stack">
+          <main class="account-layout">
+            <p class="harness-caption">Shipped — note under the row, Save stays on the field's centreline</p>
+            <section class="account-card card">
+              <div class="eyebrow">Email</div>
+              <div class="email-row">
+                <div class="email-content">
+                  <div class="harness-stub-field"><span>kuzanoleg@gmail.com</span><span class="harness-stub-clear">×</span></div>
+                </div>
+                <button type="button" class="settings-action committing" disabled><span>Save</span></button>
+              </div>
+              <p class="field-note row-note" data-note>Enter a different address to save.</p>
+            </section>
+          </main>
+          <main class="account-layout">
+            <p class="harness-caption">Before — note inside the row, Save drags below the field</p>
+            <section class="account-card card">
+              <div class="eyebrow">Email</div>
+              <div class="email-row">
+                <div class="email-content">
+                  <div class="harness-stub-field"><span>kuzanoleg@gmail.com</span><span class="harness-stub-clear">×</span></div>
+                  <span class="field-note" data-note>Enter a different address to save.</span>
+                </div>
+                <button type="button" class="settings-action committing" disabled><span>Save</span></button>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="last-provider">
+    <header>
+      <h2>Settings · Account — disconnecting your only sign-in method</h2>
+      <p class="harness-source">auth-settings.component.html:84</p>
+      <p class="harness-rule">Was a title attribute, which says nothing on touch. Now a visible line.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="last-provider" checked>
+        <code>isLastLinkedProvider("google")</code>
+      </label>
+    </header>
+    
+      <div class="scope-auth-settings harness-frame">
+        <main class="account-layout">
+        <section class="account-card card">
+          <div class="eyebrow">How you sign in</div>
+          <div class="method-list">
+            <div class="method-row">
+              <span class="method-icon">G</span>
+              <div class="method-copy">
+                <strong>Google</strong>
+                <span>kuzanoleg@gmail.com</span>
+                <span class="field-note" data-note>Your only sign-in method. Add another before disconnecting it.</span>
+              </div>
+              <button type="button" class="settings-action" data-blocked>Disconnect</button>
+            </div>
+            <div class="method-row">
+              <span class="method-icon">A</span>
+              <div class="method-copy"><strong>Apple</strong><span>Not connected</span></div>
+              <button type="button" class="settings-action">Connect</button>
+            </div>
+          </div>
+        </section>
+        </main>
+      </div>
+  </section>
+  <section class="harness-card" id="learner-lock">
+    <header>
+      <h2>Settings · Languages — a locked learner row</h2>
+      <p class="harness-source">lang-settings.component.html:82,172</p>
+      <p class="harness-rule">One line per row, whichever rule applies. A set-aside row keeps the same five slots as an active one, so the two align down the right edge.</p>
+      <label class="harness-toggle">
+      <code>row state</code>
+      <select data-card="learner-lock"><option value="only-active" selected>the only active language</option><option value="cooldown">set aside, switch on cooldown</option><option value="record">set aside, switch available</option><option value="free">nothing blocked</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-lang-settings harness-frame">
+        <div class="learning-card card">
+          <div class="learning-head"><div class="eyebrow">I'm Learning</div><span class="allowance-count">1 of 2 active</span></div>
+          <div class="learner-list">
+            <div class="learner-record" data-aside-row>
+              <div class="learner-row">
+                <button type="button" class="colour-trigger" style="background:#7A6BB8"></button>
+                <div class="language-copy">
+                  <strong class="language-name">French</strong>
+                  <span class="aside-tag" data-aside-tag hidden>Set aside</span>
+                </div>
+                <div class="learner-controls">
+                  <div class="level-select"><button type="button" class="level-trigger" data-level>B1</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-blocked data-on></span></span>
+                  <a class="row-action open-record" href="#learner-lock" data-open-record hidden>›</a>
+                  <span class="row-action empty-action" data-empty-action></span>
+                </div>
+              </div>
+              <p class="row-note" data-note>This is your only active language. Make another one active to turn it off.</p>
+            </div>
+            <div class="learner-record">
+              <div class="learner-row">
+                <button type="button" class="colour-trigger" style="background:#a08a3c"></button>
+                <div class="language-copy"><strong class="language-name">English</strong></div>
+                <div class="learner-controls">
+                  <div class="level-select"><button type="button" class="level-trigger">B2</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-on></span></span>
+                  <span class="row-action empty-action"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="discover-intent">
+    <header>
+      <h2>Discover — the Understand intent you cannot switch off</h2>
+      <p class="harness-source">discover.component.html:103</p>
+      <p class="harness-rule">Permanently checked and permanently greyed, so the panel says why it is the baseline.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="discover-intent" checked>
+        <code>show the line</code>
+      </label>
+    </header>
+    
+      <div class="scope-discover harness-frame">
+        <section class="keep-panel">
+          <p class="eyebrow">Keep it</p>
+          <h3>What do you want from this word?</h3>
+          <div class="intent-grid">
+            <label class="selected"><input type="checkbox" checked disabled><span><strong>Understand it</strong><small>Recognise it while reading</small></span></label>
+            <label><input type="checkbox"><span><strong>Say it too</strong><small>Recall the word from its meaning</small></span></label>
+            <label><input type="checkbox"><span><strong>Tell it apart</strong><small>Practise it against confusing words</small></span></label>
+          </div>
+          <p class="intent-note" data-note>Understanding is always kept. The other two are added on top of it.</p>
+        </section>
+      </div>
+  </section>
+</div>
+<script>
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+
+  /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
+  function paint(card, blocked, note) {
+    card.querySelectorAll('[data-blocked]').forEach(el => {
+      if ('disabled' in el) el.disabled = blocked;
+      el.classList.toggle('harness-off', blocked);
+    });
+    const line = card.querySelector('[data-note]');
+    if (!line) return;
+    if (note !== null) line.textContent = note;
+    line.hidden = !blocked || note === '';
+  }
+
+  document.querySelectorAll('.harness-toggle input[type=checkbox]').forEach(input => {
+    const card = document.getElementById(input.dataset.card);
+    const apply = () => {
+      // The satisfiable card reads the other way round: checked means the form is valid, so nothing is blocked.
+      const satisfiable = card.querySelector('[data-satisfiable]');
+      if (satisfiable) {
+        satisfiable.classList.toggle('incomplete-button', !input.checked);
+        paint(card, !input.checked, null);
+        return;
+      }
+      paint(card, input.checked, null);
+    };
+    input.addEventListener('change', apply);
+    apply();
+  });
+
+  document.querySelectorAll('.harness-toggle select').forEach(select => {
+    const card = document.getElementById(select.dataset.card);
+    const apply = () => {
+      const option = NOTES[select.dataset.card][select.value];
+      paint(card, option.blocked, option.note);
+      if (select.dataset.card === 'book-import') {
+        card.querySelector('[data-quota-card]').classList.toggle('exhausted', option.blocked);
+        card.querySelector('[data-quota-message]').textContent =
+          select.value === 'left' ? '2 of 3 imports left this month'
+          : select.value === 'none' ? '0 of 3 imports left this month'
+          : '0 of 0 imports left this month';
+        card.querySelector('[data-premium-cta]').hidden = select.value !== 'premium';
+      }
+      if (select.dataset.card === 'learner-lock') {
+        const setAside = select.value === 'cooldown' || select.value === 'record';
+        card.querySelector('[data-aside-row]').classList.toggle('aside', setAside);
+        card.querySelector('[data-aside-tag]').hidden = !setAside;
+        card.querySelector('[data-open-record]').hidden = !setAside;
+        card.querySelector('[data-empty-action]').hidden = setAside;
+        const level = card.querySelector('[data-level]');
+        level.classList.toggle('frozen', setAside);
+        level.disabled = setAside;
+        card.querySelector('[data-blocked].harness-stub-switch').toggleAttribute('data-on', !setAside);
+      }
+    };
+    select.addEventListener('change', apply);
+    apply();
+  });
+</script>
+</body>
+</html>

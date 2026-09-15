@@ -1,30 +1,126 @@
-import {Injectable} from "@angular/core";
+import {logger} from "../../shared/logger";
+import { Injectable, inject } from "@angular/core";
 import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
 import {AppConstants} from "../../app.constants";
-import {Book, BookMiniDetails, BookshelfView} from "./book.model";
-import {EMPTY, Observable} from "rxjs";
-import {catchError, tap} from 'rxjs/operators';
+import {
+  Book,
+  BookMiniDetails,
+  BookshelfView,
+  parseBook,
+  parseBookMiniDetails,
+  parseBooks,
+  parseBookshelfView,
+} from "./book.model";
+import {
+  BookImport,
+  BookImportMetadataUpdate,
+  BookImportQuota,
+  LibrarySuggestion,
+  parseBookImport,
+  parseBookImportQuota,
+  parseBookImports,
+  parseLibrarySuggestion,
+} from './book-import.model';
+import {
+  TranslationOrder,
+  TranslationRequestQuota,
+  parseTranslationOrders,
+  parseTranslationRequestQuota,
+} from './translation-order.model';
+import {Observable} from "rxjs";
+import {map, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReadService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   // --- Existing Methods (Keep As Is) ---
   getBooks(): Observable<Book[]> {
     const url = `${AppConstants.PUBLIC_BOOKS_URL}`;
-    return this.http.get<Book[]>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBooks));
+  }
+
+  getPublicBook(editionSlug: string): Observable<Book> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}`)
+      .pipe(map(value => parseBook(value)));
+  }
+
+  loadPublicBook(editionSlug: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/text`, {
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
+  }
+
+  getPublicParallelText(editionSlug: string, companionSlug: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/parallel-edition/${companionSlug}`, {
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
+  }
+
+  createBookImport(form: FormData): Observable<BookImport> {
+    return this.http.post<unknown>(AppConstants.BOOK_IMPORTS_URL, form, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  getBookImport(id: string): Observable<BookImport> {
+    return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  updateBookImportMetadata(id: string, metadata: BookImportMetadataUpdate): Observable<BookImport> {
+    return this.http.put<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/metadata`, metadata, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  getBookImports(): Observable<BookImport[]> {
+    return this.http.get<unknown>(AppConstants.BOOK_IMPORTS_URL, {withCredentials: true})
+      .pipe(map(parseBookImports));
+  }
+
+  getBookImportQuota(): Observable<BookImportQuota> {
+    return this.http.get<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/quota`, {withCredentials: true})
+      .pipe(map(parseBookImportQuota));
+  }
+
+  /** Replaces the file behind an import; the details stay, the allowance is not spent again. */
+  replaceBookImportFile(id: string, form: FormData): Observable<BookImport> {
+    return this.http.put<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/file`, form, {withCredentials: true})
+      .pipe(map(parseBookImport));
+  }
+
+  deleteBookImport(id: string): Observable<void> {
+    return this.http.delete<void>(`${AppConstants.BOOK_IMPORTS_URL}/${id}`, {withCredentials: true});
+  }
+
+  suggestForLibrary(id: string): Observable<LibrarySuggestion> {
+    return this.http.post<unknown>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/suggestion`, {}, {withCredentials: true})
+      .pipe(map(value => parseLibrarySuggestion(value, 'librarySuggestion')));
+  }
+
+  withdrawLibrarySuggestion(id: string): Observable<void> {
+    return this.http.delete<void>(`${AppConstants.BOOK_IMPORTS_URL}/${id}/suggestion`, {withCredentials: true});
+  }
+
+  loadPrivateBook(id: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.BOOK_IMPORTS_URL}/${id}/text`, {
+      withCredentials: true,
+      responseType: 'arraybuffer',
+      observe: 'response',
+    });
   }
 
   getBooksForLang(language: string, includeTranslations: boolean): Observable<BookshelfView> {
     const url = `${AppConstants.BOOKS_URL}/language/${language}`;
     const params = new HttpParams().set('includeTranslations', includeTranslations.toString());
-    return this.http.get<BookshelfView>(url, {params, withCredentials: true});
+    return this.http.get<unknown>(url, {params, withCredentials: true}).pipe(map(parseBookshelfView));
   }
 
-  getParallelText(id1: number, language: string): Observable<HttpResponse<ArrayBuffer>> {
+  getParallelText(id1: string, language: string): Observable<HttpResponse<ArrayBuffer>> {
     const url = `${AppConstants.BOOKS_URL}/${id1}/parallel/${language}`;
     return this.http.get(url, {
       withCredentials: true,
@@ -33,38 +129,54 @@ export class ReadService {
     });
   }
 
-  getBookById(bookId: number, language: string): Observable<Book> {
+  getBookById(bookId: string, language: string): Observable<Book> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}`;
-    return this.http.get<Book>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(value => parseBook(value)));
   }
 
-  getMiniBookDetailsById(bookId: number): Observable<BookMiniDetails> {
+  getMiniBookDetailsById(bookId: string): Observable<BookMiniDetails> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}`;
-    return this.http.get<BookMiniDetails>(url, {withCredentials: true});
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseBookMiniDetails));
   }
 
-  // TODO fix Observable<any> to a more specific type everywhere
-  orderTranslation(bookId: number, language: string): Observable<any> {
+  /** Every translation the caller has asked for, across all books. */
+  getTranslationOrders(): Observable<TranslationOrder[]> {
+    const url = `${AppConstants.BOOKS_URL}/orders`;
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseTranslationOrders));
+  }
+
+  getTranslationRequestQuota(): Observable<TranslationRequestQuota> {
+    const url = `${AppConstants.BOOKS_URL}/orders/quota`;
+    return this.http.get<unknown>(url, {withCredentials: true}).pipe(map(parseTranslationRequestQuota));
+  }
+
+  /** The fulfilment notice is shown until the reader opens it once. */
+  markTranslationOrderSeen(orderId: string): Observable<void> {
+    const url = `${AppConstants.BOOKS_URL}/orders/${orderId}/seen`;
+    return this.http.post<void>(url, {}, {withCredentials: true});
+  }
+
+  orderTranslation(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  cancelTranslationOrder(bookId: number, language: string): Observable<any> {
+  cancelTranslationOrder(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.delete(url, {withCredentials: true});
   }
 
-  favoriteBook(bookId: number, language: string): Observable<any> {
+  favoriteBook(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.post(url, {}, {withCredentials: true});
   }
 
-  unfavoriteBook(bookId: number, language: string): Observable<any> {
+  unfavoriteBook(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/favorite`;
     return this.http.delete(url, {withCredentials: true});
   }
 
-  loadBook(bookId: number): Observable<HttpResponse<ArrayBuffer>> {
+  loadBook(bookId: string): Observable<HttpResponse<ArrayBuffer>> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/text`;
     return this.http.get(url, {
       withCredentials: true,
@@ -74,14 +186,10 @@ export class ReadService {
   }
 
   // --- Progress Methods ---
-  deleteProgress(bookId: number): Observable<void> { // Return void for clarity
+  deleteProgress(bookId: string): Observable<void> { // Return void for clarity
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     return this.http.delete<void>(url, {withCredentials: true}).pipe(
-      tap(() => console.log(`ReadService: Deleted progress for ${bookId}`)),
-      catchError(err => {
-        console.error(`ReadService: Failed to delete progress for ${bookId}`, err);
-        return EMPTY;
-      })
+      tap(() => logger.debug(`ReadService: Deleted progress for ${bookId}`)),
     );
   }
 
@@ -89,17 +197,13 @@ export class ReadService {
    * Saves progress using a standard HTTP POST request with query parameters.
    * Use for regular saves and ngOnDestroy.
    */
-  saveProgress(bookId: number, percentage: number): Observable<void> {
+  saveProgress(bookId: string, percentage: number): Observable<void> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
     const params = new HttpParams().set('percentage', percentage.toString());
 
     return this.http.post<void>(url, null, {params, withCredentials: true}).pipe(
-      tap(() => console.log(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
-      catchError(err => {
-        console.error(`ReadService: Failed to save progress for ${bookId}`, err);
-        return EMPTY;
-      })
+      tap(() => logger.debug(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
     );
   }
 
@@ -107,9 +211,9 @@ export class ReadService {
    * Saves progress using the Beacon API.
    * Use for 'beforeunload' event. Returns true if beacon was queued, false otherwise.
    */
-  sendProgressBeacon(bookId: number, percentage: number): boolean {
+  sendProgressBeacon(bookId: string, percentage: number): boolean {
     if (!navigator.sendBeacon) {
-      console.warn('ReadService: Beacon API not supported.');
+      logger.warn('ReadService: Beacon API not supported.');
       return false;
     }
 
@@ -119,13 +223,13 @@ export class ReadService {
     try {
       const sent = navigator.sendBeacon(url);
       if (sent) {
-        console.log(`ReadService: Sent Beacon progress ${percentage}% for $/${bookId}`);
+        logger.debug(`ReadService: Sent Beacon progress ${percentage}% for $/${bookId}`);
       } else {
-        console.warn(`ReadService: Beacon API returned false for ${bookId}`);
+        logger.warn(`ReadService: Beacon API returned false for ${bookId}`);
       }
       return sent;
     } catch (e) {
-      console.error(`ReadService: Error sending beacon for ${bookId}`, e);
+      logger.error(`ReadService: Error sending beacon for ${bookId}`, e);
       return false;
     }
   }

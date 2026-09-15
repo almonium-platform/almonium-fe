@@ -1,0 +1,189 @@
+<ng-template #suggestSheet>
+  <div class="sheet">
+    @if (bookImport; as book) {
+      @if (!probablyCopyrighted || suggestAnyway) {
+        <h2 class="sheet__title" i18n><em>{{ book.title }}</em> for the library</h2>
+        <p class="sheet__copy" i18n>The library only carries books in the public domain. In most countries that means the author died more than 70 years ago; anything first published before 1930 is almost always safe. We check every suggestion before it is published.</p>
+        <div class="sheet__box">
+          <div class="sheet__box-row"><span>{{ suggestionDetails }}</span><button i18n type="button" class="sheet__link" (click)="editFromSheet()">Edit</button></div>
+          <span i18n class="sheet__box-note">These details go with the suggestion. Your private copy stays yours either way.</span>
+        </div>
+        <div class="sheet__actions">
+          <button type="button" class="sheet__primary" [disabled]="suggesting" (click)="confirmSuggestion()">{{ suggesting ? suggestingLabel : suggestLabel }}</button>
+          <button i18n type="button" class="sheet__quiet" (click)="closeSheet()">Not now</button>
+        </div>
+      } @else {
+        <h2 i18n class="sheet__title">This one is probably still under copyright</h2>
+        <p class="sheet__copy">{{ copyrightCopy }}</p>
+        <p i18n class="sheet__note">If the year is wrong, or the author released it under a free licence, edit the details and suggest it anyway.</p>
+        <div class="sheet__actions">
+          <button i18n type="button" class="sheet__primary sheet__primary--ink" (click)="closeSheet()">Keep it private</button>
+          <button i18n type="button" class="sheet__quiet" (click)="suggestAnyway = true">Suggest anyway</button>
+        </div>
+      }
+    }
+  </div>
+</ng-template>
+
+<app-confirm-modal
+  [isVisible]="deleteConfirmVisible"
+  [title]="deleteTitle"
+  [message]="deleteMessage"
+  [confirmText]="deleteConfirmText"
+  (closed)="deleteConfirmVisible = false"
+  (confirm)="confirmDelete()">
+</app-confirm-modal>
+
+<main class="import-page">
+  <input #reuploadInput type="file" class="visually-hidden" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="reupload($event)" tabindex="-1" aria-hidden="true">
+
+  @if (bookImport; as book) {
+    <div class="record">
+      <a i18n routerLink="/read" class="back-link">← Back to Read</a>
+
+      <article class="book-card">
+        <header class="book-head">
+          <span class="book-thumb" [class.book-thumb--ink]="unnamed"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.id" [coverUrl]="null"></app-book-cover></span>
+          <div class="book-head__copy">
+            <h1 class="book-title" [class.book-title--mono]="unnamed">{{ book.title }}</h1>
+            <p class="book-meta">{{ metaLine }}</p>
+            <div class="book-pills">
+              @if (book.wordCount > 0) { <span class="pill">{{ wordsLabel }}</span> }
+              <span i18n class="pill pill--ink">Imported by you · private</span>
+            </div>
+          </div>
+          @if (book.status === status.READY) {
+            <a i18n class="read-action" [routerLink]="['/reader/private', book.id]">Start reading</a>
+          }
+        </header>
+
+        @if (book.status === status.FAILED) {
+          <p class="status-line status-line--error" role="alert">{{ book.error || importFailedFallback }}</p>
+        } @else if (book.status !== status.READY) {
+          <div class="status-line" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            <span><strong i18n>{book.status, select, QUEUED {Queued} other {Processing}}</strong> <ng-container i18n>· you can close this page; we will tell you when it is ready.</ng-container></span>
+          </div>
+        }
+
+        <div class="owner-row">
+          <button i18n type="button" class="owner-action" (click)="startEditingDetails()">Edit details</button>
+          <button type="button" class="owner-action" [disabled]="reuploading || book.status === status.QUEUED || book.status === status.PROCESSING" (click)="reuploadInput.click()">{{ reuploading ? reuploadingLabel : reuploadLabel }}</button>
+          <button i18n type="button" class="owner-action owner-action--quiet" [disabled]="deleting" (click)="deleteConfirmVisible = true">Delete</button>
+        </div>
+        @if (book.status === status.QUEUED || book.status === status.PROCESSING) { <p i18n class="owner-note">Re-upload opens once this file has been read.</p> }
+
+        @if (editingDetails) {
+          <section class="details-card" aria-labelledby="details-heading">
+            @switch (book.metadataStatus) {
+              @case (metadataStatus.PROPOSED) {
+                <h2 i18n id="details-heading">Does this look right?</h2>
+                <p i18n class="details-copy">Read from the file and completed by AI. Correct anything that is off, then confirm.</p>
+              }
+              @case (metadataStatus.PENDING) {
+                <h2 i18n id="details-heading">Add the book's details</h2>
+                <p i18n class="details-copy">We could not read these from the file, so please fill them in.</p>
+              }
+              @default {
+                <h2 i18n id="details-heading">Edit details</h2>
+              }
+            }
+            <form [formGroup]="detailsForm" (ngSubmit)="saveDetails()">
+              <div class="details-grid">
+                <label><span i18n>Title</span> <span class="provenance">{{ provenanceOf('title') }}</span><input formControlName="title" maxlength="500"></label>
+                <label><span i18n>Author</span> <span class="provenance">{{ provenanceOf('author') }}</span><input formControlName="author" maxlength="300"></label>
+              </div>
+              <label><span i18n>Description</span> <span class="provenance">{{ provenanceOf('description') || optionalLabel }}</span><textarea formControlName="description" rows="4"></textarea></label>
+              <div class="details-grid">
+                <label><span i18n>Language</span> <span class="provenance">{{ provenanceOf('language') }}</span><select formControlName="language"><option i18n value="" disabled>Choose a language</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+                <label><span i18n>First published</span> <span class="provenance">{{ provenanceOf('publication_year') || optionalLabel }}</span><input type="number" min="1" max="9999" formControlName="publicationYear"></label>
+              </div>
+              @if (detailsError) { <p class="error">{{ detailsError }}</p> }
+              <div class="details-actions">
+                <button i18n class="primary-action" type="submit" [disabled]="savingDetails">{savingDetails, select, true {Saving…} other {Confirm details}}</button>
+                @if (book.metadataStatus === metadataStatus.CONFIRMED) {
+                  <button i18n class="secondary-action" type="button" (click)="cancelEditingDetails()">Cancel</button>
+                }
+              </div>
+            </form>
+          </section>
+        } @else if (book.metadataStatus === metadataStatus.PENDING && book.status !== status.READY) {
+          <p i18n class="owner-note">Title, author, language and a short description are being read from the book itself. You will be able to check them here.</p>
+        } @else if (book.description) {
+          <p class="book-description">{{ book.description }}</p>
+        }
+
+        <span class="hairline" aria-hidden="true"></span>
+
+        <section class="parallel" aria-labelledby="parallel-heading">
+          <h2 i18n id="parallel-heading" class="eyebrow">Parallel text</h2>
+          @switch (book.librarySuggestion?.status) {
+            @case (suggestionStatus.SUGGESTED) {
+              <div class="settled-row">
+                <span i18n>Suggested for the library · we're checking it</span>
+                <button i18n type="button" class="owner-action owner-action--quiet" [disabled]="withdrawing" (click)="withdrawSuggestion()">Withdraw</button>
+              </div>
+            }
+            @case (suggestionStatus.INGESTING) {
+              <div class="settled-row">
+                <span i18n>Accepted for the library · we're preparing it</span>
+              </div>
+            }
+            @case (suggestionStatus.PUBLISHED) {
+              <div class="settled-row">
+                <span class="settled-row__copy">
+                  <span i18n><em>{{ book.librarySuggestion?.libraryTitle || book.title }}</em> is now in the library</span>
+                  <small>{{ libraryCopyNote }}</small>
+                </span>
+                @if (book.librarySuggestion?.libraryEditionSlug; as slug) {
+                  <a i18n class="read-action read-action--small" [routerLink]="['/books', slug]">Open the library copy</a>
+                }
+              </div>
+            }
+            @default {
+              <p i18n class="parallel__copy">Not offered for imports. Almonium only aligns books it can publish. If this one is in the public domain, suggest it for the library and it becomes eligible.</p>
+              <div class="parallel__actions">
+                <button i18n type="button" class="suggest-action" [disabled]="!canSuggest" (click)="openSuggestSheet()">Suggest for the library</button>
+              </div>
+              @if (!canSuggest) { <p class="owner-note">{{ suggestBlockedNote }}</p> }
+            }
+          }
+        </section>
+      </article>
+    </div>
+  } @else {
+    <section class="import-card">
+      <app-paywall></app-paywall>
+      <div class="import-intro">
+        <a i18n routerLink="/read" class="back-link">← Back to Read</a>
+        <p i18n class="eyebrow">Your private library</p>
+        <h1 i18n>Import a book you want to keep close.</h1>
+        <p i18n>The source and normalized text stay private to your account. EPUB and TEI P5 XML are supported. Title, author, and a description are read from the book itself; you confirm them once it is in.</p>
+      </div>
+
+      <div class="quota-card" [class.exhausted]="quota && !canImport">
+        <div>
+          <span i18n class="quota-label">Import allowance</span>
+          <strong>{{ quotaMessage }}</strong>
+          @if (quota) { <span i18n>Resets {{ quota.periodEndsAt | date:'MMM d, y' }}</span> }
+        </div>
+        @if (quota && !canImport && quota.limit === 0) {
+          <button i18n type="button" class="secondary-action" (click)="openPaywall()">See Premium</button>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label i18n class="file-input">Book file<input type="file" accept=".epub,.xml,application/epub+zip,application/xml,text/xml" (change)="selectFile($event)" required><span>{{ fileLabel }}</span></label>
+        <label><span i18n>Language</span> <span i18n class="optional">Optional — detected from the file</span><select formControlName="language"><option i18n value="">Detect from the file</option>@for (language of languages; track language.code) { <option [value]="language.code">{{ language.name }}</option> }</select></label>
+        @if (error) { <p class="error">{{ error }}</p> }
+        <button i18n class="primary-action" type="submit" [disabled]="submitting || quotaLoading || !canImport || !selectedFile">{submitting, select, true {Uploading…} other {Import book}}</button>
+        @if (!quotaLoading && !canImport) {
+          <p class="blocked-note">{{ importBlockedNote }}</p>
+        } @else if (!selectedFile) {
+          <p i18n class="blocked-note">Choose a file to import.</p>
+        }
+      </form>
+    </section>
+  }
+  @if (error && bookImport) { <p class="error error--floating" role="alert">{{ error }}</p> }
+</main>

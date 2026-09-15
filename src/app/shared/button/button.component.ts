@@ -1,9 +1,10 @@
-import {Component, EventEmitter, Input, OnInit, Output, TemplateRef} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, inject } from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
-import {TuiHintDirection, TuiHintDirective, TuiLoader} from "@taiga-ui/core";
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiLoader} from "@taiga-ui/core/components";
+import {TuiHintDirection, TuiHintDirective} from "@taiga-ui/core/portals";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 
 @Component({
   selector: 'app-button',
@@ -11,6 +12,7 @@ import {TuiSkeleton} from "@taiga-ui/kit";
     <button
       (click)="onClick()"
       [disabled]="isDisabled"
+      [attr.aria-disabled]="!satisfiable || null"
       [type]="type"
       [tuiSkeleton]="!!skeleton"
       class="relative flex items-center justify-center w-full base"
@@ -58,13 +60,16 @@ import {TuiSkeleton} from "@taiga-ui/kit";
   ],
 })
 export class ButtonComponent implements OnInit {
+  private router = inject(Router);
+
   private readonly destroy$ = new Subject<void>();
   @Input() loading$?: Observable<boolean>;
   @Input() label!: string;
   @Input() hoverLabel?: string;
-  @Input() disabled: boolean = false;
-  @Input() appearance: 'bw' | 'gradient' | 'underline' | 'text' = 'gradient';
-  @Input() customClass: string = '';
+  @Input() disabled = false;
+  @Input() satisfiable = true;
+  @Input() appearance: 'bw' | 'gradient' | 'solid' | 'underline' | 'text' = 'solid';
+  @Input() customClass = '';
   @Input() fontSize?: number;
   @Input() fontWeight?: number;
   @Input() color?: string;
@@ -82,12 +87,9 @@ export class ButtonComponent implements OnInit {
   @Input() hintAppearance = 'onDark';
   @Input() hintDirection: TuiHintDirection = 'top';
 
-  private loadingState: boolean = false;
+  private loadingState = false;
   protected isHovered = false;
   @Input() skeleton?: boolean;
-
-  constructor(private router: Router) {
-  }
 
   ngOnInit() {
     if (this.loading$) {
@@ -101,13 +103,16 @@ export class ButtonComponent implements OnInit {
 
   get class() {
     if (this.appearance === 'bw') {
-      return 'black-n-white-button';
+      return 'secondary-outline-button';
     }
     if (this.appearance === 'underline') {
       return 'underline-button';
     }
     if (this.appearance === 'gradient') {
       return 'gradient-button';
+    }
+    if (this.appearance === 'solid') {
+      return this.satisfiable ? 'solid-button' : 'solid-button incomplete-button';
     }
     return '';
   }
@@ -118,7 +123,7 @@ export class ButtonComponent implements OnInit {
 
   onClick() {
     if (this.redirectUrl) {
-      this.router.navigate([this.redirectUrl]).then();
+      void this.router.navigate([this.redirectUrl]).then();
       return;
     }
     this.clickFunction.emit();

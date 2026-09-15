@@ -10,38 +10,59 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   template: `
     @if (isVisible) {
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.75)]"
+        (pointerdown)="onBackdropPointerDown($event)"
       >
         <div
           [class.fade-slide-in]="isVisible"
           [class.fade-slide-out]="fadeOutAnimating"
-          class="bg-white rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
+          class="confirm-modal-surface rounded-3xl w-full max-w-xs sm:max-w-sm p-7 relative"
         >
-          <app-dismiss-button (close)="onClose()"/>
+          <app-dismiss-button (closed)="onClose()"/>
           <div class="flex items-center mb-4 flex-row">
-            <span
-              class="flex items-center justify-center" style="margin-right: 6px">
-              <i
-                class="fas fa-circle-exclamation text-xl text-red-500"
-                style="margin-top: 1px"
-              ></i>
-            </span>
+            @if (tone === 'danger') {
+              <span
+                class="flex items-center justify-center" style="margin-right: 6px">
+                <i
+                  class="fas fa-circle-exclamation text-xl text-red-500"
+                  style="margin-top: 1px"
+                ></i>
+              </span>
+            }
             <h2 class="text-xl font-bold ml-0.5">{{ title }}</h2>
           </div>
-          <p class="text-gray-700 mb-6 mt-6 text-sm">{{ message }}</p>
+          <p class="confirm-modal-copy mb-6 mt-6 text-sm">{{ message }}</p>
+          @if (note) {
+            <p class="confirm-modal-copy mb-6 -mt-3 text-sm">{{ note }}</p>
+          }
+          @if (confirmationWord) {
+            <label i18n class="confirm-modal-copy block text-sm mb-5">
+              Type <strong>{{ confirmationWord }}</strong> to confirm
+              <input
+                type="text"
+                class="confirmation-input"
+                [value]="confirmationValue"
+                (input)="confirmationValue = $any($event.target).value"
+                [attr.aria-label]="confirmationInputLabel"
+                autocomplete="off"
+              />
+            </label>
+          }
           <div class="flex justify-between">
             <button
               (click)="onClose()"
-              class="text-gray-950 underline font-bold hover:underline"
+              class="confirm-modal-cancel font-bold"
+              [class.danger]="tone === 'danger'"
             >
-              Cancel
+              {{ cancelText }}
             </button>
             <button
               (click)="onConfirm()"
               [disabled]="isButtonDisabled"
-              class="bg-red-500 text-white px-4 py-2 font-bold rounded-3xl hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              class="confirm-modal-confirm text-white px-4 py-2 font-bold rounded-3xl disabled:bg-gray-400 disabled:cursor-not-allowed"
+              [class.danger]="tone === 'danger'"
             >
-              {{ isButtonDisabled ? 'Proceed in ' + countdown : confirmText }}
+              {{ isButtonDisabled ? proceedInLabel : confirmText }}
             </button>
           </div>
         </div>
@@ -50,28 +71,44 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   `
 })
 export class ConfirmModalComponent implements OnChanges, OnDestroy {
-  @Input() isVisible: boolean = false;
-  @Input() title: string = '';
-  @Input() message: string = '';
-  @Input() confirmText: string = '';
-  @Input() useCountdown: boolean = false;
+  @Input() isVisible = false;
+  @Input() title = '';
+  @Input() message = '';
+  /**
+   * A second line in the same body grey, for something the reader deserves to know before they commit. It stays
+   * inside the step: information a member is owed is not a reason to raise a second modal at them.
+   */
+  @Input() note = '';
+  @Input() confirmText = '';
+  /** The way out. It is worth naming what staying means when "Cancel" would sit next to "Cancel subscription". */
+  @Input() cancelText = $localize`Cancel`;
+  @Input() useCountdown = false;
+  @Input() confirmationWord = '';
+  /**
+   * Danger paints the alert icon and the red commit button. A reversible action takes the
+   * plum one and no icon: the modal asks a question, it does not warn.
+   */
+  @Input() tone: 'danger' | 'default' = 'danger';
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<void>();
 
-  fadeOutAnimating: boolean = false;
-  countdown: number = 5;
-  isButtonDisabled: boolean = true;
-  intervalId: any;
+  fadeOutAnimating = false;
+  countdown = 5;
+  countdownDisabled = true;
+  confirmationValue = '';
+  intervalId?: ReturnType<typeof setInterval>;
+  closeTimeout?: ReturnType<typeof setTimeout>;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['isVisible'] && changes['isVisible'].currentValue === true) {
+    if (changes['isVisible']?.currentValue === true) {
+      this.confirmationValue = '';
       if (this.useCountdown) {
         this.resetCountdown();
       } else {
-        this.isButtonDisabled = false;
+        this.countdownDisabled = false;
       }
-    } else if (changes['isVisible'] && changes['isVisible'].currentValue === false) {
+    } else if (changes['isVisible']?.currentValue === false) {
       this.clearCountdown();
     }
   }
@@ -79,13 +116,13 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   resetCountdown() {
     this.clearCountdown();
     this.countdown = 5;
-    this.isButtonDisabled = true;
+    this.countdownDisabled = true;
 
     this.intervalId = setInterval(() => {
       this.countdown--;
 
       if (this.countdown === 0) {
-        this.isButtonDisabled = false;
+        this.countdownDisabled = false;
         this.clearCountdown();
       }
     }, 1000);
@@ -94,15 +131,35 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
   clearCountdown() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
-      this.intervalId = null;
+      this.intervalId = undefined;
+    }
+  }
+
+  get confirmationInputLabel(): string {
+    return $localize`Type ${this.confirmationWord}:word: to confirm`;
+  }
+
+  get proceedInLabel(): string {
+    return $localize`Proceed in ${this.countdown}:seconds:`;
+  }
+
+  get isButtonDisabled(): boolean {
+    return this.countdownDisabled
+      || (!!this.confirmationWord && this.confirmationValue !== this.confirmationWord);
+  }
+
+  onBackdropPointerDown(event: PointerEvent) {
+    if (event.target === event.currentTarget) {
+      this.onClose();
     }
   }
 
   onClose() {
     this.clearCountdown();
     this.fadeOutAnimating = true;
-    setTimeout(() => {
-      this.close.emit();
+    clearTimeout(this.closeTimeout);
+    this.closeTimeout = setTimeout(() => {
+      this.closed.emit();
       this.fadeOutAnimating = false;
     }, 200); // Match animation duration in milliseconds
   }
@@ -114,10 +171,11 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.clearCountdown();
+    clearTimeout(this.closeTimeout);
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.isVisible) {
       this.onClose();
     }

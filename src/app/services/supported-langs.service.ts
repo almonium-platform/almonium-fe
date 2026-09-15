@@ -1,6 +1,7 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
+import {logger} from "../shared/logger";
+import { Injectable, inject } from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {map, tap} from 'rxjs/operators';
 import {LocalStorageService} from './local-storage.service';
 import {Language} from '../models/language.model';
 import {LanguageNameService} from "./language-name.service";
@@ -10,14 +11,14 @@ import {StaticInfoService} from "./static-info.service"; // Assuming a Language 
   providedIn: 'root',
 })
 export class SupportedLanguagesService {
+  private staticInfoService = inject(StaticInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private languageNameService = inject(LanguageNameService);
+
   private supportedLanguagesSubject = new BehaviorSubject<Language[] | null>(null);
   supportedLanguages$ = this.supportedLanguagesSubject.asObservable();
 
-  constructor(
-    private staticInfoService: StaticInfoService,
-    private localStorageService: LocalStorageService,
-    private languageNameService: LanguageNameService
-  ) {
+  constructor() {
     this.loadSupportedLanguages();
   }
 
@@ -28,11 +29,18 @@ export class SupportedLanguagesService {
     const cachedLanguages = this.localStorageService.getSupportedLanguages();
 
     if (cachedLanguages) {
-      // If we have cached data, use it
-      this.supportedLanguagesSubject.next(cachedLanguages);
+      // Refresh names so cached data also gets current display normalization.
+      const normalizedLanguages = cachedLanguages.map(language => ({
+        ...language,
+        name: this.languageNameService.getLanguageName(language.code),
+      }));
+      this.supportedLanguagesSubject.next(normalizedLanguages);
+      this.localStorageService.saveSupportedLanguages(normalizedLanguages);
     } else {
       // If no cached data, fetch from server
-      this.getAllSupportedLanguages().subscribe();
+      this.getAllSupportedLanguages().subscribe({
+        error: error => logger.error('Error fetching supported languages:', error),
+      });
     }
   }
 
@@ -58,10 +66,6 @@ export class SupportedLanguagesService {
         this.supportedLanguagesSubject.next(languages);
         this.cacheSupportedLanguages(languages);
       }),
-      catchError((error) => {
-        console.error('Error fetching supported languages:', error);
-        return of([]); // Return an empty array in case of error
-      })
     );
   }
 

@@ -8,6 +8,7 @@ import {
   OnInit,
   SimpleChanges,
   TemplateRef,
+  inject,
 } from '@angular/core';
 import {Subscription} from 'rxjs';
 import {
@@ -40,6 +41,9 @@ import {TranslateModule} from "@ngx-translate/core";
 })
 export class MessageActionsBoxComponent
   implements OnInit, OnChanges, OnDestroy, AfterViewInit {
+  public readonly customTemplatesService = inject(CustomTemplatesService);
+  private messageActionsService = inject(MessageActionsService);
+  private cdRef = inject(ChangeDetectorRef);
   /**
    * Indicates if the message actions are belonging to a message that was sent by the current user or not.
    */
@@ -69,17 +73,9 @@ export class MessageActionsBoxComponent
   private readonly messageActionItems: (
     | MessageActionItem
     | MessageReactionActionItem
-    )[];
+    )[] = this.messageActionsService.defaultActions;
   private subscriptions: Subscription[] = [];
   private isViewInited = false;
-
-  constructor(
-    public readonly customTemplatesService: CustomTemplatesService,
-    private messageActionsService: MessageActionsService,
-    private cdRef: ChangeDetectorRef
-  ) {
-    this.messageActionItems = this.messageActionsService.defaultActions;
-  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -132,7 +128,7 @@ export class MessageActionsBoxComponent
   getReactionSelectorTemplateContext(): MessageReactionsSelectorContext {
     return {
       messageId: this.message?.id,
-      ownReactions: this.message?.own_reactions || [],
+      ownReactions: this.message?.own_reactions ?? [],
     };
   }
 
@@ -184,9 +180,32 @@ export class MessageActionsBoxComponent
       this.visibleMessageActionItems = [
         ...this.messageActionItems,
         ...this.customActions,
-      ].filter((item) =>
-        item.isVisible(this.enabledActions, this.isMine, this.message!)
-      );
+      ]
+        .filter((item) =>
+          item.isVisible(this.enabledActions, this.isMine, this.message!)
+        )
+        .sort(
+          (a, b) =>
+            MessageActionsBoxComponent.actionRank(a.actionName) -
+            MessageActionsBoxComponent.actionRank(b.actionName)
+        );
     }
+  }
+
+  /**
+   * The reactions strip sits above the items, then the four verbs the menu is for. Anything the
+   * SDK adds beyond them keeps its own relative order underneath.
+   */
+  private static readonly ACTION_ORDER = [
+    'react',
+    'quote',
+    'save-to-saved-messages',
+    'copy-message-text',
+    'mark-unread',
+  ];
+
+  private static actionRank(actionName: string): number {
+    const rank = MessageActionsBoxComponent.ACTION_ORDER.indexOf(actionName);
+    return rank === -1 ? MessageActionsBoxComponent.ACTION_ORDER.length : rank;
   }
 }

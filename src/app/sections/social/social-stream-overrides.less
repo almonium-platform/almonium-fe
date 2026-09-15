@@ -1,0 +1,753 @@
+// Overrides for markup this component does not own: Stream renders it, so every
+// rule here needs ::ng-deep to escape view encapsulation and every selector is
+// the vendor's to change. Kept apart from the component's own styles so an SDK
+// upgrade has one file to re-check.
+
+// The reaction row's two measurements, shared by the row itself and by the avatar offset that
+// cancels it.
+@chat-reaction-chip-height: 1.5rem;
+@chat-reaction-row-gap: .25rem;
+
+// The reading measure a published post is set to - 640px, the design's column inside its 880px pane.
+@chat-reading-column: 40rem;
+
+// for tui-badge-notification red dot
+::ng-deep .t-badge_top {
+  top: 2px !important;
+  right: 2px !important;
+}
+
+::ng-deep .str-chat__message-textarea:placeholder-shown {
+  min-height: 1.3em
+}
+
+::ng-deep .str-chat__icon {
+  color: var(--chat-accent-color);
+}
+
+// my messages color
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
+  background-color: var(--chat-own-bubble-color);
+  color: var(--chat-own-ink);
+}
+
+::ng-deep .str-chat__reaction-selector {
+  .str-chat__message-reactions-options {
+  @include utils . component-layer-overrides('message-reactions-options');
+
+    .str-chat__message-reactions-option {
+    @include utils . component-layer-overrides('message-reactions-option');
+
+      &:hover {
+        background-color: var(--chat-lite);
+      }
+
+      &.str-chat__message-reactions-option-selected {
+        background-color: var(--chat-bg-color);
+      }
+    }
+  }
+}
+
+// three dot on message action
+::ng-deep .str-chat__message-action-icon {
+  .str-chat__icon {
+    color: var(--chat-accent-color) !important;
+  }
+}
+
+// read icon on my messages
+::ng-deep .str-chat__message.str-chat__message--me {
+  .str-chat__icon {
+    color: var(--chat-own-ink);
+  }
+}
+
+// text of interlocutor's messages
+::ng-deep .str-chat__message-text-value {
+  color: var(--reader-text-color);
+  padding: 0.1rem;
+}
+
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-text-value {
+  color: var(--chat-own-ink);
+}
+
+// interlocutor's messages color
+::ng-deep .str-chat__message .str-chat__message-bubble {
+  background-color: var(--chat-incoming-bubble-color);
+  border: 1px solid var(--hairline-color);
+}
+
+// main chat background
+::ng-deep .str-chat__list {
+  background-color: var(--chat-bg-color);
+}
+
+// input field color
+::ng-deep .str-chat__message-input {
+  background-color: var(--card-color);
+}
+
+// input field text color
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container .str-chat__message-textarea {
+  color: var(--reader-text-color);
+}
+
+// remove border from input field
+::ng-deep .str-chat__message-input .str-chat__message-textarea-container {
+  border: none;
+}
+
+// default, right chat window header
+::ng-deep .str-chat__channel-header {
+  background-color: var(--card-color);
+  color: var(--reader-text-color);
+  gap: 0;
+
+  .str-chat__channel-header-end {
+    row-gap: 0;
+
+    .str-chat__channel-header-title {
+      line-height: 1.5;
+      font-weight: 550;
+    }
+  }
+
+  stream-avatar-placeholder {
+    order: 0;
+    margin-right: 1rem;
+  }
+
+  .back-to-channels {
+    order: -1;
+  }
+}
+
+::ng-deep .str-chat__channel-preview-messenger--time {
+  min-width: fit-content;
+}
+
+/*
+ * The preview line is the quieter half of the row. Stream tints it, but its rule is nested
+ * under the first row while the template renders the line in the second, so it never lands
+ * and the line inherits full-strength ink - loudest on dark, where that is near-white.
+ */
+::ng-deep .str-chat__channel-preview-end-second-row .str-chat__channel-preview-messenger--last-message {
+  color: var(--subhead-color);
+}
+
+::ng-deep .str-chat__channel-preview-messenger.str-chat__channel-preview {
+  padding-right: .6rem;
+}
+
+::ng-deep .str-chat__channel-preview {
+  &--active,
+  &-messenger--active {
+    // selected chat preview
+    background-color: var(--chat-selected-color);
+    color: var(--text-color);
+
+    .muted-icon {
+      color: var(--text-color);
+    }
+
+    // Ensure hover does not affect active state
+    &:hover {
+      background-color: var(--chat-selected-color) !important;
+    }
+
+    .str-chat__icon {
+      color: var(--text-color);
+    }
+
+    .str-chat__channel-preview-messenger--time {
+      color: var(--text-color);
+    }
+
+    .online-indicator-buffer {
+      background-color: var(--chat-selected-color) !important;
+    }
+
+    .str-chat__avatar--online-indicator {
+      background-color: var(--text-color) !important;
+    }
+  }
+
+  &:hover {
+    background-color: var(--gray-bg);
+
+    .online-indicator-buffer {
+      background-color: var(--gray-bg);
+    }
+  }
+}
+
+// message reactions container
+::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
+  background-color: var(--card-color);
+}
+
+/*
+ * Reactions hang off the foot of the bubble, not its head. Stream's inner grid stacks the
+ * reaction row above the message; every chat app the reader already uses puts it below. The
+ * areas are the vendor's - only the row order changes - so the options column stays on the
+ * side each direction puts it. Same specificity as the rules replaced, so this file has to
+ * keep loading after the SDK's stylesheet.
+ */
+::ng-deep .str-chat__message.str-chat__message--other .str-chat__message-inner {
+  grid-template-areas: 'message-bubble options' 'reactions reactions';
+}
+
+::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-inner {
+  grid-template-areas: 'options message-bubble' 'reactions reactions';
+}
+
+/*
+ * The row is given a definite height so the disc below can be lifted by exactly it: left to the
+ * emoji's own metrics the chip measures a fraction of a pixel nobody can name.
+ */
+::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions {
+  margin-block: @chat-reaction-row-gap 0;
+
+  .str-chat__message-reaction {
+    height: @chat-reaction-chip-height;
+    padding-block: 0;
+  }
+}
+
+/*
+ * Stream sits the sender's disc at the bottom of the message, which the reaction row has just
+ * made taller - leaving it stranded beside the chips. It belongs at the bubble's corner, one
+ * reaction row up.
+ */
+::ng-deep .str-chat__message--with-reactions .str-chat__message-sender-avatar {
+  transform: translateY(-(@chat-reaction-chip-height + @chat-reaction-row-gap));
+}
+
+::ng-deep .str-chat__message .str-chat__message-metadata,
+::ng-deep .str-chat__message .str-chat__custom-message-metadata {
+  color: var(--metadata-color);
+}
+
+// in chat window, separator lines for timeline
+::ng-deep .str-chat__date-separator {
+  color: var(--metadata-color);
+}
+
+::ng-deep .str-chat__date-separator-line {
+  background-color: var(--hairline-color);
+}
+
+// You have no channels currently, No chats here yet...
+::ng-deep .str-chat__channel-list-empty {
+  color: var(--chat-accent-color) !important;
+}
+
+::ng-deep .str-chat__empty-channel-text {
+  color: var(--text-color) !important;
+  font-family: var(--font-family-reading);
+  font-size: 0;
+  margin: 0;
+
+  &::before {
+    content: 'No chat open';
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-bottom: .5rem;
+  }
+
+  &::after {
+    color: var(--metadata-color);
+    content: 'Pick someone on the left, or write to yourself in Saved Messages.';
+    display: block;
+    font-family: var(--font-family-ui);
+    font-size: .8125rem;
+    font-weight: 400;
+    line-height: 1.55;
+    margin-inline: auto;
+    max-width: 32ch;
+  }
+}
+
+::ng-deep .str-chat__empty-channel {
+  align-items: center;
+  background: var(--card-color);
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  justify-content: center;
+  padding: 2.5rem 1.75rem;
+  text-align: center;
+
+  stream-icon {
+    background: var(--chat-selected-color) url('/assets/img/almo/canon-256.webp') center / 2.6rem no-repeat;
+    border-radius: 50%;
+    display: block;
+    flex: none;
+    height: 4.75rem;
+    width: 4.75rem;
+
+    // Stream renders the default bubble as a 136px icon-font glyph, not an SVG
+    .str-chat__icon {
+      display: none;
+    }
+  }
+}
+
+// You can't send messages in this channel
+::ng-deep .str-chat__message-input .str-chat__message-input-not-allowed {
+  color: var(--metadata-color);
+}
+
+// barely visible grey separator on the right side of the channel list
+::ng-deep .str-chat-channel-list {
+  border: none;
+}
+
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
+  background: var(--chat-unread-fill);
+}
+
+// unread messages indicator
+::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
+  padding: 0 6px;
+  color: var(--chat-unread-ink);
+  font-weight: 550;
+}
+
+// chat window, unread messages notification
+::ng-deep .str-chat__unread-messages-notification button {
+  color: var(--on-brand-color);
+  background-color: var(--chat-accent-color);
+
+  .str-chat__icon {
+    color: var(--on-brand-color);
+  }
+}
+
+// unread message separator in chat window
+::ng-deep .str-chat__unread-messages-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--dark-raspberry);
+  position: relative;
+  margin: 1rem 0;
+  background-color: transparent;
+}
+
+::ng-deep .str-chat__unread-messages-separator::before,
+::ng-deep .str-chat__unread-messages-separator::after {
+  content: "";
+  flex: none;
+  width: 38%;
+  height: var(--str-chat__spacing-px);
+  background-color: var(--hairline-color);
+}
+
+::ng-deep .str-chat__unread-messages-separator::before {
+  margin-right: 1rem;
+}
+
+::ng-deep .str-chat__unread-messages-separator::after {
+  margin-left: 1rem;
+}
+
+::ng-deep .str-chat__message-sender-name,
+::ng-deep .str-chat__message-simple-name {
+  display: none;
+}
+
+/*
+ * ---- 02: the bubble owns the time ----
+ *
+ * Stream renders the timestamp in a metadata row underneath the bubble, spelled "Today at 2:09 AM"
+ * - a date the day divider directly above has already given, and a shape the mock does not draw.
+ * The row goes, and the clock plus its read receipt ride inside the pill instead. Stream keeps that
+ * stamp outside the bubble element, so it is placed into the bubble's own grid cell and pinned to
+ * the corner, with an inline spacer at the end of the text reserving the room it needs.
+ */
+::ng-deep .chat-window:not(.broadcast) .str-chat__message-metadata {
+  display: none;
+}
+
+::ng-deep .str-chat__message-inner .message-stamp {
+  align-items: center;
+  align-self: end;
+  color: var(--metadata-color);
+  display: flex;
+  font-size: .65625rem;
+  // Keeps a column of times from jittering as their digits change. The reserve below is still
+  // sized to the widest clock, because a one-digit hour is one character shorter whatever the font.
+  font-variant-numeric: tabular-nums;
+  gap: .25rem;
+  grid-area: message-bubble;
+  justify-self: end;
+  line-height: 1;
+  padding: 0 .8125rem .4375rem 0;
+  pointer-events: none;
+  // Stream emits the bubble last inside the inner grid, so sharing its cell paints the stamp
+  // underneath an opaque background. Lift it out of the source order.
+  position: relative;
+  z-index: 1;
+
+  &.mine {
+    color: color-mix(in srgb, var(--chat-own-ink) 66%, transparent);
+  }
+
+  .message-stamp-receipt {
+    display: block;
+  }
+}
+
+/*
+ * The spacer keeps the last line of text clear of the stamp, however the text wraps. It belongs on
+ * the paragraph, not on the container around it: after a block element an inline-block opens a line
+ * of its own, which is blank space under the sentence rather than room beside it.
+ */
+::ng-deep .str-chat__message-text-value::after {
+  content: '';
+  display: inline-block;
+  width: 4.25rem;
+}
+
+::ng-deep .str-chat__message--me .str-chat__message-text-value::after {
+  width: 5.3125rem;
+}
+
+::ng-deep .chat-window.broadcast {
+  .message-stamp {
+    display: none;
+  }
+
+  .str-chat__message-text-value::after {
+    content: none;
+  }
+}
+
+/* The pill itself, to the mock's measurements. */
+::ng-deep .str-chat__message .str-chat__message-bubble {
+  border-radius: 1rem;
+
+  .str-chat__message-text {
+    font-size: .875rem;
+    line-height: 1.5;
+    padding: .5625rem .8125rem .4375rem;
+  }
+}
+
+/* Consecutive messages in a run indent to where the one avatar sits, and square the joined corner. */
+::ng-deep .str-chat__li--middle,
+::ng-deep .str-chat__li--bottom {
+  .str-chat__message--other .str-chat__message-bubble {
+    border-start-start-radius: .25rem;
+  }
+
+  .str-chat__message--me .str-chat__message-bubble {
+    border-start-end-radius: .25rem;
+  }
+}
+
+::ng-deep .str-chat__li--top,
+::ng-deep .str-chat__li--single {
+  .str-chat__message--other .str-chat__message-bubble {
+    border-end-start-radius: .25rem;
+  }
+
+  .str-chat__message--me .str-chat__message-bubble {
+    border-end-end-radius: .25rem;
+  }
+}
+
+/* 01: the chat row's avatar, and the 30px disc a run indents past. */
+::ng-deep .str-chat__avatar--channel-preview,
+::ng-deep .stream-chat__avatar--channel-preview {
+  --str-chat__avatar-size: 2.375rem;
+}
+
+::ng-deep .str-chat__message-sender-avatar {
+  --str-chat__avatar-size: 1.875rem;
+}
+
+::ng-deep .str-chat__message--other {
+  column-gap: .625rem;
+}
+
+/*
+ * ---- 26: the reading column ----
+ *
+ * A channel post and a note to yourself are read rather than exchanged, so the column they sit in
+ * is measured against a paragraph, not against the pane. Left to fill the pane, a one-line update
+ * on a wide screen is a card some 1,400px across - a band rather than a card, because a post takes
+ * the width it is given while a chat bubble takes the width of its sentence.
+ *
+ * The cap goes on the list element so the day divider is capped alongside the posts: a full-bleed
+ * rule drawn over a centred column is the tell that the cap reached the cards only. The header and
+ * the read-only footer are siblings of this element and stay full width - they belong to the pane.
+ * A 1:1 exchange keeps the pane it has: its bubbles are already capped and edge-aligned, so
+ * `.reading-column` is not set for one.
+ *
+ * Stream sets `margin: 0` here through three classes of its own, so this selector outruns it
+ * rather than resting on which stylesheet the cascade happens to read last.
+ */
+::ng-deep .chat-window.reading-column .str-chat__message-list-scroll .str-chat__ul {
+  margin-inline: auto;
+  max-width: @chat-reading-column;
+}
+
+/*
+ * 25: a channel post is published, not said. There is exactly one author and the
+ * header already names it, so the repeated disc down the left edge is noise, and a
+ * bubble sized to its sentence inherits the wrong grammar. Every rule below turns
+ * Stream's chat message into a post card, and applies only while a broadcast
+ * channel is open.
+ */
+::ng-deep .chat-window.broadcast {
+  // no author disc, and no column left reserved for one
+  .str-chat__message-sender-avatar {
+    display: none;
+  }
+
+  // The announced thing is the last line of the card, under the time it was posted at.
+  .str-chat__message.str-chat__message--other {
+    grid-template-areas:
+      'message-reminder'
+      'message'
+      'replies'
+      'translation-notice'
+      'metadata'
+      'custom-metadata';
+    grid-template-columns: 1fr;
+  }
+
+  .str-chat__custom-message-metadata {
+    margin: 0;
+    width: 100%;
+  }
+
+  // the message container is the card: full column width, hairline, no shadow
+  .str-chat__message:not(.str-chat__message--system) {
+    background: var(--card-color);
+    border: 1px solid var(--hairline-color);
+    border-radius: .875rem;
+    padding: .95rem 1.05rem .7rem;
+    width: 100%;
+  }
+
+  // one rhythm between posts: a run of them is not a run of chat messages
+  .str-chat__li--top .str-chat__message,
+  .str-chat__li--middle .str-chat__message,
+  .str-chat__li--bottom .str-chat__message,
+  .str-chat__li--single .str-chat__message {
+    margin-block-end: 1rem;
+  }
+
+  // the options button floats over the card so the text never reflows on hover
+  .str-chat__message--other .str-chat__message-inner {
+    grid-template-columns: 1fr auto;
+    margin-inline-end: 0;
+    width: 100%;
+  }
+
+  .str-chat__message-inner .str-chat__message-options {
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    position: absolute;
+  }
+
+  // the bubble stops being a bubble
+  .str-chat__message .str-chat__message-bubble {
+    background: none;
+    border: none;
+    border-radius: 0;
+    max-width: none;
+    width: 100%;
+
+    .str-chat__message-text {
+      padding: 0;
+    }
+  }
+
+  // the time sits inside the card, bottom-left, on every post including a run
+  .str-chat__li--top .str-chat__message .str-chat__message-metadata,
+  .str-chat__li--middle .str-chat__message .str-chat__message-metadata {
+    display: flex;
+  }
+
+  .str-chat__message .str-chat__message-metadata {
+    color: var(--metadata-color);
+    font-size: .66rem;
+    margin-block-start: .45rem;
+  }
+}
+
+/*
+ * ---- 10: a message that did not land ----
+ *
+ * A send that failed must not look like one that arrived, so the bubble inverts: the fill goes and
+ * the pill is drawn instead. Not opacity - a plum fill at 55% under cream text fails contrast on
+ * both halves at once, and a faded message reads as sending rather than as stopped.
+ *
+ * Stream states the failure inside the bubble, which on an own message means danger copy on a plum
+ * ground. Ours goes in the metadata slot below, which is outside the bubble on the message list's
+ * own ground, so the line is legible and is a tap target of its own rather than a word inside one.
+ */
+::ng-deep .chat-window {
+  .str-chat__message--error-message {
+    display: none;
+  }
+
+  // Both classes are named so the rules below land at four, which is what it takes to outrun the
+  // own-bubble fill and ink - they are set at three each, and a tie would leave this to source order.
+  .str-chat__message.str-chat__message--failed {
+    .str-chat__message-bubble {
+      background-color: var(--card-color);
+      border: 1.5px solid var(--chat-refused-border);
+    }
+
+    .str-chat__message-text-value {
+      color: var(--subhead-color);
+    }
+
+    // Stream also hangs an exclamation off the bubble's edge for the same failure, and shows it
+    // through three classes of its own. One mark, not two: the line below already carries it,
+    // and unlike this one it is the mark you can act on.
+    .str-chat__message-error-icon {
+      display: none;
+    }
+  }
+
+  // A refused message is stated in muted ink; a failed one is still yours to send, so it keeps
+  // full ink and the border warms to say which of the two it is.
+  .str-chat__message.str-chat__message--failed.str-chat__message-send-can-be-retried {
+    .str-chat__message-bubble {
+      border-color: var(--chat-failed-border);
+    }
+
+    .str-chat__message-text-value {
+      color: var(--text-color);
+    }
+  }
+
+  // The clock inside an unsent pill is on the card, not on plum, so it takes the ordinary
+  // metadata ink rather than the cream the own bubble tints it with.
+  .str-chat__message.str-chat__message--failed .message-stamp.mine {
+    color: var(--metadata-color);
+  }
+}
+
+/* 10: the name of an account that is gone, in the row and in the header alike. */
+::ng-deep .chat-window .str-chat__channel-header-title.deleted-account,
+::ng-deep .str-chat__channel-preview-messenger--name .deleted-account {
+  color: var(--metadata-color);
+}
+
+/* The line below the bubble: one mark, one sentence, and on a retryable send, one target. */
+::ng-deep .chat-window .message-failure {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: inline-flex;
+  font: 400 .75rem/1.35 var(--font-family-ui);
+  gap: .375rem;
+  padding: .25rem 0 0;
+  text-align: left;
+
+  &.retry {
+    color: var(--chat-failed-ink);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      text-decoration: underline;
+    }
+  }
+
+  // Muted grey on the mark says it is not tappable; the sentence stays at body ink, because
+  // metadata grey at this size is the contrast failure the inverted bubble just avoided.
+  &.refused {
+    color: var(--subhead-color);
+
+    lucide-icon {
+      color: var(--metadata-color);
+    }
+  }
+}
+
+/* An own message's footer belongs under its own edge. */
+::ng-deep .chat-window .str-chat__message--me .str-chat__custom-message-metadata {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/*
+ * 03: every post carries the thing it announces as a footer action - one strip across the foot of
+ * the card, divided from the text by the same hairline that draws the card.
+ */
+::ng-deep .chat-window.broadcast .post-cta {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--hairline-color);
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  display: block;
+  font: 500 .8125rem/1 var(--font-family-ui);
+  margin: .55rem -1.05rem -.7rem;
+  padding: .625rem 1.05rem;
+  text-align: left;
+  width: calc(100% + 2.1rem);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: none;
+  }
+}
+
+/*
+ * ---- 11: chat with Almo ----
+ *
+ * His rows are pinned above the human chats, and a hairline sits under the last of them: the list
+ * item after a pinned Almo row that is not one itself carries the rule. Every row is one item of
+ * the paginated list, so the sibling combinator is exact.
+ */
+::ng-deep .stream-chat__paginated-list-item:has(.almo-row) + .stream-chat__paginated-list-item:not(:has(.almo-row)) {
+  border-top: 1px solid var(--hairline-color);
+  margin-top: .375rem;
+  padding-top: .375rem;
+}
+
+/*
+ * The two marks a bubble in his channel carries. The dotted line is provenance - the word is in
+ * this learner's queue - and lands on his words and the learner's alike, so on the plum bubble it
+ * is drawn in cream. The confusion pair is plum medium weight in one plain bubble: no overlay, no
+ * red, no separate block.
+ */
+::ng-deep .almo-text .almo-word {
+  text-decoration: underline dotted var(--dark-raspberry);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+::ng-deep .str-chat__message--me .almo-text .almo-word {
+  text-decoration-color: color-mix(in srgb, var(--chat-own-ink) 75%, transparent);
+}
+
+::ng-deep .almo-text .almo-contrast {
+  color: var(--dark-raspberry);
+  font-weight: 500;
+}
+
+/* Held: the bubble goes to the tint and the text to muted ink, the timestamp stays, and there is no label. */
+::ng-deep .str-chat__message--other .str-chat__message-bubble:has(.almo-text.held) {
+  background-color: var(--chat-selected-color);
+
+  .almo-text {
+    color: var(--subhead-color);
+  }
+}

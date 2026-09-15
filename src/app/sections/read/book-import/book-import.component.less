@@ -1,0 +1,132 @@
+.import-page {
+  min-height: calc(100vh - var(--header-height));
+  padding: clamp(1.5rem, 5vw, 5rem) 1.25rem;
+  background: var(--main-bg-color);
+}
+
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.import-card, .record {
+  width: min(100%, 40rem);
+  margin: 0 auto;
+}
+.import-card {
+  width: min(100%, 52rem);
+  padding: clamp(1.5rem, 4vw, 3.25rem);
+  border: 1px solid var(--border-color);
+  border-radius: 2rem;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+
+.import-intro { max-width: 42rem; }
+.back-link { display: inline-block; margin-bottom: 1.25rem; color: var(--dark-raspberry); font-size: .9rem; font-weight: 700; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.import-card h1 { max-width: 36rem; margin: 0; color: var(--text-color); font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1.1; }
+.import-intro > p:not(.eyebrow) { margin: .8rem 0 0; color: var(--subhead-color); line-height: 1.55; }
+
+// The import's own book page (G10): the G6 header, the private pill, the owner row, and the
+// parallel-text block that says why there is no chip row here.
+.book-card { display: flex; flex-direction: column; gap: 1.2rem; padding: clamp(1.4rem, 4vw, 1.75rem) clamp(1.4rem, 4vw, 1.9rem); border-radius: 1.75rem; background: var(--card-color); box-shadow: var(--box-shadow); }
+.book-head { display: flex; align-items: flex-start; gap: 1rem; }
+.book-thumb { display: block; flex: 0 0 4rem; width: 4rem; height: 5.75rem; overflow: hidden; border-radius: .5rem; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
+.book-thumb--ink { --cover-color: #3d3d3d; }
+.book-thumb--ink ::ng-deep .typographic-cover { background: #3d3d3d; font-family: var(--font-family-mono); }
+.book-head__copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .25rem; }
+.book-title { margin: 0; font-family: var(--font-family-reading); font-size: 1.5rem; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.book-title--mono { font-family: var(--font-family-mono); font-size: 1.1rem; font-weight: 500; }
+.book-meta { margin: 0; color: var(--subhead-color); font-size: .82rem; min-height: 1em; }
+.book-pills { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .35rem; }
+.pill { padding: .25rem .65rem; border-radius: 999px; background: var(--nested-color); color: var(--subhead-color); font-size: .7rem; }
+.pill--ink { color: var(--text-color); }
+.read-action { display: inline-flex; align-items: center; min-height: 2.5rem; padding: .55rem 1.1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.read-action:hover { background: var(--brand-hover); }
+.read-action--small { min-height: 2.2rem; padding: .45rem .95rem; background: var(--dark-raspberry); font-size: .8rem; }
+
+.status-line { display: flex; align-items: center; gap: .7rem; margin: 0; color: var(--subhead-color); font-size: .86rem; }
+.status-line--error { color: var(--danger-text-color); }
+.spinner { width: 1.1rem; height: 1.1rem; border: 2px solid var(--control-border-color); border-top-color: var(--brand-margin); border-radius: 50%; animation: spin .8s linear infinite; }
+
+.owner-row { display: flex; align-items: center; gap: 1.1rem; }
+.owner-action { padding: .2rem 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; }
+.owner-action:hover:not(:disabled) { text-decoration: underline; }
+.owner-action:disabled { color: var(--disabled-label-color); cursor: not-allowed; }
+.owner-action--quiet { color: var(--subhead-color); }
+.owner-row .owner-action--quiet { margin-left: auto; }
+.owner-note { margin: -.6rem 0 0; color: var(--metadata-color); font-size: .78rem; line-height: 1.5; }
+
+.book-description { max-width: 65ch; margin: 0; color: var(--subhead-color); font-size: .9rem; line-height: 1.65; white-space: pre-line; }
+.hairline { display: block; height: 1px; background: var(--hairline-color); }
+
+.parallel { display: flex; flex-direction: column; gap: .6rem; }
+.parallel .eyebrow { margin: 0; }
+.parallel__copy { margin: 0; color: var(--subhead-color); font-size: .84rem; line-height: 1.6; }
+.parallel__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
+.suggest-action { display: inline-flex; align-items: center; min-height: 2.35rem; padding: .5rem 1rem; border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); border-radius: 999px; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; }
+.suggest-action:hover:not(:disabled) { background: var(--state-selected); }
+.suggest-action:disabled { border-color: var(--hairline-color); color: var(--disabled-label-color); cursor: not-allowed; }
+.parallel .owner-note { margin-top: -.2rem; }
+.settled-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .86rem; }
+.settled-row__copy { display: flex; flex-direction: column; gap: .15rem; }
+.settled-row__copy small { color: var(--subhead-color); font-size: .76rem; }
+
+// The details form, opened in place.
+.details-card { padding: 1.15rem 1.25rem; border: 1px solid var(--border-color); border-radius: 1.1rem; background: var(--nested-color); }
+.details-card h2 { margin: 0; color: var(--text-color); font-size: 1.1rem; }
+.details-card form { margin-top: .9rem; }
+.details-card input, .details-card textarea, .details-card select { background: var(--card-color); }
+.details-copy { margin: .4rem 0 0; color: var(--subhead-color); font-size: .86rem; line-height: 1.5; }
+.details-actions { display: flex; align-items: center; gap: .5rem; }
+.provenance { color: var(--metadata-color); font-size: .76rem; font-weight: 400; }
+
+// The upload form (unchanged shape).
+.quota-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2rem; padding: 1rem 1.15rem; border: 1px solid var(--border-color); border-radius: 1rem; background: var(--nested-color);
+  div { display: grid; gap: .15rem; }
+  strong { color: var(--text-color); }
+  span:last-child { color: var(--subhead-color); font-size: .82rem; }
+}
+.quota-card.exhausted { border-color: color-mix(in srgb, var(--warning-color) 45%, transparent); }
+.quota-label { color: var(--dark-raspberry); font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+form { display: grid; gap: 1.15rem; margin-top: 1.5rem; }
+label { display: grid; gap: .45rem; color: var(--text-color); font-size: .92rem; font-weight: 700; }
+input, textarea, select { width: 100%; padding: .78rem .85rem; border: 1px solid var(--control-border-color); border-radius: .75rem; background: var(--nested-color); color: var(--text-color); font: inherit; font-weight: 400; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand-margin); border-color: var(--brand-margin); }
+.file-input { position: relative; min-height: 6.5rem; padding: 1rem; border: 1px dashed var(--control-border-color); border-radius: 1rem; background: var(--nested-color); cursor: pointer; }
+.file-input input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.file-input span { overflow: hidden; color: var(--metadata-color); font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.optional { color: var(--metadata-color); font-size: .76rem; font-weight: 400; }
+.primary-action, .secondary-action { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; cursor: pointer; font: inherit; font-weight: 700; text-decoration: none; }
+.primary-action { width: fit-content; margin-top: .25rem; padding: .85rem 1.3rem; background: var(--brand-primary); color: var(--on-brand-color); }
+.primary-action:hover:not(:disabled) { background: var(--brand-hover); }
+.primary-action:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: wait; }
+.secondary-action { padding: .65rem .9rem; background: transparent; color: var(--dark-raspberry); }
+.secondary-action:hover { background: var(--state-hover); }
+.error { margin: 0; color: var(--danger-text-color); }
+.error--floating { width: min(100%, 40rem); margin: 1rem auto 0; font-size: .86rem; }
+.blocked-note { margin: -.75rem 0 0; color: var(--subhead-color); font-size: .85rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// The suggestion sheet (G11), in the shared popup shell.
+.sheet { display: flex; width: min(88vw, 21rem); flex-direction: column; gap: .85rem; padding: 1.5rem 1.5rem 1.25rem; border-radius: 1.375rem; background: var(--overlay-color); color: var(--text-color); }
+.sheet__title { margin: 0; font-family: var(--font-family-reading); font-size: 1.2rem; font-weight: 600; line-height: 1.25; }
+.sheet__copy { margin: 0; color: var(--subhead-color); font-size: .82rem; line-height: 1.6; }
+.sheet__note { margin: 0; padding: .7rem .9rem; border-radius: .75rem; background: var(--nested-color); color: var(--subhead-color); font-size: .76rem; line-height: 1.5; }
+.sheet__box { display: flex; flex-direction: column; gap: .25rem; padding: .7rem .9rem; border: 1px solid var(--hairline-color); border-radius: .75rem; }
+.sheet__box-row { display: flex; justify-content: space-between; gap: .65rem; font-size: .8rem; }
+.sheet__box-note { color: var(--metadata-color); font-size: .74rem; line-height: 1.5; }
+.sheet__link { border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .76rem; font-weight: 500; }
+.sheet__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
+.sheet__primary { min-height: 2.6rem; padding: .6rem 1.25rem; border: 0; border-radius: 999px; background: var(--dark-raspberry); color: #fff; cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.sheet__primary--ink { background: var(--brand-ink); color: var(--page-ground); }
+.sheet__primary:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: wait; }
+.sheet__quiet { border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .82rem; }
+
+@media (max-width: 560px) {
+  .details-grid { grid-template-columns: 1fr; }
+  .quota-card { align-items: flex-start; flex-direction: column; }
+  .primary-action { width: 100%; }
+  .book-head { flex-wrap: wrap; }
+  .book-head .read-action { width: 100%; justify-content: center; }
+  .settled-row { align-items: flex-start; flex-direction: column; }
+}

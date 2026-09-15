@@ -1,7 +1,7 @@
-import {Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output,} from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
-import {TuiLoader} from '@taiga-ui/core';
+import {TuiLoader} from '@taiga-ui/core/components';
 
 @Component({
   selector: 'app-interactive-cta-button',
@@ -38,9 +38,6 @@ export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private elRef: ElementRef) {
-  }
-
   ngOnInit() {
     if (this.loading$) {
       this.loading$
@@ -52,21 +49,6 @@ export class InteractiveCtaButtonComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  @HostListener('mousemove', ['$event'])
-  onMouseMove(event: MouseEvent): void {
-    const button = this.elRef.nativeElement.querySelector('button') as HTMLElement;
-    if (!button) {
-      return;
-    }
-
-    const rect = button.getBoundingClientRect();
-    const xPct = ((event.clientX - rect.left) / rect.width) * 100;
-    const yPct = ((event.clientY - rect.top) / rect.height) * 100;
-    const angle = Math.round((xPct + yPct) / 2);
-
-    button.style.background = `linear-gradient(${angle}deg, #00d1ff, #8a2be2)`;
   }
 
   onClick() {

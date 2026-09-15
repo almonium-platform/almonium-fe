@@ -1,0 +1,964 @@
+<div class="ops-page">
+  <header class="ops-page__header">
+    <div>
+      <p class="eyebrow">Operations console</p>
+      <h1>Operations</h1>
+      <p class="ops-page__hint">
+        Entitlement overrides and the announcement channels. Everything here takes effect
+        immediately, against the environment you are signed in to.
+      </p>
+    </div>
+    <span class="ops-page__badge">Admin only</span>
+  </header>
+
+  <section class="ops-card ops-card--pulse" aria-labelledby="pulse-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="pulse-title">Pulse</h2>
+        <p>
+          Is anyone here. Counted from our own tables just now: sign-ups by registration date, returning users by the
+          last authenticated request from any client, subscriptions as Paddle last reconciled them, and the grants in
+          force. Grant-only members have premium because an operator said so, not because they pay.
+        </p>
+      </div>
+      <button class="ops-button ops-button--quiet" type="button" [disabled]="loadingStats" (click)="loadStats()">
+        {{ loadingStats ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+
+    @if (statsError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ statsError }}</span>
+      </div>
+    } @else if (!stats) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-pulse__tiles" aria-live="polite">
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Users</span>
+          <strong>{{ stats.totalUsers | number }}</strong>
+        </div>
+        @for (window of stats.windows; track window.label) {
+          <div class="ops-pulse__tile">
+            <span class="ops-summary__label">Active {{ window.label }}</span>
+            <strong>{{ window.active | number }}</strong>
+            <small>{{ window.registered | number }} signed up</small>
+          </div>
+        }
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Paying</span>
+          <strong>{{ payingMembers | number }}</strong>
+        </div>
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Grant-only members</span>
+          <strong>{{ stats.grantOnlyMembers | number }}</strong>
+        </div>
+        <div class="ops-pulse__tile">
+          <span class="ops-summary__label">Founding members</span>
+          <strong>{{ stats.foundingMembers.confirmed | number }}</strong>
+          <small>
+            {{ stats.foundingMembers.reserved | number }} reserved,
+            {{ stats.foundingMembers.available | number }} open
+          </small>
+        </div>
+      </div>
+
+      <div class="ops-pulse__tables">
+        <div>
+          <h3 class="ops-spend__subtitle">Subscriptions</h3>
+          @if (stats.subscriptions.length) {
+            <div class="ops-table-scroll">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Plan</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="ops-table__number">People</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of stats.subscriptions; track line.plan + line.cadence + line.status) {
+                    <tr>
+                      <td>{{ line.plan }} <small>{{ line.cadence | lowercase }}</small></td>
+                      <td>{{ subscriptionStatusLabel(line.status) }}</td>
+                      <td class="ops-table__number">{{ line.count | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="ops-maintenance__more">No subscriptions yet.</p>
+          }
+        </div>
+
+        <div>
+          <h3 class="ops-spend__subtitle">Grants in force</h3>
+          @if (stats.activeGrants.length) {
+            <div class="ops-table-scroll">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Entitlement</th>
+                    <th scope="col" class="ops-table__number">People</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of stats.activeGrants; track line.entitlement) {
+                    <tr>
+                      <td>{{ line.entitlement }}</td>
+                      <td class="ops-table__number">{{ line.count | number }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="ops-maintenance__more">No grants in force.</p>
+          }
+        </div>
+      </div>
+
+      <p class="ops-pulse__stamp">As of {{ stats.generatedAt | date:'MMM d, HH:mm' }}</p>
+    }
+  </section>
+
+  <div class="ops-layout">
+    <section class="ops-card ops-card--lookup" aria-labelledby="lookup-title">
+      <div class="ops-card__heading">
+        <span class="ops-card__step">01</span>
+        <div>
+          <h2 id="lookup-title">Find a user</h2>
+          <p>Search by email to load their current access and user ID.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="lookupForm" class="ops-form" (ngSubmit)="onLookup()">
+        <label class="ops-form__field">
+          <span>Email address</span>
+          <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
+        </label>
+        <button class="ops-button ops-button--primary" type="submit" [disabled]="lookingUp">
+          {{ lookingUp ? 'Searching…' : 'Look up user' }}
+        </button>
+      </form>
+
+      @if (lookupResult) {
+        <div class="ops-summary" aria-live="polite">
+          <div class="ops-summary__identity">
+            <div class="ops-summary__avatar" aria-hidden="true">{{ lookupResult.username.charAt(0).toUpperCase() }}</div>
+            <div>
+              <strong>{{ lookupResult.username }}</strong>
+              <span>{{ lookupResult.email }}</span>
+            </div>
+          </div>
+          <div class="ops-summary__entitlement">
+            <span>Effective entitlement</span>
+            <strong>{{ lookupResult.effectiveEntitlement }}</strong>
+          </div>
+          @if (lookupResult.activeGrant) {
+            <div class="ops-summary__grant ops-summary__grant--active">
+              <div>
+                <span class="ops-summary__label">Active access grant</span>
+                <strong>{{ lookupResult.activeGrant.entitlement }}</strong>
+              </div>
+              <p>
+                @if (lookupResult.activeGrant.expiresAt) {
+                  Expires {{ lookupResult.activeGrant.expiresAt | date:'medium' }}
+                } @else {
+                  No expiry
+                }
+                <span aria-hidden="true"> · </span>{{ lookupResult.activeGrant.reason }}
+              </p>
+            </div>
+          } @else {
+            <div class="ops-summary__grant ops-summary__grant--none">
+              <span class="ops-summary__status-dot" aria-hidden="true"></span>
+              <span>No active grant — access comes from their plan.</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="ops-card ops-card--grant" aria-labelledby="grant-title">
+      <div class="ops-card__heading">
+        <span class="ops-card__step">02</span>
+        <div>
+          <h2 id="grant-title">Manage access</h2>
+          <p>Choose the entitlement and leave a note for the audit trail.</p>
+        </div>
+      </div>
+
+      <form [formGroup]="form" class="ops-form">
+        <label class="ops-form__field ops-form__field--wide">
+          <span>User ID</span>
+          <div class="ops-form__row">
+            <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+            <button class="ops-button ops-button--quiet ops-button--inline" type="button"
+                    [disabled]="!form.controls.userId.value" (click)="onCopyUserId(form.controls.userId.value)">
+              Copy
+            </button>
+          </div>
+        </label>
+
+        <div class="ops-form__grid">
+          <label class="ops-form__field">
+            <span>Entitlement</span>
+            <select formControlName="entitlement">
+              @for (entitlement of entitlements; track entitlement) {
+                <option [value]="entitlement">{{ entitlement }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="ops-form__field">
+            <span>Expires at <em>optional</em></span>
+            <input type="datetime-local" formControlName="expiresAt" />
+          </label>
+        </div>
+
+        <label class="ops-form__field">
+          <span>Reason</span>
+          <input type="text" formControlName="reason" placeholder="Why is this grant being issued?" />
+        </label>
+
+        <div class="ops-form__actions">
+          <button class="ops-button ops-button--primary" type="button" [disabled]="submitting" (click)="onGrant()">
+            Grant / update
+          </button>
+          <button class="ops-button ops-button--danger" type="button" [disabled]="submitting" (click)="onRevoke()">
+            Revoke access
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <section class="ops-card ops-card--limits" aria-labelledby="limits-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="limits-title">Reset a user's limits</h2>
+        <p>
+          The monthly allowances, handed back before the month turns. A lookup above fills the ID in.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="limitsForm" class="ops-form">
+      <div class="ops-form__grid">
+        <label class="ops-form__field">
+          <span>User ID</span>
+          <div class="ops-form__row">
+            <input type="text" formControlName="userId" placeholder="UUID" autocomplete="off" />
+            <button class="ops-button ops-button--quiet ops-button--inline" type="button"
+                    [disabled]="!limitsForm.controls.userId.value" (click)="onCopyUserId(limitsForm.controls.userId.value)">
+              Copy
+            </button>
+          </div>
+        </label>
+
+        <label class="ops-form__field">
+          <span>Reason <em>book imports only</em></span>
+          <input type="text" formControlName="reason" placeholder="Why is the quota being reset?" />
+        </label>
+      </div>
+    </form>
+
+    <div class="ops-maintenance">
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>Book-import quota</strong>
+          <p>Credits back every import spent in the current period. The reason is kept with it.</p>
+        </div>
+        <button
+          class="ops-button ops-button--quiet"
+          type="button"
+          [disabled]="resettingQuota"
+          (click)="onResetImportQuota()"
+        >
+          {{ resettingQuota ? 'Resetting…' : 'Reset quota' }}
+        </button>
+      </div>
+
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>Active-language switch</strong>
+          <p>Clears the once-a-month cooldown so the next change goes through straight away.</p>
+        </div>
+        <button
+          class="ops-button ops-button--quiet"
+          type="button"
+          [disabled]="clearingSwitchCooldown"
+          (click)="onResetLanguageSwitch()"
+        >
+          {{ clearingSwitchCooldown ? 'Clearing…' : 'Clear cooldown' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="ops-card ops-card--books" aria-labelledby="translations-title">
+    <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+      <div>
+        <p class="ops-books__path">/ops / translation requests</p>
+        <h2 id="translations-title" class="ops-books__title">
+          @if (translationQueue; as queue) {
+            {{ queue.open }} open, {{ queue.running }} running
+          } @else {
+            Translation requests
+          }
+        </h2>
+        <p>
+          Readers ask for a language a book is missing; this decides and watches, it never runs a pipeline. Approve posts
+          one job to the book processor and writes the estimate to the ledger. Rows group by book and pair, so the asks
+          column is the whole demand signal.
+        </p>
+      </div>
+      <div class="ops-books__spend">
+        <span class="ops-books__path">{{ monthLabel }} spend</span>
+        @if (translationQueue; as queue) {
+          <div class="ops-books__bar" role="meter" [attr.aria-valuenow]="queue.monthSpendUsd" aria-valuemin="0" [attr.aria-valuemax]="queue.monthBudgetUsd" aria-label="Monthly translation spend">
+            <span class="ops-books__track"><i [style.width.%]="budgetPercent" [class.ops-books__fill--full]="budgetExhausted"></i></span>
+            <code>{{ queue.monthSpendUsd | currency:'USD':'symbol':'1.0-0' }} / {{ queue.monthBudgetUsd | number:'1.0-0' }}</code>
+          </div>
+        }
+        <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingTranslationQueue" (click)="loadTranslationQueue()">
+          {{ loadingTranslationQueue ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (translationQueueError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ translationQueueError }}</span>
+      </div>
+    } @else if (!translationQueue) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-books__chips">
+        <span class="ops-books__chip ops-books__chip--ink">Open {{ translationQueue.open }}</span>
+        <span class="ops-books__chip">Running {{ translationQueue.running }}</span>
+        <span class="ops-books__chip">Published {{ translationQueue.published }}</span>
+        <span class="ops-books__chip">Declined {{ translationQueue.declined }}</span>
+      </div>
+
+      @if (translationQueue.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of translationQueue.warnings; track warning) { <li>{{ warning }}</li> }
+        </ul>
+      }
+
+      @if (budgetExhausted) {
+        <p class="ops-books__ceiling">The month's ceiling is reached, so Approve is off until the month turns. Requests keep collecting.</p>
+      }
+
+      @if (translationQueue.rows.length) {
+        <div class="ops-queue ops-queue--translations">
+          <div class="ops-queue__head"><span>Book</span><span>Pair</span><span>Asks</span><span>Who</span><span>Est.</span><span></span></div>
+          @for (row of translationQueue.rows; track pairKey(row)) {
+            <div class="ops-queue__row" [class.ops-queue__row--live]="isLive(row.job)">
+              <span class="ops-queue__book"><strong>{{ row.bookTitle }}</strong><small>{{ row.bookAuthor }}</small></span>
+              <code>{{ row.sourceLanguage | lowercase }} → {{ row.language | lowercase }}</code>
+              <code>{{ row.asks }}</code>
+              <small>{{ whoLabel(row) }}</small>
+              <code>
+                @if (row.job?.estimatedCostUsd ?? row.estimatedCostUsd; as estimate) { {{ estimate | currency:'USD':'symbol':'1.2-2' }} } @else { — }
+              </code>
+              <span class="ops-queue__actions">
+                @if (row.job; as job) {
+                  @if (isLive(job)) {
+                    <code class="ops-queue__stamp">approved {{ job.approvedAt | date:'HH:mm' }}</code>
+                  } @else if (job.phase === 'PUBLISHED') {
+                    <code class="ops-queue__stamp ops-queue__stamp--done">published {{ job.finishedAt | date:'MMM d' }}</code>
+                  } @else {
+                    <code class="ops-queue__stamp ops-queue__stamp--failed">{{ job.phase | lowercase }}</code>
+                    <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="budgetExhausted || decidingPair === pairKey(row)" (click)="onApproveTranslation(row)">Approve again</button>
+                  }
+                } @else {
+                  <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="budgetExhausted || decidingPair === pairKey(row)" (click)="onApproveTranslation(row)">Approve</button>
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingPair === pairKey(row)" (click)="onDeclineTranslation(row)">Decline</button>
+                }
+              </span>
+            </div>
+            @if (row.job; as job) {
+              @if (isLive(job)) {
+                <div class="ops-queue__job">
+                  <div class="ops-queue__phases">
+                    @for (step of translationPhases; track step.phase; let last = $last) {
+                      <span class="ops-queue__phase" [class.ops-queue__phase--on]="phaseIndex(job.phase) === phaseIndex(step.phase) || (job.phase === 'QUEUED' && step.phase === 'TRANSLATING')" [class.ops-queue__phase--done]="phaseIndex(job.phase) > phaseIndex(step.phase)">{{ step.label }}</span>
+                      @if (!last) { <span class="ops-queue__arrow" aria-hidden="true">→</span> }
+                    }
+                  </div>
+                  <div class="ops-queue__job-foot">
+                    <code>
+                      book processor
+                      @if (job.processorEditionSlug) { · {{ job.processorEditionSlug }} }
+                      @if (job.progressTotal) { · ch {{ job.progressCompleted ?? 0 }}/{{ job.progressTotal }} }
+                      · started {{ job.approvedAt | date:'HH:mm' }}
+                      · {{ job.tier }}, {{ job.mode }}
+                    </code>
+                    <span class="ops-queue__actions">
+                      <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="cancellingJob === job.id" (click)="onCancelTranslationJob(job)">{{ cancellingJob === job.id ? 'Cancelling…' : 'Cancel' }}</button>
+                    </span>
+                  </div>
+                  @if (job.error) { <p class="ops-queue__error">{{ job.error }}</p> }
+                </div>
+              }
+            }
+          }
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">Nobody is asking for a language right now.</p>
+      }
+    }
+  </section>
+
+  <section class="ops-card ops-card--books" aria-labelledby="suggestions-title">
+    <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+      <div>
+        <p class="ops-books__path">/ops / library suggestions</p>
+        <h2 id="suggestions-title" class="ops-books__title">
+          @if (suggestionQueue; as queue) {
+            {{ queue.open }} open, {{ queue.ingesting }} ingesting
+          } @else {
+            Library suggestions
+          }
+        </h2>
+        <p>
+          Private imports their owners think belong in the library. Rows group by title and author. The pd / check flag
+          is the same year rule the suggestion sheet uses, computed here, never a legal verdict. Accept posts one ingest
+          job to the book processor, where staff set the level and cover before publishing. Point to library copy is the
+          duplicate path: no job, the import page flips to the in-library row. Suggestions carry no cost line.
+        </p>
+      </div>
+      <div class="ops-books__spend">
+        @if (suggestionQueue; as queue) {
+          <div class="ops-books__chips">
+            <span class="ops-books__chip ops-books__chip--ink">Open {{ queue.open }}</span>
+            <span class="ops-books__chip">Ingesting {{ queue.ingesting }}</span>
+            <span class="ops-books__chip">Published {{ queue.published }}</span>
+            <span class="ops-books__chip">Declined {{ queue.declined }}</span>
+          </div>
+        }
+        <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingSuggestions" (click)="loadLibrarySuggestions()">
+          {{ loadingSuggestions ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (suggestionsError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ suggestionsError }}</span>
+      </div>
+    } @else if (!suggestionQueue) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      @if (suggestionQueue.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of suggestionQueue.warnings; track warning) { <li>{{ warning }}</li> }
+        </ul>
+      }
+      @if (suggestionQueue.rows.length) {
+        <div class="ops-queue ops-queue--suggestions">
+          <div class="ops-queue__head"><span>Book</span><span>Lang</span><span>Published</span><span>From</span><span></span></div>
+          @for (row of suggestionQueue.rows; track row.id) {
+            <div class="ops-queue__row" [class.ops-queue__row--live]="row.status === 'INGESTING'">
+              <span class="ops-queue__book"><strong>{{ row.title }}</strong><small>{{ row.author }}@if (row.libraryMatch) { · matches library work }</small></span>
+              <code>{{ row.language | lowercase }}</code>
+              <span class="ops-queue__year"><code>{{ row.publicationYear ?? '—' }}</code><code class="ops-queue__flag" [class.ops-queue__flag--pd]="row.publicDomainHint === 'pd'">{{ row.publicDomainHint }}</code></span>
+              <small>{{ whoLabel(row) }} · {{ row.imports }} {{ row.imports === 1 ? 'import' : 'imports' }}</small>
+              <span class="ops-queue__actions">
+                @switch (row.status) {
+                  @case ('SUGGESTED') {
+                    <a class="ops-button ops-button--quiet ops-button--tiny" [href]="suggestionFileUrl(row)" target="_blank" rel="noopener">Open file</a>
+                    @if (row.libraryMatch) {
+                      <button class="ops-button ops-button--ink ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onPointToLibrary(row)">Point to library copy</button>
+                    } @else {
+                      <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onAcceptSuggestion(row)">Accept</button>
+                    }
+                    <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onDeclineSuggestion(row)">Decline</button>
+                  }
+                  @case ('INGESTING') {
+                    <code class="ops-queue__stamp">accepted {{ row.job?.decidedAt | date:'HH:mm' }}</code>
+                  }
+                  @case ('PUBLISHED') {
+                    <code class="ops-queue__stamp ops-queue__stamp--done">in the library</code>
+                  }
+                  @default {
+                    <code class="ops-queue__stamp">{{ row.status | lowercase }}</code>
+                  }
+                }
+              </span>
+            </div>
+            @if (row.status === 'INGESTING' && row.job; as job) {
+              <div class="ops-queue__job">
+                <div class="ops-queue__phases">
+                  @for (step of ingestPhases; track step.phase; let last = $last) {
+                    <span class="ops-queue__phase" [class.ops-queue__phase--on]="ingestPhaseIndex(job.phase) === ingestPhaseIndex(step.phase)" [class.ops-queue__phase--done]="ingestPhaseIndex(job.phase) > ingestPhaseIndex(step.phase)">{{ step.label }}</span>
+                    @if (!last) { <span class="ops-queue__arrow" aria-hidden="true">→</span> }
+                  }
+                </div>
+                <div class="ops-queue__job-foot">
+                  <code>book processor @if (job.processorEditionSlug) { · {{ job.processorEditionSlug }} } · {{ job.progress }}% · started {{ job.decidedAt | date:'HH:mm' }}</code>
+                  <span class="ops-queue__actions">
+                    <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onCancelIngest(row)">Cancel</button>
+                  </span>
+                </div>
+                @if (job.error) { <p class="ops-queue__error">{{ job.error }}</p> }
+              </div>
+            }
+          }
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">No suggestions waiting.</p>
+      }
+    }
+  </section>
+
+  <section class="ops-card ops-card--spend" aria-labelledby="spend-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="spend-title">Model spend</h2>
+        <p>
+          Two views of the same money. The estimate is our own token ledger priced by the table in the backend
+          config, so it knows which feature spent what. The bill is what OpenAI charged, which knows only project and
+          line item. A wide gap means the price table is stale or OpenAI discounted the usage; the warnings say which.
+        </p>
+      </div>
+      <div class="ops-spend__windows" role="group" aria-label="Window">
+        @for (days of spendWindows; track days) {
+          <button
+            class="ops-button ops-button--quiet"
+            [class.ops-button--selected]="days === spendDays"
+            type="button"
+            [disabled]="loadingSpend"
+            [attr.aria-pressed]="days === spendDays"
+            (click)="onSpendWindow(days)"
+          >
+            {{ days }} days
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (spendError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ spendError }}</span>
+      </div>
+    } @else if (!spend) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else {
+      <div class="ops-spend__totals" aria-live="polite">
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Estimated</span>
+          <strong>{{ spend.estimatedUsd | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Billed</span>
+          @if (spend.actualFetchedAt) {
+            <strong>{{ spend.actualUsd | currency:'USD':'symbol':'1.2-2' }}</strong>
+            <small>as of {{ spend.actualFetchedAt | date:'MMM d, HH:mm' }}</small>
+          } @else {
+            <strong>—</strong>
+          }
+        </div>
+        <div class="ops-spend__total">
+          <span class="ops-summary__label">Gap</span>
+          @if (spendGap !== null) {
+            <strong [class.ops-spend__gap--wide]="spendGapWide">
+              {{ spendGap | currency:'USD':'symbol':'1.2-2' }}
+            </strong>
+          } @else {
+            <strong>—</strong>
+          }
+        </div>
+      </div>
+
+      @if (spend.warnings.length) {
+        <ul class="ops-spend__warnings" role="alert">
+          @for (warning of spend.warnings; track warning) {
+            <li>{{ warning }}</li>
+          }
+        </ul>
+      }
+
+      <h3 class="ops-spend__subtitle">Estimated, by feature</h3>
+      @if (spend.estimated.length) {
+        <div class="ops-table-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th scope="col">Feature</th>
+                <th scope="col">Model</th>
+                <th scope="col" class="ops-table__number">Requests</th>
+                <th scope="col" class="ops-table__number">Input tokens</th>
+                <th scope="col" class="ops-table__number">Output tokens</th>
+                <th scope="col" class="ops-table__number">USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of spend.estimated; track line.source + line.feature + line.model) {
+                <tr>
+                  <td>{{ spendFeatureLabel(line) }}</td>
+                  <td><code>{{ line.model }}</code></td>
+                  <td class="ops-table__number">{{ line.requests | number }}</td>
+                  <td class="ops-table__number">
+                    {{ line.inputTokens | number }}
+                    @if (line.cachedInputTokens) {
+                      <small>({{ line.cachedInputTokens | number }} cached)</small>
+                    }
+                  </td>
+                  <td class="ops-table__number">{{ line.outputTokens | number }}</td>
+                  <td class="ops-table__number">
+                    @if (line.estimatedUsd !== null) {
+                      {{ line.estimatedUsd | currency:'USD':'symbol':'1.2-4' }}
+                    } @else {
+                      <span class="ops-spend__unpriced" title="No price configured for this model">unpriced</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">No model calls in this window.</p>
+      }
+
+      <h3 class="ops-spend__subtitle">Billed, by line item</h3>
+      @if (spendByLineItem.length) {
+        <div class="ops-table-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th scope="col">Project</th>
+                <th scope="col">Line item</th>
+                <th scope="col" class="ops-table__number">USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (total of spendByLineItem; track total.projectId + total.lineItem) {
+                <tr>
+                  <td><code>{{ total.projectId || '—' }}</code></td>
+                  <td>{{ total.lineItem }}</td>
+                  <td class="ops-table__number">{{ total.usd | currency:'USD':'symbol':'1.2-4' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <details class="ops-spend__days">
+          <summary>By day</summary>
+          <div class="ops-table-scroll">
+            <table class="ops-table">
+              <tbody>
+                @for (row of spendByDay; track row.day) {
+                  <tr>
+                    <td>{{ row.day | date:'EEE, MMM d' }}</td>
+                    <td class="ops-table__number">{{ row.usd | currency:'USD':'symbol':'1.2-4' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </details>
+      } @else if (spend.actualFetchedAt) {
+        <p class="ops-maintenance__more">OpenAI has billed nothing in this window yet. The bill lags by hours.</p>
+      }
+    }
+  </section>
+
+  <section class="ops-card ops-card--announce" aria-labelledby="announce-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="announce-title">Publish an announcement</h2>
+        <p>
+          Posts to a broadcast channel as Almonium. Members cannot write there, so this is the only
+          way anything reaches those rooms — and there is no edit and no undo.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="announcementForm" class="ops-form">
+      <label class="ops-form__field">
+        <span>Channel</span>
+        <select formControlName="language">
+          @for (channel of broadcastChannels; track channel.value) {
+            <option [value]="channel.value">{{ channel.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="ops-form__field">
+        <span>
+          Message
+          <em>{{ announcementForm.controls.text.value.length }} / {{ maxAnnouncementLength }}</em>
+        </span>
+        <textarea
+          formControlName="text"
+          rows="5"
+          [maxlength]="maxAnnouncementLength"
+          placeholder="New packs for German just landed."
+        ></textarea>
+      </label>
+
+      @if (awaitingPublishConfirmation) {
+        <div class="ops-confirm" role="alert">
+          <p>Publish to <strong>{{ selectedChannelLabel }}</strong>? Everyone in the room sees this.</p>
+          <div class="ops-form__actions">
+            <button class="ops-button ops-button--danger" type="button" [disabled]="publishing" (click)="onPublish()">
+              Yes, publish
+            </button>
+            <button class="ops-button ops-button--quiet" type="button" (click)="onCancelPublish()">
+              Cancel
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="ops-form__actions">
+          <button class="ops-button ops-button--primary" type="button" [disabled]="publishing" (click)="onPublish()">
+            {{ publishing ? 'Publishing…' : 'Publish' }}
+          </button>
+        </div>
+      }
+    </form>
+  </section>
+
+  <section class="ops-card ops-card--maintenance" aria-labelledby="maintenance-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="maintenance-title">Stream maintenance</h2>
+        <p>
+          Stream keeps its own copy of our users and channels. These reconcile it with ours when the
+          two drift apart — after a database is dropped, or when channel artwork moves.
+        </p>
+      </div>
+    </div>
+
+    <div class="ops-maintenance">
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>Orphaned Stream users</strong>
+          <p>Accounts with no row in our database. Look first; the delete is permanent.</p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="scanningOrphans" (click)="onScanOrphans()">
+          {{ scanningOrphans ? 'Checking…' : 'Check' }}
+        </button>
+      </div>
+
+      @if (orphans !== null) {
+        @if (orphans.length) {
+          <div class="ops-maintenance__result" aria-live="polite">
+            <p><strong>{{ orphans.length }}</strong> orphaned {{ orphans.length === 1 ? 'user' : 'users' }}.</p>
+            <ul class="ops-maintenance__ids">
+              @for (id of orphans.slice(0, 10); track id) {
+                <li>{{ id }}</li>
+              }
+            </ul>
+            @if (orphans.length > 10) {
+              <p class="ops-maintenance__more">…and {{ orphans.length - 10 }} more.</p>
+            }
+
+            @if (awaitingPurgeConfirmation) {
+              <div class="ops-confirm" role="alert">
+                <p>
+                  Delete {{ orphans.length }} Stream {{ orphans.length === 1 ? 'account' : 'accounts' }} and
+                  everything they wrote? This cannot be undone.
+                </p>
+                <div class="ops-form__actions">
+                  <button class="ops-button ops-button--danger" type="button" [disabled]="purgingOrphans" (click)="onPurgeOrphans()">
+                    Yes, delete
+                  </button>
+                  <button class="ops-button ops-button--quiet" type="button" (click)="onCancelPurge()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="ops-form__actions">
+                <button class="ops-button ops-button--danger" type="button" [disabled]="purgingOrphans" (click)="onPurgeOrphans()">
+                  {{ purgingOrphans ? 'Deleting…' : 'Delete orphans' }}
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="ops-maintenance__result ops-maintenance__result--clean" aria-live="polite">
+            <span class="ops-summary__status-dot" aria-hidden="true"></span>
+            <span>The directories agree — nothing to clean up.</span>
+          </div>
+        }
+      }
+
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>Accounts in Stream</strong>
+          <p>
+            Gives every account its Stream user, memberships and Saved Messages back. Safe to press
+            at any time — a healthy account is left alone.
+          </p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="provisioningAccounts" (click)="onProvisionAccounts()">
+          {{ provisioningAccounts ? 'Rebuilding…' : 'Rebuild' }}
+        </button>
+      </div>
+
+      <div class="ops-maintenance__row">
+        <div>
+          <strong>System channel artwork</strong>
+          <p>Re-stamps the broadcast channels with the images this client serves.</p>
+        </div>
+        <button class="ops-button ops-button--quiet" type="button" [disabled]="syncingArtwork" (click)="onSyncArtwork()">
+          {{ syncingArtwork ? 'Syncing…' : 'Sync' }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="ops-card ops-card--danger-zone" aria-labelledby="purge-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="purge-title">Empty the Stream application</h2>
+        <p>
+          Deletes every channel and every user in Stream, then rebuilds the broadcast channels.
+          Accounts and their Saved Messages come back as people sign in. Nothing here is recoverable.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="purgeForm" class="ops-form">
+      @if (purgePhrase) {
+        <label class="ops-form__field">
+          <span>Type <code>{{ purgePhrase }}</code> to confirm</span>
+          <input type="text" formControlName="confirmation" autocomplete="off" spellcheck="false" [placeholder]="purgePhrase" />
+        </label>
+
+        <div class="ops-form__actions">
+          <button
+            class="ops-button ops-button--danger"
+            type="button"
+            [disabled]="purging || !canPurge"
+            (click)="onPurge()"
+          >
+            {{ purging ? 'Erasing…' : 'Erase everything' }}
+          </button>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">
+          The backend did not hand over a confirmation phrase, so this is unavailable.
+        </p>
+      }
+    </form>
+  </section>
+
+  <section class="ops-card ops-card--firebase" aria-labelledby="firebase-lookup-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="firebase-lookup-title">Firebase account</h2>
+        <p>
+          What Firebase believes, which is not always what our database believes. A linked provider
+          does not raise the account's own verified flag, and an account can sit that way for months
+          before anything reads it.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="firebaseLookupForm" class="ops-form" (ngSubmit)="onLookupFirebase()">
+      <label class="ops-form__field">
+        <span>Email address</span>
+        <input type="email" formControlName="email" placeholder="user@example.com" autocomplete="off" />
+      </label>
+      <div class="ops-form__actions">
+        <button class="ops-button ops-button--quiet" type="submit" [disabled]="lookingUpFirebase">
+          {{ lookingUpFirebase ? 'Looking up…' : 'Look up' }}
+        </button>
+      </div>
+    </form>
+
+    @if (firebaseAccount) {
+      <div class="ops-maintenance__result" aria-live="polite">
+        <p>
+          <span class="ops-summary__label">Firebase UID</span><br />
+          <code>{{ firebaseAccount.uid }}</code>
+        </p>
+        <p>
+          <span class="ops-summary__label">Email verified</span><br />
+          @if (firebaseAccount.emailVerified) {
+            <strong class="ops-flag ops-flag--yes">yes</strong>
+          } @else {
+            <strong class="ops-flag ops-flag--no">no</strong>
+          }
+        </p>
+        <p class="ops-summary__label">Providers</p>
+        <ul class="ops-maintenance__ids">
+          @for (provider of firebaseAccount.providers; track provider.provider) {
+            <li>{{ provider.provider }} — {{ provider.email || 'no email' }}</li>
+          }
+        </ul>
+      </div>
+    } @else if (firebaseLookupError) {
+      <div class="ops-maintenance__result ops-maintenance__result--clean" aria-live="polite">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ firebaseLookupError }}</span>
+      </div>
+    }
+  </section>
+
+  <section class="ops-card ops-card--danger-zone" aria-labelledby="firebase-purge-title">
+    <div class="ops-card__heading ops-card__heading--plain">
+      <div>
+        <h2 id="firebase-purge-title">Empty the Firebase project</h2>
+        <p>
+          Deletes the accounts themselves. A database drop cannot reach them, and an account left
+          behind without its row can no longer sign in — it is asked for a verified email it never
+          had. Wipe this <em>before</em> you drop the database, not after.
+        </p>
+      </div>
+    </div>
+
+    <form [formGroup]="firebaseForm" class="ops-form">
+      @if (firebaseProject) {
+        <p class="ops-maintenance__more">
+          Project <code>{{ firebaseProject }}</code> currently holds
+          <strong>{{ firebaseUserCount }}</strong> {{ firebaseUserCount === 1 ? 'account' : 'accounts' }}.
+        </p>
+
+        <label class="ops-form__field">
+          <span>Type <code>{{ firebaseProject }}</code> to confirm</span>
+          <input type="text" formControlName="confirmation" autocomplete="off" spellcheck="false" [placeholder]="firebaseProject" />
+        </label>
+
+        <label class="ops-checkbox">
+          <input type="checkbox" formControlName="includeOperator" />
+          <span>
+            Include my own account
+            <em>you will be signed out, and must register again and re-run the admin-claim script</em>
+          </span>
+        </label>
+
+        <div class="ops-form__actions">
+          <button
+            class="ops-button ops-button--danger"
+            type="button"
+            [disabled]="purgingFirebase || !canPurgeFirebase"
+            (click)="onPurgeFirebase()"
+          >
+            {{ purgingFirebase ? 'Erasing…' : 'Erase accounts' }}
+          </button>
+        </div>
+      } @else {
+        <p class="ops-maintenance__more">
+          The backend did not name a Firebase project, so this is unavailable.
+        </p>
+      }
+    </form>
+  </section>
+</div>
+
+<app-recent-auth-guard></app-recent-auth-guard>

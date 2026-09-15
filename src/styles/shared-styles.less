@@ -4,19 +4,19 @@
 }
 
 .os-scrollbar-track {
-  background: #E5E5E5;
+  background: var(--nested-color);
 }
 
 .os-scrollbar-track:hover {
-  background: #D3D3D3;
+  background: var(--control-border-color);
 }
 
 .os-scrollbar-handle {
-  background: #9A9A9A;
+  background: var(--metadata-color);
 }
 
 .os-scrollbar-handle:hover {
-  background: #6E6E6E;
+  background: var(--subhead-color);
 }
 
 .scrollable ::-webkit-scrollbar {
@@ -26,7 +26,7 @@
 
 /* Scrollbar track */
 .scrollable ::-webkit-scrollbar-track {
-  background: white;
+  background: var(--nested-color);
 }
 
 /* Scrollbar thumb */
@@ -61,6 +61,40 @@
   }
 }
 
+// Popovers borrow --tui-radius-l, which is dialled up to 3rem globally so that
+// textfields read as pills. On a short menu or tooltip that lands as a stadium,
+// give the floating surfaces their own, calmer radius.
+tui-dropdown,
+tui-hint {
+  --tui-radius-l: .75rem;
+  --tui-radius-m: .625rem;
+}
+
+// The preview card brings its own surface — border, background, shadow, radius. A dropdown
+// that hosts one must not draw a second, and must not clip the one it hosts. The panel's own
+// overflow is only half the clip: Taiga wraps the content in a scroller, and a scroller is a
+// square box the size of the card, so the card's shadow survived only where the card's rounded
+// corners left room for it — four grey wedges filling the pill out to a rectangle.
+//
+// The clip itself has to stay, since it is what holds a card taller than the space Taiga
+// measured to that space. So the panel keeps it, and takes the card's radius and the card's
+// shadow instead, which is painted outside the clip and so escapes it. The border goes, along
+// with the -1px the scroller uses to sit under it, leaving the clip exactly on the card's own
+// edge with its hairline intact.
+// !important: Taiga's :host rules outrank any element selector written here.
+tui-dropdown:has(app-user-preview-card) {
+  border: 0 !important;
+  border-radius: var(--card-radius) !important;
+  background: transparent !important;
+  box-shadow: var(--overlay-shadow) !important;
+  overflow: hidden !important;
+
+  tui-scrollbar {
+    max-inline-size: 100% !important;
+    margin: 0 !important;
+  }
+}
+
 tui-data-list button[tuiOption].context-button {
   display: flex;
   justify-content: flex-start;
@@ -71,6 +105,13 @@ tui-data-list button[tuiOption].context-button {
   }
 }
 
+// The destructive pair at the foot of a row menu is set off by a rule, not by a gap.
+.context-separator {
+  background: var(--hairline-color);
+  height: 1px;
+  margin: .3125rem .5rem;
+}
+
 .chat-icon {
   color: var(--text-color);
 
@@ -79,101 +120,126 @@ tui-data-list button[tuiOption].context-button {
   }
 }
 
-// GRADIENT
-.full-gradient-btn {
-  --r: 1rem; /* border radius */
-  --b: 2px; /* border width */
-
-  background: var(--premium-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-
-  border-radius: var(--r);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  position: relative;
-  z-index: 0;
-  text-decoration: none;
-
-}
-
-/* check lined question for the detail of the below code */
-.full-gradient-btn::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border: var(--b) solid transparent;
-  border-radius: var(--r);
-  background: inherit;
-  background-origin: border-box;
-  background-clip: border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) padding-box,
-  linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  -webkit-mask-repeat: no-repeat;
-}
-
-.full-gradient-btn:hover {
-  color: #fff;
-  -webkit-text-fill-color: #fff;
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
-}
-
-.full-gradient-btn:hover::before {
-  -webkit-mask: none;
-}
-
-// border only
-.gradient-round-border {
-  background: linear-gradient(white, white) padding-box,
-  linear-gradient(to right, darkblue, darkorchid) border-box;
-  border-radius: 50em;
-  border: 4px solid transparent;
-}
-
 .gradient-button {
   width: 100%; // Make the button take the full width of its container
   display: block;
+  min-height: 44px;
   font-size: 16px;
   padding: 1.1rem 1.5rem;
-  background: linear-gradient(to right, #5A1A74, #8F2356);
-  color: white; // Equivalent to test-white
+  background: var(--premium-gradient);
+  color: var(--on-brand-color);
   font-weight: bold; // Equivalent to font-bold
+  border: 0;
   border-radius: 9999px; // Equivalent to rounded-full
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 2px 8px rgba(72, 23, 125, .26);
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.gradient-button:hover {
-  opacity: 0.75;
+.gradient-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 250, .28), 0 6px 16px rgba(72, 23, 125, .28), 0 2px 4px rgba(72, 23, 125, .16);
+}
+
+.gradient-button:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, .3);
 }
 
 .gradient-button:disabled {
-  opacity: 0.75;
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
   cursor: not-allowed;
+  opacity: 1;
+  transform: none;
 }
 
-.black-n-white-button {
+.solid-button {
+  width: 100%;
+  display: block;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 1.1rem 1.5rem;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  font-weight: bold;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(72, 23, 125, .2);
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.solid-button:hover:not(:disabled) {
+  background: var(--brand-hover);
+  box-shadow: 0 6px 16px rgba(72, 23, 125, .28), 0 2px 4px rgba(72, 23, 125, .16);
+  transform: translateY(-1px);
+}
+
+.solid-button:active:not(:disabled) {
+  background: var(--brand-pressed);
+  box-shadow: inset 0 1px 3px rgba(20, 6, 30, .3);
+  transform: translateY(1px);
+}
+
+.solid-button.incomplete-button,
+.solid-button.incomplete-button:hover,
+.solid-button.incomplete-button:active {
+  background: transparent;
+  color: var(--brand-primary);
+  border: 1px solid var(--brand-primary);
+  box-shadow: none;
+  transform: none;
+}
+
+.solid-button:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+}
+
+.gradient-button:focus-visible,
+.solid-button:focus-visible {
+  outline: 3px solid var(--brand-primary);
+  outline-offset: 3px;
+}
+
+/*
+ * The black-and-white button: an outline that fills toward ink, never toward plum, so it can
+ * sit beside a plum primary without competing. The fill is the theme's own ink and the label
+ * the theme's own ground, which inverts correctly in both modes.
+ */
+.secondary-outline-button {
   padding: 0.5em 1em;
   box-sizing: border-box;
   border-radius: 9999px;
   font-size: 14px;
   font-weight: 550;
+  background-color: transparent;
   border: 1px solid var(--text-color);
   color: var(--text-color);
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.black-n-white-button:hover {
+.secondary-outline-button:hover:not(:disabled) {
   background-color: var(--text-color);
-  color: white;
+  color: var(--page-ground);
 }
 
-.black-n-white-button:disabled {
+.secondary-outline-button:active:not(:disabled) {
+  background-color: var(--text-color);
+  color: var(--page-ground);
+  transform: translateY(1px);
+}
+
+.secondary-outline-button:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 2px;
+}
+
+.secondary-outline-button:disabled {
   background-color: var(--disabled-color);
   color: var(--disabled-text-color);
   border-color: var(--disabled-color);
@@ -186,7 +252,7 @@ tui-data-list button[tuiOption].context-button {
   border-radius: 25px;
   font-size: 14px;
   font-weight: 550;
-  color: black;
+  color: var(--text-color);
   background: none;
   text-decoration: underline;
 }
@@ -211,25 +277,12 @@ tui-data-list button[tuiOption].context-button {
   align-items: center;
 }
 
-.edit-btn {
-  background-color: white;
-  height: 40px;
-  color: var(--text-color);
-  border-color: var(--text-color);
-}
-
-.edit-btn:hover {
-  background-color: var(--text-color);
-  height: 40px;
-  color: white;
-  border-color: var(--text-color);
-}
-
 // containers
 .card {
   box-shadow: var(--box-shadow);
+  border: 1px solid var(--hairline-color);
   border-radius: 35px;
-  background-color: white;
+  background-color: var(--card-color);
   z-index: 1;
 }
 
@@ -266,8 +319,8 @@ tui-data-list button[tuiOption].context-button {
   display: inline-block;
   padding: 0 4px;
   border-radius: 4px;
-  border: 1px solid #000;
-  color: #000;
+  border: 1px solid var(--brand-margin);
+  color: var(--brand-margin);
   font-weight: 550;
   font-size: 0.55rem;
   line-height: 1.5;
@@ -277,7 +330,6 @@ tui-data-list button[tuiOption].context-button {
 .badge-btn {
   border-radius: 25%;
   padding: .3rem .6rem;
-  font-family: Arial, Helvetica, sans-serif;
   box-shadow: var(--box-shadow);
   border: 1px solid #402aa3;
   color: #402aa3;
@@ -301,87 +353,116 @@ tui-data-list button[tuiOption].context-button {
   align-self: stretch; /* Ensure it spans the full height of the container */
 }
 
-.premium-star-badge {
-  border-radius: 50%;
-  background: var(--premium-gradient);
-  box-shadow: 0 0 1px rgba(138, 43, 226, 0.6), 0 0 4px rgba(0, 209, 255, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
+/* Solid, not the gradient: this word sits above the gradient button, and the intended
+   hierarchy is solid ink, solid plum word, gradient button. The gradient is the plan card's. */
 .premium-text {
-  background: var(--premium-gradient);
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--brand-primary);
   line-height: 1.5;
   font-weight: bold;
 }
 
-.gradient-text {
-  background: var(--default-avatar-gradient);
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.social-button:hover {
-  opacity: 0.5;
-}
-
 .social-buttons {
   display: flex;
-  justify-content: space-around;
-  padding: 0 10px;
+  justify-content: center;
+  gap: .625rem;
+  width: 100%;
+
+  app-provider-icon {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+  }
 
   .social-button {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 2.7em;
-    height: 2.7em;
-    border: none;
-    border-radius: 50%;
-    font-size: 20px;
+    min-width: 0;
+    min-height: 2.75rem;
+    width: 100%;
+    gap: .5rem;
+    padding: 0 .5rem;
+    border: 1px solid var(--control-border-color);
+    border-radius: .75rem;
+    background-color: var(--nested-color);
+    color: var(--brand-ink);
+    font-size: .84375rem;
+    font-weight: 600;
     cursor: pointer;
-
-    &.apple {
-      background-color: #000;
-      color: #fff;
-    }
-
-    &.google {
-      background-color: #db4437;
-      color: #fff;
-    }
-
-    &.local {
-      background-color: #3b5998;
-      color: #fff;
-    }
+    transition: background-color 160ms ease, border-color 160ms ease;
 
     &:hover {
-      opacity: 0.8 !important;
+      opacity: 1 !important;
+      border-color: var(--control-border-color);
+      background: linear-gradient(var(--state-hover), var(--state-hover)), var(--nested-color);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--brand-margin);
+      outline-offset: 2px;
+    }
+
+    .provider-mark {
+      width: 1.0625rem;
+      height: 1.0625rem;
+      flex: 0 0 auto;
+      font-size: 1.0625rem;
+      line-height: 1;
+    }
+
+    .local-mark {
+      color: var(--brand-margin);
     }
   }
 }
 
-@media (max-width: 450px) {
-  .social-buttons {
-    .social-button {
-      width: 2.5em;
-      height: 2.5em;
+/*
+ * The three grounds an avatar can sit on, wherever one is drawn.
+ *
+ * Portrait art is dark line work on transparency, so the plate under it belongs to the avatar
+ * rather than to the theme: the same #EFE9E6 in both modes, with a ring that only materialises
+ * on dark, where the plate needs seating.
+ *
+ * A letter takes one of the other two. `.avatar-ground` is the default and the one a lone
+ * avatar always gets - one ground, one ink, nothing to tell apart. `.avatar-hue-*` is the
+ * hashed identity, and belongs only where several avatars are scanned at once and the tint is
+ * doing the sorting; see `avatarHueClass` and 28c. Both take their theme's own values, so
+ * light is no longer wearing discs drawn for a dark ground.
+ */
+.avatar-plate {
+  background: var(--avatar-plate);
+  box-shadow: 0 0 0 1px var(--avatar-plate-ring);
+}
 
-      i {
-        font-size: 1em;
-      }
-    }
+.avatar-ground {
+  background: var(--avatar-ground);
+  box-shadow: inset 0 0 0 1px var(--avatar-ground-edge);
+  color: var(--avatar-ground-ink);
+}
 
-    .social-button.apple {
-      i {
-        font-size: 1.4em;
-      }
-    }
-  }
+.avatar-hue-1,
+.avatar-hue-2,
+.avatar-hue-3,
+.avatar-hue-4 {
+  color: var(--avatar-hue-ink);
+}
+
+.avatar-hue-1 { background: var(--avatar-hue-1); box-shadow: inset 0 0 0 1px var(--avatar-hue-1-edge); }
+.avatar-hue-2 { background: var(--avatar-hue-2); box-shadow: inset 0 0 0 1px var(--avatar-hue-2-edge); }
+.avatar-hue-3 { background: var(--avatar-hue-3); box-shadow: inset 0 0 0 1px var(--avatar-hue-3-edge); }
+.avatar-hue-4 { background: var(--avatar-hue-4); box-shadow: inset 0 0 0 1px var(--avatar-hue-4-edge); }
+
+/*
+ * The eyebrow: the small uppercase label that sits over a section heading, on every surface.
+ * 11px, 550, 1.5px of tracking, raspberry, and 8px of air before whatever it introduces. It is
+ * a block so the gap holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground
+ * may recolour it, and nothing else about it is the surface's to decide.
+ */
+.eyebrow {
+  display: block;
+  margin: 0 0 .5rem;
+  color: var(--dark-raspberry);
+  font: 550 .6875rem/1.2 var(--font-family-ui);
+  letter-spacing: .09375rem;
+  text-transform: uppercase;
 }

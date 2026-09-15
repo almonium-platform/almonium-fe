@@ -1,8 +1,10 @@
+import {logger} from "./shared/logger";
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
-import {TuiAlertService, TuiRoot} from "@taiga-ui/core";
-import {Component, OnInit} from '@angular/core';
+import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
+import {DowngradePickComponent} from './shared/downgrade-pick/downgrade-pick.component';
 import {NavbarWrapperComponent} from "./shared/navbars/navbar-wrapper/navbar-wrapper.component";
 import {UrlService} from "./services/url.service";
 import {StreamI18nService} from "stream-chat-angular";
@@ -13,20 +15,32 @@ import {TimerMonitorService} from "./shared/navbars/navbar/timer/timer-monitor.s
 import {environment} from '../environments/environment'
 import {distinctUntilChanged} from "rxjs/operators";
 import {UserInfoService} from "./services/user-info.service";
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AppearanceService} from './services/appearance.service';
 
 // Declare gtag function to make TypeScript aware of it globally
-declare var gtag: Function;
+declare const gtag: (command: 'config', measurementId: string, config: {page_path: string}) => void;
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent],
+  imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent, DowngradePickComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.less',
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
 export class AppComponent implements OnInit {
+  private router = inject(Router);
+  private urlService = inject(UrlService);
+  private streamI18nService = inject(StreamI18nService);
+  private firebaseNotificationService = inject(FirebaseNotificationService);
+  private alertService = inject(TuiNotificationService);
+  private timerMonitorService = inject(TimerMonitorService);
+  private userInfoService = inject(UserInfoService);
+  private destroyRef = inject(DestroyRef);
+  private appearanceService = inject(AppearanceService);
+
   title = 'almonium-fe';
-  protected showNavbar: boolean = false;
+  protected showNavbar = false;
   private noNavbarRoutes: string[] = [
     '/auth',
     '/login',
@@ -35,6 +49,7 @@ export class AppComponent implements OnInit {
     '/reset-password',
     '/verify-email',
     '/change-email',
+    '/payment/checkout',
     '/payment/success',
     '/users',
     '/reader'
@@ -46,36 +61,44 @@ export class AppComponent implements OnInit {
 
   private measurementId = environment.googleAnalyticsId;
 
-  constructor(
-    private router: Router,
-    private urlService: UrlService,
-    private streamI18nService: StreamI18nService,
-    private firebaseNotificationService: FirebaseNotificationService,
-    private alertService: TuiAlertService,
-    private timerMonitorService: TimerMonitorService,
-    private userInfoService: UserInfoService,
-  ) {
+  constructor() {
+    this.appearanceService.apply();
+    const stopFollowingSystem = this.appearanceService.followSystem();
     this.initializeTranslations();
     this.listenForPushNotifications();
     this.listenToRouter();
     this.timerMonitorService.startMonitoring();
+    this.destroyRef.onDestroy(() => {
+      this.timerMonitorService.stopMonitoring();
+      stopFollowingSystem();
+    });
+  }
+
+  /** Ctrl/Cmd+Shift+L flips light and dark from any page, inputs included: the chord types nothing. */
+  @HostListener('window:keydown', ['$event'])
+  handleAppearanceShortcut(event: KeyboardEvent): void {
+    if (!AppearanceService.isToggleShortcut(event)) return;
+    event.preventDefault();
+    this.appearanceService.toggle();
   }
 
   ngOnInit(): void {
     this.userInfoService.userInfo$.pipe(
-      distinctUntilChanged((prev, curr) => !!prev === !!curr)
+      distinctUntilChanged((prev, curr) => !!prev === !!curr),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(user => {
       if (user) {
-        this.firebaseNotificationService.initFCM().then();
+        void this.firebaseNotificationService.initFCM().then();
       }
     });
   }
 
   private listenToRouter() {
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter(event => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe((event) => {
-      const navigationEvent = event as NavigationEnd;
+      const navigationEvent = event;
 
       const clearedUrl = this.urlService.getClearedUrl();
       const isMobile = window.innerWidth <= 640;
@@ -93,9 +116,9 @@ export class AppComponent implements OnInit {
         gtag('config', this.measurementId, { // Use the measurementId variable
           'page_path': navigationEvent.urlAfterRedirects // Send the final URL after redirects
         });
-        console.log(`GA: Sent page_view for ${navigationEvent.urlAfterRedirects}`);
+        logger.debug(`GA: Sent page_view for ${navigationEvent.urlAfterRedirects}`);
       } else {
-        console.warn('GA: gtag function not found. Ensure GA script is loaded in index.html.');
+        logger.warn('GA: gtag function not found. Ensure GA script is loaded in index.html.');
       }
     });
   }
@@ -106,9 +129,12 @@ export class AppComponent implements OnInit {
 
   private listenForPushNotifications(): void {
     this.firebaseNotificationService.currentMessage$
-      .pipe(filter((message) => !!message?.notification))
+      .pipe(
+        filter((message) => !!message?.notification),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((message) => {
-        this.alertService.open(message?.notification?.body ?? "New Notification", {appearance: "info"}).subscribe();
+        this.alertService.open(message?.notification?.body ?? $localize`New Notification`, {appearance: "info"}).subscribe();
       });
   }
 }

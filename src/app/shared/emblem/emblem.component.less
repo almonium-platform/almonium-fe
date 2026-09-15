@@ -1,0 +1,42 @@
+:host {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+
+.emblem {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mono path {
+  fill: currentColor;
+}
+
+.blade {
+  transform-box: fill-box;
+}
+
+/* Blade 0 is "the one": it never moves. Every other blade sweeps in from
+   behind the blade before it in the ring, and folds back the same way. */
+.playing[data-motion='unfold'] .blade + .blade {
+  animation: unfold 180ms cubic-bezier(.2, .7, .2, 1) both;
+  animation-delay: var(--unfold);
+}
+
+.playing[data-motion='fold'] .blade + .blade {
+  animation: fold 180ms cubic-bezier(.6, 0, .8, .4) both;
+  animation-delay: var(--fold);
+}
+
+@keyframes unfold {
+  from { opacity: 0; transform: rotate(36deg) scale(.85); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fold {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: rotate(36deg) scale(.85); }
+}

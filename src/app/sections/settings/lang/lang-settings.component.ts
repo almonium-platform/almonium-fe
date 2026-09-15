@@ -1,5 +1,8 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {logger} from "../../../shared/logger";
+import {getErrorMessage} from '../../../shared/http-error';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import {FormControl, FormsModule} from "@angular/forms";
+import {RouterLink} from '@angular/router';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {
   FluentLanguageSelectorComponent
@@ -8,69 +11,73 @@ import {LanguageApiService} from "../../../services/language-api.service";
 import {Language} from "../../../models/language.model";
 import {UserInfoService} from "../../../services/user-info.service";
 import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
-import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
 import {LanguageNameService} from "../../../services/language-name.service";
-import {
-  TuiAlertService, TuiAutoColorPipe, TuiHintDirective, TuiIcon, TuiTextfieldComponent,
-  TuiTextfieldDropdownDirective, TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
-import {AsyncPipe, NgClass} from "@angular/common";
-import {TuiChip, TuiDataListWrapperComponent, TuiSelectDirective, TuiSwitch} from "@taiga-ui/kit";
-import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
-import {LocalStorageService} from "../../../services/local-storage.service";
+import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/components";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
+import {AsyncPipe} from "@angular/common";
+import {TuiSwitch} from "@taiga-ui/kit/components";
+import {BehaviorSubject, filter, finalize, of, Subject, switchMap, takeUntil} from "rxjs";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {LanguageCode} from "../../../models/language.enum";
+import {ActiveLanguagePolicy, capped, switchAvailable} from "../../../models/active-language-policy.model";
 import {ActivatedRoute} from "@angular/router";
 import {UrlService} from "../../../services/url.service";
-import {PremiumBadgedContentComponent} from "../../../shared/premium-badged-content/premium-badged-content.component";
+import {PaywallComponent} from "../../../shared/paywall/paywall.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {LanguageSetupComponent} from "../../../onboarding/language-setup/language-setup.component";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {UtilsService} from "../../../services/utils.service";
-import {CefrLevelSelectorComponent} from "../../../shared/cefr-input/cefr-level-selector.component";
-import {distinctUntilChanged} from "rxjs/operators";
-import {CefrComponent} from "../../../shared/cefr/cefr.component";
+import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
+import {CEFR_LEVEL_COPY, CEFR_LEVEL_ENTRIES} from "../../../shared/cefr-level-copy";
 import {NgClickOutsideDirective} from "ng-click-outside2";
-import {LucideAngularModule} from "lucide-angular";
 
 @Component({
   selector: 'app-lang-settings',
   imports: [
     FormsModule,
-    ReactiveFormsModule,
     SettingsTabsComponent,
     FluentLanguageSelectorComponent,
-    EditButtonComponent,
-    TuiChip,
     AsyncPipe,
     TuiIcon,
+    TuiLoader,
     ConfirmModalComponent,
-    TuiAutoColorPipe,
-    PremiumBadgedContentComponent,
+    PaywallComponent,
     RecentAuthGuardComponent,
     LanguageSetupComponent,
     TuiSwitch,
-    CefrLevelSelectorComponent,
-    CefrComponent,
-    NgClickOutsideDirective,
-    LucideAngularModule,
     TuiHintDirective,
-    NgClass,
-    TuiTextfieldComponent,
-    TuiSelectDirective,
-    TuiDataListWrapperComponent,
-    TuiTextfieldDropdownDirective,
-    TuiTextfieldOptionsDirective
+    RouterLink,
+    NgClickOutsideDirective,
   ],
   templateUrl: './lang-settings.component.html',
   styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit, OnDestroy {
+  private languageService = inject(LanguageApiService);
+  protected languageNameService = inject(LanguageNameService);
+  private userInfoService = inject(UserInfoService);
+  private alertService = inject(TuiNotificationService);
+  private cdr = inject(ChangeDetectorRef);
+  private languageApiService = inject(LanguageApiService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private route = inject(ActivatedRoute);
+  private urlService = inject(UrlService);
+  private recentAuthGuardService = inject(RecentAuthGuardService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private utilsService = inject(UtilsService);
+
   private readonly destroy$ = new Subject<void>();
+
+  /** What the plan allows: how many languages stay active, and whether this month's switch is still available. */
+  protected policy: ActiveLanguagePolicy | null = null;
   @ViewChild(LanguageSetupComponent, {static: false}) languageSetupComponent!: LanguageSetupComponent;
+  @ViewChild(PaywallComponent, {static: true}) private paywallComponent!: PaywallComponent;
+  /** Non-null while the paywall is a detour out of the add-language sheet, which offers the way back. */
+  protected paywallBackLabel: string | null = null;
 
   protected userInfo: UserInfo | null = null;
   protected languages: Language[] = [];
@@ -78,7 +85,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   // fluent languages
   protected selectedFluentLanguages: string[] = [];
   protected currentFluentLanguages: string[] = [];
-  protected fluentEditable: boolean = false;
+  protected fluentEditable = false;
   protected fluentEnabled$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
@@ -86,38 +93,28 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   // target languages
   protected targetLanguageNames: string[] = [];
   protected learners: Learner[] = [];
-  protected cefrFormControl = new FormControl<CEFRLevel | null>(null, Validators.required);
-  protected cefrEditable = false;
   protected addTargetLangModalVisible = false;
-  protected targetLanguageSelectControl = new FormControl();
-  protected showTargetLangDropdown = false;
+  protected targetLanguageSelectControl = new FormControl('', {nonNullable: true});
+  protected colourPickerLanguage: LanguageCode | null = null;
+  /** Which row's level list is open. One at a time: the panel is wider than the control it hangs off. */
+  protected levelPickerLearnerId: string | null = null;
+  protected readonly cefrLevelEntries = CEFR_LEVEL_ENTRIES;
+  protected readonly languageColours = LANGUAGE_COLOURS;
+  protected readonly updatingLearnerIds = new Set<string>();
+  /** The control the list was opened from: it greys while the save is in flight, so focus has to be handed back. */
+  private levelTriggerToRefocus: HTMLElement | null = null;
+  private langColors: Record<string, string> = {};
 
   // TL deletion modal
-  protected isConfirmTargetLangDeletionModalVisible: boolean = false;
+  protected isConfirmTargetLangDeletionModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
 
-  constructor(
-    private languageService: LanguageApiService,
-    protected languageNameService: LanguageNameService,
-    private userInfoService: UserInfoService,
-    private alertService: TuiAlertService,
-    private cdr: ChangeDetectorRef,
-    private localStorageService: LocalStorageService,
-    private languageApiService: LanguageApiService,
-    private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private route: ActivatedRoute,
-    private urlService: UrlService,
-    private recentAuthGuardService: RecentAuthGuardService,
-    private supportedLanguagesService: SupportedLanguagesService,
-    private utilsService: UtilsService,
-  ) {
-  }
-
   ngOnInit(): void {
+    this.loadPolicy();
+
     this.popupTemplateStateService.drawerState$
       .pipe(
         takeUntil(this.destroy$),
@@ -127,9 +124,9 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['target_lang'] === 'success') {
-        this.alertService.open('Your target language has been successfully saved', {appearance: 'success'}).subscribe();
+        this.alertService.open($localize`Your target language has been successfully saved`, {appearance: 'positive'}).subscribe();
         this.urlService.clearUrl();
       }
 
@@ -139,22 +136,18 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.supportedLanguagesService.supportedLanguages$.subscribe((languages) => {
+    this.supportedLanguagesService.supportedLanguages$.pipe(takeUntil(this.destroy$)).subscribe((languages) => {
       if (languages) {
         this.languages = languages;
         this.populateFromUserInfo();
       }
     });
 
-    this.cefrFormControl.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((newValue) => {
-        if (!newValue) return;
-        this.saveCefrLevelToServer(newValue);
-        this.cefrEditable = false;
+    this.targetLanguageDropdownService.langColors$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((colors) => {
+        this.langColors = colors;
+        this.syncLanguageColours();
       });
   }
 
@@ -168,58 +161,54 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
       if (info) {
         this.userInfo = info;
-        this.selectedFluentLanguages = info.fluentLangs;
-        this.currentFluentLanguages = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
+        const fluentLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.fluentLangs);
+        this.selectedFluentLanguages = fluentLanguageNames;
+        this.currentFluentLanguages = fluentLanguageNames;
         this.targetLanguageNames = this.languageNameService.mapLanguageCodesToNames(this.languages, info.targetLangs);
-        this.targetLanguageSelectControl = new FormControl(this.targetLanguageNames[0]);
+        this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
         this.learners = info.learners;
+        this.syncLanguageColours();
         this.updateFluentEnabled();
-        this.patchCefrControlFromCurrentLearner();
       }
     });
   }
 
-  private patchCefrControlFromCurrentLearner(): void {
-    const learner = this.currentLearner;
-    if (!learner) {
-      this.cefrFormControl.patchValue(null, {emitEvent: false});
+  protected onCefrLevelChange(learner: Learner, newValue: CEFRLevel): void {
+    if (learner.selfReportedLevel === newValue || this.updatingLearnerIds.has(learner.id)) {
       return;
     }
-    this.cefrFormControl.patchValue(
-      learner.selfReportedLevel as CEFRLevel,
-      {emitEvent: false} // so we don’t fire the .valueChanges subscription immediately
+
+    const previousLearners = this.learners;
+    const optimisticLearner = new Learner(learner.id, learner.language, newValue, learner.active);
+    this.learners = this.learners.map((currentLearner) =>
+      currentLearner.id === learner.id ? optimisticLearner : currentLearner,
     );
-  }
+    this.updatingLearnerIds.add(learner.id);
 
-  private saveCefrLevelToServer(newValue: CEFRLevel): void {
-    const oldValue = this.currentLearner.selfReportedLevel;
-    this.currentLearner.selfReportedLevel = newValue;
-
-    this.languageApiService.updateLearner(this.currentLearner.language, {level: newValue}).subscribe({
-      next: () => {
+    this.languageApiService.updateLearner(learner.language, {level: newValue}).pipe(
+      finalize(() => {
+        this.updatingLearnerIds.delete(learner.id);
+        this.returnLevelFocus();
+      }),
+    ).subscribe({
+      next: (savedLearner) => {
+        const persistedLearner = savedLearner ?? optimisticLearner;
+        this.learners = this.learners.map((currentLearner) =>
+          currentLearner.id === learner.id ? persistedLearner : currentLearner,
+        );
         this.userInfoService.updateUserInfo({learners: this.learners});
       },
       error: (err) => {
-        console.error('Failed to update CEFR:', err);
-        this.alertService.open('Failed to update CEFR level', {appearance: 'error'}).subscribe();
-        this.currentLearner.selfReportedLevel = oldValue;
+        logger.error('Failed to update CEFR:', err);
+        this.alertService.open($localize`Failed to update CEFR level`, {appearance: 'negative'}).subscribe();
+        this.learners = previousLearners;
       },
     });
   }
 
-  get currentLearner(): Learner {
-    const selectedLanguageName = this.targetLanguageSelectControl.value;
-    const selectedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, selectedLanguageName);
-
-    const learner = this.learners.find((learner) => learner.language === selectedLanguageCode);
-    if (!learner) {
-      console.error(`Learner not found for ${selectedLanguageCode}`);
-    }
-    return learner!;
-  }
-
   private validateFluentLanguages() {
-    return this.selectedFluentLanguages.length <= 3 && this.selectedFluentLanguages.length > 0;
+    return this.selectedFluentLanguages.length <= this.userInfo!.subscription.getMaxFluentLanguages()
+      && this.selectedFluentLanguages.length > 0;
   }
 
   private updateFluentEnabled(): void {
@@ -227,7 +216,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       !this.fluentEditable ||
       (this.validateFluentLanguages() && !this.utilsService.areArraysEqual(this.selectedFluentLanguages, this.currentFluentLanguages, (a, b) => a === b));
 
-    Promise.resolve().then(() => {
+    void Promise.resolve().then(() => {
       this.fluentEnabled$.next(isEnabled);
       this.cdr.detectChanges();
     });
@@ -247,7 +236,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.fluentEnabled$) {
-      console.error('This should not happen: form is invalid but submit was called');
+      logger.error('This should not happen: form is invalid but submit was called');
       return;
     }
 
@@ -259,13 +248,12 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     }).pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Fluent languages saved', {appearance: 'success'}).subscribe();
-          this.localStorageService.clearUserInfo();
+          this.alertService.open($localize`Fluent languages saved`, {appearance: 'positive'}).subscribe();
           this.fluentEditable = false;
-          this.currentFluentLanguages = this.selectedFluentLanguages;
+          this.userInfoService.updateUserInfo({fluentLangs: fluentLanguageCodes});
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to save fluent languages', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to save fluent languages`), {appearance: 'negative'}).subscribe();
           this.restoreFluent();
         },
       });
@@ -278,25 +266,26 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
 
   // TARGET
-  protected deleteTargetLang() {
+  protected deleteTargetLang(learner: Learner) {
     this.restoreFluent();
     if (this.learners.length === 1) {
-      console.error("This should not happen: trying to delete the last target language");
+      logger.error("This should not happen: trying to delete the last target language");
       return;
     }
+    this.targetLanguageSelectControl.setValue(this.getLanguageName(learner.language));
     this.recentAuthGuardService.guardAction(() => {
       this.prepareTargetLangDeletionModal();
     });
   }
 
-  protected getCurrentTargetLanguageName() {
+  protected getCurrentTargetLanguageName(): string {
     return this.targetLanguageSelectControl.value;
   }
 
   private prepareTargetLangDeletionModal() {
-    this.modalTitle = 'Delete ' + this.getCurrentTargetLanguageName() + ' Profile';
-    this.modalMessage = 'Are you sure? All your cards, progress, and settings will be lost.';
-    this.modalConfirmText = 'Delete';
+    this.modalTitle = $localize`Delete ${this.getCurrentTargetLanguageName()}:language: Profile`;
+    this.modalMessage = $localize`Are you sure? All your cards, progress, and settings will be lost.`;
+    this.modalConfirmText = $localize`Delete`;
     this.modalAction = this.confirmTargetLangDeletion.bind(this);
     this.isConfirmTargetLangDeletionModalVisible = true;
   }
@@ -310,21 +299,21 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     const deletedLanguageCode = this.languageNameService.mapLanguageNameToCode(this.languages, deletedLanguageName);
 
     if (!deletedLanguageCode) {
-      console.error(`Language code not found for ${deletedLanguageName}`);
+      logger.error(`Language code not found for ${deletedLanguageName}`);
       return;
     }
 
     this.languageApiService.deleteLearner(deletedLanguageCode).subscribe({
       next: () => {
         this.alertService
-          .open(`Your ${deletedLanguageName} profile has been deleted`, {appearance: 'success'})
+          .open($localize`Your ${deletedLanguageName}:language: profile has been deleted`, {appearance: 'positive'})
           .subscribe();
 
         // Remove from UI list
         this.targetLanguageNames = this.targetLanguageNames.filter(lang => lang !== deletedLanguageName);
 
         // Reset selection to the first available language
-        this.targetLanguageSelectControl.setValue(this.targetLanguageNames.length ? this.targetLanguageNames[0] : null);
+        this.targetLanguageSelectControl.setValue(this.targetLanguageNames[0] ?? '');
 
         // Remove from service and update user info
         this.targetLanguageDropdownService.removeTargetLanguage(deletedLanguageCode);
@@ -334,74 +323,288 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to delete your target language', {appearance: 'error'})
+          .open(getErrorMessage(error, $localize`Failed to delete your target language`), {appearance: 'negative'})
           .subscribe();
       },
     });
   }
 
+  protected openPaywall() {
+    this.paywallBackLabel = null;
+    this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+  }
+
+  // The upsell is a detour, not a destination: the reader still means to add a language, so the
+  // plans replace the sheet's content in place rather than routing the page underneath it.
+  protected openPaywallFromLangSetup() {
+    this.paywallBackLabel = $localize`Back to languages`;
+    this.popupTemplateStateService.open(this.paywallComponent.content, 'paywall');
+  }
+
+  protected returnToLangSetupPopup() {
+    this.paywallBackLabel = null;
+    // The sheet's component stays mounted while the paywall shows, so its form keeps what was typed.
+    this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
+  }
+
   protected openLangSetupPopup() {
     this.addTargetLangModalVisible = true;
     setTimeout(() => {
-      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', true, true);
+      // Taiga renders the language picker in a document-level portal, which the
+      // popup's click-outside directive would otherwise treat as a dismissal.
+      this.popupTemplateStateService.open(this.languageSetupComponent.content, 'add-target-lang', false, true);
     }, 50);
   }
 
-  protected activeToggleDisabled(): boolean {
-    return this.currentLearner.active && this.getActiveLearnersCount() === 1;
+  /** At the allowance the row is a choice, not a switch: turning one on turns another off. */
+  protected get atAllowance(): boolean {
+    return capped(this.policy) && this.getActiveLearnersCount() >= this.policy!.allowance;
+  }
+
+  protected get allowance(): number | null {
+    return capped(this.policy) ? this.policy!.allowance : null;
+  }
+
+  /** How many languages the account may hold at all. The same on every plan, so reaching it is not an upsell. */
+  protected get languageCeiling(): number {
+    return this.userInfo?.subscription.getMaxTargetLanguages() ?? 0;
+  }
+
+  protected get atLanguageCeiling(): boolean {
+    return this.userInfo?.isAtLanguageCeiling() ?? false;
+  }
+
+  /**
+   * What adding one more would actually do. The account can hold it either way; at the allowance it arrives set
+   * aside, and saying so beforehand is the difference between a limit and a surprise.
+   */
+  protected get allowanceNote(): string {
+    const allowance = this.allowance;
+    const held = allowance === 1 ? $localize`one active language` : $localize`${allowance}:count: active languages`;
+    return $localize`Your plan keeps ${held}:held:. Another one is saved with everything in it, but waits until you make it active or upgrade.`;
+  }
+
+  /** Words kept in a language, so a read-only row says what it is holding rather than just that it is off. */
+  private wordsKept(learner: Learner): number | null {
+    return this.policy?.languages.find(choice => choice.language === learner.language)?.wordsKept ?? null;
+  }
+
+  protected get switchAvailable(): boolean {
+    return switchAvailable(this.policy);
+  }
+
+  protected get nextSwitchOn(): Date | null {
+    return this.policy?.nextSwitchAllowedAt ?? null;
+  }
+
+  /**
+   * One visible line per row for whatever is greying that row's control. An active row only ever says why it cannot
+   * be switched off. A set-aside row is read-only, so its line says what it is holding and, at the allowance where the
+   * switch is greyed, what still has to happen: the cooldown to run out, or the decision to be taken on its record.
+   */
+  protected learnerLockNote(learner: Learner): string | null {
+    if (learner.active) {
+      if (this.getActiveLearnersCount() !== 1) {
+        return null;
+      }
+      return this.learners.length === 1
+        ? $localize`This is your only language. Add another before you can turn it off.`
+        : $localize`This is your only active language. Make another one active to turn it off.`;
+    }
+
+    const parts = [$localize`Read-only.`];
+    const kept = this.wordsKept(learner);
+    if (kept) {
+      parts.push($localize`${kept.toLocaleString($localize.locale)}:count: words kept.`);
+    }
+    if (this.atAllowance) {
+      const next = this.nextSwitchOn;
+      parts.push(!this.switchAvailable && next
+        ? $localize`Next switch ${new Intl.DateTimeFormat($localize.locale, {day: 'numeric', month: 'long'}).format(next)}:date:.`
+        : $localize`Make it active from its record.`);
+    }
+    return parts.join(' ');
+  }
+
+  /**
+   * At the allowance the toggle is display-only: turning one language on has to turn another off, and that swap is a
+   * decision taken on the record page, with the word count and the next switch date in view.
+   */
+  protected activeToggleDisabled(learner: Learner): boolean {
+    if (learner.active) {
+      return this.getActiveLearnersCount() === 1;
+    }
+    return this.atAllowance;
   }
 
   protected getActiveLearnersCount(): number {
     return this.learners.filter((learner) => learner.active).length;
   }
 
-  protected onToggleActiveStatus(active: boolean, languageCode: LanguageCode): void {
+  protected onToggleActiveStatus(active: boolean, learner: Learner): void {
     if (!active && this.getActiveLearnersCount() === 1) {
-      this.alertService.open('You must have at least one active target language', {appearance: 'error'}).subscribe();
+      this.alertService.open($localize`You must have at least one active target language`, {appearance: 'negative'}).subscribe();
       return;
     }
 
-    this.currentLearner.active = active;
+    learner.active = active;
+    this.updatingLearnerIds.add(learner.id);
 
-    this.languageApiService.updateLearner(languageCode, {active: active}).subscribe({
-      next: () => {
-        this.userInfoService.updateUserInfo({learners: this.learners});
+    this.languageApiService.updateLearner(learner.language, {active: active}).pipe(
+      // Taking a language up at the allowance sets another one aside on the server, and only the server knows which:
+      // it picks by reading history. Re-read the account instead of guessing, so the list never shows two active.
+      switchMap(() => active ? this.userInfoService.fetchUserInfoFromServer() : of(null)),
+      finalize(() => this.updatingLearnerIds.delete(learner.id)),
+    ).subscribe({
+      next: (refreshed) => {
+        this.loadPolicy();
+        if (!refreshed) {
+          // Setting aside touches one row, and a failed re-read still leaves the local flip as the best picture.
+          this.userInfoService.updateUserInfo({learners: this.learners});
+        }
         if (!active) {
-          this.targetLanguageDropdownService.removeTargetLanguage(languageCode);
+          this.targetLanguageDropdownService.removeTargetLanguage(learner.language);
         } else {
           this.targetLanguageDropdownService.initializeLanguages(this.userInfo!);
         }
       },
       error: (err) => {
-        this.alertService.open(err.error.message || 'Failed to update active status', {appearance: 'error'}).subscribe();
-        this.currentLearner.active = !active;
+        this.alertService.open(getErrorMessage(err, $localize`Failed to update active status`), {appearance: 'negative'}).subscribe();
+        learner.active = !active;
       },
     });
   }
 
-  protected handleClickOutsideCefrSelector() {
-    if (this.cefrEditable) {
-      this.cefrEditable = false;
-    }
+  protected getLanguageName(languageCode: LanguageCode): string {
+    return this.languageNameService.mapLanguageCodesToNames(this.languages, [languageCode])[0] ?? languageCode;
   }
 
-  protected clickOnCefrBadge() {
-    setTimeout(() => {
-      this.cefrEditable = true;
-    }, 0);
+  /** The row's control labels, built here so each is one message with the language name as a placeholder. */
+  protected colourTriggerLabel(learner: Learner): string {
+    return $localize`Choose colour for ${this.getLanguageName(learner.language)}:language:`;
   }
 
-  protected getActiveToggleTooltip(): string {
-    if (this.getActiveLearnersCount() === 1 && this.currentLearner.active) {
-      return 'You must have at least one active target language';
-    }
-    if (this.currentLearner.active) {
-      return 'Deactivating language removes it from the navbar dropdown';
-    }
-    return 'Activating language adds it to the navbar dropdown';
+  protected levelTriggerLabel(learner: Learner): string {
+    return $localize`Level for ${this.getLanguageName(learner.language)}:language:: ${this.levelSentence(learner.selfReportedLevel)}:level:`;
   }
 
-  get isDeleteTargetLangButtonVisible() {
-    return this.learners.filter((learner) => learner.active).length > 1;
+  protected levelListLabel(learner: Learner): string {
+    return $localize`Level for ${this.getLanguageName(learner.language)}:language:`;
+  }
+
+  protected activeToggleLabel(learner: Learner): string {
+    const name = this.getLanguageName(learner.language);
+    return learner.active ? $localize`Deactivate ${name}:language:` : $localize`Activate ${name}:language:`;
+  }
+
+  protected openRecordLabel(learner: Learner): string {
+    return $localize`Open the ${this.getLanguageName(learner.language)}:language: record`;
+  }
+
+  protected deleteLanguageLabel(learner: Learner): string {
+    return $localize`Delete ${this.getLanguageName(learner.language)}:language:`;
+  }
+
+  protected getLanguageColor(languageCode: LanguageCode, index: number): string {
+    return this.langColors[languageCode] ?? this.languageColours[index % this.languageColours.length].hex;
+  }
+
+  protected toggleColourPicker(languageCode: LanguageCode): void {
+    this.levelPickerLearnerId = null;
+    this.colourPickerLanguage = this.colourPickerLanguage === languageCode ? null : languageCode;
+  }
+
+  /** The sentence behind a code, so the closed control still reads as the answer that was given. */
+  protected levelSentence(level: CEFRLevel): string {
+    return CEFR_LEVEL_COPY[level];
+  }
+
+  protected toggleLevelPicker(learner: Learner, anchor: HTMLElement): void {
+    if (this.levelPickerLearnerId === learner.id) {
+      this.closeLevelPicker();
+      return;
+    }
+    this.colourPickerLanguage = null;
+    this.levelPickerLearnerId = learner.id;
+    // The list opens on the level already held, so the first arrow key steps from there rather than from the top.
+    // Event coalescing defers the render past a timeout, so draw the list before reaching into it for the option.
+    this.cdr.detectChanges();
+    anchor.querySelector<HTMLElement>('.level-option.selected')?.focus();
+  }
+
+  protected closeLevelPicker(): void {
+    this.levelPickerLearnerId = null;
+  }
+
+  protected selectLevel(learner: Learner, level: CEFRLevel, trigger: HTMLElement): void {
+    this.closeLevelPicker();
+    trigger.focus();
+    this.levelTriggerToRefocus = learner.selfReportedLevel === level ? null : trigger;
+    this.onCefrLevelChange(learner, level);
+  }
+
+  /** A disabled control cannot hold focus, so the keyboard would be left on the body once the save lands. */
+  private returnLevelFocus(): void {
+    const trigger = this.levelTriggerToRefocus;
+    this.levelTriggerToRefocus = null;
+    if (!trigger) {
+      return;
+    }
+    this.cdr.detectChanges();
+    trigger.focus();
+  }
+
+  /** Arrow keys walk the list, Escape hands focus back to the control that opened it. */
+  protected onLevelListKeydown(event: KeyboardEvent, trigger: HTMLElement): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closeLevelPicker();
+      trigger.focus();
+      return;
+    }
+
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    if (!step) {
+      return;
+    }
+    event.preventDefault();
+    const options = Array.from(
+      (event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('.level-option'),
+    );
+    const current = options.indexOf(document.activeElement as HTMLButtonElement);
+    const next = (current + step + options.length) % options.length;
+    options[next]?.focus();
+  }
+
+  protected selectLanguageColour(languageCode: LanguageCode, colour: string): void {
+    this.targetLanguageDropdownService.setLanguageColor(languageCode, colour);
+    this.colourPickerLanguage = null;
+  }
+
+  /** The list covers the languages set aside too, which the navbar's own pass over the active ones never reaches. */
+  private syncLanguageColours(): void {
+    this.targetLanguageDropdownService.ensurePaletteColours(this.learners.map((learner) => learner.language));
+  }
+
+  protected getActiveToggleTooltip(learner: Learner): string {
+    if (this.getActiveLearnersCount() === 1 && learner.active) {
+      return $localize`You must have at least one active target language`;
+    }
+    if (!learner.active && this.atAllowance) {
+      return $localize`Open its record to make it active`;
+    }
+    if (learner.active) {
+      return $localize`Deactivating language removes it from the navbar dropdown`;
+    }
+    return $localize`Activating language adds it to the navbar dropdown`;
+  }
+
+  private loadPolicy(): void {
+    this.languageApiService.getActiveLanguagePolicy()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: policy => this.policy = policy,
+        error: error => logger.error('Could not load your language allowance', error),
+      });
   }
 }

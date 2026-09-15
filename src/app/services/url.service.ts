@@ -1,16 +1,17 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UrlService {
-  constructor(private router: Router, private route: ActivatedRoute) {
-  }
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
 
   clearUrl() {
     const clearedUrl = this.getClearedUrl();
-    this.router.navigateByUrl(clearedUrl, {replaceUrl: true}).then();
+    void this.router.navigateByUrl(clearedUrl, {replaceUrl: true}).then();
   }
 
   getClearedUrl() {

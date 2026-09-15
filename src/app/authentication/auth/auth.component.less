@@ -1,8 +1,8 @@
 .auth-body {
-  --tui-background-accent-1: #5A1A74; // primary theme color, used for buttons, input fields, etc.
-  --tui-status-negative: #ac1c1c; // error field box color
-  --tui-text-negative: #ac1c1c; // error test color
-  --tui-radius-l: 2rem;
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-status-negative: var(--danger-text-color);
+  --tui-text-negative: var(--danger-text-color);
+  --tui-radius-l: .75rem;
 }
 
 form {
@@ -20,12 +20,18 @@ form {
 }
 
 .card {
-  width: 320px;
+  width: 360px;
+  max-width: calc(100vw - 2.4rem);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  box-shadow: var(--overlay-shadow);
 }
 
 .tui-col_8 {
   width: 100%;
-  padding: 20px;
+  padding: 20px 32px 26px;
   box-sizing: border-box; // Includes padding in the width calculation
 }
 
@@ -52,7 +58,7 @@ button[tuiButton] {
     font-weight: 600;
     cursor: pointer;
     padding: 0.5rem 1rem; /* Adjust padding to your preference */
-    color: #8F2356;
+    color: var(--dark-raspberry);
     opacity: 0.7; /* Reduced opacity for inactive spans */
     border-radius: 20px; /* Add border-radius for better contour */
     transition: all 0.3s ease; /* Smooth transition for hover/active state */
@@ -61,15 +67,15 @@ button[tuiButton] {
 
     &.active {
       font-weight: 700;
-      color: #5A1A74;
+      color: var(--brand-margin);
       opacity: 1; /* Full opacity for active spans */
-      border-color: #5A1A74; /* Highlight active option with a border */
+      border-color: var(--brand-margin);
       //box-shadow: 0px 1px 10px rgba(90, 26, 116, 0.2); /* Subtle shadow for depth */
     }
 
     &:hover {
       opacity: 1; /* Hover state to make it clearer */
-      border-color: #8F2356; /* Hover color matching the active state */
+      border-color: var(--dark-raspberry);
     }
   }
 }
@@ -88,20 +94,17 @@ button[tuiButton] {
   margin-bottom: 20px;
 }
 
-.agree-with-terms {
-  color: #8c838f;
-  font-size: 12px;
-  word-wrap: break-word;
-  white-space: normal;
-  margin-left: .8rem;
-  max-width: 280px; /* Limit the width of the container */
-  overflow-wrap: break-word; /* Ensure long words break to fit within the container */
+.auth-legal {
+  margin: 20px 0 0;
+  color: var(--metadata-color);
+  font-size: 11.5px;
+  line-height: 1.5;
+  text-align: center;
 }
 
-.agree-with-terms a {
-  color: #5A1A74; /* Different color for hyperlinks */
-  font-weight: bold; /* Make hyperlinks bold */
-  text-decoration: underline; /* Underline hyperlinks */
+.auth-legal a {
+  color: var(--brand-margin);
+  font-weight: 500;
 }
 
 .separator {
@@ -111,45 +114,45 @@ button[tuiButton] {
 }
 
 .greeting {
-  margin-bottom: 2rem;
+  margin: 0 0 1.125rem;
+  color: var(--subhead-color);
   text-align: center;
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-family: var(--font-family-reading);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  min-height: 1.5em;
+  text-wrap: balance;
+  transition: opacity 180ms ease;
 }
 
-.title {
-  width: 12rem;
-  margin-left: .2rem;
-}
-
-.logo {
-  width: 3rem;
+.greeting.fading {
+  opacity: 0;
 }
 
 .logo-div {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  border-radius: 20px;
-  margin: 1rem 0 0 0;
+  gap: 1.125rem;
+  margin: 1.875rem 0 0;
 }
 
-.logo-container {
-  display: flex;
-  width: 3.1rem;
-  height: 3.1rem;
+.wordmark {
+  display: block;
+  width: 9rem;
+  height: auto;
 }
 
-.rotating img {
-  animation: rotate-logo 2s linear infinite;
+.wordmark-dark {
+  display: none;
 }
 
-@keyframes rotate-logo {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.logo-emblem {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: center / contain no-repeat var(--brand-flat-logo-image);
 }
 
 .separator {
@@ -161,11 +164,70 @@ button[tuiButton] {
   padding: 0 1rem;
 }
 
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.auth-field label,
+.password-label {
+  color: var(--metadata-color);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.password-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.password-label a {
+  color: var(--brand-margin);
+}
+
+.identified-email {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: 42px;
+  margin: 0 0 18px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--main-bg-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+}
+
+.identified-email span {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.identified-email strong {
+  color: var(--brand-margin);
+  font-size: 12px;
+}
+
+.password-rule {
+  margin: 0;
+  color: var(--metadata-color);
+  font-size: 11.5px;
+}
+
 .separator::before,
 .separator::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--brand-ink);
 }
 
 .separator::before {
@@ -182,7 +244,7 @@ button[tuiButton] {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+  background: rgba(44, 37, 48, 0.6); /* Semi-transparent background */
   display: flex;
   align-items: center;
   justify-content: center;

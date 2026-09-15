@@ -27,3 +27,54 @@
 .fade-slide-out {
   animation: fadeSlideOut 0.2s ease-out;
 }
+
+.confirm-modal-surface {
+  color: var(--text-color);
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+}
+
+.confirm-modal-copy {
+  color: var(--subhead-color);
+}
+
+.confirm-modal-cancel {
+  color: var(--text-color);
+}
+
+.confirmation-input {
+  display: block;
+  width: 100%;
+  margin-top: .5rem;
+  padding: .65rem .75rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: .75rem;
+  outline: none;
+}
+
+.confirmation-input:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, .12);
+}
+
+/* Reversible actions commit in plum; only a destructive one is allowed to be red. */
+.confirm-modal-confirm {
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+
+.confirm-modal-confirm:hover:not(:disabled) {
+  background: var(--dark-raspberry);
+}
+
+.confirm-modal-confirm.danger {
+  background: #ef4444;
+}
+
+.confirm-modal-confirm.danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.confirm-modal-cancel.danger {
+  text-decoration: underline;
+}

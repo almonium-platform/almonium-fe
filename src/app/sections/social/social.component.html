@@ -1,306 +1,14 @@
 <app-confirm-modal
-  [isVisible]="isConfirmModalVisible"
-  [title]="modalTitle"
-  [message]="modalMessage"
-  [confirmText]="modalConfirmText"
-  (close)="closeConfirmModal()"
-  (confirm)="confirmModalAction()"
-  [useCountdown]="useCountdown">
+  [isVisible]="!!confirmation.state()"
+  [title]="confirmation.state()?.title ?? ''"
+  [message]="confirmation.state()?.message ?? ''"
+  [confirmText]="confirmation.state()?.confirmText ?? ''"
+  [tone]="confirmation.state()?.tone ?? 'danger'"
+  (closed)="confirmation.close()"
+  (confirm)="confirmation.confirm()"
+  [useCountdown]="confirmation.state()?.useCountdown ?? false">
 </app-confirm-modal>
 
-<tui-drawer
-  *tuiPopup="isDrawerOpened()"
-  direction="left"
-  class="drawer"
-  [overlay]="true"
-  (click.self)="closeDrawer()"
-  (tuiActiveZoneChange)="!$event && isDrawerOpened.set(false)"
->
-  <ng-template #skeletonLoader>
-    <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
-  </ng-template>
-
-  <header class="header">
-    <div class="header-inner pb-1">
-      <lucide-icon [name]="drawerIcon"
-                   class="cursor-pointer max-h-fit"
-                   (click)="setDrawerMode('menu')"
-      ></lucide-icon>
-      <p class="header-text">{{ drawerHeader }}</p>
-      <app-dismiss-button [relative]="true" (close)="closeDrawer()"></app-dismiss-button>
-    </div>
-  </header>
-  <div class="drawer-container">
-    @if (drawerMode === 'menu') {
-      <div class="menu-tiles">
-        <div class="menu-tile card" (click)="setDrawerMode('search')">
-          <lucide-icon name="user-round-search" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Search</p>
-        </div>
-        <div class="menu-tile card" (click)="setDrawerMode('friends')">
-          <lucide-icon name="users-round" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Friends</p>
-        </div>
-
-        <div class="menu-tile card" (click)="setDrawerMode('requests')">
-          <tui-badged-content class="menu-icon">
-            @if (incomingRequestsCount > 0) {
-              <tui-badge-notification
-                size="xs"
-                tuiSlot="top"
-              />
-            }
-            <div class="m-0.5">
-              <lucide-icon name="user-round-plus" color="black" [size]="24"></lucide-icon>
-            </div>
-          </tui-badged-content>
-          <p class="menu-text">Requests</p>
-        </div>
-
-        <div class="menu-tile card" (click)="setDrawerMode('blocked')">
-          <lucide-icon name="ban" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Blocked</p>
-        </div>
-        <div class="menu-tile return card" routerLink="/home">
-          <lucide-icon name="circle-arrow-out-up-left" class="menu-icon" [size]="24"></lucide-icon>
-          <p class="menu-text">Return</p>
-        </div>
-      </div>
-    }
-
-    @if (drawerMode === 'requests') {
-      <tui-segmented
-        size="l"
-        class="requests-toggle"
-        [(activeItemIndex)]="requestsIndex"
-        (activeItemIndexChange)="onRequestsIndexChange($event)"
-      >
-        <button type="button" class="btn-text">Received</button>
-        <button type="button" class="btn-text">Sent</button>
-      </tui-segmented>
-    }
-    <tui-scrollbar class="w-full p-1">
-      <div class="tiles">
-        @if (isDrawerDataLoading()) {
-          @for (i of range(3); track i) {
-            <ng-container [ngTemplateOutlet]="skeletonLoader"
-                          [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
-          }
-        } @else {
-          @if (drawerMode === 'search') {
-            <div class="search-container">
-              <tui-textfield
-                class="username-input shadowless-input"
-                iconStart="@tui.user-search"
-              >
-                <input
-                  [formControl]="usernameFormControl"
-                  tuiTextfield type="text"
-                  placeholder="Type at least 3 characters"/>
-              </tui-textfield>
-              @if (matchedUsers.length === 0 && usernameFormControl.value!.length >= 3) {
-                <p class="no-results">
-                  No one matched your search.
-                </p>
-              }
-            </div>
-            <div class="tiles">
-              @for (friend of matchedUsers; track friend) {
-                <div class="user-tile card">
-                  <app-avatar [avatarUrl]="friend.avatarUrl"
-                              [username]="friend.username"
-                              [size]="'m'"
-                  ></app-avatar>
-                  <p class="username">{{ friend.username }}</p>
-
-                  @if (sendRequestInProgressIds.has(friend.id)) {
-                    <lucide-icon name="loader-circle"
-                                 class="friend-action motion-preset-spin"
-                                 [size]="20"
-                    ></lucide-icon>
-                  } @else {
-                    <lucide-icon [name]="requestedIds.includes(friend.id) ? 'bell' : 'user-round-plus'"
-                                 class="friend-action positive"
-                                 (click)="sendFriendRequest(friend.id)"
-                                 [ngClass]="{ 'motion-preset-shake': requestedIds.includes(friend.id) }"
-                                 [size]="20"
-                    ></lucide-icon>
-                  }
-                </div>
-              }
-            </div>
-          } @else if (drawerMode !== 'menu' && drawerUserTiles.length === 0 && friendFormControl.value === '') {
-            <p class="no-results">
-              {{ noResultMessage }}
-            </p>
-          }
-          @if (drawerMode === 'friends') {
-            @if (friends.length !== 0) {
-              <div class="search-container">
-                <tui-textfield
-                  class="username-input shadowless-input"
-                  iconStart="@tui.user-search"
-                >
-                  <input
-                    [formControl]="friendFormControl"
-                    tuiTextfield
-                    type="text"
-                    placeholder="Type a username"
-                  />
-                </tui-textfield>
-                @if (drawerUserTiles.length === 0 && friendFormControl.value !== '') {
-                  <p class="no-results">
-                    No friend matched your search.
-                  </p>
-                }
-              </div>
-            } @else {
-              <app-button
-                appearance="bw"
-                label="Find friends"
-                gap="1rem"
-                width="fit"
-                [fontSize]=18
-                (click)="setDrawerMode('search')"
-              >
-                <tui-icon
-                  [style.width.px]="18"
-                  [style.height.px]="18"
-                  icon="@tui.user-round-search"/>
-              </app-button>
-            }
-          }
-          @for (friend of drawerUserTiles; track friend) {
-            <div class="user-tile card">
-              <app-avatar [avatarUrl]="friend.avatarUrl"
-                          [username]="friend.username"
-                          [size]="'m'"
-              ></app-avatar>
-              <p class="username">{{ friend.username }}</p>
-
-              @if (drawerMode === 'friends') {
-                <lucide-icon name="ellipsis"
-                             class="friend-action positive"
-                             [size]="20"
-                             #friendDropdown="tuiDropdown"
-                             tuiDropdown
-                             (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
-                             [tuiDropdown]="friendDropdownTemplate"
-                             (click)="friendDropdown.toggle(true)"
-                >
-                  <ng-template #friendDropdownTemplate>
-                    <tui-data-list
-                      role="menu"
-                      tuiDataListDropdownManager
-                      class="context-menu">
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="openChatWithFriend(friend)"
-                      >
-                        <lucide-icon name="message-circle"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Message
-                      </button>
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button negative"
-                        (click)="prepareUnfriendModal(friend.id, friend.relationshipId)"
-                      >
-                        <lucide-icon name="user-round-x"
-                                     class="chat-icon negative"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Unfriend
-                      </button>
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button negative"
-                        (click)="prepareBlockModal(friend.id, friend.relationshipId)"
-                      >
-                        <lucide-icon name="ban"
-                                     class="chat-icon negative"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Block
-                      </button>
-                    </tui-data-list>
-                  </ng-template>
-                </lucide-icon>
-              }
-
-              @if (drawerMode === 'blocked') {
-                @if (unblockInProgressIds.has(friend.relationshipId)) {
-                  <lucide-icon name="loader-circle"
-                               class="friend-action motion-preset-spin"
-                               [size]="20"
-                  ></lucide-icon>
-                } @else {
-                  <lucide-icon name="x"
-                               class="friend-action negative primary"
-                               [size]="20"
-                               (click)="unblock(friend.id, friend.relationshipId)"
-                  ></lucide-icon>
-                }
-              }
-
-              @if (drawerMode === 'requests') {
-                @if (requestsIndex === 0) {
-                  @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
-                    <lucide-icon name="loader-circle"
-                                 class="friend-action motion-preset-spin"
-                                 [size]="20"
-                    ></lucide-icon>
-                  } @else {
-                    @if (friend.relationshipStatus === FriendshipStatus.PENDING) {
-                      <lucide-icon name="user-round-plus"
-                                   class="friend-action positive"
-                                   [size]="20"
-                                   (click)="acceptFriendRequest(friend)"
-                      ></lucide-icon>
-                      <lucide-icon name="x"
-                                   class="friend-action negative secondary"
-                                   [size]="20"
-                                   (click)="rejectFriendRequest(friend.relationshipId)"
-                      ></lucide-icon>
-                    }
-                  }
-
-                  @if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
-                    <lucide-icon name="message-circle"
-                                 class="friend-action positive"
-                                 [size]="20"
-                                 (click)="openChatWithFriend(friend)"
-                    ></lucide-icon>
-                  }
-                }
-                @if (requestsIndex === 1) {
-                  @if (cancelInProgressIds.has(friend.relationshipId)) {
-                    <lucide-icon name="loader-circle"
-                                 class="friend-action motion-preset-spin"
-                                 [size]="20"
-                    ></lucide-icon>
-                  } @else {
-                    <lucide-icon name="x"
-                                 class="friend-action negative"
-                                 [size]="20"
-                                 (click)="cancelFriendRequest(friend.relationshipId)"
-                    ></lucide-icon>
-                  }
-                }
-              }
-            </div>
-          }
-        }
-      </div>
-    </tui-scrollbar>
-  </div>
-</tui-drawer>
 <ng-template #customMessageActions
              let-isMine="isMine"
              let-message="message"
@@ -314,13 +22,64 @@
   ></stream-message-actions-box>
 </ng-template>
 
+<!--
+  02: the day divider owns the date and the bubble owns the time, so the stamp rides inside the
+  pill instead of restating "Today at" underneath it. The read receipt comes with it.
+-->
+<ng-template #messageStamp let-message="message">
+  <span class="message-stamp" [class.mine]="isOwnMessage(message)">
+    <span class="message-stamp-time">{{ message.created_at | date: 'h:mm a' }}</span>
+    <!-- 10: a receipt reports on a journey. An unsent message did not make one, and its mark
+         is on the line below the bubble instead, so the pill carries only its clock. -->
+    @if (isOwnMessage(message) && !messageFailure(message)) {
+      <lucide-icon class="message-stamp-receipt"
+                   [name]="receiptIcon(message)"
+                   [size]="13"
+                   [strokeWidth]="2"
+      ></lucide-icon>
+    }
+  </span>
+</ng-template>
+
+<!--
+  03/10: the slot under a message, outside the bubble. A post carries the thing it announces; a
+  message that did not land carries what happened to it. Both belong on the ground below the pill
+  rather than inside it - which is where Stream puts its own error line, on a plum fill that
+  danger copy cannot be read against.
+-->
+<ng-template #messageFooter let-message="message">
+  @switch (messageFailure(message)) {
+    @case ('failed') {
+      <!-- One mark and one line, and the whole of it is the retry. -->
+      <button type="button" class="message-failure retry" (click)="retrySend(message)">
+        <lucide-icon name="circle-x" [size]="13" [strokeWidth]="2"></lucide-icon>
+        <span>{{ copy.sendFailed }}</span>
+      </button>
+    }
+    @case ('refused') {
+      <!-- Nothing to retry, so nothing to press: the lock says the rule, not the remedy. -->
+      <span class="message-failure refused">
+        <lucide-icon name="lock" [size]="13" [strokeWidth]="1.9"></lucide-icon>
+        <span>{{ copy.sendRefused }}</span>
+      </span>
+    }
+    @default {
+      @if (postCtaLabel(message); as label) {
+        <button type="button" class="post-cta" (click)="openPostCta(message)">{{ label }}</button>
+      }
+    }
+  }
+</ng-template>
+
 <div class="super-container">
   <div class="left-container"
+       appSocialSidebarResize
+       #sidebar="socialSidebarResize"
        [ngClass]="{
          'hidden': isChatOpen,
-         'collapsed': isCollapsed
+         'collapsed': !isNarrowViewport() && sidebar.isCollapsed
        }"
-       [ngStyle]="isManuallyResized ? {'width.px': sidebarWidth} : {'flex': '1'}">
+       [ngStyle]="isNarrowViewport() ? {} : (sidebar.isManuallyResized ? {'width.px': sidebar.width} : {'flex': '1'})">
 
     <div class="chats-container">
       <div class="chats-header">
@@ -328,350 +87,494 @@
           <div class="m-0.5">
             <lucide-icon name="menu"
                          class="cursor-pointer"
-                         (click)="openDrawerAndSetupData()"
-                         tuiHintAppearance="dark"
-                         tuiHintDirection="bottom"
-                         color="black"
-                         [tuiHint]="menuTooltip"
-            >
-              <ng-template #menuTooltip>
-                <div>Your friends, requests, and more</div>
-              </ng-template>
-            </lucide-icon>
+                         aria-label="Open people panel" i18n-aria-label
+                         (click)="openPeopleAndSetupData()"
+                         color="var(--brand-ink)"
+            ></lucide-icon>
           </div>
           @if (incomingRequestsCount > 0) {
-            <tui-badge-notification
-              size="xs"
-              tuiSlot="top"
-            />
+            <tui-badge-notification size="xs" tuiSlot="top" />
           }
         </tui-badged-content>
 
-        <p class="header-text chats">Chats</p>
-        <lucide-icon [name]="showHiddenChannels$.value ? 'eye-closed' : 'eye'"
-                     class="hidden-chat-icon"
-                     [strokeWidth]="1.5"
-                     (click)="toggleHiddenChats()"
-                     tuiHintAppearance="dark"
-                     tuiHintDirection="bottom"
-                     [tuiHint]="tooltipTemplate"
-        >
-          <ng-template #tooltipTemplate>
-            <div>{{ hiddenChatsTooltip }}</div>
-          </ng-template>
-        </lucide-icon>
+        <p i18n class="header-text chats">Chats</p>
+
+        <button type="button"
+                class="new-chat"
+                aria-label="New chat" i18n-aria-label
+                (click)="startNewChat()">
+          <lucide-icon name="square-pen" [size]="18"></lucide-icon>
+        </button>
       </div>
       <div class="search-header"
-           (click)="openSearch()">
+           (keydown.enter)="openSearch()" tabindex="0" (click)="openSearch()">
         <lucide-icon name="search"
                      class="search-icon"
         ></lucide-icon>
 
+        <!-- Taiga's own cleaner sets the accessor to null rather than the control, and would sit
+             beside the hand-rolled clear below as a second x. -->
         <tui-textfield
           #chatSearch
           class="chat-input shadowless-input"
+          [tuiTextfieldCleaner]="false"
         >
           <input
             [formControl]="chatFormControl"
-            tuiTextfield
-            tuiTextfieldSize="m"
+            tuiInput
+            [tuiTextfieldSize]="'m'"
             type="text"
-            placeholder="Search"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            placeholder="Search" i18n-placeholder
           />
         </tui-textfield>
+        @if (searchQuery) {
+          <button type="button"
+                  class="search-clear"
+                  aria-label="Clear search" i18n-aria-label
+                  (click)="clearSearch($event)">
+            <lucide-icon name="x" [size]="16"></lucide-icon>
+          </button>
+        }
       </div>
       <overlay-scrollbars
         [defer]="true"
         [options]="{scrollbars:{ autoHide: 'leave', autoHideDelay: 0}}">
         <div class="channel-list scrollable">
-          <stream-channel-list>
-            <ng-template #avatarTemplate
-                         let-channel="channel"
-                         let-location="location"
-                         let-imageUrl="imageUrl"
-                         let-user="user"
-                         let-name="name"
-                         let-type="type"
-            >
-              <div class="avatar-wrapper"
-                   (mouseenter)="startAvatarHover(channel, location)"
-                   (mouseleave)="stopAvatarHover()"
-              >
 
-                <app-custom-chat-avatar
-                  class="custom-chat-avatar"
-                  [type]="type"
-                  [channel]="channel"
-                  [user]="user"
-                  [name]="name"
-                  [imageUrl]="imageUrl"
-                  [location]="location"
-                  [tuiDropdownManual]="shouldShowDropdown(channel, location)"
-                  [showOnlineIndicator]="true"
-                  [tuiDropdown]="dropdownTemplate"
-                  (click)="openUser(location)"
+          @if (searchQuery) {
+            <!-- 01: search answers in sections, and joining happens on the row. -->
+            <div class="search-results">
+              @if (searchChats.length) {
+                <p i18n class="list-section">Chats</p>
+                @for (channel of searchChats; track channel.cid) {
+                  <button type="button" class="result-row" (click)="openSearchResult(channel)">
+                    <app-custom-chat-avatar
+                      class="custom-chat-avatar"
+                      type="channel"
+                      [channel]="channel"
+                      [name]="channels.name(channel, '')"
+                      [imageUrl]="channelImage(channel)"
+                      [location]="'channel-preview'"
+                    ></app-custom-chat-avatar>
+                    <span class="result-body">
+                      <span class="result-name">{{ channels.name(channel, '') }}</span>
+                      <span class="result-preview">{{ lastMessagePreview(channel) }}</span>
+                    </span>
+                  </button>
+                }
+              }
+
+              @if (searchJoinable.length) {
+                <p i18n class="list-section">Channels you can join</p>
+                @for (channel of searchJoinable; track channel.cid) {
+                  <div class="result-row static">
+                    <app-custom-chat-avatar
+                      class="custom-chat-avatar"
+                      type="channel"
+                      [channel]="channel"
+                      [name]="channels.name(channel, '')"
+                      [imageUrl]="channelImage(channel)"
+                      [location]="'channel-preview'"
+                    ></app-custom-chat-avatar>
+                    <span class="result-body">
+                      <span class="result-name">{{ channels.name(channel, '') }}</span>
+                    </span>
+                    <button i18n type="button"
+                            class="row-join"
+                            (click)="joinFromSearch(channel)">Join</button>
+                  </div>
+                }
+              }
+
+              @if (searchMessages.length) {
+                <p i18n class="list-section">Messages</p>
+                @for (hit of searchMessages; track hit.id) {
+                  <button type="button" class="result-row" (click)="openMessageHit(hit)">
+                    <span class="result-body">
+                      <span class="result-name">{{ hit.channelName }}</span>
+                      <span class="result-preview">{{ hit.text }}</span>
+                    </span>
+                  </button>
+                }
+              }
+
+              @if (!isSearching && !searchChats.length && !searchJoinable.length && !searchMessages.length) {
+                <p i18n class="list-empty">No chats match &ldquo;{{ searchQuery }}&rdquo;.</p>
+              }
+            </div>
+          }
+
+          <div class="channel-list-main" [class.searching]="!!searchQuery">
+            @if (isArchiveOpen) {
+              <!-- Entering the archive swaps the list in place; the chevron is the way back. -->
+              <button type="button" class="archive-row back" (click)="closeArchive()">
+                <span class="archive-emblem">
+                  <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+                </span>
+                <span i18n class="archive-label">Archived</span>
+              </button>
+            } @else if (archivedCount > 0) {
+              <button type="button" class="archive-row" (click)="openArchive()">
+                <span class="archive-emblem">
+                  <lucide-icon name="archive" [size]="18"></lucide-icon>
+                </span>
+                <span i18n class="archive-label">Archived</span>
+                @if (archiveHasUnread) {
+                  <span class="archive-dot" aria-label="Unread messages in the archive" i18n-aria-label></span>
+                } @else {
+                  <span class="archive-count">{{ archivedCount }}</span>
+                }
+              </button>
+            }
+
+            <stream-channel-list>
+              <ng-template #avatarTemplate
+                           let-channel="channel"
+                           let-location="location"
+                           let-imageUrl="imageUrl"
+                           let-user="user"
+                           let-name="name"
+                           let-type="type"
+              >
+                <div class="avatar-wrapper"
+                     (mouseenter)="startAvatarHover(channel, location)"
+                     (mouseleave)="stopAvatarHover()"
+                     (focusin)="togglePreviewCard(channel, location)"
                 >
-                  <ng-template #dropdownTemplate>
-                    @let interlocutorId = getInterlocutorId();
-                    @if (interlocutorId !== null) {
-                      <app-user-preview-card
-                        [userId]="interlocutorId"
-                        (mouseenter)="previewCardOnHover()"
-                        (close)="previewCardOnLeave()"
-                      ></app-user-preview-card>
-                    }
-                  </ng-template>
-                </app-custom-chat-avatar>
 
-              </div>
-            </ng-template>
+                  <app-custom-chat-avatar
+                    class="custom-chat-avatar"
+                    [type]="type"
+                    [channel]="channel"
+                    [user]="user"
+                    [name]="name"
+                    [imageUrl]="imageUrl"
+                    [location]="location"
+                    [tuiHint]="sidebar.isCollapsed ? name : ''"
+                    [tuiHintAppearance]="'dark'"
+                    tuiHintDirection="end"
+                    [tuiDropdownManual]="shouldShowDropdown(channel, location)"
+                    [tuiDropdown]="dropdownTemplate"
+                    tabindex="0"
+                    role="button"
+                    [attr.aria-label]="profileAriaLabel(name)"
+                    (click)="togglePreviewCard(channel, location)"
+                    (keydown.enter)="togglePreviewCard(channel, location)"
+                  >
+                    <ng-template #dropdownTemplate>
+                      @let interlocutorId = getInterlocutorId();
+                      @if (interlocutorId !== null) {
+                        <app-user-preview-card
+                          [userId]="interlocutorId"
+                          (mouseenter)="previewCardOnHover()"
+                          (closed)="previewCardOnLeave()"
+                        ></app-user-preview-card>
+                      }
+                    </ng-template>
+                  </app-custom-chat-avatar>
 
-            <ng-template
-              #channelPreview
-              let-channelDisplayTitle="channelDisplayTitle"
-              let-channel="channel"
-              let-unreadCount="unreadCount"
-              let-latestMessageText="latestMessageText"
-              let-latestMessageStatus="latestMessageStatus"
-              let-latestMessageTime="latestMessageTime"
-            >
-              <div
-                #dropdown="tuiDropdown"
-                class="preview-tile"
-                tuiDropdownContext
-                [tuiDropdown]="contextMenu"
-                (contextmenu)="dropdown.toggle(true)"
-                (click)="dropdown.toggle(false)"
+                  @if (sidebar.isCollapsed && location === 'channel-preview' && isUnread(channel)) {
+                    <span class="rail-unread" aria-label="Unread messages" i18n-aria-label></span>
+                  }
+                </div>
+              </ng-template>
+
+              <ng-template
+                #channelPreview
+                let-channelDisplayTitle="channelDisplayTitle"
+                let-channel="channel"
+                let-unreadCount="unreadCount"
+                let-latestMessageText="latestMessageText"
+                let-latestMessageStatus="latestMessageStatus"
+                let-latestMessageTime="latestMessageTime"
               >
-                <ng-template #contextMenu>
+                <div
+                  class="preview-tile"
+                  [class.almo-row]="channels.isAlmo(channel)"
+                  (contextmenu)="openRowMenu(rowMenu, $event)"
+                  (keydown.enter)="closeRowMenu()" tabindex="0" (click)="closeRowMenu()"
+                >
+                  <ng-template #contextMenu>
 
-                  <tui-data-list
-                    role="menu"
-                    tuiDataListDropdownManager
-                    class="context-menu">
+                    <tui-data-list
+                      role="menu"
+                      tuiDataListDropdownManager
+                      class="context-menu">
 
-                    @if (amMember(channel)) {
-                      @if (!isHiddenChannel(channel)) {
-                        <button
-                          tuiOption
-                          type="button"
-                          class="context-button"
-                          (click)="hideChat(channel, dropdown)"
-                        >
-                          <lucide-icon name="eye-closed"
-                                       class="chat-icon"
-                                       [size]="18"
-                          ></lucide-icon>
-                          Hide
-                        </button>
-                      } @else {
-                        <button
-                          tuiOption
-                          type="button"
-                          class="context-button"
-                          (click)="showChat(channel, dropdown)"
-                        >
-                          <lucide-icon name="eye"
-                                       class="chat-icon"
-                                       [size]="18"
-                          ></lucide-icon>
-                          Show
-                        </button>
+                      @if (channels.isMember(channel)) {
+                        @if (!isArchived(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="archiveChat(channel, rowMenu)"
+                          >
+                            <lucide-icon name="archive"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Archive
+                          </button>
+                        } @else {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="unarchiveChat(channel, rowMenu)"
+                          >
+                            <lucide-icon name="archive-restore"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Unarchive
+                          </button>
+                        }
                       }
-                    }
 
-                    @if (isUnread(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="markAsRead(channel, dropdown)"
-                      >
-                        <lucide-icon name="check-check"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Mark as read
-                      </button>
-                    } @else if (isLastMessageFromOtherUser(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button"
-                        (click)="markAsUnread(channel, dropdown)"
-                      >
-                        <lucide-icon name="message-square-dot"
-                                     class="chat-icon"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Mark as unread
-                      </button>
-                    }
-
-                    @if (amMember(channel) && !isSelfChat(channel)) {
-                      @if (isChannelMuted(channel)) {
-                        <button
-                          tuiOption
-                          type="button"
-                          class="context-button"
-                          (click)="unmuteChat(channel, dropdown)"
-                        >
-                          <lucide-icon name="bell"
-                                       class="chat-icon"
-                                       [size]="18"
-                          ></lucide-icon>
-                          Unmute
-                        </button>
-                      } @else {
-                        <button
-                          tuiOption
-                          type="button"
-                          class="context-button"
-                          (click)="muteChat(channel, dropdown)"
-                        >
-                          <lucide-icon name="bell-off"
-                                       class="chat-icon"
-                                       [size]="18"
-                          ></lucide-icon>
-                          Mute
-                        </button>
+                      @if (!channels.isPublic(channel)) {
+                        @if (isUnread(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="markAsRead(channel, rowMenu)"
+                          >
+                            <lucide-icon name="check-check"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Mark as read
+                          </button>
+                        } @else if (isLastMessageFromOtherUser(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="markAsUnread(channel, rowMenu)"
+                          >
+                            <lucide-icon name="message-square-dot"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Mark as unread
+                          </button>
+                        }
                       }
-                    }
 
-                    @if (isPrivateChat(channel) || isSelfChat(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button negative"
-                        (click)="prepareChatTruncationConfirmationModal(channel, dropdown)"
-                      >
-                        <lucide-icon name="circle-x"
-                                     class="chat-icon negative"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Clear
-                      </button>
-                    }
+                      @if (channels.isMember(channel) && !channels.isSelf(channel)) {
+                        @if (isChannelMuted(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="unmuteChat(channel, rowMenu)"
+                          >
+                            <lucide-icon name="bell"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Unmute
+                          </button>
+                        } @else {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="muteChat(channel, rowMenu)"
+                          >
+                            <lucide-icon name="bell-off"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Mute
+                          </button>
+                        }
+                      }
 
-                    @if (isPrivateChat(channel)) {
-                      <button
-                        tuiOption
-                        type="button"
-                        class="context-button negative"
-                        (click)="prepareConfirmModalForChatDeletion(channel, dropdown)"
-                      >
-                        <lucide-icon name="trash"
-                                     class="chat-icon negative"
-                                     [size]="18"
-                        ></lucide-icon>
-                        Delete
-                      </button>
-                    }
-
-                    @if (isPublicChannel(channel)) {
-                      @if (!amMember(channel)) {
-                        <button
+                      <!-- Clearing and deleting throw messages away, so a rule sets them off. -->
+                      @if (channels.isPrivate(channel) || channels.isSelf(channel)) {
+                        <div class="context-separator" role="separator"></div>
+                        <button i18n
                           tuiOption
                           type="button"
                           class="context-button"
-                          (click)="joinChannel(channel, dropdown)"
+                          (click)="prepareChatTruncationConfirmationModal(channel, rowMenu)"
                         >
-                          <lucide-icon name="log-in"
+                          <lucide-icon name="eraser"
                                        class="chat-icon"
                                        [size]="18"
                           ></lucide-icon>
-                          Join
+                          Clear history
                         </button>
                       }
 
-                      @if (amMember(channel)) {
-                        <button
+                      <!-- Delete is the only red item in this menu. -->
+                      @if (channels.isPrivate(channel)) {
+                        <button i18n
                           tuiOption
                           type="button"
                           class="context-button negative"
-                          (click)="prepareLeaveChannelModal(channel, dropdown)"
+                          (click)="prepareConfirmModalForChatDeletion(channel, rowMenu)"
                         >
-                          <lucide-icon name="log-out"
+                          <lucide-icon name="trash"
                                        class="chat-icon negative"
                                        [size]="18"
                           ></lucide-icon>
-                          Leave
+                          Delete chat
                         </button>
                       }
+
+                      @if (channels.isPublic(channel)) {
+                        @if (!channels.isMember(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="joinChannel(channel, rowMenu)"
+                          >
+                            <lucide-icon name="log-in"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Join
+                          </button>
+                        }
+
+                        <!-- Leaving is reversible, so it stays in normal ink. -->
+                        @if (channels.isMember(channel)) {
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="prepareLeaveChannelModal(channel, rowMenu)"
+                          >
+                            <lucide-icon name="log-out"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Leave channel
+                          </button>
+                        }
+                      }
+
+                    </tui-data-list>
+                  </ng-template>
+
+                  <div class="str-chat__channel-preview-end-first-row">
+                    <div class="str-chat__channel-preview-messenger--name">
+                      <!-- 10: a name in muted ink is a name nobody answers to any more. -->
+                      <span [attr.data-testid]="'channel-preview-title'"
+                            [class.deleted-account]="channels.isInterlocutorDeleted(channel)">
+                        {{ channels.name(channel, channelDisplayTitle) }}
+                      </span>
+                      <!-- 08: the member mark. The row prints a name, so the star follows it. -->
+                      @if (channels.isInterlocutorPremium(channel)) {
+                        <app-premium-star />
+                      }
+                    </div>
+                    @if (latestMessageTime) {
+                      <div
+                        [attr.data-testid]="'latest-message-time'"
+                        class="str-chat__channel-preview-messenger--time"
+                      >
+                        {{ latestMessageTime }}
+                      </div>
                     }
-
-                  </tui-data-list>
-                </ng-template>
-
-                <div class="str-chat__channel-preview-end-first-row">
-                  <div class="str-chat__channel-preview-messenger--name">
-                                <span data-testid="channel-preview-title">
-                                  {{ getChatName(channel, channelDisplayTitle) }}
-                                </span>
                   </div>
-                  @if (latestMessageTime) {
-                    <div
-                      data-testid="latest-message-time"
-                      class="str-chat__channel-preview-messenger--time"
-                    >
-                      {{ latestMessageTime }}
-                    </div>
-                  }
-                </div>
 
-                <div class="str-chat__channel-preview-end-second-row">
-                  <div
-                    data-testid="latest-message"
-                    class="str-chat__channel-preview-messenger--last-message"
-                  >
-                    @if (displayAs === 'text') {
-                      {{ latestMessageText | translate }}
-                    } @else {
-                      <span
-                        data-testid="html-content"
-                        [innerHTML]="latestMessageText | translate"
-                      ></span>
+                  <div class="str-chat__channel-preview-end-second-row">
+                    <div
+                      [attr.data-testid]="'latest-message'"
+                      class="str-chat__channel-preview-messenger--last-message"
+                    >
+                      @if (!channel.state.messages.length) {
+                        {{ emptyPreview(channel) }}
+                      } @else if (displayAs === 'text') {
+                        {{ latestMessageText | translate }}
+                      } @else {
+                        <span
+                          [attr.data-testid]="'html-content'"
+                          [innerHTML]="latestMessageText | translate"
+                        ></span>
+                      }
+                    </div>
+                    @if (latestMessageStatus) {
+                      <div
+                        [attr.data-testid]="'latest-message-status'"
+                        class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
+                      latestMessageStatus
+                        }}"
+                      >
+                        <stream-icon-placeholder
+                          [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
+                        ></stream-icon-placeholder>
+                      </div>
+                    }
+                    @if (unreadCount) {
+                      <div
+                        [attr.data-testid]="'unread-badge'"
+                        class="str-chat__channel-preview-unread-badge"
+                        [ngClass]="{'single-digit': unreadCount <= 9}">
+                        {{ unreadCount }}
+                      </div>
+                    }
+                    @if (isChannelMuted(channel)) {
+                      <lucide-icon name="bell-off"
+                                   class="chat-icon muted-icon"
+                                   [size]="18"
+                      ></lucide-icon>
                     }
                   </div>
-                  @if (latestMessageStatus) {
-                    <div
-                      data-testid="latest-message-status"
-                      class="str-chat__channel-preview-messenger--status str-chat__channel-preview-messenger--status-{{
-                    latestMessageStatus
-                      }}"
-                    >
-                      <stream-icon-placeholder
-                        [icon]="latestMessageStatus === 'delivered' ? 'delivered' : 'read'"
-                      ></stream-icon-placeholder>
-                    </div>
-                  }
-                  @if (unreadCount) {
-                    <div
-                      data-testid="unread-badge"
-                      class="str-chat__channel-preview-unread-badge"
-                      [ngClass]="{'single-digit': unreadCount <= 9}">
-                      {{ unreadCount }}
-                    </div>
-                  }
-                  @if (isChannelMuted(channel)) {
-                    <lucide-icon name="bell-off"
-                                 class="chat-icon muted-icon"
-                                 [size]="18"
-                    ></lucide-icon>
-                  }
+
+                  <div class="row-controls">
+                    <!-- Unarchive is reachable without opening the menu at all. -->
+                    @if (isArchived(channel)) {
+                      <button type="button"
+                              class="row-control"
+                              aria-label="Unarchive chat" i18n-aria-label
+                              (click)="unarchiveChat(channel, rowMenu, $event)">
+                        <lucide-icon name="archive-restore" [size]="16"></lucide-icon>
+                      </button>
+                    }
+                    <button type="button"
+                            class="row-control row-menu-trigger"
+                            aria-label="Chat actions" i18n-aria-label
+                            #rowMenu="tuiDropdown"
+                            tuiDropdown
+                            [tuiDropdownAlign]="'end'"
+                            [tuiDropdown]="contextMenu"
+                            (tuiActiveZoneChange)="!$event && closeRowMenu(rowMenu)"
+                            (click)="openRowMenu(rowMenu, $event)">
+                      <lucide-icon name="ellipsis" [size]="16"></lucide-icon>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </ng-template>
-          </stream-channel-list>
+              </ng-template>
+            </stream-channel-list>
+          </div>
         </div>
       </overlay-scrollbars>
     </div>
   </div>
 
-  <div class="resizer" (mousedown)="startResizing($event)"></div>
+  <div class="resizer"
+       role="separator"
+       aria-orientation="vertical"
+       aria-label="Resize chat list" i18n-aria-label
+       [class.dragging]="sidebar.isDragging"
+       (dblclick)="sidebar.toggleRail()"
+       (mousedown)="sidebar.start()">
+    <span class="resizer-grip"></span>
+  </div>
 
   <div class="right-container scrollable" [ngClass]="{'active': isChatOpen}">
-    <div class="chat-window">
+    <!-- 25: a channel post is published, not said, so its feed drops the chat grammar. -->
+    <div class="chat-window"
+         [class.broadcast]="isActiveChannelReadOnly"
+         [class.reading-column]="isActiveChannelReadingColumn">
       <stream-channel>
         <ng-template #customHeaderTemplate let-channel="channel">
           <app-chat-header [channel]="channel"></app-chat-header>
@@ -684,11 +587,395 @@
                        class="mr-2 block back-to-channels"
           ></lucide-icon>
         </ng-template>
+        <ng-template #emptyMessageListPlaceholder>
+          <div class="channel-empty-state">
+            <p class="channel-empty-title">{{ emptyChannelTitle }}</p>
+            <p class="channel-empty-body">{{ emptyChannelBody }}</p>
+          </div>
+        </ng-template>
 
         <stream-channel-header></stream-channel-header>
         <stream-message-list></stream-message-list>
-        <stream-message-input></stream-message-input>
+        <!-- 11: Almo's marks in the bubbles, and his openers above an empty composer. Nothing in a human chat. -->
+        <app-almo-chat></app-almo-chat>
+        @if (isActiveChannelReadOnly) {
+          <div class="channel-readonly-footer">
+            <span i18n class="readonly-note">
+              <lucide-icon name="lock" [size]="15" [strokeWidth]="1.7"></lucide-icon>
+              Only Almonium posts in this channel
+            </span>
+            @if (activeChannel && isChannelMuted(activeChannel)) {
+              <span i18n class="muted-pill">Muted while you read</span>
+            }
+          </div>
+        } @else if (isActiveChannelDeleted) {
+          <!-- 10: the composer is replaced, never disabled. A field the app will reject is worse
+               than no field, because it invites a message that has nowhere to go. -->
+          <div class="channel-dead-footer">{{ copy.deletedAccount }}</div>
+        } @else {
+          @if (blockedInterlocutor; as blocked) {
+            <div class="channel-blocked-footer">
+              <span class="blocked-note">{{ copy.blocked(blocked.handle) }}</span>
+              <!-- Blocking is reversible, so the way back sits in the same row that states it. -->
+              <button i18n type="button"
+                      class="unblock-action"
+                      [disabled]="unblockInProgressIds.has(blocked.friendshipId)"
+                      (click)="unblockInterlocutor(blocked)">Unblock</button>
+            </div>
+          } @else {
+            <stream-message-input appAlmoComposer></stream-message-input>
+          }
+        }
       </stream-channel>
     </div>
   </div>
+
+  <!-- 04: People overlays the chat-list column at a fixed width. Nothing reflows, no scrim. -->
+  @if (isPeopleOpen()) {
+    <!-- Only Escape and the dismiss button close it: the conversation underneath stays clickable. -->
+    <aside class="people-panel">
+      <ng-template #skeletonLoader>
+        <div class="user-tile card h-14" [tuiSkeleton]="true"></div>
+      </ng-template>
+
+      <!--
+        04: one row type serves both search sections, because the control on its right states the
+        relationship rather than the section it sits under.
+      -->
+      <ng-template #candidateRow let-candidate>
+        <div class="user-tile card">
+          <app-avatar [avatarUrl]="candidate.avatarUrl"
+                      [username]="candidate.username"
+                      [premium]="candidate.premium"
+                      [hashed]="true"
+                      [size]="'m'"
+          ></app-avatar>
+          <span class="tile-body">
+            <span class="username-line">
+              <span class="username">{{ candidate.username }}</span>
+              @if (candidate.premium) {
+                <app-premium-star />
+              }
+            </span>
+            <!-- A friend has already said what they are; everyone else is what they study. -->
+            @if (personSubtitle(candidate, candidateState(candidate)); as subtitle) {
+              <span class="person-subtitle">{{ subtitle }}</span>
+            }
+          </span>
+
+          @if (sendRequestInProgressIds.has(candidate.id)) {
+            <lucide-icon name="loader-circle"
+                         class="friend-action motion-preset-spin"
+                         [size]="20"
+            ></lucide-icon>
+          } @else {
+            @switch (candidateState(candidate)) {
+              @case ('friend') {
+                <button i18n type="button"
+                        class="friend-action action-button positive"
+                        (click)="messageCandidate(candidate)">Message</button>
+              }
+              @case ('requested') {
+                <button i18n type="button"
+                        class="friend-action action-button request-sent"
+                        disabled>Requested</button>
+              }
+              @case ('blocked') {
+                <button i18n type="button"
+                        class="friend-action action-button"
+                        disabled>Blocked</button>
+              }
+              @default {
+                <!-- Add is the row's commitment, so it is filled the way Accept is. -->
+                <button i18n type="button"
+                        class="friend-action action-button primary-action"
+                        (click)="sendFriendRequest(candidate.id)">Add</button>
+              }
+            }
+          }
+        </div>
+      </ng-template>
+
+      <header class="header">
+        <div class="header-inner">
+          <p i18n class="header-text people">People</p>
+          <app-dismiss-button [relative]="true" (closed)="closePeople()"></app-dismiss-button>
+        </div>
+      </header>
+      <div class="panel-body">
+        <!-- 04: the tabs stay views over your own relationships; the field under them cuts across all three. -->
+        <tui-segmented
+          size="m"
+          class="people-toggle"
+          [activeItemIndex]="peopleIndex"
+          (activeItemIndexChange)="onPeopleIndexChange($event)"
+        >
+          <button i18n type="button">Friends</button>
+          <button i18n type="button">Requests @if (incomingRequestsCount > 0) { <span>{{ incomingRequestsCount }}</span> }</button>
+          <button i18n type="button">Blocked</button>
+        </tui-segmented>
+
+        <!--
+          04: the only people search there is. A friend list runs to tens of rows, so a filter over
+          it is a strictly weaker version of this one, and two fields make the user guess which
+          holds the person they want.
+        -->
+        <div class="search-container">
+          <!-- Taiga's own cleaner sets the accessor to null rather than the control, so the field
+               carries the same hand-rolled clear the chat search does. -->
+          <tui-textfield
+            class="username-input shadowless-input"
+            iconStart="@tui.search"
+            [tuiTextfieldCleaner]="false"
+          >
+            <input
+              #peopleSearchInput
+              [formControl]="usernameFormControl"
+              tuiInput
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="Search people" i18n-placeholder/>
+          </tui-textfield>
+          @if (usernameFormControl.value) {
+            <button type="button"
+                    class="search-clear"
+                    aria-label="Clear search" i18n-aria-label
+                    (click)="clearPeopleSearch()">
+              <lucide-icon name="x" [size]="16"></lucide-icon>
+            </button>
+          }
+        </div>
+
+        <tui-scrollbar class="w-full p-1">
+          <div class="tiles">
+            @if (isSearchingPeople) {
+              @if (peopleSearchPending) {
+                @for (i of range(3); track i) {
+                  <ng-container [ngTemplateOutlet]="skeletonLoader"></ng-container>
+                }
+              } @else if (matchedUsers.length === 0) {
+                <!-- The empty line renders only when both sections come back empty. -->
+                <p i18n class="no-results">
+                  No account with that handle.
+                </p>
+              } @else {
+                @if (friendMatches.length > 0) {
+                  <p i18n class="section-heading">Your friends</p>
+                  @for (candidate of friendMatches; track candidate.id) {
+                    <ng-container [ngTemplateOutlet]="candidateRow"
+                                  [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
+                  }
+                }
+                @if (otherMatches.length > 0) {
+                  <p i18n class="section-heading">Everyone else</p>
+                  @for (candidate of otherMatches; track candidate.id) {
+                    <ng-container [ngTemplateOutlet]="candidateRow"
+                                  [ngTemplateOutletContext]="{ $implicit: candidate }"></ng-container>
+                  }
+                }
+              }
+            } @else if (isPeopleDataLoading()) {
+              @for (i of range(3); track i) {
+                <ng-container [ngTemplateOutlet]="skeletonLoader"
+                              [ngTemplateOutletContext]="{ count: 3 }"></ng-container>
+              }
+            } @else {
+              @if (peopleMode === 'requests' && incomingRequests.length === 0 && outgoingRequests.length === 0) {
+                <p class="no-results">
+                  {{ noResultMessage }}
+                </p>
+              } @else if (peopleMode !== 'requests' && peopleUserTiles.length === 0) {
+                <p class="no-results">
+                  {{ noResultMessage }}
+                </p>
+              }
+              @if (peopleMode === 'friends' && friends.length === 0) {
+                <!-- 05: this does not navigate anywhere - it points at the field above it. -->
+                <app-button
+                  appearance="bw"
+                  label="Search people" i18n-label
+                  gap="1rem"
+                  width="fit"
+                  [fontSize]=18
+                  (click)="focusPeopleSearch()"
+                >
+                  <tui-icon
+                    [style.width.px]="18"
+                    [style.height.px]="18"
+                    icon="@tui.search"/>
+                </app-button>
+              }
+              @if (peopleMode === 'requests') {
+                @if (incomingRequests.length > 0) {
+                  <p i18n class="section-heading">Received</p>
+                  @for (friend of incomingRequests; track friend.relationshipId) {
+                    <div class="user-tile card">
+                      <app-avatar [avatarUrl]="friend.avatarUrl"
+                                  [username]="friend.username"
+                                  [premium]="friend.premium"
+                                  [hashed]="true"
+                                  [size]="'m'"
+                      ></app-avatar>
+                      <span class="tile-body">
+                        <span class="username-line">
+                          <span class="username">{{ friend.username }}</span>
+                          @if (friend.premium) {
+                            <app-premium-star />
+                          }
+                        </span>
+                      </span>
+
+                      @if (acceptInProgressIds.has(friend.relationshipId) || rejectInProgressIds.has(friend.relationshipId)) {
+                        <lucide-icon name="loader-circle"
+                                     class="friend-action motion-preset-spin"
+                                     [size]="20"
+                        ></lucide-icon>
+                      } @else if (friend.relationshipStatus === FriendshipStatus.PENDING_INCOMING) {
+                        <button i18n type="button" class="friend-action action-button primary-action"
+                                (click)="acceptFriendRequest(friend)">Accept</button>
+                        <button i18n type="button" class="friend-action action-button secondary"
+                                (click)="rejectFriendRequest(friend.relationshipId)">Decline</button>
+                      } @else if (friend.relationshipStatus === FriendshipStatus.FRIENDS) {
+                        <button i18n type="button" class="friend-action action-button positive"
+                                (click)="openChatWithFriend(friend)">
+                          <lucide-icon name="message-circle" [size]="17"></lucide-icon>
+                          Message
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+
+                @if (outgoingRequests.length > 0) {
+                  <p i18n class="section-heading">Sent</p>
+                  @for (friend of outgoingRequests; track friend.relationshipId) {
+                    <div class="user-tile card">
+                      <app-avatar [avatarUrl]="friend.avatarUrl"
+                                  [username]="friend.username"
+                                  [premium]="friend.premium"
+                                  [hashed]="true"
+                                  [size]="'m'"
+                      ></app-avatar>
+                      <span class="tile-body">
+                        <span class="username-line">
+                          <span class="username">{{ friend.username }}</span>
+                          @if (friend.premium) {
+                            <app-premium-star />
+                          }
+                        </span>
+                      </span>
+
+                      @if (cancelInProgressIds.has(friend.relationshipId)) {
+                        <lucide-icon name="loader-circle"
+                                     class="friend-action motion-preset-spin"
+                                     [size]="20"
+                        ></lucide-icon>
+                      } @else {
+                        <button i18n type="button" class="friend-action action-button secondary"
+                                (click)="cancelFriendRequest(friend.relationshipId)">Cancel</button>
+                      }
+                    </div>
+                  }
+                }
+              }
+
+              @for (friend of peopleUserTiles; track friend.relationshipId) {
+                <div class="user-tile card">
+                  <app-avatar [avatarUrl]="friend.avatarUrl"
+                              [username]="friend.username"
+                              [premium]="friend.premium"
+                              [hashed]="true"
+                              [size]="'m'"
+                  ></app-avatar>
+                  <span class="tile-body">
+                    <span class="username-line">
+                      <span class="username">{{ friend.username }}</span>
+                      @if (friend.premium) {
+                        <app-premium-star />
+                      }
+                    </span>
+                    @if (peopleMode === 'friends' && personSubtitle(friend); as subtitle) {
+                      <span class="person-subtitle">{{ subtitle }}</span>
+                    }
+                  </span>
+
+                  @if (peopleMode === 'friends') {
+                    <lucide-icon name="ellipsis"
+                                 class="friend-action positive"
+                                 aria-label="Friend actions" i18n-aria-label
+                                 [size]="20"
+                                 #friendDropdown="tuiDropdown"
+                                 tuiDropdown
+                                 (tuiActiveZoneChange)="!$event && friendDropdown.toggle(false)"
+                                 [tuiDropdown]="friendDropdownTemplate"
+                                 (click)="friendDropdown.toggle(true)"
+                    >
+                      <ng-template #friendDropdownTemplate>
+                        <tui-data-list
+                          role="menu"
+                          tuiDataListDropdownManager
+                          class="context-menu">
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="openChatWithFriend(friend)"
+                          >
+                            <lucide-icon name="message-circle"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Message
+                          </button>
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button"
+                            (click)="prepareUnfriendModal(friend.id, friend.relationshipId)"
+                          >
+                            <lucide-icon name="user-round-x"
+                                         class="chat-icon"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Unfriend
+                          </button>
+                          <button i18n
+                            tuiOption
+                            type="button"
+                            class="context-button negative"
+                            (click)="prepareBlockModal(friend.id, friend.relationshipId)"
+                          >
+                            <lucide-icon name="ban"
+                                         class="chat-icon negative"
+                                         [size]="18"
+                            ></lucide-icon>
+                            Block
+                          </button>
+                        </tui-data-list>
+                      </ng-template>
+                    </lucide-icon>
+                  }
+
+                  @if (peopleMode === 'blocked') {
+                    @if (unblockInProgressIds.has(friend.relationshipId)) {
+                      <lucide-icon name="loader-circle"
+                                   class="friend-action motion-preset-spin"
+                                   [size]="20"
+                      ></lucide-icon>
+                    } @else {
+                      <button i18n type="button" class="friend-action action-button secondary"
+                              (click)="unblock(friend.id, friend.relationshipId)">Unblock</button>
+                    }
+                  }
+                </div>
+              }
+            }
+          </div>
+        </tui-scrollbar>
+      </div>
+    </aside>
+  }
 </div>

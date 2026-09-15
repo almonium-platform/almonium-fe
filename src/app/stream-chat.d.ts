@@ -1,5 +1,5 @@
 import 'stream-chat';
-import type { DefaultAttachmentData, DefaultChannelData } from 'stream-chat-angular';
+import type {DefaultChannelData} from 'stream-chat-angular';
 
 
 declare module 'stream-chat' {
@@ -8,5 +8,8 @@ declare module 'stream-chat' {
     hidden?: boolean;
   }
 
-  interface CustomAttachmentData extends DefaultAttachmentData {}
+  /** Written by the backend from the user's entitlement; the chat list draws the member ring from it. */
+  interface CustomUserData {
+    premium?: boolean;
+  }
 }

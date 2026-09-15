@@ -1,17 +1,12 @@
+import {logger} from "../../shared/logger";
+import {getErrorMessage} from '../../shared/http-error';
 import {HttpClient} from '@angular/common/http';
-import {ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe, TuiPassword} from '@taiga-ui/kit';
-import {
-  TuiAlertService,
-  TuiError,
-  TuiIcon,
-  TuiLink,
-  TuiTextfield,
-  TuiTextfieldComponent,
-  TuiTextfieldOptionsDirective
-} from '@taiga-ui/core';
-import {AsyncPipe, NgClass} from '@angular/common';
+import {TuiPassword} from '@taiga-ui/kit/directives';
+import {TuiError, TuiIcon, TuiInput, TuiLink, TuiNotificationService, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from '@taiga-ui/core/components';
+import {TUI_VALIDATION_ERRORS} from '@taiga-ui/core/tokens';
+import {NgClass} from '@angular/common';
 import {AuthService} from './auth.service';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
@@ -23,19 +18,17 @@ import {UserInfoService} from "../../services/user-info.service";
 import {UrlService} from "../../services/url.service";
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {PopupTemplateStateService} from "../../shared/modals/popup-template/popup-template-state.service";
-import {GifPlayerComponent} from "../../shared/gif-player/gif-player.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {UserInfo} from "../../models/userinfo.model";
+import {ReturnPathService} from "../../services/return-path.service";
 
-declare const google: any;
+const GREETING_FADE_MS = 180; // matches the .greeting opacity transition
 
 @Component({
   selector: 'app-auth',
   imports: [
     TuiError,
     ReactiveFormsModule,
-    TuiFieldErrorPipe,
-    AsyncPipe,
     TuiLink,
     NgxParticlesModule,
     NgClass,
@@ -45,8 +38,7 @@ declare const google: any;
     TuiPassword,
     TuiTextfieldComponent,
     TuiTextfieldOptionsDirective,
-    TuiTextfield,
-    GifPlayerComponent,
+    TuiInput,
     ButtonComponent
   ],
   templateUrl: './auth.component.html',
@@ -55,95 +47,69 @@ declare const google: any;
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
+        required: $localize`Value is required`,
+        email: $localize`Invalid email address`,
         minlength: ({requiredLength, actualLength}: {
           requiredLength: number;
           actualLength: number;
-        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+        }) => $localize`Password is too short: ${actualLength}:actualLength:/${requiredLength}:requiredLength: characters`,
       },
     },
   ]
 })
 export class AuthComponent implements OnInit, OnDestroy {
+  private authService = inject(AuthService);
+  private returnPath = inject(ReturnPathService);
+  private authSettingsService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
+  private userInfoService = inject(UserInfoService);
+  private http = inject(HttpClient);
+  private urlService = inject(UrlService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   private readonly destroy$ = new Subject<void>();
-  @ViewChild('auth', {static: true}) content!: TemplateRef<any>;
+  private greetingInterval?: ReturnType<typeof setInterval>;
+  private greetingSwapTimer?: ReturnType<typeof setTimeout>;
+  protected greetingFading = false;
+  @ViewChild('auth', {static: true}) content!: TemplateRef<unknown>;
 
   private userInfo: UserInfo | null = null;
   @Input() mode: 'embedded' | 'linkLocal' | 'changeEmail' | 'default' = 'default';
   protected providers: string[] = ['google', 'apple', 'local'];
 
-  protected embeddedMode: boolean = false;
-  private intent: string = '';
-  protected showSeparatorAndForm: boolean = true;
+  protected embeddedMode = false;
+  private intent = '';
+  protected showSeparatorAndForm = true;
   protected connectedProviders: string[] = [];
 
   // MAIN COMPONENT
   // legal links
   private readonly TERMS_OF_USE_PATH = '/terms-of-use';
   private readonly PRIVACY_POLICY_PATH = '/privacy-policy';
-  protected termsOfUseUrl: string = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
-  protected privacyPolicyUrl: string = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
+  protected termsOfUseUrl = `${environment.feUrl}${this.TERMS_OF_USE_PATH}`;
+  protected privacyPolicyUrl = `${environment.feUrl}${this.PRIVACY_POLICY_PATH}`;
+  protected readonly minimumPasswordLength = AppConstants.MIN_PASSWORD_LENGTH;
 
   // greetings
-  greetings: { [key: string]: string } = {};
+  greetings: Record<string, string> = {};
   currentGreeting: string = Object.keys(this.greetings)[0];
   currentLanguage: string = this.greetings[this.currentGreeting];
-  isHovering: boolean = false;
+  isHovering = false;
 
   // form
   authForm = new FormGroup({
     emailValue: new FormControl('', [Validators.required, Validators.email]),
     passwordValue: new FormControl('', [Validators.required, Validators.minLength(AppConstants.MIN_PASSWORD_LENGTH)]),
   });
-  isSignUp: boolean = false;
-
-  // logo
-  protected replayGifTrigger = new Subject<void>();
+  isSignUp = false;
+  protected emailIdentified = false;
+  protected accountExists = false;
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
-
-  constructor(
-    private authService: AuthService,
-    private authSettingsService: AuthSettingsService,
-    private alertService: TuiAlertService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private userInfoService: UserInfoService,
-    private http: HttpClient,
-    private urlService: UrlService,
-    private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
-
-  initializeGoogleSignIn() {
-    const handleResponse = this.handleCredentialResponse.bind(this);
-
-    google.accounts.id.initialize({
-      client_id: environment.googleClientId,
-      callback: handleResponse,
-    });
-
-    // Automatically prompt the popup on page load
-    google.accounts.id.prompt();
-  }
-
-  handleCredentialResponse(response: any) {
-    this.replayGifTrigger.next();
-    const credential = response.credential;
-
-    this.http.post(AppConstants.GOOGLE_ONE_TAP_VERIFY_URL, {token: credential}, {withCredentials: true})
-      .subscribe({
-        next: () => {
-          this.router.navigate(['/home']).then(); // Redirect after successful auth
-        },
-        error: () => {
-          console.error('Error during login', response);
-        },
-      });
-  }
 
   ngOnInit(): void {
     this.userInfoService.userInfo$
@@ -163,33 +129,28 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.setModes();
 
     if (this.mode === 'embedded') {
-      this.authSettingsService.populateAuthMethods().subscribe(
+      this.authSettingsService.populateAuthMethods().pipe(takeUntil(this.destroy$)).subscribe(
         (providers) => {
           this.connectedProviders = providers.map((provider) => provider.provider.toLowerCase());
         }
       );
     }
 
-    this.route.queryParams.subscribe(params => {
-      if (params['error']) {
-        this.alertService.open(params['error'], {appearance: 'error'}).subscribe();
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const error = params.get('error');
+      if (error) {
+        this.alertService.open(error, {appearance: 'negative'}).subscribe();
         this.urlService.clearUrl();
       }
     });
 
-    this.userInfoService.userInfo$.subscribe((info) => {
+    this.userInfoService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
       if (info) {
         this.authForm.get('emailValue')?.setValue(info.email);
       }
     });
 
-    if (this.mode === 'default') {
-      this.loadGoogleSignInScript().then(() => {
-        this.initializeGoogleSignIn();
-      });
-    }
-
-    this.route.fragment.subscribe((fragment) => {
+    this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe((fragment) => {
       if (fragment === 'sign-up') {
         this.isSignUp = true;
       } else if (fragment === 'sign-in') {
@@ -199,12 +160,9 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     this.loadGreetings();
 
-    setInterval(() => {
+    this.greetingInterval = setInterval(() => {
       if (!this.isHovering && Object.keys(this.greetings).length > 0) {
-        const greetingKeys = Object.keys(this.greetings);
-        this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
-        this.currentLanguage = this.greetings[this.currentGreeting];
-        this.cdr.detectChanges();
+        this.crossFadeGreeting();
       }
     }, 2000);
   }
@@ -237,12 +195,14 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    clearInterval(this.greetingInterval);
+    clearTimeout(this.greetingSwapTimer);
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   private loadGreetings(): void {
-    this.http.get<{ [key: string]: string }>('/assets/greetings.json').subscribe({
+    this.http.get<Record<string, string>>('/assets/greetings.json').subscribe({
       next: (data) => {
         this.greetings = data;
 
@@ -254,19 +214,29 @@ export class AuthComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error loading greetings:', error);
+        logger.error('Error loading greetings:', error);
       }
     });
   }
 
   protected onSubmit() {
-    if (!this.authForm.valid) {
-      console.error('Button should be disabled');
+    if (this.mode === 'default' && !this.emailIdentified) {
+      if (this.authForm.controls.emailValue.invalid) {
+        this.authForm.controls.emailValue.markAsTouched();
+        return;
+      }
+      this.identifyEmail();
       return;
     }
 
-    const emailValue = this.authForm.get('emailValue')?.value!;
-    const passwordValue = this.authForm.get('passwordValue')?.value!;
+    if (!this.authForm.valid) {
+      this.authForm.markAllAsTouched();
+      logger.error('Button should be disabled');
+      return;
+    }
+
+    const emailValue = this.authForm.controls.emailValue.value ?? '';
+    const passwordValue = this.authForm.controls.passwordValue.value ?? '';
 
     if (this.mode === 'linkLocal') {
       this.linkLocal(passwordValue);
@@ -275,13 +245,40 @@ export class AuthComponent implements OnInit, OnDestroy {
     } else if (this.mode === 'embedded') {
       this.login(emailValue, passwordValue);
     } else {
-      this.replayGifTrigger.next();
-      if (this.isSignUp) {
+      if (!this.accountExists) {
         this.register(emailValue, passwordValue);
       } else {
         this.login(emailValue, passwordValue);
       }
     }
+  }
+
+  private identifyEmail() {
+    const email = this.authForm.controls.emailValue.value ?? '';
+    this.loadingSubject$.next(true);
+    this.authService.lookupEmailAccount(email)
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: ({registered}) => {
+          this.accountExists = registered;
+          this.isSignUp = !registered;
+          this.emailIdentified = true;
+          this.authForm.controls.emailValue.disable();
+          this.cdr.markForCheck();
+        },
+        error: (error) => this.alertService
+          .open(getErrorMessage(error, $localize`Could not check this email address`), {appearance: 'negative'})
+          .subscribe(),
+      });
+  }
+
+  protected changeIdentifiedEmail() {
+    this.emailIdentified = false;
+    this.accountExists = false;
+    this.isSignUp = false;
+    this.authForm.controls.emailValue.enable();
+    this.authForm.controls.passwordValue.reset('');
+    this.cdr.markForCheck();
   }
 
   private linkLocal(passwordValue: string) {
@@ -291,11 +288,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account linked', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`Local account linked`, {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to link local account`), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -308,11 +305,11 @@ export class AuthComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Local account with new email created successfully, please verify it', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`Local account with new email created successfully, please verify it`, {appearance: 'positive'}).subscribe();
           this.popupTemplateStateService.close();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to link local account`), {appearance: 'negative'}).subscribe();
           this.popupTemplateStateService.close();
         },
       });
@@ -326,12 +323,12 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.alertService
-            .open(response.message || 'Next step, verify your email!', {appearance: 'success'})
+            .open(response.message || $localize`Next step, verify your email!`, {appearance: 'positive'})
             .subscribe();
-          this.isSignUp = false;
+          this.changeIdentifiedEmail();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Registration failed', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Registration failed`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -344,11 +341,11 @@ export class AuthComponent implements OnInit, OnDestroy {
         .pipe(finalize(() => this.loadingSubject$.next(false)))
         .subscribe({
           next: () => {
-            this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
+            void this.router.navigate([this.router.url], {queryParams: {intent: 'reauth'}}).then();
             this.popupTemplateStateService.close();
           },
           error: (error) => {
-            this.alertService.open(error.error.message || 'Identity verification failed', {appearance: 'error'}).subscribe();
+            this.alertService.open(getErrorMessage(error, $localize`Identity verification failed`), {appearance: 'negative'}).subscribe();
           },
         });
       return;
@@ -359,32 +356,16 @@ export class AuthComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (userInfo) => {
           if (userInfo) {
-            this.router.navigate(['/home']).then();
+            void this.router.navigateByUrl(this.returnPath.peek() ?? '/home').then();
             this.popupTemplateStateService.close();
           } else {
-            this.alertService.open('Login successful, but failed to retrieve user data.', {appearance: 'error'}).subscribe();
+            this.alertService.open($localize`Login successful, but failed to retrieve user data.`, {appearance: 'negative'}).subscribe();
           }
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Login failed', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Login failed`), {appearance: 'negative'}).subscribe();
         },
       });
-  }
-
-  private loadGoogleSignInScript(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (typeof google !== 'undefined') {
-        resolve();  // Script is already loaded
-      } else {
-        const script = document.createElement('script');
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.onload = () => {
-          resolve();
-        };
-        script.onerror = () => reject('Google Sign-In script could not be loaded.');
-        document.head.appendChild(script);
-      }
-    });
   }
 
   protected toggleSignUp() {
@@ -392,18 +373,18 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   protected onForgotPassword() {
-    const emailValue = this.authForm.get('emailValue')?.value!;
+    const emailValue = this.authForm.controls.emailValue.value ?? '';
     if (!emailValue) {
-      this.alertService.open('Please enter your email address', {appearance: 'error'}).subscribe();
+      this.alertService.open($localize`Please enter your email address`, {appearance: 'negative'}).subscribe();
       return;
     }
     this.authService.forgotPassword(emailValue).subscribe({
       next: (response) => {
-        this.alertService.open(response.message || 'Password reset link sent!', {appearance: 'success'}).subscribe();
+        this.alertService.open(response.message || $localize`Password reset link sent!`, {appearance: 'positive'}).subscribe();
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to send password reset link', {appearance: 'error'})
+          .open(getErrorMessage(error, $localize`Failed to send password reset link`), {appearance: 'negative'})
           .subscribe();
       },
     });
@@ -417,28 +398,55 @@ export class AuthComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.replayGifTrigger.next();
-    const providerUrls: { [key: string]: string } = {
-      google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
-      apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
-    };
+    if (provider !== 'google' && provider !== 'apple') return;
 
-    const redirectUrl = this.embeddedMode
-      ? this.router.url + '&intent=' + this.intent
-      + (this.intent === 'reauth' ? '&userId=' + this.userInfo?.id : '')
-      : '/home';
-
-    window.location.href = providerUrls[provider] + redirectUrl;
+    this.loadingSubject$.next(true);
+    const mode = this.intent === 'link' ? 'link' : this.embeddedMode ? 'reauth' : 'sign-in';
+    const signIn = provider === 'apple'
+      ? this.authService.appleSignIn(mode)
+      : this.authService.googleSignIn(mode);
+    signIn
+      .pipe(finalize(() => this.loadingSubject$.next(false)))
+      .subscribe({
+        next: () => {
+          if (this.embeddedMode) {
+            void this.router.navigate([this.router.url], {queryParams: {intent: this.intent}}).then();
+            this.popupTemplateStateService.close();
+          } else {
+            void this.router.navigateByUrl(this.returnPath.peek() ?? '/home').then();
+          }
+        },
+        error: error => this.alertService
+          .open(getErrorMessage(error, provider === 'apple' ? $localize`Apple authentication failed` : $localize`Google authentication failed`), {appearance: 'negative'})
+          .subscribe(),
+      });
   };
 
   get actionBtnText(): string {
     if (this.mode === 'linkLocal' || this.mode === 'changeEmail') {
-      return 'Link Account';
+      return $localize`Link Account`;
+    } else if (this.mode === 'default' && !this.emailIdentified) {
+      return $localize`Continue`;
     } else if (this.isSignUp) {
-      return 'Sign Up';
+      return $localize`Create account`;
     } else {
-      return 'Sign In';
+      return $localize`Sign In`;
     }
+  }
+
+  /* Fade out, swap the text while it is invisible, fade back in. The greeting
+     line keeps a fixed height so the swap never moves the form below it. */
+  private crossFadeGreeting(): void {
+    this.greetingFading = true;
+    this.cdr.detectChanges();
+    clearTimeout(this.greetingSwapTimer);
+    this.greetingSwapTimer = setTimeout(() => {
+      const greetingKeys = Object.keys(this.greetings);
+      this.currentGreeting = greetingKeys[Math.floor(Math.random() * greetingKeys.length)];
+      this.currentLanguage = this.greetings[this.currentGreeting];
+      this.greetingFading = false;
+      this.cdr.detectChanges();
+    }, GREETING_FADE_MS);
   }
 
   // Hovering over the greeting

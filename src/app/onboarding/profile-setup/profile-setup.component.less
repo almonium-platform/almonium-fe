@@ -1,32 +1,83 @@
 @import "../onboarding.styles.less";
 
-.avatar-section {
+.card.step.profile-step {
+  align-items: stretch;
+  width: 500px;
+  max-width: calc(100vw - 2rem);
+  gap: 0;
+  padding: 28px 30px;
+  border-radius: 24px;
+  box-sizing: border-box;
+}
+
+.profile-heading h1 {
+  margin: 0;
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.profile-heading p {
+  margin: 10px 0 28px;
+  color: var(--subhead-color);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+/* 32: the settings picker, verbatim, with the gap tightened so 6 x 62 fits the card's column. */
+app-avatar-picker {
+  --avatar-tile-gap: 9px;
+
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--hairline-color);
+}
+
+.username-section {
   display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  padding-right: .5rem;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 20px;
+}
+
+.username-section > span {
+  color: var(--dark-raspberry);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.username-section p {
+  margin: 0;
+  color: #7e7e7e;
+  font-size: 12px;
+}
+
+.step-actions {
+  display: flex;
   align-items: center;
-}
-
-.section-block {
-  padding: unset;
-}
-
-.description {
-  font-size: 0.9rem;
-  color: var(--text-color);
-}
-
-.section-block {
-  min-width: 20rem;
-  max-width: 25rem;
+  gap: 1rem;
   width: 100%;
+  margin-top: 24px;
 }
 
-.username-wrapper {
-  background: #f9f9f9;
-  border-radius: 1rem;
-  padding: 1rem;
-  margin: 2rem 0 0 0;
-  border: 1px solid #f5f5f5;
+.step-actions app-button {
+  flex: 1;
+}
+
+.back-link {
+  border: 0;
+  background: none;
+  color: #7e7e7e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .profile-step {
+    padding: 24px 20px;
+  }
 }

@@ -4,12 +4,14 @@
       multi
       tuiChevron
       class="cefr-select"
+      [class.fluent-disabled]="atLanguageLimit"
     >
       <input
         #chipInput
         tuiInputChip
         [formControl]="fluentLanguageControl"
-        [placeholder]="(fluentLanguageControl.value?.length ?? 0) ? '' : 'Start typing...'"
+        [placeholder]="placeholder"
+        [attr.aria-disabled]="atLanguageLimit"
         (input)="onType($event)"
         (keydown)="trapSeparators($any($event))"
         (keydown.enter)="onEnter($any($event))"
@@ -19,7 +21,7 @@
 
       @if (filteredFluentLanguages$ | async; as items) {
         <tui-data-list-wrapper
-          *tuiTextfieldDropdown
+          *tuiDropdown
           new
           tuiMultiSelectGroup
           [items]="items"
@@ -28,9 +30,13 @@
       }
     </tui-textfield>
 
-    <tui-error
-      [formControl]="fluentLanguageControl"
-      [error]="[] | tuiFieldError | async"
-    />
+    @if (fluentLanguageControl.hasError('required')) {
+      <tui-error [formControl]="fluentLanguageControl" />
+    }
+    @if (showLimitMessage && maxLanguages === 1 && atLanguageLimit) {
+      <div i18n class="limit-message tui-text_m tui-text_negative tui-space_top-2">
+        Free plan lets you pick only one fluent language.
+      </div>
+    }
   </div>
 </div>

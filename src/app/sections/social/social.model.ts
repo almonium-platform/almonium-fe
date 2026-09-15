@@ -1,38 +1,85 @@
+import {RelationshipStatus} from '../../shared/relationship.model';
+import {
+  expectArray,
+  expectBoolean,
+  expectEnum,
+  expectNullableString,
+  expectRecord,
+  expectString,
+} from '../../shared/runtime-validation';
+
+export {RelationshipAction, RelationshipStatus} from '../../shared/relationship.model';
+
 export interface PublicUserProfile {
   id: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
+  premium: boolean;
+  /** Language codes the person studies. Empty for a hidden profile, and for a backend that predates the field. */
+  learning: string[];
 }
 
-export interface RelatedUserProfile {
-  id: string;
-  username: string;
-  avatarUrl: string;
+export interface RelatedUserProfile extends PublicUserProfile {
   relationshipId: string;
   relationshipStatus: RelationshipStatus;
 }
 
-export interface Friendship {
-  id: string;
-  requesterId: string;
-  requesteeId: string;
-  status: RelationshipStatus;
+/**
+ * A handle search answers with every account, so a result may have no relationship at all. The
+ * status is what the row's single control is drawn from.
+ */
+export interface UserSearchResult extends PublicUserProfile {
+  relationshipId: string | null;
+  relationshipStatus: RelationshipStatus;
 }
 
-export enum RelationshipStatus {
-  PENDING = 'PENDING',
-  REJECTED = 'REJECTED',
-  FRIENDS = 'FRIENDS',
-  FST_BLOCKED_SND = 'FST_BLOCKED_SND',
-  SND_BLOCKED_FST = 'SND_BLOCKED_FST',
-  MUTUAL_BLOCK = 'MUTUALLY_BLOCKED',
+export function parsePublicUserProfiles(value: unknown, path = 'users'): PublicUserProfile[] {
+  return expectArray(value, path).map((item, index) => parsePublicUserProfile(item, `${path}[${index}]`));
 }
 
-export enum RelationshipAction {
-  ACCEPT = 'ACCEPT',
-  REJECT = 'REJECT',
-  CANCEL = 'CANCEL',
-  UNFRIEND = 'UNFRIEND',
-  BLOCK = 'BLOCK',
-  UNBLOCK = 'UNBLOCK',
+export function parseRelatedUserProfiles(value: unknown, path = 'related users'): RelatedUserProfile[] {
+  return expectArray(value, path).map((item, index) => {
+    const profile = expectRecord(item, `${path}[${index}]`);
+    return {
+      ...parsePublicUserProfile(profile, `${path}[${index}]`),
+      relationshipId: expectString(profile['relationshipId'], `${path}[${index}].relationshipId`),
+      relationshipStatus: expectEnum(
+        profile['relationshipStatus'],
+        Object.values(RelationshipStatus),
+        `${path}[${index}].relationshipStatus`,
+      ),
+    };
+  });
+}
+
+export function parseUserSearchResults(value: unknown, path = 'user search results'): UserSearchResult[] {
+  return expectArray(value, path).map((item, index) => {
+    const profile = expectRecord(item, `${path}[${index}]`);
+    return {
+      ...parsePublicUserProfile(profile, `${path}[${index}]`),
+      relationshipId: expectNullableString(profile['relationshipId'], `${path}[${index}].relationshipId`),
+      relationshipStatus: expectEnum(
+        profile['relationshipStatus'],
+        Object.values(RelationshipStatus),
+        `${path}[${index}].relationshipStatus`,
+      ),
+    };
+  });
+}
+
+/** The row draws a subtitle from this, so an absent list is a person with nothing to show, not an error. */
+function parseLearning(value: unknown, path: string): string[] {
+  if (value === null || value === undefined) return [];
+  return expectArray(value, path).map((code, index) => expectString(code, `${path}[${index}]`));
+}
+
+function parsePublicUserProfile(value: unknown, path: string): PublicUserProfile {
+  const profile = expectRecord(value, path);
+  return {
+    id: expectString(profile['id'], `${path}.id`),
+    username: expectString(profile['username'], `${path}.username`),
+    avatarUrl: expectNullableString(profile['avatarUrl'], `${path}.avatarUrl`),
+    premium: expectBoolean(profile['premium'], `${path}.premium`),
+    learning: parseLearning(profile['learning'], `${path}.learning`),
+  };
 }

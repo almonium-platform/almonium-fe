@@ -1,80 +1,66 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
-import {TuiSegmented, tuiSwitchOptionsProvider} from "@taiga-ui/kit";
-import {FormsModule} from "@angular/forms";
-import {TuiAlertService, TuiAppearance, TuiIcon, TuiTitle} from "@taiga-ui/core";
-import {TuiCardLarge} from "@taiga-ui/layout";
+import {logger} from "../logger";
+import {getErrorMessage} from '../http-error';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from "@angular/core";
+import {TuiNotificationService} from "@taiga-ui/core/components";
 
-import {InteractiveCtaButtonComponent} from "../interactive-cta-button/interactive-cta-button.component";
 import {PlanService} from "../../services/plan.service";
 import {UserInfoService} from "../../services/user-info.service";
-import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, catchError, finalize, forkJoin, map, of, Subject, takeUntil} from "rxjs";
+import {HttpClient} from '@angular/common/http';
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../../onboarding/onboarding.service";
-import {ButtonComponent} from "../button/button.component";
+import {CardService} from "../../services/card.service";
+import {AppConstants} from '../../app.constants';
+import {
+  BillingPeriod,
+  freeTierFeatures,
+  paidTierFeatures,
+  parseFoundingMemberStatus,
+  periodLabel,
+  PlanOffer,
+} from '../../models/plan-offer';
+
+// The claimed count is built but held off: a low number reads as "nobody wanted this". It goes
+// on near twelve claimed, and from then reads "7 of 20 claimed".
+const CLAIMED_COUNT_VISIBLE = false;
 
 @Component({
-  selector: 'paywall',
+  selector: 'app-paywall',
   templateUrl: './paywall.component.html',
   styleUrls: ['./paywall.component.less'],
-  imports: [
-    FormsModule,
-    TuiAppearance,
-    TuiTitle,
-    TuiCardLarge,
-    TuiIcon,
-    TuiSegmented,
-    InteractiveCtaButtonComponent,
-    ButtonComponent
-  ],
-  providers: [
-    tuiSwitchOptionsProvider({showIcons: false, appearance: () => 'primary'}),
-  ]
 })
 export class PaywallComponent implements OnInit, OnDestroy {
+  @Input() layout: 'modal' | 'page' = 'modal';
+  // Set when the paywall is a detour inside another dialog: the reader came from somewhere with
+  // unfinished work, so the head offers the way back instead of only a dismiss.
+  @Input() backLabel: string | null = null;
+  @Output() back = new EventEmitter<void>();
+
+  private planService = inject(PlanService);
+  private userInfoService = inject(UserInfoService);
+  private onboardingService = inject(OnboardingService);
+  private cardService = inject(CardService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+
   private readonly destroy$ = new Subject<void>();
-  @ViewChild('paywallContent', {static: true}) content!: TemplateRef<any>;
-  private readonly step = SetupStep.PLAN;
+  @ViewChild('paywallContent', {static: true}) content!: TemplateRef<unknown>;
+  private readonly step = SetupStep.LANGUAGES;
 
   private userInfo: UserInfo | null = null;
-  protected planChosen: boolean = false;
+  protected planChosen = false;
+  protected premium = false;
+  protected savedItems: number | null = null;
 
-  protected freeFeatures: string[] = [
-    'One target language',
-    'One story a day',
-    '100 card reviews a day',
-    'Basic play',
-  ];
-  protected premiumFeatures: string[] = [
-    'Unlimited stories',
-    'Unlimited translations',
-    'Unlimited reviews',
-    'Card rephrasing',
-    'All play',
-    'All target languages',
-  ];
-  selectedMode: number = 0;
-  premiumPrice = {
-    monthly: 4.99,
-    yearly: 49.99,
-  };
-  premiumMonthlyId: string = '';
-  premiumYearlyId: string = '';
+  protected billingPeriod: BillingPeriod = 'yearly';
 
-  private freeLoadingSubject$ = new BehaviorSubject(false);
-  private premiumLoadingSubject$ = new BehaviorSubject(false);
 
-  readonly freeLoading$ = this.freeLoadingSubject$.asObservable();
-  readonly premiumLoading$ = this.premiumLoadingSubject$.asObservable();
+  private offer: PlanOffer | null = null;
 
-  constructor(
-    private planService: PlanService,
-    private userInfoService: UserInfoService,
-    private onboardingService: OnboardingService,
-    private alertService: TuiAlertService,
-    private router: Router,
-  ) {
-  }
+  protected readonly freeLoading$ = new BehaviorSubject(false);
+  protected readonly paidLoading$ = new BehaviorSubject(false);
 
   ngOnInit() {
     this.populatePlanInfo();
@@ -94,78 +80,201 @@ export class PaywallComponent implements OnInit, OnDestroy {
           return;
         }
         this.userInfo = userInfo;
-        this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.PLAN);
+        this.planChosen = isStepAfter(userInfo.setupStep, SetupStep.LANGUAGES);
+        this.premium = userInfo.premium;
+        this.loadSavedItems(userInfo);
       });
   }
 
   private populatePlanInfo() {
-    this.planService.getPlans().subscribe(plans => {
-      const monthlyPremium = plans.find(plan => plan.type === 'MONTHLY');
-      const yearlyPremium = plans.find(plan => plan.type === 'YEARLY');
-      if (monthlyPremium) {
-        this.premiumPrice.monthly = monthlyPremium.price;
-        this.premiumMonthlyId = monthlyPremium.id;
-      }
-      if (yearlyPremium) {
-        this.premiumPrice.yearly = yearlyPremium.price;
-        this.premiumYearlyId = yearlyPremium.id;
-      }
+    forkJoin({
+      plans: this.planService.getPlans(),
+      founder: this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/founding-members`).pipe(
+        map(parseFoundingMemberStatus),
+        catchError(() => of(null)),
+      ),
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({plans, founder}) => {
+        this.offer = new PlanOffer(plans, founder);
+        // Premium preselects annual; the founder card preselects monthly, because the barrier
+        // matters more there than the fee ratio.
+        this.billingPeriod = this.founderOfferAvailable ? 'monthly' : 'yearly';
+      },
+      error: error => this.alertService.open(
+        getErrorMessage(error, $localize`Could not load subscription plans`),
+        {appearance: 'negative'},
+      ).subscribe(),
     });
   }
 
-  get currentPricePeriod(): string {
-    return this.selectedMode === 0 ? '/ month' : '/ year';
-  }
-
-  get currentPriceValue(): number {
-    return this.selectedMode === 0 ? this.premiumPrice.monthly : this.premiumPrice.yearly;
-  }
-
-  getIcon(feature: string) {
-    if (feature.startsWith('Unlimited')) {
-      return 'infinity';
-    }
-    return 'check';
-  }
-
-  chooseFreePlan() {
-    if (this.planChosen) {
-      console.error('User is not onboarded');
+  // Counting saved items means one request per target language, so it only runs on the full
+  // pricing page, where the free card is the reader's own plan rather than a comparison.
+  private loadSavedItems(userInfo: UserInfo) {
+    if (this.layout !== 'page' || userInfo.premium || this.savedItems !== null) {
       return;
     }
 
-    this.freeLoadingSubject$.next(true);
+    const languages = [...new Set(userInfo.targetLangs)];
+    if (!languages.length) {
+      this.savedItems = 0;
+      return;
+    }
+
+    forkJoin(languages.map(language => this.cardService.getCardsInLanguage(language).pipe(
+      catchError(() => of([])),
+    ))).pipe(
+      map(stacks => stacks.reduce((total, cards) => total + cards.length, 0)),
+      takeUntil(this.destroy$),
+    ).subscribe(total => this.savedItems = total);
+  }
+
+  protected get freeFeatures(): string[] {
+    return freeTierFeatures(this.savedItems);
+  }
+
+  protected get premiumFeatures(): string[] {
+    return paidTierFeatures(this.offer);
+  }
+
+  protected get onFreePlan(): boolean {
+    return !!this.userInfo && !this.premium && this.planChosen;
+  }
+
+  protected get founderOfferAvailable(): boolean {
+    return !!this.offer?.founderOfferAvailable;
+  }
+
+  protected get founderSoldOut(): boolean {
+    return !!this.offer?.founderSoldOut;
+  }
+
+  protected get founderCapacity(): number {
+    return this.offer?.capacity ?? 0;
+  }
+
+  protected get founderClaimed(): number {
+    return this.offer?.claimed ?? 0;
+  }
+
+  protected get founderLimitNote(): string {
+    return this.offer?.founderLimitNote ?? '';
+  }
+
+  protected get claimedCountVisible(): boolean {
+    return CLAIMED_COUNT_VISIBLE && this.founderOfferAvailable;
+  }
+
+  protected get paidTierLabel(): string {
+    return this.offer?.tierLabel ?? $localize`Premium`;
+  }
+
+  protected get paidPrice(): number | null {
+    return this.offer?.priceFor(this.billingPeriod) ?? null;
+  }
+
+  // The price that no longer applies, in muted ink at body size, so it never reads as something
+  // still selectable.
+  protected get struckPrice(): number | null {
+    return this.offer?.struckPriceFor(this.billingPeriod) ?? null;
+  }
+
+  protected get cadenceNotes(): string[] {
+    return this.offer?.cadenceNotes(this.billingPeriod) ?? [];
+  }
+
+  protected get pricePeriodLabel(): string {
+    return periodLabel(this.billingPeriod);
+  }
+
+  protected get paidButtonText(): string {
+    if (this.paidLoading$.value) {
+      return $localize`Opening checkout…`;
+    }
+    if (this.premium) {
+      return $localize`Manage subscription`;
+    }
+    return this.offer?.ctaLabel ?? $localize`Go Premium`;
+  }
+
+  protected choosePeriod(period: BillingPeriod) {
+    this.billingPeriod = period;
+  }
+
+  protected chooseFreePlan() {
+    // Reading needs no account, so "Start reading" means exactly that for a visitor.
+    if (!this.userInfo) {
+      void this.router.navigate(['/read']).then();
+      return;
+    }
+    if (this.planChosen) {
+      logger.error('User is not onboarded');
+      return;
+    }
+
+    this.freeLoading$.next(true);
 
     this.onboardingService.completeStep(this.step)
-      .pipe(finalize(() => this.freeLoadingSubject$.next(false)))
+      .pipe(finalize(() => this.freeLoading$.next(false)))
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({setupStep: getNextStep(this.step)});
         },
         error: (error) => {
-          console.error('Failed to choose free plan:', error);
-          this.alertService.open(error.error.message || 'Couldn\'t choose free plan', {appearance: 'error'}).subscribe();
+          logger.error('Failed to choose free plan:', error);
+          this.alertService.open(getErrorMessage(error, $localize`Couldn't choose free plan`), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
-  subscribeToPlan() {
+  protected onPaidAction() {
+    if (this.premium) {
+      this.accessCustomerPortal();
+      return;
+    }
+    this.subscribeToPlan();
+  }
+
+  private subscribeToPlan() {
     if (!this.userInfo) {
-      this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
+      void this.router.navigate(['/auth'], {fragment: 'sign-up'}).then();
       return;
     }
-    if (this.premiumLoadingSubject$.value) {
-      console.warn('Rapid clicks detected');
+    if (this.paidLoading$.value) {
+      logger.warn('Rapid clicks detected');
       return;
     }
 
-    this.premiumLoadingSubject$.next(true);
+    this.paidLoading$.next(true);
 
-    let selectedPlanId = this.selectedMode === 0 ? this.premiumMonthlyId : this.premiumYearlyId;
-    this.planService.subscribeToPlan(String(selectedPlanId))
-      .pipe(finalize(() => this.premiumLoadingSubject$.next(false)))
-      .subscribe((url) => {
-        window.location.href = url.sessionUrl;
+    this.planService.subscribeToPlan(this.offer?.planId(this.billingPeriod) ?? '', this.founderOfferAvailable)
+      .pipe(finalize(() => this.paidLoading$.next(false)))
+      .subscribe({
+        next: url => {
+          window.location.href = url.sessionUrl;
+        },
+        error: error => this.alertService.open(
+          getErrorMessage(error, $localize`Could not start checkout`),
+          {appearance: 'negative'},
+        ).subscribe(),
+      });
+  }
+
+  private accessCustomerPortal() {
+    if (this.paidLoading$.value) {
+      return;
+    }
+
+    this.paidLoading$.next(true);
+    this.planService.accessCustomerPortal()
+      .pipe(finalize(() => this.paidLoading$.next(false)))
+      .subscribe({
+        next: url => {
+          window.location.href = url.sessionUrl;
+        },
+        error: error => this.alertService.open(
+          getErrorMessage(error, $localize`Could not open subscription management`),
+          {appearance: 'negative'},
+        ).subscribe(),
       });
   }
 }

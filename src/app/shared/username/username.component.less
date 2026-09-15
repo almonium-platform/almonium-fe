@@ -1,49 +1,62 @@
-@import '../../sections/settings/settings.styles.less';
-
 :host {
-  --tui-background-accent-1: #5A1A74;
-  --tui-status-negative: #ac1c1c;
-  --tui-text-negative: #ac1c1c;
-  --tui-radius-m: 2rem;
+  display: block;
+  width: 100%;
 }
 
-.username-form {
-  width: 55%;
+.username-editor {
+  width: 100%;
 }
 
-.username-label {
-  font-size: 1.3rem;
-  font-weight: 550;
-  letter-spacing: .03rem;
-  padding: .4rem 0;
-  transition: font-size 0.3s ease-in-out;
-}
-
-.info-btn {
-  cursor: pointer;
-  background-color: var(--info-light-blue);
-  color: var(--info-dark-blue);
-  border-radius: 50%;
-  padding: .1rem;
-  margin-left: 1.5rem;
-  margin-top: .4rem;
+.username-control {
   display: flex;
   align-items: center;
-  max-height: fit-content;
+  gap: .75rem;
+  min-height: 3.5rem;
+  padding: 0 .9rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 14px;
+  background: var(--card-color);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.info-btn:hover {
-  background-color: var(--info-dark-blue);
-  color: var(--info-light-blue);
+.username-control:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(90, 26, 116, .1);
 }
 
-.row-content {
-  display: flex;
-  flex-direction: row;
-  padding: 0;
+.username-control.invalid {
+  border-color: var(--danger-text-color);
 }
 
-.edit-element {
-  margin-left: auto;
-  margin-top: 2px;
+input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--brand-ink);
+  font-family: var(--font-family-mono);
+  font-size: .92rem;
+  line-height: 1.4;
+}
+
+.availability {
+  flex: 0 0 auto;
+  color: var(--metadata-color);
+  font-size: .75rem;
+}
+
+.availability.available {
+  color: var(--success-color);
+}
+
+.availability.taken {
+  color: var(--danger-text-color);
+}
+
+.username-error {
+  margin: .35rem 0 0;
+  color: var(--danger-text-color);
+  font-size: .75rem;
+  line-height: 1.4;
 }

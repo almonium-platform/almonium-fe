@@ -1,22 +1,20 @@
+// The component's own markup: the shell, the chat list column and the
+// conversation pane, plus the responsive rules. Search and the People panel
+// live in social-people.less; overrides that reach into Stream's DOM live in
+// social-stream-overrides.less.
+
 .super-container {
   display: flex;
+  position: relative;
   flex-direction: row;
   background-color: var(--main-bg-color);
   height: calc(100vh - var(--header-height));
   padding-top: 1rem;
   width: 100%;
 }
-
 [tuiAppearance][data-appearance=textfield] {
   --t-shadow: initial !important;
 }
-
-// for tui-badge-notification red dot
-::ng-deep .t-badge_top {
-  top: 2px !important;
-  right: 2px !important;
-}
-
 .right-container {
   display: flex;
   background-color: var(--main-bg-color);
@@ -28,7 +26,7 @@
     width: 100%;
     height: 100%;
     border-radius: 0 2rem 0 0; /* Only top corners are rounded */
-    background-color: white;
+    background-color: var(--card-color);
     border-top: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
   }
@@ -48,7 +46,6 @@
     border-radius: inherit;
   }
 }
-
 .left-container {
   display: flex;
   flex-direction: column;
@@ -60,7 +57,7 @@
   .chats-container {
     display: flex;
     flex-direction: column;
-    background-color: white;
+    background-color: var(--card-color);
     border-radius: 0 0 0 0; /* Only top-right corner is rounded */
     border-top: 1px solid var(--border-color);
     width: 100%;
@@ -88,16 +85,8 @@
       }
     }
 
-    .chat-input {
-
-      input {
-        background-color: var(--gray-bg);
-      }
-    }
-
     .search-header {
-      padding: 0.5rem 0.5rem;
-      --tui-radius-l: 3rem;
+      padding: .5rem .75rem;
     }
 
     .chats-header {
@@ -107,6 +96,17 @@
       align-items: center;
       gap: 1rem;
       padding: 1rem;
+
+      /*
+       * Centring boxes is not centring letters: Literata's line box is 1.476em (1.19 up, .29 down),
+       * so the caps of "Chats" land 1.5px below the middle of the box the row centres. The icons
+       * flanking the title drop by the same 1.5px and their ink then starts and ends with the caps.
+       */
+      tui-badged-content,
+      .new-chat {
+        position: relative;
+        top: .09375rem;
+      }
     }
 
     .chats {
@@ -143,68 +143,7 @@
     }
   }
 }
-
-.search-container {
-  --tui-radius-m: 2rem;
-  --tui-font-text-m: normal 1.1rem/1.25rem var(--tui-font-text);
-  width: 20rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  .username-input {
-    margin-bottom: 1rem;
-    width: 100%;
-  }
-}
-
-.username {
-  font-size: 1.1rem;
-  font-weight: 600;
-  display: inline;
-  margin-left: .9rem;
-}
-
-.user-tile {
-  padding: .5rem;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  max-width: 20rem;
-
-
-  .friend-action {
-    margin-left: auto;
-    cursor: pointer;
-    padding: .5rem;
-
-    &.negative {
-      color: var(--danger-text-color);
-    }
-
-    &.positive {
-      color: var(--tui-background-accent-1);
-    }
-
-    &.secondary {
-      margin-left: unset;
-    }
-
-    &:hover {
-      opacity: .8;
-    }
-  }
-}
-
-.tiles {
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
-.drawer-container {
+.panel-body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -213,74 +152,48 @@
   align-self: stretch; /* Ensure it stretches fully */
   gap: 1rem;
 
-  .menu-tiles {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-
-    .menu-tile {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-      padding: .5rem;
-      width: 100%;
-      max-width: 20rem;
-      font-size: 1.5rem;
-      height: 4rem;
-
-      .menu-text {
-        padding-bottom: 3px;
-        color: var(--text-color);
-      }
-
-      &.return {
-        display: none;
-      }
-
-      .menu-icon {
-        margin: 0 1rem;
-      }
-
-      &:hover {
-        background-color: var(--grey-color);
-        cursor: pointer;
-      }
-    }
-  }
-
+  /* 05: a list-level empty state is one quiet centred line - no illustration, no headline size. */
   .no-results {
-    font-size: 1.3rem;
-    line-height: 1.5;
+    align-self: center;
+    color: var(--subhead-color);
+    font-size: .8125rem;
+    line-height: 1.55;
     margin-top: 1rem;
+    max-width: 32ch;
+    text-align: center;
   }
 
-  .requests-toggle {
-    width: 20rem;
-    --tui-radius-l: 2rem;
+  /* The strip is a row of the panel body, so it takes the body's width - a fixed one overflowed
+     the panel and pushed the last tab under its right edge. */
+  .people-toggle {
+    width: 100%;
+    /* The same stadium the field under it is cut to - size m reads --tui-radius-m for both the
+       strip and the pill riding inside it. */
+    --tui-radius-l: 3rem;
+    --tui-radius-m: 3rem;
+    /* Three labels have to share a 300px panel, so the tabs keep less padding of their own. */
+    --t-padding: .5rem;
 
-    .btn-text {
-      width: 50%;
+    button {
+      font-size: .8rem;
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    span {
+      color: var(--dark-raspberry);
+      font-family: var(--font-family-mono);
+      font-size: .7rem;
+      margin-left: .2rem;
     }
   }
 }
-
-
-.drawer {
-  top: 0;
-  border-radius: 0;
-  inline-size: 24rem;
-  background-color: var(--main-bg-color);
-}
-
 .header-text {
   font-size: 1.5rem;
   font-weight: 600;
   display: flex;
   align-items: center;
 }
-
 .header {
   position: sticky;
   background-color: var(--main-bg-color) !important;
@@ -289,216 +202,40 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: flex-end;
-    gap: 1rem;
+    align-items: center;
+    gap: .5rem;
+    /* The Chats header's own inset: the title starts where the tabs and the field under it do,
+       and it is not pressed against the top of the panel. */
+    padding: 1rem;
   }
 
   .header-text {
-    padding: .2rem;
+    padding: .2rem 0;
   }
 
   app-dismiss-button {
     margin-left: auto;
   }
 }
-
-::ng-deep .str-chat__message-textarea:placeholder-shown {
-  min-height: 1.3em
-}
-
-::ng-deep .str-chat__icon {
-  color: var(--chat-accent-color);
-}
-
-// my messages color
-::ng-deep .str-chat__message.str-chat__message--me .str-chat__message-bubble {
-  background-color: var(--chat-lite);
-}
-
-::ng-deep .str-chat__reaction-selector {
-  .str-chat__message-reactions-options {
-  @include utils . component-layer-overrides('message-reactions-options');
-
-    .str-chat__message-reactions-option {
-    @include utils . component-layer-overrides('message-reactions-option');
-
-      &:hover {
-        background-color: var(--chat-lite);
-      }
-
-      &.str-chat__message-reactions-option-selected {
-        background-color: var(--chat-bg-color);
-      }
-    }
-  }
-}
-
-// three dot on message action
-::ng-deep .str-chat__message-action-icon {
-  .str-chat__icon {
-    color: var(--chat-accent-color) !important;
-  }
-}
-
-// read icon on my messages
-::ng-deep .str-chat__message.str-chat__message--me {
-  .str-chat__icon {
-    color: white;
-  }
-}
-
-// text of interlocutor's messages
-::ng-deep .str-chat__message-text-value {
-  color: black;
-  padding: 0.1rem;
-}
-
-// interlocutor's messages color
-::ng-deep .str-chat__message .str-chat__message-bubble {
-  background-color: white;
-}
-
-// main chat background
-::ng-deep .str-chat__list {
-  background-color: var(--chat-bg-color);
-}
-
-// input field color
-::ng-deep .str-chat__message-input {
-  background-color: white;
-}
-
-// input field text color
-::ng-deep .str-chat__message-input .str-chat__message-textarea-container .str-chat__message-textarea {
-  color: black;
-}
-
-// remove border from input field
-::ng-deep .str-chat__message-input .str-chat__message-textarea-container {
-  border: none;
-}
-
-// default, right chat window header
-::ng-deep .str-chat__channel-header {
-  background-color: white;
-  color: black;
-  gap: 0;
-
-  .str-chat__channel-header-end {
-    row-gap: 0;
-
-    .str-chat__channel-header-title {
-      line-height: 1.5;
-      font-weight: 550;
-    }
-  }
-
-  stream-avatar-placeholder {
-    order: 0;
-    margin-right: 1rem;
-  }
-
-  .back-to-channels {
-    order: -1;
-  }
-}
-
-::ng-deep .str-chat__channel-preview-messenger--time {
-  min-width: fit-content;
-}
-
-::ng-deep .str-chat__channel-preview-messenger.str-chat__channel-preview {
-  padding-right: .6rem;
-}
-
-::ng-deep .str-chat__channel-preview {
-  &--active,
-  &-messenger--active {
-    // selected chat preview
-    background-color: var(--chat-accent-color);
-    color: white;
-
-    .muted-icon {
-      color: white;
-    }
-
-    .str-chat__channel-preview-unread-badge {
-      background: white !important;
-      color: var(--chat-accent-color) !important;
-    }
-
-    // Ensure hover does not affect active state
-    &:hover {
-      background-color: var(--chat-accent-color) !important;
-    }
-
-    .str-chat__icon {
-      color: white;
-    }
-
-    .str-chat__channel-preview-messenger--time {
-      color: white;
-    }
-
-    .online-indicator-buffer {
-      background-color: var(--chat-accent-color) !important;
-    }
-
-    .str-chat__avatar--online-indicator {
-      background-color: white !important;
-    }
-  }
-
-  &:hover {
-    background-color: var(--gray-bg);
-
-    .online-indicator-buffer {
-      background-color: var(--gray-bg);
-    }
-  }
-}
-
-// message reactions container
-::ng-deep .str-chat__message-reactions-container .str-chat__message-reactions .str-chat__message-reaction.str-chat__message-reaction-own {
-  background-color: white;
-}
-
-::ng-deep .str-chat__message .str-chat__message-metadata, .str-chat__message .str-chat__custom-message-metadata {
-  color: white;
-}
-
-// in chat window, separator lines for timeline
-::ng-deep .str-chat__date-separator {
-  color: white;
-}
-
-::ng-deep .str-chat__date-separator-line {
-  background-color: white;
-}
-
-// You have no channels currently, No chats here yet...
-::ng-deep .str-chat__channel-list-empty {
-  color: var(--chat-accent-color) !important;
-}
-
-::ng-deep .str-chat__empty-channel-text {
-  color: var(--chat-accent-color) !important;
-}
-
-// You can't send messages in this channel
-::ng-deep .str-chat__message-input .str-chat__message-input-not-allowed {
-  color: var(--chat-bg-color);
-}
-
-// barely visible grey separator on the right side of the channel list
-::ng-deep .str-chat-channel-list {
-  border: none;
-}
-
+/* 01: Literata for the name, and a quieter sans for the line under it. */
 .str-chat__channel-preview-end-first-row .str-chat__channel-preview-messenger--name {
-  font-weight: 550;
-}
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .3125rem;
+  font: 500 .90625rem/1.25 var(--font-family-reading);
 
+  /* Stream's own rule has the name ellipsise; the star must not be what gets squeezed out. */
+  [data-testid='channel-preview-title'] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.str-chat__channel-preview-end-second-row .str-chat__channel-preview-messenger--last-message {
+  font-size: .78125rem;
+}
 .single-digit {
   display: flex;
   align-items: center;
@@ -509,58 +246,6 @@
   padding: 0 4px; /* Ensures double-digit numbers have more space */
   border-radius: 50%; /* Default: fully circular */
 }
-
-// unread messages indicator
-::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
-  background: var(--chat-accent-color); // here
-}
-
-// unread messages indicator
-::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end .str-chat__channel-preview-end-second-row .str-chat__channel-preview-unread-badge {
-  padding: 0 6px;
-  color: white;
-  font-weight: 550;
-}
-
-// chat window, unread messages notification
-::ng-deep .str-chat__unread-messages-notification button {
-  color: white;
-  background-color: var(--chat-accent-color);
-
-  .str-chat__icon {
-    color: white;
-  }
-}
-
-
-// unread message separator in chat window
-::ng-deep .str-chat__unread-messages-separator {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: white;
-  position: relative;
-  margin: 1rem 0;
-  background-color: transparent;
-}
-
-::ng-deep .str-chat__unread-messages-separator::before,
-::ng-deep .str-chat__unread-messages-separator::after {
-  content: "";
-  flex: none;
-  width: 38%;
-  height: var(--str-chat__spacing-px);
-  background-color: white;
-}
-
-::ng-deep .str-chat__unread-messages-separator::before {
-  margin-right: 1rem;
-}
-
-::ng-deep .str-chat__unread-messages-separator::after {
-  margin-left: 1rem;
-}
-
 @media (max-width: 1024px) {
   .right-container {
     padding-right: 0;
@@ -570,37 +255,21 @@
     }
   }
 }
-
 @media (max-width: 640px) {
   .super-container {
     padding-top: 0;
     height: 100vh;
   }
 
-  .drawer-container .menu-tiles .menu-tile.return {
-    display: flex;
-  }
-
-  .drawer {
-    min-width: 100vw;
+  .people-panel {
+    width: 100%;
   }
 }
-
-.hidden-chat-icon {
-  cursor: pointer;
-  margin-left: auto;
-}
-
-.search-icon {
-  display: none;
-}
-
 @media (min-width: 640px) {
   .back-to-channels {
     display: none;
   }
 }
-
 @media (max-width: 640px) {
   .right-container {
     display: none;
@@ -622,37 +291,79 @@
     width: 100%;
   }
 }
-
 .resizer {
-  width: 3px;
-  background: var(--border-color);
+  align-items: center;
+  background: transparent;
   border-top: 1px solid var(--border-color);
-  border-left: 1px solid var(--border-color);
-  cursor: ew-resize;
+  cursor: col-resize;
+  display: flex;
+  flex: 0 0 9px;
+  justify-content: center;
+  position: relative;
   user-select: none;
-}
+  width: 9px;
 
+  /* Hairline at rest: the seam reads as a border until you reach for it. */
+  &::before {
+    background: var(--border-color);
+    content: '';
+    height: 100%;
+    position: absolute;
+    width: 1px;
+  }
+
+  .resizer-grip {
+    background: transparent;
+    border-radius: 999px;
+    height: 34px;
+    position: relative;
+    transition: background-color 140ms ease;
+    width: 3px;
+  }
+
+  &:hover .resizer-grip {
+    background: var(--control-border-color);
+  }
+
+  &.dragging .resizer-grip {
+    background: var(--dark-raspberry);
+  }
+}
 .left-container.collapsed {
   ::ng-deep .str-chat__channel-preview .str-chat__channel-preview-end {
     display: none;
+  }
+
+  ::ng-deep .str-chat__channel-preview {
+    justify-content: center;
+    padding-right: 0;
+
+    &--active,
+    &-messenger--active {
+      background-color: transparent;
+
+      .str-chat__avatar {
+        box-shadow: 0 0 0 2px var(--dark-raspberry);
+      }
+    }
   }
 
   min-width: unset;
 
   .chats-container {
     .chats-header {
-      &:hover,
-      &:focus {
-        background-color: var(--grey-color);
-      }
+      gap: 0;
+      justify-content: center;
+      padding: 1rem 0;
 
-      .header-text.chats {
+      .header-text.chats,
+      .new-chat {
         display: none;
       }
+    }
 
-      .hidden-chat-icon {
-        display: none;
-      }
+    .search-clear {
+      display: none;
     }
 
     .chat-input {
@@ -673,5 +384,258 @@
         display: inline;
       }
     }
+  }
+}
+.section-heading {
+  align-self: flex-start;
+  color: var(--metadata-color);
+  font: 600 .7rem/1 var(--font-family-mono);
+  letter-spacing: .06rem;
+  margin: .35rem 0 -.35rem;
+  text-transform: uppercase;
+}
+/* ---- 2b: a channel offers no composer; it says so instead. ---- */
+.channel-readonly-footer {
+  align-items: center;
+  background: var(--card-color);
+  border-top: 1px solid var(--hairline-color);
+  color: var(--metadata-color);
+  display: flex;
+  font-size: .8rem;
+  gap: .75rem;
+  justify-content: space-between;
+  padding: .85rem 1.1rem;
+
+  .readonly-note {
+    align-items: center;
+    display: flex;
+    gap: .45rem;
+  }
+
+  .muted-pill {
+    background: var(--nested-color);
+    border-radius: 999px;
+    color: var(--subhead-color);
+    font-size: .75rem;
+    padding: .3rem .75rem;
+  }
+}
+/*
+ * ---- 10: the two composers that are not composers ----
+ *
+ * Both replace the field outright rather than disabling one. A disabled textarea still invites a
+ * message, and neither of these threads has anywhere to put it. They keep the composer's own
+ * height and hairline so the pane does not resize as a thread turns out to be a dead end.
+ */
+.channel-blocked-footer,
+.channel-dead-footer {
+  align-items: center;
+  background: var(--card-color);
+  border-top: 1px solid var(--hairline-color);
+  color: var(--subhead-color);
+  display: flex;
+  font-size: .78rem;
+  gap: .75rem;
+  padding: .85rem 1.1rem;
+}
+
+.channel-blocked-footer {
+  .blocked-note {
+    flex: 1;
+  }
+
+  /* Reversible, so the way back is offered in plum rather than warned about in red. */
+  .unblock-action {
+    background: transparent;
+    border: 1px solid var(--brand-margin);
+    border-radius: 999px;
+    color: var(--dark-raspberry);
+    cursor: pointer;
+    flex: none;
+    font: 500 .75rem/1 var(--font-family-ui);
+    padding: .35rem .8rem;
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background: var(--state-hover);
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: .6;
+    }
+  }
+}
+
+.channel-dead-footer {
+  color: var(--metadata-color);
+}
+
+/* 03: an empty room is centred in its own area, never pinned to the top edge. */
+.channel-empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  margin: auto;
+  max-width: 24rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  text-wrap: pretty;
+
+  .channel-empty-title {
+    color: var(--text-color);
+    font: 600 1.05rem/1.35 var(--font-family-reading);
+  }
+
+  .channel-empty-body {
+    color: var(--subhead-color);
+    font-size: .85rem;
+    line-height: 1.55;
+  }
+}
+.header-text.chats,
+.header-text.people {
+  font: 500 1.1875rem/1.25 var(--font-family-reading);
+  margin-right: auto;
+}
+.new-chat {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: .6rem;
+  color: var(--text-color);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: .35rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: none;
+  }
+}
+.archive-row {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  padding: .7rem 1rem;
+  text-align: left;
+  width: 100%;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--gray-bg);
+    outline: none;
+  }
+
+  .archive-emblem {
+    align-items: center;
+    background: var(--nested-color);
+    border: 1px solid var(--hairline-color);
+    border-radius: 50%;
+    color: var(--subhead-color);
+    display: inline-flex;
+    flex: none;
+    height: 2.375rem;
+    justify-content: center;
+    width: 2.375rem;
+  }
+
+  .archive-label {
+    color: var(--text-color);
+    font: 500 .90625rem/1.25 var(--font-family-reading);
+    margin-right: auto;
+  }
+
+  .archive-count {
+    color: var(--metadata-color);
+    font-size: .78125rem;
+  }
+
+  /* An archived chat with a new message stays put and lights this row instead. */
+  .archive-dot {
+    background: var(--danger-text-color);
+    border-radius: 50%;
+    display: block;
+    height: .5rem;
+    width: .5rem;
+  }
+}
+.left-container.collapsed .archive-row {
+  gap: 0;
+  justify-content: center;
+  padding: .7rem 0;
+
+  .archive-label,
+  .archive-count {
+    display: none;
+  }
+}
+.preview-tile {
+  position: relative;
+}
+.row-controls {
+  align-items: center;
+  display: flex;
+  gap: .15rem;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: opacity 120ms ease;
+}
+.str-chat__channel-preview:hover .row-controls,
+.row-controls:focus-within {
+  opacity: 1;
+}
+.row-control {
+  align-items: center;
+  background: var(--card-color);
+  border: 1px solid var(--hairline-color);
+  border-radius: 50%;
+  color: var(--subhead-color);
+  cursor: pointer;
+  display: inline-flex;
+  height: 1.625rem;
+  justify-content: center;
+  padding: 0;
+  width: 1.625rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--nested-color);
+    color: var(--text-color);
+    outline: none;
+  }
+}
+.left-container.collapsed .row-controls {
+  display: none;
+}
+/* 06: in the rail the unread count has nowhere to sit, so it becomes a dot. */
+.avatar-wrapper {
+  position: relative;
+}
+.rail-unread {
+  background: var(--chat-unread-fill);
+  border: 2px solid var(--card-color);
+  border-radius: 50%;
+  display: block;
+  height: .625rem;
+  position: absolute;
+  right: -.125rem;
+  top: -.125rem;
+  width: .625rem;
+}
+
+/* 07: the drag handle is desktop only - there is no second column to size against. */
+@media (max-width: 640px) {
+  .resizer {
+    display: none;
   }
 }

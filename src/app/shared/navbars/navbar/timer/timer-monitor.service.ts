@@ -1,20 +1,18 @@
-import {Injectable} from '@angular/core';
+import {logger} from "../../../logger";
+import {TuiNotificationService} from "@taiga-ui/core/components";
+import { Injectable, inject } from '@angular/core';
 import {interval, Subscription} from 'rxjs';
-import {TuiAlertService} from '@taiga-ui/core';
 import {LocalStorageService} from "../../../../services/local-storage.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class TimerMonitorService {
+  private localStorageService = inject(LocalStorageService);
+  private alertService = inject(TuiNotificationService);
+
   private checkInterval = 1000;
   private subscription: Subscription | null = null;
-
-  constructor(
-    private localStorageService: LocalStorageService,
-    private alertService: TuiAlertService
-  ) {
-  }
 
   /**
    * Starts the background timer monitoring process.
@@ -53,7 +51,7 @@ export class TimerMonitorService {
    * Logic to execute when the timer reaches 0.0.
    */
   private triggerTimerEndAlert() {
-    console.log("⏳ Timer expired! Triggering alert...");
-    this.alertService.open("⏳ Time's up!", {appearance: "warning"}).subscribe();
+    logger.debug("⏳ Timer expired! Triggering alert...");
+    this.alertService.open($localize`⏳ Time's up!`, {appearance: "warning"}).subscribe();
   }
 }

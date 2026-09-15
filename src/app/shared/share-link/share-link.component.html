@@ -13,14 +13,16 @@
         (click)="copy()"
         readonly
       />
-      <tui-icon
-        [icon]="showCopied ? '@tui.check' : '@tui.copy'"
-        size="xl"
-        tuiBadge
-        tuiSlot="top"
-        class="hover:opacity-80 cursor-pointer"
+      <button
+        type="button"
+        class="copy-action"
+        [class.copied]="showCopied"
+        [attr.aria-label]="copyActionLabel"
         (click)="copy()"
-      ></tui-icon>
+      >
+        <tui-icon [icon]="showCopied ? '@tui.check' : '@tui.copy'"></tui-icon>
+        <span i18n aria-live="polite">{showCopied, select, true {Copied} other {Copy}}</span>
+      </button>
     </div>
   </div>
 </ng-template>

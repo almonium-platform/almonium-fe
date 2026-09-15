@@ -1,0 +1,79 @@
+<div class="base-container">
+  <main class="record-layout">
+    <a i18n class="back-link" routerLink="/settings/me">‹ Profile</a>
+
+    @if (rhythm; as languageRhythm) {
+      <section class="record-card card" aria-labelledby="language-record-title">
+        <header class="record-identity">
+          <span class="crest" [style.background]="crest" [class.aside]="setAside" aria-hidden="true"></span>
+          <div class="identity-copy">
+            <h1 id="language-record-title">{{ languageName }}</h1>
+            <p>{{ statusLine }}</p>
+          </div>
+          @if (setAside) {
+            <button i18n
+              type="button"
+              class="make-active"
+              [disabled]="activating || !switchAvailable"
+              (click)="makeActive()"
+            >Make active</button>
+          }
+        </header>
+
+        <div class="record-numbers">
+          <div class="record-number">
+            <span class="figure">{{ stats?.wordsKept ?? 0 | number }}</span>
+            <span i18n class="caption">Words you can read</span>
+          </div>
+          <div class="record-number">
+            <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
+            <span i18n class="caption">Books finished</span>
+          </div>
+          <div class="record-number">
+            <span class="figure">{{ pace.met }}<span class="of">/{{ pace.counted }}</span></span>
+            <span i18n class="caption">Weeks at pace</span>
+          </div>
+        </div>
+
+        <app-rhythm-band [rhythm]="languageRhythm" [languageName]="languageName" [crest]="crest"></app-rhythm-band>
+        <p class="record-sentence">{{ recordSentence }}</p>
+      </section>
+
+      <section class="words-card card" aria-labelledby="words-title">
+        <header class="words-head">
+          <span i18n class="eyebrow" id="words-title">Your words</span>
+          <span i18n class="due-count">
+            {setAside, select, true {{{ dueCount }} due when you come back} other {{{ dueCount }} due}}
+          </span>
+        </header>
+
+        @if (shownWords.length > 0) {
+          <ul class="word-list">
+            @for (word of shownWords; track word.id ?? word.entry) {
+              <li class="word-row">
+                <span class="word-entry">{{ word.entry }}</span>
+                <span class="word-meta">{{ wordMeta(word) }}</span>
+                <span class="word-strength" aria-hidden="true">
+                  @for (lit of strength(word); track $index) {
+                    <span class="pip" [class.lit]="lit"></span>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+          <a i18n class="all-words" routerLink="/review">All {{ stats?.wordsKept ?? words.length | number }} words</a>
+        } @else {
+          <p i18n class="words-empty">No words kept in {{ languageName }} yet.</p>
+        }
+      </section>
+
+      @if (setAside) {
+        <p class="swap-note">{{ swapNote }}</p>
+      }
+    } @else {
+      <section class="record-card card" aria-busy="true">
+        <span class="loading-line"></span>
+      </section>
+    }
+  </main>
+</div>

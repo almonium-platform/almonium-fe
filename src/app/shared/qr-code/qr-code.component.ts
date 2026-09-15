@@ -1,8 +1,9 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {logger} from "../logger";
+import {TuiNotificationService} from "@taiga-ui/core/components";
+import { Component, Input, OnInit, inject } from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {NgStyle} from "@angular/common";
-import {TuiAlertService} from "@taiga-ui/core";
 import {Router} from "@angular/router";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
 
@@ -16,16 +17,14 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
   ]
 })
 export class QRCodeComponent implements OnInit {
-  @Input() linkToEncode: string = 'https://almonium.com';
-  qrCodeUrl: string | undefined;
-  skeletonImgUrl: string = 'assets/img/other/qr-skeleton.png';
+  private utilsService = inject(UtilsService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
 
-  constructor(private utilsService: UtilsService,
-              private alertService: TuiAlertService,
-              private router: Router,
-              private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
+  @Input() linkToEncode = 'https://almonium.com';
+  qrCodeUrl: string | undefined;
+  skeletonImgUrl = 'assets/img/other/qr-skeleton.png';
 
   ngOnInit(): void {
     if (this.linkToEncode) {
@@ -34,7 +33,7 @@ export class QRCodeComponent implements OnInit {
   }
 
   get qrCodeImgUrl(): string | undefined {
-    return this.qrCodeUrl || undefined;
+    return this.qrCodeUrl ?? undefined;
   }
 
 
@@ -44,16 +43,23 @@ export class QRCodeComponent implements OnInit {
         this.qrCodeUrl = url;
       },
       error: (err) => {
-        console.error('Failed to generate QR code:', err);
-        this.alertService.open('Failed to generate QR code', {appearance: 'error'}).subscribe();
+        logger.error('Failed to generate QR code:', err);
+        this.alertService.open($localize`Failed to generate QR code`, {appearance: 'negative'}).subscribe();
       },
     });
   }
 
-  protected redirect() {
+  protected redirect(): void {
+    const target = new URL(this.linkToEncode, window.location.origin);
+
     this.popupTemplateStateService.closeImmediately();
     setTimeout(() => {
-      this.router.navigate([this.linkToEncode]).then();
+      if (target.origin === window.location.origin) {
+        void this.router.navigateByUrl(`${target.pathname}${target.search}${target.hash}`);
+        return;
+      }
+
+      window.location.assign(target.href);
     }, 0);
   }
 }

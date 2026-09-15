@@ -1,188 +1,131 @@
 <ng-template #dropdownTemplate>
-  <tui-data-list
-    role="menu"
-    tuiDataListDropdownManager
-    class="context-menu">
-
+  <tui-data-list role="menu" tuiDataListDropdownManager class="context-menu">
     @if (selectedBook?.progressPercentage) {
-      <button
-        new
-        tuiOption
-        type="button"
-        class="context-button"
-        (click)="undoProgress()"
-      >
-        <lucide-icon
-          name="undo-dot"
-        ></lucide-icon>
-        Reset progress
-      </button>
+      <button i18n tuiOption type="button" class="context-button" (click)="undoProgress()"><lucide-icon name="undo-dot"></lucide-icon>Reset progress</button>
     }
-
   </tui-data-list>
 </ng-template>
 
+<ng-template #translationsHint><div i18n>Also show books not originally written in {{ currentLanguageName }} — you'll read a {{ currentLanguageName }} translation.</div></ng-template>
+<ng-template #parallelHint><div i18n>Books that can be read side by side with a translation.</div></ng-template>
 
 <div class="base-container read-container">
-  <div class="filter-container">
-    <tui-textfield
-      class="search-input shadowless-input"
-      iconStart="@tui.search"
-      tuiTextfieldSize="m"
-    >
-      <input
-        tuiTextfield
-        [formControl]="titleFormControl"
-        type="text"
-        placeholder="Search"
-      />
-    </tui-textfield>
-    <div class="unit">
-      <input
-        tuiCheckbox
-        type="checkbox"
-        [ngModel]="filterByCefrToggle"
-        (ngModelChange)="onFilterByCefrChange($event)"
-        size="m"
-      />
+  <app-paywall></app-paywall>
 
-      Filter By Level
-      <app-cefr-level-selector
-        [levels]="cefrLevels"
-        [control]="cefrLevelControl"
-        class="shadowless-input"
-      ></app-cefr-level-selector>
-    </div>
-    <div class="unit">
-      <input
-        tuiCheckbox
-        type="checkbox"
-        [ngModel]="includeTranslationsToggle"
-        (ngModelChange)="onIncludeTranslationsChange($event)"
-        size="m"
-      />
-
-      Include Translations
-      <app-info-icon
-        [tooltipText]="'You will read books that have been translated into the selected language, although their original language is different.'"
-        [size]="20"
-      ></app-info-icon>
+  <header class="read-header">
+    <div class="read-header__row">
+      <div class="read-header__title"><p i18n class="eyebrow">Read</p><h1 i18n>Your books</h1></div>
+      @if (isPremium && quotaLabel(); as quota) { <span class="quota">{{ quota }}</span> }
+      <button type="button" class="import-book-action" [class.premium-gate]="isAuthenticated && !isPremium" (click)="startImport()">
+        <lucide-icon [name]="isAuthenticated && !isPremium ? 'lock' : 'plus'" size="16"></lucide-icon>
+        {{ importActionLabel() }}
+      </button>
     </div>
 
-    <div class="unit">
-      <input
-        tuiCheckbox
-        type="checkbox"
-        [ngModel]="sortToggle"
-        (ngModelChange)="onSortChange($event)"
-        size="m"
-      />
-
-      Sort By
-      <tui-textfield
-        tuiChevron
-        class="shadowless-input sort-by"
-        tuiTextfieldSize="m"
-        [tuiTextfieldCleaner]="false"
-      >
-        <input
-          tuiSelect
-          [formControl]="sortControl"
-          placeholder="Sort by"
-        />
-
-        <tui-data-list-wrapper
-          new
-          *tuiTextfieldDropdown
-          [items]="sortParameters"
-        />
-      </tui-textfield>
-      <lucide-icon
-        (click)="toggleSortOrder()"
-        [name]="sortIconName()"
-        size="20"
-        class="cursor-pointer"
-      ></lucide-icon>
+    <div class="filter-bar" role="search" aria-label="Book filters" i18n-aria-label>
+      <label class="search-field"><lucide-icon name="search" size="15" aria-hidden="true"></lucide-icon><input [formControl]="titleFormControl" type="search" placeholder="Title or author" i18n-placeholder aria-label="Title or author" i18n-aria-label /></label>
+      <label class="native-select"><span i18n class="sr-only">Level</span><select [formControl]="cefrLevelControl">@for (level of cefrLevels; track level) { <option [value]="level">{{ levelLabel(level) }}</option> }</select></label>
+      <label class="native-select sort-select"><span i18n class="sr-only">Sort order</span><select [formControl]="sortControl">@for (sort of sortParameters; track sort) { <option [value]="sort">{{ sortLabels[sort] }}</option> }</select></label>
+      @if (isAuthenticated) { <button i18n type="button" class="filter-chip" [class.active]="includeTranslationsToggle" [attr.aria-pressed]="includeTranslationsToggle" (click)="onIncludeTranslationsChange(!includeTranslationsToggle)" [tuiHint]="translationsHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">Translations</button> }
+      <button i18n type="button" class="filter-chip" [class.active]="parallelTranslationToggle" [attr.aria-pressed]="parallelTranslationToggle" (click)="onParallelTranslationChange(!parallelTranslationToggle)" [tuiHint]="parallelHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">Parallel text</button>
     </div>
-    <div class="unit">
-      <input
-        tuiCheckbox
-        type="checkbox"
-        [ngModel]="parallelTranslationToggle"
-        (ngModelChange)="onParallelTranslationChange($event)"
-        size="m"
-      />
-      Parallel Translation
-    </div>
-  </div>
+  </header>
 
-  <div class="books-container">
-    @for (book of filteredBooks; track book) {
-      <div class="book"
-           tuiDropdownContext
-           #dropdown="tuiDropdown"
-           [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null"
-           (contextmenu)="onRightClick($event, book)"
-      >
-        <a
-          routerLink="/book/{{ book.id }}"
-          class="game-card ladder-card solo-game">
-          <div class="game-img ladder-img">
-            @if (book.hasParallelTranslation && !book.progressPercentage) {
-              <app-parallel-translation
-                tuiHintAppearance="dark"
-                tuiHintDirection="bottom"
-                [tuiHint]="tooltip"
-                class="parallel"
-              ></app-parallel-translation>
-              <ng-template #tooltip>
-                <div>Parallel mode in a language you understand</div>
-              </ng-template>
-            }
-            @if (book.progressPercentage) {
-              <label
-                tuiProgressLabel
-                class="progress"
-              >
-                <span class="percent">{{ book.progressPercentage }}%</span>
-
-                <tui-progress-circle
-                  size="xs"
-                  [max]="100"
-                  [value]="book.progressPercentage"
-                  [style.color]="'#ff7f00'"
-                />
-              </label>
-            }
-            <img alt="book cover image" [src]="book.coverImageUrl"/>
-            <div class="level-badge">{{ book.levelFrom }} - {{ book.levelTo }}</div>
-            <div class="year-badge">{{ book.publicationYear }}</div>
+  @if (unseenReadyOrders.length > 0) {
+    <section class="notice-card" aria-live="polite">
+      @for (order of unseenReadyOrders; track order.id) {
+        <article class="fulfilled">
+          <p class="mono-kicker" i18n>The book you asked for</p>
+          <h2 i18n><em>{{ order.bookTitle }}</em> now reads alongside {{ languageName(order.language) }}</h2>
+          <p i18n class="fulfilled__copy">You asked for this one in {{ order.createdAt | date:'MMMM' }}. The whole book is aligned, and every reader of the pair has it from today.</p>
+          <div class="fulfilled__actions">
+            <button i18n type="button" class="solid-pill" (click)="openFulfilled(order)">Open the book</button>
+            @if (requestsLeftLabel(); as left) { <span class="fulfilled__left">{{ left }}</span> }
           </div>
-          <div class="description-section">
-            <div class="flex flex-row justify-between">
-              <div class="title">{{ book.title }}</div>
-              <p class="rating"
-                 tuiHintAppearance="dark"
-                 tuiHintDirection="bottom"
-                 [tuiHint]="tooltip"
-              ><span class="star">⭐</span>{{ book.rating }}</p>
-              <ng-template #tooltip>
-                <div>out of 5 (Goodreads)</div>
-              </ng-template>
-            </div>
-            <div class="description">
-              {{ book.author }}, {{ book.publicationYear }}
-            </div>
-          </div>
-        </a>
+        </article>
+      }
+    </section>
+  }
+
+  @if (continueBooks.length > 0) {
+    <section class="continue-section" aria-labelledby="continue-heading">
+      <div class="kicker-row"><h2 i18n id="continue-heading" class="kicker">Continue</h2><span class="rule" aria-hidden="true"></span></div>
+      <div class="continue-row">
+        @for (book of continueBooks; track book.id) {
+          <a class="continue-card" [routerLink]="['/books', book.editionSlug]" [style.--book-color]="bookColor(book.id, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
+            @if (book.coverUrl) { <app-book-cover class="continue-art" [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover> }
+            @else { <strong class="continue-title">{{ book.title }}</strong> }
+            <span class="continue-foot"><small>{{ book.author }}</small><span class="progress-hairline"><i [style.width.%]="book.progressPercentage ?? 0"></i></span></span>
+          </a>
+        }
       </div>
-    }
-    @if (loading$ | async) {
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
-      <div class="book"><a class="game-card ladder-card solo-game" [tuiSkeleton]="true"></a></div>
-    } @else if (filteredBooks.length === 0) {
-      <div class="no-found">No books found 🥲</div>
-    }
-  </div>
+    </section>
+  }
+
+  @if (isAuthenticated) {
+    <section class="book-shelf" aria-labelledby="my-books-heading">
+      <div class="kicker-row">
+        <h2 id="my-books-heading" class="kicker"><ng-container i18n>Yours</ng-container> <span class="kicker__count">· {{ privateBooks.length }}</span></h2>
+        <span class="rule" aria-hidden="true"></span>
+        <div class="view-toggle" role="group" aria-label="Your books view" i18n-aria-label><button i18n type="button" [class.active]="privateView === 'spines'" [attr.aria-pressed]="privateView === 'spines'" (click)="setShelfView('private', 'spines')">Spines</button><button i18n type="button" [class.active]="privateView === 'covers'" [attr.aria-pressed]="privateView === 'covers'" (click)="setShelfView('private', 'covers')">Covers</button></div>
+      </div>
+      @if (privateBooks.length > 0) {
+        @if (privateShelfBooks.length > 0) {
+          <div class="shelf" [class.cover-shelf]="privateView === 'covers'">
+            @for (book of privateShelfBooks; track book.id) {
+              <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [class.ink-spine]="isUnnamed(book)" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/my-books', book.id]" [attr.aria-label]="bookAriaLabel(book)">
+                <span class="spine-title">{{ book.title }}</span>@if (privateView === 'covers' || showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }
+                @if (book.status !== importStatus.READY) { <span i18n class="spine-status">{book.status, select, FAILED {Needs attention} other {Preparing}}</span> }
+                @if (privateView === 'spines') { <span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span> }
+              </a>
+            }
+          </div>
+        } @else { <div class="empty-state"><p i18n>None of your books match this search.</p><button i18n type="button" (click)="clearFilters()">Clear filters</button></div> }
+      } @else { <div class="empty-state"><p i18n>No private books yet.</p><button i18n type="button" (click)="startImport()">{isPremium, select, true {Import your first book} other {Learn about private imports}}</button></div> }
+    </section>
+  }
+
+  <section class="book-shelf" aria-labelledby="library-heading">
+    <div class="kicker-row">
+      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container> @if ((loading$ | async) === false) { <span class="kicker__count">· {{ shelfBooks.length }}</span> }</h2>
+      <span class="rule" aria-hidden="true"></span>
+      <div class="view-toggle" role="group" aria-label="Library view" i18n-aria-label><button i18n type="button" [class.active]="libraryView === 'spines'" [attr.aria-pressed]="libraryView === 'spines'" (click)="setShelfView('library', 'spines')">Spines</button><button i18n type="button" [class.active]="libraryView === 'covers'" [attr.aria-pressed]="libraryView === 'covers'" (click)="setShelfView('library', 'covers')">Covers</button></div>
+    </div>
+    @if (loading$ | async) { <div i18n class="loading-row" [tuiSkeleton]="true">Loading library</div> }
+    @else if (shelfBooks.length > 0) {
+      <div class="shelf" [class.cover-shelf]="libraryView === 'covers'">
+        @for (book of shelfBooks; track book.id) {
+          <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
+            @if (libraryView === 'covers') {
+              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span></a>
+            } @else {
+              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.id, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ pagesLabel(book.wordCount) }} · {{ book.cefrLevel }}</small></span></a>
+            }
+          </div>
+        }
+      </div>
+    } @else { <div class="empty-state"><p>{{ emptyLibraryMessage }}</p><button i18n type="button" (click)="clearFilters()">Clear filters</button></div> }
+  </section>
+
+  @if (isAuthenticated && orders.length > 0) {
+    <section class="requests-card" aria-labelledby="requests-heading">
+      <h2 i18n id="requests-heading" class="eyebrow">Your requests</h2>
+      <ul class="requests-list">
+        @for (order of orders; track order.id) {
+          <li>
+            <a class="requests-list__pair" [routerLink]="['/books', order.bookEditionSlug]">{{ order.bookTitle }} → {{ languageName(order.language) }}</a>
+            <span class="requests-list__state">
+              @if (order.status === orderStatus.READY) {
+                <em i18n class="ready">Ready</em>
+                <button i18n type="button" class="text-action" (click)="openFulfilled(order)">Read</button>
+              } @else {
+                <span i18n class="asked">Asked {{ order.createdAt | date:'d MMM' }}</span>
+                <button i18n type="button" class="text-action text-action--quiet" [disabled]="withdrawing === order.id" (click)="withdraw(order)">Withdraw</button>
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 </div>

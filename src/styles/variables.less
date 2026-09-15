@@ -1,21 +1,117 @@
-:root {
-  // Colors
-  --chat-accent-color: #693651;
-  --chat-bg-color: #ac5b77;
-  --chat-lite: #ffd1e0;
+// The light tokens are a mixin as well as the root default: a light-only surface (the
+// landing page) applies them locally so shared components keep their light face there.
+.light-theme-tokens() {
+  // Design tokens: this is the authoritative application layer. Tailwind and
+  // Taiga UI consume these values; neither defines the product palette.
+  // Brand ramp (steps 1–6 match the emblem; 7–8 are application-only).
+  --brand-raspberry: #A1264C;
+  --brand-premium: #8F2356;
+  --brand-flat-logo: #7D2060;
+  --brand-flat-logo-image: url('/assets/img/logo/logo-flat.svg');
+  --brand-margin: #6C1D6A;
+  --brand-primary: #5A1A74;
+  --brand-hover: #48177D;
+  --brand-pressed: #3A1462;
+  --brand-ink: #2C2530;
+
+  // Semantic colours
+  --reader-text-color: #33292E;
+  --subhead-color: #5f5560;
+  --metadata-color: #a99aa8;
+  --page-ground: #F9F6F5;
+  --card-color: #fff;
+  --nested-color: #F9F6F5;
+  --overlay-color: #fff;
+  --hairline-color: #edebe8;
+  --control-border-color: #d8cfd6;
+  --secondary-control-border-color: var(--control-border-color);
+  --secondary-control-fill: var(--card-color);
+  // The disc a lone avatar sits on: one ground, one ink, no identity. See --avatar-hue-* for
+  // the hashed set, which is only for surfaces that draw several avatars at once.
+  --avatar-ground: #ece5ea;
+  --avatar-ground-edge: #dcd2da;
+  --avatar-ground-ink: #3d3348;
+  --disabled-fill-color: #e8e2e6;
+  --disabled-label-color: #8b8290;
+  --on-brand-color: #fff;
+  --shadow-color: rgba(44, 37, 48, .16);
+  --overlay-shadow: 0 16px 40px var(--shadow-color);
+  --scrim: rgba(43, 43, 43, .78);
+  --state-hover: rgba(44, 37, 48, .04);
+  --state-pressed: rgba(44, 37, 48, .08);
+  --state-selected: #faf6fb;
+  --chat-selected-color: #F3EDF6;
+  // 11: the disc Almo sits in. The same tint as a selected row on light; a step up from the ground on dark.
+  --almo-disc-color: #F3EDF6;
+  --notification-unread-color: #F6F0F4;
+  --particle-opacity: .9;
+  --wordmark-color: #300b4f;
+
+  // Compatibility aliases, to be retired as components are consolidated.
+  --chat-accent-color: var(--brand-primary);
+  --chat-bg-color: var(--page-ground);
+  --chat-lite: var(--brand-primary);
+  // Chat surfaces. Named separately from the card/nested pair because the two
+  // themes do not step the same way: on cream an incoming bubble floats to
+  // white, on the dark ground it climbs two steps to read as raised at all.
+  --chat-incoming-bubble-color: var(--card-color);
+  --chat-own-bubble-color: var(--dark-raspberry);
+  --chat-own-ink: #FFF8F5;
+  --chat-unread-fill: var(--chat-accent-color);
+  --chat-unread-ink: var(--on-brand-color);
+  // The plate an avatar carries with it. Generated portraits are dark line work on
+  // transparency, so the ground under them is a property of the avatar, not of the theme:
+  // one value for both modes, and a ring that only appears where the plate needs seating.
+  --avatar-plate: #EFE9E6;
+  --avatar-plate-ring: transparent;
+  // 28a: four identities for a hashed letter disc, picked by a hash of the name and held at the
+  // same index in both themes - 1 rose, 2 clay, 3 sand, 4 mauve, on hues 340/20/80/300. Light
+  // draws them the way light draws everything else, pale ground and dark serif ink, with a 1px
+  // inset edge so the palest disc still has a boundary on a white card; dark keeps deep discs
+  // and pale ink and needs no edge. The ink is one value per theme rather than one per hue, and
+  // it is the lone disc's ink: a letter reads the same whether or not its surface hashes.
+  --avatar-hue-ink: #3d3348;
+  --avatar-hue-1: #F0DFE9;
+  --avatar-hue-1-edge: #dfcfd9;
+  --avatar-hue-2: #F5E1DD;
+  --avatar-hue-2-edge: #e4d0cb;
+  --avatar-hue-3: #EEE6D5;
+  --avatar-hue-3-edge: #ddd4c1;
+  --avatar-hue-4: #E8E0EF;
+  --avatar-hue-4-edge: #d6cde0;
+  // 03: the app's own channels. The emblem is never bare - its blades are a spiky silhouette,
+  // and without a disc it reads a size larger than the rows around it - so the brand channel
+  // gets a disc of its own. A language channel drops the emblem and fills the disc with that
+  // language's own colour instead: two marks do not fit one 38px slot.
+  --channel-emblem-disc: #F3EDF6;
+  // The crest fill is not a token: it is the language's stored `langColors` colour, normalised
+  // for legibility per `crestFill`. One language, one colour, everywhere.
+  --channel-crest-ink: #F1EAEF;
+  // 27: the paid tier's card. Light mode still uses the ink panel as a surface here, so the
+  // tier reads as paid before a price is read; dark mode drops it, because two dark panels on
+  // a dark ground are one panel, and takes the card step with a hairline instead.
+  --paywall-plate: var(--brand-ink);
+  --paywall-plate-border: transparent;
+  --paywall-plate-ink: #F9F6F5;
+  --paywall-plate-ink-2: rgba(249, 246, 245, .82);
+  --paywall-plate-ink-3: rgba(249, 246, 245, .55);
+  --paywall-plate-eyebrow: #c9a8c4;
+  --paywall-plate-fill: rgba(249, 246, 245, .09);
+  --paywall-plate-selected: #F9F6F5;
+  --paywall-plate-selected-ink: #2C2530;
   --pale-purple: #958ba5;
-  --lavender: #A999A8;
-  --purple-dark: #612b5e;
-  --main-bg-color: #F9F6F5;
-  --text-color: #3d3d3d;
+  --lavender: var(--metadata-color);
+  --purple-dark: var(--brand-margin);
+  --main-bg-color: var(--page-ground);
+  --text-color: var(--brand-ink);
   --danger-bg-color: #ffe3e9;
   --danger-text-color: #fa4666;
   --orange: #ff7f00;
   --warning-color: #ea6644;
-  --border-color: #edebe8;
+  --border-color: var(--hairline-color);
   --grey-color: #f0f0f0;
-  --disabled-color: #e6e5e5;
-  --disabled-text-color: #7e7e7e;
+  --disabled-color: var(--disabled-fill-color);
+  --disabled-text-color: var(--disabled-label-color);
   --waiting-color: #f0ad4e;
   --info-dark-blue: #4767cd;
   --info-light-blue: #f1f5fb;
@@ -24,20 +120,44 @@
   --violet: #9A49D2;
   --success-color: #16BA7F;
   --success-bg-color: #E7F8F2;
+  /*
+   * 10: the three states where a message did not land. A failed bubble inverts rather than
+   * fading - 55% plum under cream text fails contrast twice over - so the fill is the card and
+   * the pill is drawn instead. The error line sits on the message ground at 12px, which is why
+   * it takes its own red: --danger-text-color is tuned for larger text and misses 4.5:1 here.
+   */
+  --chat-failed-ink: #C0203C;
+  --chat-failed-border: #C98FAE;
+  --chat-refused-border: #DCD3D9;
   --dark-raspberry: #872657;
+  // Saved Messages emblem: flat plum disc, cream bookmark. Never the premium gradient —
+  // the gradient means "premium user", and Saved Messages is not a user.
+  --saved-emblem-fill: #872657;
+  --saved-emblem-ink: #FFF8F5;
   // overriding tui global variables
-  --tui-background-accent-1: #83397f; /* Primary theme color */
-  --tui-background-accent-1-hover: var(--pale-purple);
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-background-accent-1-pressed: var(--brand-pressed);
   --tui-text-action: var(--dark-raspberry);
   --tui-text-action-hover: var(--lavender);
   --tui-radius-l: 3rem;
 
   // Gradients
-  --premium-gradient: linear-gradient(135deg, #00d1ff, #8a2be2);
-  --default-avatar-gradient: linear-gradient(to bottom left, #8b5cf6, #ec4899); /* Unused */
+  --premium-gradient: linear-gradient(135deg, var(--brand-premium), var(--brand-primary));
+  --avatar-gradient: linear-gradient(135deg, var(--brand-premium), var(--brand-primary));
   // Fonts
-  --font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  --font-family-reading: 'Literata', serif;
+  --font-family-ui: 'IBM Plex Sans', sans-serif;
+  --font-family-mono: 'IBM Plex Mono', monospace;
+  --font-family: var(--font-family-ui);
   // Other
-  --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1);
+  // One radius for every self-contained card surface, so a floating container that
+  // hosts one can match it instead of peeking out from behind its rounder corners.
+  --card-radius: 1.375rem;
+  --box-shadow: 0 1px 3px 0 rgba(44, 37, 48, .1), 0 1px 2px -1px rgba(44, 37, 48, .1);
   --header-height: 4.33rem; /* 69px */
+}
+
+:root {
+  .light-theme-tokens();
 }

@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
-import {TuiHintDirective} from "@taiga-ui/core";
-import {TuiSkeleton} from "@taiga-ui/kit";
+import {TuiHintDirective} from "@taiga-ui/core/portals";
+import {TuiSkeleton} from "@taiga-ui/kit/directives";
 
 @Component({
   selector: 'app-parallel-translation',
@@ -12,7 +12,7 @@ import {TuiSkeleton} from "@taiga-ui/kit";
   styleUrls: ['./parallel-translation.component.less']
 })
 export class ParallelTranslationComponent {
-  @Input() inactive: boolean = false;
-  @Input() showHint: boolean = true;
-  @Input() loading: boolean = false;
+  @Input() inactive = false;
+  @Input() showHint = true;
+  @Input() loading = false;
 }

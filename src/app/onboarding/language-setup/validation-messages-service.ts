@@ -10,14 +10,14 @@ export class ValidationMessagesService {
     this.maxLanguages = max;
   }
 
-  getValidationMessages(): { [key: string]: string | (() => string) } {
+  getValidationMessages(): Record<string, string | (() => string)> {
     return {
-      required: 'At least one language is required',
+      required: $localize`At least one language is required`,
       maxLanguages: () => {
         if (this.maxLanguages === 1) {
-          return 'You can select only one language in free plan';
+          return $localize`You can select only one language in free plan`;
         }
-        return `You can select up to ${this.maxLanguages} languages`;
+        return $localize`You can select up to ${this.maxLanguages}:maxLanguages: languages`;
       },
     };
   }

@@ -1,65 +1,61 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {TuiProgress, TuiStepper} from "@taiga-ui/kit";
+import {logger} from "../shared/logger";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
-import {NgClass, NgTemplateOutlet} from "@angular/common";
+import {NgTemplateOutlet} from "@angular/common";
 import {LanguageSetupComponent} from "./language-setup/language-setup.component";
 import {Subject, takeUntil} from "rxjs";
 import {SetupStep, UserInfo} from "../models/userinfo.model";
 import {Router} from "@angular/router";
 import {WelcomeComponent} from "./welcome/welcome.component";
-import {PaywallComponent} from "../shared/paywall/paywall.component";
 import {ProfileSetupComponent} from "./profile-setup/profile-setup.component";
 import {InterestsSetupComponent} from "./interests-setup/interests-setup.component";
-import {TuiTextfield} from "@taiga-ui/core";
-import {LucideAngularModule} from "lucide-angular";
-import {ViewportService} from "../services/viewport.service";
-import {UpgradeComponent} from "../shared/upgrade/upgrade.component";
+import {LevelSetupComponent} from './level-setup/level-setup.component';
+import {GreetingComponent} from './greeting/greeting.component';
+import {ReturnPathService} from '../services/return-path.service';
 
 @Component({
   selector: 'app-onboarding',
   imports: [
-    TuiStepper,
     ParticlesComponent,
-    TuiProgress,
     LanguageSetupComponent,
     WelcomeComponent,
-    PaywallComponent,
     NgTemplateOutlet,
     ProfileSetupComponent,
     InterestsSetupComponent,
-    TuiTextfield,
-    LucideAngularModule,
-    NgClass,
-    UpgradeComponent
+    LevelSetupComponent,
+    GreetingComponent,
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.less'
 })
 export class OnboardingComponent implements OnInit, OnDestroy {
+  private userInfoService = inject(UserInfoService);
+  private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private returnPath = inject(ReturnPathService);
+
   protected readonly SetupStep = SetupStep;
   private readonly destroy$ = new Subject<void>();// @ViewChild(LanguageSetupComponent, {static: true}) languageSetupComponent!: LanguageSetupComponent;
 
   userInfo: UserInfo | null = null;
 
-  protected isMobile: boolean = false;
   activeStep: SetupStep = SetupStep.WELCOME; // Active step in the stepper
   storedStep: SetupStep = SetupStep.WELCOME; // Step stored in the backend
   steps: SetupStep[] = [
     SetupStep.WELCOME,
-    SetupStep.PLAN,
     SetupStep.LANGUAGES,
-    SetupStep.PROFILE,
+    SetupStep.LEVEL,
     SetupStep.INTERESTS,
+    SetupStep.PROFILE,
+    SetupStep.GREETING,
   ];
-
-  constructor(
-    private userInfoService: UserInfoService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-    private viewportService: ViewportService,
-  ) {
-  }
+  readonly progressSteps: SetupStep[] = [
+    SetupStep.LANGUAGES,
+    SetupStep.LEVEL,
+    SetupStep.INTERESTS,
+    SetupStep.PROFILE,
+  ];
 
   ngOnInit() {
     this.userInfoService.userInfo$.pipe(
@@ -73,17 +69,10 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       this.activeStep = this.storedStep; // Default active step is the stored step initially
       this.cdr.detectChanges();
       if (this.storedStep === SetupStep.COMPLETED) {
-        this.router.navigate(['/home']).then();
+        void this.router.navigateByUrl(this.returnPath.consume() ?? '/home').then();
       }
     });
 
-    this.viewportService.setCustomWidth(768);
-    this.viewportService.isMobile$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((isMobile: boolean) => {
-        this.isMobile = isMobile;
-        this.cdr.detectChanges();
-      });
   }
 
   ngOnDestroy() {
@@ -102,8 +91,39 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected goToProgressStep(step: SetupStep): void {
+    this.goToStep(this.steps.indexOf(step));
+  }
+
+  private readonly progressStepLabels: Partial<Record<SetupStep, string>> = {
+    [SetupStep.LANGUAGES]: $localize`Languages`,
+    [SetupStep.LEVEL]: $localize`Level`,
+    [SetupStep.INTERESTS]: $localize`Interests`,
+    [SetupStep.PROFILE]: $localize`Profile`,
+  };
+
+  protected progressStepLabel(step: SetupStep): string {
+    return this.progressStepLabels[step] ?? step.charAt(0) + step.slice(1).toLowerCase();
+  }
+
+  protected progressStepNumber(step: SetupStep): number {
+    return this.progressSteps.indexOf(step) + 1;
+  }
+
+  protected isProgressStepComplete(step: SetupStep): boolean {
+    return this.progressSteps.indexOf(step) < this.progressStepIndex;
+  }
+
   protected get activeStepIndex(): number {
     return this.steps.indexOf(this.activeStep);
+  }
+
+  protected get progressStepIndex(): number {
+    return this.progressSteps.indexOf(this.activeStep);
+  }
+
+  protected get showProgressStepper(): boolean {
+    return this.progressStepIndex >= 0;
   }
 
   protected updateActiveStep(step: SetupStep): void {
@@ -114,7 +134,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   protected goBack() {
     if (this.backDisabled()) {
-      console.info('Back button disabled');
+      logger.info('Back button disabled');
       return;
     }
     this.activeStep = this.steps[this.activeStepIndex - 1];
@@ -122,7 +142,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   protected goForward() {
     if (this.forwardDisabled()) {
-      console.info('Forward button disabled');
+      logger.info('Forward button disabled');
       return;
     }
     this.activeStep = this.steps[this.activeStepIndex + 1];

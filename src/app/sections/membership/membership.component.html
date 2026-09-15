@@ -1,0 +1,175 @@
+<main class="membership-page">
+  @if (userInfo) {
+    @if (!premium) {
+      <section class="membership-shell free-membership" aria-labelledby="membership-title">
+        <div class="current-plan panel">
+          <div class="plan-heading">
+            <div>
+              <span i18n class="eyebrow">Membership</span>
+              <h1 i18n id="membership-title">You're on Free</h1>
+            </div>
+            <div class="billing-toggle" role="group" aria-label="Billing period" i18n-aria-label>
+              <button i18n type="button" [attr.aria-pressed]="billingPeriod === 'monthly'" (click)="choosePeriod('monthly')">Monthly</button>
+              <button i18n type="button" [attr.aria-pressed]="billingPeriod === 'yearly'" (click)="choosePeriod('yearly')">Annual</button>
+            </div>
+          </div>
+
+          <div class="usage-block">
+            <p i18n>Where you are against the free limits</p>
+            <div class="usage-row">
+              <div><span i18n>Saved words</span><code>{{ savedWords === null ? '—' : savedWords }} / 100</code></div>
+              <progress [value]="usagePercent(savedWords, 100)" max="100">{{ usagePercent(savedWords, 100) }}%</progress>
+            </div>
+            <div class="usage-row">
+              <div><span i18n>Active languages</span><code>{{ activeLanguagesUsed }} / {{ activeLanguageLimitLabel }}</code></div>
+              <progress [value]="usagePercent(activeLanguagesUsed, activeLanguageLimit)" max="100">{{ usagePercent(activeLanguagesUsed, activeLanguageLimit) }}%</progress>
+            </div>
+            <div class="usage-row">
+              <div><span i18n>Fluent languages</span><code>{{ fluentLanguagesUsed }} / {{ fluentLanguageLimit }}</code></div>
+              <progress [value]="usagePercent(fluentLanguagesUsed, fluentLanguageLimit)" max="100">{{ usagePercent(fluentLanguagesUsed, fluentLanguageLimit) }}%</progress>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-panel panel">
+          <div class="premium-heading">
+            <h2 i18n>Premium</h2>
+            <span i18n>everything in Free, plus</span>
+          </div>
+          <div class="feature-grid">
+            @for (feature of premiumFeatures; track feature) {
+              <span>{{ feature }}</span>
+            }
+          </div>
+          <div class="divider"></div>
+          <div class="offer-row">
+            <div class="offer-copy">
+              @if (offerPrice !== null) {
+                <div class="price">
+                  <strong>${{ offerPrice }}</strong>
+                  <span i18n>/ {billingPeriod, select, monthly {month} other {year}}</span>
+                  @if (struckPrice !== null) {
+                    <s>${{ struckPrice }}</s>
+                  }
+                </div>
+                @for (note of cadenceNotes; track note) {
+                  <span class="cadence-note">{{ note }}</span>
+                }
+              } @else {
+                <div i18n class="price-loading">Loading current price…</div>
+              }
+              @if (founderOfferAvailable) {
+                <p i18n>{{ founderLimitNote }} Keep this price while your subscription stays active.</p>
+              }
+            </div>
+            <button i18n class="premium-action" type="button" [disabled]="!selectedPlanId || actionLoading$.value" (click)="becomeMember()">
+              {actionLoading$.value, select, true {Opening checkout…} other {Become a member}}
+            </button>
+          </div>
+        </div>
+      </section>
+    } @else {
+      <section class="membership-shell paid-membership" aria-labelledby="membership-title">
+        <div class="current-plan panel paid-summary">
+          <span i18n class="eyebrow">Membership</span>
+          <div class="member-title">
+            <h1 id="membership-title">{{ membershipTitle }}</h1>
+            <app-premium-star label="Premium membership" i18n-label />
+          </div>
+
+          <dl class="membership-details">
+            <div><dt i18n>Plan</dt><dd>{{ planLabel }}</dd></div>
+            <div><dt i18n>Status</dt><dd>{{ renewalLabel }}</dd></div>
+            <div><dt i18n>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
+            @if (scheduledChange; as change) {
+              <!-- Exists only while a change is pending, and carries its own undo. Same row shape as the rest. -->
+              <div class="scheduled-row">
+                <dt i18n>Scheduled change</dt>
+                <dd>
+                  {{ scheduledChangeLabel(change) }}
+                  <button i18n type="button" class="undo" [disabled]="cadenceLoading" (click)="undoScheduledChange()">
+                    {subscription?.type, select, YEARLY {Keep annual instead} other {Keep monthly instead}}
+                  </button>
+                </dd>
+              </div>
+            }
+          </dl>
+
+          @if (annualOfferVisible) {
+            <!-- After eight finished sessions, once. It routes into the same confirmation any switch does. -->
+            <div class="annual-offer">
+              <strong i18n>Switch to annual and save</strong>
+              @if (annualPromptLine) {
+                <p>{{ annualPromptLine }}</p>
+              }
+              <div class="annual-offer-actions">
+                <button i18n type="button" class="accept" (click)="acceptAnnualOffer()">Switch to annual</button>
+                <button i18n type="button" class="decline" (click)="dismissAnnualOffer()">Keep monthly</button>
+              </div>
+            </div>
+          }
+
+          @if (billingManaged && oppositeCadence && !scheduledChange) {
+            <button i18n class="portal-action" type="button" [disabled]="cadenceLoading" (click)="openCadenceChange()">
+              {cadenceLoading, select, true {Checking…} other {{{ cadenceSwitchLabel }}}}
+            </button>
+          }
+
+          @if (billingManaged) {
+            <button i18n class="portal-action" type="button" [disabled]="actionLoading$.value" (click)="openCustomerPortal()">
+              {actionLoading$.value, select, true {Opening Paddle…} other {Manage card and invoices}}
+            </button>
+          }
+
+          @if (billingManaged && subscription?.autoRenewal !== false && subscription?.type !== 'LIFETIME') {
+            <button i18n class="cancel-action" type="button" (click)="openCancellation()">Cancel subscription</button>
+          }
+        </div>
+
+        <div class="membership-usage">
+          <p i18n>What's running on it</p>
+          <dl>
+            <div><dt i18n>Saved words</dt><dd i18n>{{ savedWords === null ? '—' : savedWords }} · unlimited</dd></div>
+            @if (importQuota) {
+              <div><dt i18n>Book imports</dt><dd i18n>{{ importQuota.used }} / {{ importLimitLabel }} this month</dd></div>
+            }
+            <div><dt i18n>Target languages</dt><dd>{{ activeLanguagesUsed }}</dd></div>
+            <div><dt i18n>Fluent languages</dt><dd>{{ fluentLanguagesUsed }}</dd></div>
+          </dl>
+        </div>
+
+        @if (subscription?.autoRenewal === false && subscription?.type !== 'LIFETIME') {
+          <div i18n class="membership-note">
+            Your premium access stays active until {{ accessEndsOn }}. You can restart it from Paddle before then.
+          </div>
+        }
+      </section>
+    }
+  } @else {
+    <section i18n class="membership-shell loading-state" aria-live="polite">Loading your membership…</section>
+  }
+</main>
+
+<app-cadence-change-modal
+  [isVisible]="cadenceModalVisible"
+  [preview]="cadencePreview"
+  [pending]="cadencePending"
+  (closed)="closeCadenceModal()"
+  (confirmed)="confirmCadenceChange($event)"
+/>
+
+<!--
+  One step, in plum, with no countdown: cancelling is reversible until the period ends, so it is a question and not
+  a warning. The founder line rides inside it rather than raising a modal of its own.
+-->
+<app-confirm-modal
+  [isVisible]="cancelModalVisible"
+  [tone]="'default'"
+  title="Cancel your subscription?" i18n-title
+  [message]="cancellationMessage"
+  [note]="cancellationNote"
+  confirmText="Cancel subscription" i18n-confirmText
+  cancelText="Keep it" i18n-cancelText
+  (closed)="closeCancellation()"
+  (confirm)="confirmCancellation()"
+/>

@@ -5,32 +5,62 @@
     initialsType === 'first-letter-of-first-word'
       ? 'one-letter'
       : 'multiple-letters'
-  }}"
+  }} {{ discClass }}"
+  [class.has-image]="showsImage"
+  [class.saved-messages]="isSavedMessages"
+  [class.brand-emblem]="isEmblem"
+  [class.almo-disc]="isAlmo"
+  [class.channel-crest]="!!crest"
+  [style.--channel-crest-fill]="crest?.fill ?? null"
 >
-  @if ((imageUrl || fallbackChannelImage) && !isError) {
+  @if (schematicUrl; as schematic) {
+    <img
+      class="avatar-schematic"
+      [attr.data-testid]="'avatar-img'"
+      src="{{ schematic }}"
+      alt="{{ initials }}"
+      (error)="isError = true"
+    />
+  } @else if (showsImage) {
     <img
       class="str-chat__avatar-image"
-      data-testid="avatar-img"
-      fetchpriority="high"
-      src="{{ imageUrl || fallbackChannelImage }}"
+      [attr.data-testid]="'avatar-img'"
+      [attr.fetchpriority]="'high'"
+      src="{{ artUrl }}"
       alt="{{ initials }}"
       (error)="isError = true"
     />
   } @else {
-    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
-      {{ initials }}
+    <div [attr.data-testid]="'fallback-img'" class="str-chat__avatar-fallback">
+      @if (isSavedMessages) {
+        <svg viewBox="0 0 512 512" aria-hidden="true">
+          <path d="M170 148a26 26 0 0 1 26-26h120a26 26 0 0 1 26 26v244l-86-64-86 64z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="30"
+                stroke-linejoin="round"
+                stroke-linecap="round"/>
+        </svg>
+      } @else if (isEmblem) {
+        <!-- 03: the emblem sits at 60% of the disc. It is circular, so it can run larger than a
+             square glyph would; bare, its blades would read a size larger than the row. -->
+        <span class="emblem-mark" aria-hidden="true"></span>
+      } @else if (crest; as crest) {
+        {{ crest.code }}
+      } @else if (isAlmo) {
+        <!-- 11: the canon pose on the tint, at the 31-in-38 the design draws. No pose ever reacts to a message. -->
+        <img class="almo-mark" src="assets/img/almo/canon-256.webp" alt="">
+      } @else if (isDeletedAccount) {
+        <!-- 10: an initial names somebody. There is nobody to name, so the disc asks instead. -->
+        <span class="deleted-mark">?</span>
+      } @else {
+        {{ initials }}
+      }
     </div>
   }
   <ng-template #fallback>
-    <div data-testid="fallback-img" class="str-chat__avatar-fallback">
+    <div [attr.data-testid]="'fallback-img'" class="str-chat__avatar-fallback">
       {{ initials }}
     </div>
   </ng-template>
-  @if (isOnline && showOnlineIndicator && location === 'channel-preview') {
-    <div
-      data-testid="online-indicator"
-      class="str-chat__avatar--online-indicator"
-    ></div>
-    <div class="online-indicator-buffer"></div>
-  }
 </div>

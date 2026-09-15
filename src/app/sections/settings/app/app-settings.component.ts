@@ -1,18 +1,27 @@
-import {Component, OnDestroy, OnInit} from "@angular/core";
+import {logger} from "../../../shared/logger";
+import { Component, OnDestroy, OnInit, inject } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, forkJoin, of, Subject, take} from "rxjs";
-import {DEFAULT_UI_PREFERENCES, UIPreferences} from "../../../models/userinfo.model";
+import {BehaviorSubject, finalize, forkJoin, of, Subject, take, takeUntil} from "rxjs";
+import {
+  DEFAULT_NOTIFICATION_PREFERENCES,
+  DEFAULT_UI_PREFERENCES,
+  NotificationPreferences,
+  UIPreferences,
+} from "../../../models/userinfo.model";
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
-import {TitleCasePipe} from "@angular/common";
-import {TuiSwitch} from "@taiga-ui/kit";
+import {TuiSwitch} from "@taiga-ui/kit/components";
 import {FormsModule} from "@angular/forms";
-import {TuiAlertService, TuiIcon} from "@taiga-ui/core";
+import {TuiIcon, TuiNotificationService} from "@taiga-ui/core/components";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
 import {SupportedLanguagesService} from "../../../services/supported-langs.service";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {catchError} from "rxjs/operators";
+import {resolveReducedMotion} from '../../../services/motion-preference';
+import {Appearance, AppearanceService} from '../../../services/appearance.service';
+import {UiLocaleService} from '../../../services/ui-locale.service';
+import {UI_LOCALE_AUTO, UiLocalePreference} from '../../../services/ui-locale';
 
 @Component({
   selector: 'app-app-settings',
@@ -22,44 +31,84 @@ import {catchError} from "rxjs/operators";
     SettingsTabsComponent,
     TuiSwitch,
     FormsModule,
-    TitleCasePipe,
     TuiIcon,
     ButtonComponent
   ]
 })
 export class AppSettingsComponent implements OnInit, OnDestroy {
+  private static readonly APP_PREFERENCES_KEY = AppearanceService.PREFERENCES_KEY;
+  private profileSettingsService = inject(ProfileSettingsService);
+  private userInfoService = inject(UserInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private supportedLanguagesService = inject(SupportedLanguagesService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private alertService = inject(TuiNotificationService);
+  private appearanceService = inject(AppearanceService);
+  protected readonly uiLocaleService = inject(UiLocaleService);
+
   private readonly destroy$ = new Subject<void>();
 
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
-  navbarColumns: [Array<keyof UIPreferences["navbar"]>, Array<keyof UIPreferences["navbar"]>] = [[], []];
-
-  constructor(
-    private profileSettingsService: ProfileSettingsService,
-    private userInfoService: UserInfoService,
-    private localStorageService: LocalStorageService,
-    private supportedLanguagesService: SupportedLanguagesService,
-    private targetLanguageDropdownService: TargetLanguageDropdownService,
-    private alertService: TuiAlertService,
-  ) {
-  }
+  uiPreferences: UIPreferences = structuredClone(DEFAULT_UI_PREFERENCES);
+  protected notifications: NotificationPreferences = {...DEFAULT_NOTIFICATION_PREFERENCES};
+  protected appearance: Appearance = 'system';
+  protected readonly appearanceShortcut = AppearanceService.SHORTCUT_LABEL;
+  protected reduceMotion = false;
+  protected readonly uiLocaleAuto = UI_LOCALE_AUTO;
+  protected uiLocale: UiLocalePreference = this.uiLocaleService.preference;
+  protected dailyReview = false;
+  protected dailyReviewTime = '19:00';
+  protected weeklyEmail = false;
+  protected readonly primaryNavItems: (keyof UIPreferences['navbar'])[] = ['discover', 'play', 'write'];
+  protected readonly utilityNavItems: (keyof UIPreferences['navbar'])[] = ['social', 'timer', 'notifications'];
 
   ngOnInit(): void {
+    const localPreferences = this.localStorageService.getItem<{
+      appearance?: Appearance;
+      reduceMotion?: boolean;
+      dailyReview?: boolean;
+      dailyReviewTime?: string;
+      weeklyEmail?: boolean;
+    }>(AppSettingsComponent.APP_PREFERENCES_KEY);
+    this.appearance = localPreferences?.appearance ?? 'system';
+    this.reduceMotion = resolveReducedMotion(
+      localPreferences,
+      window.matchMedia('(prefers-reduced-motion: reduce)'),
+    );
+    this.dailyReview = localPreferences?.dailyReview ?? false;
+    this.dailyReviewTime = localPreferences?.dailyReviewTime ?? '19:00';
+    this.weeklyEmail = localPreferences?.weeklyEmail ?? false;
+    // The shortcut can flip the theme while this page is open; the control follows.
+    this.appearanceService.appearance$.pipe(takeUntil(this.destroy$)).subscribe(appearance => this.appearance = appearance);
+
     this.userInfoService.userInfo$
       .pipe(take(1)) // Only listen to the first emission
       .subscribe((userInfo) => {
         if (userInfo) {
-          this.uiPreferences = {...userInfo.uiPreferences};
-          this.computeColumns();
+          this.uiPreferences = structuredClone(userInfo.uiPreferences);
+          this.notifications = {...userInfo.notifications};
         }
       });
   }
 
-  private computeColumns(): void {
-    const navbarKeys = this.getKeys(this.uiPreferences.navbar);
-    this.navbarColumns = this.splitIntoColumns(navbarKeys);
+  /** The page reloads when the language shown changes; the stored choice survives either way. */
+  protected onUiLocaleChange(preference: UiLocalePreference): void {
+    this.uiLocale = preference;
+    this.uiLocaleService.set(preference);
+  }
+
+  protected onNotificationPreferenceChange(key: keyof NotificationPreferences, enabled: boolean): void {
+    const previous = this.notifications;
+    this.notifications = {...this.notifications, [key]: enabled};
+    this.profileSettingsService.updateNotificationPreferences(this.notifications).subscribe({
+      next: () => this.userInfoService.updateUserInfo({notifications: this.notifications}),
+      error: (error) => {
+        logger.error('Failed to save notification preferences:', error);
+        this.notifications = previous;
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -67,27 +116,20 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  splitIntoColumns<T>(items: T[]): [T[], T[]] {
-    const middleIndex = Math.ceil(items.length / 2);
-    return [items.slice(0, middleIndex), items.slice(middleIndex)];
-  }
-
-  protected onPreferenceChange<K extends keyof UIPreferences>(
-    category: K,
-    key: keyof UIPreferences[K], // Ensure `key` matches the keys of the category
+  protected onPreferenceChange(
+    key: keyof UIPreferences['navbar'],
     value: boolean
   ): void {
-    // @ts-ignores
-    const oldValue = this.uiPreferences[category][key]; // @ts-ignore
-    this.uiPreferences[category][key] = value;
+    const oldValue = this.uiPreferences.navbar[key];
+    this.uiPreferences.navbar[key] = value;
     this.profileSettingsService.saveUiPreferences(this.uiPreferences)
       .subscribe({
         next: () => {
           this.userInfoService.updateUserInfo({uiPreferences: this.uiPreferences});
         },
         error: (error) => {
-          console.error('Failed to save preferences:', error);
-          this.uiPreferences[category][key] = oldValue;
+          logger.error('Failed to save preferences:', error);
+          this.uiPreferences.navbar[key] = oldValue;
         },
       });
   }
@@ -96,26 +138,59 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     return Object.keys(obj) as (keyof T)[];
   }
 
-  protected clearLocalStorage() {
+  protected get utilityNavEnabledCount(): number {
+    return this.utilityNavItems.filter(item => this.uiPreferences.navbar[item]).length;
+  }
+
+  protected saveLocalPreferences(): void {
+    this.localStorageService.saveItem(AppSettingsComponent.APP_PREFERENCES_KEY, {
+      appearance: this.appearance,
+      reduceMotion: this.reduceMotion,
+      dailyReview: this.dailyReview,
+      dailyReviewTime: this.dailyReviewTime,
+      weeklyEmail: this.weeklyEmail,
+    });
+    this.appearanceService.apply();
+  }
+
+  protected clearOfflineBooks() {
     this.loadingSubject$.next(true); // Show loading indicator
 
-    // Clear everything first
+    this.localStorageService.clearReaderPositions();
+    const cacheClear$ = typeof caches === 'undefined'
+      ? Promise.resolve()
+      : caches.keys().then(names => Promise.all(
+        names.filter(name => /book|read|content/i.test(name)).map(name => caches.delete(name)),
+      )).then(() => undefined);
+
+    void cacheClear$.then(() => {
+      this.loadingSubject$.next(false);
+      this.alertService.open($localize`Offline books cleared`, {appearance: 'positive'}).subscribe();
+    }).catch(error => {
+      this.loadingSubject$.next(false);
+      logger.error('Failed to clear offline books:', error);
+      this.alertService.open($localize`Failed to clear offline books`, {appearance: 'negative'}).subscribe();
+    });
+  }
+
+  protected reloadCachedAppData() {
+    this.loadingSubject$.next(true);
+
     this.userInfoService.clearUserInfo();
     this.supportedLanguagesService.clearSupportedLanguages();
     this.targetLanguageDropdownService.clearTargetAndCurrentLanguages();
-    this.localStorageService.clearAllData();
 
     // Create observables for fetching BOTH user info and supported languages
     const userInfoFetch$ = this.userInfoService.fetchUserInfoFromServer().pipe(
       catchError(err => {
-        console.error("Failed to fetch user info:", err);
+        logger.error("Failed to fetch user info:", err);
         return of(null); // Return null on error to allow forkJoin to complete
       })
     );
 
     const supportedLangsFetch$ = this.supportedLanguagesService.getAllSupportedLanguages().pipe(
       catchError(err => {
-        console.error("Failed to fetch supported languages:", err);
+        logger.error("Failed to fetch supported languages:", err);
         return of(null); // Return null on error
       })
     );
@@ -134,23 +209,23 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
           if (userInfo && supportedLangs) {
             // Both succeeded, UserInfoService & SupportedLanguagesService have updated.
             // Re-initialize dependent services
-            this.targetLanguageDropdownService.loadLangColors();
             this.targetLanguageDropdownService.initializeLanguages(userInfo); // Pass the fetched userInfo
 
             // Update local state if needed (e.g., this.uiPreferences)
             this.uiPreferences = {...userInfo.uiPreferences};
+            this.notifications = {...userInfo.notifications};
 
-            this.alertService.open('Data has been reloaded', {appearance: 'success'}).subscribe();
+            this.alertService.open($localize`Data has been reloaded`, {appearance: 'positive'}).subscribe();
           } else {
             // Handle cases where one or both fetches failed
-            this.alertService.open('Failed to reload all data. Please refresh the page.', {appearance: 'error'}).subscribe();
-            console.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
+            this.alertService.open($localize`Failed to reload all data. Please refresh the page.`, {appearance: 'negative'}).subscribe();
+            logger.error("Data reload incomplete. UserInfo received:", !!userInfo, "SupportedLangs received:", !!supportedLangs);
           }
         },
         error: (error) => {
           // Handle errors from forkJoin itself (less likely with catchError on sources)
-          console.error('Critical failure during data reload:', error);
-          this.alertService.open('Failed to reload data. Please refresh the page.', {appearance: 'error'}).subscribe();
+          logger.error('Critical failure during data reload:', error);
+          this.alertService.open($localize`Failed to reload data. Please refresh the page.`, {appearance: 'negative'}).subscribe();
         },
       });
   }

@@ -1,101 +1,122 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {AppConstants} from "../../../app.constants";
-import {Observable, of} from "rxjs";
-import {map, tap} from "rxjs/operators";
-import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
-import {ResponseModel} from "../../../models/response.model";
-import {LocalStorageService} from "../../../services/local-storage.service";
-import {TuiAlertService} from "@taiga-ui/core";
+import {catchError, concat, EMPTY, from, map, Observable, of, switchMap, tap} from 'rxjs';
+import {AppConstants} from '../../../app.constants';
+import {AuthMethod, TokenInfo} from '../../../authentication/auth/auth.types';
+import {authMethodsFromFirebaseUser} from '../../../authentication/auth/auth-methods';
+import {ResponseModel} from '../../../models/response.model';
+import {LocalStorageService} from '../../../services/local-storage.service';
+import {
+  Auth,
+  signOut,
+  unlink,
+  updatePassword,
+  getIdToken,
+} from '@angular/fire/auth';
 
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({providedIn: 'root'})
 export class AuthSettingsService {
-  constructor(private http: HttpClient,
-              private localStorageService: LocalStorageService,
-              private alertService: TuiAlertService,
-  ) {
-  }
+  private http = inject(HttpClient);
+  private firebaseAuth = inject(Auth);
+  private localStorageService = inject(LocalStorageService);
+
 
   checkCurrentAccessTokenIsLive(): Observable<string | null> {
-    const url = `${AppConstants.AUTH_URL}/access-token/verify-live`;
-    return this.http.get<ResponseModel>(url, {withCredentials: true}).pipe(
-      map(response => response.success ? response.message! : null)
+    return this.http.get<ResponseModel>(`${AppConstants.AUTH_URL}/session/recent`, {withCredentials: true}).pipe(
+      map(response => response.success ? response.message! : null),
     );
   }
 
-  // email change request
-  requestEmailChange(email: string): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/email/change`;
-    return this.http.post<any>(url, {email}, {withCredentials: true});
+  requestEmailChange(email: string): Observable<void> {
+    this.requireUser();
+    return this.http.post<void>(`${AppConstants.AUTH_URL}/email-changes`, {email}, {withCredentials: true});
   }
 
-  // email verification requests
   requestEmailVerification(): Observable<void> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
-    return this.http.post<void>(url, {}, {withCredentials: true});
+    return from(getIdToken(this.requireUser(), true)).pipe(
+      switchMap(idToken => this.http.post<void>(
+        `${AppConstants.PUBLIC_AUTH_URL}/email-verification`,
+        {idToken},
+      )),
+    );
   }
 
-  cancelEmailVerificationRequest(): Observable<any> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}`;
-    return this.http.delete<any>(url, {withCredentials: true});
+  cancelEmailVerificationRequest(): Observable<void> {
+    return of(undefined);
   }
 
   resendEmailVerificationRequest(): Observable<void> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/resend`;
-    return this.http.post<void>(url, {}, {withCredentials: true});
+    return this.requestEmailVerification();
   }
 
-  getLastEmailVerificationToken(): Observable<TokenInfo> {
-    const url = `${AppConstants.EMAIL_VERIFICATION_URL}/last/token`;
-    return this.http.get<TokenInfo>(url, {withCredentials: true});
+  getLastEmailVerificationToken(): Observable<TokenInfo | null> {
+    return of(null);
   }
 
-  // sensitive
   changePassword(newPassword: string): Observable<void> {
-    const url = `${AppConstants.AUTH_URL}/password`;
-    return this.http.put<void>(url, {password: newPassword}, {withCredentials: true});
+    return from(updatePassword(this.requireUser(), newPassword));
   }
 
-  deleteAccount(): Observable<any> {
-    const url = `${AppConstants.AUTH_URL}/me`;
-    return this.http.delete(url, {withCredentials: true});
+  deleteAccount(): Observable<void> {
+    this.requireUser();
+    return this.http.delete<void>(`${AppConstants.AUTH_URL}/me`, {withCredentials: true}).pipe(
+      switchMap(() => from(signOut(this.firebaseAuth))),
+    );
   }
 
   unlinkAuthProvider(provider: string): Observable<boolean> {
-    const url = `${AppConstants.AUTH_URL}/providers/${provider.toUpperCase()}`;
-    return this.http.delete<{ reauthRequired: boolean }>(url, {withCredentials: true})
-      .pipe(
-        map(response => response.reauthRequired)
-      );
+    const providerId = provider.toLowerCase() === 'local' ? 'password' : `${provider.toLowerCase()}.com`;
+    return from(unlink(this.requireUser(), providerId)).pipe(map(() => false));
   }
 
-  // auth data retrieval
   getAuthMethods(): Observable<AuthMethod[]> {
-    const url = `${AppConstants.AUTH_URL}/providers`;
-    return this.http.get<AuthMethod[]>(url, {withCredentials: true});
+    return from(this.firebaseAuth.authStateReady()).pipe(
+      map(() => {
+        const user = this.firebaseAuth.currentUser;
+        return user ? authMethodsFromFirebaseUser(user) : [];
+      }),
+      tap(methods => {
+        if (this.firebaseAuth.currentUser) {
+          this.localStorageService.saveAuthMethods(methods);
+        }
+      }),
+    );
   }
 
   isEmailAvailable(email: string): Observable<boolean> {
-    const url = `${AppConstants.AUTH_URL}/email/availability`;
-    return this.http.post<boolean>(url, {email}, {withCredentials: true});
+    return of(email.length > 0);
   }
 
   populateAuthMethods(): Observable<AuthMethod[]> {
-    const cachedAuthMethods = this.localStorageService.getAuthMethods();
-    if (cachedAuthMethods) {
-      return of(cachedAuthMethods);
-    }
     return this.getAuthMethods().pipe(
-      tap({
-        next: (methods) => this.localStorageService.saveAuthMethods(methods),
-        error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
+      switchMap(methods => {
+        if (this.firebaseAuth.currentUser) {
+          return of(methods);
         }
-      })
+
+        const cachedMethods = this.localStorageService.getAuthMethods();
+        if (cachedMethods) {
+          return concat(
+            of(cachedMethods),
+            this.getSessionAuthMethods().pipe(catchError(() => EMPTY)),
+          );
+        }
+
+        return this.getSessionAuthMethods();
+      }),
     );
+  }
+
+  private getSessionAuthMethods(): Observable<AuthMethod[]> {
+    return this.http.get<AuthMethod[]>(
+      `${AppConstants.AUTH_URL}/session/providers`,
+      {withCredentials: true},
+    ).pipe(tap(providers => this.localStorageService.saveAuthMethods(providers)));
+  }
+
+  private requireUser() {
+    const user = this.firebaseAuth.currentUser;
+    if (!user) throw new Error('Recent Firebase sign-in required');
+    return user;
   }
 }

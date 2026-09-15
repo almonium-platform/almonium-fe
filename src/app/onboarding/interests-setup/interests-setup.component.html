@@ -1,20 +1,19 @@
 <div class="card step">
-  <div class="tui-header header-row">
-    Curate Your Reading Topics
+  <div i18n class="tui-header header-row">
+    What do you like to read?
   </div>
 
   <app-interests
-    [currentInterests]="currentInterests"
+    [currentInterests]="initialInterests"
     class="content"
     (selectedInterestsChange)="onSelectedInterestsChange($event)">
   </app-interests>
 
-  <app-button
-    label="Start Your Journey"
-    (click)="submit()"
-    appearance="gradient"
-    class="w-full"
-    [loading$]="loading$"
-  >
-  </app-button>
+  <div class="step-actions">
+    <app-button label="Continue" i18n-label (click)="submit()" appearance="solid" [satisfiable]="atFloor" [loading$]="loading$" />
+    <button i18n type="button" class="back-link" (click)="back.emit()">Back</button>
+  </div>
+  @if (!atFloor) {
+    <p i18n class="floor-note">Pick three or more so Almo has something to go on. Fewer works too.</p>
+  }
 </div>

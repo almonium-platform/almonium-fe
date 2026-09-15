@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
 import {map} from "rxjs/operators";
@@ -8,8 +8,8 @@ import {HttpClient} from "@angular/common/http";
   providedIn: 'root'
 })
 export class UtilsService {
-  constructor(private http: HttpClient) {
-  }
+  private http = inject(HttpClient);
+
 
   getQrCodeUrl(text: string): Observable<string> {
     const url = `${AppConstants.UTILS_URL}/qr?text=${encodeURIComponent(text)}`;

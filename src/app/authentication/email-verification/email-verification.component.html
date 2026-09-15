@@ -7,8 +7,8 @@
         <!-- Rotating Logo -->
         <div class="logo-container" [ngClass]="{ rotating: isRotating }">
           <img
-            src="../../../assets/img/logo/logo-on-white-circle.svg"
-            alt="Logo"
+            src="../../../assets/img/logo/logo.svg"
+            alt="Logo" i18n-alt
             width="100"
             height="100"
           />
@@ -20,10 +20,10 @@
       @if (verificationSuccess) {
         <div class="tui-form__buttons">
           <app-button
-            label="Go Back to App"
+            label="Go Back to App" i18n-label
             class="w-full"
-            redirectUrl="/logout"
-            appearance="gradient"
+            [redirectUrl]="'/logout'"
+            appearance="solid"
           ></app-button>
         </div>
       }

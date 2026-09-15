@@ -1,58 +1,66 @@
-import {Injectable} from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import {BehaviorSubject, fromEventPattern} from 'rxjs';
-import {OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
+import {Event as StreamEvent, OwnUserResponse, StreamChat, UserResponse} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfoService} from "../../services/user-info.service";
 import {LocalStorageService} from "../../services/local-storage.service";
 import {SocialService} from "./social.service";
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatUnreadService {
+  private userInfoService = inject(UserInfoService);
+  private localStorageService = inject(LocalStorageService);
+  private socialService = inject(SocialService);
+  private destroyRef = inject(DestroyRef);
+
   private unreadCount$ = new BehaviorSubject<number>(0);
   private chatClient: StreamChat;
   private friendIds: string[] = [];
 
-  constructor(
-    private userInfoService: UserInfoService,
-    private localStorageService: LocalStorageService,
-    private socialService: SocialService,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
 
     // Listen to unread count updates from Stream events
-    this.chatClient.on((event) => {
-      if (event.total_unread_count !== undefined) {
-        this.updateUnreadCount(event.total_unread_count);
-      }
-    });
+    fromEventPattern<StreamEvent>(
+      handler => this.chatClient.on(handler),
+      handler => this.chatClient.off(handler),
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+        if (event.total_unread_count !== undefined) {
+          this.updateUnreadCount(event.total_unread_count);
+        }
+      });
 
     // todo replace, friends should be part of userInfo
-    this.socialService.getFriends().subscribe((friends) => {
+    this.socialService.getFriends().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((friends) => {
       this.friendIds = friends.map((f) => f.id);
     });
 
-    this.userInfoService.userInfo$.subscribe((userInfo) => {
+    this.userInfoService.userInfo$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((userInfo) => {
       if (!userInfo) {
         return;
       }
+      const streamChatToken = this.userInfoService.streamChatToken;
+      if (!streamChatToken) {
+        return;
+      }
       if (!this.chatClient.user) {
-        this.chatClient.connectUser(
+        void this.chatClient.connectUser(
           {id: userInfo.id},
-          userInfo.streamChatToken
+          streamChatToken
         ).then(() => {
-          this.fetchUnreadCount().then(() => {
-          });
+          void this.fetchUnreadCount();
         });
       }
     });
 
-    fromEventPattern(
+    fromEventPattern<StreamEvent>(
       (handler) => this.chatClient.on('user.presence.changed', handler),
       (handler) => this.chatClient.off('user.presence.changed', handler)
-    ).subscribe((event: any) => {
-      if (this.friendIds.includes(event.user?.id)) {
+    ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
+      if (event.user?.id && this.friendIds.includes(event.user.id)) {
         this.localStorageService.saveLastSeen(event.user.id, new Date());
       }
     });
@@ -66,7 +74,7 @@ export class ChatUnreadService {
     return !!u && 'total_unread_count' in u;
   }
 
-  public async fetchUnreadCount() {
+  public fetchUnreadCount(): void {
     const u = this.chatClient.user;
     const unreadCount = this.isOwnUser(u) ? Number(u.total_unread_count ?? 0) : 0;
     this.updateUnreadCount(unreadCount);

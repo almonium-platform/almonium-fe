@@ -4,7 +4,7 @@
   background-color: var(--main-bg-color);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 20;
 }
 
 .section {
@@ -20,15 +20,16 @@
   justify-content: flex-start;
   width: 100%;
   align-items: center;
-  padding: .8rem .6rem .4rem 0;
+  min-height: var(--header-height);
+  padding: .55rem 1rem;
 }
 
 .navbar-content::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 90px;
-  right: 30px;
+  left: 0;
+  right: 0;
   height: 1px;
   background-color: var(--border-color);
 }
@@ -36,8 +37,8 @@
 .logo-container {
   display: flex;
   align-items: center;
-  margin-left: 1em;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .spacer {
@@ -45,26 +46,33 @@
 }
 
 .app-icon {
-  height: 50px;
-  width: 50px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  padding: 7px;
-  box-shadow: var(--box-shadow);
-  margin: 0 15px;
+  height: 32px;
+  width: 32px;
+  background: center / contain no-repeat var(--brand-flat-logo-image);
+  flex: 0 0 32px;
+  margin: 0 .55rem;
+}
+
+.app-emblem {
+  height: 32px;
+  width: 32px;
+  flex: 0 0 32px;
+  margin: 0 .55rem;
 }
 
 a.nav-link {
-  font-size: 1.8em;
-  font-family: var(--font-family);
-  margin-left: 10px;
+  border-bottom: 1px solid transparent;
+  font-size: 1.125rem;
+  font-family: var(--font-family-reading);
+  line-height: 1.4;
+  margin-left: 0;
+  padding: .2em 0;
   color: var(--text-color);
 }
 
 .nav-link.active-link {
-  color: #520f6a;
-  padding: 0.2em 0;
-  border-bottom: #520f6a 1px solid;
+  color: var(--brand-margin);
+  border-bottom-color: var(--brand-margin);
 }
 
 .nav-actions {
@@ -77,12 +85,12 @@ a.nav-link {
 }
 
 .popover-menu {
-  background: #ffffff;
+  background: var(--overlay-color);
   padding: 0.5rem 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--overlay-shadow);
   z-index: 10;
   border-radius: 25px;
-  border: 1px solid #ff9393;
+  border: 1px solid var(--hairline-color);
   position: fixed;
   min-width: fit-content;
   top: 6em;

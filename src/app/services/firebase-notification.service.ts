@@ -1,5 +1,7 @@
-import {Injectable, Injector} from '@angular/core';
-import {Messaging, getToken, onMessage} from '@angular/fire/messaging';
+import {logger} from "../shared/logger";
+import { Injectable, Injector, OnDestroy, inject } from '@angular/core';
+import {Messaging, onMessage, onRegistered, register} from '@angular/fire/messaging';
+import type {MessagePayload} from 'firebase/messaging';
 import {BehaviorSubject} from 'rxjs';
 import {environment} from "../../environments/environment";
 import {HttpClient} from "@angular/common/http";
@@ -8,17 +10,19 @@ import {AppConstants} from "../app.constants";
 @Injectable({
   providedIn: 'root',
 })
-export class FirebaseNotificationService {
-  private messaging: Messaging | null = null;
-  private currentMessage = new BehaviorSubject<any | null>(null);
+export class FirebaseNotificationService implements OnDestroy {
+  private http = inject(HttpClient);
+  private injector = inject(Injector);
 
-  constructor(private http: HttpClient, private injector: Injector) {
-  }
+  private messaging: Messaging | null = null;
+  private currentMessage = new BehaviorSubject<MessagePayload | null>(null);
+  private stopRegistrationListener?: () => void;
+  private stopMessageListener?: () => void;
 
   public async initFCM() {
     try {
       if (!this.isSupportedBrowser()) {
-        console.warn('FCM is not supported in this browser.');
+        logger.warn('FCM is not supported in this browser.');
         return;
       }
 
@@ -27,8 +31,8 @@ export class FirebaseNotificationService {
 
       await this.requestPermission();
       this.listenForMessages();
-    } catch (error) {
-      console.error('FCM initialization failed');
+    } catch {
+      logger.error('FCM initialization failed');
     }
   }
 
@@ -38,23 +42,21 @@ export class FirebaseNotificationService {
 
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        console.warn('User denied notification permission.');
+        logger.warn('User denied notification permission.');
         return;
       }
 
       const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      const token = await getToken(this.messaging, {
+      this.stopRegistrationListener?.();
+      this.stopRegistrationListener = onRegistered(this.messaging, installationId => {
+        this.sendTokenToBackend(installationId);
+      });
+      await register(this.messaging, {
         vapidKey: environment.firebaseConfig.vapidKey,
         serviceWorkerRegistration: registration,
       });
-
-      if (token) {
-        this.sendTokenToBackend(token);
-      } else {
-        console.warn('No FCM token received.');
-      }
     } catch (error) {
-      console.error('Failed to request FCM token:', error);
+      logger.error('Failed to request FCM token:', error);
     }
   }
 
@@ -62,11 +64,12 @@ export class FirebaseNotificationService {
     try {
       if (!this.messaging) return;
 
-      onMessage(this.messaging, (payload) => {
+      this.stopMessageListener?.();
+      this.stopMessageListener = onMessage(this.messaging, (payload) => {
         this.currentMessage.next(payload);
       });
     } catch (error) {
-      console.error('Error setting up message listener:', error);
+      logger.error('Error setting up message listener:', error);
     }
   }
 
@@ -77,27 +80,29 @@ export class FirebaseNotificationService {
   private sendTokenToBackend(token: string) {
     this.http.post(`${AppConstants.API_URL}/fcm/register`, {token, deviceType: 'web'}, {withCredentials: true})
       .subscribe({
-        next: () => {
-        },
-        error: (err) => console.error('Failed to register FCM token:', err),
+        error: (err) => logger.error('Failed to register FCM token:', err),
       });
   }
 
   private isSupportedBrowser(): boolean {
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    const isFirefox = /Firefox/.test(navigator.userAgent);
     const isSecureContext = window.isSecureContext; // Ensures HTTPS or `localhost` in Chrome
+    const hasRequiredApis = 'serviceWorker' in navigator && 'Notification' in window;
 
     if (!isSecureContext) {
-      console.warn('Push notifications require HTTPS (except in Chrome on localhost).');
+      logger.warn('Push notifications require HTTPS (except in Chrome on localhost).');
       return false;
     }
 
-    if (!(isChrome || isFirefox)) {
-      console.warn('Push notifications are not supported in this browser.');
+    if (!hasRequiredApis) {
+      logger.warn('Push notifications are not supported in this browser.');
       return false;
     }
 
     return true;
+  }
+
+  ngOnDestroy(): void {
+    this.stopRegistrationListener?.();
+    this.stopMessageListener?.();
   }
 }

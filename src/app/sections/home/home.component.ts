@@ -1,46 +1,176 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Router, RouterLink} from '@angular/router';
+import {forkJoin, of, Subject} from 'rxjs';
+import {catchError, switchMap, takeUntil} from 'rxjs/operators';
+import {CardDto} from '../../models/card.model';
+import {LanguageCode} from '../../models/language.enum';
+import {SetupStep, UserInfo} from '../../models/userinfo.model';
+import {CardService} from '../../services/card.service';
+import {LanguageNameService} from '../../services/language-name.service';
+import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
-import {Subject, takeUntil} from 'rxjs';
-import {SetupStep, UserInfo} from "../../models/userinfo.model";
-import {Router} from "@angular/router";
-import {NotReadyComponent} from "../../shared/not-ready/not-ready.component";
+import {BookCoverComponent} from '../read/book-cover/book-cover.component';
+import {Book, BookshelfView} from '../read/book.model';
+import {ReadService} from '../read/read.service';
+import {ReviewService} from '../review/review.service';
+import {HarnessComponent} from '../../shared/rhythm/harness/harness.component';
+
+const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorites: []};
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less'],
-  imports: [
-    NotReadyComponent
-  ]
+  imports: [RouterLink, BookCoverComponent, HarnessComponent],
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  private readonly userService = inject(UserInfoService);
+  private readonly languageService = inject(TargetLanguageDropdownService);
+  private readonly readService = inject(ReadService);
+  private readonly cardService = inject(CardService);
+  private readonly languageNameService = inject(LanguageNameService);
+  private readonly reviewService = inject(ReviewService);
+  private readonly router = inject(Router);
   private readonly destroy$ = new Subject<void>();
 
-  userInfo: UserInfo | null = null;
-
-  constructor(
-    private userService: UserInfoService,
-    private cdr: ChangeDetectorRef,
-    private router: Router,
-  ) {
-  }
+  protected userInfo: UserInfo | null = null;
+  protected selectedLanguage = LanguageCode.EN;
+  protected shelf: BookshelfView = EMPTY_SHELF;
+  protected cards: CardDto[] = [];
+  protected loading = true;
+  protected loadError = false;
+  protected reviewDueCount = 0;
+  protected readonly today = new Intl.DateTimeFormat($localize.locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
 
   ngOnInit(): void {
-    // Subscribe to the shared user info observable
-    this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe((info) => {
+    this.userService.userInfo$.pipe(takeUntil(this.destroy$)).subscribe(info => {
       this.userInfo = info;
-      if (info?.setupStep! !== SetupStep.COMPLETED) {
-        this.router.navigate(['/onboarding']).then();
+      if (info && info.setupStep !== SetupStep.COMPLETED) {
+        void this.router.navigate(['/onboarding']);
       }
-      this.cdr.markForCheck(); // Trigger change detection manually to update the view
     });
 
-    // Optionally, load user info if not present
-    this.userService.loadUserInfo().subscribe();
+    this.languageService.currentLanguage$.pipe(
+      switchMap(language => {
+        this.selectedLanguage = language;
+        this.loading = true;
+        this.loadError = false;
+        return forkJoin({
+          shelf: this.readService.getBooksForLang(language, false).pipe(
+            catchError(() => {
+              this.loadError = true;
+              return of(EMPTY_SHELF);
+            }),
+          ),
+          cards: this.cardService.getCardsInLanguage(language).pipe(
+            catchError(() => {
+              this.loadError = true;
+              return of([] as CardDto[]);
+            }),
+          ),
+          review: this.reviewService.getSummary(language).pipe(
+            catchError(() => {
+              this.loadError = true;
+              return of(null);
+            }),
+          ),
+        });
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(({shelf, cards, review}) => {
+      this.shelf = shelf;
+      this.cards = cards;
+      this.reviewDueCount = review?.dueCount ?? 0;
+      this.loading = false;
+    });
+
+    this.userService.loadUserInfo().pipe(takeUntil(this.destroy$)).subscribe();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  protected get continueBook(): Book | null {
+    return this.shelf.continueReading[0] ?? null;
+  }
+
+  protected get hasHomeActivity(): boolean {
+    return this.shelf.continueReading.length > 0 || this.cards.length > 0;
+  }
+
+  protected get recentCards(): CardDto[] {
+    return [...this.cards]
+      .sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+      .slice(0, 4);
+  }
+
+  protected get reviewCount(): number {
+    return this.reviewDueCount;
+  }
+
+  protected get shelfBooks(): Book[] {
+    const unique = new Map<string, Book>();
+    [...this.shelf.continueReading, ...this.shelf.favorites].forEach(book => unique.set(book.id, book));
+    return [...unique.values()].slice(0, 4);
+  }
+
+  protected get suggestedBooks(): Book[] {
+    return this.shelf.available.slice(0, 3);
+  }
+
+  protected get languageName(): string {
+    return this.languageNameService.getLanguageName(this.selectedLanguage);
+  }
+
+  /**
+   * The free plan is a billing row named FREE that stays put when premium is granted rather than
+   * bought, so the row can only name the plan once it describes the membership. See
+   * `Subscription.describesMembership`.
+   */
+  protected get planName(): string {
+    const subscription = this.userInfo?.subscription;
+    if (!this.userInfo?.premium) return $localize`Free`;
+    if (!subscription?.describesMembership()) return $localize`Premium`;
+    return subscription.name.charAt(0).toUpperCase() + subscription.name.slice(1).toLowerCase();
+  }
+
+  protected get learnerLevel(): string | null {
+    return this.userInfo?.learners.find(learner => learner.language === this.selectedLanguage)?.selfReportedLevel ?? null;
+  }
+
+  protected translation(card: CardDto): string {
+    return card.translations[0]?.translation ?? $localize`Translation not added yet`;
+  }
+
+  protected cardMeta(card: CardDto): string {
+    const details: string[] = [];
+    if (card.tags?.[0]?.text) details.push(card.tags[0].text);
+    if (card.iteration) details.push(card.iteration === 1 ? $localize`reviewed 1 time` : $localize`reviewed ${card.iteration}:count: times`);
+    return details.join(' · ') || $localize`saved vocabulary`;
+  }
+
+  protected example(card: CardDto): string | null {
+    return card.examples?.[0]?.example ?? null;
+  }
+
+  protected progressLabel(book: Book): string {
+    const progress = book.progressPercentage ?? 0;
+    if (progress >= 90) return $localize`Almost finished`;
+    if (progress >= 50) return $localize`Well underway`;
+    return $localize`Your place is saved`;
+  }
+
+  protected bookAriaLabel(book: Book): string {
+    return $localize`${book.title}:title: by ${book.author}:author:`;
+  }
+
+  protected progressAriaLabel(book: Book): string {
+    return $localize`Reading progress for ${book.title}:title:`;
   }
 }

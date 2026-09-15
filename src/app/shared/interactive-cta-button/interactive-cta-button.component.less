@@ -3,45 +3,29 @@
   display: inline-block;
   width: 100%;
   // for .t-loader stroke
-  --tui-background-accent-1: white;
+  --tui-background-accent-1: #FDF4F8;
 }
 
 .cta-btn {
   width: 100%;
   height: 100%;
+  min-height: 2.25rem;
+  padding: .5rem 1rem;
+  box-sizing: border-box;
   display: block;
   font-size: 16px;
+  line-height: 1.2;
   border: none;
   border-radius: 30px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  color: white;
+  color: #FDF4F8;
   font-weight: bold;
   background: var(--premium-gradient);
-  transition: background 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+  transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .cta-btn:hover {
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 15px rgba(0, 209, 255, 0.5), 0 0 25px rgba(138, 43, 226, 0.5);
-  transform: scale(1.01); /* Slight enlarge on hover */
-}
-
-.cta-btn::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 80%);
-  transform: translate(-50%, -50%) scale(0);
-  border-radius: 50%;
-  filter: blur(20px); /* Add blur for smoother effect */
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.cta-btn:hover::after {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 0.5; /* Subtle glow */
+  box-shadow: 0 6px 16px rgba(72, 23, 125, 0.28), 0 2px 4px rgba(72, 23, 125, 0.16);
 }

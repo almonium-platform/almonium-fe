@@ -3,15 +3,17 @@
     "color": "#FFFFFF"
   },
   "particles": {
-    "color": {
-      "value": [
-        "#E2D1DB",
-        "#DDD0DE",
-        "#E8D2D8",
-        "#EBD2D6",
-        "#E5D1D9",
-        "#DFD0DC"
-      ]
+    "paint": {
+      "color": {
+        "value": [
+          "#E2D1DB",
+          "#DDD0DE",
+          "#E8D2D8",
+          "#EBD2D6",
+          "#E5D1D9",
+          "#DFD0DC"
+        ]
+      }
     },
     "move": {
       "direction": "bottom",
@@ -58,6 +60,7 @@
     }
   },
   "fpsLimit": 120,
+  "hdr": false,
   "interactivity": {
     "events": {
       "onHover": {

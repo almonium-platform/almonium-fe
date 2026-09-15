@@ -1,46 +1,26 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  OnDestroy,
-  OnInit,
-  signal,
-  TemplateRef,
-  ViewChild
-} from "@angular/core";
+import {logger} from "../../shared/logger";
+import {getErrorMessage} from '../../shared/http-error';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
 import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
-import {BehaviorSubject, combineLatest, EMPTY, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, combineLatest, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap} from "rxjs/operators";
-import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus} from "./social.model";
+import {PublicUserProfile, RelatedUserProfile, RelationshipAction, RelationshipStatus, UserSearchResult} from "./social.model";
+import {LanguageNameService} from "../../services/language-name.service";
 import {AvatarComponent} from "../../shared/avatar/avatar.component";
-import {
-  TuiAlertService,
-  TuiDataList,
-  TuiDropdownDirective,
-  TuiDropdownManual,
-  TuiHintDirective,
-  TuiIcon,
-  TuiPopup,
-  TuiScrollbar,
-  TuiTextfieldComponent,
-  TuiTextfieldDirective,
-  TuiTextfieldOptionsDirective
-} from "@taiga-ui/core";
-import {NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
+import {PremiumStarComponent} from '../../shared/premium-star/premium-star.component';
+import {TuiDataList, TuiIcon, TuiNotificationService, TuiScrollbar, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from "@taiga-ui/core/components";
+import {TuiDropdownDirective, TuiDropdownManual, TuiDropdownOptionsDirective, TuiHintDirective} from "@taiga-ui/core/portals";
+import {DatePipe, NgClass, NgStyle, NgTemplateOutlet} from "@angular/common";
 import {
   TuiBadgedContentComponent,
   TuiBadgeNotification,
-  TuiDataListDropdownManager,
-  TuiDrawer,
-  TuiSegmented,
-  TuiSkeleton
-} from "@taiga-ui/kit";
+  TuiSegmented
+} from "@taiga-ui/kit/components";
+import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {DismissButtonComponent} from "../../shared/modals/elements/dismiss-button/dismiss-button.component";
-import {ActivatedRoute, Params, RouterLink} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import {UrlService} from "../../services/url.service";
 import {TranslateModule} from "@ngx-translate/core";
 
@@ -49,11 +29,18 @@ import {
   AvatarLocation,
   ChannelActionsContext,
   ChannelHeaderInfoContext,
+  ChannelPreviewInfoContext,
   ChannelService,
   ChatClientService,
   CustomTemplatesService,
+  DateParserService,
   MessageActionsBoxContext,
+  MessageActionsService,
+  CustomMetadataContext,
+  MessageInputComponent,
   MessageService,
+  parseDate,
+  StreamMessage,
   StreamAutocompleteTextareaModule,
   StreamChatModule,
   StreamI18nService
@@ -62,28 +49,42 @@ import {Channel, StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
 import {UserInfo} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
-import {ChatHeaderComponent} from "./ chat-header/chat-header.component";
+import {ChatHeaderComponent} from "./chat-header/chat-header.component";
 import {ChatUnreadService} from "./chat-unread.service";
 import {AppConstants} from "../../app.constants";
 import {CustomChatAvatarComponent} from "./custom-chat-avatar/custom-chat-avatar.component";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ConfirmModalComponent} from "../../shared/modals/confirm-modal/confirm-modal.component";
 import {ButtonComponent} from "../../shared/button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
 import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-preview-card.component";
+import {CHANNEL_SORT, SocialChannelFacade} from './social-channel.facade';
+import {AlmoChatComponent} from './almo/almo-chat.component';
+import {AlmoChatCoordinator} from './almo/almo-chat.coordinator';
+import {AlmoComposerDirective} from './almo/almo-composer.directive';
+import {MAX_MESSAGE_LENGTH, SOCIAL_COPY} from './social-copy';
+import {SocialSidebarResizeDirective} from './social-sidebar-resize.directive';
+import {SocialConfirmationService} from './social-confirmation.service';
+
+/** One row in the Messages section of chat search. */
+interface MessageHit {
+  id: string;
+  text: string;
+  cid: string;
+  channelName: string;
+}
 
 @Component({
   selector: 'app-social',
   templateUrl: './social.component.html',
-  styleUrls: ['./social.component.less'],
+  styleUrls: ['./social.component.less', './social-people.less', './social-stream-overrides.less'],
   imports: [
     ReactiveFormsModule,
     AvatarComponent,
+    PremiumStarComponent,
     SharedLucideIconsModule,
     NgClass,
     TuiSegmented,
-    TuiPopup,
-    TuiDrawer,
     DismissButtonComponent,
     TuiScrollbar,
     TuiSkeleton,
@@ -91,11 +92,9 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     StreamChatModule,
     TranslateModule,
     StreamAutocompleteTextareaModule,
-    StreamChatModule,
     ChatHeaderComponent,
     TuiDataList,
     TuiDataListDropdownManager,
-    AvatarComponent,
     CustomChatAvatarComponent,
     TuiActiveZone,
     NgStyle,
@@ -104,70 +103,126 @@ import {UserPreviewCardComponent} from "../../shared/user-preview-card/user-prev
     ButtonComponent,
     TuiIcon,
     OverlayscrollbarsModule,
-    RouterLink,
     TuiBadgeNotification,
     TuiBadgedContentComponent,
     UserPreviewCardComponent,
     TuiTextfieldComponent,
-    TuiTextfieldDirective,
     TuiDropdownDirective,
     TuiDropdownManual,
+    TuiDropdownOptionsDirective,
     TuiTextfieldOptionsDirective,
-  ]
+    SocialSidebarResizeDirective,
+    DatePipe,
+    AlmoChatComponent,
+    AlmoComposerDirective,
+  ],
+  providers: [SocialChannelFacade, SocialConfirmationService, DateParserService, AlmoChatCoordinator],
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<any>;
+  private socialService = inject(SocialService);
+  private alertService = inject(TuiNotificationService);
+  private urlService = inject(UrlService);
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private chatService = inject(ChatClientService);
+  private channelService = inject(ChannelService);
+  private streamI18nService = inject(StreamI18nService);
+  private userInfoService = inject(UserInfoService);
+  private customTemplatesService = inject(CustomTemplatesService);
+  private messageService = inject(MessageService);
+  private messageActionsService = inject(MessageActionsService);
+  private chatUnreadService = inject(ChatUnreadService);
+  private cdr = inject(ChangeDetectorRef);
+  private dateParser = inject(DateParserService);
+  private languageNames = inject(LanguageNameService);
+  protected channels = inject(SocialChannelFacade);
+  protected confirmation = inject(SocialConfirmationService);
+
+  @ViewChild('channelPreview', {static: true}) channelPreview!: TemplateRef<ChannelPreviewInfoContext>;
   @ViewChild('customHeaderTemplate') headerTemplate!: TemplateRef<ChannelHeaderInfoContext>;
   @ViewChild('dropdownTemplate') dropdown!: TuiDropdownDirective;
   @ViewChild('avatarTemplate') avatarTemplate!: TemplateRef<AvatarContext>;
   @ViewChild('customChannelActions', {static: true}) customChannelActions!: TemplateRef<ChannelActionsContext>;
   @ViewChild('chatSearch', {read: ElementRef}) chatInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('peopleSearchInput', {read: ElementRef}) peopleSearchInput?: ElementRef<HTMLInputElement>;
   @ViewChild('customMessageActions') customMessageActions!: TemplateRef<MessageActionsBoxContext>;
+  @ViewChild('emptyMessageListPlaceholder', {static: true}) emptyMessageListPlaceholder!: TemplateRef<void>;
+  @ViewChild('messageStamp', {static: true}) messageStamp!: TemplateRef<CustomMetadataContext>;
+  @ViewChild('messageFooter', {static: true}) messageFooter!: TemplateRef<CustomMetadataContext>;
+  @ViewChild(SocialSidebarResizeDirective) sidebarResize!: SocialSidebarResizeDirective;
+
+  /**
+   * 10: the composer comes and goes with the thread it belongs to, so the guard is attached as it
+   * arrives rather than once at start-up.
+   */
+  @ViewChild(MessageInputComponent) set composer(input: MessageInputComponent | undefined) {
+    this.guardComposerLength(input);
+  }
 
   private readonly destroy$ = new Subject<void>();
+  private readonly scheduledTasks = new Set<ReturnType<typeof setTimeout>>();
   private userInfo: UserInfo | null = null;
 
   protected usernameFormControl = new FormControl<string>('');
-  protected friendFormControl = new FormControl<string>('');
   protected chatFormControl = new FormControl<string>('');
-  protected nothingFound = false;
-  protected matchedUsers: PublicUserProfile[] = [];
+  /** The handle the rows on screen actually answer for. */
+  private searchedHandle = '';
+  protected matchedUsers: UserSearchResult[] = [];
   protected requestedIds: string[] = [];
   protected outgoingRequests: RelatedUserProfile[] = [];
   protected incomingRequests: RelatedUserProfile[] = [];
-  protected drawerUserTiles: RelatedUserProfile[] = [];
+  protected peopleUserTiles: RelatedUserProfile[] = [];
   protected blockedUsers: RelatedUserProfile[] = [];
+  /**
+   * 10: who this account has blocked, by Stream id. Stream hands the list over with the connected
+   * user, so the thread can answer "can I write here" without a request of its own; block and
+   * unblock keep it in step for the rest of the session.
+   */
+  private readonly blockedUserIds = new Set<string>();
+  private guardedComposer?: MessageInputComponent;
+  protected readonly copy = SOCIAL_COPY;
   protected friends: RelatedUserProfile[] = [];
-  protected requestsIndex: number = 0;
   protected incomingRequestsCount = 0;
-  // drawer
-  protected readonly isDrawerOpened = signal(false);
-  protected drawerMode: 'requests' | 'friends' | 'blocked' | 'search' | 'menu' = 'menu';
-  protected drawerHeader: string = 'Menu';
-  protected loadingFriends: boolean = false;
-  protected loadingBlocked: boolean = false;
-  protected loadingIncomingRequests: boolean = false;
-  protected loadingOutgoingRequests: boolean = false;
-  protected noResultMessage: string = 'No results found';
-  protected drawerIcon: string = 'menu';
+  /** Two characters is enough to be looking for a handle; three hid too many people. */
+  protected static readonly MIN_HANDLE_SEARCH_LENGTH = 2;
+  private static readonly SEARCH_DEBOUNCE_MS = 250;
+  protected readonly MIN_HANDLE_SEARCH_LENGTH = SocialComponent.MIN_HANDLE_SEARCH_LENGTH;
+
+  // people panel
+  protected readonly isPeopleOpen = signal(false);
+  protected peopleMode: 'requests' | 'friends' | 'blocked' = 'friends';
+  protected loadingFriends = false;
+  protected loadingBlocked = false;
+  protected loadingIncomingRequests = false;
+  protected loadingOutgoingRequests = false;
+  protected noResultMessage = $localize`No results found`;
 
   protected readonly FriendshipStatus = RelationshipStatus;
-  protected showHiddenChannels$ = new BehaviorSubject<boolean>(false); // ✅ Tracks changes
 
-  // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
-  protected modalTitle = '';
-  protected modalMessage = '';
-  protected modalConfirmText = '';
-  protected modalAction: (() => void) | null = null;
-  protected useCountdown: boolean = false;
+  /**
+   * 01: the archive is a place you enter, not a switch you flip. The subject still drives the
+   * channel query — a Stream "hidden" channel is what an archived one is made of.
+   */
+  protected showArchived$ = new BehaviorSubject<boolean>(false);
+  protected archivedCount = 0;
+  protected archiveHasUnread = false;
+
+  // Search answers in sections rather than one undifferentiated list.
+  protected searchQuery = '';
+  protected isSearching = false;
+  protected searchChats: Channel[] = [];
+  protected searchJoinable: Channel[] = [];
+  protected searchMessages: MessageHit[] = [];
 
   // CHATS
   private chatClient: StreamChat;
   protected displayAs: 'text' | 'html';
   protected hoveredChannel: Channel | null = null;
-  protected currentLocation: string = '';
-  protected isChatOpen: boolean = false;
+  protected activeChannel: Channel | null = null;
+  protected currentLocation = '';
+  /** The preview card is pinned open by a click or keyboard focus; hover no longer dismisses it. */
+  protected isPreviewCardPinned = false;
+  protected isChatOpen = false;
   protected redirectId: string | undefined = undefined;
 
   protected filteredActions: string[] = [
@@ -196,32 +251,23 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     "upload-file"
   ];
 
-  constructor(
-    private socialService: SocialService,
-    private alertService: TuiAlertService,
-    private urlService: UrlService,
-    private activatedRoute: ActivatedRoute,
-    private chatService: ChatClientService,
-    private channelService: ChannelService,
-    private streamI18nService: StreamI18nService,
-    private userInfoService: UserInfoService,
-    private customTemplatesService: CustomTemplatesService,
-    private messageService: MessageService,
-    private chatUnreadService: ChatUnreadService,
-    private cdr: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
     this.displayAs = this.messageService.displayAs;
   }
 
   ngOnDestroy(): void {
+    this.scheduledTasks.forEach(task => clearTimeout(task));
+    this.scheduledTasks.clear();
     this.destroy$.next();
     this.destroy$.complete();
     this.channelService.deselectActiveChannel();
   }
 
-  async ngOnInit() {
+  ngOnInit(): void {
     this.setupChatFormControl();
+    this.setupPostTimestamps();
+    this.setupBlockedUsers();
 
     combineLatest([
       this.userInfoService.userInfo$.pipe(filter(info => !!info)),
@@ -230,6 +276,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       takeUntil(this.destroy$)
     ).subscribe(([userInfo, params]) => {
       this.userInfo = userInfo;
+      this.channels.setCurrentUser(userInfo.id);
       this.initializeChat(userInfo);
 
       this.handleQueryParams(params);
@@ -237,24 +284,27 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
       // Now decide whether to open a specific chat or initialize channel service
       if (this.redirectId) {
-        const cid = this.getCidByFriendshipId(this.redirectId);
-        setTimeout(() => {
-          this.openChatByCid(cid).then((found) => {
+        const cid = this.channels.friendshipCid(this.redirectId);
+        this.schedule(() => {
+          void this.openChatByCid(cid).then((found) => {
             if (!found) {
-              console.error("Could not find chat with cid:", cid);
+              logger.error("Could not find chat with cid:", cid);
             }
           });
         }, 300);
       } else {
-        this.channelService.init({members: {$in: [this.userInfo!.id]}}, undefined, undefined, false);
+        void this.channelService.init({members: {$in: [this.userInfo.id]}}, CHANNEL_SORT, undefined, false);
       }
+
+      void this.refreshArchiveSummary();
     });
 
     this.setupActiveChannelSubscription();
+    this.onViewportResize();
+    this.registerMessageActions();
     this.streamI18nService.setTranslation();
     this.getIncomingRequests();
     this.listenToUsernameField();
-    this.listenToFriendSearch();
     this.listenToChannelSearch();
   }
 
@@ -262,7 +312,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.chatFormControl.valueChanges
       .pipe(
         distinctUntilChanged(),
-        debounceTime(300),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
         takeUntil(this.destroy$)
       )
       .subscribe(value => {
@@ -274,6 +324,27 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           this.chatFormControl.setValue(trimmedValue, {emitEvent: false});
         }
       });
+  }
+
+  /**
+   * 25: a post carries only its clock time. The date separator above it already names
+   * the day, and "Today at 2:51 AM" repeats what the divider already said. The chat bubble
+   * carries the same bare clock inside the pill, so nothing anywhere restates the date.
+   */
+  private setupPostTimestamps(): void {
+    this.dateParser.customDateTimeParser = date => parseDate(date, 'time');
+  }
+
+  /**
+   * 10: Stream sends the blocked list down with the connected user, so this is a subscription
+   * rather than a request, and block and unblock keep it in step for the rest of the session.
+   */
+  private setupBlockedUsers(): void {
+    this.chatService.user$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+      if (!user) return;
+      this.blockedUserIds.clear();
+      (user.blocked_user_ids ?? []).forEach(id => this.blockedUserIds.add(id));
+    });
   }
 
   private setupActiveChannelSubscription() {
@@ -291,52 +362,49 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
         takeUntil(this.destroy$)
       )
       .subscribe((channel) => {
+        this.activeChannel = channel;
         this.setChatTitle(channel);
         this.openChat();
-        this.chatUnreadService.fetchUnreadCount();
+        void this.chatUnreadService.fetchUnreadCount();
+        void this.refreshArchiveSummary();
       });
   }
 
   private initializeChat(userInfo: UserInfo) {
     const userId = userInfo.id;
-    const userToken = userInfo.streamChatToken;
+    const userToken = this.userInfoService.streamChatToken;
+    if (!userToken) {
+      logger.error('Cannot initialize chat without a server-issued Stream token.');
+      return;
+    }
     const userName = userInfo.username;
     const user: User = {
       id: userId,
       name: userName,
-      image: userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+      // Only a real picture is worth sending: with no image Stream leaves the field empty and the
+      // avatar falls back to the same letter disc a profile card draws, rather than to a stranger's
+      // random portrait that no other surface would ever show.
+      image: userInfo.avatarUrl ?? undefined,
     };
 
-    this.chatService.init(environment.streamChatApiKey, user, userToken);
+    void this.chatService.init(environment.streamChatApiKey, user, userToken);
   }
 
   private handleQueryParams(params: Params) {
     if (params['tab'] === 'friends') {
-      this.drawerMode = 'friends';
-      this.openDrawerAndSetupData();
+      this.peopleMode = 'friends';
+      this.openPeopleAndSetupData();
     }
-    if (params['requests'] === 'received') {
-      this.drawerMode = 'requests';
-      this.requestsIndex = 0;
-      this.openDrawerAndSetupData();
+    if (params['requests'] === 'received' || params['requests'] === 'sent') {
+      this.peopleMode = 'requests';
+      this.openPeopleAndSetupData();
     }
-    if (params['requests'] === 'sent') {
-      this.drawerMode = 'requests';
-      this.requestsIndex = 1;
-      this.openDrawerAndSetupData();
-    }
-    if (!!params['chat']) {
-      this.redirectId = params['chat'];
-      console.log('Redirecting to chat with cid:', this.getCidByFriendshipId(this.redirectId!));
+    const chat: unknown = params['chat'];
+    if (typeof chat === 'string') {
+      this.redirectId = chat;
+      logger.debug('Redirecting to chat with cid:', this.channels.friendshipCid(this.redirectId));
     }
     this.urlService.clearUrl();
-  }
-
-  protected listenToFriendSearch() {
-    this.friendFormControl.valueChanges.subscribe(value => {
-      if (value === null) return;
-      this.drawerUserTiles = this.friends.filter(friend => friend.username.toLowerCase().includes(value.toLowerCase()));
-    });
   }
 
   ngAfterViewInit() {
@@ -345,49 +413,27 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.customTemplatesService.avatarTemplate$.next(this.avatarTemplate);
     this.customTemplatesService.channelActionsTemplate$.next(this.customChannelActions);
     this.customTemplatesService.messageActionsBoxTemplate$.next(this.customMessageActions);
+    this.customTemplatesService.emptyMainMessageListPlaceholder$.next(this.emptyMessageListPlaceholder);
+    this.customTemplatesService.customMessageMetadataInsideBubbleTemplate$.next(this.messageStamp);
+    this.customTemplatesService.customMessageMetadataTemplate$.next(this.messageFooter);
   }
 
   private setChatTitle(channel: Channel) {
-    setTimeout(() => {
+    this.schedule(() => {
       const chatTitleElement = document.querySelector('[data-testid="name"]');
       if (!chatTitleElement) return;
 
-      chatTitleElement.textContent = this.getChatName(channel, channel.data?.name || AppConstants.PRIVATE_CHAT_NAME);
+      chatTitleElement.textContent = this.channels.name(channel, channel.data?.name ?? '');
+      // 10: the header's name is Stream's element, so its muted ink is toggled the same way its text is set.
+      chatTitleElement.classList.toggle('deleted-account', this.channels.isInterlocutorDeleted(channel));
       this.cdr.detectChanges();
     }, 1);
-  }
-
-  /**
-   * Creates a private 1-on-1 (P2P) chat channel between two users.
-   * @param userId The current user's ID (should already be connected).
-   * @param recipientId The user ID of the person they want to chat with.
-   * @param friendshipId The ID of the friendship between the two users.
-   * @returns A promise that resolves with the created channel.
-   */
-  async createPrivateChat(userId: string, recipientId: string, friendshipId: string) {
-    if (!this.chatClient.user) {
-      throw new Error('User must be connected before creating a chat.');
-    }
-
-    // Unique channel ID (e.g., `private_user1_user2`)
-    const channelId = `private_${friendshipId}`;
-
-    const channel = this.chatService.chatClient.channel('messaging', channelId, {
-      name: AppConstants.PRIVATE_CHAT_NAME,
-      members: [userId, recipientId], // Both users in the private chat
-      created_by_id: userId, // Set creator
-    });
-
-    await channel.create(); // Ensure the channel is created
-    await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
-
-    return channel;
   }
 
   private listenToUsernameField() {
     this.usernameFormControl.valueChanges
       .pipe(
-        debounceTime(300),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
         distinctUntilChanged(),
         takeUntil(this.destroy$),
         map((username) => {
@@ -396,23 +442,52 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
           return sanitizedUsername;
         }),
         switchMap((username) => {
-          if (username.length < 3) {
-            this.matchedUsers = [];
-            this.nothingFound = false;
-            return [];
+          if (username.length < SocialComponent.MIN_HANDLE_SEARCH_LENGTH) {
+            return of<UserSearchResult[]>([]);
           }
           return this.socialService.searchAllByUsername(username).pipe(
-            catchError(() => {
-              this.nothingFound = true;
-              return [];
-            })
+            catchError(() => of<UserSearchResult[]>([]))
           );
         })
       )
-      .subscribe((friends: PublicUserProfile[]) => {
-        this.matchedUsers = friends;
-        this.nothingFound = friends.length === 0;
+      .subscribe((candidates: UserSearchResult[]) => {
+        this.matchedUsers = candidates;
+        // Answers arrive one debounce behind the keystrokes, and the panel must not call a handle
+        // missing until the answer for that exact handle is in.
+        this.searchedHandle = this.usernameFormControl.value ?? '';
       });
+  }
+
+  /**
+   * 04: two characters in, the one field takes the list over from whichever tab is showing. The
+   * tabs stay put and their counts do not move - they are views over your own relationships, and
+   * the field cuts across all three.
+   */
+  protected get isSearchingPeople(): boolean {
+    return (this.usernameFormControl.value ?? '').length >= SocialComponent.MIN_HANDLE_SEARCH_LENGTH;
+  }
+
+  protected get peopleSearchPending(): boolean {
+    return this.isSearchingPeople && this.searchedHandle !== (this.usernameFormControl.value ?? '');
+  }
+
+  /** The results section by section: the people you already know, then everybody else. */
+  protected get friendMatches(): UserSearchResult[] {
+    return this.matchedUsers.filter(candidate => this.candidateState(candidate) === 'friend');
+  }
+
+  protected get otherMatches(): UserSearchResult[] {
+    return this.matchedUsers.filter(candidate => this.candidateState(candidate) !== 'friend');
+  }
+
+  /** 05: the empty-friends button is a pointer at that field, not a route to a second screen. */
+  protected focusPeopleSearch(): void {
+    this.peopleSearchInput?.nativeElement.focus();
+  }
+
+  protected clearPeopleSearch(): void {
+    this.usernameFormControl.setValue('');
+    this.focusPeopleSearch();
   }
 
   private sanitizeUsername(username: string | null): string {
@@ -428,79 +503,181 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   private listenToChannelSearch() {
     combineLatest([
       this.chatFormControl.valueChanges.pipe(
-        startWith(this.chatFormControl.value || ''),
-        debounceTime(300),
+        startWith(this.chatFormControl.value ?? ''),
+        debounceTime(SocialComponent.SEARCH_DEBOUNCE_MS),
+        map(value => (value ?? '').trim()),
         distinctUntilChanged()
       ),
-      this.showHiddenChannels$,
+      this.showArchived$,
     ])
-      .pipe(
-        takeUntil(this.destroy$),
-        switchMap(async ([query]) => {
-          const user = await firstValueFrom(this.chatService.user$); // ✅ Get user only when needed
-          if (!user) return;
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([query, archived]) => {
+        this.searchQuery = query;
+        if (!query) {
+          this.clearSearchResults();
+          this.channels.reload(archived);
+          return;
+        }
+        void this.runChatSearch(query);
+      });
+  }
 
-          const trimmedQuery = query?.trim(); // ✅ Remove spaces to avoid invalid queries
+  private clearSearchResults(): void {
+    this.isSearching = false;
+    this.searchChats = [];
+    this.searchJoinable = [];
+    this.searchMessages = [];
+  }
 
-          if (!trimmedQuery) {
-            this.reloadChannelList();
-            return EMPTY; // Prevent API calls if the query is empty
-          }
+  /**
+   * Chats first, then the channels you could join, then messages. A private chat carries no name
+   * of its own, so it has to be found through its members.
+   */
+  private async runChatSearch(query: string): Promise<void> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return;
 
-          // 🔹 Filters for user’s channels (membership required)
-          const filterWithMembership: Record<string, any> = {
-            members: {$in: [user.id]}, // Ensure the user is a member of the channels
-          };
+    this.isSearching = true;
+    try {
+      const [byMember, byName, broadcast] = await Promise.all([
+        client.queryChannels(
+          {type: AppConstants.PRIVATE_CHAT_TYPE, members: {$in: [userId]}, 'member.user.name': {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+        client.queryChannels(
+          {members: {$in: [userId]}, name: {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+        client.queryChannels(
+          {type: 'broadcast', name: {$autocomplete: query}},
+          {last_message_at: -1},
+          {limit: 10},
+        ),
+      ]);
 
-          let orConditions: any[] = [];
+      if (this.searchQuery !== query) return;
 
-          if (trimmedQuery) {
-            orConditions.push(
-              {
-                "member.user.name": {$autocomplete: trimmedQuery},
-                name: AppConstants.PRIVATE_CHAT_NAME,
-                hidden: this.showHiddenChannels$.value,
-              },
-            );
+      const mine = new Map<string, Channel>();
+      [...byMember, ...byName].forEach(channel => mine.set(channel.cid, channel));
+      if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(query.toLowerCase())) {
+        const saved = await this.selfChannel();
+        if (saved) mine.set(saved.cid, saved);
+      }
 
-            // ✅ Include "Saved Messages" if the query matches its name
-            if (AppConstants.SELF_CHAT_NAME.toLowerCase().includes(trimmedQuery.toLowerCase())) {
-              orConditions.push(
-                {
-                  name: {$eq: AppConstants.SELF_CHAT_NAME},
-                  ...filterWithMembership
-                });
-            }
-          }
+      this.searchChats = [...mine.values()];
+      this.searchJoinable = broadcast.filter(channel => !this.channels.isMember(channel));
+      this.searchMessages = await this.searchInMessages(userId, query);
+    } catch (error) {
+      logger.error('Chat search failed', error);
+    } finally {
+      if (this.searchQuery === query) {
+        this.isSearching = false;
+      }
+      this.cdr.detectChanges();
+    }
+  }
 
-          // 🔹 Filters for **public (broadcast) channels**, regardless of membership
-          const filterForPublicChannels: Record<string, any> = {
-            type: "broadcast",
-            name: {$autocomplete: trimmedQuery},
-            hidden: this.showHiddenChannels$.value,
-          };
+  /** Message search is a bonus section: if the app is not entitled to it, the rest still answers. */
+  private async searchInMessages(userId: string, query: string): Promise<MessageHit[]> {
+    try {
+      const response = await this.chatService.chatClient.search(
+        {members: {$in: [userId]}},
+        query,
+        {limit: 5},
+      );
+      return response.results
+        .map(result => result.message)
+        .filter(message => !!message.text)
+        .map(message => ({
+          id: message.id,
+          text: message.text ?? '',
+          cid: message.channel?.cid ?? '',
+          channelName: message.channel?.name ?? message.user?.name ?? $localize`Chat`,
+        }))
+        .filter(hit => !!hit.cid);
+    } catch (error) {
+      logger.debug('Message search unavailable', error);
+      return [];
+    }
+  }
 
-          // ✅ Fix: Always include broadcast channels (including Almonium) in $or
-          if (orConditions.length > 0) {
-            orConditions.push(filterForPublicChannels);
-          } else {
-            // If no other conditions exist, we still need the broadcast filter
-            orConditions = [filterForPublicChannels];
-          }
+  private registerMessageActions(): void {
+    this.messageActionsService.customActions$.next([
+      {
+        actionName: 'save-to-saved-messages',
+        actionLabelOrTranslationKey: $localize`Save to Saved Messages`,
+        isVisible: () => true,
+        actionHandler: (message: StreamMessage) => void this.saveToSavedMessages(message),
+      },
+    ]);
+  }
 
-          let finalFilters: Record<string, any> = {$or: orConditions};
+  private async saveToSavedMessages(message: StreamMessage): Promise<void> {
+    const text = message.text?.trim();
+    if (!text) return;
 
-          try {
-            this.channelService.reset();
-            await this.channelService.init(finalFilters, undefined, undefined, false);
-            return [];
-          } catch (error) {
-            console.error("Error fetching channels:", error);
-            return EMPTY;
-          }
-        })
-      )
-      .subscribe();
+    try {
+      const saved = await this.selfChannel();
+      if (!saved) {
+        this.alertService.open($localize`Saved Messages is not ready yet.`, {appearance: 'negative'}).subscribe();
+        return;
+      }
+      await saved.sendMessage({text});
+      this.alertService.open($localize`Saved to Saved Messages`, {appearance: 'positive'}).subscribe();
+    } catch (error) {
+      logger.error('Could not save the message', error);
+      this.alertService.open($localize`Could not save that message.`, {appearance: 'negative'}).subscribe();
+    }
+  }
+
+  protected channelImage(channel: Channel): string | undefined {
+    const image = channel.data?.image;
+    return typeof image === 'string' ? image : undefined;
+  }
+
+  /** An empty row says what the chat is, rather than repeating one generic absence. */
+  protected emptyPreview(channel: Channel): string {
+    if (this.channels.isSelf(channel)) return $localize`Only you can see this`;
+    if (this.channels.isAlmo(channel)) return $localize`Nothing said yet`;
+    if (this.channels.isPublic(channel)) return $localize`No updates yet`;
+    return $localize`No messages yet`;
+  }
+
+  protected lastMessagePreview(channel: Channel): string {
+    return channel.state.messages.at(-1)?.text ?? this.emptyPreview(channel);
+  }
+
+  protected openSearchResult(channel: Channel): void {
+    this.channelService.setAsActiveChannel(channel);
+    this.chatFormControl.setValue('');
+  }
+
+  protected joinFromSearch(channel: Channel): void {
+    void this.channels.join(channel).then(() => this.chatFormControl.setValue(''));
+  }
+
+  protected openMessageHit(hit: MessageHit): void {
+    void this.channels.openByCid(hit.cid).then(() => this.chatFormControl.setValue(''));
+  }
+
+  protected clearSearch(event: Event): void {
+    event.stopPropagation();
+    this.chatFormControl.setValue('');
+  }
+
+  private async selfChannel(): Promise<Channel | null> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return null;
+    const [saved] = await client.queryChannels(
+      {type: AppConstants.SELF_CHAT_TYPE, members: {$in: [userId]}},
+      undefined,
+      {limit: 1},
+    );
+    return saved ?? null;
   }
 
   range(n: number): number[] {
@@ -509,70 +686,150 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   getOutgoingRequests() {
     this.loadingOutgoingRequests = true;
-    this.socialService.getOutgoingRequests().subscribe(outgoingRequests => {
-      this.outgoingRequests = outgoingRequests;
-      this.drawerUserTiles = outgoingRequests;
-      this.loadingOutgoingRequests = false;
+    this.socialService.getOutgoingRequests().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingOutgoingRequests = false),
+    ).subscribe({
+      next: outgoingRequests => {
+        this.outgoingRequests = outgoingRequests;
+      },
+      error: error => this.showSocialLoadError($localize`outgoing friend requests`, error),
     });
   }
 
   getIncomingRequests() {
     this.loadingIncomingRequests = true;
-    this.socialService.getIncomingRequests().subscribe(incomingRequests => {
-      this.incomingRequests = incomingRequests;
-      this.drawerUserTiles = incomingRequests;
-      this.loadingIncomingRequests = false;
-      this.incomingRequestsCount = incomingRequests.length;
+    this.socialService.getIncomingRequests().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingIncomingRequests = false),
+    ).subscribe({
+      next: incomingRequests => {
+        this.incomingRequests = incomingRequests;
+        this.incomingRequestsCount = incomingRequests.filter(
+          request => request.relationshipStatus === RelationshipStatus.PENDING_INCOMING
+        ).length;
+      },
+      error: error => this.showSocialLoadError($localize`incoming friend requests`, error),
     });
   }
 
   getFriends() {
     this.loadingFriends = true;
-    this.socialService.getFriends().subscribe(friends => {
-      this.friends = friends;
-      this.drawerUserTiles = friends;
-      this.loadingFriends = false;
+    this.socialService.getFriends().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingFriends = false),
+    ).subscribe({
+      next: friends => {
+        this.friends = friends;
+        this.peopleUserTiles = friends;
+      },
+      error: error => this.showSocialLoadError($localize`friends`, error),
     });
   }
 
   getBlocked() {
     this.loadingBlocked = true;
-    this.socialService.getBlocked().subscribe(blocked => {
-      this.blockedUsers = blocked;
-      this.drawerUserTiles = blocked;
-      this.loadingBlocked = false;
+    this.socialService.getBlocked().pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loadingBlocked = false),
+    ).subscribe({
+      next: blocked => {
+        this.blockedUsers = blocked;
+        this.peopleUserTiles = blocked;
+      },
+      error: error => this.showSocialLoadError($localize`blocked users`, error),
+    });
+  }
+
+  private showSocialLoadError(resource: string, error: unknown): void {
+    logger.error(`Could not load ${resource}`, error);
+    this.alertService.open($localize`Could not load ${resource}:resource:. Please try again.`, {appearance: 'negative'}).subscribe();
+  }
+
+  protected candidateState(candidate: UserSearchResult): 'friend' | 'requested' | 'blocked' | 'none' {
+    if (this.requestedIds.includes(candidate.id)) return 'requested';
+    switch (candidate.relationshipStatus) {
+      case RelationshipStatus.FRIENDS:
+        return 'friend';
+      case RelationshipStatus.PENDING_OUTGOING:
+      case RelationshipStatus.PENDING_INCOMING:
+        return 'requested';
+      case RelationshipStatus.BLOCKED:
+        return 'blocked';
+      default:
+        return 'none';
+    }
+  }
+
+  protected isOwnMessage(message: StreamMessage): boolean {
+    return !!this.userInfo && message.user?.id === this.userInfo.id;
+  }
+
+  /**
+   * A double check once somebody has read it, a single one while it is only delivered: the receipt
+   * the desktop mock draws beside the time, kept rather than dropped with Stream's own metadata row.
+   */
+  protected receiptIcon(message: StreamMessage): string {
+    if (message.status === 'sending') return 'clock';
+    if (message.status === 'failed') return 'circle-x';
+    return message.readBy?.length ? 'check-check' : 'check';
+  }
+
+  /** A post announces something, and the thing it announces rides under it as one action. */
+  protected postCtaLabel(message: StreamMessage): string | null {
+    const label = (message as unknown as Record<string, unknown>)['ctaLabel'];
+    return typeof label === 'string' && label.trim() ? label : null;
+  }
+
+  protected openPostCta(message: StreamMessage): void {
+    const url = (message as unknown as Record<string, unknown>)['ctaUrl'];
+    if (typeof url !== 'string' || !url) return;
+    if (url.startsWith('/')) {
+      void this.router.navigateByUrl(url);
+      return;
+    }
+    window.open(url, '_blank', 'noopener');
+  }
+
+  /**
+   * The one line under a name in the People panel. A friend already said what they are, so the
+   * search row says "Friend"; everyone else is described by what they study.
+   */
+  protected personSubtitle(person: PublicUserProfile, relationship?: string): string {
+    if (relationship === 'friend') return $localize`Friend`;
+    if (!person.learning.length) return '';
+    return $localize`Learning ${this.languageNames.getLanguageNames(person.learning).join(', ')}:languages:`;
+  }
+
+  /** The disc in the chat list opens a profile card, and the label says whose. */
+  protected profileAriaLabel(name: string): string {
+    return $localize`Show profile of ${name}:name:`;
+  }
+
+  protected messageCandidate(candidate: UserSearchResult): void {
+    if (!candidate.relationshipId) return;
+    this.openChatWithFriend({
+      ...candidate,
+      relationshipId: candidate.relationshipId,
+      relationshipStatus: RelationshipStatus.FRIENDS,
     });
   }
 
   openChatWithFriend(friend: RelatedUserProfile) {
-    this.closeDrawer();
+    this.closePeople();
 
-    const cid = this.getCidByFriendshipId(friend.relationshipId);
-    this.openChatByCid(cid).then((found) => {
+    const cid = this.channels.friendshipCid(friend.relationshipId);
+    void this.openChatByCid(cid).then((found) => {
       if (!found) {
-        this.createPrivateChat(this.userInfo!.id, friend.id, friend.relationshipId).then(channel => {
+        void this.channels.createPrivateChat(friend.id, friend.relationshipId).then(channel => {
           this.channelService.setAsActiveChannel(channel);
         });
       }
     });
   }
 
-  private getCidByFriendshipId(friendshipId: string) {
-    return 'messaging:private_' + friendshipId;
-  }
-
   async openChatByCid(id: string): Promise<boolean> {
-    const filters = {
-      cid: {$eq: id},
-    };
-
-    const channels = await this.chatService.chatClient.queryChannels(filters);
-    if (channels.length > 0) {
-      this.channelService.setAsActiveChannel(channels[0]);
-      return true;
-    } else {
-      return false;
-    }
+    return this.channels.openByCid(id);
   }
 
   // to avoid multiple requests
@@ -584,7 +841,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   cancelFriendRequest(friendshipId: string) {
     if (this.cancelInProgressIds.has(friendshipId)) {
-      console.warn('Cancel request already in progress');
+      logger.warn('Cancel request already in progress');
       return;
     }
     this.cancelInProgressIds.add(friendshipId);
@@ -594,19 +851,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.outgoingRequests = this.outgoingRequests.filter(request => request.relationshipId !== friendshipId);
-          this.drawerUserTiles = this.outgoingRequests;
-          this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`Friend request cancelled`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to cancel friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   acceptFriendRequest(candidate: RelatedUserProfile) {
     if (this.acceptInProgressIds.has(candidate.relationshipId)) {
-      console.warn('Accept request already in progress');
+      logger.warn('Accept request already in progress');
       return;
     }
 
@@ -614,19 +870,19 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.socialService.patchFriendship(candidate.relationshipId, RelationshipAction.ACCEPT)
       .subscribe({
+        // The chat this friendship gets is created by the server and arrives on its own, for
+        // whoever is looking - including the friend, who is not here to make one.
         next: () => {
-          this.createPrivateChat(this.userInfo!.id, candidate.id.toString(), candidate.relationshipId).then(_ => {
-            this.incomingRequestsCount--;
-            this.incomingRequests
-              .filter(profile => profile === candidate)
-              .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
-            this.acceptInProgressIds.delete(candidate.relationshipId);
-          })
-          this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
+          this.incomingRequestsCount--;
+          this.incomingRequests
+            .filter(profile => profile === candidate)
+            .map(profile => profile.relationshipStatus = RelationshipStatus.FRIENDS);
+          this.acceptInProgressIds.delete(candidate.relationshipId);
+          this.alertService.open($localize`Friend request accepted`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to accept friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to accept friendship request`), {appearance: 'negative'}).subscribe();
           this.acceptInProgressIds.delete(candidate.relationshipId);
         }
       });
@@ -634,7 +890,7 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
 
   rejectFriendRequest(id: string) {
     if (this.rejectInProgressIds.has(id)) {
-      console.warn('Reject request already in progress');
+      logger.warn('Reject request already in progress');
       return;
     }
     this.rejectInProgressIds.add(id);
@@ -644,47 +900,47 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: () => {
           this.incomingRequests = this.incomingRequests.filter(request => request.relationshipId !== id);
-          this.alertService.open('Friend request rejected', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`Friend request rejected`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to reject friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to reject friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   unblock(friendId: string, friendshipId: string) {
     if (this.unblockInProgressIds.has(friendshipId)) {
-      console.warn('Unblock request already in progress');
+      logger.warn('Unblock request already in progress');
       return;
     }
     this.unblockInProgressIds.add(friendshipId);
 
-    this.chatClient.unBlockUser(friendId.toString()).then(() => {
-    });
+    void this.chatClient.unBlockUser(friendId.toString());
+    this.blockedUserIds.delete(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.UNBLOCK)
       .pipe(finalize(() => this.unblockInProgressIds.delete(friendshipId)))
       .subscribe({
         next: () => {
           this.blockedUsers = this.blockedUsers.filter(user => user.id !== friendId);
-          this.drawerUserTiles = this.blockedUsers;
-          this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
+          this.peopleUserTiles = this.blockedUsers;
+          this.alertService.open($localize`User unblocked`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to unblock user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   sendFriendRequest(id: string) {
     if (this.requestedIds.includes(id)) {
-      console.warn('Request already sent');
+      logger.warn('Request already sent');
       return;
     }
 
     if (this.sendRequestInProgressIds.has(id)) {
-      console.warn('Request already in progress');
+      logger.warn('Request already in progress');
       return;
     }
 
@@ -693,18 +949,18 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.createFriendshipRequest(id)
       .pipe(finalize(() => this.sendRequestInProgressIds.delete(id)))
       .subscribe({
-        next: (friendship) => {
-          this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+        next: () => {
+          const username = this.matchedUsers.find(candidate => candidate.id === id)?.username;
+          const recipient = username ? `@${username}` : $localize`that user`;
+          this.alertService.open($localize`Request sent to ${recipient}:recipient:.`, {appearance: 'positive'}).subscribe();
           this.requestedIds.push(id);
-
-          setTimeout(() => {
-            this.matchedUsers = this.matchedUsers.filter(user => user.id !== id);
-            this.requestedIds = this.requestedIds.filter(requestedId => requestedId !== id);
-          }, 2000);
+          this.matchedUsers = this.matchedUsers.map(user =>
+            user.id === id ? {...user, relationshipStatus: RelationshipStatus.PENDING_OUTGOING} : user
+          );
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to send friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -713,133 +969,248 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     this.socialService.patchFriendship(friendshipId, RelationshipAction.UNFRIEND).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
-        this.drawerUserTiles = this.friends;
-        this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
-        this.setDrawerMode('friends');
+        this.peopleUserTiles = this.friends;
+        this.alertService.open($localize`That user is no longer your friend`, {appearance: 'positive'}).subscribe();
+        this.setPeopleMode('friends');
       },
       error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
+        logger.error(error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to remove friend`), {appearance: 'negative'}).subscribe();
       }
     });
   }
 
   block(friendId: string, friendshipId: string) {
-    this.chatClient.blockUser(friendId.toString()).then(() => {
-    });
+    void this.chatClient.blockUser(friendId.toString());
+    this.blockedUserIds.add(friendId.toString());
     this.socialService.patchFriendship(friendshipId, RelationshipAction.BLOCK).subscribe({
       next: () => {
         this.friends = this.friends.filter(friend => friend.id !== friendId);
-        this.drawerUserTiles = this.friends;
-        this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
-        this.setDrawerMode('blocked');
+        this.peopleUserTiles = this.friends;
+        this.alertService.open($localize`User blocked`, {appearance: 'positive'}).subscribe();
+        this.setPeopleMode('blocked');
       },
       error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
+        logger.error(error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to block user`), {appearance: 'negative'}).subscribe();
       }
     });
   }
 
-  protected openDrawerAndSetupData() {
-    this.openDrawer();
-    if (this.drawerMode === 'menu') {
-      this.menuSetup();
-    } else {
-      this.drawerIcon = 'chevron-left';
+  protected openPeopleAndSetupData() {
+    this.openPeople();
+    if (this.peopleMode === 'requests') {
+      // One scroll, two headers: Received carries the work, Sent is usually a row or two.
+      this.peopleUserTiles = [];
+      this.getIncomingRequests();
+      this.getOutgoingRequests();
+      this.noResultMessage = $localize`You have no friend requests.`;
     }
-    if (this.drawerMode === 'requests') {
-      this.drawerHeader = 'Requests';
-
-      if (this.requestsIndex === 0) {
-        this.getIncomingRequests();
-        this.noResultMessage = `You have no incoming friend requests.`;
-      } else {
-        this.getOutgoingRequests();
-        this.noResultMessage = `You have no outgoing friend requests.`;
-      }
-    }
-    if (this.drawerMode === 'friends') {
-      this.drawerHeader = 'Friends';
+    if (this.peopleMode === 'friends') {
       this.getFriends();
-      this.noResultMessage = `You don't have any friends yet.`;
+      this.noResultMessage = $localize`You have not added anyone yet.`;
     }
-    if (this.drawerMode === 'blocked') {
-      this.drawerHeader = 'Blocked';
-      this.noResultMessage = `You haven't blocked anyone.`;
+    if (this.peopleMode === 'blocked') {
+      this.noResultMessage = $localize`No one is blocked.`;
       this.getBlocked();
-    }
-    if (this.drawerMode === 'search') {
-      this.drawerHeader = 'Search';
     }
   }
 
-  protected isDrawerDataLoading() {
-    if (this.drawerMode === 'requests') {
-      return this.requestsIndex === 0 ? this.loadingIncomingRequests : this.loadingOutgoingRequests;
+  /** Language rooms are broadcast channels: readable, leavable, never writable. */
+  protected get isActiveChannelReadOnly(): boolean {
+    return !!this.activeChannel && this.channels.isPublic(this.activeChannel);
+  }
+
+  /**
+   * A channel post and a note to yourself are read, so their feed is capped to a reading measure
+   * instead of the pane. A 1:1 exchange is not: those bubbles are already capped and edge-aligned.
+   */
+  protected get isActiveChannelReadingColumn(): boolean {
+    if (!this.activeChannel) return false;
+    return this.channels.isPublic(this.activeChannel) || this.channels.isSelf(this.activeChannel);
+  }
+
+  /**
+   * 10: the account on the other side is gone. The thread stays readable - the history is as much
+   * the survivor's as it was the other person's - but there is nobody to send to, so the composer
+   * is replaced rather than disabled: a field the app will reject should not be on screen at all.
+   */
+  protected get isActiveChannelDeleted(): boolean {
+    return !!this.activeChannel && this.channels.isInterlocutorDeleted(this.activeChannel);
+  }
+
+  /**
+   * 10: the person on the other side, when this account has blocked them. Blocking is reversible,
+   * so the thread keeps its history and the composer states who and offers the way back, rather
+   * than the conversation disappearing. The private channel is addressed by its friendship, which
+   * is what makes the id the unblock call needs recoverable from the channel alone.
+   */
+  protected get blockedInterlocutor(): {id: string; handle: string; friendshipId: string} | null {
+    const channel = this.activeChannel;
+    if (!channel || !this.channels.isPrivate(channel) || !this.userInfo) return null;
+
+    const other = Object.values(channel.state.members).find(member => member.user?.id !== this.userInfo!.id)?.user;
+    if (!other || !this.blockedUserIds.has(other.id)) return null;
+
+    const friendshipId = this.channels.friendshipIdOf(channel);
+    if (!friendshipId) return null;
+
+    return {id: other.id, handle: other.name ?? other.id, friendshipId};
+  }
+
+  protected unblockInterlocutor(blocked: {id: string; friendshipId: string}): void {
+    this.unblock(blocked.id, blocked.friendshipId);
+  }
+
+  /**
+   * 10: refuse an over-long message before it is sent, not after Stream bounces it.
+   *
+   * The cap is the channel type's `max_message_length`, which Stream enforces itself; without a
+   * check here that enforcement arrives as a failed bubble, which says a send went wrong rather
+   * than that it was never going to fit. There is no live counter by design - the number only
+   * matters at the moment it stops you.
+   *
+   * The guard has to sit in front of the SDK's own send handler rather than around
+   * `ChannelService.sendMessage`, because the composer empties the textarea before it awaits that
+   * call: refusing any further in would take the message away as it told the user it was too long.
+   */
+  private guardComposerLength(input?: MessageInputComponent): void {
+    if (!input || input === this.guardedComposer) return;
+    this.guardedComposer = input;
+
+    const send = input.messageSent.bind(input);
+    input.messageSent = async () => {
+      if ((input.textareaValue ?? '').length > MAX_MESSAGE_LENGTH) {
+        this.alertService.open(SOCIAL_COPY.tooLong, {appearance: 'negative'}).subscribe();
+        return;
+      }
+      await send();
+    };
+  }
+
+  /**
+   * 10: why a message is sitting in the thread unsent. `failed` is a send that never reached
+   * Stream and can be tried again; `refused` is one Stream rejected outright, which retrying
+   * cannot fix - the SDK draws the same distinction to decide whether a tap resends.
+   */
+  protected messageFailure(message: StreamMessage): 'failed' | 'refused' | null {
+    if (message.status !== 'failed') return null;
+    return message.errorStatusCode === 403 ? 'refused' : 'failed';
+  }
+
+  protected retrySend(message: StreamMessage): void {
+    void this.channelService.resendMessage(message);
+  }
+
+  protected get activeChannelTopic(): string {
+    return this.activeChannel ? this.channels.topic(this.activeChannel) : '';
+  }
+
+  protected get emptyChannelTitle(): string {
+    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) return $localize`Your own notebook`;
+    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) return $localize`Nothing said yet`;
+    if (this.isActiveChannelReadOnly) return $localize`Nothing posted yet`;
+    return $localize`No messages yet`;
+  }
+
+  protected get emptyChannelBody(): string {
+    // 11: same voice as his channel: short, plain, no praise. The openers below are the other way in.
+    if (this.activeChannel && this.channels.isAlmo(this.activeChannel)) {
+      return $localize`Almo answers in the language of this chat. Write first, or take one of the openers below.`;
     }
-    if (this.drawerMode === 'friends') {
+    if (this.activeChannel && this.channels.isSelf(this.activeChannel)) {
+      return $localize`Forward messages here, or write to yourself. Nobody else can see this chat.`;
+    }
+    if (this.isActiveChannelReadOnly) {
+      return $localize`New books, packs and features for ${this.activeChannelTopic}:topic: will land here.`;
+    }
+    return $localize`Say hello — this is the start of the conversation.`;
+  }
+
+  protected isPeopleDataLoading() {
+    if (this.peopleMode === 'requests') {
+      return this.loadingIncomingRequests || this.loadingOutgoingRequests;
+    }
+    if (this.peopleMode === 'friends') {
       return this.loadingFriends;
     }
-    if (this.drawerMode === 'blocked') {
+    if (this.peopleMode === 'blocked') {
       return this.loadingBlocked;
     }
     return false;
   }
 
-  public openDrawer(): void {
-    this.isDrawerOpened.set(true);
+  /**
+   * 07: rail, snaps and the drag handle are desktop only. A width persisted on a wide screen
+   * must not follow the list onto a phone, where the list is the whole column.
+   */
+  private static readonly NARROW_VIEWPORT_PX = 640;
+  protected readonly isNarrowViewport = signal(false);
+
+  @HostListener('window:resize')
+  protected onViewportResize(): void {
+    this.isNarrowViewport.set(globalThis.innerWidth <= SocialComponent.NARROW_VIEWPORT_PX);
   }
 
-  public closeDrawer(): void {
-    this.isDrawerOpened.set(false);
+  public openPeople(): void {
+    this.closePreviewCard();
+    this.isPeopleOpen.set(true);
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
-    this.isDrawerOpened.set(false);
+  public closePeople(): void {
+    this.isPeopleOpen.set(false);
+    // The panel reopens on its tab list, not on whoever was searched for last. Cleared through the
+    // pipe rather than silently, so the next search for the same handle is not swallowed as a repeat.
+    this.usernameFormControl.setValue('');
   }
 
-  protected getChatName(channel: Channel, defaultName: string): string {
-    if (defaultName !== AppConstants.PRIVATE_CHAT_NAME) {
-      return defaultName;
+  /** A new chat starts by picking a person, so it lands in People rather than an empty thread. */
+  protected startNewChat(): void {
+    this.peopleMode = 'friends';
+    this.openPeopleAndSetupData();
+  }
+
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
+    if (this.activeRowMenu) {
+      this.closeRowMenu();
+      return;
     }
-
-    const currentUserId = this.chatService.chatClient.userID;
-
-    // Get the other user in the channel
-    const otherMember = Object.values(channel.state.members).find(
-      (member) => member.user?.id !== currentUserId
-    );
-
-    return otherMember?.user?.name || AppConstants.PRIVATE_CHAT_NAME;
+    if (this.hoveredChannel) {
+      this.closePreviewCard();
+      return;
+    }
+    this.isPeopleOpen.set(false);
   }
 
-  hideChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+  protected archiveChat(channel: Channel, dropdown: TuiDropdownDirective) {
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.hide().then(() => {
+    this.schedule(() => {
+      void channel.hide().then(() => {
+        this.channels.reload(this.showArchived$.value);
+        void this.refreshArchiveSummary();
       });
     }, 30);
   }
 
-  showChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+  protected unarchiveChat(channel: Channel, dropdown: TuiDropdownDirective, event?: Event) {
+    event?.stopPropagation();
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.show().then(() => {
-        this.reloadChannelList();
+    this.schedule(() => {
+      void channel.show().then(() => {
+        this.channels.reload(this.showArchived$.value);
+        void this.refreshArchiveSummary();
       });
     }, 30);
   }
 
   muteChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.mute().then(() => {
-      });
+    this.schedule(() => {
+      void channel.mute();
     }, 30);
   }
 
@@ -848,41 +1219,37 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isLastMessageFromOtherUser(channel: Channel): boolean {
-    const lastMessage = channel.state.messages[channel.state.messages.length - 1];
-    return (lastMessage && lastMessage.user?.id !== this.chatService.chatClient.userID);
+    return this.channels.isLastMessageFromAnotherUser(channel);
   }
 
   markAsRead(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.markRead().then(() => {
-      });
+    this.schedule(() => {
+      void channel.markRead();
     }, 30);
   }
 
   markAsUnread(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
+    this.schedule(() => {
       const lastMessage = channel.state.messages[channel.state.messages.length - 1];
 
       // Only mark as unread if the last message was sent by someone else
       if (lastMessage && this.isLastMessageFromOtherUser(channel)) {
-        channel.markUnread({message_id: lastMessage.id}).then(() => {
-        }).catch(err => console.error('Mark as unread failed', err));
+        channel.markUnread({message_id: lastMessage.id}).catch(err => logger.error('Mark as unread failed', err));
       } else {
-        console.warn('Cannot mark as unread: No valid message from another user');
+        logger.warn('Cannot mark as unread: No valid message from another user');
       }
     }, 30);
   }
 
   unmuteChat(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.unmute().then(() => {
-      });
+    this.schedule(() => {
+      void channel.unmute();
     }, 30);
   }
 
@@ -890,50 +1257,80 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return channel.muteStatus().muted;
   }
 
-  isPrivateChat(channel: Channel) {
-    return channel.data?.name === AppConstants.PRIVATE_CHAT_NAME;
+  protected isArchived(channel: Channel): boolean {
+    return !!channel.data?.hidden;
   }
 
-  isSelfChat(channel: Channel) {
-    return channel.data?.name === AppConstants.SELF_CHAT_NAME;
+  protected get isArchiveOpen(): boolean {
+    return this.showArchived$.value;
   }
 
-  isPublicChannel(channel: Channel) {
-    return !this.isPrivateChat(channel) && !this.isSelfChat(channel);
+  protected openArchive(): void {
+    this.showArchived$.next(true);
   }
 
-  isHiddenChannel(channel: Channel) {
-    return channel.data?.hidden;
+  protected closeArchive(): void {
+    this.showArchived$.next(false);
   }
 
-  toggleHiddenChats() {
-    this.showHiddenChannels$.next(!this.showHiddenChannels$.value);
+  /**
+   * The Archived row only exists when there is an archive; a chat that arrives in it stays there
+   * and lights the row rather than jumping back into the list.
+   */
+  private async refreshArchiveSummary(): Promise<void> {
+    const client = this.chatService.chatClient;
+    const userId = client.userID;
+    if (!userId) return;
+
+    try {
+      const archived = await client.queryChannels(
+        {hidden: true, members: {$in: [userId]}},
+        {last_message_at: -1},
+        {limit: 30},
+      );
+      this.archivedCount = archived.length;
+      this.archiveHasUnread = archived.some(channel => channel.countUnread() > 0);
+      this.cdr.detectChanges();
+    } catch (error) {
+      logger.error('Could not read the archive', error);
+    }
   }
 
-  reloadChannelList() {
-    this.channelService.reset();
-    this.channelService.init({
-      hidden: this.showHiddenChannels$.value,
-      members: {$in: [this.userInfo!.id]}
-    }, undefined, undefined, false).then(() => {
-    });
+  /** Right-click on the row is an accelerator for the same menu the button opens. */
+  /**
+   * The row menu the list currently has open. Right-click never propagates far enough for the
+   * dropdowns to notice each other, so the list holds the one that is open and closes it itself.
+   */
+  private activeRowMenu?: TuiDropdownDirective;
+
+  /** Asking a row for its menu replaces whatever menu was open: one at a time, never a stack. */
+  protected openRowMenu(menu: TuiDropdownDirective, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeRowMenu();
+    this.activeRowMenu = menu;
+    menu.toggle(true);
+  }
+
+  /**
+   * With no argument, closes whichever menu is open. With one, closes that menu alone - a zone
+   * that has just lost focus may have been replaced already, and must not close its successor.
+   */
+  protected closeRowMenu(menu?: TuiDropdownDirective): void {
+    (menu ?? this.activeRowMenu)?.toggle(false);
+    if (!menu || this.activeRowMenu === menu) {
+      this.activeRowMenu = undefined;
+    }
   }
 
   joinChannel(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
+    this.closeRowMenu(dropdown);
 
-    setTimeout(() => {
-      channel.addMembers([this.userInfo!.id]).then(() => {
+    this.schedule(() => {
+      void this.channels.join(channel).then(() => {
         this.chatFormControl.setValue('');
-        setTimeout(() => {
-          this.channelService.setAsActiveChannel(channel);
-        }, 600);
       });
     }, 30);
-  }
-
-  amMember(channel: Channel): boolean {
-    return channel.state.members[this.userInfo!.id] !== undefined
   }
 
   protected hoveredInterlocutorId = undefined;
@@ -953,15 +1350,61 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     return interlocutor ? interlocutor.user?.id ?? null : null
   }
 
-  startAvatarHover(channel: Channel, location: string) {
-    this.hoveredChannel = channel;
-    this.currentLocation = location;
+  /** A cursor crossing a column of avatars must not fire a card per row. */
+  private static readonly PREVIEW_CARD_OPEN_DELAY_MS = 120;
+  private hoverOpenTimeout?: ReturnType<typeof setTimeout>;
+
+  startAvatarHover(channel: Channel | undefined, location: string) {
+    if (!channel || this.isPreviewCardPinned || this.channels.isInterlocutorDeleted(channel)) return;
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+    this.hoverOpenTimeout = this.schedule(() => {
+      this.hoveredChannel = channel;
+      this.currentLocation = location;
+    }, SocialComponent.PREVIEW_CARD_OPEN_DELAY_MS);
   }
 
-  private timeout: any;
+  /** Click and keyboard focus open the same card, and pin it until it is dismissed. */
+  protected togglePreviewCard(channel: Channel | undefined, location: AvatarLocation) {
+    // 10: there is no profile behind a deleted account, so the disc stops being a way in to one.
+    if (!channel || !this.channels.isPrivate(channel) || this.channels.isInterlocutorDeleted(channel)) return;
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+
+    const isSameCard = this.hoveredChannel?.cid === channel.cid && this.currentLocation === location;
+    if (isSameCard && this.isPreviewCardPinned) {
+      this.closePreviewCard();
+      return;
+    }
+
+    this.hoveredChannel = channel;
+    this.currentLocation = location;
+    this.isPreviewCardPinned = true;
+  }
+
+  protected closePreviewCard() {
+    clearTimeout(this.timeout);
+    clearTimeout(this.hoverOpenTimeout);
+    this.isPreviewCardPinned = false;
+    this.hoveredChannel = null;
+    this.currentLocation = '';
+  }
+
+  private timeout?: ReturnType<typeof setTimeout>;
+
+  private schedule(callback: () => void, delay: number): ReturnType<typeof setTimeout> {
+    const task = globalThis.setTimeout(() => {
+      this.scheduledTasks.delete(task);
+      callback();
+    }, delay);
+    this.scheduledTasks.add(task);
+    return task;
+  }
 
   stopAvatarHover() {
-    this.timeout = setTimeout(() => {
+    clearTimeout(this.hoverOpenTimeout);
+    if (this.isPreviewCardPinned) return;
+    this.timeout = this.schedule(() => {
       this.hoveredChannel = null;
       this.currentLocation = '';
     }, 200);
@@ -975,44 +1418,34 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
     clearTimeout(this.timeout);
   }
 
-  openUser(location: AvatarLocation) {
-    if (location === 'channel-preview' && this.isPrivateChat(this.hoveredChannel!)) {
-      const interlocutorId = this.getInterlocutorId();
-      console.info('Opening chat with user:', interlocutorId);
-    }
-  }
-
   private excludedLocations: AvatarLocation[] = ['channel-preview', 'channel-header'];
 
-  shouldShowDropdown(channel: Channel, location: AvatarLocation): boolean {
+  shouldShowDropdown(channel: Channel | undefined, location: AvatarLocation): boolean {
     if (!this.excludedLocations.includes(location)) {
       return false;
     }
 
     const firstCheck = (this.currentLocation === location)
       && (this.hoveredChannel !== null)
-      && this.isPrivateChat(this.hoveredChannel);
+      && this.channels.isPrivate(this.hoveredChannel);
 
-    return firstCheck && channel.cid === this.hoveredChannel?.cid;
+    return firstCheck && !!channel && channel.cid === this.hoveredChannel?.cid;
   }
 
-  onRequestsIndexChange($event: number) {
-    this.requestsIndex = $event;
-    this.openDrawerAndSetupData();
+  setPeopleMode(mode: string) {
+    this.peopleMode = mode as 'requests' | 'friends' | 'blocked';
+    this.openPeopleAndSetupData();
   }
 
-  setDrawerMode(mode: string) {
-    this.drawerMode = mode as 'requests' | 'friends' | 'blocked' | 'menu';
-    this.openDrawerAndSetupData();
+  protected get peopleIndex(): number {
+    return this.peopleMode === 'requests' ? 1 : this.peopleMode === 'blocked' ? 2 : 0;
   }
 
-  menuSetup() {
-    this.matchedUsers = [];
-    this.drawerHeader = 'Menu';
-    this.friendFormControl.setValue('');
+  protected onPeopleIndexChange(index: number): void {
+    // Picking a tab is a request to see that tab. The field searches every account whichever one is
+    // showing, but it must not sit over the view the user just asked for.
     this.usernameFormControl.setValue('');
-    this.drawerIcon = 'menu';
-    this.drawerUserTiles = [];
+    this.setPeopleMode((['friends', 'requests', 'blocked'] as const)[index] ?? 'friends');
   }
 
   openChat() {
@@ -1024,157 +1457,74 @@ export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openSearch() {
-    if (!this.isCollapsed) return;
-    this.isCollapsed = false;
-    this.isManuallyResized = true;
-    this.sidebarWidth = window.innerWidth / 3 - 8;
-    setTimeout(() => {
+    if (!this.sidebarResize.isCollapsed) return;
+    this.sidebarResize.expand();
+    this.schedule(() => {
       this.chatInputRef?.nativeElement.focus();
     }, 100);
   }
 
-  sidebarWidth = window.innerWidth / 3 - 8;
-  isResizing = false;
-  isCollapsed = false;
-  isManuallyResized = false;
-
-  startResizing(event: MouseEvent) {
-    if (window.innerWidth < 640) return;
-    this.isResizing = true;
-    this.isManuallyResized = true;
-    document.addEventListener('mousemove', this.resizeSidebar);
-    document.addEventListener('mouseup', this.stopResizing);
-  }
-
-  resizeSidebar = (event: MouseEvent) => {
-    if (!this.isResizing) return;
-
-    let newWidth = event.clientX;
-
-    // Collapse to avatar mode if width is too small
-    if (newWidth < 68) {
-      this.sidebarWidth = 68;
-      this.isCollapsed = true;
-    } else if (newWidth > 600) {
-      this.sidebarWidth = 600; // Prevent exceeding max width
-      this.isCollapsed = false;
-    } else {
-      this.sidebarWidth = newWidth;
-      this.isCollapsed = false;
-    }
-  };
-
-  stopResizing = () => {
-    this.isResizing = false;
-    document.removeEventListener('mousemove', this.resizeSidebar);
-    document.removeEventListener('mouseup', this.stopResizing);
-  };
-
-  get hiddenChatsTooltip() {
-    return this.showHiddenChannels$.value ? 'Switch to visible chats' : 'Switch to hidden chats';
-  }
-
-  // confirm modal chats
-  protected targetChannel: Channel | null = null;
-
   protected prepareConfirmModalForChatDeletion(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Delete Chat';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Delete';
-    this.modalAction = this.deleteChat.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
-  }
-
-  protected deleteChat() {
-    if (!this.targetChannel) {
-      console.error('Channel to delete is not set');
-      return;
-    }
-
-    this.targetChannel.delete().then(() => {
-      this.targetChannel = null;
+    this.closeRowMenu(dropdown);
+    this.confirmation.open({
+      title: $localize`Delete chat`,
+      message: $localize`The chat and its messages are removed for both of you. This cannot be undone.`,
+      confirmText: $localize`Delete`,
+      action: () => void channel.delete(),
     });
   }
 
   protected prepareChatTruncationConfirmationModal(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Clear Chat History';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Clear';
-    this.modalAction = this.clearChat.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
+    this.closeRowMenu(dropdown);
+    this.confirmation.open({
+      title: $localize`Clear history`,
+      message: $localize`Every message in this chat is removed for you. This cannot be undone.`,
+      confirmText: $localize`Clear`,
+      action: () => void channel.truncate(),
+    });
   }
 
-  protected clearChat() {
-    if (!this.targetChannel) {
-      console.error('Channel to clear is not set');
-      return;
-    }
-
-    this.targetChannel.truncate().then(() => {
-      this.targetChannel = null;
+  /**
+   * Leaving is reversible, so the modal names the channel and commits in plum. It lives in the
+   * row menu; the header carries no permanent Leave button.
+   */
+  private confirmLeave(channel: Channel) {
+    const name = this.channels.name(channel, $localize`this channel`);
+    this.confirmation.open({
+      title: $localize`Leave ${name}:name:?`,
+      message: $localize`You will stop receiving ${this.channels.topic(channel)}:topic: updates here. You can rejoin from search at any time.`,
+      confirmText: $localize`Leave`,
+      tone: 'default',
+      action: () => {
+        void channel.show();
+        void channel.unmute();
+        void channel.removeMembers([this.userInfo!.id]);
+      },
     });
   }
 
   protected prepareLeaveChannelModal(channel: Channel, dropdown: TuiDropdownDirective) {
-    dropdown.toggle(false);
-    this.targetChannel = channel;
-
-    this.modalTitle = 'Leave Channel';
-    this.modalMessage = 'Are you sure? You will no longer receive messages from this channel. You can rejoin later.';
-    this.modalConfirmText = 'Leave';
-    this.modalAction = this.leaveChannel.bind(this);
-    this.useCountdown = false;
-    this.isConfirmModalVisible = true;
-  }
-
-  protected leaveChannel() {
-    if (!this.targetChannel) {
-      console.error('Channel to clear is not set');
-      return;
-    }
-
-    this.targetChannel.show().then();
-    this.targetChannel.unmute().then();
-    this.targetChannel.removeMembers([this.userInfo!.id]).then(() => {
-    });
+    this.closeRowMenu(dropdown);
+    this.confirmLeave(channel);
   }
 
   protected prepareUnfriendModal(friendId: string, friendshipId: string) {
-    this.closeDrawer();
-    this.modalTitle = 'Unfriend';
-    this.modalMessage = 'Are you sure you want to unfriend this user?';
-    this.modalConfirmText = 'Unfriend';
-    this.modalAction = () => this.unfriend(friendId, friendshipId);
-    this.isConfirmModalVisible = true;
+    this.closePeople();
+    this.confirmation.open({
+      title: $localize`Unfriend`,
+      message: $localize`Are you sure you want to unfriend this user?`,
+      confirmText: $localize`Unfriend`,
+      action: () => this.unfriend(friendId, friendshipId),
+    });
   }
 
   protected prepareBlockModal(friendId: string, friendshipId: string) {
-    this.closeDrawer();
-    this.modalTitle = 'Block User';
-    this.modalMessage = 'Are you sure you want to block this user?';
-    this.modalConfirmText = 'Block';
-    this.modalAction = () => this.block(friendId, friendshipId);
-    this.isConfirmModalVisible = true;
-  }
-
-  protected closeConfirmModal() {
-    this.isConfirmModalVisible = false;
-  }
-
-  protected confirmModalAction() {
-    if (this.modalAction) {
-      this.modalAction();
-    } else {
-      console.error('No action set for confirm modal');
-    }
-    this.closeConfirmModal();
+    this.closePeople();
+    this.confirmation.open({
+      title: $localize`Block User`,
+      message: $localize`Are you sure you want to block this user?`,
+      confirmText: $localize`Block`,
+      action: () => this.block(friendId, friendshipId),
+    });
   }
 }

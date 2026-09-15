@@ -3,5 +3,173 @@
 @tailwind utilities;
 @import "styles/variables.less";
 @import "styles/shared-styles.less";
-@import "@flaticon/flaticon-uicons/css/all/all.css";
 @import "overlayscrollbars/styles/overlayscrollbars.css";
+
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition-property: color, background-color, border-color, opacity !important;
+  transition-duration: 120ms !important;
+}
+
+.dark-theme-tokens() {
+  --page-ground: #14111A;
+  --card-color: #1E1A26;
+  --nested-color: #272130;
+  --overlay-color: #2E2736;
+  --hairline-color: #332C3C;
+  --control-border-color: #453D51;
+  --secondary-control-border-color: #6B6178;
+  --secondary-control-fill: rgba(241, 234, 239, .07);
+  --reader-text-color: #E4DAE2;
+  --subhead-color: #BEB2C2;
+  --metadata-color: #8D8298;
+  --brand-primary: #B07BD0;
+  --brand-hover: #E0C4EE;
+  --brand-pressed: #9059BC;
+  --brand-margin: #CBA3E0;
+  --brand-flat-logo: #CBA3E0;
+  --brand-flat-logo-image: url('/assets/img/logo/logo-flat-tint.svg');
+  --brand-ink: #F1EAEF;
+  /*
+   * 10 is drawn on light only, so these follow the dark section's own rules rather than being
+   * invented: destructive text is #FF8FA3 on this ground, and a plum fill is #B0416F.
+   */
+  --chat-failed-ink: #FF8FA3;
+  --chat-failed-border: #B0416F;
+  --chat-refused-border: #453D51;
+  --dark-raspberry: #D98BA8;
+  --saved-emblem-fill: #A02F6B;
+  --saved-emblem-ink: #FFF8F5;
+  --on-brand-color: #14111A;
+  --disabled-fill-color: #2A2433;
+  --disabled-label-color: #6E637A;
+  --shadow-color: rgba(0, 0, 0, .55);
+  --overlay-shadow: 0 16px 40px var(--shadow-color);
+  --scrim: rgba(10, 8, 14, .72);
+  // 28a: the lone disc and the four identities both take a dark-native set. The hues keep their
+  // index, so a hashed user holds their slot across themes; neither needs an edge on this ground.
+  --avatar-ground: #332C3C;
+  --avatar-ground-edge: transparent;
+  --avatar-ground-ink: #EFE6EC;
+  --avatar-hue-ink: #EFE6EC;
+  --avatar-hue-1: #453039;
+  --avatar-hue-1-edge: transparent;
+  --avatar-hue-2: #47332E;
+  --avatar-hue-2-edge: transparent;
+  --avatar-hue-3: #3F3A2B;
+  --avatar-hue-3-edge: transparent;
+  --avatar-hue-4: #3F3145;
+  --avatar-hue-4-edge: transparent;
+  --state-hover: rgba(241, 234, 239, .06);
+  --state-pressed: rgba(241, 234, 239, .1);
+  --state-selected: rgba(203, 163, 224, .14);
+  --chat-selected-color: rgba(203, 163, 224, .14);
+  --almo-disc-color: #272130;
+  --notification-unread-color: #3A3145;
+  --particle-opacity: .18;
+  --wordmark-color: #F1EAEF;
+  --main-bg-color: var(--page-ground);
+  --text-color: #F1EAEF;
+  --border-color: var(--hairline-color);
+  --gray-bg: var(--nested-color);
+  --grey-color: var(--nested-color);
+  --gray: #453D51;
+  --danger-bg-color: #2A1A22;
+  --danger-text-color: #FF8FA3;
+  --warning-color: #F0A184;
+  --success-color: #3DD69B;
+  --success-bg-color: #12332A;
+  --info-light-blue: var(--nested-color);
+  --chat-accent-color: var(--brand-primary);
+  --chat-bg-color: var(--page-ground);
+  --chat-lite: var(--brand-pressed);
+  --chat-incoming-bubble-color: var(--nested-color);
+  --chat-own-bubble-color: #7C2D53;
+  --chat-own-ink: #FFF1F6;
+  --chat-unread-fill: #B0416F;
+  --chat-unread-ink: #FFF1F6;
+  --avatar-plate-ring: #453D51;
+  --paywall-plate: var(--card-color);
+  --paywall-plate-border: var(--hairline-color);
+  --paywall-plate-ink: var(--brand-ink);
+  --paywall-plate-ink-2: var(--subhead-color);
+  --paywall-plate-ink-3: var(--metadata-color);
+  --paywall-plate-eyebrow: var(--dark-raspberry);
+  --paywall-plate-fill: rgba(241, 234, 239, .07);
+  --paywall-plate-selected: var(--nested-color);
+  --paywall-plate-selected-ink: var(--brand-ink);
+  // A white puck on a dark list is the light-mode asset leaking through, so the emblem's disc
+  // goes to the hairline and the emblem itself to the tint.
+  --channel-emblem-disc: #332C3C;
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-background-accent-1-pressed: var(--brand-pressed);
+  --tui-text-action: #CBA3E0;
+  --tui-text-action-hover: var(--brand-hover);
+  --box-shadow: 0 0 0 1px var(--hairline-color);
+  color-scheme: dark;
+}
+
+html[data-theme='dark'] {
+  .dark-theme-tokens();
+}
+
+/* The animated emblem keeps the ramp on light grounds; on dark it flattens to
+   the tint, like the static flat logo does. Mono emblems keep currentColor. */
+html[data-theme='dark'] app-emblem svg:not(.mono) path {
+  fill: var(--brand-flat-logo);
+}
+
+html[data-theme='dark'] .wordmark-light {
+  display: none;
+}
+
+html[data-theme='dark'] .wordmark-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme='system'] {
+    .dark-theme-tokens();
+  }
+
+  html[data-theme='system'] app-emblem svg:not(.mono) path {
+    fill: var(--brand-flat-logo);
+  }
+
+  html[data-theme='system'] .wordmark-light {
+    display: none;
+  }
+
+  html[data-theme='system'] .wordmark-dark {
+    display: block;
+  }
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--page-ground);
+  color: var(--text-color);
+}
+
+input, textarea, select {
+  color: var(--text-color);
+  background-color: var(--nested-color);
+  border-color: var(--control-border-color);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--metadata-color);
+}
+
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brand-margin);
+  outline-offset: 2px;
+}
+
+ngx-particles canvas {
+  opacity: var(--particle-opacity);
+}

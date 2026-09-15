@@ -1,218 +1,209 @@
-<!--content for popups-->
-<paywall></paywall>
-<app-recent-auth-guard></app-recent-auth-guard>
-
 @if (userInfo) {
   <app-share-link [link]="getProfileLink()"
-                  title="Share Your Profile"></app-share-link>
+                  title="Share Your Profile" i18n-title></app-share-link>
 }
-
-<app-confirm-modal
-  [isVisible]="isConfirmModalVisible"
-  [title]="modalTitle"
-  [message]="modalMessage"
-  [confirmText]="modalConfirmText"
-  (confirm)="cancelSubscription()"
-  (close)="closeModal()"
-  [useCountdown]="useCountdown">
-</app-confirm-modal>
 
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <!--profile block  -->
-  <div class="card-container">
+  <main class="profile-layout">
+    <section class="profile-card card">
+      <div i18n class="eyebrow">Profile</div>
 
-    <div class="section-block card">
-      <div class="title">Profile</div>
-      <div class="row-content">
-        @if (userInfo) {
-          <app-avatar-settings
-            class="pt-3 pb-3"
-            [userInfo]="userInfo"
-          ></app-avatar-settings>
+      @if (userInfo) {
+        <div class="identity-row">
+          <button type="button" class="avatar-edit" (click)="profileEdit = !profileEdit" aria-label="Edit profile" i18n-aria-label>
+            <app-avatar
+              [username]="userInfo.username"
+              [avatarUrl]="userInfo.avatarUrl"
+              [premium]="userInfo.premium"
+              [sizeInRem]="4.75"
+            />
+            @if (!profileEdit) {
+              <span class="edit-disc"><lucide-icon name="pencil" [size]="13" /></span>
+            }
+          </button>
+          <div class="identity-copy">
+            <h1>&#64;{{ userInfo.username }}</h1>
+            <p>{{ memberSince }}</p>
+            <div class="profile-actions">
+              <button i18n type="button" class="pill-button" (click)="profileEdit = !profileEdit">
+                {profileEdit, select, true {Done} other {Edit}}
+              </button>
+              @if (!userInfo.hidden) {
+                <button i18n type="button" class="pill-button" (click)="copyProfileLink()">
+                  <lucide-icon name="link" [size]="15" /> Copy link
+                </button>
+                @if (hasRecord) {
+                  <button i18n type="button" class="pill-button" (click)="openShareProfile()">
+                    <lucide-icon name="qr-code" [size]="15" /> QR
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (profileEdit) {
+          <div class="profile-editor">
+            <div class="editor-field">
+              <div i18n class="eyebrow">How you appear</div>
+              <app-avatar-picker [userInfo]="userInfo" />
+            </div>
+            <div class="editor-field">
+              <div i18n class="eyebrow">Username</div>
+              <app-username />
+              <p i18n class="field-note">Only used if you share a word pack.</p>
+            </div>
+          </div>
         }
-        <div class="flex flex-col justify-center items-center ml-auto gap-2">
-          @if (!userInfo?.hidden) {
-            <div class="flex flex-col gap-2">
-              <lucide-icon name="link"
-                           class="share-icon"
-                           (click)="copyProfileLink()"
-                           [size]="30"
-              ></lucide-icon>
-              <lucide-icon name="qr-code"
-                           class="share-icon"
-                           (click)="openShareProfile()"
-                           [size]="34"
-              ></lucide-icon>
+
+        <section class="record-strip" aria-labelledby="record-strip-title">
+          <!-- The header always names its language, so the numbers are never anonymous. -->
+          <div class="record-head">
+            <span i18n id="record-strip-title" class="eyebrow">Your record</span>
+            @if (activeLanguage) {
+              <span class="record-language">
+                <span class="record-crest" [style.background]="crestColour(activeLanguage)" aria-hidden="true"></span>
+                {{ recordLabel }}
+              </span>
+            }
+          </div>
+
+          @if (hasRecord && activeRhythm; as loadedRhythm) {
+            <div class="record-numbers">
+              <div class="record-number">
+                <span class="figure">{{ stats?.wordsKept | number }}</span>
+                <span i18n class="caption">Words you can read</span>
+              </div>
+              <div class="record-number">
+                <span class="figure">{{ stats?.booksFinished ?? 0 }}</span>
+                <span i18n class="caption">Books finished</span>
+              </div>
+              <div class="record-number">
+                <span class="figure">{{ pace(loadedRhythm).met }}<span class="of">/{{ pace(loadedRhythm).counted }}</span></span>
+                <span i18n class="caption">Weeks at pace</span>
+              </div>
+            </div>
+
+            <app-rhythm-band
+              [rhythm]="loadedRhythm"
+              [languageName]="activeLanguageName"
+              [crest]="crestColour(loadedRhythm.language)"
+            ></app-rhythm-band>
+
+            <div class="record-foot">
+              <span>{{ recordCaption(loadedRhythm) }}</span>
+              <a i18n routerLink="/home">Change on home</a>
+            </div>
+          } @else {
+            <p i18n class="record-empty">
+              Nothing here until you finish {{ firstSessionPhrase }}. Then this holds the words you can read, the
+              books you finished, and the weeks you kept pace.
+            </p>
+            <a i18n class="record-action" routerLink="/read">Open the library</a>
+          }
+        </section>
+
+        <div class="interests-section">
+          <div i18n class="eyebrow">Interests</div>
+          @if (!interestsEdit) {
+            <div class="chips-box">
+              @for (interest of interests; track interest.id) {
+                <span tuiChip class="interest-chip">{{ interest.name }}</span>
+              }
+              <button i18n type="button" class="interest-edit" [class.adding]="!interests.length" (click)="editInterests()">
+                <lucide-icon [name]="interests.length ? 'pencil' : 'plus'" [size]="14" />
+                {interests.length, plural, =0 {Add} other {Edit}}
+              </button>
+            </div>
+            @if (!interests.length) {
+              <p i18n class="empty-interests">Add a few topics so other readers know what you enjoy.</p>
+            }
+          } @else {
+            <app-interests
+              [currentInterests]="userInfo.interests"
+              (selectedInterestsChange)="onSelectedInterestsChange($event)"
+            />
+            <div class="interest-actions">
+              <button i18n type="button" class="pill-button" (click)="cancelInterestsEdit()">Cancel</button>
+              <app-button
+                label="Save interests" i18n-label
+                [loading$]="loadingInterests$"
+                (clickFunction)="saveInterests()"
+                appearance="bw"
+              />
             </div>
           }
-          <app-button
-            [label]="userInfo?.hidden ? 'Hidden' : 'Hide'"
-            [hoverLabel]="userInfo?.hidden ? 'Unhide' : undefined"
-            [appearance]="'underline'"
-            [loading$]="loadingHideProfile$"
-            [style.margin-left]="'auto'"
-            [padding]="(userInfo?.hidden ? '0' : '6px') + ' 10px'"
-            [gap]="(userInfo?.hidden ? '0.3rem' : '0')"
-            [reverse]="userInfo?.hidden"
-            [customClass]="userInfo?.hidden ? '' : ''"
-            (clickFunction)="toggleHidden()"
-            [hint]="hideProfileTooltip"
-            hintAppearance="dark"
-            hintDirection="bottom"
-          >
-            @if (userInfo?.hidden) {
-              <lucide-icon
-                [name]="'venetian-mask'"
-                [strokeWidth]="1"
-                [size]="34"
-              ></lucide-icon>
-            }
-
-          </app-button>
-          <ng-template #hideProfileTooltip>
-            When your profile is hidden, other users can only see your username and can't send you connection
-            requests.
-          </ng-template>
         </div>
+
+        <div class="visibility-row">
+          <div>
+            <strong i18n>{userInfo.hidden, select, true {Profile is hidden} other {Profile is visible}}</strong>
+            <p i18n>
+              {userInfo.hidden, select, true {Only your username is visible, and readers cannot send connection requests.} other {Others can find you and send connection requests.}}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="visibility-switch"
+            role="switch"
+            [class.on]="!userInfo.hidden"
+            [attr.aria-checked]="!userInfo.hidden"
+            [disabled]="hideProfileLoading"
+            (click)="toggleHidden()"
+            [attr.aria-label]="visibilitySwitchLabel"
+          >
+            <span></span>
+          </button>
+        </div>
+      }
+    </section>
+
+    <!-- One sidebar column: the plan, and under it the languages beside the active one. A second-language card is a
+         sidebar object; rendered at body width under the main card it reads as a stray section. -->
+    <aside class="sidebar">
+    <section class="plan-card card">
+      <div i18n class="eyebrow">Plan</div>
+      <div class="plan-name">
+        <strong i18n>{premium, select, true {Premium} other {Free}}</strong>
+        @if (premium) {
+          <span class="plan-star" aria-label="Premium plan" i18n-aria-label>
+            <img src="assets/img/icons/premium-star.svg" alt="" width="13" height="13" />
+          </span>
+        }
       </div>
-    </div>
+      <p>{{ planSummary }}</p>
+      <a i18n class="plan-link" routerLink="/membership">
+        {premium, select, true {View membership} other {View limits and upgrade}}
+        <lucide-icon name="chevron-right" [size]="15" />
+      </a>
+    </section>
 
-    <div class="section-block card">
-      <div class="title">Username</div>
-      <app-username></app-username>
-    </div>
-
-    <div class="section-block card">
-      <div class="title">Plan</div>
-
-      @if (!premium) {
-        <div class="row-content">
-          <div class="plan">
-            <h1 class="text free">FREE</h1>
-          </div>
-          <div class="premium-feature">✨ {{ displayedFeature }} 👉</div>
-          <app-interactive-cta-button text="Upgrade"
-                                      class="cta"
-                                      (buttonClick)="showComparePlansPopup()"
-          ></app-interactive-cta-button>
-        </div>
-      }
-
-      <!--      here goes view for premium users-->
-      @if (premium) {
-        <div class="row-content">
-          <div class="plan">
-            <button class="text full-gradient-btn" (click)="accessCustomerPortal()">PREMIUM</button>
-          </div>
-          @if (userInfo?.subscription?.autoRenewal !== null) {
-            <lucide-icon
-              [name]="userInfo?.subscription?.type === PlanType.LIFETIME ? 'infinity' :
-                    userInfo?.subscription?.autoRenewal ? 'refresh-cw' : 'refresh-cw-off'"
-              class="icon renewal"
-              tuiHintAppearance="dark"
-              tuiHintDirection="bottom"
-              [tuiHint]="renewalTooltip"
-              [ngStyle]="userInfo?.subscription?.autoRenewal ? {'background-color': 'var(--text-color)'} : {'background-color': 'var(--disabled-text-color)'}"
-            >
-              <ng-template #renewalTooltip>
-                {{ this.tooltipRenewal }}
-              </ng-template>
-            </lucide-icon>
-          }
-          <lucide-icon name="star-off"
-                       class="icon downgrade"
-                       (click)="prepareCancelSubscriptionModalWrapper()"
-                       tuiHintAppearance="dark"
-                       tuiHintDirection="bottom"
-                       [tuiHint]="downgradeTooltip"
+    <!-- "Also learning" is only true of a language being learned. When every language here is set aside the card
+         says so in its title, and the weeks fraction goes: 0/0 is not a number. -->
+    @if (otherLanguages.length) {
+      <section class="also-card card">
+        <div i18n class="eyebrow">{allOthersSetAside, select, true {Set aside} other {Also learning}}</div>
+        @for (other of otherLanguages; track other.language) {
+          <a
+            class="also-row"
+            [class.aside]="!other.editable"
+            [routerLink]="['/settings/me/language', other.language.toLowerCase()]"
           >
-            <ng-template #downgradeTooltip>
-              {{ this.modalMessageSubCancel }}
-            </ng-template>
-          </lucide-icon>
-          <app-button
-            [label]="'Manage'"
-            appearance="bw"
-            class="manage-btn"
-            (clickFunction)="accessCustomerPortal()"
-            hintAppearance="dark"
-            hintDirection="bottom"
-            [hint]="customerPortalTooltip"
-            [loading$]="loadingCustomerPortal$"
-          >
-          </app-button>
-          <ng-template #customerPortalTooltip>
-            Manage your subscription in customer portal - cancel, renew, manage payment methods, see billing history.
-          </ng-template>
-        </div>
-      }
-    </div>
-
-    <!--      interests-->
-    <div class="section-block card">
-      <div class="title">Interests</div>
-
-      @if (interests.length !== 0 && !interestsEdit) {
-        <div class="chips-box">
-          @for (interest of interests; track interest) {
-            <tui-chip
-              [style.background-color]="interest.name | tuiAutoColor">{{ interest.name }}
-            </tui-chip>
-          }
-          <tui-chip
-            class="edit-chip"
-            appearance="outline"
-            (click)="editInterests()"
-          >
-            <lucide-icon name="pencil"
-                         [size]="15"
-                         [strokeWidth]="1.7"
-            >
-            </lucide-icon>
-            Edit
-          </tui-chip>
-        </div>
-      }
-
-      @if (interests.length === 0 && !interestsEdit) {
-        <div class="interests">
-          <tui-chip
-            class="edit-chip"
-            appearance="outline"
-            (click)="editInterests()"
-          >
-            <lucide-icon name="plus"
-                         [size]="'15'"
-                         [strokeWidth]="1.7"
-                         (click)="editInterests()"
-            >
-            </lucide-icon>
-            Add
-          </tui-chip>
-          <p class="interest-text">Why so mysterious? Share your interests with us!</p>
-        </div>
-      }
-
-      <!--      load immediately, but it's hidden-->
-      <app-interests
-        [ngStyle]="{ display: interestsEdit ? 'block' : 'none' }"
-        [currentInterests]="userInfo?.interests || []"
-        (selectedInterestsChange)="onSelectedInterestsChange($event)">
-      </app-interests>
-      @if (interestsEdit) {
-        <div>
-          <app-button
-            label="Save"
-            [loading$]="loadingInterests$"
-            [disabled]="!validateInterests()"
-            (click)="saveInterests()"
-            class="interest-button"
-            appearance="bw"
-          ></app-button>
-        </div>
-      }
-    </div>
-  </div>
+            <span class="also-chip" [style.background]="crestColour(other.language)" aria-hidden="true"></span>
+            <span class="also-copy">
+              <span class="also-name">{{ languageName(other.language) }}</span>
+              @if (!other.editable) { <small>{{ asideNote(other) }}</small> }
+            </span>
+            @if (other.editable || !allOthersSetAside) {
+              <span class="also-count">{{ pace(other).met }}/{{ pace(other).counted }}</span>
+            }
+            <span class="also-chevron" aria-hidden="true">›</span>
+          </a>
+        }
+      </section>
+    }
+    </aside>
+  </main>
 </div>

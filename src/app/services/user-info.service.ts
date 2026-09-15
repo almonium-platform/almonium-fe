@@ -1,68 +1,83 @@
-import {Injectable} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {logger} from "../shared/logger";
+import { Injectable, inject } from '@angular/core';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {BehaviorSubject, Observable, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {DEFAULT_UI_PREFERENCES, UserInfo} from "../models/userinfo.model";
+import {UserInfo, UserInfoDto, parseUserInfoDto} from "../models/userinfo.model";
 import {LocalStorageService} from "./local-storage.service";
 import {AppConstants} from "../app.constants";
+import {AppHttpError} from '../shared/app-http-error';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserInfoService {
+  private http = inject(HttpClient);
+  private localStorageService = inject(LocalStorageService);
+
   private userInfoSubject = new BehaviorSubject<UserInfo | null>(null);
+  private sessionVerified = false;
+  private streamChatTokenValue: string | null = null;
+  private userInfoRequestVersion = 0;
   userInfo$ = this.userInfoSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private localStorageService: LocalStorageService
-  ) {
-    this.loadUserInfoFromLocalStorage();
+  constructor() {
+    // Trigger removal of tokens persisted by older client versions without
+    // hydrating authentication state from the remaining cached profile.
+    this.localStorageService.getUserInfo();
   }
 
-  /**
-   * Load user info from local storage or from server.
-   */
+  /** Returns user info only after the current server session has been verified. */
   loadUserInfo(): Observable<UserInfo | null> {
-    const cachedUserInfo = this.getCurrentUserInfo();
-
-    if (cachedUserInfo) {
-      return of(cachedUserInfo); // Return the cached user info if present
-    } else {
-      return this.fetchUserInfoFromServer(); // Fetch from server if not cached
+    if (this.sessionVerified) {
+      return of(this.currentUserInfo);
     }
+    return this.fetchUserInfoFromServer();
   }
 
   clearUserInfo(): void {
+    this.invalidatePendingUserInfoRequests();
     this.localStorageService.clearUserInfo();
+    this.sessionVerified = false;
+    this.streamChatTokenValue = null;
     this.userInfoSubject.next(null);
-  }
-
-  private loadUserInfoFromLocalStorage(): void {
-    const cachedUserInfo = this.localStorageService.getUserInfo();
-    if (cachedUserInfo) {
-      const userInfoInstance = UserInfo.fromJSON(cachedUserInfo);
-      userInfoInstance.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfoInstance.uiPreferences};
-      this.userInfoSubject.next(userInfoInstance);
-    }
   }
 
   /**
    * Fetch user info from the server.
    */
   fetchUserInfoFromServer(): Observable<UserInfo | null> {
-    return this.http.get<UserInfo>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
+    const requestVersion = ++this.userInfoRequestVersion;
+
+    return this.http.get<unknown>(`${AppConstants.ME_URL}`, {withCredentials: true}).pipe(
       map((data) => {
-        const userInfo = UserInfo.fromJSON(data);
-        userInfo.uiPreferences = {...DEFAULT_UI_PREFERENCES, ...userInfo.uiPreferences};
-        return userInfo;
+        return parseUserInfoDto(data);
       }),
-      tap((userInfo: UserInfo) => {
+      tap(({userInfo, streamChatToken}) => {
+        if (!this.isCurrentUserInfoRequest(requestVersion)) {
+          return;
+        }
+
+        this.streamChatTokenValue = streamChatToken;
+        this.sessionVerified = true;
         this.localStorageService.saveUserInfo(userInfo);
         this.userInfoSubject.next(userInfo);
       }),
+      map(({userInfo}) => userInfo),
       catchError((error) => {
-        console.error('Failed to load user info from server:', error);
+        if (!this.isCurrentUserInfoRequest(requestVersion)) {
+          return of(null);
+        }
+
+        logger.error('Failed to load user info from server:', error);
+        this.sessionVerified = false;
+        this.streamChatTokenValue = null;
+        const status = error instanceof AppHttpError || error instanceof HttpErrorResponse
+          ? error.status
+          : undefined;
+        if (status === 401 || status === 403) {
+          this.clearUserInfo();
+        }
         return of(null);
       })
     );
@@ -71,13 +86,39 @@ export class UserInfoService {
   updateUserInfo(updates: Partial<UserInfo>): void {
     const currentUserInfo = this.getCurrentUserInfo();
     if (currentUserInfo) {
+      this.invalidatePendingUserInfoRequests();
       const updatedUserInfo = currentUserInfo.update(updates);
       this.localStorageService.saveUserInfo(updatedUserInfo);
       this.userInfoSubject.next(updatedUserInfo); // Notify subscribers
     }
   }
 
-  private getCurrentUserInfo(): UserInfo | null {
+  get currentUserInfo(): UserInfo | null {
     return this.userInfoSubject.getValue();
+  }
+
+  get streamChatToken(): string | null {
+    return this.streamChatTokenValue;
+  }
+
+  setUserInfo(userInfoData: UserInfoDto): void {
+    this.invalidatePendingUserInfoRequests();
+    const {userInfo, streamChatToken} = parseUserInfoDto(userInfoData);
+    this.streamChatTokenValue = streamChatToken;
+    this.sessionVerified = true;
+    this.localStorageService.saveUserInfo(userInfo);
+    this.userInfoSubject.next(userInfo);
+  }
+
+  private getCurrentUserInfo(): UserInfo | null {
+    return this.currentUserInfo;
+  }
+
+  private invalidatePendingUserInfoRequests(): void {
+    this.userInfoRequestVersion++;
+  }
+
+  private isCurrentUserInfoRequest(requestVersion: number): boolean {
+    return requestVersion === this.userInfoRequestVersion;
   }
 }

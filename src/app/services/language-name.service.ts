@@ -1,3 +1,4 @@
+import {logger} from "../shared/logger";
 import {Injectable} from '@angular/core';
 import iso6391 from 'iso-639-1';
 import {iso6393} from 'iso-639-3';
@@ -8,12 +9,22 @@ import {LanguageCode} from "../models/language.enum";
   providedIn: 'root',
 })
 export class LanguageNameService {
+  private readonly macrolanguageSuffix = /\s+\(macrolanguage\)$/i;
+
   /**
    * Converts a language code (e.g., 'EN') into its full language name (e.g., 'English').
+   *
+   * Most callers pass a code out of optional data - a book's original language, the learner the navbar has not been
+   * told about yet - so an absent one is an ordinary state and not a fault. It yields an empty name rather than
+   * throwing on `code.length`, which used to take down every render of whatever component asked.
+   *
    * @param code Language code to transform.
-   * @returns Full name of the language, or the code itself if not found.
+   * @returns Full name of the language, the code itself if not found, or an empty string if there is no code.
    */
-  getLanguageName(code: string): string {
+  getLanguageName(code: string | null | undefined): string {
+    if (!code) {
+      return '';
+    }
     let name: string | undefined;
 
     // First, try iso-639-1 (for two-letter codes)
@@ -28,14 +39,18 @@ export class LanguageNameService {
     }
 
     // Return the name if found, otherwise return the code in uppercase as a fallback
-    return name || code.toUpperCase();
+    return this.toDisplayName(name ?? code.toUpperCase());
   }
 
-  getLanguageNames(codes: string[]): string[] {
+  private toDisplayName(name: string): string {
+    return name.replace(this.macrolanguageSuffix, '');
+  }
+
+  getLanguageNames(codes: readonly (string | null | undefined)[]): string[] {
     return codes.map((code) => this.getLanguageName(code));
   }
 
-  public mapLanguageCodesToNames(languages: Language[], languageCodes: string[]) {
+  public mapLanguageCodesToNames(languages: Language[], languageCodes: LanguageCode[]) {
     return languageCodes
       .map((code) => {
         const lang = languages.find((l) => l.code === code);
@@ -62,14 +77,16 @@ export class LanguageNameService {
    */
   getLanguageCode(name: string): LanguageCode | null {
     let code: string | null = null;
+    const lookupName = name.replace(this.macrolanguageSuffix, '').trim();
 
     // First, try to find a 2-letter code using iso6391
-    const code2 = iso6391.getCode(name);
+    const code2 = iso6391.getCode(lookupName);
     if (code2) {
       code = code2.toUpperCase();
     } else {
       // If not found, try to find a 3-letter code using iso6393
-      const language = iso6393.find((lang) => lang.name.toLowerCase() === name.toLowerCase());
+      const language = iso6393.find((lang) =>
+        this.toDisplayName(lang.name).toLowerCase() === lookupName.toLowerCase());
       if (language) {
         code = language.iso6393.toUpperCase();
       }
@@ -80,7 +97,7 @@ export class LanguageNameService {
       if (Object.values(LanguageCode).includes(code as LanguageCode)) {
         return code as LanguageCode; // Safe cast
       } else {
-        console.warn(`Language code "${code}" is not a valid LanguageCode enum value.`);
+        logger.warn(`Language code "${code}" is not a valid LanguageCode enum value.`);
         return null; // Code is not a valid enum value
       }
     }

@@ -1,8 +1,6 @@
 import {Pipe, PipeTransform} from '@angular/core';
-import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 import {ParallelMode} from '../parallel-mode.type';
-
-const SIDE_BY_SIDE_COLORS = ['#f0f8ff', '#fff0f5', '#f5fffa', '#fafad2'];
+import {sanitizeBookHtml} from './book-html-sanitizer';
 
 export interface ParallelFormatOptions {
   mode: ParallelMode | null;
@@ -15,48 +13,48 @@ export interface ParallelFormatOptions {
   standalone: true,
 })
 export class ParallelFormatPipe implements PipeTransform {
-
-  constructor(private sanitizer: DomSanitizer) {
-  }
-
-  transform(value: string | null, options: ParallelFormatOptions | null): SafeHtml | null {
-    if (!value || !options || !options.mode || !options.targetLang || !options.fluentLang) {
-      return this.sanitizer.bypassSecurityTrustHtml(value || '');
+  transform(value: string | null, options: ParallelFormatOptions | null): string {
+    const sanitizedValue = sanitizeBookHtml(value ?? '');
+    if (!value || !options?.mode || !options.targetLang || !options.fluentLang) {
+      return sanitizedValue;
     }
     const {mode, targetLang, fluentLang} = options;
 
-    // Step 1: Use the browser's native parser to create a real DOM tree. This is robust.
     const parser = new DOMParser();
-    const doc = parser.parseFromString(value, 'text/html');
+    const doc = parser.parseFromString(sanitizedValue, 'text/html');
 
     // --- SIDE-BY-SIDE MODE ---
     if (mode === 'side') {
-      const blocks = doc.querySelectorAll('p, h2, div.poem'); // Find all structural blocks
+      const blocks = doc.querySelectorAll('p, h2, h3, blockquote, div.poem');
+      let segmentIndex = 0;
       blocks.forEach(block => {
         const mainColumnBlock = block.cloneNode() as HTMLElement;
         const secondaryColumnBlock = block.cloneNode() as HTMLElement;
-        let segmentIndex = 0;
-
         // Iterate through all child nodes (elements, text nodes, etc.)
         block.childNodes.forEach(node => {
           // If the node is a seg-pair, we process it
           if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).classList.contains('seg-pair')) {
             const segPair = node as HTMLElement;
-            const targetSegment = segPair.querySelector(`span.segment[lang="${targetLang}"]`);
-            const fluentSegment = segPair.querySelector(`span.segment[lang="${fluentLang}"]`);
+            const targetSegment = this.findSegment(segPair, targetLang, 'primary');
+            const fluentSegment = this.findSegment(segPair, fluentLang, 'secondary');
 
             if (targetSegment && fluentSegment) {
-              const colorClass = `sbs-color-${(segmentIndex % SIDE_BY_SIDE_COLORS.length) + 1}`;
-              segmentIndex++;
+              const pairIndex = segmentIndex++;
 
               // Create new, clean segments
               const newTarget = document.createElement('span');
-              newTarget.className = `sbs-segment ${colorClass}`;
-              newTarget.innerHTML = targetSegment.innerHTML;
+              newTarget.className = 'sbs-segment';
+              newTarget.lang = targetSegment.lang;
+              newTarget.dataset['pair'] = `${pairIndex}`;
+              newTarget.setAttribute('tabindex', '0');
+              newTarget.append(...Array.from(targetSegment.childNodes, node => node.cloneNode(true)));
 
               const newFluent = document.createElement('span');
-              newFluent.className = `sbs-segment ${colorClass}`;
-              newFluent.innerHTML = fluentSegment.innerHTML;
+              newFluent.className = 'sbs-segment';
+              newFluent.lang = fluentSegment.lang;
+              newFluent.dataset['pair'] = `${pairIndex}`;
+              newFluent.setAttribute('tabindex', '0');
+              newFluent.append(...Array.from(fluentSegment.childNodes, node => node.cloneNode(true)));
 
               mainColumnBlock.appendChild(newTarget);
               secondaryColumnBlock.appendChild(newFluent);
@@ -71,10 +69,13 @@ export class ParallelFormatPipe implements PipeTransform {
         // Create the final container and replace the original block with it
         const container = doc.createElement('div');
         container.className = 'sbs-block-container';
-        container.innerHTML = `
-          <div class="sbs-column sbs-column-main">${mainColumnBlock.outerHTML}</div>
-          <div class="sbs-column sbs-column-secondary">${secondaryColumnBlock.outerHTML}</div>
-        `;
+        const mainColumn = doc.createElement('div');
+        mainColumn.className = 'sbs-column sbs-column-main';
+        mainColumn.appendChild(mainColumnBlock);
+        const secondaryColumn = doc.createElement('div');
+        secondaryColumn.className = 'sbs-column sbs-column-secondary';
+        secondaryColumn.appendChild(secondaryColumnBlock);
+        container.append(mainColumn, secondaryColumn);
         block.parentNode?.replaceChild(container, block);
       });
     }
@@ -83,7 +84,12 @@ export class ParallelFormatPipe implements PipeTransform {
     if (mode === 'inline' || mode === 'overlay') {
       const segPairs = doc.querySelectorAll('span.seg-pair');
       segPairs.forEach(pair => {
-        const fluentSegment = pair.querySelector(`span.segment[lang="${fluentLang}"]`);
+        const targetSegment = this.findSegment(pair, targetLang, 'primary');
+        const fluentSegment = this.findSegment(pair, fluentLang, 'secondary');
+        if (mode === 'overlay' && targetSegment) {
+          targetSegment.setAttribute('role', 'button');
+          targetSegment.setAttribute('tabindex', '0');
+        }
         if (fluentSegment) {
           // Create a wrapper and move the fluent segment inside it
           const wrapper = doc.createElement('span');
@@ -94,7 +100,12 @@ export class ParallelFormatPipe implements PipeTransform {
       });
     }
 
-    // Step 2: Serialize the modified DOM tree back to a string.
-    return this.sanitizer.bypassSecurityTrustHtml(doc.body.innerHTML);
+    return sanitizeBookHtml(doc.body.innerHTML);
+  }
+
+  private findSegment(parent: Element, language: string, side: string): HTMLElement | undefined {
+    const segments = Array.from(parent.querySelectorAll<HTMLElement>('span.segment'));
+    return segments.find(segment => segment.dataset['side'] === side)
+      ?? segments.find(segment => segment.lang === language);
   }
 }

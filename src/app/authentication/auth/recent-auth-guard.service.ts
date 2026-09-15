@@ -1,31 +1,43 @@
-import {Injectable} from '@angular/core';
+import {logger} from "../../shared/logger";
+import {getErrorMessage} from '../../shared/http-error';
+import {TuiNotificationService} from "@taiga-ui/core/components";
+import { Injectable, inject } from '@angular/core';
 import {AuthSettingsService} from "../../sections/settings/auth/auth-settings.service";
 import {LocalStorageService} from "../../services/local-storage.service";
-import {TuiAlertService} from "@taiga-ui/core";
 import {RecentAuthGuardStateService} from "../../shared/recent-auth-guard/recent-auth-guard-state.service";
+import {AppHttpError} from "../../shared/app-http-error";
 
 @Injectable({
   providedIn: 'root'
 })
 export class RecentAuthGuardService {
+  private settingService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private localStorageService = inject(LocalStorageService);
+  private recentAuthGuardStateService = inject(RecentAuthGuardStateService);
+  private pendingAction: (() => void) | null = null;
+
   private static readonly RECENT_LOGIN_CACHE_TIMESTAMP_KEY = 'recent_login_cache_timestamp';
 
-  constructor(
-    private settingService: AuthSettingsService,
-    private alertService: TuiAlertService,
-    private localStorageService: LocalStorageService,
-    private recentAuthGuardStateService: RecentAuthGuardStateService,
-  ) {
-  }
-
   // universal live token auth guard
-  public guardAction(onValidToken: () => void) {
-    this.checkAuth(onValidToken, this.showIdentityVerificationPopup.bind(this));
+  public guardAction(onValidToken: () => void, forceReauthentication = false, actionLabel: string = $localize`Continue`) {
+    this.pendingAction = onValidToken;
+    if (forceReauthentication) {
+      this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+      this.showIdentityVerificationPopup(actionLabel);
+      return;
+    }
+    this.checkAuth(
+      this.runPendingAction.bind(this),
+      () => this.showIdentityVerificationPopup(actionLabel),
+    );
   }
 
   public updateStatusAndShowAlert() {
-    this.getRecentAuthStatus();
-    this.alertService.open('You successfully verified your identity!', {appearance: 'success'}).subscribe();
+    this.getRecentAuthStatus(() => {
+      this.alertService.open($localize`You successfully verified your identity!`, {appearance: 'positive'}).subscribe();
+      this.runPendingAction();
+    });
   }
 
   public getRecentAuthStatus(onValidTokenAction?: () => void, identityVerification?: () => void): void {
@@ -45,8 +57,14 @@ export class RecentAuthGuardService {
         }
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to check access token', {appearance: 'error'}).subscribe();
-        console.error('Error checking access token:', error);
+        if (error instanceof AppHttpError && error.status === 403 && identityVerification) {
+          this.localStorageService.removeItem(RecentAuthGuardService.RECENT_LOGIN_CACHE_TIMESTAMP_KEY);
+          identityVerification();
+          return;
+        }
+        this.pendingAction = null;
+        this.alertService.open(getErrorMessage(error, $localize`Failed to check access token`), {appearance: 'negative'}).subscribe();
+        logger.error('Error checking access token:', error);
       }
     });
   }
@@ -61,9 +79,8 @@ export class RecentAuthGuardService {
     return false;
   }
 
-  private showIdentityVerificationPopup() {
-    this.alertService.open('To continue with this action, we need to verify your identity.', {appearance: 'info'}).subscribe();
-    this.recentAuthGuardStateService.open();
+  private showIdentityVerificationPopup(actionLabel: string) {
+    this.recentAuthGuardStateService.open(actionLabel);
   }
 
   private checkAuth(onValidTokenAction: () => void, identityVerification: () => void): void {
@@ -73,5 +90,11 @@ export class RecentAuthGuardService {
     } else {
       onValidTokenAction();
     }
+  }
+
+  private runPendingAction(): void {
+    const action = this.pendingAction;
+    this.pendingAction = null;
+    action?.();
   }
 }

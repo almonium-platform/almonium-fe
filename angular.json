@@ -20,8 +20,10 @@
             "outputPath": "dist/almonium-fe",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "poll": 1000,
             "polyfills": [
-              "zone.js"
+              "zone.js",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "less",
@@ -31,7 +33,7 @@
               "src/firebase-messaging-sw.js",
               "src/manifest.json",
               {
-                "glob": "**/*",
+                "glob": "*.svg",
                 "input": "node_modules/@taiga-ui/icons/src",
                 "output": "assets/taiga-ui/icons"
               },
@@ -41,16 +43,22 @@
                 "output": "/"
               },
               {
-                "glob": "**/*",
+                "glob": "*.svg",
                 "input": "node_modules/@taiga-ui/icons-fontawesome/src",
                 "output": "assets/taiga-ui/icons"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@taiga-ui/icons-fontawesome/src/fa/solid",
+                "output": "assets/taiga-ui/icons/fa/solid"
               }
             ],
             "styles": [
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less",
-              "node_modules/@taiga-ui/styles/taiga-ui-global.less",
+              "node_modules/@taiga-ui/styles/taiga-ui-theme.less",
+              "node_modules/@taiga-ui/styles/taiga-ui-fonts.less",
+              // TODO: Vendor the remaining Taiga legacy utility styles before Taiga UI 6.
+              "node_modules/@taiga-ui/legacy/styles/taiga-ui-global.less",
               "src/styles.less",
               "src/styles.scss"
             ],
@@ -61,12 +69,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "10mb",
-                  "maximumError": "20mb"
+                  "maximumWarning": "4mb",
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "10kb",
+                  "maximumWarning": "13kb",
                   "maximumError": "20kb"
                 }
               ],
@@ -88,12 +96,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "10mb",
-                  "maximumError": "20mb"
+                  "maximumWarning": "4mb",
+                  "maximumError": "5mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "10kb",
+                  "maximumWarning": "13kb",
                   "maximumError": "20kb"
                 }
               ],
@@ -140,7 +148,9 @@
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n",
           "options": {
-            "buildTarget": "almonium-fe:build"
+            "buildTarget": "almonium-fe:build",
+            "format": "json",
+            "outputPath": "src/locale"
           }
         },
         "test": {
@@ -148,7 +158,8 @@
           "options": {
             "polyfills": [
               "zone.js",
-              "zone.js/testing"
+              "zone.js/testing",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "less",

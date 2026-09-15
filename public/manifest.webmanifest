@@ -2,7 +2,7 @@
   "name": "Almonium",
   "short_name": "Almonium",
   "theme_color": "#693651",
-  "background_color": "#000000",
+  "background_color": "#2C2530",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

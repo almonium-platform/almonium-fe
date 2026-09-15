@@ -1,17 +1,16 @@
 // --- Variables ---
 :host {
-  // Keep your existing CSS variables
-  --font-family: 'Georgia', serif;
-  --text-color: #333;
-  --background-color: #f9f9f9; // Reader background
-  --main-bg-color: #fff; // App background
-  --button-bg: #eee;
-  --button-hover-bg: #ddd;
-  --button-disabled-bg: #f5f5f5;
-  --button-disabled-color: #aaa;
-  --error-color: #d9534f;
-  --slider-track-bg: #ddd;
-  --slider-thumb-bg: #888;
+  --font-family: var(--font-family-reading);
+  --text-color: var(--reader-text-color);
+  --background-color: var(--card-color); // Reader page surface
+  --main-bg-color: var(--page-ground); // App ground
+  --button-bg: var(--nested-color);
+  --button-hover-bg: var(--state-hover);
+  --button-disabled-bg: var(--disabled-fill-color);
+  --button-disabled-color: var(--disabled-label-color);
+  --error-color: var(--danger-text-color);
+  --slider-track-bg: var(--control-border-color);
+  --slider-thumb-bg: var(--metadata-color);
 
   display: flex;
   flex-direction: column;
@@ -34,6 +33,66 @@
   box-sizing: border-box;
   position: relative; // For potential absolute positioning inside
   height: 100%; // Ensure it fills parent if parent has height
+}
+
+.selection-lookup {
+  position: absolute;
+  z-index: 5;
+  right: 1rem;
+  bottom: 5.4rem;
+  left: 1rem;
+  display: flex;
+  width: min(calc(100% - 2rem), 520px);
+  min-height: 64px;
+  align-items: center;
+  gap: .8rem;
+  margin: 0 auto;
+  padding: .7rem .8rem .7rem 1rem;
+  border-radius: 18px;
+  background: var(--brand-ink);
+  box-shadow: var(--overlay-shadow);
+  color: var(--page-ground);
+  font-family: var(--font-family-ui);
+  user-select: none;
+
+  span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+  strong { overflow: hidden; font-family: var(--font-family-reading); text-overflow: ellipsis; white-space: nowrap; }
+  small { color: #c9c0cc; font-size: .72rem; }
+  button { min-height: 42px; padding: 0 1rem; border: 0; border-radius: 999px; background: #e0c4ee; color: var(--brand-ink); cursor: pointer; font-weight: 600; }
+  button.dismiss { min-width: 42px; padding: 0; background: transparent; color: #c9c0cc; font-size: 1.4rem; }
+}
+
+// The word card (G1) opens beside the text on a wide screen and over it on a narrow one.
+.word-card-panel {
+  position: absolute;
+  z-index: 6;
+  top: 1rem;
+  right: 1rem;
+  width: min(calc(100% - 2rem), 27rem);
+  max-height: calc(100% - 5rem);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+// While the card is open the column makes room for it instead of sitting under it.
+@media (min-width: 901px) {
+  .reader-content-wrapper.has-word-card { padding-right: 28rem; }
+}
+
+@media (max-width: 900px) {
+  .word-card-panel { top: auto; right: 1rem; bottom: 3.6rem; left: 1rem; width: auto; max-height: 70vh; margin: 0 auto; }
+}
+
+// The parallel settings (G5) sit above the bottom bar, where their effect is visible behind them.
+.parallel-settings-panel {
+  position: absolute;
+  z-index: 6;
+  right: 1rem;
+  bottom: 3.6rem;
+}
+
+@media (max-width: 560px) {
+  .parallel-settings-panel { right: .5rem; left: .5rem; display: flex; justify-content: center; }
 }
 
 // --- Loading & Error ---
@@ -68,12 +127,45 @@
   }
 }
 
+.reader-reading-layout {
+  width: min(100%, 800px);
+  margin: 0 auto;
+
+  &.has-content-map {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 800px);
+    width: min(calc(100% - 2rem), 1020px);
+    gap: 40px;
+  }
+}
+
+.reader-content-wrapper.mode-side .reader-reading-layout { width: 100%; }
+
+.content-map {
+  position: sticky;
+  top: 1rem;
+  display: flex;
+  max-height: calc(100vh - var(--header-height) - 5rem);
+  align-self: start;
+  flex-direction: column;
+  gap: .15rem;
+  overflow-y: auto;
+
+  > span { margin-bottom: .35rem; color: var(--metadata-color); font: 700 .68rem/1 var(--font-family-ui); letter-spacing: .08em; text-transform: uppercase; }
+  button { padding: .35rem 0; overflow: hidden; border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: .78rem/1.25 var(--font-family-ui); text-align: left; text-overflow: ellipsis; }
+  button:hover, button:focus-visible { color: var(--brand-margin); text-decoration: underline; }
+}
+
+.mobile-content-map { display: none; }
+.mobile-content-map.parallel-content-map { display: block; }
+
 .reader-content {
   font-size: 20px;
   line-height: 1.6;
   padding: 0 2rem;
   max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   box-sizing: border-box;
   overflow-x: hidden;
 
@@ -98,7 +190,7 @@
     // Poems
     .poem {
       margin: 1em 0;
-      font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+      font-family: var(--font-family);
       line-height: 1.4;
       white-space: pre-wrap;
       overflow-x: auto;
@@ -152,12 +244,12 @@
   &.mode-inline {
     ::ng-deep {
       .fluent-segment-inline .segment {
-        color: white;
-        background: #621567;
-        border-radius: 12px;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.95em;
-        margin: 0 0.3em;
+        color: var(--subhead-color);
+        background: transparent;
+        padding: 0;
+        font-size: .85em;
+        font-style: normal;
+        margin: 0 .25em;
         display: inline-block;
       }
     }
@@ -173,9 +265,8 @@
         border-radius: 4px;
 
         &:hover {
-          background-color: #e7f3ff;
           text-decoration: underline;
-          text-decoration-color: var(--info-dark-blue);
+          text-decoration-color: var(--metadata-color);
         }
       }
 
@@ -186,15 +277,15 @@
 
       // 3. When the wrapper is made visible by the script, style the segment inside it
       .fluent-segment-overlay.is-visible {
-        display: inline; // Show the wrapper
+        display: block;
+        margin: .2rem 0 .45rem 1.5rem;
 
         .segment { // Style the fluent segment inside
-          color: white;
-          background: #621567;
-          border-radius: 12px;
-          padding: 0.2rem 0.5rem;
-          font-size: 0.95em;
-          margin: 0 0.3em;
+          color: var(--subhead-color);
+          background: transparent;
+          padding: 0;
+          font-size: .85em;
+          font-style: normal;
         }
       }
     }
@@ -205,12 +296,12 @@
       // Target the fluent segment inside the wrapper our pipe creates
       .fluent-segment-inline .segment {
         // --- These are the styles from your original span.ukr ---
-        color: white;
-        background: #621567;
-        border-radius: 12px;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.95em;
-        margin: 0 0.3em;
+        color: var(--subhead-color);
+        background: transparent;
+        padding: 0;
+        font-size: .85em;
+        font-style: normal;
+        margin: 0 .25em;
         display: inline; // Use 'inline' for natural text flow
 
         // Keep the subtle spacing from your original design
@@ -221,30 +312,6 @@
         &::after {
           margin-left: 0.1em;
         }
-      }
-    }
-  }
-
-  ::ng-deep span.segment + span.segment {
-    color: white;
-    background: #621567;
-    border-radius: 12px;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.95em;
-    margin: 0 0.3em;
-    display: inline;
-
-    &[hidden] {
-      display: none !important;
-    }
-
-    &:not([hidden]) {
-      &::before {
-        margin-right: 0.1em;
-      }
-
-      &::after {
-        margin-left: 0.1em;
       }
     }
   }
@@ -307,25 +374,14 @@
         display: inline;
         margin-right: 0.2em;
         line-height: inherit;
-        border-radius: 3px;
-        padding: 1px 3px;
+        border-radius: 2px;
+        padding: 1px 2px;
+        transition: background-color .12s ease;
       }
 
-      // Segment color variants
-      .sbs-segment.sbs-color-1 {
-        background-color: #f0f8ff;
-      }
-
-      .sbs-segment.sbs-color-2 {
-        background-color: #fff0f5;
-      }
-
-      .sbs-segment.sbs-color-3 {
-        background-color: #f5fffa;
-      }
-
-      .sbs-segment.sbs-color-4 {
-        background-color: #fafad2;
+      .sbs-segment.is-current, .sbs-segment:focus-visible {
+        background-color: var(--hairline-color);
+        outline: 1px solid var(--metadata-color);
       }
 
       // Ensure consistent spacing under blocks
@@ -371,7 +427,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--hairline-color);
   background-color: var(--background-color);
   user-select: none;
   padding: 0 .5rem;
@@ -404,7 +460,7 @@
 
 .pagination-info {
   font-size: 14px;
-  color: #666;
+  color: var(--subhead-color);
   white-space: nowrap;
   text-align: right;
   min-width: 2.5rem;
@@ -429,6 +485,27 @@
   gap: 0.5rem;
 }
 
-.icon {
+.chapter-nav-trigger {
+  display: grid;
+  padding: .2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-color);
   cursor: pointer;
+  place-items: center;
+
+  &:hover { color: var(--brand-margin); }
+  &:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: 2px; }
+}
+
+.parallel-provenance { padding: .25rem 1rem; margin: 0; font-size: .85rem; color: var(--text-color); }
+:host ::ng-deep .aligned-sentence { cursor: pointer; border-radius: .15em; }
+:host ::ng-deep .aligned-sentence:focus-visible { outline: 2px solid var(--brand-margin); }
+:host ::ng-deep .aligned-sentence.is-aligned-current { background: #e4bf6260; box-shadow: 0 2px 0 #bd922d; }
+
+@media (max-width: 1280px) {
+  .content-map { display: none; }
+  .mobile-content-map { display: block; }
+  .reader-reading-layout.has-content-map { display: block; width: min(100%, 800px); }
 }

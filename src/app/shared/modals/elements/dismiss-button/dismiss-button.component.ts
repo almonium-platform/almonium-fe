@@ -1,7 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {NgClass} from "@angular/common";
-import {TuiButton} from "@taiga-ui/core";
-import {TuiButtonClose} from "@taiga-ui/kit";
+import {TuiButtonX} from "@taiga-ui/core/directives";
 
 @Component({
   selector: 'app-dismiss-button',
@@ -11,14 +10,14 @@ import {TuiButtonClose} from "@taiga-ui/kit";
         (click)="onClose()"
         class="close-button"
         [ngClass]="{'outer-close': isOutside, 'inner-close': !isOutside}"
-        aria-label="Close"
+        aria-label="Close" i18n-aria-label
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           stroke-width="1.5"
-          stroke="black"
+          stroke="var(--brand-ink)"
           [ngClass]="isOutside ? 'size-8' : 'size-6'"
         >
           <path
@@ -29,9 +28,8 @@ import {TuiButtonClose} from "@taiga-ui/kit";
         </svg>
       </button>
     } @else {
-      <button
-        tuiButtonClose
-        tuiIconButton
+      <button i18n
+        tuiButtonX
         type="button"
         (click)="onClose()"
         [ngClass]="relative ? '' : 'inner-close'"
@@ -42,18 +40,17 @@ import {TuiButtonClose} from "@taiga-ui/kit";
   `,
   imports: [
     NgClass,
-    TuiButton,
-    TuiButtonClose
+    TuiButtonX
   ],
   styleUrls: ['./dismiss-button.component.less']
 })
 export class DismissButtonComponent {
-  @Input() isOutside: boolean = false;
-  @Input() relative: boolean = false;
-  @Output() close = new EventEmitter<void>();
+  @Input() isOutside = false;
+  @Input() relative = false;
+  @Output() closed = new EventEmitter<void>();
 
 
   onClose() {
-    this.close.emit();
+    this.closed.emit();
   }
 }

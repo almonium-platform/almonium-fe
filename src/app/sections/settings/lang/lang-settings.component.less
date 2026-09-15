@@ -1,58 +1,365 @@
 @import '../settings.styles.less';
 
-.fluent-language-selector {
-  width: 75%;
+:host {
+  --tui-background-accent-1: var(--brand-primary);
+  --tui-background-accent-1-hover: var(--brand-hover);
+  --tui-radius-m: 2rem;
 }
 
-.target-lang-head {
-  p {
-    font-size: 1.1rem;
-    font-weight: 550;
-    padding-bottom: .2rem;
-    color: var(--text-color);
-  }
+button { font: inherit; }
 
-  .target-lang-chip {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    height: 2.6rem;
-  }
-}
+.base-container { gap: 1rem; }
 
-.language-select {
-  width: 9rem;
-}
-
-.row-container.lang-settings {
-  margin-top: 1rem;
+.learning-layout {
   display: flex;
+  width: min(calc(100% - 2rem), 41.25rem);
+  flex-direction: column;
   gap: 1rem;
-  justify-content: space-between;
-  align-items: center;
+  margin: 0 auto 2rem;
 }
 
-.column {
-  flex: 1; /* Each column takes equal space */
+.known-card,
+.learning-card {
+  box-sizing: border-box;
+  border-radius: 20px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+
+.known-card {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  font-size: 1rem;
-
-  h4 {
-    font-weight: 550;
-  }
+  gap: 1rem;
+  padding: 1.125rem 1.25rem;
 }
 
-.divider {
-  margin: 0 .1rem;
-}
-
-.cefr-block {
-  min-height: 2.75rem;
+.known-copy { min-width: 0; flex: 1; }
+.known-languages {
   display: flex;
+  flex-wrap: wrap;
+  gap: .4375rem;
+  margin-top: .625rem;
+}
+
+.known-languages span {
+  padding: .375rem .8125rem;
+  border-radius: 9999px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: .8125rem;
+}
+
+.fluent-language-selector { display: block; max-width: 30rem; margin-top: .625rem; }
+
+// Editing: the eyebrow stays above the field, so centring the flex row put Save on the middle of
+// eyebrow + field. A grid gives the field its own row; Save then sits on the field's first line
+// (the multi textfield's 3.5rem min-height) even when chips wrap or the selector shows an error.
+.known-card.editing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: .625rem;
+}
+
+.known-card.editing .known-copy { display: contents; }
+.known-card.editing .eyebrow { grid-row: 1; grid-column: 1; margin-bottom: 0; }
+.known-card.editing .fluent-language-selector { grid-row: 2; grid-column: 1; margin-top: 0; }
+.known-card.editing .settings-action { grid-row: 2; grid-column: 2; align-self: start; margin-top: calc((3.5rem - 2rem) / 2); }
+
+.learning-card { padding: 1.125rem 1.25rem 1rem; }
+.learner-list { margin-top: .875rem; }
+
+.learner-record + .learner-record,
+.add-language-row { border-top: 1px solid var(--hairline-color); }
+
+/* A set-aside row sits on its own tinted ground, which does the separating a hairline would. */
+.learner-record.aside {
+  margin: 0 -.625rem;
+  padding: .1875rem .625rem .5rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+}
+
+.learner-record.aside,
+.learner-record.aside + .learner-record { border-top: 0; }
+
+.learner-row,
+.add-language-row {
+  display: flex;
+  min-height: 3.875rem;
+  align-items: center;
+  gap: .875rem;
+}
+
+.colour-trigger,
+.empty-colour {
+  width: 1.625rem;
+  height: 1.625rem;
+  flex: 0 0 auto;
+  border-radius: .5rem;
+}
+
+.colour-trigger {
+  border: 0;
+  box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--control-border-color);
+  cursor: pointer;
+}
+
+.colour-trigger:hover,
+.colour-trigger.open { box-shadow: 0 0 0 3px var(--card-color), 0 0 0 4px var(--brand-primary); }
+.aside .colour-trigger { box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--control-border-color); opacity: .45; }
+.aside .colour-trigger:hover,
+.aside .colour-trigger.open { box-shadow: 0 0 0 3px var(--nested-color), 0 0 0 4px var(--brand-primary); opacity: 1; }
+
+.empty-colour { border: 1px dashed var(--control-border-color); background: var(--nested-color); }
+
+.language-name,
+.add-language-row > span:nth-child(2) {
+  color: var(--brand-ink);
+  font-family: var(--font-family-reading);
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+
+.add-language-row > span:nth-child(2) { min-width: 7.5rem; color: var(--metadata-color); }
+.aside .language-name { color: var(--metadata-color); }
+
+/* The state is said once, as a tag beside the name: this row also carries controls, and the word has to hold its
+   own against them. The same word sits under the name on the profile card. */
+.aside-tag {
+  padding: .125rem .375rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: .3125rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .625rem;
+  letter-spacing: .0375rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.learner-controls { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
+
+.level-select { position: relative; }
+
+/* Closed, this is the same pill the native select was: three of them stack in a card that must not grow. */
+.level-trigger {
+  display: flex;
+  width: 3.875rem;
+  align-items: center;
   justify-content: center;
-  align-items: center;
+  gap: .5rem;
+  padding: .375rem 0;
+  border: 1px solid var(--control-border-color);
+  border-radius: .5625rem;
+  outline: none;
+  background: var(--card-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-family: var(--font-family-mono);
+  font-size: .75rem;
+  font-weight: 500;
 }
+
+.level-trigger::after {
+  color: var(--metadata-color);
+  content: '▾';
+  font-size: .5625rem;
+}
+
+.level-trigger:focus-visible,
+.level-trigger.open { border-color: var(--brand-primary); box-shadow: 0 0 0 2px rgba(90, 26, 116, .1); }
+.level-trigger:disabled { cursor: default; opacity: .5; }
+
+/* Frozen with the language: dashed, grey, and without the caret that would promise a list. */
+.level-trigger.frozen,
+.level-trigger.frozen:disabled {
+  border-style: dashed;
+  background: transparent;
+  color: var(--metadata-color);
+  opacity: 1;
+}
+
+.level-trigger.frozen::after { content: none; }
+.active-switch { display: flex; flex: 0 0 auto; }
+
+/* Only the open list is wide: it carries the onboarding sentence beside each code. */
+.level-list {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + .375rem);
+  right: 0;
+  display: flex;
+  width: 22.5rem;
+  flex-direction: column;
+  padding: .375rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: .875rem;
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+}
+
+.level-option {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  padding: .5625rem .75rem;
+  border: 0;
+  border-radius: .5625rem;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.level-option code {
+  flex: 0 0 1.375rem;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .75rem;
+  font-weight: 500;
+}
+
+.level-option span { font-size: .84375rem; line-height: 1.4; }
+.level-option:hover { background: var(--state-hover); }
+.level-option.selected { background: var(--state-selected); }
+.level-option.selected code { color: var(--brand-primary); }
+.level-option:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: -2px; }
+
+.row-action,
+.add-language {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--control-border-color);
+  border-radius: 50%;
+  background: var(--card-color);
+  color: var(--subhead-color);
+  cursor: pointer;
+}
+
+.delete-language { opacity: .45; transition: opacity 150ms ease; }
+.learner-row:hover .delete-language,
+.delete-language:focus-visible { opacity: 1; }
+.delete-language:hover { border-color: var(--danger-text-color); color: var(--danger-text-color); }
+.delete-language tui-icon,
+.add-language tui-icon { width: .9rem; height: .9rem; }
+
+/* A link out to the record, not an expander: the row's decision is taken there. */
+.open-record {
+  border-color: var(--control-border-color);
+  background: transparent;
+  color: var(--brand-primary);
+  font-size: 1rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.open-record:hover { border-color: var(--brand-primary); background: var(--card-color); }
+.empty-action { border-color: var(--hairline-color); background: transparent; cursor: default; }
+
+.colour-picker {
+  width: min(100%, 27rem);
+  margin: 0 0 .875rem 2.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--page-ground);
+  border: 1px solid var(--hairline-color);
+  box-shadow: var(--overlay-shadow);
+}
+
+.colour-title,
+.colour-names {
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .625rem;
+}
+
+.colour-title { margin-bottom: .75rem; font-family: var(--font-family-ui); font-weight: 600; letter-spacing: .075rem; text-transform: uppercase; }
+.colour-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .625rem; }
+.colour-grid button { height: 2.125rem; border: 0; border-radius: .625rem; cursor: pointer; }
+.colour-grid button.selected { box-shadow: 0 0 0 2px var(--page-ground), 0 0 0 3px var(--brand-primary); }
+.colour-names { margin-top: .75rem; line-height: 1.5; }
+
+.add-language-row { padding-top: .125rem; }
+.add-language-row .add-language,
+.add-language-row .ceiling-note { margin-left: auto; }
+.add-language:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+@media (max-width: 600px) {
+  .learning-layout { width: min(calc(100% - 1rem), 30rem); }
+  .known-card,
+  .learning-card { padding-right: 1rem; padding-left: 1rem; }
+  .learner-controls { gap: .5rem; }
+  .delete-language { opacity: .7; }
+  .language-copy { flex-wrap: wrap; gap: .25rem .5rem; }
+
+  /* Narrower than the panel, so the panel stops hanging off the control and spans the row instead. */
+  .level-select { position: static; }
+  .learner-row { position: relative; }
+  .level-list { right: 0; left: 0; width: auto; }
+}
+
+@media (max-width: 410px) {
+  .learner-row { flex-wrap: wrap; padding: .75rem 0; }
+  .learner-controls { width: 100%; justify-content: flex-end; }
+  .row-note { margin-left: 0; }
+  .colour-picker { width: 100%; margin-left: 0; }
+}
+
+/* The allowance is stated once for the section, not implied by every disabled row. */
+.learning-head {
+  display: flex;
+  align-items: baseline;
+  gap: .625rem;
+}
+
+.allowance-count {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font-family: var(--font-family-mono);
+  font-size: .6875rem;
+}
+
+.language-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: baseline;
+  gap: .5625rem;
+}
+
+/* One line under the row, indented to the name, for whatever greys that row's control. */
+.row-note {
+  margin: -.375rem 0 .5rem 2.5rem;
+  color: var(--metadata-color);
+  font-size: .75rem;
+}
+
+.ceiling-note {
+  color: var(--metadata-color);
+  font-size: .78125rem;
+}
+
+.allowance-panel {
+  margin: .75rem 0 0;
+  padding: .6875rem .875rem;
+  border-radius: 12px;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: .78125rem;
+  line-height: 1.55;
+}
+
+.allowance-upgrade {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.allowance-upgrade:hover { text-decoration: underline; }

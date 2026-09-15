@@ -1,19 +1,25 @@
-<app-parallel-settings></app-parallel-settings>
-
 <div #readerContainer class="reader-container"
      (click)="onWrapperClick($event)"
-     (touchstart)="onTouchStart($event)"
-     (touchmove)="onTouchMove($event)"
-     (touchend)="onTouchEnd($event)"
-     (touchcancel)="onTouchCancel($event)">
+     (focus)="onContentHover($event)"
+     (keydown.arrowleft)="prevPage()"
+     (keydown.arrowright)="nextPage()"
+     tabindex="0"
+     (touchstart)="onTouchStart()"
+     (touchmove)="onTouchMove()"
+     (touchend)="onTouchEnd()"
+     (touchcancel)="onTouchCancel()">
 
   <!-- Loading and Error States -->
   @if (isLoading) {
-    <app-loading-indicator baseText="Loading book"></app-loading-indicator>
+    <app-loading-indicator baseText="Loading book" i18n-baseText></app-loading-indicator>
   }
 
   @if (errorMessage) {
     <div class="error-message">{{ errorMessage }}</div>
+  }
+  @if (isParallelViewActive) {
+    <p class="parallel-provenance">{{ bookTitle }} · {{ bookLevel }} ↔ {{ companionLabel }}</p>
+    <p class="parallel-provenance" i18n>Companion wording may differ. In side-by-side mode, click or press Enter on an aligned sentence to highlight its counterpart. Other passages remain paragraph-aligned.</p>
   }
 
   <!-- Wrapper for Native Scroll -->
@@ -21,19 +27,55 @@
     <div #readerContentWrapper
          class="reader-content-wrapper"
          [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
+         [class.has-word-card]="wordCard !== null"
          (scroll)="onWrapperScroll($event)"
+         (focus)="onContentHover($event)"
     >
-      <!-- Content Area - PASS MODE TO PIPE -->
-      <div #readerContent
-           class="reader-content"
-           [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
-           [innerHTML]="bookHtmlContent | parallelFormat:{
-              mode: isParallelViewActive ? currentParallelMode : null,
-              targetLang: targetLangCode,
-              fluentLang: fluentLangCode}"
-           (click)="onContentClick($event)">
+      <div class="reader-reading-layout" [class.has-content-map]="chapterNav.length > 0 && !isParallelViewActive">
+        @if (chapterNav.length > 0 && !isParallelViewActive) {
+          <nav class="content-map" aria-label="Contents" i18n-aria-label>
+            <span i18n>Contents</span>
+            @for (chapter of chapterNav; track chapter; let i = $index) {
+              <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
+            }
+          </nav>
+        }
+        <!-- Content Area - PASS MODE TO PIPE -->
+        <div #readerContent
+             tabindex="-1"
+             class="reader-content"
+             [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+             [innerHTML]="bookHtmlContent | parallelFormat:{
+                mode: isParallelViewActive ? currentParallelMode : null,
+                targetLang: targetLangCode,
+                fluentLang: fluentLangCode} | bookHtml"
+             (click)="onContentClick($event)"
+             (mouseup)="captureLookupSelection()"
+             (touchend)="captureLookupSelection()"
+             (mouseover)="onContentHover($event)"
+             (focus)="onContentHover($event)"
+             (focusin)="onContentHover($event)"
+             (keydown.enter)="onContentClick($event)">
+        </div>
       </div>
     </div>
+    @if (wordCard; as card) {
+      <aside class="word-card-panel">
+        <app-word-card [entry]="card.entry" [context]="card.context" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [level]="bookLevel" (closed)="closeWordCard()"></app-word-card>
+      </aside>
+    }
+    @if (parallelSettingsOpen) {
+      <div #settingsPanel class="parallel-settings-panel">
+        <app-parallel-settings></app-parallel-settings>
+      </div>
+    }
+    @if (selectedLookupText) {
+      <aside class="selection-lookup" aria-live="polite">
+        <span><strong>{{ selectedLookupText }}</strong><small i18n>Keep it with this sentence in Discover</small></span>
+        <button i18n type="button" (click)="openSelectionInDiscover()">Look up</button>
+        <button type="button" class="dismiss" aria-label="Dismiss word lookup" i18n-aria-label (click)="dismissLookupSelection()">×</button>
+      </aside>
+    }
   }
 
   <!-- Pagination/Navigation Controls -->
@@ -42,26 +84,27 @@
       <div class="pagination-center-area">
         <!-- Table of Contents Dropdown -->
         @if (chapterNav.length > 0) {
-          <div class="chapter-nav-container">
-            <lucide-icon
+          <div class="chapter-nav-container mobile-content-map" [class.parallel-content-map]="isParallelViewActive">
+            <button
+              type="button"
               #tocDropdown="tuiDropdown"
-              (click)="tocDropdown.toggle(true)"
+              #tocTrigger
+              (click)="toggleChapterNavigation(tocDropdown)"
               (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
               [tuiDropdown]="tocDropdownContent"
-              name="table-of-contents"
-              size="26"
-              strokeWidth="1.75"
-              class="icon"
-              title="Table of Contents"
+              class="chapter-nav-trigger"
+              aria-label="Open chapter navigation" i18n-aria-label
+              title="Chapters" i18n-title
               tuiDropdown
             >
-            </lucide-icon>
+              <lucide-icon name="table-of-contents" size="26" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+            </button>
             <!-- Dropdown Content Template -->
             <ng-template #tocDropdownContent>
               <tui-data-list role="menu">
                 @for (chapter of chapterNav; track chapter; let i = $index) {
                   <button
-                    (click)="selectChapter(i)"
+                    (click)="selectChapter(i); tocDropdown.toggle(false)"
                     role="menuitem"
                     tuiOption
                   >
@@ -82,7 +125,7 @@
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
           [disabled]="isAtScrollTop"
-          title="Previous Page (Click) / Scroll Up (Hold)">
+          title="Previous Page (Click) / Scroll Up (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-left"
                        size="28"
                        [strokeWidth]=1
@@ -98,7 +141,7 @@
                  [max]="100"
                  [ngModel]="currentScrollPercentage"
                  (input)="onSliderInput($event)"
-                 aria-label="Scroll Position Slider"/>
+                 aria-label="Scroll Position Slider" i18n-aria-label/>
           <span class="pagination-info">{{ currentScrollPercentage }}%</span>
         </div>
         <!-- Next Button -->
@@ -111,7 +154,7 @@
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
           [disabled]="isAtScrollBottom"
-          title="Next Page (Click) / Scroll Down (Hold)">
+          title="Next Page (Click) / Scroll Down (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-right" size="28"
                        strokeWidth="1.5"
                        [absoluteStrokeWidth]="true"
@@ -136,31 +179,31 @@
                 tuiDataListDropdownManager
                 class="context-menu"
               >
-                <tui-opt-group label="Languages">
-                  @for (lang of availableLangs; track lang) {
+                <tui-opt-group label="Companion editions" i18n-label>
+                  @for (edition of availableEditions; track edition.editionSlug) {
                     <button
                       tuiOption
                       type="button"
-                      (click)="selectOption(lang); langDropdown.toggle(false)"
+                      (click)="selectOption(edition.editionSlug); langDropdown.toggle(false)"
                     >
-                      {{ lang }}
+                      {{ editionLabel(edition) }}
                     </button>
                   }
                 </tui-opt-group>
                 <tui-opt-group label="">
                   @if (fluentLangCode) {
-                    <button
+                    <button i18n
                       tuiOption
                       type="button"
                       (click)="selectOption(null); langDropdown.toggle(false)"
                     >
-                      Show Original
+                      Read this edition alone
                     </button>
                   }
                 </tui-opt-group>
                 <!-- Група налаштувань із підписом -->
                 <tui-opt-group label="">
-                  <button
+                  <button i18n
                     tuiOption
                     type="button"
                     (click)="openParallelSettings(); langDropdown.toggle(false)"

@@ -1,148 +1,67 @@
 @import '../onboarding.styles.less';
 
-.card.step {
-  --tui-status-negative: #ac1c1c;
-  --tui-text-negative: #ac1c1c;
-  --tui-radius-m: 1rem;
-  --tui-font-text-s: normal 0.9rem/1.25rem var(--tui-font-text);
-  --tui-text-tertiary: var(--tui-background-accent-1);
-  --tui-background-accent-opposite-pressed: var(--purple-dark);
+.language-step { max-width: 42rem; align-items: stretch; }
+.language-step:has(.sheet-heading) { width: min(38rem, calc(100vw - 2rem)); padding: 1.5rem 1.75rem 1.75rem; }
+.header-row { justify-content: flex-start; padding: 0; font-family: var(--font-family-reading); color: var(--text-color); }
+.step-description, .native-language, .native-note, .language-explanation { margin: 0; color: var(--subhead-color); font-size: .9rem; text-align: left; }
+.step-description { margin: .35rem 0 1.25rem; }
+
+.language-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; margin-bottom: 1rem; }
+.language-card { display: flex; flex-direction: column; min-height: 8rem; padding: .9rem; text-align: left; background: var(--nested-color); border: 1px solid var(--hairline-color); border-radius: 1.1rem; color: var(--text-color); cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease; }
+.language-card:hover:not(:disabled) { border-color: var(--brand-margin); }
+.language-card.selected { border: 2px solid var(--brand-margin); background: var(--state-selected); padding: calc(.9rem - 1px); }
+.language-card:disabled { cursor: not-allowed; color: var(--disabled-label-color); background: var(--disabled-fill-color); }
+.language-card-top { display: flex; height: 1.4rem; }
+.language-code { border: 1px solid var(--control-border-color); border-radius: .35rem; padding: .1rem .35rem; color: var(--brand-margin); font-family: var(--font-family-mono); font-size: .7rem; font-weight: 600; }
+.language-name, .language-features { display: block; }
+.language-name { margin-top: .35rem; font-family: var(--font-family-reading); font-size: 1.05rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.language-features { margin-top: .35rem; color: var(--metadata-color); font-size: .72rem; line-height: 1.4; }
+.language-features.special-features { color: var(--dark-raspberry); }
+.another-language { justify-content: center; border-style: dashed; }
+.another-language .language-name { color: var(--brand-margin); }
+
+.native-language { margin-bottom: .65rem; }
+.native-language button { margin: 0; padding: 0; border: 0; background: none; color: var(--text-color); cursor: pointer; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .15em; }
+.native-language button:last-child { color: var(--metadata-color); font-weight: 400; }
+.native-note { margin: -.3rem 0 .65rem; }
+.language-explanation { margin-bottom: 1rem; padding: .85rem 1rem; background: var(--nested-color); border-radius: .8rem; line-height: 1.5; }
+.language-explanation p { margin: 0; }
+.language-explanation p + p { margin-top: .35rem; }
+.language-explanation a { color: var(--brand-margin); font-weight: 600; text-decoration: none; }
+
+.step-actions { display: flex; align-items: center; gap: 1rem; width: 100%; }
+.step-actions app-button { flex: 1; }
+.back-link { border: 0; background: none; color: var(--metadata-color); cursor: pointer; font: inherit; font-size: .9rem; }
+form { display: flex; flex-direction: column; width: 100%; }
+.form-group { margin-bottom: 1.5rem; text-align: left; }
+.form-label { margin-bottom: .5rem; font-size: .9rem; font-weight: 600; }
+.cefr-rows { width: 100%; margin-bottom: 1.5rem; }
+.cefr-language-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
+.cefr-lang-chip { padding: .75rem 1rem; }
+.target-disabled input[tuiInputChip] { cursor: not-allowed; }
+
+.sheet-heading { display: flex; flex-direction: column; gap: .2rem; padding-right: 2rem; }
+.sheet-step { color: var(--metadata-color); font-size: .72rem; }
+.slot-summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: -1rem 0 1rem; color: var(--metadata-color); font-size: .75rem; }
+.slot-summary .members-link { display: inline-flex; align-items: center; gap: .35rem; padding: 0; border: 0; background: none; color: var(--brand-primary); cursor: pointer; font: inherit; font-size: inherit; text-decoration: none; }
+.slot-summary .members-link:hover { text-decoration: underline; }
+.cefr-rows { display: flex; flex-direction: column; gap: .75rem; margin: .25rem 0 1rem; }
+.cefr-language-row { display: grid; grid-template-columns: 1.375rem minmax(6rem, 1fr) auto; align-items: center; gap: .75rem; margin: 0; }
+.language-swatch { width: 1.375rem; height: 1.375rem; border-radius: .4375rem; }
+.cefr-language-name { color: var(--text-color); font-family: var(--font-family-reading); font-size: .95rem; }
+.cefr-pills { display: flex; gap: .2rem; }
+.cefr-pills button { min-width: 2.125rem; min-height: 2rem; padding: .25rem .4rem; border: 1px solid var(--control-border-color); border-radius: .45rem; background: var(--nested-color); color: var(--subhead-color); cursor: pointer; font-family: var(--font-family-mono); font-size: .7rem; }
+.cefr-pills button:hover { border-color: var(--brand-primary); }
+.cefr-pills button.selected { border-color: var(--brand-margin); background: var(--state-selected); color: var(--brand-margin); }
+.level-note { margin: 0 0 1rem; color: var(--metadata-color); font-size: .75rem; line-height: 1.5; }
+.limit-note { margin: -.5rem 0 1rem; color: var(--metadata-color); font-size: .75rem; text-align: left; }
+.sheet-actions { display: flex; align-items: center; gap: 1rem; }
+.sheet-actions app-button { flex: 1; }
+
+@media (max-width: 560px) {
+  .language-step:has(.sheet-heading) { padding: 1.25rem 1rem 1rem; }
+  .cefr-language-row { grid-template-columns: 1.375rem 1fr; }
+  .cefr-pills { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); }
 }
 
-.text-sm {
-  line-height: 1.5rem;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-
-  .form-group {
-    margin-bottom: 1.5rem;
-    text-align: left;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      margin-left: 1.1rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-  }
-
-  .features {
-    text-align: left;
-    margin-bottom: 2rem;
-
-    h3 {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .columns {
-      display: flex;
-      justify-content: space-evenly;
-      gap: 1rem;
-    }
-
-    .column {
-      flex-grow: 1;
-    }
-
-    .special-features,
-    .basic-features {
-      h4 {
-        font-size: 1rem;
-        margin-bottom: 0.6rem;
-        margin-left: 0.5rem;
-        font-weight: 600;
-      }
-
-      ul.features-list {
-
-        li {
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
-}
-
-// Second step, CEFR
-.cefr-form {
-  margin: 1rem 0;
-  width: 100%;
-}
-
-.cefr-rows {
-  width: 100%;
-}
-
-.cefr-lang-chip {
-  padding: 1.3rem 1rem;
-  font-size: 1.2rem;
-}
-
-.cefr-select {
-  width: 6rem;
-}
-
-.cefr-language-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  gap: 2rem;
-  margin-bottom: 1rem;
-}
-
-
-.header-icon {
-  display: inline-block;
-  vertical-align: middle;
-  cursor: pointer;
-  color: var(--text-color);
-  border-radius: 50%;
-  padding: .1rem;
-  margin-top: .1rem;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.go-back-icon {
-  .header-icon;
-  left: .5rem;
-}
-
-.go-back-icon:hover {
-  background-color: var(--text-color);
-  color: var(--info-light-blue);
-}
-
-.info-btn {
-  .header-icon;
-  right: .5rem;
-}
-
-/* Media query for small screens */
-@media (max-width: 420px) {
-  .columns {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-// Hide Select all button
-::ng-deep tui-opt-group[tuiMultiSelectGroup] .t-wrapper > .t-button {
-  display: none !important;
-}
-
-.target-disabled input[tuiInputChip] {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+@media (max-width: 560px) { .language-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

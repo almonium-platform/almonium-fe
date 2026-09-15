@@ -1,281 +1,67 @@
-.base-container {
-  align-items: flex-start;
-  gap: 2rem;
-}
+// The book header (G6): a small cover, the title in the reading face, one meta line, a few neutral
+// pills, then the parallel-text row. The whole record fits in one card.
+.book-page { align-items: flex-start; justify-content: center; padding: clamp(1.25rem, 4vw, 3rem) 1.25rem 4rem; }
+.book-card { display: flex; width: min(100%, 40rem); flex-direction: column; gap: 1.25rem; padding: clamp(1.4rem, 4vw, 1.75rem) clamp(1.4rem, 4vw, 1.9rem); border-radius: 1.75rem; background: var(--card-color); box-shadow: var(--box-shadow); }
 
-/* Left Section (Image and Button) */
-.left-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* Suggest a width, but allow flexibility. Don't let it shrink below basis. */
-  flex: 0 0 250px; /* flex-grow: 0, flex-shrink: 0, flex-basis: 250px */
-  max-width: 100%; /* Prevent overflow before media query */
-  gap: 1.5rem; /* Space between image card and button */
-}
+.book-head { display: flex; align-items: flex-start; gap: 1rem; }
+.book-thumb { display: block; flex: 0 0 4rem; width: 4rem; height: 5.75rem; overflow: hidden; border-radius: .5rem; box-shadow: 0 2px 6px rgba(44, 37, 48, .18); }
+.book-head__copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .25rem; }
+.book-title { margin: 0; font-family: var(--font-family-reading); font-size: 1.5rem; font-weight: 600; line-height: 1.15; }
+.book-meta { margin: 0; color: var(--subhead-color); font-size: .82rem; }
+.book-pills { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .35rem; }
+.pill { padding: .25rem .65rem; border-radius: 999px; background: var(--nested-color); color: var(--subhead-color); font-size: .7rem; }
+.book-head__actions { display: flex; flex: 0 0 auto; align-items: center; gap: .5rem; }
+.read-action { min-height: 2.5rem; padding: .55rem 1.1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; white-space: nowrap; }
+.read-action:hover { background: var(--brand-hover); }
+.bookmark { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--metadata-color); cursor: pointer; }
+.bookmark:hover { background: var(--state-hover); color: var(--brand-margin); }
+.bookmark--on { color: var(--brand-margin); }
 
-.game-card {
-  position: relative;
-  width: 100%; /* Fill the width allowed by left-section's flex-basis */
-  max-width: 14rem; /* Limit the maximum size */
-  /* --- Aspect Ratio --- */
-  /* Choose an aspect ratio common for book covers (e.g., 2:3, 6:9) */
-  /* This replaces the fixed height and maintains proportions */
-  aspect-ratio: 2 / 3;
-  border-radius: 1.5rem;
-  box-shadow: 0 2px 5px 1px rgba(0, 0, 0, .15);
-  text-decoration: none;
-  color: #282626;
-  overflow: hidden; /* Keep this to clip the image */
-  display: block; /* Use block instead of flex if it just contains the img div */
-}
+.book-description { max-width: 65ch; margin: 0; color: var(--subhead-color); font-size: .9rem; line-height: 1.65; white-space: pre-line; }
+.hairline { display: block; height: 1px; background: var(--hairline-color); }
 
-.game-img {
-  width: 100%;
-  height: 100%;
-  display: block; /* Can simplify if it only holds the img */
-}
+.parallel { display: flex; flex-direction: column; gap: .6rem; }
+.parallel .eyebrow { margin: 0; }
+.chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.chip-row__empty { margin: 0; color: var(--metadata-color); font-size: .82rem; }
+.lang-chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.1rem; padding: .4rem .95rem; border: 1px solid transparent; border-radius: 999px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; text-decoration: none; }
+.lang-chip--solid { background: var(--dark-raspberry); color: #fff; font-weight: 600; }
+.lang-chip--outline { border-color: var(--hairline-color); background: transparent; color: var(--subhead-color); }
+.lang-chip--outline:hover { border-color: var(--control-border-color); color: var(--text-color); }
+.lang-chip--dashed { border-style: dashed; border-color: color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); background: transparent; color: var(--dark-raspberry); }
+.lang-chip--dashed:hover { background: var(--state-selected); }
+.lang-chip--dashed span { font-size: 1rem; line-height: 1; }
+.lang-chip--other { color: var(--subhead-color); border-color: var(--control-border-color); }
+.lang-chip--other:hover { color: var(--dark-raspberry); }
+.lang-chip--asked { border-color: color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); background: var(--state-selected); color: var(--dark-raspberry); }
+.lang-chip--asked small { color: var(--metadata-color); font-size: .66rem; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.lang-chip:disabled { cursor: wait; opacity: .6; }
+.parallel__note { margin: 0; color: var(--metadata-color); font-size: .78rem; line-height: 1.55; }
 
-.game-img img {
-  display: block; /* Remove potential extra space */
-  width: 100%;
-  height: 100%;
-  /* Cover ensures the image fills the aspect-ratio container, cropping if necessary */
-  object-fit: cover;
-}
+.skeleton-block { border-radius: .5rem; }
+.skeleton-title { width: 60%; height: 1.75rem; margin-bottom: .5rem; }
+.skeleton-meta { width: 40%; height: 1rem; }
 
-.action-btn {
-  /* Button takes full width of its container up to a max */
-  width: 100%;
-  max-width: 14rem; /* Match the image card's max-width */
-  /* margin: auto; /* No longer needed due to align-items: center on parent */
-}
+// The ask (G7), inside the shared popup shell.
+.sheet { display: flex; width: min(88vw, 21rem); flex-direction: column; gap: .85rem; padding: 1.5rem 1.5rem 1.25rem; border-radius: 1.375rem; background: var(--overlay-color); color: var(--text-color); }
+.sheet__title { margin: 0; font-family: var(--font-family-reading); font-size: 1.2rem; font-weight: 600; line-height: 1.25; }
+.sheet__copy { margin: 0; color: var(--subhead-color); font-size: .82rem; line-height: 1.6; }
+.sheet__note { margin: 0; padding: .7rem .9rem; border-radius: .75rem; background: var(--nested-color); color: var(--subhead-color); font-size: .76rem; line-height: 1.5; }
+.sheet__row { display: flex; align-items: center; justify-content: space-between; gap: .65rem; padding: .7rem .9rem; border: 1px solid var(--hairline-color); border-radius: .75rem; }
+.sheet__row-copy { display: flex; flex-direction: column; gap: .15rem; }
+.sheet__row-copy strong { font-size: .82rem; font-weight: 500; }
+.sheet__row-copy small { color: var(--metadata-color); font: .66rem/1.4 var(--font-family-mono); }
+.sheet__link { border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .76rem; font-weight: 500; }
+.sheet__link:disabled { color: var(--disabled-label-color); cursor: wait; }
+.sheet__upsell { margin: 0; padding: .7rem .9rem; border-radius: .75rem; background: var(--premium-gradient); color: #fff; font-size: .76rem; line-height: 1.5; }
+.sheet__picker { display: flex; flex-direction: column; gap: .4rem; color: var(--subhead-color); font-size: .76rem; font-weight: 600; }
+.sheet__picker select { min-height: 2.6rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: .75rem; background: var(--nested-color); color: var(--text-color); font: inherit; font-size: .88rem; font-weight: 400; }
+.sheet__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
+.sheet__primary { min-height: 2.6rem; padding: .6rem 1.25rem; border: 0; border-radius: 999px; background: var(--dark-raspberry); color: #fff; cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.sheet__primary:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: wait; }
+.sheet__quiet { border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .82rem; }
 
-/* Right Section (Details) */
-.right-section {
-  flex: 1; /* Takes remaining horizontal space */
-  min-width: 0; /* Prevents content overflow issues in flex items */
-  display: flex; /* Use flex for description section alignment if needed */
-  flex-direction: column; /* Ensure content stacks vertically */
-}
-
-.description-section {
-  /* Removed fixed positioning/width */
-  /* padding: 10px; /* Keep padding if desired, or handle via parent */
-  display: flex;
-  flex-direction: column;
-  gap: 1rem; /* Consistent vertical spacing between elements */
-  width: 100%; /* Ensure it fills the right section */
-}
-
-.original {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
-  justify-content: flex-start;
-  align-items: center;
-  gap: .5rem;
-}
-
-.pages {
-  font-size: 1rem;
-  white-space: nowrap; /* Prevent page/year text from wrapping */
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
-
-.label {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: .5rem; /* Small space before the content */
-}
-
-.translation {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-  align-items: center;
-}
-
-.language-select {
-  width: 9rem; /* Keep specific width */
-}
-
-.chip {
-  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
-  cursor: pointer;
-
-  &:hover {
-    transform: scale(1.02);
-  }
-}
-
-/* Specific chip styles */
-.edit-chip {
-  --tui-text-action: var(--text-color);
-  --tui-border-normal: var(--text-color);
-  border: 1px dashed var(--text-color);
-  box-shadow: unset;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-
-  &:hover:not(.edit-chip--no-hover) { /* Target only hoverable ones */
-    background-color: var(--text-color);
-    color: white !important; /* Use important if needed to override tui */
-    border-color: var(--text-color);
-    cursor: pointer;
-
-    /* Target potential inner text elements if needed */
-
-    .inner-text {
-      color: white !important;
-    }
-
-    lucide-icon {
-      stroke: white !important; /* Assuming lucide uses stroke */
-    }
-  }
-}
-
-/* Style for the non-hoverable ORDERED chip */
-.edit-chip--no-hover {
-  cursor: default;
-  /* Override hover styles if necessary */
-}
-
-/* Rating section */
-.rating {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  flex-wrap: wrap; /* Allow wrapping if needed */
-}
-
-.bookmark {
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.number {
-  line-height: 1.5;
-  font-size: 1rem;
-  font-weight: 550;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 550;
-  line-height: 1.3;
-}
-
-.author {
-  font-size: 1.4rem;
-  line-height: 1.4;
-  color: #555; /* Slightly muted author color */
-}
-
-.description {
-  font-size: 1.0rem;
-  line-height: 1.6; /* More line height for readability */
-}
-
-.description p {
-  margin: 0; /* Remove default paragraph margin if description-section handles spacing */
-}
-
-.inner-text {
-  font-size: 0.7rem;
-}
-
-/* --- Responsive --- */
-@media (max-width: 768px) {
-  .base-container {
-    flex-direction: column; /* Stack sections vertically */
-    align-items: center; /* Center items horizontally */
-    padding: 15px; /* Adjust padding for mobile */
-    gap: 1.5rem; /* Adjust gap for vertical stacking */
-  }
-
-  .left-section {
-    flex-basis: auto; /* Reset flex basis */
-    width: 100%; /* Take full width */
-    /* max-width: 280px; /* Optional: constrain max width on mobile */
-    order: 1; /* Keep image/button first */
-  }
-
-  .right-section {
-    flex-basis: auto; /* Reset flex basis */
-    width: 100%; /* Take full width */
-    order: 2; /* Details second */
-  }
-
-  .description-section {
-    gap: 0.8rem; /* Slightly reduce gap */
-    padding: 0; /* Remove padding if base-container handles it */
-  }
-
-  .title {
-    font-size: 1.7rem; /* Adjust title size */
-  }
-
-  .author {
-    font-size: 1.2rem; /* Adjust author size */
-  }
-
-  .game-card,
-  .action-btn {
-    max-width: 12rem;
-  }
-}
-
-/* Container for skeleton layout if specific adjustments needed */
-.skeleton-container {
-  //padding-top: 10px
-}
-
-/* Base style for all skeleton placeholder blocks */
-.skeleton-placeholder {
-  display: block; /* Ensure divs are block-level */
-  border-radius: 12px; /* <<<< YOUR DESIRED ROUNDNESS >>>> */
-  margin-bottom: 10px; /* Space between blocks - Adjust as needed */
-}
-
-/* Specific dimensions for different placeholder types */
-.skeleton-title {
-  height: 40px; /* Adjust height */
-  width: 60%; /* Adjust width */
-}
-
-.skeleton-author {
-  height: 30px; /* Adjust height */
-  width: 40%; /* Adjust width */
-  margin-bottom: 2px;
-}
-
-.skeleton-rating {
-  height: 24px; /* Adjust height */
-  width: 15%; /* Adjust width */
-  margin-bottom: 24px; /* More space after rating */
-}
-
-/* Placeholder for the blocks that contain chips/inline info */
-.skeleton-info-chips {
-  height: 50px; /* Adjust height to simulate chip area */
-  width: 50%;
-}
-
-/* Grouping for description lines */
-.description-skeleton-group {
-  //margin-top: 24px; /* Space before description */
-}
-
-.skeleton-description-line {
-  height: 16px; /* Height of a line of text */
-  width: 100%;
-  margin-bottom: 10px; /* Space between lines */
-}
-
-/* Optional: Make the last line shorter */
-.skeleton-description-line--short {
-  width: 85%;
+@media (max-width: 560px) {
+  .book-head { flex-wrap: wrap; }
+  .book-head__actions { width: 100%; justify-content: flex-end; }
 }

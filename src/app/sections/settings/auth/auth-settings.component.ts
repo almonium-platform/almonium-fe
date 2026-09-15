@@ -1,19 +1,19 @@
-import {ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {AsyncPipe, NgClass, NgTemplateOutlet} from "@angular/common";
+import {logger} from "../../../shared/logger";
+import {getErrorMessage} from '../../../shared/http-error';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import {AsyncPipe} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
-import {TuiAlertService, TuiError, TuiIcon, TuiTextfield, TuiTextfieldComponent} from "@taiga-ui/core";
+import {TuiError, TuiInput, TuiLoader, TuiNotificationService, TuiTextfieldComponent} from "@taiga-ui/core/components";
+import {TUI_VALIDATION_ERRORS} from "@taiga-ui/core/tokens";
 import {ActivatedRoute, Router} from "@angular/router";
 import {UserInfoService} from "../../../services/user-info.service";
 import {AppConstants} from "../../../app.constants";
 import {AuthComponent} from "../../../authentication/auth/auth.component";
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {TUI_VALIDATION_ERRORS, TuiFieldErrorPipe} from "@taiga-ui/kit";
+import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {UserInfo} from "../../../models/userinfo.model";
 import {AuthService} from "../../../authentication/auth/auth.service";
 import {UrlService} from "../../../services/url.service";
-import {EditButtonComponent} from "../../../shared/edit-button/edit-button.component";
-import {ProviderIconComponent} from "../../../shared/modals/elements/provider-icon/provider-icon.component";
 import {AuthMethod, TokenInfo} from "../../../authentication/auth/auth.types";
 import {ActionModalComponent} from "../../../shared/modals/action-modal/action-modal.component";
 import {RecentAuthGuardService} from "../../../authentication/auth/recent-auth-guard.service";
@@ -22,60 +22,63 @@ import {LocalStorageService} from "../../../services/local-storage.service";
 import {RecentAuthGuardComponent} from "../../../shared/recent-auth-guard/recent-auth-guard.component";
 import {BehaviorSubject, filter, finalize, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
-import {ButtonComponent} from "../../../shared/button/button.component";
+import {LOGOUT_REASON_ACCOUNT_DELETED} from "../../../authentication/logout/logout-reason";
 
 @Component({
   selector: 'app-settings',
   imports: [
     ConfirmModalComponent,
-    NgTemplateOutlet,
     AuthComponent,
-    NgClass,
-    AsyncPipe,
     ReactiveFormsModule,
+    AsyncPipe,
     TuiError,
-    TuiFieldErrorPipe,
-    EditButtonComponent,
-    ProviderIconComponent,
+    TuiLoader,
     ActionModalComponent,
     SettingsTabsComponent,
-    TuiIcon,
     RecentAuthGuardComponent,
     TuiTextfieldComponent,
-    FormsModule,
-    TuiTextfield,
-    ButtonComponent
+    TuiInput,
   ],
   templateUrl: './auth-settings.component.html',
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,
       useValue: {
-        required: 'Value is required',
-        email: 'Invalid email address',
+        required: $localize`Value is required`,
+        email: $localize`Invalid email address`,
         minlength: ({requiredLength, actualLength}: {
           requiredLength: number;
           actualLength: number;
-        }) => `Password is too short: ${actualLength}/${requiredLength} characters`,
+        }) => $localize`Password is too short: ${actualLength}:actualLength:/${requiredLength}:requiredLength: characters`,
       },
     },
   ],
   styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit, OnDestroy {
+  private settingService = inject(AuthSettingsService);
+  private alertService = inject(TuiNotificationService);
+  private userInfoService = inject(UserInfoService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private authService = inject(AuthService);
+  private urlService = inject(UrlService);
+  private recentAuthGuardService = inject(RecentAuthGuardService);
+  private localStorageService = inject(LocalStorageService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private cdr = inject(ChangeDetectorRef);
+
   private readonly destroy$ = new Subject<void>();
 
   // populated in ngOnInit
   protected userInfo: UserInfo | null = null;
   protected authMethods: AuthMethod[] = [];
-  protected authProviders: string[] = [];
 
   // email and password settings
   protected emailVerifiedTextExpanded = true;
-  protected emailEditable: boolean = false;
-  protected passwordEditable: boolean = false;
-  protected lastPasswordUpdate: string = '';
-  protected emailVerified: boolean = true;
+  protected emailEditable = false;
+  protected passwordEditable = false;
+  protected emailVerified = true;
   protected emailForm = new FormGroup({
     emailValue: new FormControl<string>('', {
       validators: [Validators.required, Validators.email],
@@ -95,27 +98,26 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   @ViewChild('emailField') emailField!: TuiTextfieldComponent<string>;
   @ViewChild(AuthComponent, {static: false}) authComponent!: AuthComponent;
 
-  // Provider info modal
-  protected providerInfoVisible: boolean = false;
-  protected providerInfoTitle: string = '';
-  protected providerInfoText: string = '';
-  protected providerInfoIcon: string = '';
-
   // email token settings
   protected tokenInfo: TokenInfo | null = null;
-  protected isEmailTokenModalVisible: boolean = false;
+  protected isEmailTokenModalVisible = false;
 
   // auth modal settings
   protected authMode: 'embedded' | 'linkLocal' | 'changeEmail' = 'embedded';
-  protected isAuthModalVisible: boolean = false;
+  protected isAuthModalVisible = false;
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
-  protected useCountdown: boolean = false;
+  protected useCountdown = false;
+  /** The word typed to confirm deletion; the modal compares against this same value. */
+  protected readonly deleteConfirmationWord = $localize`DELETE`;
+  protected readonly emailTokenModalTitle = $localize`Verification Requests`;
+  protected readonly emailTokenResendText = $localize`Resend email`;
+  protected readonly emailTokenCancelText = $localize`Cancel request`;
 
 
   private readonly loadingSubjectEmail$ = new BehaviorSubject<boolean>(false);
@@ -123,22 +125,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   private readonly loadingSubjectPassword$ = new BehaviorSubject<boolean>(false);
   protected readonly loadingPassword$ = this.loadingSubjectPassword$.asObservable();
-
-
-  constructor(
-    private settingService: AuthSettingsService,
-    private alertService: TuiAlertService,
-    private userInfoService: UserInfoService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private authService: AuthService,
-    private urlService: UrlService,
-    private recentAuthGuardService: RecentAuthGuardService,
-    private localStorageService: LocalStorageService,
-    private popupTemplateStateService: PopupTemplateStateService,
-    private cdr: ChangeDetectorRef,
-  ) {
-  }
 
 
   ngOnInit(): void {
@@ -155,16 +141,17 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   private displayAppropriateAlerts() {
-    this.route.queryParams.subscribe(params => {
-      if (params['error']) {
-        this.alertService.open(params['error'], {appearance: 'error'}).subscribe();
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const error = params.get('error');
+      if (error) {
+        this.alertService.open(error, {appearance: 'negative'}).subscribe();
         this.urlService.clearUrl();
       } else {
-        if (params['intent'] === 'link') {
-          this.alertService.open('Account successfully linked!', {appearance: 'success'}).subscribe();
+        if (params.get('intent') === 'link') {
+          this.alertService.open($localize`Account successfully linked!`, {appearance: 'positive'}).subscribe();
           this.urlService.clearUrl();
         }
-        if (params['intent'] === 'reauth') {
+        if (params.get('intent') === 'reauth') {
           this.recentAuthGuardService.updateStatusAndShowAlert();
           this.urlService.clearUrl();
         }
@@ -172,27 +159,17 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private populateAuthMethods() {
+  private populateAuthMethods(onComplete?: () => void) {
     this.settingService.populateAuthMethods().subscribe({
       next: (methods) => {
         this.authMethods = methods;
-        this.authProviders = methods.map(method => method.provider);
-        this.updateLocalAuthData(methods);
       },
       error: (error) => {
-        console.error(error);
-        this.alertService.open(error.error.message || 'Failed to get auth methods', {appearance: 'error'}).subscribe();
+        logger.error(error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to get auth methods`), {appearance: 'negative'}).subscribe();
       },
+      complete: () => onComplete?.(),
     });
-  }
-
-  private updateLocalAuthData(methods: AuthMethod[]): void {
-    if (this.isProviderLinked('local')) {
-      const localMethod = methods.find(method => method.provider.toLowerCase() === 'local')!;
-      this.lastPasswordUpdate = localMethod.lastPasswordResetDate
-        ? new Date(localMethod.lastPasswordResetDate).toISOString().split('T')[0]
-        : new Date(localMethod.createdAt).toISOString().split('T')[0];
-    }
   }
 
   private clearAuthCache(): void {
@@ -225,76 +202,39 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   // DELETE ACCOUNT
   protected onDeleteAccount() {
     this.restoreEmailAndPasswordFields();
-    this.checkAuth(this.prepareConfirmModalForDeletion.bind(this));
+    this.prepareConfirmModalForDeletion();
   }
 
   private prepareConfirmModalForDeletion() {
-    this.modalTitle = 'Delete Account';
-    this.modalMessage = 'Are you sure? This action cannot be undone';
-    this.modalConfirmText = 'Delete Account';
+    this.modalTitle = $localize`Delete account`;
+    this.modalMessage = $localize`This permanently deletes your account and all of its data.`;
+    this.modalConfirmText = $localize`Delete account`;
     this.modalAction = this.confirmDeletion.bind(this);
     this.useCountdown = true;
     this.isConfirmModalVisible = true;
   }
 
   private confirmDeletion() {
+    this.recentAuthGuardService.guardAction(this.deleteAccount.bind(this), !this.authService.currentUser(), $localize`Delete account`);
+  }
+
+  private deleteAccount() {
     this.settingService.deleteAccount().subscribe({
       next: () => {  // No response body expected for 204
-        this.alertService.open('Account successfully deleted!', {appearance: 'success'}).subscribe();
-        this.localStorageService.clearUserRelatedData();
-        this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+        // The account is gone server-side and the cookie is cleared, but the client still holds a
+        // verified session in memory. The logout route runs the full teardown and reloads the app,
+        // which is what stops a dead session from rendering home with a ghost avatar.
+        void this.router.navigate(['/logout'], {queryParams: {reason: LOGOUT_REASON_ACCOUNT_DELETED}});
       },
       error: (error) => {
         this.alertService
-          .open(error.error.message || 'Failed to delete account', {appearance: 'error'})
+          .open(getErrorMessage(error, $localize`Failed to delete account`), {appearance: 'negative'})
           .subscribe();
       },
     });
   }
 
-  // AUTH PROVIDERS BLOCKS
-
-  // Provider info modal
-  protected prepareAndShowProviderModal = (provider: string) => {
-    this.providerInfoText = this.getProviderInfo(provider);
-    this.providerInfoTitle = this.getFormattedProvider(provider) + " Info";
-    this.providerInfoIcon = [
-      provider === 'local' ? 'fas' : 'fab',
-      provider === 'local' ? 'fa-envelope' : 'fa-' + provider.toLowerCase()
-    ].join(' ') + ' text-lg';
-    this.providerInfoVisible = true;
-  }
-
-  protected closeProviderInfo() {
-    this.providerInfoVisible = false;
-  }
-
-  protected getProviderInfo = (provider: string) => {
-    let method = this.authMethods
-      .filter(method => method.provider.toLowerCase() === provider.toLowerCase())
-      .pop();
-
-    if (method) {
-      return `
-      <div>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Email:</strong> ${method.email}</p>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Connected At:</strong> ${this.getFormattedDate(method.createdAt)}</p>
-        <p class="text-gray-700 mb-2 text-sm"><strong>Updated At:</strong> ${(this.getFormattedDate(method.updatedAt))}</p>
-      </div>
-    `;
-    }
-    return 'No info available';
-  }
-
-  private getFormattedDate(date: string) {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
-// Linking and unlinking social accounts
+  // Linking and unlinking social accounts
 
   // boolean checkers
   protected isProviderLinked(provider: string): boolean {
@@ -305,9 +245,28 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     return this.authMethods.length === 1 && this.isProviderLinked(provider);
   }
 
+  protected getAuthMethod(provider: string): AuthMethod | undefined {
+    return this.authMethods.find(method => method.provider.toLowerCase() === provider.toLowerCase());
+  }
+
+  protected getProviderDetail(provider: string): string {
+    const method = this.getAuthMethod(provider);
+    if (!method) {
+      return $localize`Not connected`;
+    }
+
+    return method.email;
+  }
+
+  protected getPasswordDetail(): string {
+    return this.isProviderLinked('local')
+      ? $localize`Set`
+      : $localize`Not set — adds a way back in if a connected account is lost`;
+  }
+
   protected handleProviderWrapped = (provider: string) => () => {
     this.restoreEmailAndPasswordFields();
-    this.checkAuth(() => this.universalProviderHandler(provider));
+    this.checkAuth(() => this.populateAuthMethods(() => this.universalProviderHandler(provider)));
   }
 
   private universalProviderHandler(provider: string) {
@@ -326,40 +285,53 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       this.openAuthModal();
       return;
     }
-    const providerUrls: { [key: string]: string } = {
-      google: AppConstants.GOOGLE_AUTH_URL_WITH_REDIRECT_TO,
-      apple: AppConstants.APPLE_AUTH_URL_WITH_REDIRECT_TO,
-    };
-    window.location.href = providerUrls[provider] + '/settings/auth&intent=link';
+    if (provider === 'google' || provider === 'apple') {
+      const signIn = provider === 'apple'
+        ? this.authService.appleSignIn('link')
+        : this.authService.googleSignIn('link');
+      signIn.subscribe({
+        next: () => {
+          this.alertService.open($localize`${provider === 'apple' ? 'Apple' : 'Google'}:provider: account linked!`, {appearance: 'positive'}).subscribe();
+          this.populateAuthMethods();
+        },
+        error: error => this.alertService
+          .open(getErrorMessage(error, $localize`Failed to link ${provider === 'apple' ? 'Apple' : 'Google'}:provider:`), {appearance: 'negative'})
+          .subscribe(),
+      });
+    }
   }
 
   private prepareUnlinkConfirmationModal(provider: string) {
-    this.modalTitle = 'Unlink account';
-    this.modalMessage = `Are you sure you want to unlink your ${this.getFormattedProvider(provider)} account?`;
-    this.modalConfirmText = 'Unlink';
+    this.modalTitle = $localize`Disconnect account`;
+    this.modalMessage = $localize`Are you sure you want to disconnect your ${this.getFormattedProvider(provider)}:provider: account?`;
+    this.modalConfirmText = $localize`Disconnect`;
     this.modalAction = () => this.unlinkAuthMethod(provider);
+    this.useCountdown = false;
     this.isConfirmModalVisible = true;
   }
 
   private unlinkAuthMethod(provider: string) {
+    this.checkAuth(() => this.performUnlinkAuthMethod(provider));
+  }
+
+  private performUnlinkAuthMethod(provider: string) {
     this.clearAuthCache();
 
     this.settingService.unlinkAuthProvider(provider).subscribe({
       next: (reauthRequired: boolean) => {
-        this.alertService.open(`${this.getFormattedProvider(provider)} account successfully unlinked!`, {appearance: 'success'}).subscribe();
+        this.alertService.open($localize`${this.getFormattedProvider(provider)}:provider: account disconnected`, {appearance: 'positive'}).subscribe();
         this.authMethods = this.authMethods.filter(method => method.provider.toLowerCase() !== provider.toLowerCase());
         if (reauthRequired) {
-          this.alertService.open('Since you used this account to sign in, you will be logged out in 2 seconds.', {appearance: 'info'}).subscribe();
+          this.alertService.open($localize`Since you used this account to sign in, you will be logged out in 2 seconds.`, {appearance: 'info'}).subscribe();
           setTimeout(() => {
             this.userInfoService.clearUserInfo();
             this.authService.logoutPublic().subscribe();
-            this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
+            void this.router.navigate(['/auth'], {fragment: 'sign-in'}).then();
           }, 2000);
-        } else {
         }
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to unlink account', {appearance: 'error'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to unlink account`), {appearance: 'negative'}).subscribe();
       },
     });
   }
@@ -392,19 +364,22 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
 
   // universal live token auth guard
   private checkAuth(onValidToken: () => void) {
-    this.recentAuthGuardService.guardAction(onValidToken);
+    this.recentAuthGuardService.guardAction(onValidToken, !this.authService.currentUser());
   }
 
   // PENDING EMAIL CHANGE REQUEST
   protected getEmailTokenMessage() {
-    return `
-      Your email <strong>${this.tokenInfo?.email}</strong> is pending verification.
-      Request will expire in <strong>${this.countMinutesLeft()}</strong> minutes.
+    return $localize`
+      Your email <strong>${this.tokenInfo?.email}:email:</strong> is pending verification.
+      Request will expire in <strong>${this.countMinutesLeft()}:minutes:</strong> minutes.
       `;
   }
 
   private countMinutesLeft(): number {
-    return Math.floor((this.tokenInfo?.expiresAt.getTime()! - new Date().getTime()) / 60000);
+    if (!this.tokenInfo) {
+      return 0;
+    }
+    return Math.floor((this.tokenInfo.expiresAt.getTime() - Date.now()) / 60000);
   }
 
   protected closeEmailTokenModal() {
@@ -428,8 +403,8 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
         };
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to get last token', {appearance: 'error'}).subscribe();
-        console.error('Error getting last token:', error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to get last token`), {appearance: 'negative'}).subscribe();
+        logger.error('Error getting last token:', error);
       },
     });
   }
@@ -438,40 +413,49 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     return !!this.tokenInfo;
   }
 
-  protected cancelEmailChangeRequest() {
-    this.checkAuth(() => {
-    })
+  protected get emailStatusLabel(): string {
+    if (this.emailVerified) {
+      return $localize`Verified`;
+    }
+    return this.hasPendingEmailVerificationRequest() ? $localize`Verification pending` : $localize`Not verified`;
+  }
 
+  protected cancelEmailChangeRequest() {
+    this.checkAuth(this.cancelEmailChangeRequestAfterAuth.bind(this));
+  }
+
+  private cancelEmailChangeRequestAfterAuth() {
     this.settingService.cancelEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email verification request cancelled!', {appearance: 'success'}).subscribe();
+        this.alertService.open($localize`Email verification request cancelled!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to cancel email verification request', {appearance: 'error'}).subscribe();
-        console.error('Error cancelling email verification request:', error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to cancel email verification request`), {appearance: 'negative'}).subscribe();
+        logger.error('Error cancelling email verification request:', error);
       },
     });
   }
 
   protected resendEmailChangeRequest() {
-    this.checkAuth(() => {
-    })
+    this.checkAuth(this.resendEmailChangeRequestAfterAuth.bind(this));
+  }
 
+  private resendEmailChangeRequestAfterAuth() {
     this.settingService.resendEmailVerificationRequest().subscribe({
       next: () => {
-        this.alertService.open('Email verification request resent!', {appearance: 'success'}).subscribe();
+        this.alertService.open($localize`Email verification request resent!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to resend email verification request', {appearance: 'error'}).subscribe();
-        console.error('Error resending email verification request:', error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to resend email verification request`), {appearance: 'negative'}).subscribe();
+        logger.error('Error resending email verification request:', error);
       },
     });
   }
 
   // EMAIL AND PASSWORD SETTINGS
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   protected onEscape() {
     this.restoreEmailAndPasswordFields();
   }
@@ -491,7 +475,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.passwordForm.valid) {
-      this.alertService.open('Please enter a valid password', {appearance: 'error'}).subscribe();
+      this.alertService.open($localize`Please enter a valid password`, {appearance: 'negative'}).subscribe();
       return;
     }
 
@@ -499,22 +483,20 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected requestEmailVerification() {
-    if (!this.isProviderLinked('local')) {
-      this.alertService.open('To verify your email, you need to link a local account first', {appearance: 'info'}).subscribe();
-      this.authMode = 'linkLocal';
-      this.openAuthModal();
-      return;
-    }
-
     this.settingService.requestEmailVerification().subscribe({
       next: () => {
-        this.alertService.open('Verification email sent!', {appearance: 'success'}).subscribe();
+        this.alertService.open($localize`Verification email sent!`, {appearance: 'positive'}).subscribe();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to send verification email', {appearance: 'error'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to send verification email`), {appearance: 'negative'}).subscribe();
       },
     });
+  }
+
+  /** Save greys while the address is untouched, and no validator fires on that, so the row says it itself. */
+  protected emailUnchanged(): boolean {
+    return this.emailEditable && this.emailForm.valid && this.getEmailFieldValue() === this.userInfo?.email;
   }
 
   protected emailConfirmEnabled(): boolean {
@@ -540,7 +522,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private restoreEmailField() {
     if (this.emailEditable) {
       this.emailEditable = false;
-      this.emailForm.setValue({emailValue: this.userInfo?.email!});
+      this.emailForm.setValue({emailValue: this.userInfo?.email ?? ''});
       this.emailForm.get('emailValue')?.setErrors(null);
       this.emailVerifiedTextExpanded = true;
     }
@@ -550,7 +532,7 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     this.restorePasswordField();
     this.focusEmailInput();
     if (this.hasPendingEmailVerificationRequest()) {
-      console.error('This button should not be visible');
+      logger.error('This button should not be visible');
       return;
     }
 
@@ -560,12 +542,6 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private onEmailChange() {
     this.focusEmailInput();
 
-    if (!this.isProviderLinked('local')) {
-      this.authMode = 'changeEmail';
-      this.openAuthModal();
-      return;
-    }
-
     if (!this.emailEditable) {
       this.emailEditable = true;
       this.emailVerifiedTextExpanded = false;
@@ -573,12 +549,12 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
     }
 
     if (!this.emailForm.valid) {
-      this.alertService.open('Please enter a valid email address', {appearance: 'error'}).subscribe();
+      this.alertService.open($localize`Please enter a valid email address`, {appearance: 'negative'}).subscribe();
       return;
     }
 
     if (this.emailChanged()) {
-      this.alertService.open('No changes detected in the email address', {appearance: 'info'}).subscribe();
+      this.alertService.open($localize`No changes detected in the email address`, {appearance: 'info'}).subscribe();
       return;
     }
 
@@ -600,12 +576,11 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubjectPassword$.next(false)))
       .subscribe({
         next: () => {
-          this.alertService.open('Password successfully changed!', {appearance: 'success'}).subscribe();
-          this.lastPasswordUpdate = new Date().toISOString().split('T')[0];
+          this.alertService.open($localize`Password successfully changed!`, {appearance: 'positive'}).subscribe();
           this.restorePasswordField();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to change password', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to change password`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -618,18 +593,15 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (isAvailable) => {
           if (!isAvailable) {
-            this.alertService.open('Email is already in use', {appearance: 'error'}).subscribe();
+            this.alertService.open($localize`Email is already in use`, {appearance: 'negative'}).subscribe();
             return;
           }
 
-          if (this.isProviderLinked('local')) {
-            this.sendEmailChangeRequest();
-          }
-          this.restoreEmailField();
+          this.sendEmailChangeRequest();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to check email availability', {appearance: 'error'}).subscribe();
-          console.error('Error checking email availability:', error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to check email availability`), {appearance: 'negative'}).subscribe();
+          logger.error('Error checking email availability:', error);
         },
       });
   }
@@ -637,35 +609,35 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   private sendEmailChangeRequest() {
     this.settingService.requestEmailChange(this.getEmailFieldValue()).subscribe({
       next: () => {
-        this.alertService.open('Email change request sent!', {appearance: 'success'}).subscribe();
-        this.emailForm.setValue({emailValue: this.userInfo?.email!});
+        this.alertService.open($localize`Email change request sent!`, {appearance: 'positive'}).subscribe();
+        this.restoreEmailField();
         this.populateAuthMethods();
         this.populateLastToken();
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to send email change request', {appearance: 'error'}).subscribe();
-        console.error('Error sending email change request:', error);
+        this.alertService.open(getErrorMessage(error, $localize`Failed to send email change request`), {appearance: 'negative'}).subscribe();
+        logger.error('Error sending email change request:', error);
       }
     });
   }
 
   private getEmailFieldValue() {
-    return this.emailForm.get('emailValue')?.value?.toString().trim()!;
+    return this.emailForm.controls.emailValue.value.trim();
   }
 
   private getPasswordFieldValue() {
-    return this.passwordForm.get('passwordValue')?.value?.toString().trim()!;
+    return this.passwordForm.controls.passwordValue.value.trim();
   }
 
   private focusPasswordInput() {
     if (this.passwordField) {
-      this.passwordField.input?.nativeElement.focus();
+      this.passwordField.input()?.nativeElement.focus();
     }
   }
 
   private focusEmailInput() {
     if (this.emailField) {
-      this.emailField.input?.nativeElement.focus();
+      this.emailField.input()?.nativeElement.focus();
     }
   }
 

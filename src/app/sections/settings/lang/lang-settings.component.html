@@ -3,162 +3,213 @@
   [title]="modalTitle"
   [message]="modalMessage"
   [confirmText]="modalConfirmText"
-  (close)="closeTargetLangDeletionConfirmModal()"
+  (closed)="closeTargetLangDeletionConfirmModal()"
   (confirm)="confirmTargetLangDeletion()"
   [useCountdown]="true">
 </app-confirm-modal>
 
 <app-recent-auth-guard></app-recent-auth-guard>
 
+<app-paywall [backLabel]="paywallBackLabel" (back)="returnToLangSetupPopup()"></app-paywall>
+
 @if (addTargetLangModalVisible) {
-  <app-language-setup [embeddedMode]="true"></app-language-setup>
+  <app-language-setup [embeddedMode]="true" (upgrade)="openPaywallFromLangSetup()"></app-language-setup>
 }
 
 <div class="base-container">
   <app-settings-tabs></app-settings-tabs>
 
-  <div class="">
-    <div class="section-block card">
-      <div class="title">I Know</div>
+  <main class="learning-layout">
+    <section class="known-card card" [class.editing]="fluentEditable">
+      <div class="known-copy">
+        <div i18n class="eyebrow">I Know</div>
 
-      <div class="row-content">
         @if (fluentEditable) {
           <app-fluent-language-selector
             class="fluent-language-selector"
             [languages]="languages"
+            [maxLanguages]="userInfo?.subscription?.getMaxFluentLanguages() ?? 3"
             [size]="'m'"
             [selectedLanguages]="currentFluentLanguages"
-            (selectedFluentLanguages)="onFluentLanguagesSelected($event)"></app-fluent-language-selector>
-        }
-
-        @if (!fluentEditable) {
-          <div class="chips-box">
-            @for (language of currentFluentLanguages; track language) {
-              <tui-chip
-                [style.background-color]="language | tuiAutoColor">{{ language }}
-              </tui-chip>
-            }
-          </div>
-        }
-
-        <app-edit-button
-          class="edit-element"
-          [disabled]="!(fluentEnabled$ | async)"
-          [label]="'Save'"
-          [editable]="fluentEditable"
-          [loading$]="loading$"
-          (clickFunction)="onFluentEdit()">
-        </app-edit-button>
-      </div>
-    </div>
-
-    <div class="section-block card">
-      <div class="title">I'm Learning</div>
-
-      <div class="row-content target-lang-head">
-        @if (showTargetLangDropdown) {
-          <tui-textfield
-            tuiTextfieldSize="s"
-            class="language-select"
-            (clickOutside)="(showTargetLangDropdown = false)"
-          >
-            <input
-              tuiSelect
-              [formControl]="targetLanguageSelectControl"
-            />
-
-            <tui-data-list-wrapper
-              new
-              *tuiTextfieldDropdown
-              [items]="targetLanguageNames"
-            >
-            </tui-data-list-wrapper>
-          </tui-textfield>
+            (selectedFluentLanguages)="onFluentLanguagesSelected($event)">
+          </app-fluent-language-selector>
         } @else {
-          <div class="target-lang-chip"
-               (click)="targetLanguageNames.length > 1 && (showTargetLangDropdown = true)"
-               [ngClass]="targetLanguageNames.length > 1 ? 'cursor-pointer': ''"
-          >
-            <tui-chip
-              [style.background-color]="getCurrentTargetLanguageName() | tuiAutoColor">{{ getCurrentTargetLanguageName() }}
-            </tui-chip>
-
-            @if (targetLanguageNames.length > 1) {
-              <p class="and-more">+{{ targetLanguageNames.length - 1 }} more</p>
+          <div class="known-languages">
+            @for (language of currentFluentLanguages; track language) {
+              <span>{{ language }}</span>
             }
           </div>
         }
-        <div class="edit-element">
-          <premium-badged-content
-            [display]="userInfo ? userInfo.isTargetLangPaywalled() : false"
-            [badgeIconSrc]="'assets/img/icons/premium-star.svg'"
-            [badgeAltText]="'Premium'"
-            [showIcon]="true"
-            [badgeSize]="'24px'"
-            [iconPosition]="{ top: '-10px', right: '-10px' }"
-            [originalClickHandler]="openLangSetupPopup.bind(this)"
-          >
-            <button
-              class="black-n-white-button edit-btn circular-icon">
-              <i class="fa-regular fa-plus text-base"></i>
-            </button>
-          </premium-badged-content>
-        </div>
       </div>
-      <div class="row-container lang-settings">
-        <div class="column">
-          <h4>Level</h4>
-          <div class="cefr-block">
-            @if (cefrEditable) {
-              <app-cefr-level-selector
-                [openOnInit]="true"
-                [control]="cefrFormControl"
-                (clickOutside)="handleClickOutsideCefrSelector()"
-              ></app-cefr-level-selector>
-            } @else {
-              <app-cefr [level]="currentLearner.selfReportedLevel" (click)="clickOnCefrBadge()"
-                        class="cefr-btn"></app-cefr>
+
+      <button type="button" class="settings-action" [class.committing]="fluentEditable"
+        [disabled]="(fluentEnabled$ | async) !== true || !!(loading$ | async)" (click)="onFluentEdit()">
+        @if (loading$ | async) {
+          <tui-loader class="action-loader" size="s"></tui-loader>
+        }
+        <span i18n [style.visibility]="(loading$ | async) ? 'hidden' : 'visible'">
+          {fluentEditable, select, true {Save} other {Edit}}
+        </span>
+      </button>
+    </section>
+
+    <section class="learning-card card">
+      <div class="learning-head">
+        <div i18n class="eyebrow">I'm Learning</div>
+        @if (allowance !== null) {
+          <span i18n class="allowance-count">{{ getActiveLearnersCount() }} of {{ allowance }} active</span>
+        }
+      </div>
+
+      <div class="learner-list">
+        @for (learner of learners; track learner.id; let index = $index) {
+          <!-- Every row fills the same five slots — swatch, name, level, switch, action — so the rows align
+               down the right edge whichever state they are in. -->
+          <div class="learner-record" [class.aside]="!learner.active">
+            <div class="learner-row">
+              <button
+                type="button"
+                class="colour-trigger"
+                [style.background]="getLanguageColor(learner.language, index)"
+                [class.open]="colourPickerLanguage === learner.language"
+                (click)="toggleColourPicker(learner.language)"
+                [attr.aria-expanded]="colourPickerLanguage === learner.language"
+                [attr.aria-label]="colourTriggerLabel(learner)">
+              </button>
+
+              <div class="language-copy">
+                <strong class="language-name">{{ getLanguageName(learner.language) }}</strong>
+                @if (!learner.active) {
+                  <span i18n class="aside-tag">Set aside</span>
+                }
+              </div>
+
+              <div class="learner-controls">
+                <!-- The code is what is stored, but the sentence is what was chosen at onboarding, so the open
+                     list carries both. Closed, it is still the bare code: a row holds three of these. -->
+                <div
+                  #levelSelect
+                  class="level-select"
+                  [clickOutsideEnabled]="levelPickerLearnerId === learner.id"
+                  (clickOutside)="closeLevelPicker()">
+                  <button
+                    #levelTrigger
+                    type="button"
+                    class="level-trigger"
+                    [class.open]="levelPickerLearnerId === learner.id"
+                    [class.frozen]="!learner.active"
+                    [disabled]="!learner.active || updatingLearnerIds.has(learner.id)"
+                    aria-haspopup="listbox"
+                    [attr.aria-expanded]="levelPickerLearnerId === learner.id"
+                    [attr.aria-label]="levelTriggerLabel(learner)"
+                    (click)="toggleLevelPicker(learner, levelSelect)">
+                    {{ learner.selfReportedLevel }}
+                  </button>
+
+                  @if (levelPickerLearnerId === learner.id) {
+                    <div
+                      class="level-list"
+                      role="listbox"
+                      tabindex="-1"
+                      [attr.aria-label]="levelListLabel(learner)"
+                      (keydown)="onLevelListKeydown($event, levelTrigger)">
+                      @for (level of cefrLevelEntries; track level[0]) {
+                        <button
+                          type="button"
+                          role="option"
+                          class="level-option"
+                          [class.selected]="learner.selfReportedLevel === level[0]"
+                          [attr.aria-selected]="learner.selfReportedLevel === level[0]"
+                          (click)="selectLevel(learner, level[0], levelTrigger)">
+                          <code>{{ level[0] }}</code><span>{{ level[1] }}</span>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div
+                  class="active-switch"
+                  tuiHintAppearance="dark"
+                  tuiHintDirection="bottom"
+                  tuiHint
+                  [tuiHint]="getActiveToggleTooltip(learner)">
+                  <input
+                    tuiSwitch
+                    type="checkbox"
+                    [ngModel]="learner.active"
+                    [disabled]="activeToggleDisabled(learner)"
+                    (ngModelChange)="onToggleActiveStatus($event, learner)"
+                    [showIcons]="true"
+                    [attr.aria-label]="activeToggleLabel(learner)"
+                  />
+                </div>
+
+                <!-- The action slot: a set-aside row leaves for its record, where the word count and the next switch
+                     date are in view before deciding to make it active. No delete on a read-only row — removing a
+                     language here is indistinguishable from losing it. -->
+                @if (!learner.active) {
+                  <a
+                    class="row-action open-record"
+                    [routerLink]="['/settings/me/language', learner.language.toLowerCase()]"
+                    [attr.aria-label]="openRecordLabel(learner)"
+                  >›</a>
+                } @else if (learners.length > 1) {
+                  <button
+                    type="button"
+                    class="row-action delete-language"
+                    (click)="deleteTargetLang(learner)"
+                    [attr.aria-label]="deleteLanguageLabel(learner)">
+                    <tui-icon icon="@tui.trash-2" />
+                  </button>
+                } @else {
+                  <span class="row-action empty-action" aria-hidden="true"></span>
+                }
+              </div>
+            </div>
+
+            @if (learnerLockNote(learner); as note) {
+              <p class="row-note">{{ note }}</p>
+            }
+
+            @if (colourPickerLanguage === learner.language) {
+              <div class="colour-picker" aria-label="Language colour" i18n-aria-label>
+                <div i18n class="colour-title">Colour</div>
+                <div class="colour-grid">
+                  @for (colour of languageColours; track colour.hex) {
+                    <button
+                      type="button"
+                      [style.background]="colour.hex"
+                      [class.selected]="getLanguageColor(learner.language, index) === colour.hex"
+                      (click)="selectLanguageColour(learner.language, colour.hex)"
+                      [attr.aria-label]="colour.name">
+                    </button>
+                  }
+                </div>
+              </div>
             }
           </div>
-        </div>
-        <div class="divider"></div>
-        <div class="column">
-          <h4>Active</h4>
-          <div
-            tuiHintAppearance="dark"
-            tuiHintDirection="bottom"
-            tuiHint
-            [tuiHint]="tooltipTemplate"
-          >
-            <input
-              tuiSwitch
-              type="checkbox"
-              [ngModel]="currentLearner.active"
-              [disabled]="activeToggleDisabled()"
-              (ngModelChange)="onToggleActiveStatus($event, currentLearner.language)"
-              [showIcons]="true"
-            />
-          </div>
-          <ng-template #tooltipTemplate>
-            <div [innerHTML]="getActiveToggleTooltip()"></div>
-          </ng-template>
-        </div>
-      </div>
-    </div>
+        }
 
-    @if (isDeleteTargetLangButtonVisible) {
-      <div class="danger section-block">
-        <span class="danger-text">Danger Zone</span>
-        <button class="btn btn-danger" (click)="deleteTargetLang()">
-          <tui-icon
-            icon="@tui.trash-2"
-            class="delete-icon"
-            [style.height.px]="18"
-            [style.width.px]="18"
-          />
-          Delete {{ getCurrentTargetLanguageName() }}
-        </button>
+        <div class="add-language-row">
+          <span class="empty-colour"></span>
+          <span i18n>Another language</span>
+          @if (atLanguageCeiling) {
+            <span i18n class="ceiling-note">{{ languageCeiling }} is all an account can hold</span>
+          } @else {
+            <button type="button" class="add-language" aria-label="Add another language" i18n-aria-label (click)="openLangSetupPopup()">
+              <tui-icon icon="@tui.plus" />
+            </button>
+          }
+        </div>
+
+        @if (atAllowance && !atLanguageCeiling) {
+          <p class="allowance-panel">
+            {{ allowanceNote }}
+            <button i18n type="button" class="allowance-upgrade" (click)="openPaywall()">See plans</button>
+          </p>
+        }
       </div>
-    }
-  </div>
+    </section>
+  </main>
 </div>

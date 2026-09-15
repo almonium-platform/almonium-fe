@@ -2,38 +2,135 @@
 
 <nav class="navbar">
   <div class="navbar-content">
-    <div class="logo-container relative" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside($event)">
-      <app-gif-player [replayTrigger]="replayGifSubject" class="app-icon"></app-gif-player>
+    <div class="logo-container relative" (keydown.enter)="onLogoClick()" tabindex="0" (click)="onLogoClick()" (clickOutside)="discoverOnClickOutside()">
+      <app-emblem class="app-emblem" [playOnLoad]="false" [replayTrigger]="logoUnfold" [label]="'Almonium'"></app-emblem>
     </div>
 
+    <div #langDropdown class="lang-dropdown" (clickOutside)="langsOnClickOutside()">
+      <div class="language-switcher">
+        <button
+          type="button"
+          class="language-crest"
+          [class.has-stack]="hasLanguageChoices"
+          [class.teach-stack]="showCrestHint && hasLanguageChoices"
+          [class.is-open]="isLanguageDropdownOpen"
+          [disabled]="!hasLanguageChoices"
+          [attr.aria-expanded]="hasLanguageChoices ? isLanguageDropdownOpen : null"
+          [attr.aria-haspopup]="hasLanguageChoices ? 'listbox' : null"
+          [attr.aria-label]="languageCrestLabel"
+          [ngStyle]="getLanguageStyles(currentLanguage)"
+          (click)="toggleLanguageDropdown()"
+          (keydown)="handleKeydown($event)">
+          @if (stackLanguages[1]; as thirdLanguage) {
+            <span class="crest-layer crest-layer-back" aria-hidden="true"
+                  [style.--crest-color]="getLanguageColor(thirdLanguage)"></span>
+          }
+          @if (stackLanguages[0]; as secondLanguage) {
+            <span class="crest-layer crest-layer-middle" aria-hidden="true"
+                  [style.--crest-color]="getLanguageColor(secondLanguage)"></span>
+          }
+          <span class="crest-face">{{ currentLanguage }}</span>
+        </button>
+
+        @if (isLanguageDropdownOpen) {
+          <div class="language-popover" tabindex="-1" (keydown)="handleKeydown($event)">
+            <div class="language-popover-current">
+              <span class="language-code active" [ngStyle]="getLanguageStyles(currentLanguage)">
+                {{ currentLanguage }}
+              </span>
+              <span i18n>now studying</span>
+            </div>
+
+            @if (usesSearchableLanguageMenu) {
+              <label class="language-search">
+                <lucide-icon name="search" [size]="14" [strokeWidth]="1.5"></lucide-icon>
+                <input
+                  #languageSearchInput
+                  type="search"
+                  autocomplete="off"
+                  placeholder="Type a language or code" i18n-placeholder
+                  aria-label="Search learning languages" i18n-aria-label
+                  [(ngModel)]="languageSearch"
+                  (ngModelChange)="onLanguageSearchChange()">
+                <kbd>{{ shortcutModifier + 'L' }}</kbd>
+              </label>
+
+              @if (!languageSearch) {
+                <div i18n class="language-section-label">Recent</div>
+                <div class="recent-languages" aria-label="Recently used languages" i18n-aria-label>
+                  @for (lang of recentLanguageOptions; track lang) {
+                    <button type="button" class="language-code"
+                            [ngStyle]="getLanguageStyles(lang)"
+                            [attr.aria-label]="switchToLabel(lang)"
+                            (click)="changeLanguage(lang)">
+                      {{ lang }}
+                    </button>
+                  }
+                </div>
+                <div class="language-divider"></div>
+              }
+
+              <div i18n class="language-section-label">All {{ targetLanguages.length }}</div>
+            }
+
+            <div class="language-options" role="listbox" aria-label="Learning languages" i18n-aria-label>
+              @for (lang of displayedLanguages; track lang; let i = $index) {
+                <button
+                  #dropdownItem
+                  type="button"
+                  role="option"
+                  class="language-option"
+                  [class.active]="lang === currentLanguage"
+                  [class.focused]="i === focusedLangIndex"
+                  [attr.aria-selected]="lang === currentLanguage"
+                  (click)="changeLanguage(lang)">
+                  <span class="language-code" [ngStyle]="getLanguageStyles(lang)">{{ lang }}</span>
+                  <span class="language-name">{{ getLanguageName(lang) }}</span>
+                  @if (getLanguageLevel(lang); as level) {
+                    <span class="language-level">{{ level }}</span>
+                  }
+                  @if (i < 9) {
+                    <kbd class="language-number-shortcut">{{ shortcutModifier }}{{ i + 1 }}</kbd>
+                  }
+                </button>
+              } @empty {
+                <p i18n class="language-empty">No learning languages match “{{ languageSearch }}”.</p>
+              }
+            </div>
+
+            @if (!usesSearchableLanguageMenu) {
+              <div class="language-divider"></div>
+              <button type="button" class="add-language" (click)="openLanguageSettings()">
+                <span aria-hidden="true">+</span>
+                <span i18n>Add a language</span>
+              </button>
+            }
+
+            <p class="language-shortcut-hint">
+              <span i18n>{{ shortcutModifier }}L opens</span>
+              <span i18n>{{ shortcutModifier }}1–9 switches</span>
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <span class="navbar-divider" aria-hidden="true"></span>
+
     @if (!isMobile) {
-      <div>
+      <div class="primary-links" aria-label="App navigation" i18n-aria-label>
         @if (this.uiPreferences.navbar.discover) {
-          <a
+          <a i18n
             routerLink="/discover"
             class="nav-link ml-8 section"
             [ngClass]="{'active-link': currentRoute === '/discover'}">
             Discover
           </a>
         }
-        @if (this.uiPreferences.navbar.review) {
-          <a
-            routerLink="/review"
-            class="nav-link ml-8 section"
-            [ngClass]="{'active-link': currentRoute === '/review'}">
-            Review
-          </a>
-        }
-        @if (this.uiPreferences.navbar.read) {
-          <a
-            routerLink="/read"
-            class="nav-link ml-8 section"
-            [ngClass]="{'active-link': currentRoute === '/read'}">
-            Read
-          </a>
-        }
+        <a i18n routerLink="/review" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/review'}">Review</a>
+        <a i18n routerLink="/read" class="nav-link ml-8 section" [ngClass]="{'active-link': currentRoute === '/read'}">Read</a>
         @if (this.uiPreferences.navbar.play) {
-          <a
+          <a i18n
             routerLink="/play"
             class="nav-link ml-8 section"
             [ngClass]="{'active-link': currentRoute === '/play'}">
@@ -44,42 +141,15 @@
     }
 
     <div class="nav-actions">
-      <div class="lang-dropdown" (clickOutside)="langsOnClickOutside($event)">
-        <div class="relative lang-dropdown">
-          <button (click)="toggleLanguageDropdown()" class="badge-btn text-lg"
-                  [ngStyle]="getButtonStyles(currentLanguage)">
-            {{ currentLanguage }}
-          </button>
-          <!-- Dropdown Menu (direct continuation of the button) -->
-
-          @if (isLanguageDropdownOpen) {
-            <div
-              class="dropdown-menu absolute left-0 mt-0 w-full rounded-b-md shadow-lg z-10"
-              (keydown)="handleKeydown($event)">
-              <div class="py-1">
-                @for (lang of filteredLanguages; track lang; let i = $index) {
-                  <button
-                    #dropdownItem
-                    tabindex="0"
-                    [ngStyle]="getButtonStylesDropDown(lang)"
-                    [class.focused]="i === focusedLangIndex"
-                    (click)="changeLanguage(lang)"
-                    class="lang-option block w-full px-4 py-2 text-center text-sm text-gray-700 hover:bg-pink-100">
-                    {{ lang }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      </div>
       @for (item of navbarItems; track item.name) {
         @if (item.enabled) {
-          <div class="icon-badge relative" (click)="item.action()">
+          <div class="icon-badge relative" (keydown.enter)="item.action()" tabindex="0" (click)="item.action()">
             <button>
               <tui-badged-content>
-                @if (item.hasUpdate) {
-                  <tui-badge-notification size="xs" tuiSlot="top"/>
+                @if (item.count > 0) {
+                  <tui-badge-notification size="s" tuiSlot="top" class="count-badge">{{ item.count }}</tui-badge-notification>
+                } @else if (item.hasUpdate) {
+                  <tui-badge-notification size="xs" tuiSlot="top" class="dot-badge"/>
                 }
                 <div class="navbar-icon">
                   <lucide-icon
@@ -96,13 +166,13 @@
       }
 
       <!-- Navbar User Profile Section -->
-      <div class="user-profile relative" (click)="toggleProfilePopover()"
-           (clickOutside)="profileOnClickOutside($event)">
+      <div class="user-profile relative" role="button" aria-label="Open profile menu" i18n-aria-label [attr.aria-expanded]="isProfilePopoverOpen" (keydown.enter)="toggleProfilePopover()" (keydown.space)="toggleProfilePopover(); $event.preventDefault()" tabindex="0" (click)="toggleProfilePopover()"
+           (clickOutside)="profileOnClickOutside()">
         <app-avatar
           class="profile-circle"
           [avatarUrl]="userInfo?.avatarUrl ?? null"
           [username]="userInfo?.username ?? null"
-          [outline]="userInfo?.premium ?? false"
+          [premium]="userInfo?.premium ?? false"
           size="m"
           [sizeInRem]=3
         >
@@ -123,31 +193,21 @@
       <div class="menu-items p-2">
         <a routerLink="/home" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
           <lucide-icon name="home" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-          <span>Home</span>
+          <span i18n>Home</span>
         </a>
 
         @if (uiPreferences.navbar.discover) {
           <a routerLink="/discover" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="telescope" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Discover</span>
+            <span i18n>Discover</span>
           </a>
         }
-        @if (uiPreferences.navbar.review) {
-          <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Review</span>
-          </a>
-        }
-        @if (uiPreferences.navbar.read) {
-          <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-            <lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Read</span>
-          </a>
-        }
+        <a routerLink="/review" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="star" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span i18n>Review</span></a>
+        <a routerLink="/read" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition"><lucide-icon name="book-open-text" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon><span i18n>Read</span></a>
         @if (uiPreferences.navbar.play) {
           <a routerLink="/play" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
             <lucide-icon name="dices" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-            <span>Play</span>
+            <span i18n>Play</span>
           </a>
         }
       </div>
@@ -157,37 +217,29 @@
 
 @if (isProfilePopoverOpen) {
   <div
-    class="popover-menu menu2 right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500">
+    class="popover-menu profile-popover menu2 right-4 max-w-xs rounded-lg shadow-lg">
     <div class="menu-section">
-      <div class="user-details flex items-center">
-        <!-- Profile Picture -->
-        <app-avatar
-          [avatarUrl]="userInfo?.avatarUrl ?? null"
-          [username]="userInfo?.username ?? null"
-          [outline]="userInfo?.premium ?? false"
-          class="mr-3 cursor-pointer"
-          size="m"
-          (click)="openChangeAvatarPopup()"
-        >
-        </app-avatar>
-        <!-- User Info -->
+      <div class="user-details">
         <div class="user-info overflow-hidden flex flex-col gap-0.5">
-          <span class="font-semibold truncate block username">{{ userInfo?.username || 'Anonymous Learner' }}</span>
-          <p class="text-sm text-gray-500 truncate block">{{ userInfo?.email || 'Not logged in' }}</p>
+          <span class="font-semibold truncate block username">{{ userInfo?.username || anonymousLearner }}</span>
+          <p class="user-email truncate block">{{ userInfo?.email || notLoggedIn }}</p>
         </div>
       </div>
       <div class="separator"></div>
-      <hr class="border-gray-200"/>
       <!-- Menu Items -->
       <div class="menu-items p-2">
-        <a routerLink="/settings" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-          <span>Settings</span>
+        <a routerLink="/settings" class="menu-item flex items-center">
+          <lucide-icon name="settings" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
+          <span i18n>Settings</span>
+        </a>
+        <a routerLink="/membership" class="menu-item flex items-center">
+          <lucide-icon name="badge-dollar-sign" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
+          <span i18n>Membership</span>
         </a>
         <div class="separator"></div>
-        <a routerLink="/logout" class="menu-item flex items-center p-2 rounded-md hover:bg-gray-100 transition">
-          <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5 mr-2"></lucide-icon>
-          <span>Logout</span>
+        <a routerLink="/logout" class="menu-item flex items-center">
+          <lucide-icon name="log-out" [size]="24" strokeWidth="1" class="w-5 h-5"></lucide-icon>
+          <span i18n>Logout</span>
         </a>
       </div>
     </div>
@@ -197,7 +249,7 @@
 @if (isTimerOpen) {
   <div
     class="popover-menu right-32 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 notifications"
-    (clickOutside)="timerOnClickOutside($event)"
+    (clickOutside)="timerOnClickOutside()"
   >
     <app-timer></app-timer>
   </div>
@@ -206,22 +258,19 @@
 @if (isNotificationOpen) {
   <div
     class="popover-menu right-4 max-w-xs rounded-lg shadow-lg border-2 border-gradient-to-r from-purple-500 to-pink-500 notifications"
-    (clickOutside)="notificationOnClickOutside($event)"
+    (clickOutside)="notificationOnClickOutside()"
   >
     @if (notifications.length > 0) {
       <div class="header">
         <div class="title-group">
-          <p class="popover-title">Notifications</p>
+          <p i18n class="popover-title">Notifications</p>
 
-          @if (unreadNotificationsCount > 0) {
-            <span class="circular-icon">{{ unreadNotificationsCount }}</span>
-          }
         </div>
         @if (unreadNotificationsCount > 0) {
           <app-button appearance="text"
-                      label="Mark all as read"
-                      [fontSize]="16"
-                      [fontWeight]="550"
+                      label="Mark all read" i18n-label
+                      [fontSize]="13"
+                      [fontWeight]="500"
                       (click)="markAllAsRead()"
                       [disabled]="unreadNotificationsCount === 0"
                       [loading$]="loading$"
@@ -235,76 +284,99 @@
       [options]="{scrollbars:{ autoHide: 'leave', autoHideDelay: 0}}">
       <div class="menu-section">
         @if (notifications.length === 0) {
-          <div class="empty-state">
+          <div i18n class="empty-state">
             You have no notifications.
           </div>
         } @else {
           @for (notification of notifications; track notification) {
-            <div class="separator"></div>
-            <tui-badged-content>
-              @if (!notification.readAt) {
-                <tui-badge-notification size="xs" tuiSlot="top"/>
+            <ng-template #dropdownTemplate>
+
+              <tui-data-list
+                role="menu"
+                tuiDataListDropdownManager
+                (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
+                class="context-menu">
+
+                <button i18n tuiOption
+                        type="button"
+                        class="context-button"
+                        [disabled]="loadingNotificationAction"
+                        (click)="toggleRead(notification, dropdown)"
+                >
+                  <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
+                               [size]="18"
+                  ></lucide-icon>
+                  {notification.readAt === null, select, true {Mark as read} other {Mark as unread}}
+                </button>
+
+                <button i18n tuiOption
+                        type="button"
+                        class="context-button"
+                        [disabled]="loadingNotificationAction"
+                        (click)="deleteNotification(notification, dropdown)"
+                >
+                  <lucide-icon name="trash"
+                               [size]="18"
+                  ></lucide-icon>
+                  Delete
+                </button>
+
+              </tui-data-list>
+            </ng-template>
+
+            <div class="notification-item"
+                 [class.unread]="!notification.readAt"
+                 tuiDropdownContext
+                 #dropdown="tuiDropdown"
+                 [tuiDropdown]="dropdownTemplate"
+            >
+              <!-- The panel already floats; a hover card off it would be a third layer over the row
+                   that spawned it, repeating the row's own actions. The avatar is a link instead. -->
+              @if (isBookRow(notification)) {
+                <span class="notification-cover" aria-hidden="true">
+                  <app-book-cover [title]="notification.contextTitle ?? notification.title" [author]="''" [workSlug]="notification.referenceId" [coverUrl]="notification.pictureUrl"></app-book-cover>
+                </span>
+              } @else {
+                <button type="button"
+                        class="notification-avatar"
+                        [attr.aria-label]="senderProfileLabel(notification)"
+                        (click)="openSenderProfile(notification)">
+                  <app-avatar
+                    [avatarUrl]="notification.pictureUrl"
+                    [username]="notification.senderUsername"
+                  ></app-avatar>
+                </button>
               }
-              <ng-template #dropdownTemplate>
 
-                <tui-data-list
-                  role="menu"
-                  tuiDataListDropdownManager
-                  (tuiActiveZoneChange)="toggleReadDropdownActive($event)"
-                  class="context-menu">
-
-                  <button
-                    new
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    [disabled]="loadingNotificationAction"
-                    (click)="toggleRead(notification, dropdown)"
-                  >
-                    <lucide-icon [name]="notification.readAt === null ? 'check-check' : 'message-square-dot'"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Mark as {{ notification.readAt === null ? 'read' : 'unread' }}
-                  </button>
-
-                  <button
-                    new
-                    tuiOption
-                    type="button"
-                    class="context-button"
-                    [disabled]="loadingNotificationAction"
-                    (click)="deleteNotification(notification, dropdown)"
-                  >
-                    <lucide-icon name="trash"
-                                 [size]="18"
-                    ></lucide-icon>
-                    Delete
-                  </button>
-
-                </tui-data-list>
-              </ng-template>
-
-              <div class="notification-item hover:bg-gray-100 rounded-md p-2"
-                   tuiDropdownContext
-                   #dropdown="tuiDropdown"
-                   [tuiDropdown]="dropdownTemplate"
-              >
-                <app-avatar-preview
-                  [avatarUrl]="notification.pictureUrl"
-                  (tuiActiveZoneChange)="togglePreviewDropdownActive($event)"
-                  [userId]="notification.senderId"
-                ></app-avatar-preview>
-
-                <div class="notification-content" (click)="onNotificationClick(notification)">
-                  <div class="notification-title">{{ notification.title }}
-                    <p>
-                      {{ (notification.createdAt | shortRelativeTime) }}
-                    </p>
+              <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
+                <div class="notification-row">
+                  <div class="notification-message" [innerHTML]="notificationSummary(notification)"></div>
+                  <div class="notification-meta">
+                    <time>{{ notification.createdAt | shortRelativeTime }}</time>
+                    @if (!notification.readAt) {
+                      <span class="unread-dot" aria-label="Unread" i18n-aria-label></span>
+                    }
                   </div>
-                  <div class="notification-message" [innerHTML]="formatNotificationText(notification.message)"></div>
                 </div>
+                <!-- The bell row is the fastest path to accepting; Requests in People is
+                     the same list for when the bell has already been cleared. -->
+                @if (bookActionLabel(notification); as action) {
+                  <span class="notification-action">{{ action }}</span>
+                }
+                @if (isActionableRequest(notification)) {
+                  <div class="notification-actions">
+                    <button i18n type="button"
+                            class="request-action accept"
+                            [disabled]="requestActionInProgressIds.has(notification.referenceId)"
+                            (click)="acceptFriendRequest(notification, $event)">Accept</button>
+                    <button i18n type="button"
+                            class="request-action decline"
+                            [disabled]="requestActionInProgressIds.has(notification.referenceId)"
+                            (click)="declineFriendRequest(notification, $event)">Decline</button>
+                  </div>
+                }
               </div>
-            </tui-badged-content>
+            </div>
           }
         }
       </div>

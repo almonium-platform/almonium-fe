@@ -1,50 +1,246 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CardService} from '../../services/card.service';
-import {CardDto} from '../../models/card.model';
-import {LanguageCode} from '../../models/language.enum';
+import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {RouterLink} from '@angular/router';
 import {Subject, takeUntil} from 'rxjs';
-import {TargetLanguageDropdownService} from "../../services/target-language-dropdown.service";
-import {LanguageNameService} from "../../services/language-name.service";
-import {RouterLink} from "@angular/router";
+import {LanguageCode} from '../../models/language.enum';
+import {LanguageNameService} from '../../services/language-name.service';
+import {LearningActivityService} from '../../services/learning-activity.service';
+import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
+import {getErrorMessage} from '../../shared/http-error';
+import {LearningIntent, ReviewAnswer, ReviewItem, ReviewSession, ReviewSessionResult, ReviewSummary} from './review.model';
+import {ReviewService} from './review.service';
+
+type ReviewStage = 'overview' | 'session' | 'complete';
 
 @Component({
   selector: 'app-review',
   templateUrl: './review.component.html',
   styleUrls: ['./review.component.less'],
-  imports: [
-    RouterLink
-  ]
+  imports: [FormsModule, RouterLink],
 })
 export class ReviewComponent implements OnInit, OnDestroy {
+  private readonly reviewService = inject(ReviewService);
+  private readonly languageService = inject(TargetLanguageDropdownService);
+  private readonly languageNameService = inject(LanguageNameService);
+  private readonly learningActivity = inject(LearningActivityService);
   private readonly destroy$ = new Subject<void>();
-  cards: CardDto[] = [];
-  selectedLanguage!: LanguageCode;
-  displayLanguageName: string = ''; // Variable to store the full name of the language
 
-  constructor(private cardService: CardService,
-              private languageService: TargetLanguageDropdownService,
-              private languageNameService: LanguageNameService,
-  ) {
-  }
+  protected selectedLanguage = LanguageCode.EN;
+  protected displayLanguageName = '';
+  protected summary: ReviewSummary | null = null;
+  protected session: ReviewSession | null = null;
+  protected result: ReviewSessionResult | null = null;
+  protected stage: ReviewStage = 'overview';
+  protected currentIndex = 0;
+  protected answerText = '';
+  protected feedback: ReviewAnswer | null = null;
+  protected openedHints = new Set<string>();
+  protected loading = true;
+  protected submitting = false;
+  protected loadError = '';
+  protected mistypeRecorded = false;
 
   ngOnInit(): void {
-    this.languageService.currentLanguage$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((lang) => {
-        this.selectedLanguage = lang;
-        this.displayLanguageName = this.languageNameService.getLanguageName(lang);
-        this.fetchCardsForLanguage(lang);
-      });
+    this.languageService.currentLanguage$.pipe(takeUntil(this.destroy$)).subscribe(language => {
+      this.selectedLanguage = language;
+      this.displayLanguageName = this.languageNameService.getLanguageName(language);
+      this.resetAndLoad();
+    });
   }
 
   ngOnDestroy(): void {
+    this.learningActivity.stop();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private fetchCardsForLanguage(language: LanguageCode): void {
-    this.cardService.getCardsInLanguage(language).subscribe((cards) => {
-      this.cards = cards;
+  protected get currentItem(): ReviewItem | null {
+    return this.session?.items[this.currentIndex] ?? null;
+  }
+
+  protected startSession(): void {
+    if (this.submitting || !this.summary?.sessionSize) return;
+    this.submitting = true;
+    this.loadError = '';
+    this.reviewService.startSession(this.selectedLanguage).pipe(takeUntil(this.destroy$)).subscribe({
+      next: session => {
+        this.session = session;
+        this.currentIndex = 0;
+        this.stage = session.items.length ? 'session' : 'overview';
+        this.submitting = false;
+        if (session.items.length) this.learningActivity.start('REVIEW', this.selectedLanguage);
+      },
+      error: error => {
+        this.submitting = false;
+        this.loadError = getErrorMessage(error, $localize`Could not start your review session. Please try again.`);
+      },
+    });
+  }
+
+  protected toggleHint(type: string): void {
+    if (this.feedback) return;
+    if (this.openedHints.has(type)) {
+      this.openedHints.delete(type);
+    } else {
+      this.openedHints.add(type);
+    }
+    this.openedHints = new Set(this.openedHints);
+  }
+
+  protected submitAnswer(revealed = false): void {
+    const item = this.currentItem;
+    if (!item || !this.session || this.feedback || this.submitting || (!revealed && !this.answerText.trim())) return;
+    this.submitting = true;
+    this.loadError = '';
+    this.reviewService.answer(
+      this.session.sessionId,
+      item.itemId,
+      item.promptId,
+      this.answerText.trim(),
+      [...this.openedHints],
+      revealed,
+    ).pipe(takeUntil(this.destroy$)).subscribe({
+      next: feedback => {
+        this.feedback = feedback;
+        this.submitting = false;
+      },
+      error: error => {
+        this.submitting = false;
+        this.loadError = getErrorMessage(error, $localize`Your answer could not be recorded. Please try again.`);
+      },
+    });
+  }
+
+  protected nextItem(): void {
+    if (!this.session || !this.feedback) return;
+    if (this.currentIndex < this.session.items.length - 1) {
+      this.currentIndex++;
+      this.answerText = '';
+      this.feedback = null;
+      this.openedHints.clear();
+      this.mistypeRecorded = false;
+      this.loadError = '';
+      return;
+    }
+    this.finishSession();
+  }
+
+  protected markMistype(): void {
+    if (!this.feedback?.confusedWith || this.mistypeRecorded || this.submitting) return;
+    this.submitting = true;
+    this.reviewService.markMistype(this.feedback.eventId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.mistypeRecorded = true;
+        this.submitting = false;
+      },
+      error: error => {
+        this.submitting = false;
+        this.loadError = getErrorMessage(error, $localize`Could not record the mistype correction.`);
+      },
+    });
+  }
+
+  protected leaveSession(): void {
+    this.stage = 'overview';
+    this.session = null;
+    this.feedback = null;
+    this.answerText = '';
+    this.openedHints.clear();
+    this.loadSummary();
+  }
+
+  protected done(): void {
+    this.resetAndLoad();
+  }
+
+  protected reencounter(itemId: string): void {
+    if (this.submitting) return;
+    this.submitting = true;
+    this.reviewService.reencounter(itemId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.loadSummary();
+      },
+      error: error => {
+        this.submitting = false;
+        this.loadError = getErrorMessage(error, $localize`Could not prepare a new prompt for this word.`);
+      },
+    });
+  }
+
+  protected intentLabel(intent: LearningIntent): string {
+    return ({
+      UNDERSTAND: $localize`Understand`,
+      PRODUCE: $localize`Produce`,
+      PRONOUNCE: $localize`Pronounce`,
+      DISAMBIGUATE: $localize`Tell apart`,
+      CHUNK: $localize`Use the chunk`,
+    })[intent];
+  }
+
+  protected answerPlaceholder(intent: LearningIntent): string {
+    return intent === 'PRODUCE' ? $localize`Word, with the article` : $localize`Meaning in your own words`;
+  }
+
+  protected get isLastItem(): boolean {
+    return this.session !== null && this.currentIndex === this.session.items.length - 1;
+  }
+
+  protected intentInstruction(intent: LearningIntent): string {
+    return intent === 'UNDERSTAND'
+      ? $localize`Write what this means.`
+      : intent === 'DISAMBIGUATE'
+        ? $localize`Write the exact word that fits this meaning.`
+        : $localize`Write it in the language you are learning.`;
+  }
+
+  protected savedAgo(savedAt: Date): string {
+    const days = Math.max(0, Math.floor((Date.now() - savedAt.getTime()) / 86_400_000));
+    if (days === 0) return $localize`Saved today`;
+    return days === 1 ? $localize`Saved 1 day ago` : $localize`Saved ${days}:days: days ago`;
+  }
+
+  private resetAndLoad(): void {
+    this.stage = 'overview';
+    this.session = null;
+    this.result = null;
+    this.feedback = null;
+    this.currentIndex = 0;
+    this.answerText = '';
+    this.openedHints.clear();
+    this.loadSummary();
+  }
+
+  private loadSummary(): void {
+    this.loading = true;
+    this.loadError = '';
+    this.reviewService.getSummary(this.selectedLanguage).pipe(takeUntil(this.destroy$)).subscribe({
+      next: summary => {
+        this.summary = summary;
+        this.loading = false;
+      },
+      error: error => {
+        this.summary = null;
+        this.loading = false;
+        this.loadError = getErrorMessage(error, $localize`Could not load your review queue. Please try again.`);
+      },
+    });
+  }
+
+  private finishSession(): void {
+    if (!this.session) return;
+    this.submitting = true;
+    this.reviewService.getResult(this.session.sessionId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.result = result;
+        this.stage = 'complete';
+        this.submitting = false;
+        this.learningActivity.stop(true);
+      },
+      error: error => {
+        this.submitting = false;
+        this.loadError = getErrorMessage(error, $localize`Could not load the session record. Please try again.`);
+      },
     });
   }
 }

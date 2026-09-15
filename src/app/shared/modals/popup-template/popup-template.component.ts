@@ -1,4 +1,4 @@
-import {Component, HostListener, Input, OnDestroy, OnInit} from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
@@ -13,7 +13,8 @@ import {Subject, takeUntil} from "rxjs";
         [ngClass]="{
         'fixed inset-0 z-50 flex bg-overlay': true,
         'flex-col': fullscreen,
-        'items-center justify-center': !fullscreen
+        'overlay-scroll overlay-inset': !fullscreen,
+        'overlay-inset-roomy': !fullscreen && drawerState.closeBtnOutside
       }"
         [class.bg-darkening]="drawerState.visible && !drawerState.closing"
         [class.bg-lightening]="drawerState.closing"
@@ -29,7 +30,7 @@ import {Subject, takeUntil} from "rxjs";
           (clickOutside)="onClickOutside()"
         >
           <app-dismiss-button
-            (close)="close()"
+            (closed)="close()"
             [isOutside]="drawerState.closeBtnOutside"
           ></app-dismiss-button>
           <!-- Render the content if we have it -->
@@ -43,15 +44,37 @@ import {Subject, takeUntil} from "rxjs";
   `,
   styles: [
     `
+      /* Room for the dialog to breathe without spending height a tall dialog needs. */
+      .overlay-inset {
+        padding: 1.25rem;
+      }
+
+      /* The close button that hangs outside the shell needs its corner kept on screen. */
+      .overlay-inset-roomy {
+        padding: 2.75rem;
+      }
+
+      /* A dialog taller than the viewport is scrolled by the overlay, not by a box inside the
+         card: the scrollbar then rides the backdrop instead of carving a gutter out of the
+         content. Centring is done with auto margins, which give way under overflow where
+         align-items: center would crop the top. */
+      .overlay-scroll {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(250, 246, 248, 0.32) transparent;
+      }
+
       .embedded {
+        margin: auto;
         border-radius: 1rem;
         width: fit-content;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 10px 15px -3px rgba(44, 37, 48, 0.1), 0 4px 6px -4px rgba(44, 37, 48, 0.1);
         max-width: min(48rem, 95%);
       }
 
       .bg-overlay {
-        background-color: rgba(0, 0, 0, 0); /* Initial transparent state */
+          background-color: transparent; /* Initial transparent state */
         transition: background-color 0.4s ease;
       }
 
@@ -65,19 +88,19 @@ import {Subject, takeUntil} from "rxjs";
 
       @keyframes fadeInBackground {
         from {
-          background-color: rgba(0, 0, 0, 0);
+          background-color: transparent;
         }
         to {
-          background-color: rgba(0, 0, 0, 0.80); /* Final dark state */
+          background-color: rgba(44, 37, 48, 0.80); /* Final dark state */
         }
       }
 
       @keyframes fadeOutBackground {
         from {
-          background-color: rgba(0, 0, 0, 0.80);
+          background-color: rgba(44, 37, 48, 0.80);
         }
         to {
-          background-color: rgba(0, 0, 0, 0); /* Back to transparent */
+          background-color: transparent; /* Back to transparent */
         }
       }
 
@@ -105,13 +128,12 @@ import {Subject, takeUntil} from "rxjs";
   ],
 })
 export class PopupTemplateComponent implements OnInit, OnDestroy {
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+
   private readonly destroy$ = new Subject<void>();
   @Input() fullscreen = false;
   drawerState!: DrawerState;
   private ignoreClicks = true;
-
-  constructor(private popupTemplateStateService: PopupTemplateStateService) {
-  }
 
   ngOnInit() {
     this.popupTemplateStateService.drawerState$
@@ -138,8 +160,8 @@ export class PopupTemplateComponent implements OnInit, OnDestroy {
     this.popupTemplateStateService.close();
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.drawerState.visible) {
       this.close();
     }

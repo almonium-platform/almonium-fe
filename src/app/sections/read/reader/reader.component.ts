@@ -1,63 +1,35 @@
-import {
-  AfterViewChecked,
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  NgZone,
-  OnDestroy,
-  OnInit,
-  Pipe,
-  PipeTransform,
-  ViewChild
-} from '@angular/core';
+import {logger} from "../../../shared/logger";
+import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule, SlicePipe} from '@angular/common';
-import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {EMPTY, filter, finalize, Subject, Subscription} from 'rxjs';
-import {catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {FormsModule} from '@angular/forms';
+import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
+import {getErrorMessage} from '../../../shared/http-error';
+import {catchError, debounceTime, distinctUntilChanged, takeUntil, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
-import {TuiDataListDropdownManager, TuiSliderComponent} from "@taiga-ui/kit";
-import {ActivatedRoute} from "@angular/router";
+import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
+import {ActivatedRoute, Router} from "@angular/router";
 import {BookLanguageVariant} from "../book.model";
-import {TuiActiveZone} from "@taiga-ui/cdk";
-import {DomSanitizer, SafeHtml} from "@angular/platform-browser";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
-import {PopupTemplateStateService} from "../../../shared/modals/popup-template/popup-template-state.service";
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
 import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
 import {ParallelModeService} from "../parallel-mode.service";
-import {TuiDataList, TuiDropdownDirective, TuiOptGroup} from "@taiga-ui/core";
-
-interface BlockData {
-  type: 'paragraph' | 'verse' | 'chapter';
-  content: string; // The text content, potentially with <em>/<strong>
-  originalIndex: number; // Use for unique IDs
-}
-
-interface ChapterNavInfo {
-  title: string;     // Always English Title
-  offsetTop: number; // Initial offset from base content (might become slightly inaccurate after height sync)
-  elementId: string; // Original anchor ID (chapX) - keep for reference if needed
-  index: number;     // The 0-based index of this chapter in the list
-}
-
-@Pipe({name: 'safeHtml', standalone: true})
-export class SafeHtmlPipe implements PipeTransform {
-  constructor(private sanitizer: DomSanitizer) {
-  }
-
-  transform(value: string | null | undefined): SafeHtml | null {
-    if (value === null || value === undefined) return null;
-    // Trust the HTML source from Gutenberg (assuming it's safe)
-    return this.sanitizer.bypassSecurityTrustHtml(value);
-  }
-}
+import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/components";
+import {TuiDropdownDirective} from "@taiga-ui/core/portals";
+import {ReaderChapter, ReaderDomService} from './reader-dom.service';
+import {ReaderProgressTracker} from './reader-progress-tracker.service';
+import {LearningActivityService} from '../../../services/learning-activity.service';
+import {LanguageCode} from '../../../models/language.enum';
+import {ReaderPosition} from './reader-position.model';
+import {isUuid} from '../../../shared/runtime-validation';
+import {UserInfoService} from '../../../services/user-info.service';
+import {BookHtmlPipe} from './book-html.pipe';
+import {WordCardComponent} from '../word-card/word-card.component';
+import {CEFRLevel} from '../../../models/userinfo.model';
 
 @Component({
   selector: 'app-reader',
@@ -65,7 +37,6 @@ export class SafeHtmlPipe implements PipeTransform {
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
     SharedLucideIconsModule,
     ButtonComponent,
     TuiSliderComponent,
@@ -76,41 +47,53 @@ export class SafeHtmlPipe implements PipeTransform {
     ParallelTranslationComponent,
     TuiDataListDropdownManager,
     ParallelSettingsComponent,
-    ParallelFormatPipe,
-    ParallelFormatPipe,
-    ParallelFormatPipe,
     TuiDropdownDirective,
     TuiOptGroup,
     TuiDataList,
+    BookHtmlPipe,
+    WordCardComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ReaderDomService, ReaderProgressTracker],
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
+  private cdRef = inject(ChangeDetectorRef);
+  private readService = inject(ReadService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private ngZone = inject(NgZone);
+  private parallelModeService = inject(ParallelModeService);
+  private readerDom = inject(ReaderDomService);
+  private progressTracker = inject(ReaderProgressTracker);
+  private learningActivity = inject(LearningActivityService);
+  private userInfoService = inject(UserInfoService);
+
   // --- Element References ---
-  @ViewChild('readerContainer') readerContainerRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('tocTrigger', {read: ElementRef}) private tocTrigger?: ElementRef<HTMLElement>;
+  @ViewChild('settingsPanel', {read: ElementRef}) private settingsPanel?: ElementRef<HTMLElement>;
 
   // --- State Properties ---
-  private processedContent: string = '';    // Raw text from backend
-  protected blocks: BlockData[] = [];       // Parsed blocks for rendering
-  protected chapterNav: ChapterNavInfo[] = []; // Store chapter offsets for navigation
-  private hasMeasuredChapters: boolean = false; // Flag to ensure we measure only once
+  protected chapterNav: ReaderChapter[] = [];
+  private hasMeasuredChapters = false; // Flag to ensure we measure only once
 
-  protected bookHtmlContent: string = ''; // Store the raw HTML from backend
-  protected baseBookHtmlContent: string = ''; // Store the raw HTML from backend
+  protected bookHtmlContent = ''; // Store the raw HTML from backend
+  protected baseBookHtmlContent = ''; // Store the raw HTML from backend
 
-  protected isLoading: boolean = true;          // General loading state
-  protected isLoadingParallel: boolean = false; // Specific loading state for parallel text
+  protected isLoading = true;          // General loading state
+  protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
-  protected bookId: number | null = null;
-  protected currentBaseLanguage: string = 'EN'; // Assume base is EN, adjust if needed
+  protected bookId: string | null = null;
+  private bookSlug: string | null = null;
+  private privateBookId: string | null = null;
+  private trackProgress = false;
 
   // --- Native Scroll State ---
-  protected currentScrollPercentage: number = 0; // Current scroll position (0-100)
+  protected currentScrollPercentage = 0; // Current scroll position (0-100)
   private isScrollingProgrammatically = false;  // Flag to prevent scroll event loops
 
   // --- RxJS Subjects and Subscriptions ---
@@ -131,45 +114,46 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // --- Press and Hold Scrolling State ---
   private scrollIntervalId: ReturnType<typeof setInterval> | null = null;
   private scrollHoldTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private isHoldingForScroll: boolean = false;
+  private isHoldingForScroll = false;
   private readonly SCROLL_HOLD_DELAY = 350;
   private readonly SCROLL_INTERVAL_DELAY = 50;
 
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookLanguageVariant[] = [];
-  protected languageSelectControl = new FormControl<string | null>(null);
-  protected isParallelViewActive: boolean = false; // Still needed to know *if* content has translations
+  protected isParallelViewActive = false; // Still needed to know *if* content has translations
   private currentlyOpenFluentSpan: HTMLElement | null = null;
 
-  protected isAtScrollTop: boolean = true; // ADDED: True initially
-  protected isAtScrollBottom: boolean = false; // ADDED: False initially
+  protected isAtScrollTop = true; // ADDED: True initially
+  protected isAtScrollBottom = false; // ADDED: False initially
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
+  protected companionSlug: string | null = null;
   protected targetLangCode: string | null = null; // Language of the book being read
+  /** The word card (G1): the entry and the sentence it was met in, or null while closed. */
+  protected wordCard: {entry: string; context: string} | null = null;
+  protected bookTitle = '';
+  protected bookLevel: CEFRLevel | null = null;
+  /** The settings panel (G5) lives in the bottom bar, where its effect is visible behind it. */
+  protected parallelSettingsOpen = false;
+  protected selectedLookupText = '';
+  private selectedLookupContext = '';
 
   private isSyncingHeights = false;
 
-  private progressUpdate$ = new Subject<number>();
-  private lastSavedPercentage: number = -1; // Track last saved value
-  private readonly SAVE_DEBOUNCE_TIME = 750; // Wait ms after scrolling stops
-  private readonly SAVE_THROTTLE_TIME = 10000; // Save at most every 30s
   private initialScrollPercentage: number | null = null;
-  private initialScrollApplied: boolean = false;
+  private initialPosition: ReaderPosition | null = null;
+  private initialScrollApplied = false;
   private isDestroyed = false;
+  private baseLoadSubscription: Subscription | null = null;
+  private bookDetailsSubscription: Subscription | null = null;
+  private heightSyncTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private chapterScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private chapterMeasurementFrameId: number | null = null;
+  private chapterNavigationDropdown: TuiDropdownDirective | null = null;
 
-  private needsHeightSync: boolean = false;
-  protected mode: 'side' | 'overlay' | 'inline' = 'inline'; // Default to side-by-side
-
-  constructor(
-    private cdRef: ChangeDetectorRef,
-    private readService: ReadService,
-    private route: ActivatedRoute,
-    private ngZone: NgZone,
-    private parallelModeService: ParallelModeService,
-    private popupTemplateStateService: PopupTemplateStateService,
-  ) {
-  }
+  private needsHeightSync = false;
 
   // --- Lifecycle Hooks ---
 
@@ -177,13 +161,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
-    this.setupProgressSaving();
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
         const previousMode = this.currentParallelMode;
         if (previousMode !== mode) {
-          console.log('Reader received new parallel mode:', mode);
+          logger.debug('Reader received new parallel mode:', mode);
+          if (this.isParallelViewActive && this.fluentLangCode) {
+            this.updateScrollState();
+            if (this.trackProgress) this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${mode}`);
+          }
           this.currentParallelMode = mode;
           this.cdRef.markForCheck(); // Trigger pipe re-evaluation
 
@@ -199,75 +186,101 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
       });
 
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const bookId = params['id'];
-      this.bookId = bookId ? +bookId : null;
-      if (this.bookId) {
-        // Reset state for new book load
-        this.initialScrollPercentage = null; // Reset scroll target
-        this.lastSavedPercentage = -1;    // Reset last saved progress
-        this.initialScrollApplied = false; // Reset flag for initial scroll
-        this.isLoading = true; // Ensure loading starts true
-        this.chapterNav = [];
-        this.hasMeasuredChapters = false;
-        this.cdRef.markForCheck(); // Update view for loader
-
-        // Fetch metadata FIRST (or parallel is fine, just store the value)
-        this.fetchBookData(this.bookId);
-
-        // Load the actual book content
-        this.loadBookHtml(this.bookId, true);
-
-        // Setup listener for language selection changes AFTER initial load might start
-        this.setupLanguageSelectionListener();
-      } else {
-        this.handleError("Invalid Book ID.");
-      }
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.resetForBook();
+      const privateId = params.get('id');
+      const slug = params.get('slug');
+      if (privateId) this.openPrivateBook(privateId);
+      else if (slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) this.openPublicBook(slug);
+      else this.handleError($localize`Invalid book reference.`);
     });
   }
 
-  private setupProgressSaving(): void {
-    this.progressUpdate$.pipe(
-      // 1. Debounce: Only react when scrolling might have paused
-      debounceTime(this.SAVE_DEBOUNCE_TIME),
-      // 2. Distinct: Only save if the rounded percentage actually changed since last emission
-      distinctUntilChanged(),
-      // 3. Filter: Don't save if essential info is missing
-      filter(() => !!this.bookId),
-      // 4. Throttle: Limit saves during periods of frequent stopping/starting
-      //    leading: false - don't save immediately on first event after throttle window opens
-      //    trailing: true - ensure the *last* debounced value in a burst gets saved after throttle time
-      throttleTime(this.SAVE_THROTTLE_TIME, undefined, {leading: false, trailing: true}),
-      takeUntil(this.destroy$) // Unsubscribe on component destroy
-    ).subscribe(percentage => {
-      // Check if it's different from the very last *saved* value
-      if (percentage !== this.lastSavedPercentage) {
-        console.log(`Throttled save triggered for percentage: ${percentage}`);
-        // Use switchMap if you want to cancel previous pending saves, though less critical with throttling
-        this.readService.saveProgress(this.bookId!, percentage)
-          .subscribe(() => {
-            this.lastSavedPercentage = percentage; // Update last saved value on success
-          });
-      } else {
-        console.log(`Skipping throttled save, percentage ${percentage} hasn't changed since last save.`);
-      }
+  private resetForBook(): void {
+    this.initialScrollPercentage = null;
+    this.initialPosition = null;
+    this.initialScrollApplied = false;
+    this.isLoading = true;
+    this.chapterNav = [];
+    this.hasMeasuredChapters = false;
+    this.parallelVersions = [];
+    this.selectedLookupText = '';
+    this.selectedLookupContext = '';
+    this.wordCard = null;
+    this.parallelSettingsOpen = false;
+    this.bookTitle = '';
+    this.bookLevel = null;
+    this.cdRef.markForCheck();
+  }
+
+  private openPublicBook(slug: string): void {
+    this.bookSlug = slug;
+    this.privateBookId = null;
+    this.readService.getPublicBook(slug).pipe(takeUntil(this.destroy$)).subscribe({
+      next: book => {
+        this.bookId = book.id;
+        this.targetLangCode = book.language;
+        this.bookTitle = book.title;
+        this.bookLevel = book.cefrLevel;
+        this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id);
+        this.trackProgress = this.userInfoService.currentUserInfo !== null;
+        this.startCountingReadingTime(book.language);
+        if (this.trackProgress) {
+          this.initialPosition = this.progressTracker.startBook(book.id);
+          this.fetchBookData(book.id);
+        }
+        this.loadBookHtml(slug, true);
+        const requested = this.route.snapshot.queryParamMap.get('parallel');
+        if (requested && this.parallelVersions.some(variant => variant.editionSlug === requested)) {
+          this.selectOption(requested);
+        }
+      },
+      error: error => this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
     });
   }
 
-  @HostListener('window:beforeunload', ['$event'])
-  unloadNotification($event: BeforeUnloadEvent): void {
-    this.saveProgressOnExit(true); // Attempt beacon save
+  private openPrivateBook(id: string): void {
+    if (!isUuid(id)) {
+      this.handleError($localize`Invalid private book ID.`);
+      return;
+    }
+    this.privateBookId = id;
+    this.bookSlug = null;
+    this.bookId = id;
+    this.trackProgress = false;
+    this.readService.getBookImport(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: book => {
+        // A ready private book always has a detected language; only a stale link could reach here without one.
+        if (book.language) {
+          this.targetLangCode = book.language;
+          this.startCountingReadingTime(book.language);
+        }
+        this.bookTitle = book.title;
+        this.loadBookHtml(id, true);
+      },
+      error: error => this.handleError(getErrorMessage(error, $localize`Could not load private book.`)),
+    });
+  }
+
+  @HostListener('window:beforeunload')
+  unloadNotification(): void {
+    this.updateScrollState();
+    if (this.trackProgress) this.progressTracker.saveOnExit(true);
   }
 
   // Schedules the height sync after Angular has rendered changes
   private scheduleHeightSync(): void {
     if (this.currentParallelMode !== 'side' || !this.readerContentRef) {
-      console.log("Skipping height sync: Not in side mode or content ref missing.");
+      logger.debug("Skipping height sync: Not in side mode or content ref missing.");
       return;
     }
-    console.log("Scheduling height synchronization...");
+    logger.debug("Scheduling height synchronization...");
     // Use setTimeout to queue it after the current rendering cycle
-    setTimeout(() => {
+    if (this.heightSyncTimeoutId !== null) {
+      clearTimeout(this.heightSyncTimeoutId);
+    }
+    this.heightSyncTimeoutId = setTimeout(() => {
+      this.heightSyncTimeoutId = null;
       this.synchronizeColumnHeights();
     }, 10);
   }
@@ -281,201 +294,93 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     this.isSyncingHeights = true;
-    console.log("Synchronizing PARAGRAPH heights within columns, section by section...");
-    const contentElement = this.readerContentRef.nativeElement;
-
-    // --- Step 1: Identify the wrapper elements that contain ONE pair of columns ---
-    // Assuming your pipe wraps each chapter in a <div class="chapter"> (or similar)
-    // Adjust '.chapter' selector if your pipe uses a different wrapper class/tag.
-    const sectionWrappers = contentElement.querySelectorAll<HTMLElement>('.chapter'); // <-- ADJUST SELECTOR if needed
-
-    if (!sectionWrappers || sectionWrappers.length === 0) {
-      console.warn("Height Sync: Could not find any section wrappers (e.g., '.chapter'). Falling back to old method (might be incorrect).");
-      // Optional: Add fallback to old logic here if needed, but it's likely flawed.
-      // this.synchronizeSingleColumnPair(contentElement); // Example fallback
-      this.isSyncingHeights = false;
-      return;
-    }
-
-    let overallChangesMade = false;
-
-    // --- Step 2: Iterate through each section wrapper ---
-    sectionWrappers.forEach((wrapper, index) => {
-      const mainCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-main');
-      const secondaryCol = wrapper.querySelector<HTMLDivElement>('.sbs-column-secondary');
-
-      if (!mainCol || !secondaryCol) {
-        console.error(`  Height sync FAILED for Section ${index + 1}. One or both columns not found. Check pipe output.`);
-        return;
-      }
-
-      const mainBlocks = Array.from(mainCol.querySelectorAll<HTMLElement>('p, h2'));
-      const secondaryBlocks = Array.from(secondaryCol.querySelectorAll<HTMLElement>('p, h2'));
-      if (mainBlocks.length !== secondaryBlocks.length) {
-        console.warn(`  Section ${index + 1}: Mismatch in block count (Main: ${mainBlocks.length} vs Secondary: ${secondaryBlocks.length}).`);
-      } else {
-        console.log(`  Section ${index + 1}: Block counts match (Main: ${mainBlocks.length}, Secondary: ${secondaryBlocks.length}).`);
-      }
-
-      let sectionChangesMade = false;
-      const numBlocksToAlign = Math.min(mainBlocks.length, secondaryBlocks.length);
-      // console.log(`  Section ${index + 1}: Aligning ${numBlocksToAlign} block pairs.`);
-
-      // --- Step 5: Synchronize heights for blocks in THIS section ---
-      for (let i = 0; i < numBlocksToAlign; i++) {
-        const targetP = mainBlocks[i];
-        const fluentP = secondaryBlocks[i];
-
-        // Reset heights first
-        targetP.style.minHeight = '';
-        fluentP.style.minHeight = '';
-        // Consider resetting margin if it interferes
-        // targetP.style.marginBottom = '';
-        // fluentP.style.marginBottom = '';
-
-        // Force reflow (offsetHeight does this implicitly)
-        const targetHeight = targetP.offsetHeight;
-        const fluentHeight = fluentP.offsetHeight;
-        const maxHeight = Math.max(targetHeight, fluentHeight);
-
-        // Apply the max height if different (use a small tolerance)
-        const tolerance = 1; // pixels
-        if (Math.abs(targetHeight - maxHeight) > tolerance) {
-          targetP.style.minHeight = `${maxHeight}px`;
-          sectionChangesMade = true;
-        }
-        if (Math.abs(fluentHeight - maxHeight) > tolerance) {
-          fluentP.style.minHeight = `${maxHeight}px`;
-          sectionChangesMade = true;
-        }
-        // Optional: Ensure consistent bottom margin if needed
-        // targetP.style.marginBottom = '1em'; // Example
-        // fluentP.style.marginBottom = '1em'; // Example
-      }
-
-      if (sectionChangesMade) {
-        overallChangesMade = true;
-      }
-    }); // End loop through sectionWrappers
-
-    console.log(`Section-by-section height synchronization complete. Overall changes applied: ${overallChangesMade}`);
+    const changesMade = this.readerDom.synchronizeParallelColumns(this.readerContentRef.nativeElement);
     this.isSyncingHeights = false;
 
-    // Trigger Angular updates if needed
-    if (overallChangesMade) {
-      // Use ngZone run if updates happen outside Angular's direct knowledge often
-      // this.ngZone.run(() => {
-      this.updateScrollState(); // Essential after height changes
-      this.scheduleChapterOffsetMeasurement(); // Recalculate chapter offsets
-      this.cdRef.markForCheck(); // Let Angular know things changed
-      // });
+    if (changesMade) {
+      this.updateScrollState();
+      this.scheduleChapterOffsetMeasurement();
+      this.cdRef.markForCheck();
     }
   }
 
   // --- Example method to handle mode-specific logic ---
-  protected onContentClick(event: MouseEvent): void {
+  protected onContentClick(event: Event): void {
+    if (this.currentParallelMode === 'side' && this.isParallelViewActive) {
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-alignment]') : null;
+      const content = this.readerContentRef.nativeElement;
+      content.querySelectorAll('.is-aligned-current').forEach(item => item.classList.remove('is-aligned-current'));
+      const key = target?.dataset['alignment'];
+      if (key && /^\d+-\d+-\d+$/.test(key)) {
+        content.querySelectorAll(`[data-alignment="${key}"]`).forEach(item => item.classList.add('is-aligned-current'));
+      }
+      return;
+    }
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
       return;
     }
-    const target = event.target as HTMLElement;
-
-    // Find the segment that was clicked (must be the main/target segment)
-    const clickedSegment = target.closest('.seg-pair > .segment');
-
-    // Helper to close any currently visible translation
-    const closeOpenSegment = () => {
-      const openSegment = this.readerContentRef.nativeElement.querySelector('.fluent-segment-overlay.is-visible');
-      if (openSegment) {
-        openSegment.classList.remove('is-visible');
-      }
-    };
-
-    if (!clickedSegment) {
-      // If the click was outside a main segment, just close any open translation
-      closeOpenSegment();
-      return;
-    }
-
-    // Find the fluent translation that is a sibling to the clicked segment's parent
-    const overlayWrapper = clickedSegment.parentElement?.querySelector('.fluent-segment-overlay');
-
-    if (overlayWrapper) {
-      // If the clicked segment's translation is already visible, close it.
-      if (overlayWrapper.classList.contains('is-visible')) {
-        closeOpenSegment();
-      } else {
-        // Otherwise, close any other open one and show this one.
-        closeOpenSegment();
-        overlayWrapper.classList.add('is-visible');
-      }
-    }
+    this.readerDom.toggleOverlayTranslation(this.readerContentRef.nativeElement, event.target);
   }
 
-// --- Language Selection Listener ---
-  private setupLanguageSelectionListener(): void {
-    this.languageSelectControl.valueChanges
-      .pipe(
-        takeUntil(this.destroy$),
-        distinctUntilChanged(), // Compare previous selection if needed
-        tap(langCode => {
-            console.log("Language selected:", langCode);
-            // Fetch the parallel content
-            if (this.currentlyOpenFluentSpan) {
-              this.currentlyOpenFluentSpan.hidden = true;
-              this.currentlyOpenFluentSpan = null;
-            }
-            this.isParallelViewActive = false; // Tentatively set false
-            if (langCode) this.isLoadingParallel = true; // Show loader only if selecting a lang
-            this.cdRef.markForCheck();
-          }
-        ),
-        // Use switchMap to automatically cancel previous load request if user selects quickly
-        switchMap(langCode => {
-          if (langCode && this.bookId) {
-            this.isLoadingParallel = true; // Show parallel loading indicator
-            this.isParallelViewActive = false; // Tentatively set false until loaded
-            this.cdRef.markForCheck();
+  protected captureLookupSelection(): void {
+    const selection = window.getSelection();
+    const content = this.readerContentRef?.nativeElement;
+    if (!selection || selection.isCollapsed || !content || !selection.anchorNode || !content.contains(selection.anchorNode)) {
+      return;
+    }
+    const text = selection.toString().trim().replace(/\s+/g, ' ');
+    if (!text || text.length > 80) return;
+    const sourceElement = selection.anchorNode.parentElement?.closest('p, li, blockquote, div');
+    const paragraph = sourceElement?.textContent?.trim().replace(/\s+/g, ' ') ?? text;
+    const context = sentenceAround(paragraph, text).slice(0, 500);
+    // A word or a short phrase opens the card in place; a longer stretch goes to Discover as a sentence.
+    if (text.split(' ').length <= 3) {
+      this.selectedLookupText = '';
+      this.selectedLookupContext = '';
+      this.wordCard = {entry: text, context};
+    } else {
+      this.selectedLookupText = text;
+      this.selectedLookupContext = context;
+    }
+    this.cdRef.markForCheck();
+  }
 
-            return this.readService.getParallelText(this.bookId, langCode).pipe(
-              catchError(error => {
-                // Handle error within the stream
-                this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
-                return EMPTY; // Prevent observable from completing on error
-              })
-            );
-          } else {
-            // Language deselected (or null initially), revert to base
-            this.revertToBaseContent();
-            return EMPTY; // Don't proceed with network call
-          }
-        })
-      )
-      .subscribe({
-        next: (response) => {
-          // Handle successful response from getParallelText
-          if (response.status === 200 && response.body) {
-            try {
-              this.bookHtmlContent = this.arrayBufferToString(response.body); // Store in current display
-              this.isParallelViewActive = true;   // Now parallel view is active
-              this.isLoadingParallel = false;
-              this.errorMessage = null;         // Clear previous errors
-              console.log(`Loaded parallel HTML content for ${this.languageSelectControl.value}.`);
-              this.cdRef.markForCheck();
-              this.scheduleChapterOffsetMeasurement(); // Remeasure layout
-              this.scrollToPercentage(0); // Scroll to top
-            } catch (e) {
-              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
-            }
-          } else {
-            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
-          }
-        }
-      });
+  protected closeWordCard(): void {
+    this.wordCard = null;
+    this.cdRef.markForCheck();
+  }
+
+  /** The language the card translates into: the pair being read, else the reader's first other fluent language. */
+  protected get cardTranslationLanguage(): LanguageCode {
+    if (this.fluentLangCode && this.fluentLangCode !== this.targetLangCode) return this.fluentLangCode as LanguageCode;
+    const fluent = this.userInfoService.currentUserInfo?.fluentLangs.find(language => language !== this.targetLangCode);
+    if (fluent) return fluent;
+    return this.targetLangCode === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
+  }
+
+  protected get cardLanguage(): LanguageCode {
+    return (this.targetLangCode as LanguageCode | null) ?? LanguageCode.EN;
+  }
+
+  protected openSelectionInDiscover(): void {
+    if (!this.selectedLookupText) return;
+    void this.router.navigate(['/discover'], {
+      queryParams: {text: this.selectedLookupText, context: this.selectedLookupContext},
+    });
+  }
+
+  protected dismissLookupSelection(): void {
+    this.selectedLookupText = '';
+    this.selectedLookupContext = '';
+    window.getSelection()?.removeAllRanges();
+    this.cdRef.markForCheck();
   }
 
   // Specific handler for load errors
   private handleLoadError(loadType: 'base' | 'parallel', message: string): void {
-    this.handleError(`Error loading ${loadType} content: ${message}`); // Show error
+    this.handleError(loadType === 'parallel'
+      ? $localize`Error loading parallel content: ${message}:message:`
+      : $localize`Error loading base content: ${message}:message:`); // Show error
     this.isLoading = false;
     this.isLoadingParallel = false;
     // Option: Revert to base content if parallel load failed?
@@ -500,14 +405,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   ngAfterViewChecked(): void {
     // Try to measure chapters ONLY ONCE after base load
     if (!this.hasMeasuredChapters && !this.isLoading && this.baseBookHtmlContent && !this.isParallelViewActive) {
-      console.log("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
+      logger.debug("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
       const measured = this.measureChapterOffsets(); // Try measuring base content
       if (measured) {
         this.hasMeasuredChapters = true; // Mark as done
-        console.log("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
+        logger.debug("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
         this.cdRef.markForCheck(); // Update ToC dropdown
       } else {
-        console.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
+        logger.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
       }
     }
 
@@ -525,43 +430,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   ngOnDestroy(): void {
     this.isDestroyed = true;
     this.clearScrollHoldTimers();
+    this.clearScheduledWork();
+    this.baseLoadSubscription?.unsubscribe();
+    this.bookDetailsSubscription?.unsubscribe();
     this.parallelLoadSubscription?.unsubscribe();
-    this.saveProgressOnExit(false); // Attempt regular save
+    this.updateScrollState();
+    if (this.trackProgress) this.progressTracker.saveOnExit(false);
+    this.learningActivity.stop();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private saveProgressOnExit(useBeacon: boolean): void {
-    console.log(`Attempting save on exit (useBeacon: ${useBeacon})`);
-    if (this.bookId && this.currentScrollPercentage !== this.lastSavedPercentage) {
-      const book = this.bookId;
-      const percentage = this.currentScrollPercentage;
-
-      if (useBeacon) {
-        // Try Beacon API first for ungraceful exit
-        const success = this.readService.sendProgressBeacon(book, percentage);
-        if (success) {
-          this.lastSavedPercentage = percentage; // Assume success if beacon sends
-        } else {
-          // Beacon failed or not supported - maybe a quick sync localStorage save as fallback?
-          console.warn("Beacon save failed/unsupported during unload.");
-          // localStorage.setItem(`reading_progress_${book}`, percentage.toString());
-        }
-      } else {
-        // Regular HTTP call for graceful exit (ngOnDestroy)
-        this.readService.saveProgress(book, percentage)
-          .subscribe(() => {
-            this.lastSavedPercentage = percentage;
-            console.log("Saved progress during ngOnDestroy");
-          });
-      }
-    } else {
-      console.log("Skipping save on exit: required data missing or percentage unchanged.");
-    }
+  /** Reading counts for the harness whether or not the book's own progress is stored on the server. */
+  private startCountingReadingTime(language: LanguageCode): void {
+    if (this.userInfoService.currentUserInfo) this.learningActivity.start('READ', language);
   }
 
 // Modify loadBookHtml to trigger the scroll AFTER load
-  private loadBookHtml(bookId: number, isBase: boolean = false): void {
+  private loadBookHtml(bookId: string, isBase = false): void {
     if (isBase) {
       this.isLoading = true;
       this.isParallelViewActive = false;
@@ -573,46 +459,59 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.errorMessage = null;
     if (isBase) this.baseBookHtmlContent = '';
     this.bookHtmlContent = '';
-    this.chapterNav = [];
+    if (isBase) this.chapterNav = [];
     this.cdRef.markForCheck();
     this.needsHeightSync = false
 
     const stream$ = isBase
-      ? this.readService.loadBook(bookId)
-      : this.readService.getParallelText(bookId, this.fluentLangCode!); // Use selectedLangCode here
+      ? this.privateBookId
+        ? this.readService.loadPrivateBook(bookId)
+        : this.readService.loadPublicBook(bookId)
+      : this.readService.getPublicParallelText(bookId, this.companionSlug!);
 
-    stream$.pipe(takeUntil(this.destroy$)).subscribe({
+    if (isBase) {
+      this.baseLoadSubscription?.unsubscribe();
+    }
+    const subscription = stream$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
           try {
-            const fetchedHtml = this.arrayBufferToString(response.body);
-            this.bookHtmlContent = fetchedHtml;
+            const fetchedHtml = this.readerDom.decode(response.body);
             if (isBase) {
               this.baseBookHtmlContent = fetchedHtml;
-              this.isParallelViewActive = false;
+              if (!this.isParallelViewActive) this.bookHtmlContent = fetchedHtml;
             } else {
+              this.bookHtmlContent = fetchedHtml;
               this.isParallelViewActive = true;
             }
 
             this.isLoading = false;
-            this.isLoadingParallel = false;
+            if (!isBase) this.isLoadingParallel = false;
             this.errorMessage = null;
-            console.log(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
+            logger.debug(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
             this.currentlyOpenFluentSpan = null;
             this.cdRef.markForCheck(); // Ensure view updates with content
+
+            // The reader content is behind an @if while the book is loading, so its
+            // ViewChild does not exist during ngAfterViewInit. Measure after this
+            // response has caused the base content view to render.
+            if (isBase) this.scheduleChapterOffsetMeasurement();
 
             if (this.currentParallelMode === 'side') {
               this.needsHeightSync = true;
             }
           } catch (e) {
-            this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to decode content: ${e instanceof Error ? e.message : String(e)}`);
+            this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to decode content: ${e instanceof Error ? e.message : String(e)}:reason:`);
           }
         } else {
-          this.handleLoadError(isBase ? 'base' : 'parallel', `Failed to load content. Status: ${response.status}`);
+          this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to load content. Status: ${response.status}:status:`);
         }
       },
-      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', error?.error?.message || 'Unknown error loading content.'),
+      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, $localize`Unknown error loading content.`)),
     });
+    if (isBase) {
+      this.baseLoadSubscription = subscription;
+    }
   }
 
   // attemptInitialScroll checks everything and scrolls if needed
@@ -623,29 +522,42 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
 
     // Conditions: Not loading, target known, not applied yet, wrapper exists
-    if (!this.isLoading && !this.isLoadingParallel && this.initialScrollPercentage !== null && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
-      const target = this.initialScrollPercentage;
+    const hasInitialTarget = this.initialPosition !== null || this.initialScrollPercentage !== null;
+    if (!this.isLoading && !this.isLoadingParallel && hasInitialTarget && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
+      const wrapper = this.readerContentWrapperRef.nativeElement;
+      const targetPercentage = this.initialPosition?.percentage ?? this.initialScrollPercentage ?? 0;
       // Add extra check for scrollHeight to ensure layout is likely ready
-      const scrollHeight = this.readerContentWrapperRef.nativeElement.scrollHeight;
-      const clientHeight = this.readerContentWrapperRef.nativeElement.clientHeight;
+      const scrollHeight = wrapper.scrollHeight;
+      const clientHeight = wrapper.clientHeight;
 
-      if (scrollHeight > 0 && (scrollHeight > clientHeight || target === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
-        console.log(`Attempting initial scroll to target: ${target}% (scrollHeight: ${scrollHeight})`);
-        this.scrollToPercentage(target);
+      if (scrollHeight > 0 && (scrollHeight > clientHeight || targetPercentage === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
+        if (this.initialPosition && this.readerContentRef?.nativeElement) {
+          const targetScrollTop = this.readerDom.scrollTopForPosition(
+            wrapper,
+            this.readerContentRef.nativeElement,
+            this.initialPosition,
+          );
+          logger.debug(`Restoring precise local reader position at ${targetScrollTop}px.`);
+          this.setScrollTop(targetScrollTop);
+        } else {
+          logger.debug(`Restoring server reader progress at ${targetPercentage}%.`);
+          this.scrollToPercentage(targetPercentage);
+        }
         this.initialScrollApplied = true; // Mark as applied
+        this.updateScrollState();
       } else {
-        console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): scrollHeight not ready or not scrollable. scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${target}`);
+        logger.debug(`Skipped initial scroll attempt: scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${targetPercentage}`);
       }
-    } else if (!this.initialScrollApplied && this.initialScrollPercentage !== null) {
+    } else if (!this.initialScrollApplied && hasInitialTarget) {
       // Log only if we expected to scroll but didn't yet
-      // console.log(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
+      // logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
     }
   }
 
 
   // Reverts the view to the base language content
   private revertToBaseContent(): void {
-    console.log("Reverting to base content.");
+    logger.debug("Reverting to base content.");
 
     // Check if content or state actually needs reverting
     if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.fluentLangCode !== null) {
@@ -653,41 +565,45 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.isParallelViewActive = false;
       this.currentlyOpenFluentSpan = null;
       this.fluentLangCode = null;
+      this.companionSlug = null;
+      this.initialPosition = this.trackProgress ? this.progressTracker.startPresentation('base') : null;
+      this.initialScrollPercentage = this.initialPosition ? null : this.currentScrollPercentage;
 
       this.isLoadingParallel = false;
       this.cdRef.markForCheck();
 
       this.initialScrollApplied = false; // Re-apply the scroll when content changes
-      console.log("Reverted to base, flags set for ngAfterViewChecked.");
+      logger.debug("Reverted to base, flags set for ngAfterViewChecked.");
     } else {
-      console.log("Already in base content state.");
+      logger.debug("Already in base content state.");
     }
   }
 
   // Placeholder fetch for parallel languages options
-  private fetchBookData(bookId: number): void {
-    this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
+  private fetchBookData(bookId: string): void {
+    this.bookDetailsSubscription?.unsubscribe();
+    this.bookDetailsSubscription = this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
         if (book) {
           this.targetLangCode = book.language; // <-- ADD THIS LINE
-          console.log(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
-          this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
-          this.initialScrollPercentage = book.progressPercentage ?? 0;
-          console.log(`Stored initial scroll target: ${this.initialScrollPercentage}%`);
+          logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
+          this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
+          if (!this.initialPosition) {
+            this.initialScrollPercentage = book.progressPercentage ?? 0;
+            logger.debug(`Stored server scroll fallback: ${this.initialScrollPercentage}%`);
+          }
           this.cdRef.markForCheck();
         }
       },
-      error: (error) => console.error('Error fetching book details for parallel options:', error)
+      error: (error) => logger.error('Error fetching book details for parallel options:', error)
     });
   }
 
   // General error handler
   private handleError(message: string): void {
-    console.error("Reader Error:", message);
+    logger.error("Reader Error:", message);
     this.errorMessage = message;
     this.isLoading = false;
-    this.processedContent = '';
-    this.blocks = [];
     this.chapterNav = [];
     this.currentScrollPercentage = 0;
     this.cdRef.markForCheck();
@@ -697,78 +613,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): boolean {
-    // This function should now ONLY run successfully ONCE for BASE content
     if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
       return this.hasMeasuredChapters;
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
-    const wrapperElement = this.readerContentWrapperRef?.nativeElement;
+    if (!contentElement || this.isLoading) return false;
 
-    if (!contentElement || !wrapperElement || this.isLoading) {
-      console.warn("measureChapterOffsets (Base): Prerequisites not met.");
-      return false;
-    }
-
-    console.log("Measuring BASE chapter offsets from rendered HTML (using H2 IDs)..."); // Updated log
-    const newChapterNav: ChapterNavInfo[] = [];
-
-    // Find original H2s in BASE content
-    const headingElements = contentElement.querySelectorAll('h2');
-    console.log(`Base Mode Measurement: Found ${headingElements.length} potential chapter heading H2s.`);
-
-    headingElements.forEach((headingElement: HTMLElement, index: number) => {
-      let title = `Chapter ${index + 1}`;
-      let elementId = '';
-      let offsetTop = headingElement.offsetTop ?? 0;
-
-      // ********* ID: Get the ID directly from the H2 element *********
-      elementId = headingElement.id; // <<<< CHANGE IS HERE
-
-      // Check if the H2 actually has an ID and optionally if it matches the pattern
-      if (!elementId /* || !elementId.startsWith('chap') */) { // <<<< ADDED CHECK
-        // If no ID (or pattern doesn't match), skip this chapter.
-        console.warn(`Chapter measurement (Base): H2 at index ${index} lacks an ID (or required pattern 'chap*'). Skipping this chapter.`);
-        console.log('Problematic H2:', headingElement); // Log the element for easier debugging
-        return; // Skip this iteration
-      }
-      // ***************************************************************
-
-
-      // Title: ALWAYS use English title from base H2 structure (No change needed here)
-      const titleSpan = headingElement.querySelector<HTMLElement>(`span.segment[lang="${this.targetLangCode}"]`);
-
-// And update the if statement to use the new variable:
-      if (titleSpan) {
-        title = titleSpan.innerText?.replace(/\s+/g, ' ').trim() || title;
-      } else {
-        // Fallback for non-parallel headers
-        title = headingElement.innerText?.replace(/\s+/g, ' ').trim() || title;
-      }
-
-      // Store chapter info with its index
-      // console.log(`Storing Base Chapter: ${title} (ID: ${elementId}, Index: ${index}) at offset ${offsetTop}px`);
-      newChapterNav.push({
-        title: title,         // English title
-        offsetTop: offsetTop, // Initial offset
-        elementId: elementId, // Original ID from H2
-        index: index          // Store the index
-      });
-
-    }); // End forEach loop
-
-    this.chapterNav = newChapterNav.sort((a, b) => a.offsetTop - b.offsetTop); // Store sorted list
-    console.log(`Stored ${this.chapterNav.length} base chapters using H2 IDs.`); // Updated log
-
-    return this.chapterNav.length > 0; // Return true if we found any chapters
+    this.chapterNav = this.readerDom.measureChapters(contentElement, this.targetLangCode);
+    return this.chapterNav.length > 0;
   }
 
 
   // Schedules chapter measurement reliably after view updates
   private scheduleChapterOffsetMeasurement(): void {
-    requestAnimationFrame(() => {
+    if (this.chapterMeasurementFrameId !== null) {
+      cancelAnimationFrame(this.chapterMeasurementFrameId);
+    }
+    this.chapterMeasurementFrameId = requestAnimationFrame(() => {
+      this.chapterMeasurementFrameId = null;
       if (this.isDestroyed) {
-        console.log("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
+        logger.debug("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
         return;
       }
       const measurementSuccess = this.measureChapterOffsets();
@@ -776,7 +641,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.updateScrollState(); // Update scroll state based on new measurements
         this.cdRef.markForCheck(); // Update dropdown
       } else {
-        console.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
+        logger.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
       }
     });
   }
@@ -788,7 +653,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      console.log('Window resized...');
+      logger.debug('Window resized...');
       this.scheduleChapterOffsetMeasurement(); // Keep chapter remeasurement
       // Also re-sync heights if in side-by-side mode
       if (this.currentParallelMode === 'side') {
@@ -806,7 +671,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(percentage => {
-      console.log(`Slider target percentage: ${percentage}`);
+      logger.debug(`Slider target percentage: ${percentage}`);
       this.scrollToPercentage(percentage);
     });
   }
@@ -841,59 +706,29 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Calculates and updates the current scroll percentage state
   private updateScrollState(): void {
     if (!this.readerContentWrapperRef) return;
-    const element = this.readerContentWrapperRef.nativeElement;
-    const scrollTop = element.scrollTop;
-    const scrollHeight = element.scrollHeight;
-    const clientHeight = element.clientHeight;
-    const scrollThreshold = 2; // Small pixel threshold to account for rounding/subpixels
-    let newPercentage: number; // Calculate the new percentage
+    const state = this.readerDom.getScrollState(this.readerContentWrapperRef.nativeElement);
+    this.isAtScrollTop = state.isAtTop;
+    this.isAtScrollBottom = state.isAtBottom;
 
-    if (scrollHeight <= clientHeight) {
-      // Content doesn't scroll or is exactly fitting
-      newPercentage = scrollTop <= scrollThreshold ? 0 : 100; // Consider it 0 if at top, 100 if scrolled down somehow
-      this.isAtScrollTop = true;
-      this.isAtScrollBottom = true;
-    } else {
-      // Standard percentage calculation
-      const calculatedPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      newPercentage = Math.max(0, Math.min(100, Math.round(calculatedPercentage))); // Round to nearest integer
-
-      this.isAtScrollTop = scrollTop <= scrollThreshold;
-      this.isAtScrollBottom = scrollTop >= (scrollHeight - clientHeight - scrollThreshold);
+    if (state.percentage !== this.currentScrollPercentage) {
+      this.currentScrollPercentage = state.percentage;
     }
 
-    // Only update the property and emit if the rounded percentage has changed
-    if (newPercentage !== this.currentScrollPercentage) {
-      console.log(`Scroll state updated: New percentage = ${newPercentage}%`); // Optional log
-      this.currentScrollPercentage = newPercentage; // Update the component property
-      this.progressUpdate$.next(newPercentage);   // Emit the change for saving logic
+    if (this.trackProgress && this.initialScrollApplied && this.readerContentRef?.nativeElement) {
+      const position = this.readerDom.capturePosition(
+        this.readerContentWrapperRef.nativeElement,
+        this.readerContentRef.nativeElement,
+      );
+      this.progressTracker.update(state.percentage, position);
     }
   }
 
 // Keep the guards in scrollToPercentage
   private scrollToPercentage(percentage: number): void {
-    console.log(`Executing scrollToPercentage: ${percentage}%`);
-    if (!this.readerContentWrapperRef?.nativeElement) {
-      console.warn(`scrollToPercentage (${percentage}%): Wrapper ref not available.`);
-      return;
-    }
-
+    if (!this.readerContentWrapperRef?.nativeElement) return;
     const element = this.readerContentWrapperRef.nativeElement;
-    const scrollHeight = element.scrollHeight;
-    const clientHeight = element.clientHeight;
-
-    if (scrollHeight <= 0 || clientHeight <= 0) {
-      console.warn(`scrollToPercentage (${percentage}%): Invalid dimensions (scrollHeight=${scrollHeight}, clientHeight=${clientHeight}). Cannot scroll.`);
-      return;
-    }
-    if (scrollHeight <= clientHeight) {
-      console.log(`scrollToPercentage (${percentage}%): Content not scrollable (scrollHeight <= clientHeight).`);
-      return;
-    }
-
-    const targetScrollTop = (percentage / 100) * (scrollHeight - clientHeight);
-    console.log(`scrollToPercentage (${percentage}%): Calculated targetScrollTop=${Math.round(targetScrollTop)} from scrollHeight=${scrollHeight}, clientHeight=${clientHeight}`);
-    this.setScrollTop(Math.round(targetScrollTop));
+    const targetScrollTop = this.readerDom.scrollTopForPercentage(element, percentage);
+    if (targetScrollTop !== null) this.setScrollTop(targetScrollTop);
   }
 
   // Centralized method to set scrollTop and manage the programmatic scroll flag
@@ -901,9 +736,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
 
-    // Clamp value to valid scroll range
-    const maxScrollTop = Math.max(0, element.scrollHeight - element.clientHeight);
-    const clampedValue = Math.max(0, Math.min(value, maxScrollTop));
+    const clampedValue = this.readerDom.clampScrollTop(element, value);
 
     // Only scroll if the value is actually different
     if (Math.round(element.scrollTop) === Math.round(clampedValue)) {
@@ -922,7 +755,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     // Reset the flag shortly after, outside Angular zone
     this.ngZone.runOutsideAngular(() => {
-      setTimeout(() => {
+      if (this.scrollFlagTimeoutId !== null) {
+        clearTimeout(this.scrollFlagTimeoutId);
+      }
+      this.scrollFlagTimeoutId = setTimeout(() => {
+        this.scrollFlagTimeoutId = null;
         this.isScrollingProgrammatically = false;
       }, this.SCROLL_UPDATE_THROTTLE_TIME + 50); // Delay slightly longer than throttle time
     });
@@ -972,19 +809,19 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Touch & Hold Scroll ---
   // Flag start/end of touch interaction
-  protected onTouchStart(event: TouchEvent): void {
+  protected onTouchStart(): void {
     this.isTouching = true;
     this.clearScrollHoldTimers(); // Prevent hold scroll if touch interaction starts
   }
 
-  protected onTouchMove(event: TouchEvent): void { /* Browser handles native scroll */
+  protected onTouchMove(): void { /* Browser handles native scroll */
   }
 
-  protected onTouchEnd(event: TouchEvent): void {
+  protected onTouchEnd(): void {
     this.isTouching = false;
   }
 
-  protected onTouchCancel(event: TouchEvent): void {
+  protected onTouchCancel(): void {
     this.isTouching = false;
   }
 
@@ -1027,11 +864,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     // If it wasn't a hold scroll that activated, AND not currently touching
     if (!wasHoldScrollActive && !this.isTouching) {
-      console.log("Performing single page action on click/release.");
+      logger.debug("Performing single page action on click/release.");
       if (triggerAction === 'prev') this.prevPage();
       else this.nextPage();
     } else if (wasHoldScrollActive) {
-      console.log("Hold scroll stopped.");
+      logger.debug("Hold scroll stopped.");
     }
     // isHoldingForScroll is reset in clearScrollHoldTimers
   }
@@ -1101,81 +938,86 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
+  protected onContentHover(event: Event): void {
+    const content = this.readerContentRef?.nativeElement;
+    if (!content || this.currentParallelMode !== 'side') return;
+    const segment = event.target instanceof Element ? event.target.closest<HTMLElement>('.sbs-segment') : null;
+    content.querySelectorAll('.sbs-segment.is-current').forEach(item => item.classList.remove('is-current'));
+    const pair = segment?.dataset['pair'];
+    if (!pair || !/^\d+$/.test(pair)) return;
+    content.querySelectorAll<HTMLElement>(`.sbs-segment[data-pair="${pair}"]`).forEach(item => item.classList.add('is-current'));
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected closeChapterNavigation(event: MouseEvent): void {
+    const target = event.target;
+    if (target instanceof Node && this.tocTrigger?.nativeElement.contains(target)) return;
+    this.chapterNavigationDropdown?.toggle(false);
+    // The settings panel closes on any click outside it; the menu item that opened it is inside a dropdown list.
+    if (this.parallelSettingsOpen && target instanceof Node
+      && !this.settingsPanel?.nativeElement.contains(target)
+      && !(target instanceof Element && target.closest('tui-data-list'))) {
+      this.closeParallelSettings();
+    }
+  }
+
+  protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
+    this.chapterNavigationDropdown = dropdown;
+    dropdown.toggle(!dropdown.ref());
+  }
+
   // --- Chapter Navigation ---
   // Scrolls to the measured offsetTop of a selected chapter
   protected jumpToChapter(chapterIndex: number): void { // Parameter is index
     if (this.isLoading || !this.readerContentWrapperRef || chapterIndex < 0 || chapterIndex >= this.chapterNav.length) {
-      console.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
+      logger.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
       return;
     }
 
     const contentElement = this.readerContentRef?.nativeElement;
     if (!contentElement) {
-      console.warn(`Cannot jump: contentElement not available.`);
+      logger.warn(`Cannot jump: contentElement not available.`);
       return;
     }
 
     // 1. Get the stored info, including the unique elementId ('chapX')
     const targetChapterInfo = this.chapterNav[chapterIndex];
-    if (!targetChapterInfo || !targetChapterInfo.elementId) {
-      console.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
+    if (!targetChapterInfo?.elementId) {
+      logger.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
       return;
     }
 
-    console.log(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
+    logger.debug(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
 
-    let elementToScrollTo: HTMLElement | null = null;
-
-    try {
-      // 2. Find the element DIRECTLY BY ITS ID - REMOVE THE FILTERING
-      elementToScrollTo = contentElement.querySelector<HTMLElement>(`#${targetChapterInfo.elementId}`);
-
-      if (!elementToScrollTo) {
-        console.warn(`Cannot jump: Could not find element with ID '${targetChapterInfo.elementId}' within contentElement.`);
-        return; // Exit if element not found by ID
-      }
-
-    } catch (error) {
-      console.error("Error during DOM query in jumpToChapter:", error);
-      return; // Exit on error
-    }
+    const elementToScrollTo = this.readerDom.findChapter(contentElement, targetChapterInfo.elementId);
 
     // Perform the scroll if element found
     if (elementToScrollTo) {
-      console.log(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
+      logger.debug(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
       elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
       // Update percentage after scroll finishes
-      setTimeout(() => {
+      if (this.chapterScrollTimeoutId !== null) {
+        clearTimeout(this.chapterScrollTimeoutId);
+      }
+      this.chapterScrollTimeoutId = setTimeout(() => {
+        this.chapterScrollTimeoutId = null;
         if (!this.isDestroyed) {
           this.updateScrollState();
           this.cdRef.markForCheck();
         }
       }, 350); // Increased timeout slightly just in case
     } else {
-      console.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
+      logger.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
     }
   }
 
 // Modify selectChapter to pass the INDEX
   protected selectChapter(chapterIndex: number): void { // Parameter is now index
-    console.log("Chapter selected by index:", chapterIndex);
+    logger.debug("Chapter selected by index:", chapterIndex);
     if (chapterIndex !== null && chapterIndex >= 0) {
       this.jumpToChapter(chapterIndex);
     } else {
-      console.warn("Invalid index received from chapter selection:", chapterIndex);
-    }
-  }
-
-  // Decodes ArrayBuffer response to string
-  private arrayBufferToString(buffer: ArrayBuffer): string {
-    try {
-      const decoder = new TextDecoder('utf-8', {fatal: true});
-      return decoder.decode(buffer);
-    } catch (e) {
-      console.warn("UTF-8 decoding failed, trying fallback.", e);
-      // Fallback to windows-1252 or latin1 might be needed depending on source files
-      const decoder = new TextDecoder('windows-1252');
-      return decoder.decode(buffer);
+      logger.warn("Invalid index received from chapter selection:", chapterIndex);
     }
   }
 
@@ -1185,17 +1027,52 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   get availableLangs(): string[] {
-    console.log('Recalculating availableLangs'); // Add this to see how often it runs
+    logger.debug('Recalculating availableLangs'); // Add this to see how often it runs
     return this.langs.filter(l => l !== this.fluentLangCode);
+  }
+
+  get availableEditions(): BookLanguageVariant[] {
+    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug);
+  }
+
+  editionLabel(edition: BookLanguageVariant): string {
+    const kind = edition.editionType?.replaceAll('_', ' ') ?? 'edition';
+    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}`;
+  }
+
+  get companionLabel(): string {
+    const edition = this.parallelVersions.find(item => item.editionSlug === this.companionSlug);
+    return edition ? this.editionLabel(edition) : '';
   }
 
   private parallelLoadSubscription: Subscription | null = null;
 
-  selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
-    console.log(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
+  private clearScheduledWork(): void {
+    if (this.heightSyncTimeoutId !== null) {
+      clearTimeout(this.heightSyncTimeoutId);
+      this.heightSyncTimeoutId = null;
+    }
+    if (this.scrollFlagTimeoutId !== null) {
+      clearTimeout(this.scrollFlagTimeoutId);
+      this.scrollFlagTimeoutId = null;
+    }
+    if (this.chapterScrollTimeoutId !== null) {
+      clearTimeout(this.chapterScrollTimeoutId);
+      this.chapterScrollTimeoutId = null;
+    }
+    if (this.chapterMeasurementFrameId !== null) {
+      cancelAnimationFrame(this.chapterMeasurementFrameId);
+      this.chapterMeasurementFrameId = null;
+    }
+  }
 
-    if (langCode !== null && langCode === this.fluentLangCode) {
-      console.log(`Language ${langCode} is already selected.`);
+  selectOption(editionSlug: string | null): void {
+    const edition = this.parallelVersions.find(item => item.editionSlug === editionSlug);
+    const langCode = edition?.language ?? null;
+    logger.debug(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
+
+    if (editionSlug !== null && editionSlug === this.companionSlug) {
+      logger.debug(`Language ${langCode} is already selected.`);
       // Optionally close the dropdown here if needed, depending on your template structure
       return; // Exit early
     }
@@ -1204,9 +1081,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.parallelLoadSubscription?.unsubscribe();
 
     this.fluentLangCode = langCode;
+    this.companionSlug = edition?.editionSlug ?? null;
 
     // --- 2. Handle Selection ---
-    if (langCode && this.bookId) {
+    if (langCode && this.bookSlug) {
       // --- 2a. Start Loading Process ---
 
       // Perform pre-fetch UI updates (from original 'tap')
@@ -1220,7 +1098,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.cdRef.markForCheck();        // Update UI
 
       // Initiate the network call (from original 'switchMap')
-      this.parallelLoadSubscription = this.readService.getParallelText(this.bookId, langCode).pipe(
+      this.parallelLoadSubscription = this.readService.getPublicParallelText(this.bookSlug, this.companionSlug!).pipe(
         takeUntil(this.destroy$), // Auto-unsubscribe on component destroy
         finalize(() => {
           // Runs on completion, error, or unsubscribe
@@ -1229,7 +1107,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }),
         catchError(error => {
           // Handle error within the stream (from original 'catchError')
-          this.handleLoadError('parallel', error?.error?.message || 'Unknown error fetching parallel content.');
+          this.handleLoadError('parallel', getErrorMessage(error, $localize`Unknown error fetching parallel content.`));
           this.revertToBaseContent(); // Revert UI on error
           return EMPTY; // Prevent observable from completing incorrectly
         })
@@ -1239,28 +1117,31 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           if (response.status === 200 && response.body) {
             try {
               // Decode and update content
-              this.bookHtmlContent = this.arrayBufferToString(response.body);
+              this.bookHtmlContent = this.readerDom.decode(response.body);
               this.isParallelViewActive = true;   // Now parallel view is active
               this.errorMessage = null;         // Clear previous errors
-              console.log(`Loaded parallel HTML content for ${langCode}.`);
+              logger.debug(`Loaded parallel HTML content for ${langCode}.`);
+              this.initialPosition = this.trackProgress
+                ? this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${this.currentParallelMode}`)
+                : null;
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
               // Note: Pipe re-runs automatically due to cdRef.markForCheck()
               if (this.currentParallelMode === 'side') {
                 this.needsHeightSync = true;
               }
-              console.log("Parallel content loaded, flags set for ngAfterViewChecked.");
-              // We also want to reset scroll to top when changing language
-              this.initialScrollPercentage = 0; // Target 0%
+              logger.debug("Parallel content loaded, flags set for ngAfterViewChecked.");
+              // Resume this exact presentation when it has been used before.
+              this.initialScrollPercentage = this.initialPosition ? null : 0;
               this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
             } catch (e) {
               // Handle decoding error
-              this.handleLoadError('parallel', `Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}`);
+              this.handleLoadError('parallel', $localize`Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}:reason:`);
               this.revertToBaseContent(); // Revert UI on decoding error
             }
           } else {
             // Handle non-200 success status
-            this.handleLoadError('parallel', `Failed to load parallel content. Status: ${response.status}`);
+            this.handleLoadError('parallel', $localize`Failed to load parallel content. Status: ${response.status}:status:`);
             this.revertToBaseContent(); // Revert UI on load failure
           }
           // isLoadingParallel is handled by finalize
@@ -1268,8 +1149,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         },
         // Error handler in subscribe is less likely due to catchError, but good practice
         error: (err) => {
-          console.error("Unexpected error in parallel load subscription:", err);
-          this.handleLoadError('parallel', 'An unexpected error occurred during parallel load.');
+          logger.error("Unexpected error in parallel load subscription:", err);
+          this.handleLoadError('parallel', $localize`An unexpected error occurred during parallel load.`);
           this.revertToBaseContent(); // Revert UI on unexpected error
           // isLoadingParallel is handled by finalize
           this.cdRef.markForCheck();
@@ -1278,7 +1159,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
     } else {
       // --- 2b. Language Deselected or Missing bookId: Revert to Base ---
-      console.log("Reverting to base content (no valid language selected or missing bookId).");
+      logger.debug("Reverting to base content (no valid language selected or missing bookId).");
       this.revertToBaseContent();
       // Ensure loader is off if we bail out early
       if (this.isLoadingParallel) {
@@ -1288,9 +1169,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
-  @ViewChild(ParallelSettingsComponent, {static: true}) parallelSettingsComponent!: ParallelSettingsComponent;
-
   openParallelSettings() {
-    this.popupTemplateStateService.open(this.parallelSettingsComponent.content, 'avatar');
+    this.parallelSettingsOpen = !this.parallelSettingsOpen;
+    this.cdRef.markForCheck();
   }
+
+  protected closeParallelSettings(): void {
+    if (!this.parallelSettingsOpen) return;
+    this.parallelSettingsOpen = false;
+    this.cdRef.markForCheck();
+  }
+}
+
+/** The sentence a word was met in: the paragraph cut at the sentence ends on either side of the hit. */
+export function sentenceAround(paragraph: string, hit: string): string {
+  const index = paragraph.toLowerCase().indexOf(hit.toLowerCase());
+  if (index < 0) return paragraph;
+  const boundary = /[.!?…]["”»']?\s/g;
+  let start = 0;
+  let end = paragraph.length;
+  let match: RegExpExecArray | null;
+  while ((match = boundary.exec(paragraph)) !== null) {
+    const cut = match.index + match[0].length;
+    if (cut <= index) start = cut;
+    else if (match.index >= index + hit.length) {
+      end = match.index + match[0].trimEnd().length;
+      break;
+    }
+  }
+  return paragraph.slice(start, end).trim();
 }

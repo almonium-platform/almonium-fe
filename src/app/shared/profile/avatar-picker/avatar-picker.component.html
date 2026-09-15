@@ -1,0 +1,69 @@
+<section class="avatar-picker" [class.member]="userInfo.premium">
+  <!--
+    28b: the letter is one option among six in this row, so it is drawn in the same monochrome
+    material as the five engravings - the plain ground, never a hashed hue. A colour the user
+    cannot choose has no place on a control whose whole job is choosing.
+
+    30c / 32: every tile is a pair - the engraving at 62px above, the schematic at 24px below -
+    because the small one is what people will mostly see. One tap selects both; the ring wraps
+    both. Onboarding draws this same row, with no preview circle: the engraving is the preview.
+
+    33: the selected tile is the only place on your own pages that wears the member star, and it
+    wears it in the corner of the engraving, because that is where other readers will see it -
+    the row is a preview of how you appear, not another badge for a tier you already know you
+    hold. The schematic below stays bare: beside a name the star follows the name.
+  -->
+  <div class="tile-row" role="group" aria-label="How you appear" i18n-aria-label>
+    <button
+      type="button"
+      class="tile letter-tile"
+      [class.selected]="!userInfo.avatarUrl"
+      [disabled]="busyUrl !== undefined"
+      (click)="useLetter()"
+      aria-label="Use your letter" i18n-aria-label
+      [attr.aria-pressed]="!userInfo.avatarUrl"
+    >
+      <span class="engraving">
+        <span class="disc disc-large avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
+        @if (userInfo.premium && !userInfo.avatarUrl) {
+          <app-premium-star class="corner-star" label="Premium member" i18n-label />
+        }
+      </span>
+      <span class="disc disc-small avatar-ground"><span class="avatar-letter">{{ letter }}</span></span>
+    </button>
+
+    @for (choice of choices; track choice.path) {
+      <button
+        type="button"
+        class="tile"
+        [class.selected]="isSelected(choice)"
+        [disabled]="busyUrl !== undefined"
+        (click)="chooseAvatar(choice)"
+        [attr.aria-label]="choiceLabel(choice)"
+        [attr.aria-pressed]="isSelected(choice)"
+      >
+        <span class="engraving">
+          <span class="disc disc-large avatar-plate">
+            @if (userInfo.premium) {
+              <span class="gradient-artwork" [style.mask-image]="choiceMask(choice)" [style.-webkit-mask-image]="choiceMask(choice)"></span>
+            } @else {
+              <img [src]="displayChoiceUrl(choice)" alt="" />
+            }
+          </span>
+          @if (userInfo.premium && isSelected(choice)) {
+            <app-premium-star class="corner-star" label="Premium member" i18n-label />
+          }
+        </span>
+        <span class="disc disc-small avatar-plate">
+          @if (userInfo.premium) {
+            <span class="gradient-artwork avatar-schematic" [style.mask-image]="smallMask(choice)" [style.-webkit-mask-image]="smallMask(choice)"></span>
+          } @else {
+            <img class="avatar-schematic" [src]="choice.small" alt="" />
+          }
+        </span>
+      </button>
+    }
+  </div>
+
+  <p i18n class="picker-caption">Your letter, or one of five drawings. The small one is how you appear in chats.</p>
+</section>

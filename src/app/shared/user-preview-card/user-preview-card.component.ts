@@ -1,41 +1,36 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {logger} from "../logger";
+import {getErrorMessage} from '../http-error';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject} from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
 import {AvatarComponent} from "../avatar/avatar.component";
-import {ButtonComponent} from "../button/button.component";
 import {SharedLucideIconsModule} from "../shared-lucide-icons.module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {
-  TuiAlertService,
-  TuiAutoColorPipe,
-  TuiDataListComponent,
-  TuiDropdownDirective,
-  TuiDropdownOptionsDirective, TuiOptionNew
-} from "@taiga-ui/core";
-import {TuiChip, TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiDataListComponent, TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
+import {TuiDropdownDirective, TuiDropdownOptionsDirective} from "@taiga-ui/core/portals";
+import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {SocialService} from "../../sections/social/social.service";
 import {ConfirmModalComponent} from "../modals/confirm-modal/confirm-modal.component";
 import {StreamChat, User} from "stream-chat";
 import {environment} from "../../../environments/environment";
-import {AppConstants} from "../../app.constants";
 import {BehaviorSubject, finalize, Subject, takeUntil} from "rxjs";
 import {UserInfoService} from "../../services/user-info.service";
 import {UserInfo} from "../../models/userinfo.model";
 import {ChatClientService} from "stream-chat-angular";
 import {Router} from "@angular/router";
-import {RelationshipAction} from "../../sections/social/social.model";
-import {NgClass} from "@angular/common";
+import {RelationshipAction} from "../relationship.model";
+import {LanguageNameService} from "../../services/language-name.service";
+import {TargetLanguageWithProficiency} from "../../onboarding/language-setup/language-setup.model";
+import {sharedItemsFirst} from './user-preview-card-display';
+import {AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'app-user-preview-card',
   imports: [
     AvatarComponent,
-    ButtonComponent,
     SharedLucideIconsModule,
     ReactiveFormsModule,
-    TuiAutoColorPipe,
-    TuiChip,
     TuiDataListComponent,
     TuiDataListDropdownManager,
     TuiDropdownDirective,
@@ -43,21 +38,28 @@ import {NgClass} from "@angular/common";
     TuiDropdownOptionsDirective,
     ConfirmModalComponent,
     TuiSkeleton,
-    NgClass,
-    TuiOptionNew
+    TuiOption,
+    AsyncPipe,
   ],
   templateUrl: './user-preview-card.component.html',
   styleUrl: './user-preview-card.component.less'
 })
 export class UserPreviewCardComponent implements OnInit, OnDestroy {
+  private userService = inject(ProfileService);
+  private userInfoService = inject(UserInfoService);
+  private socialService = inject(SocialService);
+  private chatService = inject(ChatClientService);
+  private alertService = inject(TuiNotificationService);
+  private router = inject(Router);
+  private languageNameService = inject(LanguageNameService);
+
   @Input() userId!: string;
   @Input() publicProfile: UserProfileInfo | null = null;
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   // constant to store how many interests to display
   protected readonly MAX_INTERESTS = 4;
-  protected readonly MAX_TARGET_LANGS = 4;
-  protected readonly MAX_FLUENT_LANGS = 4;
+  protected readonly MAX_TARGET_LANGS = 3;
   private readonly destroy$ = new Subject<void>();
   private userInfo: UserInfo | null = null;
 
@@ -65,7 +67,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private chatClient: StreamChat;
 
   // confirm modal settings
-  protected isConfirmModalVisible: boolean = false;
+  protected isConfirmModalVisible = false;
   protected modalTitle = '';
   protected modalMessage = '';
   protected modalConfirmText = '';
@@ -75,22 +77,19 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
   private dropdownOpen = false;
+  private pointerInside = false;
+  private authenticatedPerspectiveFor: string | null = null;
+  protected targetLanguagesExpanded = false;
+  protected interestsExpanded = false;
 
-  protected buttonConfig = {
+  protected buttonConfig: {label: string; icon: string; appearance: 'primary' | 'secondary'; action: () => void} = {
     label: '',
     icon: '',
-    action: () => {
-    },
+    appearance: 'primary',
+    action: () => undefined,
   };
 
-  constructor(
-    private userService: ProfileService,
-    private userInfoService: UserInfoService,
-    private socialService: SocialService,
-    private chatService: ChatClientService,
-    private alertService: TuiAlertService,
-    private router: Router,
-  ) {
+  constructor() {
     this.chatClient = StreamChat.getInstance(environment.streamChatApiKey);
   }
 
@@ -110,18 +109,45 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
         return;
       }
       this.userInfo = info;
+      this.loadAuthenticatedProfilePerspective();
       const userId = this.userInfo.id;
-      const userToken = this.userInfo.streamChatToken;
+      const userToken = this.userInfoService.streamChatToken;
+      if (!userToken) {
+        return;
+      }
       const userName = this.userInfo.username;
 
       const user: User = {
         id: userId,
         name: userName,
-        image: this.userInfo.avatarUrl ?? `https://getstream.io/random_png/?name=${userName}`,
+        image: this.userInfo.avatarUrl ?? undefined,
       };
 
-      this.chatService.init(environment.streamChatApiKey, user, userToken);
+      void this.chatService.init(environment.streamChatApiKey, user, userToken);
     });
+  }
+
+  private loadAuthenticatedProfilePerspective(): void {
+    if (!this.publicProfile
+      || !this.userInfo
+      || this.userInfo.id === this.publicProfile.id
+      || this.authenticatedPerspectiveFor === this.publicProfile.id) {
+      return;
+    }
+
+    this.authenticatedPerspectiveFor = this.publicProfile.id;
+    this.userService.getUserProfile(this.publicProfile.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: profile => {
+          this.userProfileInfo = profile;
+          this.setButtonConfig();
+        },
+        error: error => {
+          this.authenticatedPerspectiveFor = null;
+          logger.warn('Could not load the authenticated profile perspective', error);
+        },
+      });
   }
 
   private populateUserProfileInfo() {
@@ -140,55 +166,59 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
 
   private setButtonConfig(): void {
     if (!this.userProfileInfo) {
-      console.error('No user profile, cannot set button config');
+      logger.error('No user profile, cannot set button config');
       return;
 
     }
     switch (this.userProfileInfo.relationshipStatus) {
-      case 'FRIENDS':
+      case RelationshipStatus.FRIENDS:
         this.buttonConfig = {
-          label: 'Message',
+          label: $localize`Message`,
           icon: 'message-circle',
+          appearance: 'secondary',
           action: this.openChat.bind(this),
         };
         break;
-      case 'PENDING_INCOMING':
+      case RelationshipStatus.PENDING_INCOMING:
         this.buttonConfig = {
-          label: 'Accept Request',
+          label: $localize`Accept Request`,
           icon: 'user-round-plus',
+          appearance: 'primary',
           action: this.acceptFriendRequest.bind(this),
         };
         break;
-      case 'PENDING_OUTGOING':
+      case RelationshipStatus.PENDING_OUTGOING:
         this.buttonConfig = {
-          label: 'Cancel Request',
+          label: $localize`Cancel Request`,
           icon: 'x',
+          appearance: 'secondary',
           action: this.cancelFriendRequest.bind(this),
         };
         break;
-      case "STRANGER":
+      case RelationshipStatus.STRANGER:
         if (this.userProfileInfo.acceptsRequests) {
-          console.log('User accepts requests');
+          logger.debug('User accepts requests');
           this.buttonConfig = {
-            label: 'Send Request',
+            label: $localize`Add friend`,
             icon: 'user-round-plus',
+            appearance: 'primary',
             action: this.sendFriendRequest.bind(this),
           };
         } else {
           this.buttonConfig = {
             label: '',
             icon: '',
-            action: () => {
-            },
+            appearance: 'primary',
+            action: () => undefined,
           };
         }
         break;
-      case 'BLOCKED':
+      case RelationshipStatus.BLOCKED:
         this.buttonConfig = {
           label: '',
           icon: '',
-          action: () => {
-          },
+          appearance: 'primary',
+          action: () => undefined,
         };
     }
   }
@@ -198,38 +228,113 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     if (isNaN(date.getTime())) {
       throw new Error('Invalid date');
     }
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString($localize.locale, {
+      month: 'long',
       year: 'numeric'
     });
   }
 
+  protected get fluentLanguages(): string {
+    return this.languageNameService.getLanguageNames(this.userProfileInfo?.fluentLangs ?? []).join(', ');
+  }
+
+  protected get targetLanguages(): TargetLanguageWithProficiency[] {
+    const targetLanguages = this.userProfileInfo?.targetLangs ?? [];
+    return sharedItemsFirst(targetLanguages, target => this.isSharedTargetLanguage(target.language));
+  }
+
+  protected get interests(): string[] {
+    const interests = this.userProfileInfo?.interests ?? [];
+    return sharedItemsFirst(interests, interest => this.isSharedInterest(interest));
+  }
+
+  protected languageName(code: string): string {
+    return this.languageNameService.getLanguageName(code);
+  }
+
+  protected isSharedTargetLanguage(code: string): boolean {
+    return new Set<string>(this.userInfo?.targetLangs ?? []).has(code);
+  }
+
+  protected isSharedInterest(interest: string): boolean {
+    const normalizedInterest = interest.trim().toLocaleLowerCase();
+    return this.userInfo?.interests.some(viewerInterest =>
+      viewerInterest.name.trim().toLocaleLowerCase() === normalizedInterest) ?? false;
+  }
+
+  protected get connectionSummary(): string | null {
+    const sharedLanguage = this.targetLanguages.find(target => this.isSharedTargetLanguage(target.language));
+    if (sharedLanguage) {
+      const languageName = this.languageName(sharedLanguage.language);
+      return $localize`Learning ${languageName}:language:, like you`;
+    }
+
+    const sharedInterest = this.interests.find(interest => this.isSharedInterest(interest));
+    return sharedInterest ? $localize`Also interested in ${sharedInterest}:interest:` : null;
+  }
+
+  protected get canManageRelationship(): boolean {
+    return !!this.userInfo && this.userInfo.id !== this.userProfileInfo?.id;
+  }
+
+  protected get canUseRelationshipAction(): boolean {
+    return !!this.userProfileInfo && this.userInfo?.id !== this.userProfileInfo.id;
+  }
+
+  // on the public profile page the card already is the profile, so the link would be a no-op
+  protected get canViewProfile(): boolean {
+    return !this.publicProfile;
+  }
+
+  protected showMore(section: 'languages' | 'interests'): void {
+    if (!this.userProfileInfo) {
+      return;
+    }
+
+    if (this.publicProfile) {
+      if (section === 'languages') {
+        this.targetLanguagesExpanded = true;
+      } else {
+        this.interestsExpanded = true;
+      }
+      return;
+    }
+
+    void this.router.navigate(['/users', this.userProfileInfo.username]);
+  }
+
+  protected viewProfile() {
+    if (!this.userProfileInfo) return;
+    this.closed.emit();
+    void this.router.navigate(['/users', this.userProfileInfo.username]);
+  }
+
   protected prepareUnfriendModal() {
-    this.modalTitle = 'Unfriend';
-    this.modalMessage = 'Are you sure you want to unfriend this user?';
-    this.modalConfirmText = 'Unfriend';
+    this.modalTitle = $localize`Unfriend`;
+    this.modalMessage = $localize`Are you sure you want to unfriend this user?`;
+    this.modalConfirmText = $localize`Unfriend`;
     this.modalAction = () => this.unfriend();
     this.isConfirmModalVisible = true;
   }
 
   protected closeConfirmModal() {
     this.isConfirmModalVisible = false;
+    this.release();
   }
 
   protected confirmModalAction() {
     if (this.modalAction) {
       this.modalAction();
     } else {
-      console.error('No action set for confirm modal');
+      logger.error('No action set for confirm modal');
     }
     this.closeConfirmModal();
   }
 
   prepareBlockModal() {
-    this.modalTitle = 'Block User';
-    this.modalMessage = 'Are you sure you want to block this user?';
-    this.modalConfirmText = 'Block';
+    this.modalTitle = $localize`Block User`;
+    this.modalMessage = $localize`Are you sure you want to block this user?`;
+    this.modalConfirmText = $localize`Block`;
     this.modalAction = () => this.block();
     this.isConfirmModalVisible = true;
   }
@@ -237,12 +342,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   protected block() {
     const userId = this.userProfileInfo?.id;
     if (!userId) {
-      console.error('No user profile');
+      logger.error('No user profile');
       return;
     }
 
-    this.chatClient.blockUser(userId).then(() => {
-    });
+    void this.chatClient.blockUser(userId);
 
     this.loadingSubject$.next(true);
     this.socialService.block(userId)
@@ -252,12 +356,12 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = profileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User blocked', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`User blocked`, {appearance: 'positive'}).subscribe();
           this.userProfileInfo.relationshipStatus = RelationshipStatus.BLOCKED;
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to block user', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to block user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -267,12 +371,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const friendId = this.userProfileInfo?.id;
 
     if (!relationshipId || !friendId) {
-      console.error('No relationshipId or friendId');
+      logger.error('No relationshipId or friendId');
       return;
     }
 
-    this.chatClient.unBlockUser(friendId).then(() => {
-    });
+    void this.chatClient.unBlockUser(friendId);
 
     this.loadingSubject$.next(true);
     this.socialService.patchFriendship(relationshipId, RelationshipAction.UNBLOCK)
@@ -282,11 +385,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('User unblocked', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`User unblocked`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to unblock user', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to unblock user`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -294,7 +397,7 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
   private unfriend() {
     const relationshipId = this.userProfileInfo?.relationshipId;
     if (!relationshipId) {
-      console.error('No user profile or relationshipId');
+      logger.error('No user profile or relationshipId');
       return;
     }
 
@@ -306,11 +409,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('That user is no longer your friend', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`That user is no longer your friend`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to remove friend', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to remove friend`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -319,18 +422,18 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     const relationshipId = this.userProfileInfo?.relationshipId;
 
     if (!this.userProfileInfo || !relationshipId) {
-      console.error('No user profile or relationshipId');
+      logger.error('No user profile or relationshipId');
       return;
     }
 
-    this.router.navigate(['/social'], {queryParams: {chat: relationshipId}}).then();
+    void this.router.navigate(['/social'], {queryParams: {chat: relationshipId}}).then();
   }
 
   private cancelFriendRequest() {
     const relationshipId = this.userProfileInfo?.relationshipId;
 
     if (!relationshipId) {
-      console.error('No relationshipId');
+      logger.error('No relationshipId');
       return;
     }
 
@@ -342,68 +445,48 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('Friend request cancelled', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`Friend request cancelled`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to cancel friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to cancel friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
 
   private acceptFriendRequest(): void {
-    // Capture values in local variables
-    const userProfileInfo = this.userProfileInfo;
     const relationshipId = this.userProfileInfo?.relationshipId;
-    const userInfo = this.userInfo;
 
-    // Check for null in the captured variables
-    if (!userProfileInfo || !userInfo || !userProfileInfo.relationshipId || !relationshipId) {
-      console.error('No user profile or invalid relationshipId');
+    if (!relationshipId) {
+      logger.error('No user profile or invalid relationshipId');
       return;
     }
 
     this.loadingSubject$.next(true);
-    this.socialService.patchFriendship(userProfileInfo.relationshipId, RelationshipAction.ACCEPT)
+    this.socialService.patchFriendship(relationshipId, RelationshipAction.ACCEPT)
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: (userProfileInfo) => {
-          this.createPrivateChat(userInfo.id, userProfileInfo.id, relationshipId)
-            .then(() => {
-              this.userProfileInfo = userProfileInfo;
-              this.setButtonConfig();
+          this.userProfileInfo = userProfileInfo;
+          this.setButtonConfig();
 
-              this.alertService.open('Friend request accepted', {appearance: 'success'}).subscribe();
-            });
+          this.alertService.open($localize`Friend request accepted`, {appearance: 'positive'}).subscribe();
         },
-        error: (error) => console.error(error),
+        error: (error) => logger.error(error),
       });
-  }
-
-  private async createPrivateChat(userId: string, recipientId: string, relationshipId: string) {
-    if (!this.chatClient.user) {
-      throw new Error('User must be connected before creating a chat.');
-    }
-
-    // Unique channel ID (e.g., `private_user1_user2`)
-    const channelId = `private_${relationshipId}`;
-
-    const channel = this.chatService.chatClient.channel('messaging', channelId, {
-      name: AppConstants.PRIVATE_CHAT_NAME,
-      members: [userId, recipientId], // Both users in the private chat
-      created_by_id: userId, // Set creator
-    });
-
-    await channel.create(); // Ensure the channel is created
-    await channel.watch();  // ✅ Fix: Wait for the channel to be initialized
-
-    return channel;
   }
 
   private sendFriendRequest() {
     const userProfileId = this.userProfileInfo?.id;
     if (!userProfileId) {
-      console.error('No user profile id');
+      logger.error('No user profile id');
+      return;
+    }
+
+    if (!this.userInfo) {
+      void this.router.navigate(['/auth'], {
+        queryParams: {returnUrl: `/users/${this.userProfileInfo?.username ?? userProfileId}`},
+      });
       return;
     }
 
@@ -415,11 +498,11 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
           this.userProfileInfo = userProfileInfo;
           this.setButtonConfig();
 
-          this.alertService.open('We notified user about your request', {appearance: 'success'}).subscribe();
+          this.alertService.open($localize`We notified user about your request`, {appearance: 'positive'}).subscribe();
         },
         error: (error) => {
-          console.error(error);
-          this.alertService.open(error.error.message || 'Failed to send friendship request', {appearance: 'error'}).subscribe();
+          logger.error(error);
+          this.alertService.open(getErrorMessage(error, $localize`Failed to send friendship request`), {appearance: 'negative'}).subscribe();
         }
       });
   }
@@ -428,14 +511,33 @@ export class UserPreviewCardComponent implements OnInit, OnDestroy {
     this.dropdownOpen = $event;
     if (!$event) {
       friendDropdown.toggle(false);
+      this.release();
     }
   }
 
+  protected onMouseEnter() {
+    this.pointerInside = true;
+  }
+
   protected onMouseLeave() {
+    this.pointerInside = false;
     setTimeout(() => {
-      if (!this.dropdownOpen) {
-        this.close.emit();
+      if (!this.held) {
+        this.closed.emit();
       }
     }, 10);
+  }
+
+  // The More menu and the confirm dialog both sit outside the card's box; while either is up, a
+  // pointer wandering off the card must not take the card (and the thing it opened) with it.
+  private get held(): boolean {
+    return this.dropdownOpen || this.isConfirmModalVisible;
+  }
+
+  // Once nothing holds the card any more, it closes unless the pointer came back to it.
+  private release() {
+    if (!this.held && !this.pointerInside) {
+      this.closed.emit();
+    }
   }
 }

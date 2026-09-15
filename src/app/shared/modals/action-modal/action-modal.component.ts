@@ -10,9 +10,9 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   ],
   template: `
     @if (isVisible) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.50)]" (pointerdown)="onBackdropPointerDown($event)">
         <div class="bg-white w-auto rounded-3xl max-w-xs sm:max-w-sm p-7 relative motion-preset-slide-up-sm">
-          <app-dismiss-button (close)="onClose()"></app-dismiss-button>
+          <app-dismiss-button (closed)="onClose()"></app-dismiss-button>
           <div class="flex items-center mb-4 flex-row">
             <span class="flex items-center justify-center" style="margin-right: 6px">
               <i [ngClass]="titleIcon"
@@ -23,17 +23,17 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
           </div>
           <p class="text-gray-700 mb-6 mt-6 text-sm" [innerHTML]="message"></p>
           <div class="flex justify-between">
-            <button (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close
+            <button i18n (click)="onClose()" class="hidden sm:block text-gray-950 underline font-bold hover:underline">Close
             </button>
             @if (secondaryActionText) {
               <button (click)="onConfirmTwo()"
-                      class="bg-white border border-black text-black px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
+                      class="bg-white border-[var(--brand-ink)] text-[var(--brand-ink)] px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
                 {{ secondaryActionText }}
               </button>
             }
             @if (primaryActionText) {
               <button (click)="onConfirmOne()"
-                      class="bg-black text-white px-4 py-2 font-bold rounded-3xl hover:bg-gray-800">
+                      class="bg-[var(--brand-ink)] text-white px-4 py-2 font-bold rounded-3xl hover:bg-[var(--brand-pressed)]">
                 {{ primaryActionText }}
               </button>
             }
@@ -44,19 +44,25 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
   `
 })
 export class ActionModalComponent {
-  @Input() isVisible: boolean = false;
-  @Input() title: string = '';
-  @Input() message: string = '';
+  @Input() isVisible = false;
+  @Input() title = '';
+  @Input() message = '';
   @Input() primaryActionText?: string;
   @Input() secondaryActionText?: string;
   @Input() titleIcon?: string;
 
-  @Output() close = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() primaryAction = new EventEmitter<void>();
   @Output() secondaryAction = new EventEmitter<void>();
 
   onClose() {
-    this.close.emit();
+    this.closed.emit();
+  }
+
+  onBackdropPointerDown(event: PointerEvent) {
+    if (event.target === event.currentTarget) {
+      this.onClose();
+    }
   }
 
   onConfirmOne() {
@@ -69,8 +75,8 @@ export class ActionModalComponent {
     this.secondaryAction.emit();
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  handleEscapeKey(_: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  handleEscapeKey() {
     if (this.isVisible) {
       this.onClose();
     }

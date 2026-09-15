@@ -1,56 +1,51 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import {getErrorMessage} from '../../http-error';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
+import {EmblemComponent} from "../../emblem/emblem.component";
 import {DEFAULT_UI_PREFERENCES, UIPreferences, UserInfo} from "../../../models/userinfo.model";
 import {LanguageCode} from "../../../models/language.enum";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
-import {BehaviorSubject, finalize, interval, Subject, takeUntil} from "rxjs";
+import {BehaviorSubject, finalize, forkJoin, interval, map, Observable, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
 import {LucideAngularModule} from "lucide-angular";
 import {ViewportService} from "../../../services/viewport.service";
-import {GifPlayerComponent} from "../../gif-player/gif-player.component";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
-import {TuiBadgedContentComponent, TuiBadgeNotification, TuiDataListDropdownManager} from "@taiga-ui/kit";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
-import {Notification, NotificationType} from "../../notification/notification.model";
-import {
-  TuiAlertService,
-  TuiDataListComponent,
-  TuiDropdownContext,
-  TuiDropdownDirective,
-  TuiOptionNew
-} from "@taiga-ui/core";
+import {Notification, NotificationType, isBookNotification} from "../../notification/notification.model";
+import {BookCoverComponent} from '../../../sections/read/book-cover/book-cover.component';
+import {TuiDataListComponent, TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
+import {TuiDropdownContext, TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
 import {ButtonComponent} from "../../button/button.component";
 import {OverlayscrollbarsModule} from "overlayscrollbars-ngx";
-import {TuiActiveZone} from "@taiga-ui/cdk";
+import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {FirebaseNotificationService} from "../../../services/firebase-notification.service";
-import {AvatarPreviewComponent} from "../../avatar/avatar-preview/avatar-preview.component";
 import {TimerComponent} from "./timer/timer.component";
 import {LocalStorageService} from "../../../services/local-storage.service";
+import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
+import {TuiBadgedContentComponent, TuiBadgeNotification} from "@taiga-ui/kit/components";
+import {LanguageNameService} from "../../../services/language-name.service";
+import {SocialService} from "../../../sections/social/social.service";
+import {RelationshipAction} from "../../relationship.model";
+
+const RECENT_LANGUAGES_KEY = 'recent_target_languages';
+const LANGUAGE_CREST_SESSIONS_KEY = 'language_crest_hint_sessions';
+const LANGUAGE_CREST_SESSION_KEY = 'language_crest_hint_seen';
+const REQUEST_ANSWER_FAILED = $localize`Could not answer the friend request`;
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.less'],
   imports: [
+    BookCoverComponent,
     FormsModule,
     NgClass,
     NgStyle,
@@ -58,8 +53,8 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     RouterLink,
     AvatarComponent,
     ManageAvatarComponent,
+    EmblemComponent,
     LucideAngularModule,
-    GifPlayerComponent,
     SharedLucideIconsModule,
     TuiBadgedContentComponent,
     TuiBadgeNotification,
@@ -71,26 +66,41 @@ import {LocalStorageService} from "../../../services/local-storage.service";
     TuiDataListComponent,
     TuiDataListDropdownManager,
     TuiActiveZone,
-    AvatarPreviewComponent,
     TimerComponent,
-    TuiOptionNew,
+    TuiOption,
   ]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private userInfoService = inject(UserInfoService);
+  private targetLanguageDropdownService = inject(TargetLanguageDropdownService);
+  private popupTemplateStateService = inject(PopupTemplateStateService);
+  private viewportService = inject(ViewportService);
+  private chatUnreadService = inject(ChatUnreadService);
+  private notificationService = inject(NotificationService);
+  private firebaseNotificationService = inject(FirebaseNotificationService);
+  private alertService = inject(TuiNotificationService);
+  private localStorageService = inject(LocalStorageService);
+  private languageNameService = inject(LanguageNameService);
+  private socialService = inject(SocialService);
+
   private readonly destroy$ = new Subject<void>();
 
-  @Input() currentRoute: string = '';
-  @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef>; // Get all dropdown buttons
-  @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef; // Reference to the dropdown
+  @Input() currentRoute = '';
+  @ViewChildren('dropdownItem') dropdownItems!: QueryList<ElementRef<HTMLButtonElement>>; // Get all dropdown buttons
+  @ViewChild('langDropdown', {static: false}) langDropdown!: ElementRef<HTMLElement>; // Reference to the dropdown
+  @ViewChild('languageSearchInput') languageSearchInput?: ElementRef<HTMLInputElement>;
   @ViewChild(ManageAvatarComponent, {static: false}) manageAvatarComponent!: ManageAvatarComponent;
 
   // Properties for toggling popovers and dropdowns
-  protected isProfilePopoverOpen: boolean = false;
-  protected isDiscoverMenuOpen: boolean = false;
-  protected isLanguageDropdownOpen: boolean = false;
-  protected isNotificationOpen: boolean = false;
-  protected isTimerOpen: boolean = false;
-  protected isMobile: boolean = false;
+  protected isProfilePopoverOpen = false;
+  protected isDiscoverMenuOpen = false;
+  protected isLanguageDropdownOpen = false;
+  protected isNotificationOpen = false;
+  protected isTimerOpen = false;
+  protected isMobile = false;
+  protected readonly logoUnfold = new Subject<void>();
 
   // User info
   protected userInfo: UserInfo | null = null;
@@ -99,11 +109,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected currentLanguage!: LanguageCode;
   protected focusedLangIndex = -1; // Index of the currently focused dropdown item
   protected filteredLanguages: LanguageCode[] = [];
-  private targetLanguages: LanguageCode[] = [];
+  protected targetLanguages: LanguageCode[] = [];
+  protected languageSearch = '';
+  protected recentLanguages = this.localStorageService.getItem<LanguageCode[]>(RECENT_LANGUAGES_KEY) ?? [];
+  protected showCrestHint = false;
 
-  private langColors: { [key: string]: string } = {};
-
-  protected replayGifSubject = new Subject<void>();
+  private langColors: Record<string, string> = {};
 
   protected uiPreferences: UIPreferences = DEFAULT_UI_PREFERENCES;
 
@@ -112,6 +123,68 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected unreadNotificationsCount = 0;
 
   protected notifications: Notification[] = [];
+  protected readonly requestActionInProgressIds = new Set<string>();
+  private pendingRequestIds = new Set<string>();
+  private readonly notificationGroupIds = new Map<string, string[]>();
+
+  protected get hasLanguageChoices(): boolean {
+    return this.targetLanguages.length > 1;
+  }
+
+  protected get usesSearchableLanguageMenu(): boolean {
+    return this.targetLanguages.length > 8;
+  }
+
+  protected get stackLanguages(): LanguageCode[] {
+    return this.targetLanguages.filter(language => language !== this.currentLanguage).slice(0, 2);
+  }
+
+  protected get displayedLanguages(): LanguageCode[] {
+    if (!this.usesSearchableLanguageMenu) {
+      return this.filteredLanguages;
+    }
+
+    const query = this.languageSearch.trim().toLocaleLowerCase();
+    if (!query) return this.targetLanguages;
+
+    return this.targetLanguages.filter(language =>
+      language.toLocaleLowerCase().includes(query)
+      || this.getLanguageName(language).toLocaleLowerCase().includes(query)
+    );
+  }
+
+  protected get recentLanguageOptions(): LanguageCode[] {
+    return [...new Set([...this.recentLanguages, ...this.targetLanguages])]
+      .filter(language => language !== this.currentLanguage)
+      .slice(0, 4);
+  }
+
+  protected get languageCrestLabel(): string {
+    // Before a learning language is known the crest is still on screen, so it gets a label that reads without one
+    // rather than one that opens with an empty name.
+    const languageName = this.getLanguageName(this.currentLanguage);
+    const subject = languageName
+      ? $localize`${languageName}:language:, current learning language`
+      : $localize`Current learning language`;
+    return this.hasLanguageChoices ? $localize`${subject}:subject:. Choose another language` : subject;
+  }
+
+  protected switchToLabel(language: LanguageCode): string {
+    const languageName = this.getLanguageName(language);
+    return $localize`Switch to ${languageName}:language:`;
+  }
+
+  protected senderProfileLabel(notification: Notification): string {
+    const sender = notification.senderUsername ?? $localize`the sender`;
+    return $localize`View profile of ${sender}:sender:`;
+  }
+
+  protected readonly anonymousLearner = $localize`Anonymous Learner`;
+  protected readonly notLoggedIn = $localize`Not logged in`;
+
+  protected get shortcutModifier(): string {
+    return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
+  }
 
   get navbarItems() {
     return [
@@ -120,13 +193,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.timer,
         icon: 'timer',
         hasUpdate: this.isTimerRunning(),
+        count: 0,
         action: () => this.toggleTimerPopover()
       },
       {
         name: 'social',
         enabled: this.uiPreferences.navbar.social,
         icon: 'message-circle',
+        // Chat is a debt you clear by opening the thread; a bare dot, never a number.
         hasUpdate: this.hasUnreadMessages,
+        count: 0,
         action: () => this.router.navigate(['/social'])
       },
       {
@@ -134,27 +210,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
         enabled: this.uiPreferences.navbar.notifications,
         icon: 'bell',
         hasUpdate: this.unreadNotificationsCount > 0,
+        // The bell is a debt you clear by reading; it says how many.
+        count: this.unreadNotificationsCount,
         action: () => this.toggleNotificationPopover()
       }
     ];
   }
 
-  constructor(private router: Router,
-              private cdr: ChangeDetectorRef,
-              private userInfoService: UserInfoService,
-              private targetLanguageDropdownService: TargetLanguageDropdownService,
-              private popupTemplateStateService: PopupTemplateStateService,
-              private viewportService: ViewportService,
-              private chatUnreadService: ChatUnreadService,
-              private notificationService: NotificationService,
-              private firebaseNotificationService: FirebaseNotificationService,
-              private alertService: TuiAlertService,
-              private localStorageService: LocalStorageService,
-  ) {
-  }
-
   ngOnInit(): void {
-    this.chatUnreadService.getUnreadCount().subscribe((count) => {
+    this.initializeCrestHint();
+
+    this.chatUnreadService.getUnreadCount().pipe(takeUntil(this.destroy$)).subscribe((count) => {
       this.hasUnreadMessages = count > 0;
       this.cdr.detectChanges();
     });
@@ -183,6 +249,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((targetLanguages) => {
         this.targetLanguages = targetLanguages;
+        this.recentLanguages = this.recentLanguages.filter(language => targetLanguages.includes(language));
         this.cdr.markForCheck();
       });
 
@@ -212,7 +279,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.getNotifications();
       });
 
-    this.firebaseNotificationService.currentMessage$.subscribe((message) => {
+    this.firebaseNotificationService.currentMessage$.pipe(takeUntil(this.destroy$)).subscribe((message) => {
       if (message) {
         this.getNotifications();
       }
@@ -220,10 +287,34 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private getNotifications() {
-    this.notificationService.getNotifications().subscribe((notifications) => {
-      this.notifications = notifications;
-      this.unreadNotificationsCount = notifications.filter(n => !n.readAt).length;
+    this.notificationService.getNotifications().pipe(takeUntil(this.destroy$)).subscribe((notifications) => {
+      this.notifications = this.collapseNotifications(notifications);
+      this.unreadNotificationsCount = this.notifications.filter(n => !n.readAt).length;
+      this.refreshPendingRequests();
     });
+  }
+
+  private collapseNotifications(notifications: Notification[]): Notification[] {
+    const groups = new Map<string, Notification[]>();
+
+    for (const notification of notifications) {
+      // A reading row stands for one fulfilment and is never collapsed with others.
+      const key = isBookNotification(notification) ? notification.id : `${notification.senderId}:${notification.type}`;
+      groups.set(key, [...(groups.get(key) ?? []), notification]);
+    }
+
+    this.notificationGroupIds.clear();
+    const collapsed = [...groups.values()].map(group => {
+      const newest = [...group].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )[0];
+      this.notificationGroupIds.set(newest.id, group.map(notification => notification.id));
+      return {...newest, readAt: group.every(notification => notification.readAt) ? newest.readAt : null};
+    });
+
+    return collapsed.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
   }
 
   ngOnDestroy(): void {
@@ -232,64 +323,93 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   // LANGUAGE DROPDOWN
-  // Shortcut Listener for "Alt + A"
   @HostListener('window:keydown', ['$event'])
   handleKeyboardShortcut(event: KeyboardEvent): void {
-    if (event.ctrlKey && event.key === 'j') {
+    if (!this.hasLanguageChoices || this.isEditableTarget(event.target)) return;
+
+    const modifierPressed = event.metaKey || event.ctrlKey;
+    // With Shift the same key flips the theme (see AppearanceService), so the dropdown leaves it alone.
+    if (modifierPressed && !event.shiftKey && event.key.toLocaleLowerCase() === 'l') {
       event.preventDefault();
-      this.changeToNextLanguage();
+      this.openLanguageDropdown();
+      return;
+    }
+
+    if (modifierPressed && /^[1-9]$/.test(event.key)) {
+      const language = this.displayedLanguages[Number(event.key) - 1];
+      if (language) {
+        event.preventDefault();
+        this.changeLanguage(language);
+      }
     }
   }
 
   changeToNextLanguage(): void {
+    if (!this.targetLanguages.length) return;
     const currentIndex = this.targetLanguages.indexOf(this.currentLanguage);
     const nextIndex = (currentIndex + 1) % this.targetLanguages.length;
     this.changeLanguage(this.targetLanguages[nextIndex]);
   }
 
   toggleLanguageDropdown(): void {
+    if (!this.hasLanguageChoices) return;
     this.isLanguageDropdownOpen = !this.isLanguageDropdownOpen;
-
-    // If dropdown is opening, set focus to the first dropdown item
     if (this.isLanguageDropdownOpen) {
-      this.cdr.detectChanges(); // Trigger change detection to ensure dropdown is rendered
-      setTimeout(() => {
-        this.focusedLangIndex = 0;
-        this.focusOnItem(this.focusedLangIndex); // Focus the first item
-      }, 0);
+      this.focusDropdownEntry();
     } else {
-      this.focusedLangIndex = -1; // Reset focus index when closed
+      this.resetLanguageDropdown();
     }
+  }
+
+  private openLanguageDropdown(): void {
+    this.isLanguageDropdownOpen = true;
+    this.focusDropdownEntry();
+  }
+
+  private focusDropdownEntry(): void {
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      if (this.usesSearchableLanguageMenu) {
+        this.languageSearchInput?.nativeElement.focus();
+        this.focusedLangIndex = -1;
+      } else {
+        this.focusedLangIndex = 0;
+        this.focusOnItem(0);
+      }
+    });
   }
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: MouseEvent): void {
-    // Use a small timeout to ensure dropdown click is not detected as outside click
     setTimeout(() => {
-      if (this.isLanguageDropdownOpen && this.langDropdown && !this.langDropdown.nativeElement.contains(event.target)) {
-        this.isLanguageDropdownOpen = false; // Close dropdown if clicked outside
-        this.cdr.detectChanges(); // Trigger change detection to update the view
+      if (this.isLanguageDropdownOpen && this.langDropdown && event.target instanceof Node && !this.langDropdown.nativeElement.contains(event.target)) {
+        this.closeDropdown();
+        this.cdr.detectChanges();
       }
     }, 50);
   }
 
-  // Keyboard navigation for dropdown
   handleKeydown(event: KeyboardEvent): void {
     if (this.isLanguageDropdownOpen) {
+      const languages = this.displayedLanguages;
       switch (event.key) {
         case 'ArrowDown':
           event.preventDefault();
-          this.focusedLangIndex = (this.focusedLangIndex + 1) % this.filteredLanguages.length; // Move down in the filtered list
+          if (!languages.length) return;
+          this.focusedLangIndex = (this.focusedLangIndex + 1) % languages.length;
           this.focusOnItem(this.focusedLangIndex);
           break;
         case 'ArrowUp':
           event.preventDefault();
-          this.focusedLangIndex = (this.focusedLangIndex - 1 + this.filteredLanguages.length) % this.filteredLanguages.length; // Move up in the filtered list
+          if (!languages.length) return;
+          this.focusedLangIndex = (this.focusedLangIndex - 1 + languages.length) % languages.length;
           this.focusOnItem(this.focusedLangIndex);
           break;
         case 'Enter':
-          event.preventDefault();
-          this.selectLanguage(this.focusedLangIndex);
+          if (this.focusedLangIndex >= 0) {
+            event.preventDefault();
+            this.changeLanguage(languages[this.focusedLangIndex]);
+          }
           break;
         case 'Escape':
           event.preventDefault();
@@ -297,112 +417,144 @@ export class NavbarComponent implements OnInit, OnDestroy {
           break;
       }
     } else if (event.key === 'ArrowDown') {
-      // Open dropdown and directly focus on the first dropdown item when pressing ArrowDown on the main button
       event.preventDefault();
-      this.isLanguageDropdownOpen = true; // Open the dropdown
-      this.cdr.detectChanges(); // Ensure the dropdown items are rendered
-      this.focusedLangIndex = 0; // Focus the first item
-      this.focusOnItem(this.focusedLangIndex); // Set focus to the first dropdown item
+      this.openLanguageDropdown();
     }
   }
 
   focusOnItem(index: number): void {
-    const items = this.dropdownItems.toArray();
-    if (items[index]) {
-      items[index].nativeElement.focus(); // Set focus to the specific item
-    }
+    this.dropdownItems.toArray()[index]?.nativeElement.focus();
   }
 
   changeLanguage(lang: LanguageCode): void {
+    if (!lang) return;
+    const previousLanguage = this.currentLanguage;
     this.currentLanguage = lang;
-    this.isLanguageDropdownOpen = false;
-    this.focusedLangIndex = -1;
+    this.recentLanguages = [previousLanguage, lang, ...this.recentLanguages]
+      .filter((language, index, languages) => language && languages.indexOf(language) === index)
+      .slice(0, 4);
+    this.localStorageService.saveItem(RECENT_LANGUAGES_KEY, this.recentLanguages);
+    this.closeDropdown();
     this.targetLanguageDropdownService.setCurrentLanguage(lang);
   }
 
-  // dynamic styles
-  getButtonStyles(language: string): { color: string, border: string } {
-    const color = this.langColors[language] || 'var(--purple-dark)';
-    return {color: color, border: `1px solid ${color}`};
+  protected getLanguageColor(language: string): string {
+    return this.langColors[language] || '#7A6BB8';
   }
 
-  getButtonStylesDropDown(language: string): { color: string, border: string } {
-    let color = this.langColors[language];
-    color = color ? this.dullColor(color, 0.5) : 'var(--lavender)';
-    return {color: color, border: `1px solid ${color}`};
+  protected getLanguageStyles(language: string): Record<string, string> {
+    return {'--crest-color': this.getLanguageColor(language)};
   }
 
-  private dullColor(hex: string, amount: number): string {
-    let r = parseInt(hex.slice(1, 3), 16);
-    let g = parseInt(hex.slice(3, 5), 16);
-    let b = parseInt(hex.slice(5, 7), 16);
-
-    r = Math.min(255, Math.floor(r + (255 - r) * amount));
-    g = Math.min(255, Math.floor(g + (255 - g) * amount));
-    b = Math.min(255, Math.floor(b + (255 - b) * amount));
-
-    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  protected getLanguageName(language: LanguageCode): string {
+    return this.languageNameService.getLanguageName(language);
   }
 
-  // Handling popovers and dropdowns
-  selectLanguage(index: number): void {
-    if (index >= 0 && index < this.filteredLanguages.length) {
-      this.changeLanguage(this.filteredLanguages[index]);
-    }
+  protected getLanguageLevel(language: LanguageCode): string | null {
+    return this.userInfo?.learners.find(learner => learner.language === language)?.selfReportedLevel ?? null;
+  }
+
+  protected onLanguageSearchChange(): void {
+    this.focusedLangIndex = -1;
+  }
+
+  protected openLanguageSettings(): void {
+    this.closeDropdown();
+    void this.router.navigate(['/settings/lang']);
   }
 
   closeDropdown(): void {
     this.isLanguageDropdownOpen = false;
-    this.focusedLangIndex = -1;
+    this.resetLanguageDropdown();
   }
 
-  langsOnClickOutside(_: Event) {
+  private resetLanguageDropdown(): void {
+    this.focusedLangIndex = -1;
+    this.languageSearch = '';
+  }
+
+  private isEditableTarget(target: EventTarget | null): boolean {
+    return target instanceof HTMLElement
+      && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
+  }
+
+  private initializeCrestHint(): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+      if (window.sessionStorage.getItem(LANGUAGE_CREST_SESSION_KEY)) return;
+
+      const sessionCount = this.localStorageService.getItem<number>(LANGUAGE_CREST_SESSIONS_KEY) ?? 0;
+      this.showCrestHint = sessionCount < 2;
+      this.localStorageService.saveItem(LANGUAGE_CREST_SESSIONS_KEY, sessionCount + 1);
+      window.sessionStorage.setItem(LANGUAGE_CREST_SESSION_KEY, 'true');
+    } catch {
+      this.showCrestHint = false;
+    }
+  }
+
+  langsOnClickOutside() {
     this.closeDropdown();
   }
 
 
   // POPOVERS
-  profileOnClickOutside(_: Event) {
+  profileOnClickOutside() {
     this.isProfilePopoverOpen = false;
   }
 
-  discoverOnClickOutside(_: Event) {
+  discoverOnClickOutside() {
     this.isDiscoverMenuOpen = false;
   }
 
-  notificationOnClickOutside(_: Event) {
-    if (!this.notificationDropdownActive && !this.userPreviewDropdownActive) {
+  notificationOnClickOutside() {
+    if (!this.notificationDropdownActive) {
       this.isNotificationOpen = false;
     }
   }
 
-  timerOnClickOutside(_: Event) {
+  timerOnClickOutside() {
     this.isTimerOpen = false;
   }
 
   onLogoClick(): void {
-    this.replayGifSubject.next();
-
+    this.logoUnfold.next();
     if (this.isMobile) {
       this.isDiscoverMenuOpen = !this.isDiscoverMenuOpen;
     } else {
-      this.router.navigate(['/home']).then();
+      void this.router.navigate(['/home']).then();
     }
   }
 
+  /* Only one popover at a time: opening one closes the others, so a click always
+     has an owner. */
   toggleProfilePopover(): void {
-    this.isProfilePopoverOpen = !this.isProfilePopoverOpen;
-    if (this.isProfilePopoverOpen) {
-      this.isNotificationOpen = false;
-    }
+    const willOpen = !this.isProfilePopoverOpen;
+    this.closeAllPopovers();
+    this.isProfilePopoverOpen = willOpen;
   }
 
   toggleNotificationPopover(): void {
-    this.isNotificationOpen = !this.isNotificationOpen;
+    const willOpen = !this.isNotificationOpen;
+    this.closeAllPopovers();
+    this.isNotificationOpen = willOpen;
+    if (willOpen) {
+      // Opening the bell is the moment the list has to be right; the five-minute poll is too coarse
+      // to keep answered requests from lingering with their buttons.
+      this.getNotifications();
+    }
   }
 
   toggleTimerPopover(): void {
-    this.isTimerOpen = !this.isTimerOpen;
+    const willOpen = !this.isTimerOpen;
+    this.closeAllPopovers();
+    this.isTimerOpen = willOpen;
+  }
+
+  private closeAllPopovers(): void {
+    this.isProfilePopoverOpen = false;
+    this.isNotificationOpen = false;
+    this.isTimerOpen = false;
   }
 
   openChangeAvatarPopup() {
@@ -412,11 +564,133 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // NOTIFICATIONS
   formatNotificationText(text: string | null): string {
     if (text === null) return '';
-    return text.replace(/(@\w+)/g, (match) => {
+    const quietText = text.trim().replace(/[!]+(?=\s*$)/, '.');
+    return quietText.replace(/(@\w+)/g, (match) => {
       const username = match.slice(1); // Remove the '@' symbol
       const url = `/users/${username}`;
       return `<a href="${url}" target="_blank"><strong>${match}</strong></a>`;
     });
+  }
+
+  protected notificationSummary(notification: Notification): string {
+    if (isBookNotification(notification)) return this.bookNotificationSummary(notification);
+    const message = notification.message?.trim();
+    return message
+      ? this.formatNotificationText(message)
+      : notification.title.replace(/[!]+(?=\s*$)/, '.');
+  }
+
+  protected isBookRow(notification: Notification): boolean {
+    return isBookNotification(notification);
+  }
+
+  /** "<em>Effi Briest</em> now reads alongside Ukrainian. You asked for it in August." */
+  private bookNotificationSummary(notification: Notification): string {
+    const escape = (text: string) => text.replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character] ?? character));
+    const title = notification.contextTitle?.trim();
+    let sentence = escape(notification.title.trim());
+    if (title && notification.title.startsWith(title)) {
+      sentence = `<em>${escape(title)}</em>${escape(notification.title.slice(title.length))}`;
+    }
+    if (!/[.!?]$/.test(sentence)) sentence += '.';
+    const message = notification.message?.trim();
+    return message ? `${sentence} ${escape(message)}` : sentence;
+  }
+
+  /** The one action a reading row offers; the row itself opens the same place. */
+  protected bookActionLabel(notification: Notification): string | null {
+    switch (notification.type) {
+      case NotificationType.TRANSLATION_ORDER_COMPLETED: return $localize`Open chapter one`;
+      case NotificationType.LIBRARY_SUGGESTION_PUBLISHED: return $localize`Open the library copy`;
+      case NotificationType.BOOK_IMPORT_READY: return $localize`Start reading`;
+      case NotificationType.BOOK_IMPORT_FAILED: return $localize`See what happened`;
+      default: return null;
+    }
+  }
+
+  private bookNotificationPath(notification: Notification): string | null {
+    if (notification.actionPath) return notification.actionPath;
+    switch (notification.type) {
+      case NotificationType.BOOK_IMPORT_READY: return `/reader/private/${notification.referenceId}`;
+      case NotificationType.BOOK_IMPORT_FAILED: return `/my-books/${notification.referenceId}`;
+      default: return null;
+    }
+  }
+
+  /* A FRIENDSHIP_REQUESTED notification outlives the request it announces: answering it here, in
+     People, or on another device leaves the row behind, and answering an already-settled
+     relationship is refused by the backend's state machine. The received-requests list is the only
+     truth about what is still answerable, so the buttons are drawn from it, not from the row. */
+  protected isActionableRequest(notification: Notification): boolean {
+    return notification.type === NotificationType.FRIENDSHIP_REQUESTED
+      && this.pendingRequestIds.has(notification.referenceId);
+  }
+
+  private refreshPendingRequests() {
+    if (!this.notifications.some(notification => notification.type === NotificationType.FRIENDSHIP_REQUESTED)) {
+      this.pendingRequestIds = new Set<string>();
+      return;
+    }
+
+    this.loadPendingRequestIds().subscribe({
+      next: (ids) => this.pendingRequestIds = ids,
+      error: () => {
+        // Keep the last known answer rather than offering actions we can't vouch for.
+      },
+    });
+  }
+
+  private loadPendingRequestIds(): Observable<Set<string>> {
+    return this.socialService.getIncomingRequests().pipe(
+      takeUntil(this.destroy$),
+      map(requests => new Set(requests.map(request => request.relationshipId))),
+    );
+  }
+
+  protected acceptFriendRequest(notification: Notification, event: Event) {
+    event.stopPropagation();
+    this.respondToFriendRequest(notification, RelationshipAction.ACCEPT, $localize`Friend request accepted`);
+  }
+
+  protected declineFriendRequest(notification: Notification, event: Event) {
+    event.stopPropagation();
+    this.respondToFriendRequest(notification, RelationshipAction.REJECT, $localize`Friend request declined`);
+  }
+
+  private respondToFriendRequest(notification: Notification, action: RelationshipAction, message: string) {
+    const relationshipId = notification.referenceId;
+    if (this.requestActionInProgressIds.has(relationshipId)) return;
+    this.requestActionInProgressIds.add(relationshipId);
+
+    this.socialService.patchFriendship(relationshipId, action)
+      .pipe(finalize(() => {
+        this.requestActionInProgressIds.delete(relationshipId);
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: () => {
+          this.pendingRequestIds.delete(relationshipId);
+          this.markNotificationAsRead(notification);
+          this.alertService.open(message, {appearance: 'positive'}).subscribe();
+        },
+        error: (error) => {
+          // The request may have been settled elsewhere since this row was drawn; ask who is
+          // still waiting before blaming the user for a transition the backend had to refuse.
+          this.loadPendingRequestIds().subscribe({
+            next: (ids) => {
+              this.pendingRequestIds = ids;
+              if (ids.has(relationshipId)) {
+                this.alertService.open(getErrorMessage(error, REQUEST_ANSWER_FAILED), {appearance: 'negative'}).subscribe();
+              } else {
+                this.alertService.open($localize`That request has already been answered.`, {appearance: 'info'}).subscribe();
+              }
+            },
+            error: () => {
+              this.alertService.open(getErrorMessage(error, REQUEST_ANSWER_FAILED), {appearance: 'negative'}).subscribe();
+            },
+          });
+        },
+      });
   }
 
   onNotificationClick(notification: Notification) {
@@ -424,18 +698,32 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     switch (notification.type) {
       case NotificationType.FRIENDSHIP_ACCEPTED:
-        this.router.navigate(['/social'], {queryParams: {tab: 'friends'}}).then();
+        void this.router.navigate(['/social'], {queryParams: {tab: 'friends'}}).then();
         break;
       case NotificationType.FRIENDSHIP_REQUESTED:
-        this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
+        void this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
         break;
+      default: {
+        const path = this.bookNotificationPath(notification);
+        if (path) void this.router.navigateByUrl(path);
+      }
     }
     this.markNotificationAsRead(notification);
   }
 
+  protected openSenderProfile(notification: Notification) {
+    const handle = notification.senderUsername ?? notification.senderId;
+    if (!handle) {
+      return;
+    }
+    this.isNotificationOpen = false;
+    void this.router.navigate(['/users', handle]);
+  }
+
   private markNotificationAsRead(notification: Notification) {
     this.loadingNotificationAction = true;
-    this.notificationService.markAsRead(notification.id)
+    const ids = this.notificationGroupIds.get(notification.id) ?? [notification.id];
+    forkJoin(ids.map(id => this.notificationService.markAsRead(id)))
       .pipe(finalize(() => this.loadingNotificationAction = false))
       .subscribe({
         next: () => {
@@ -444,7 +732,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to link local account', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark notification as read`), {appearance: 'negative'}).subscribe();
         },
       });
   }
@@ -463,12 +751,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private readonly loadingSubject$ = new BehaviorSubject<boolean>(false);
   protected readonly loading$ = this.loadingSubject$.asObservable();
 
-  protected notificationDropdownActive: boolean = false;
-  protected userPreviewDropdownActive: boolean = false;
-
-  togglePreviewDropdownActive($event: boolean) {
-    this.userPreviewDropdownActive = $event;
-  }
+  protected notificationDropdownActive = false;
 
   toggleReadDropdownActive($event: boolean) {
     this.notificationDropdownActive = $event;
@@ -485,12 +768,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.unreadNotificationsCount = 0;
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark all as read', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark all as read`), {appearance: 'negative'}).subscribe();
         },
       });
   }
 
-  protected loadingNotificationAction: boolean = false;
+  protected loadingNotificationAction = false;
 
   toggleRead(notification: Notification, dropdown: TuiDropdownDirective) {
     if (!notification.readAt) {
@@ -512,22 +795,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
           this.sortNotifications();
         },
         error: (error) => {
-          this.alertService.open(error.error.message || 'Failed to mark as unread', {appearance: 'error'}).subscribe();
+          this.alertService.open(getErrorMessage(error, $localize`Failed to mark as unread`), {appearance: 'negative'}).subscribe();
         },
       });
   }
 
   deleteNotification(notification: Notification, dropdown: TuiDropdownDirective) {
-    this.notificationService.delete(notification.id).subscribe({
+    const ids = this.notificationGroupIds.get(notification.id) ?? [notification.id];
+    forkJoin(ids.map(id => this.notificationService.delete(id))).subscribe({
       next: () => {
         this.notifications = this.notifications.filter(n => n.id !== notification.id);
+        this.notificationGroupIds.delete(notification.id);
         if (!notification.readAt) {
           this.unreadNotificationsCount--;
         }
         dropdown.toggle(false);
       },
       error: (error) => {
-        this.alertService.open(error.error.message || 'Failed to delete notification', {appearance: 'error'}).subscribe();
+        this.alertService.open(getErrorMessage(error, $localize`Failed to delete notification`), {appearance: 'negative'}).subscribe();
       }
     });
   }

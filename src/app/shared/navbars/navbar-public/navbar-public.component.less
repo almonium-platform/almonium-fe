@@ -1,54 +1,132 @@
 @import '../navbar-base.less';
 
-.nav-link.active-link {
-  color: black;
-  font-size: 2em;
+/* Horizontal lockup: the emblem's ink at the wordmark's cap-height, one cap-height between.
+   At 11rem the wordmark's cap-height is about 1.375rem; the flat logo's ink fills 93% of its box. */
+.public-brand {
+  gap: 1.375rem;
 }
 
-.spacer {
-  flex-grow: 1; /* Pushes other items to the right */
+.public-brand .app-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-basis: 1.5rem;
+  margin: 0;
 }
 
-.menu-section {
-  display: flex;
-  flex-direction: column;
-  padding: 0 1rem;
-}
-
-.user-info span, .user-info p {
+.wordmark {
   display: block;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  width: 11rem;
+  height: auto;
+}
+
+.wordmark-dark {
+  display: none;
+}
+
+.public-links {
+  display: flex;
+  gap: 1.75rem;
+  margin-left: auto;
+}
+
+.section {
+  margin-left: 0;
+}
+
+.nav-actions {
+  flex-grow: 0;
+  margin-left: 1.5rem;
+}
+
+.auth-btn {
+  border: 1.5px solid var(--text-color);
+  border-radius: 999px;
+  color: var(--text-color);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  margin-left: .6rem;
+  padding: .7rem 1.35rem;
+  text-decoration: none;
+  transition: background-color 150ms ease, color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--text-color);
+    color: var(--main-bg-color);
+  }
+}
+
+.menu-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: .6rem;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: .45rem;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    outline: 2px solid var(--brand-margin);
+  }
+}
+
+.public-popover {
+  left: 1rem;
+  right: 1rem;
+  top: calc(var(--header-height) + .5rem);
+  padding: .5rem;
 }
 
 .menu-items {
   display: flex;
   flex-direction: column;
-  padding: 0.5rem 0;
-}
-
-.menu-item img {
-  transition: transform 0.2s;
-}
-
-.menu-item:hover img {
-  transform: scale(1.05);
+  gap: .15rem;
 }
 
 .menu-item {
-  color: #333;
-  min-width: 100px;
+  border-radius: .65rem;
+  color: var(--text-color);
+  padding: .7rem .85rem;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--state-hover);
+    color: var(--brand-margin);
+    outline: none;
+  }
 }
 
-.separator {
-  width: 100%;
-  height: 1px;
-  background: #eaeaea;
-}
+@media (max-width: 690px) {
+  .navbar-content {
+    padding-inline: .7rem;
+  }
 
-.auth-btn {
-  width: 6em;
-  height: 3em;
-  margin-right: 1em;
-  font-size: 14px;
+  .public-brand {
+    gap: 1.0625rem;
+  }
+
+  .public-brand .app-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-basis: 1.125rem;
+  }
+
+  .wordmark {
+    width: 8.5rem;
+  }
+
+  .auth-btn {
+    margin-left: 0;
+    padding-inline: 1rem;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
 }

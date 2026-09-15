@@ -5,100 +5,153 @@
 
         @if (mode === 'default') {
           <div class="logo-div">
-            <app-gif-player
-              class="logo-container"
-              (click)="replayGifTrigger.next()"
-              [replayTrigger]="replayGifTrigger"
-            ></app-gif-player>
-            <img src="../../../assets/img/titles/title-purple.svg" alt="Logo" class="title" height="483" width="1825">
+            <span class="logo-emblem" aria-hidden="true"></span>
+            <img class="wordmark wordmark-light" src="/assets/img/titles/title-purple.svg" [alt]="'Almonium'" />
+            <img class="wordmark wordmark-dark" src="/email/wordmark-white.png" alt="" aria-hidden="true" />
           </div>
         }
 
-        <hr class="solid separator2">
-
         <div class="tui-col_8">
           @if (mode === 'default') {
-            <h3 class="greeting" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
+            <h3 class="greeting" [class.fading]="greetingFading" [title]="currentLanguage" (mouseenter)="onMouseEnter()"
                 (mouseleave)="onMouseLeave()">
-              {{ currentGreeting }}👋
+              {{ currentGreeting }}
             </h3>
           }
 
-          @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
+          @if (mode === 'default') {
+            @if (!emailIdentified) {
+              <div class="auth-field">
+                <label i18n for="auth-email">Email address</label>
+                <tui-textfield [tuiTextfieldSize]="'l'" [attr.data-size]="'l'">
+                  <input
+                    id="auth-email"
+                    tuiInput
+                    formControlName="emailValue"
+                    type="email"
+                    placeholder="you@example.com" i18n-placeholder
+                    maxlength="320"
+                    autocomplete="email"
+                  />
+                </tui-textfield>
+                <tui-error formControlName="emailValue"></tui-error>
+              </div>
+            } @else {
+              <button class="identified-email" type="button" (click)="changeIdentifiedEmail()">
+                <tui-icon icon="@tui.chevron-left" />
+                <span>{{ authForm.controls.emailValue.value }}</span>
+                <strong i18n>Change</strong>
+              </button>
+
+              <div class="auth-field">
+                <div class="password-label">
+                  <label i18n for="auth-password">Password</label>
+                  @if (accountExists) {
+                    <a i18n tuiLink (keydown.enter)="onForgotPassword()" tabindex="0" (click)="onForgotPassword()">Forgot?</a>
+                  }
+                </div>
+                <tui-textfield [tuiTextfieldSize]="'l'" [attr.data-size]="'l'">
+                  <input
+                    id="auth-password"
+                    tuiInput
+                    formControlName="passwordValue"
+                    type="password"
+                    placeholder="Password" i18n-placeholder
+                    maxlength="64"
+                    [autocomplete]="accountExists ? 'current-password' : 'new-password'"
+                  />
+                  <tui-icon tuiPassword />
+                </tui-textfield>
+                <tui-error formControlName="passwordValue"></tui-error>
+                @if (!accountExists) {
+                  <p i18n class="password-rule">Use at least {{ minimumPasswordLength }} characters.</p>
+                }
+              </div>
+            }
+
+            <app-button
+              [label]="actionBtnText"
+              [loading$]="loading$"
+              [satisfiable]="emailIdentified ? authForm.valid : authForm.controls.emailValue.valid"
+            ></app-button>
+
+            @if (!emailIdentified) {
+              <div class="separator"><b i18n>OR</b></div>
+              <div class="social-buttons">
+                @for (provider of providers.slice(0, 2); track provider) {
+                  <app-provider-icon
+                    [provider]="provider"
+                    [connectedProviders]="this.connectedProviders"
+                    [clickOnLinked]="onSocialLogin"
+                    [loginFlow]="true"
+                  ></app-provider-icon>
+                }
+              </div>
+            }
+
+            <p i18n class="auth-legal">
+              By continuing you agree to the
+              <a [routerLink]="termsOfUseUrl" target="_blank">Terms</a>
+              and
+              <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
+            </p>
+          } @else if (mode !== 'linkLocal' && mode !== 'changeEmail') {
             <div class="social-buttons">
               @for (provider of providers; track provider) {
                 <app-provider-icon
                   [provider]="provider"
                   [connectedProviders]="this.connectedProviders"
                   [clickOnLinked]="onSocialLogin"
-                  [loginFlow]="mode ==='default'"
+                  [loginFlow]="false"
                 ></app-provider-icon>
               }
             </div>
           }
 
-          @if (this.showSeparatorAndForm) {
+          @if (mode !== 'default' && this.showSeparatorAndForm) {
             <div>
               @if (mode !== 'linkLocal' && mode !== 'changeEmail') {
-                <div class="separator"><b>OR</b></div>
-              }
-              @if (mode === 'default') {
-                <div class="switch">
-                  <span (click)="toggleSignUp()" [class.active]="!isSignUp">SIGN IN</span>
-                  <span (click)="toggleSignUp()" [class.active]="isSignUp">SIGN UP</span>
-                </div>
+                <div class="separator"><b i18n>OR</b></div>
               }
               <div class="row-1">
                 <tui-textfield
-                  tuiTextfieldSize="l"
-                  data-size="l"
+                  [tuiTextfieldSize]="'l'"
+                  [attr.data-size]="'l'"
                 >
                   <input
-                    tuiTextfield
+                    tuiInput
                     formControlName="emailValue"
                     type="email"
-                    placeholder="Email"
+                    placeholder="Email" i18n-placeholder
                     [readOnly]="this.mode === 'linkLocal'"
                     maxlength="320"
                   />
                 </tui-textfield>
-                <tui-error formControlName="emailValue" [error]="[] | tuiFieldError | async"></tui-error>
+                <tui-error formControlName="emailValue"></tui-error>
               </div>
               <div class="row-2"
                    [style.margin-bottom]="embeddedMode ?  '1.5rem' : '7px'"
               >
                 <tui-textfield
-                  tuiTextfieldSize="l"
-                  data-size="l"
+                  [tuiTextfieldSize]="'l'"
+                  [attr.data-size]="'l'"
                 >
                   <input
-                    tuiTextfield
+                    tuiInput
                     formControlName="passwordValue"
                     type="password"
-                    placeholder="Password"
+                    placeholder="Password" i18n-placeholder
                     maxlength="64"
                   />
                   <tui-icon tuiPassword/>
                 </tui-textfield>
-                <tui-error formControlName="passwordValue" [error]="[] | tuiFieldError | async"></tui-error>
+                <tui-error formControlName="passwordValue"></tui-error>
               </div>
-              @if (!isSignUp && mode === 'default') {
-                <div class="forgot-div">
-                  <a tuiLink (click)="onForgotPassword()" class="forgot-password-link">Forgot Password?</a>
-                </div>
-              }
-              @if (isSignUp && mode === 'default') {
-                <div class="agree-with-terms">
-                  By signing up, you confirm that you accept our <br>
-                  <a [routerLink]="termsOfUseUrl" target="_blank">Terms of Use</a> and have read our
-                  <a [routerLink]="privacyPolicyUrl" target="_blank">Privacy Policy</a>.
-                </div>
-              }
               <div class="mt-2.5">
                 <app-button
                   [label]="actionBtnText"
                   [loading$]="loading$"
-                  [disabled]="!authForm.valid"
+                  [satisfiable]="authForm.valid"
                 ></app-button>
               </div>
             </div>
