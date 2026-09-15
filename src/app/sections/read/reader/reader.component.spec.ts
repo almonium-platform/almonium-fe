@@ -79,12 +79,23 @@ describe('ReaderComponent', () => {
     const content = document.createElement('div');
     content.innerHTML = '<span data-alignment="11-2-0">One.</span><span data-alignment="11-2-0">Two.</span><span data-alignment="11-2-0">Both.</span><span data-alignment="11-2-1">Other.</span>';
     component.readerContentRef = {nativeElement: content};
-    component.currentParallelMode = 'side';
     component.isParallelViewActive = true;
     content.addEventListener('click', event => component.onContentClick(event));
-    (content.firstElementChild as HTMLElement).click();
+    for (const mode of ['side', 'inline', 'overlay']) {
+      component.currentParallelMode = mode;
+      (content.firstElementChild as HTMLElement).click();
+      expect(content.querySelectorAll('.is-aligned-current').length).withContext(mode).toBe(3);
+      expect(content.lastElementChild?.classList.contains('is-aligned-current')).toBeFalse();
+    }
+    const selection = window.getSelection()!;
+    const range = document.createRange();
+    document.body.appendChild(content);
+    range.selectNodeContents(content.lastElementChild!);
+    selection.addRange(range);
+    (content.lastElementChild as HTMLElement).click();
     expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
-    expect(content.lastElementChild?.classList.contains('is-aligned-current')).toBeFalse();
+    selection.removeAllRanges();
+    content.remove();
   });
 
   it('keeps a chapter navigation entry point visible when parallel text is active', () => {

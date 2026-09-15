@@ -48,3 +48,9 @@ array index or translated title. The sidebar and chapter dropdown show estimated
 CEFR and spoiler-free descriptions. Missing/failed enrichment keeps normal text
 navigation. Edition-level editorial CEFR is unchanged. Private imports do not
 call the public enrichment endpoint. Mobile still needs this integration.
+# Sentence interaction parity (2026-09-16)
+
+Marked sentence groups highlight in side-by-side, inline and overlay modes.
+Existing text selections take precedence over click highlighting/overlay toggling.
+The processor's full-book offline matcher now supplies genuine 1:N/N:1 groups;
+uncertain passages stay paragraph-aligned. No browser request runs an AI job.

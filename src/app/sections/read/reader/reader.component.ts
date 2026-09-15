@@ -318,7 +318,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Example method to handle mode-specific logic ---
   protected onContentClick(event: Event): void {
-    if (this.currentParallelMode === 'side' && this.isParallelViewActive) {
+    if (!this.isParallelViewActive || window.getSelection()?.toString().trim()) return;
+    if (this.readerContentRef?.nativeElement) {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-alignment]') : null;
       const content = this.readerContentRef.nativeElement;
       content.querySelectorAll('.is-aligned-current').forEach(item => item.classList.remove('is-aligned-current'));
@@ -326,7 +327,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       if (key && /^\d+-\d+-\d+$/.test(key)) {
         content.querySelectorAll(`[data-alignment="${key}"]`).forEach(item => item.classList.add('is-aligned-current'));
       }
-      return;
     }
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
       return;

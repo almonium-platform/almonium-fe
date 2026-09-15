@@ -30,17 +30,17 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
     {
       mode: 'side',
       label: $localize`Side by side`,
-      explanation: $localize`Only the pair under your cursor lights, on both sides at once.`,
+      explanation: $localize`Read both editions together. Marked sentences highlight their counterparts.`,
     },
     {
       mode: 'overlay',
       label: $localize`On demand`,
-      explanation: $localize`Tap a sentence, its translation opens under that line in grey ink.`,
+      explanation: $localize`Tap a passage to reveal its companion paragraph in grey ink.`,
     },
     {
       mode: 'inline',
       label: $localize`Inline`,
-      explanation: $localize`Whole paragraph, then its translation. Grey, one size down.`,
+      explanation: $localize`Each paragraph followed by its companion version. Grey, one size down.`,
     },
   ];
 
