@@ -30,6 +30,8 @@ export class ParallelFormatPipe implements PipeTransform {
       blocks.forEach(block => {
         const mainColumnBlock = block.cloneNode() as HTMLElement;
         const secondaryColumnBlock = block.cloneNode() as HTMLElement;
+        // The primary column owns the chapter anchor; duplicate IDs break navigation.
+        secondaryColumnBlock.removeAttribute('id');
         // Iterate through all child nodes (elements, text nodes, etc.)
         block.childNodes.forEach(node => {
           // If the node is a seg-pair, we process it

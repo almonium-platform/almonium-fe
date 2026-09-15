@@ -28,6 +28,7 @@ describe('ReaderComponent', () => {
         {
           provide: ReadService,
           useValue: {
+            getPublicChapters: () => of([]),
             getPublicBook: () => of({
               id: '01989f47-4c2a-7a10-9e5b-751983624a25',
               language: 'EN',

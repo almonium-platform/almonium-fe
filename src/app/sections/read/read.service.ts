@@ -28,6 +28,7 @@ import {
   parseTranslationRequestQuota,
 } from './translation-order.model';
 import {Observable} from "rxjs";
+import {BookChapter, parseBookChapters} from './book-chapter.model';
 import {map, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -46,6 +47,11 @@ export class ReadService {
   getPublicBook(editionSlug: string): Observable<Book> {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}`)
       .pipe(map(value => parseBook(value)));
+  }
+
+  getPublicChapters(editionSlug: string): Observable<BookChapter[]> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${encodeURIComponent(editionSlug)}/chapters`)
+      .pipe(map(parseBookChapters));
   }
 
   loadPublicBook(editionSlug: string): Observable<HttpResponse<ArrayBuffer>> {

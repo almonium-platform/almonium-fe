@@ -11,6 +11,8 @@ test('selects an English companion edition and highlights a many-to-one sentence
     if (path.endsWith('/public/books/frankenstein-b2/parallel-edition/frankenstein-original')) {
       requestedPair = true;
       await route.fulfill({contentType: 'text/html', body: html});
+    } else if (path.endsWith('/public/books/frankenstein-b2/chapters')) {
+      await route.fulfill({json: [{id: primary.id, sequence: 11, title: 'Chapter V', analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A scientist faces an unexpected result.']}]});
     } else if (path.endsWith('/public/books/frankenstein-b2/text')) {
       // Exercise the slow base-response race: it must not replace the loaded pair.
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -33,4 +35,6 @@ test('selects an English companion edition and highlights a many-to-one sentence
   await page.keyboard.press('Enter');
   await expect(page.locator('.is-aligned-current')).toHaveCount(3);
   await expect(page.locator('.parallel-provenance').first()).toContainText('C1 · original');
+  await page.getByRole('button', {name: 'Open chapter navigation'}).click();
+  await expect(page.getByRole('menuitem').filter({hasText: 'Estimated B2'})).toContainText('A scientist faces an unexpected result.');
 });

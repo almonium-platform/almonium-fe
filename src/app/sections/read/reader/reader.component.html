@@ -36,7 +36,13 @@
           <nav class="content-map" aria-label="Contents" i18n-aria-label>
             <span i18n>Contents</span>
             @for (chapter of chapterNav; track chapter; let i = $index) {
-              <button type="button" (click)="selectChapter(i)">{{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}</button>
+              <button type="button" (click)="selectChapter(i)">
+                {{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}
+                @if (chapterMetadata[chapter.elementId]; as info) {
+                  @if (info.cefrEstimate) { <small class="chapter-level" i18n>Estimated {{ info.cefrEstimate }}</small> }
+                  @for (description of info.descriptions; track $index) { <small class="chapter-description">{{ description }}</small> }
+                }
+              </button>
             }
           </nav>
         }
@@ -109,6 +115,10 @@
                     tuiOption
                   >
                     {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
+                    @if (chapterMetadata[chapter.elementId]; as info) {
+                      @if (info.cefrEstimate) { <small class="chapter-level" i18n>Estimated {{ info.cefrEstimate }}</small> }
+                      @for (description of info.descriptions; track $index) { <small class="chapter-description">{{ description }}</small> }
+                    }
                   </button>
                 }
               </tui-data-list>

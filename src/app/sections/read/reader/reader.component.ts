@@ -30,6 +30,7 @@ import {UserInfoService} from '../../../services/user-info.service';
 import {BookHtmlPipe} from './book-html.pipe';
 import {WordCardComponent} from '../word-card/word-card.component';
 import {CEFRLevel} from '../../../models/userinfo.model';
+import {BookChapter} from '../book-chapter.model';
 
 @Component({
   selector: 'app-reader',
@@ -79,6 +80,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- State Properties ---
   protected chapterNav: ReaderChapter[] = [];
+  protected chapterMetadata: Record<string, BookChapter> = {};
   private hasMeasuredChapters = false; // Flag to ensure we measure only once
 
   protected bookHtmlContent = ''; // Store the raw HTML from backend
@@ -197,6 +199,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   private resetForBook(): void {
+    this.chapterMetadata = {};
     this.initialScrollPercentage = null;
     this.initialPosition = null;
     this.initialScrollApplied = false;
@@ -216,6 +219,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private openPublicBook(slug: string): void {
     this.bookSlug = slug;
     this.privateBookId = null;
+    this.readService.getPublicChapters(slug).pipe(takeUntil(this.destroy$)).subscribe({
+      next: chapters => {
+        if (this.bookSlug !== slug) return;
+        this.chapterMetadata = Object.fromEntries(chapters.map(chapter => [`chapter-${chapter.sequence}`, chapter]));
+        this.cdRef.markForCheck();
+      },
+      // Enrichment is optional: its failure must never prevent reading or navigation.
+      error: () => logger.warn('Chapter information is unavailable; keeping text navigation.'),
+    });
     this.readService.getPublicBook(slug).pipe(takeUntil(this.destroy$)).subscribe({
       next: book => {
         this.bookId = book.id;
@@ -404,7 +416,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   ngAfterViewChecked(): void {
     // Try to measure chapters ONLY ONCE after base load
-    if (!this.hasMeasuredChapters && !this.isLoading && this.baseBookHtmlContent && !this.isParallelViewActive) {
+    if (!this.hasMeasuredChapters && !this.isLoading && this.bookHtmlContent) {
       logger.debug("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
       const measured = this.measureChapterOffsets(); // Try measuring base content
       if (measured) {
@@ -495,7 +507,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             // The reader content is behind an @if while the book is loading, so its
             // ViewChild does not exist during ngAfterViewInit. Measure after this
             // response has caused the base content view to render.
-            if (isBase) this.scheduleChapterOffsetMeasurement();
+            this.hasMeasuredChapters = false;
+            this.scheduleChapterOffsetMeasurement();
 
             if (this.currentParallelMode === 'side') {
               this.needsHeightSync = true;
@@ -613,7 +626,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   // Measures the top offset of rendered chapter elements relative to the scroll container
   // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
   private measureChapterOffsets(): boolean {
-    if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
+    if (this.hasMeasuredChapters || !this.bookHtmlContent) {
       return this.hasMeasuredChapters;
     }
 

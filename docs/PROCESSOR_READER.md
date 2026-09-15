@@ -40,3 +40,11 @@ then typed chapter metadata/difficulty/vocabulary, eligible-pair discovery and
 clearer source/review labels; then chapter-wide sentence and clause highlighting.
 The existing backend HTML adapter is still used—this iteration does not pretend
 all processor artifacts already reach the app.
+# Chapter information (2026-09-15)
+
+The reader fetches `/public/books/{editionSlug}/chapters` independently of book
+text. Existing chapter anchors join metadata by processor chapter sequence, not
+array index or translated title. The sidebar and chapter dropdown show estimated
+CEFR and spoiler-free descriptions. Missing/failed enrichment keeps normal text
+navigation. Edition-level editorial CEFR is unchanged. Private imports do not
+call the public enrichment endpoint. Mobile still needs this integration.

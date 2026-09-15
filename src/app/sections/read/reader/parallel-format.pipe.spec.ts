@@ -3,6 +3,12 @@ import {ParallelFormatPipe, ParallelFormatOptions} from './parallel-format.pipe'
 describe('ParallelFormatPipe', () => {
   const pipe = new ParallelFormatPipe();
 
+  it('keeps one primary chapter anchor in side-by-side mode', () => {
+    const result = new DOMParser().parseFromString(pipe.transform('<h2 id="chapter-10">IV</h2>', {mode: 'side', targetLang: 'en', fluentLang: 'en'}), 'text/html');
+    expect(result.querySelectorAll('#chapter-10').length).toBe(1);
+    expect(result.querySelector('.sbs-column-main #chapter-10')).not.toBeNull();
+  });
+
   it('keeps two English editions distinct and preserves sentence group identifiers', () => {
     const html = '<p><span class="seg-pair"><span class="segment" data-side="primary" lang="en"><span data-alignment="11-2-0">Simple.</span></span><span class="segment" data-side="secondary" lang="en"><span data-alignment="11-2-0">Original wording.</span></span></span></p>';
     for (const mode of ['side', 'inline', 'overlay'] as const) {
