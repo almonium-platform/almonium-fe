@@ -1,0 +1,12 @@
+/* The type-checker behind `ng lint`. It sees every TypeScript file under src, including the ones
+   `ng build` does not reach from main.ts, and it declares the `$localize` global the way the app
+   and spec projects do; the root tsconfig.json alone would type every translated string as any. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@angular/localize", "jasmine"]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

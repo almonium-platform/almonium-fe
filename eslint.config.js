@@ -10,11 +10,8 @@ module.exports = tseslint.config(
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: __dirname,
-        project: [
-          './tsconfig.json',
-          './src/tsconfig.app.json',
-          './src/tsconfig.spec.json',
-        ],
+        // One project for the whole of src, with the `$localize` global declared; see the file.
+        project: './tsconfig.eslint.json',
       },
     },
     extends: [
