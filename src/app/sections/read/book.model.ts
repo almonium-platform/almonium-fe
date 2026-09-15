@@ -44,6 +44,9 @@ export interface BookLanguageVariant {
   id: string;
   editionSlug: string;
   language: LanguageCode;
+  editionType?: string;
+  cefrLevel?: string;
+  sourceEditionSlug?: string;
 }
 
 export interface BookshelfView {
@@ -123,6 +126,9 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
       id: expectUuid(data['id'], `${itemPath}.id`),
       editionSlug: expectString(data['editionSlug'], `${itemPath}.editionSlug`),
       language: expectEnum(data['language'], Object.values(LanguageCode), `${itemPath}.language`),
+      ...(data['editionType'] == null ? {} : {editionType: expectString(data['editionType'], `${itemPath}.editionType`)}),
+      ...(data['cefrLevel'] == null ? {} : {cefrLevel: expectString(data['cefrLevel'], `${itemPath}.cefrLevel`)}),
+      ...(data['sourceEditionSlug'] == null ? {} : {sourceEditionSlug: expectString(data['sourceEditionSlug'], `${itemPath}.sourceEditionSlug`)}),
     };
   });
 }

@@ -55,8 +55,8 @@ export class ReadService {
     });
   }
 
-  getPublicParallelText(editionSlug: string, language: string): Observable<HttpResponse<ArrayBuffer>> {
-    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/parallel/${language}`, {
+  getPublicParallelText(editionSlug: string, companionSlug: string): Observable<HttpResponse<ArrayBuffer>> {
+    return this.http.get(`${AppConstants.PUBLIC_BOOKS_URL}/${editionSlug}/parallel-edition/${companionSlug}`, {
       responseType: 'arraybuffer',
       observe: 'response',
     });

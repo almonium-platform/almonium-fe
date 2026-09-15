@@ -3,6 +3,19 @@ import {ParallelFormatPipe, ParallelFormatOptions} from './parallel-format.pipe'
 describe('ParallelFormatPipe', () => {
   const pipe = new ParallelFormatPipe();
 
+  it('keeps two English editions distinct and preserves sentence group identifiers', () => {
+    const html = '<p><span class="seg-pair"><span class="segment" data-side="primary" lang="en"><span data-alignment="11-2-0">Simple.</span></span><span class="segment" data-side="secondary" lang="en"><span data-alignment="11-2-0">Original wording.</span></span></span></p>';
+    for (const mode of ['side', 'inline', 'overlay'] as const) {
+      const result = new DOMParser().parseFromString(pipe.transform(html, {mode, targetLang: 'en', fluentLang: 'en'}), 'text/html');
+      expect(result.querySelectorAll('[data-alignment="11-2-0"]').length).toBe(2);
+      expect(result.body.textContent).toBe('Simple.Original wording.');
+      if (mode === 'side') {
+        expect(result.querySelector('.sbs-column-main')?.textContent).toBe('Simple.');
+        expect(result.querySelector('.sbs-column-secondary')?.textContent).toBe('Original wording.');
+      }
+    }
+  });
+
   it('removes executable markup and unsafe attributes from book HTML', () => {
     const maliciousHtml = `
       <h2 id="chapter-1" onclick="alert(1)">Chapter</h2>

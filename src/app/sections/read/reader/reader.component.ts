@@ -128,6 +128,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
+  protected companionSlug: string | null = null;
   protected targetLangCode: string | null = null; // Language of the book being read
   /** The word card (G1): the entry and the sentence it was met in, or null while closed. */
   protected wordCard: {entry: string; context: string} | null = null;
@@ -168,7 +169,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           logger.debug('Reader received new parallel mode:', mode);
           if (this.isParallelViewActive && this.fluentLangCode) {
             this.updateScrollState();
-            if (this.trackProgress) this.progressTracker.startPresentation(`parallel:${this.fluentLangCode}:${mode}`);
+            if (this.trackProgress) this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${mode}`);
           }
           this.currentParallelMode = mode;
           this.cdRef.markForCheck(); // Trigger pipe re-evaluation
@@ -221,7 +222,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.targetLangCode = book.language;
         this.bookTitle = book.title;
         this.bookLevel = book.cefrLevel;
-        this.parallelVersions = book.languageVariants.filter(variant => variant.language !== book.language);
+        this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id);
         this.trackProgress = this.userInfoService.currentUserInfo !== null;
         this.startCountingReadingTime(book.language);
         if (this.trackProgress) {
@@ -229,9 +230,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.fetchBookData(book.id);
         }
         this.loadBookHtml(slug, true);
-        // The book page's chips link straight into a pair: /reader/slug?parallel=EN.
-        const requested = this.route.snapshot.queryParamMap.get('parallel') as LanguageCode | null;
-        if (requested && this.parallelVersions.some(variant => variant.language === requested)) {
+        const requested = this.route.snapshot.queryParamMap.get('parallel');
+        if (requested && this.parallelVersions.some(variant => variant.editionSlug === requested)) {
           this.selectOption(requested);
         }
       },
@@ -306,6 +306,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Example method to handle mode-specific logic ---
   protected onContentClick(event: Event): void {
+    if (this.currentParallelMode === 'side' && this.isParallelViewActive) {
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-alignment]') : null;
+      const content = this.readerContentRef.nativeElement;
+      content.querySelectorAll('.is-aligned-current').forEach(item => item.classList.remove('is-aligned-current'));
+      const key = target?.dataset['alignment'];
+      if (key && /^\d+-\d+-\d+$/.test(key)) {
+        content.querySelectorAll(`[data-alignment="${key}"]`).forEach(item => item.classList.add('is-aligned-current'));
+      }
+      return;
+    }
     if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
       return;
     }
@@ -342,7 +352,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   /** The language the card translates into: the pair being read, else the reader's first other fluent language. */
   protected get cardTranslationLanguage(): LanguageCode {
-    if (this.fluentLangCode) return this.fluentLangCode as LanguageCode;
+    if (this.fluentLangCode && this.fluentLangCode !== this.targetLangCode) return this.fluentLangCode as LanguageCode;
     const fluent = this.userInfoService.currentUserInfo?.fluentLangs.find(language => language !== this.targetLangCode);
     if (fluent) return fluent;
     return this.targetLangCode === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
@@ -457,7 +467,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       ? this.privateBookId
         ? this.readService.loadPrivateBook(bookId)
         : this.readService.loadPublicBook(bookId)
-      : this.readService.getPublicParallelText(bookId, this.fluentLangCode!);
+      : this.readService.getPublicParallelText(bookId, this.companionSlug!);
 
     if (isBase) {
       this.baseLoadSubscription?.unsubscribe();
@@ -467,16 +477,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         if (response.status === 200 && response.body) {
           try {
             const fetchedHtml = this.readerDom.decode(response.body);
-            this.bookHtmlContent = fetchedHtml;
             if (isBase) {
               this.baseBookHtmlContent = fetchedHtml;
-              this.isParallelViewActive = false;
+              if (!this.isParallelViewActive) this.bookHtmlContent = fetchedHtml;
             } else {
+              this.bookHtmlContent = fetchedHtml;
               this.isParallelViewActive = true;
             }
 
             this.isLoading = false;
-            this.isLoadingParallel = false;
+            if (!isBase) this.isLoadingParallel = false;
             this.errorMessage = null;
             logger.debug(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
             this.currentlyOpenFluentSpan = null;
@@ -555,6 +565,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.isParallelViewActive = false;
       this.currentlyOpenFluentSpan = null;
       this.fluentLangCode = null;
+      this.companionSlug = null;
       this.initialPosition = this.trackProgress ? this.progressTracker.startPresentation('base') : null;
       this.initialScrollPercentage = this.initialPosition ? null : this.currentScrollPercentage;
 
@@ -576,7 +587,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         if (book) {
           this.targetLangCode = book.language; // <-- ADD THIS LINE
           logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
-          this.parallelVersions = book.languageVariants.filter(t => t.language !== book.language);
+          this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
           if (!this.initialPosition) {
             this.initialScrollPercentage = book.progressPercentage ?? 0;
             logger.debug(`Stored server scroll fallback: ${this.initialScrollPercentage}%`);
@@ -1020,6 +1031,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     return this.langs.filter(l => l !== this.fluentLangCode);
   }
 
+  get availableEditions(): BookLanguageVariant[] {
+    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug);
+  }
+
+  editionLabel(edition: BookLanguageVariant): string {
+    const kind = edition.editionType?.replaceAll('_', ' ') ?? 'edition';
+    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}`;
+  }
+
+  get companionLabel(): string {
+    const edition = this.parallelVersions.find(item => item.editionSlug === this.companionSlug);
+    return edition ? this.editionLabel(edition) : '';
+  }
+
   private parallelLoadSubscription: Subscription | null = null;
 
   private clearScheduledWork(): void {
@@ -1041,10 +1066,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
-  selectOption(langCode: string | null): void { // Allow null if you add a way to deselect
+  selectOption(editionSlug: string | null): void {
+    const edition = this.parallelVersions.find(item => item.editionSlug === editionSlug);
+    const langCode = edition?.language ?? null;
     logger.debug(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
 
-    if (langCode !== null && langCode === this.fluentLangCode) {
+    if (editionSlug !== null && editionSlug === this.companionSlug) {
       logger.debug(`Language ${langCode} is already selected.`);
       // Optionally close the dropdown here if needed, depending on your template structure
       return; // Exit early
@@ -1054,6 +1081,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.parallelLoadSubscription?.unsubscribe();
 
     this.fluentLangCode = langCode;
+    this.companionSlug = edition?.editionSlug ?? null;
 
     // --- 2. Handle Selection ---
     if (langCode && this.bookSlug) {
@@ -1070,7 +1098,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.cdRef.markForCheck();        // Update UI
 
       // Initiate the network call (from original 'switchMap')
-      this.parallelLoadSubscription = this.readService.getPublicParallelText(this.bookSlug, langCode).pipe(
+      this.parallelLoadSubscription = this.readService.getPublicParallelText(this.bookSlug, this.companionSlug!).pipe(
         takeUntil(this.destroy$), // Auto-unsubscribe on component destroy
         finalize(() => {
           // Runs on completion, error, or unsubscribe
@@ -1094,7 +1122,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
               this.errorMessage = null;         // Clear previous errors
               logger.debug(`Loaded parallel HTML content for ${langCode}.`);
               this.initialPosition = this.trackProgress
-                ? this.progressTracker.startPresentation(`parallel:${langCode}:${this.currentParallelMode}`)
+                ? this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${this.currentParallelMode}`)
                 : null;
               // Trigger layout updates and scrolling
               // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***

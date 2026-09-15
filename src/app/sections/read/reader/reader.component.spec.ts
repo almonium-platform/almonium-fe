@@ -23,7 +23,7 @@ describe('ReaderComponent', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: {paramMap: of(convertToParamMap({slug: 'modern-flirtations'}))},
+          useValue: {paramMap: of(convertToParamMap({slug: 'modern-flirtations'})), snapshot: {queryParamMap: convertToParamMap({})}},
         },
         {
           provide: ReadService,
@@ -67,6 +67,23 @@ describe('ReaderComponent', () => {
     baseResponse$.next(new HttpResponse({status: 200, body}));
 
     expect(scheduleMeasurement).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights all sentences in the selected many-to-many group on click', () => {
+    fixture.detectChanges();
+    const component = fixture.componentInstance as unknown as {
+      currentParallelMode: string; isParallelViewActive: boolean;
+      readerContentRef: {nativeElement: HTMLElement}; onContentClick(event: Event): void;
+    };
+    const content = document.createElement('div');
+    content.innerHTML = '<span data-alignment="11-2-0">One.</span><span data-alignment="11-2-0">Two.</span><span data-alignment="11-2-0">Both.</span><span data-alignment="11-2-1">Other.</span>';
+    component.readerContentRef = {nativeElement: content};
+    component.currentParallelMode = 'side';
+    component.isParallelViewActive = true;
+    content.addEventListener('click', event => component.onContentClick(event));
+    (content.firstElementChild as HTMLElement).click();
+    expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
+    expect(content.lastElementChild?.classList.contains('is-aligned-current')).toBeFalse();
   });
 
   it('keeps a chapter navigation entry point visible when parallel text is active', () => {

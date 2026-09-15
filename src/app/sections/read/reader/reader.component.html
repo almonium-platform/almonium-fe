@@ -17,6 +17,10 @@
   @if (errorMessage) {
     <div class="error-message">{{ errorMessage }}</div>
   }
+  @if (isParallelViewActive) {
+    <p class="parallel-provenance">{{ bookTitle }} · {{ bookLevel }} ↔ {{ companionLabel }}</p>
+    <p class="parallel-provenance" i18n>Companion wording may differ. In side-by-side mode, click or press Enter on an aligned sentence to highlight its counterpart. Other passages remain paragraph-aligned.</p>
+  }
 
   <!-- Wrapper for Native Scroll -->
   @if (!isLoading && !errorMessage) {
@@ -175,14 +179,14 @@
                 tuiDataListDropdownManager
                 class="context-menu"
               >
-                <tui-opt-group label="Languages" i18n-label>
-                  @for (lang of availableLangs; track lang) {
+                <tui-opt-group label="Companion editions" i18n-label>
+                  @for (edition of availableEditions; track edition.editionSlug) {
                     <button
                       tuiOption
                       type="button"
-                      (click)="selectOption(lang); langDropdown.toggle(false)"
+                      (click)="selectOption(edition.editionSlug); langDropdown.toggle(false)"
                     >
-                      {{ lang }}
+                      {{ editionLabel(edition) }}
                     </button>
                   }
                 </tui-opt-group>
@@ -193,7 +197,7 @@
                       type="button"
                       (click)="selectOption(null); langDropdown.toggle(false)"
                     >
-                      Show Original
+                      Read this edition alone
                     </button>
                   }
                 </tui-opt-group>

@@ -25,7 +25,7 @@ export class ParallelFormatPipe implements PipeTransform {
 
     // --- SIDE-BY-SIDE MODE ---
     if (mode === 'side') {
-      const blocks = doc.querySelectorAll('p, h2, div.poem'); // Find all structural blocks
+      const blocks = doc.querySelectorAll('p, h2, h3, blockquote, div.poem');
       let segmentIndex = 0;
       blocks.forEach(block => {
         const mainColumnBlock = block.cloneNode() as HTMLElement;
@@ -35,8 +35,8 @@ export class ParallelFormatPipe implements PipeTransform {
           // If the node is a seg-pair, we process it
           if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).classList.contains('seg-pair')) {
             const segPair = node as HTMLElement;
-            const targetSegment = this.findSegment(segPair, targetLang);
-            const fluentSegment = this.findSegment(segPair, fluentLang);
+            const targetSegment = this.findSegment(segPair, targetLang, 'primary');
+            const fluentSegment = this.findSegment(segPair, fluentLang, 'secondary');
 
             if (targetSegment && fluentSegment) {
               const pairIndex = segmentIndex++;
@@ -44,12 +44,14 @@ export class ParallelFormatPipe implements PipeTransform {
               // Create new, clean segments
               const newTarget = document.createElement('span');
               newTarget.className = 'sbs-segment';
+              newTarget.lang = targetSegment.lang;
               newTarget.dataset['pair'] = `${pairIndex}`;
               newTarget.setAttribute('tabindex', '0');
               newTarget.append(...Array.from(targetSegment.childNodes, node => node.cloneNode(true)));
 
               const newFluent = document.createElement('span');
               newFluent.className = 'sbs-segment';
+              newFluent.lang = fluentSegment.lang;
               newFluent.dataset['pair'] = `${pairIndex}`;
               newFluent.setAttribute('tabindex', '0');
               newFluent.append(...Array.from(fluentSegment.childNodes, node => node.cloneNode(true)));
@@ -82,8 +84,8 @@ export class ParallelFormatPipe implements PipeTransform {
     if (mode === 'inline' || mode === 'overlay') {
       const segPairs = doc.querySelectorAll('span.seg-pair');
       segPairs.forEach(pair => {
-        const targetSegment = this.findSegment(pair, targetLang);
-        const fluentSegment = this.findSegment(pair, fluentLang);
+        const targetSegment = this.findSegment(pair, targetLang, 'primary');
+        const fluentSegment = this.findSegment(pair, fluentLang, 'secondary');
         if (mode === 'overlay' && targetSegment) {
           targetSegment.setAttribute('role', 'button');
           targetSegment.setAttribute('tabindex', '0');
@@ -101,8 +103,9 @@ export class ParallelFormatPipe implements PipeTransform {
     return sanitizeBookHtml(doc.body.innerHTML);
   }
 
-  private findSegment(parent: Element, language: string): HTMLElement | undefined {
-    return Array.from(parent.querySelectorAll<HTMLElement>('span.segment'))
-      .find(segment => segment.lang === language);
+  private findSegment(parent: Element, language: string, side: string): HTMLElement | undefined {
+    const segments = Array.from(parent.querySelectorAll<HTMLElement>('span.segment'));
+    return segments.find(segment => segment.dataset['side'] === side)
+      ?? segments.find(segment => segment.lang === language);
   }
 }

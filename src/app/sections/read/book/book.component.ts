@@ -26,6 +26,7 @@ import {FormsModule} from '@angular/forms';
 type ChipState = 'reading' | 'available' | 'asked' | 'requestable' | 'other';
 
 interface LanguageChip {
+  editionSlug?: string;
   code: LanguageCode | null;
   name: string;
   state: ChipState;
@@ -186,14 +187,14 @@ export class BookComponent implements OnInit, OnDestroy {
   protected get languageChips(): LanguageChip[] {
     const book = this.book;
     if (!book) return [];
-    const available = book.languageVariants
-      .map(variant => variant.language)
-      .filter(language => language !== book.language);
+    const variants = book.languageVariants.filter(variant => variant.id !== book.id);
+    const available = variants.map(variant => variant.language);
     const defaultPair = this.fluentLanguages.find(language => available.includes(language)) ?? available[0] ?? null;
-    const chips: LanguageChip[] = available.map(code => ({
-      code,
-      name: this.languageName(code),
-      state: code === defaultPair ? 'reading' : 'available',
+    const chips: LanguageChip[] = variants.map(variant => ({
+      code: variant.language,
+      editionSlug: variant.editionSlug,
+      name: `${this.languageName(variant.language)} · ${variant.cefrLevel ?? ''} · ${variant.editionType?.replaceAll('_', ' ') ?? 'edition'}`,
+      state: variant.language === defaultPair ? 'reading' : 'available',
     }));
     if (!this.authenticated) return chips;
     const asked = this.askedHere;
