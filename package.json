@@ -83,7 +83,7 @@
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.2.0",
-    "less": "^4.7.0",
+    "less": "^4.9.1",
     "postcss": "^8.5.20",
     "tailwindcss": "^3.4.19",
     "tailwindcss-motion": "^1.1.1",
