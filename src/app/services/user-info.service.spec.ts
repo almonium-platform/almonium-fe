@@ -44,7 +44,7 @@ describe('UserInfoService', () => {
     learners: [],
     interests: [],
     uiPreferences: DEFAULT_UI_PREFERENCES,
-    notifications: {socialEmails: true},
+    notifications: {socialEmails: true, bookEmails: true},
   };
 
   const serverUser: UserInfoDto = {

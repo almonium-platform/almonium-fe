@@ -31,9 +31,14 @@
       <section class="section-block card">
         <div i18n class="eyebrow">Notifications</div>
         <label class="setting-line">
-          <span><strong i18n>Connection emails</strong><small i18n>When someone asks to connect, or accepts your request. The bell in the app stays on.</small></span>
-          <input tuiSwitch type="checkbox" [ngModel]="notifications.socialEmails" (ngModelChange)="onSocialEmailsChange($event)" [showIcons]="true" />
+          <span><strong i18n>Social</strong><small i18n>Connection requests and acceptances.</small></span>
+          <input tuiSwitch type="checkbox" [ngModel]="notifications.socialEmails" (ngModelChange)="onNotificationPreferenceChange('socialEmails', $event)" [showIcons]="true" />
         </label>
+        <label class="setting-line">
+          <span><strong i18n>Books</strong><small i18n>When a translation you asked for, or a book you suggested, is ready.</small></span>
+          <input tuiSwitch type="checkbox" [ngModel]="notifications.bookEmails" (ngModelChange)="onNotificationPreferenceChange('bookEmails', $event)" [showIcons]="true" />
+        </label>
+        <p i18n class="setting-note">Each switch covers email and push together. The bell in the app stays on.</p>
         <label class="setting-line">
           <span><strong i18n>Daily review nudge</strong><small i18n>Remind me only when a review is due.</small></span>
           <span class="reminder-control">

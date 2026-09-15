@@ -99,9 +99,9 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.uiLocaleService.set(preference);
   }
 
-  protected onSocialEmailsChange(socialEmails: boolean): void {
+  protected onNotificationPreferenceChange(key: keyof NotificationPreferences, enabled: boolean): void {
     const previous = this.notifications;
-    this.notifications = {...this.notifications, socialEmails};
+    this.notifications = {...this.notifications, [key]: enabled};
     this.profileSettingsService.updateNotificationPreferences(this.notifications).subscribe({
       next: () => this.userInfoService.updateUserInfo({notifications: this.notifications}),
       error: (error) => {

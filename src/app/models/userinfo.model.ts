@@ -371,14 +371,17 @@ function parseInterest(value: unknown, path: string): Interest {
   };
 }
 
-/** Which emails the account receives. The in-app bell and push are not governed here. */
+/** Which mails and pushes the account receives; each switch covers both. The in-app bell is not governed here. */
 export interface NotificationPreferences {
   /** Connection requests received and requests accepted. */
   socialEmails: boolean;
+  /** A translation the reader asked for, or a book they suggested, is ready. */
+  bookEmails: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   socialEmails: true,
+  bookEmails: true,
 };
 
 function parseNotificationPreferences(value: unknown): NotificationPreferences {
@@ -390,6 +393,9 @@ function parseNotificationPreferences(value: unknown): NotificationPreferences {
     socialEmails: preferences['socialEmails'] === undefined
       ? DEFAULT_NOTIFICATION_PREFERENCES.socialEmails
       : expectBoolean(preferences['socialEmails'], 'user.notifications.socialEmails'),
+    bookEmails: preferences['bookEmails'] === undefined
+      ? DEFAULT_NOTIFICATION_PREFERENCES.bookEmails
+      : expectBoolean(preferences['bookEmails'], 'user.notifications.bookEmails'),
   };
 }
 

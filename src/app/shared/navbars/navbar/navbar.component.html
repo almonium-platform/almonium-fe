@@ -332,15 +332,21 @@
             >
               <!-- The panel already floats; a hover card off it would be a third layer over the row
                    that spawned it, repeating the row's own actions. The avatar is a link instead. -->
-              <button type="button"
-                      class="notification-avatar"
-                      [attr.aria-label]="senderProfileLabel(notification)"
-                      (click)="openSenderProfile(notification)">
-                <app-avatar
-                  [avatarUrl]="notification.pictureUrl"
-                  [username]="notification.senderUsername"
-                ></app-avatar>
-              </button>
+              @if (isBookRow(notification)) {
+                <span class="notification-cover" aria-hidden="true">
+                  <app-book-cover [title]="notification.contextTitle ?? notification.title" [author]="''" [workSlug]="notification.referenceId" [coverUrl]="notification.pictureUrl"></app-book-cover>
+                </span>
+              } @else {
+                <button type="button"
+                        class="notification-avatar"
+                        [attr.aria-label]="senderProfileLabel(notification)"
+                        (click)="openSenderProfile(notification)">
+                  <app-avatar
+                    [avatarUrl]="notification.pictureUrl"
+                    [username]="notification.senderUsername"
+                  ></app-avatar>
+                </button>
+              }
 
               <div class="notification-content" (keydown.enter)="onNotificationClick(notification)" tabindex="0" (click)="onNotificationClick(notification)">
                 <div class="notification-row">
@@ -354,6 +360,9 @@
                 </div>
                 <!-- The bell row is the fastest path to accepting; Requests in People is
                      the same list for when the bell has already been cleared. -->
+                @if (bookActionLabel(notification); as action) {
+                  <span class="notification-action">{{ action }}</span>
+                }
                 @if (isActionableRequest(notification)) {
                   <div class="notification-actions">
                     <button i18n type="button"

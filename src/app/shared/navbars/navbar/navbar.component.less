@@ -614,6 +614,23 @@
         line-height: 1.45;
       }
 
+      // A reading row: the avatar slot carries the book's cover tile instead of a face.
+      .notification-cover {
+        display: block;
+        flex: 0 0 2.25rem;
+        width: 2.25rem;
+        height: 3.1rem;
+        overflow: hidden;
+        border-radius: .3rem;
+        box-shadow: 0 1px 3px rgba(44, 37, 48, .18);
+      }
+
+      .notification-action {
+        color: var(--dark-raspberry);
+        font-size: .78rem;
+        font-weight: 500;
+      }
+
       .notification-content {
         display: flex;
         flex-direction: column;

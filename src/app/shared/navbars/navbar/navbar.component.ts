@@ -18,7 +18,8 @@ import {ViewportService} from "../../../services/viewport.service";
 import {SharedLucideIconsModule} from "../../shared-lucide-icons.module";
 import {ChatUnreadService} from "../../../sections/social/chat-unread.service";
 import {NotificationService} from "../../notification/notification.service";
-import {Notification, NotificationType} from "../../notification/notification.model";
+import {Notification, NotificationType, isBookNotification} from "../../notification/notification.model";
+import {BookCoverComponent} from '../../../sections/read/book-cover/book-cover.component';
 import {TuiDataListComponent, TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
 import {TuiDropdownContext, TuiDropdownDirective} from "@taiga-ui/core/portals";
 import {ShortRelativeTimePipe} from "./short-relative-time.pipe";
@@ -44,6 +45,7 @@ const REQUEST_ANSWER_FAILED = $localize`Could not answer the friend request`;
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.less'],
   imports: [
+    BookCoverComponent,
     FormsModule,
     NgClass,
     NgStyle,
@@ -296,7 +298,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const groups = new Map<string, Notification[]>();
 
     for (const notification of notifications) {
-      const key = `${notification.senderId}:${notification.type}`;
+      // A reading row stands for one fulfilment and is never collapsed with others.
+      const key = isBookNotification(notification) ? notification.id : `${notification.senderId}:${notification.type}`;
       groups.set(key, [...(groups.get(key) ?? []), notification]);
     }
 
@@ -570,10 +573,48 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   protected notificationSummary(notification: Notification): string {
+    if (isBookNotification(notification)) return this.bookNotificationSummary(notification);
     const message = notification.message?.trim();
     return message
       ? this.formatNotificationText(message)
       : notification.title.replace(/[!]+(?=\s*$)/, '.');
+  }
+
+  protected isBookRow(notification: Notification): boolean {
+    return isBookNotification(notification);
+  }
+
+  /** "<em>Effi Briest</em> now reads alongside Ukrainian. You asked for it in August." */
+  private bookNotificationSummary(notification: Notification): string {
+    const escape = (text: string) => text.replace(/[&<>"']/g, character => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character] ?? character));
+    const title = notification.contextTitle?.trim();
+    let sentence = escape(notification.title.trim());
+    if (title && notification.title.startsWith(title)) {
+      sentence = `<em>${escape(title)}</em>${escape(notification.title.slice(title.length))}`;
+    }
+    if (!/[.!?]$/.test(sentence)) sentence += '.';
+    const message = notification.message?.trim();
+    return message ? `${sentence} ${escape(message)}` : sentence;
+  }
+
+  /** The one action a reading row offers; the row itself opens the same place. */
+  protected bookActionLabel(notification: Notification): string | null {
+    switch (notification.type) {
+      case NotificationType.TRANSLATION_ORDER_COMPLETED: return $localize`Open chapter one`;
+      case NotificationType.LIBRARY_SUGGESTION_PUBLISHED: return $localize`Open the library copy`;
+      case NotificationType.BOOK_IMPORT_READY: return $localize`Start reading`;
+      case NotificationType.BOOK_IMPORT_FAILED: return $localize`See what happened`;
+      default: return null;
+    }
+  }
+
+  private bookNotificationPath(notification: Notification): string | null {
+    if (notification.actionPath) return notification.actionPath;
+    switch (notification.type) {
+      case NotificationType.BOOK_IMPORT_READY: return `/reader/private/${notification.referenceId}`;
+      case NotificationType.BOOK_IMPORT_FAILED: return `/my-books/${notification.referenceId}`;
+      default: return null;
+    }
   }
 
   /* A FRIENDSHIP_REQUESTED notification outlives the request it announces: answering it here, in
@@ -662,6 +703,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       case NotificationType.FRIENDSHIP_REQUESTED:
         void this.router.navigate(['/social'], {queryParams: {requests: 'received'}}).then();
         break;
+      default: {
+        const path = this.bookNotificationPath(notification);
+        if (path) void this.router.navigateByUrl(path);
+      }
     }
     this.markNotificationAsRead(notification);
   }
