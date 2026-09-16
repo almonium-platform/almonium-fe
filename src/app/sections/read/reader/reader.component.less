@@ -151,6 +151,9 @@
   gap: .15rem;
   overflow-y: auto;
 
+  // A full book scrolls; flex must not squeeze enriched chapter rows to fit.
+  > span, > button { flex-shrink: 0; }
+
   > span { margin-bottom: .35rem; color: var(--metadata-color); font: 700 .68rem/1 var(--font-family-ui); letter-spacing: .08em; text-transform: uppercase; }
   button { padding: .35rem 0; overflow: hidden; border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: .78rem/1.25 var(--font-family-ui); text-align: left; text-overflow: ellipsis; }
   button:hover, button:focus-visible { color: var(--brand-margin); text-decoration: underline; }

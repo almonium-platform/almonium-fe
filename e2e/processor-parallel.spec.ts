@@ -1,5 +1,29 @@
 import {expect, test} from '@playwright/test';
 
+test('scrolls a full chapter list without clipping its difficulty or description', async ({page}, testInfo) => {
+  await page.setViewportSize({width: 1400, height: 1000});
+  const id = '01989f47-4c2a-7a10-9e5b-751983624a25';
+  const chapters = Array.from({length: 30}, (_, index) => ({id, sequence: index + 1, title: `Chapter ${index + 1}`, analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A chapter description that needs several lines in the narrow contents list.']}));
+  const metadata = {id, editionSlug: 'frankenstein-b2', workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: false, languageVariants: [], language: 'EN', cefrLevel: 'B2'};
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: chapters});
+    else if (path.endsWith('/frankenstein-b2/text')) await route.fulfill({contentType: 'text/html', body: chapters.map(chapter => `<section class="chapter"><h2 id="chapter-${chapter.sequence}" class="chapter-title">${chapter.title}</h2><p>Chapter text.</p></section>`).join('')});
+    else if (path.endsWith('/frankenstein-b2')) await route.fulfill({json: metadata});
+    else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
+  });
+  await page.goto('/reader/frankenstein-b2');
+  const contents = page.getByRole('navigation', {name: 'Contents'});
+  const buttons = contents.getByRole('button');
+  await expect(buttons).toHaveCount(30);
+  await expect(buttons.first()).toContainText('Estimated B2');
+  expect(await contents.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+  expect(await buttons.evaluateAll(nodes => nodes.every(node => node.scrollHeight <= node.clientHeight + 1))).toBe(true);
+  await buttons.last().scrollIntoViewIfNeeded();
+  await expect(buttons.last().locator('.chapter-description')).toBeVisible();
+  await page.screenshot({path: testInfo.outputPath('chapter-navigation.png'), fullPage: true, animations: 'disabled'});
+});
+
 for (const mode of ['side', 'inline', 'overlay']) {
 for (const language of ['EN', 'UK']) {
 test(`selects a ${language} companion and highlights sentence groups in ${mode} mode`, async ({page}, testInfo) => {

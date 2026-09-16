@@ -32,7 +32,8 @@ E2E_DIST=dist/almonium-fe/browser E2E_PORT=4201 node node_modules/@playwright/te
 
 Add `--headed` to watch it. The Node invocation works around this checkout's
 non-executable Playwright CLI shim. As of 2026-09-16, full lint, 267 tests,
-production build and six browser pair/mode checks pass. Browser pair tests use
+production build and seven browser checks (six pair/mode cases plus a full
+chapter-list regression) pass. Browser pair tests use
 intercepted fixtures; they do not prove publication of the real B2/UK editions.
 Screenshots, including the companion switch, are in `docs/evidence/reader-20260916`.
 
@@ -62,3 +63,5 @@ menu explicitly labels indirect translations and lets the reader hide them;
 hiding the active one returns to base reading. This is a product default for
 the owner to evaluate, not an editorial approval. Chapter and companion menus
 close each other rather than overlapping.
+The desktop contents list scrolls without shrinking/clipping enriched chapter
+rows. The regression uses 30 chapters; this was also checked on the live original.
