@@ -52,9 +52,11 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
     await page.locator('app-parallel-translation').click();
     const toggle = page.getByRole('switch', {name: 'Include translations of other editions:'});
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-on.png`), fullPage: true});
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
     await expect(page.locator('.parallel-provenance')).toHaveCount(0);
+    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-off.png`), fullPage: true});
   }
 });
 }
