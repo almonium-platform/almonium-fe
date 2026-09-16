@@ -76,12 +76,14 @@
   max-height: calc(100% - 5rem);
   flex-direction: column;
   gap: .5rem;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  // The rail never clips: a clipped shadow shows as grey blocks under the plate's corners.
+  overflow: visible;
   font-family: var(--font-family-ui);
 }
 
 .reader-rail app-chapter-vocabulary { display: flex; min-height: 0; flex-direction: column; }
+// A tall card scrolls inside its own rounded plate, so the shadow stays whole.
+.reader-rail app-word-card { min-height: 0; overflow-y: auto; border-radius: 1.75rem; scrollbar-width: thin; }
 
 .reader-rail__back {
   display: inline-flex;
