@@ -88,6 +88,9 @@
   @if (!isLoading && !errorMessage) {
     <div #paginationControls class="pagination-controls">
       <div class="pagination-center-area">
+        @if (bookSlug) {
+          <app-chapter-vocabulary [editionSlug]="bookSlug" [bookTitle]="bookTitle" [chapterMetadata]="chapterMetadata" (opened)="closeReaderMenus()" />
+        }
         <!-- Table of Contents Dropdown -->
         @if (chapterNav.length > 0) {
           <div class="chapter-nav-container mobile-content-map" [class.parallel-content-map]="isParallelViewActive">

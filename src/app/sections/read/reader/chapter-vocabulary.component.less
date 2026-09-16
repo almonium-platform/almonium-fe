@@ -1,0 +1,11 @@
+:host { font-family: var(--font-family-ui); }
+button, select { font: inherit; color: var(--reader-text-color); background: var(--card-color); border: 1px solid var(--control-border-color); border-radius: 1rem; padding: .5rem .8rem; cursor: pointer; }
+section { position: fixed; bottom: 4rem; left: 50%; transform: translateX(-50%); z-index: 10; width: min(32rem, calc(100vw - 2rem)); max-height: 70vh; overflow-y: auto; box-sizing: border-box; padding: 1.2rem; border-radius: 1.5rem; background: var(--card-color); color: var(--reader-text-color); box-shadow: 0 8px 32px #0002; text-align: left; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+h2 { font-family: var(--font-family-reading); font-size: 1.3rem; margin: 0; }
+select { display: block; width: 100%; margin: .5rem 0; }
+p, blockquote { font-size: .9rem; line-height: 1.5; }
+blockquote { margin: .5rem 0; font-family: var(--font-family-reading); }
+article { padding: 1rem 0; border-top: 1px solid var(--control-border-color); }
+h3 { margin: 0; font-size: 1rem; }
+a { color: var(--brand-margin); }

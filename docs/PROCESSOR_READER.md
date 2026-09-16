@@ -39,7 +39,7 @@ Screenshots, including the companion switch, are in `docs/evidence/reader-202609
 
 Next: the owner reviews fidelity and decides publication, then test those real
 editions against the live backend. Chapter metadata and full-book sentence
-highlights are implemented; vocabulary and clause highlighting remain future work.
+highlights and chapter vocabulary are implemented; clause highlighting remains future work.
 The existing backend HTML adapter is still used—this iteration does not pretend
 all processor artifacts already reach the app.
 # Chapter information (2026-09-15)
@@ -65,3 +65,25 @@ the owner to evaluate, not an editorial approval. Chapter and companion menus
 close each other rather than overlapping.
 The desktop contents list scrolls without shrinking/clipping enriched chapter
 rows. The regression uses 30 chapters; this was also checked on the live original.
+
+## Chapter vocabulary (2026-09-16)
+
+Open `/reader/shelley-frankenstein-en-orig`, choose **Vocabulary** in the bottom
+bar, then **11 — CHAPTER V.** There are 21 selected words, with lemmas, observed
+forms and source excerpts. The chapter picker is independent of reading position.
+This is a chapter-filtered selection from the book's useful words, not an exhaustive
+word list. Only current processor artifacts are displayed; missing/stale analysis
+does not block reading. Private imports do not use this public endpoint.
+
+The lazy request is `/public/books/{editionSlug}/chapters/{sequence}/vocabulary`.
+Discover links carry lemma, context, source language, edition slug, chapter and
+block identity. The source language overrides the lookup language without changing
+the learner's preference. Discover shows the book/chapter and a **Back to book**
+link (not a chapter-position jump).
+
+Verification: lint, 274 unit tests, production build and eight browser tests pass.
+`e2e/chapter-vocabulary.spec.ts` tests the reader-to-Discover journey with fixtures,
+including a different learner language. No paid provider calls are made by tests.
+[Live original vocabulary](evidence/reader-20260916/vocabulary-live-original.png)
+was checked against the actual backend; [Discover context](evidence/reader-20260916/discover-book-context.png)
+is fixture evidence. Mobile vocabulary remains a separate slice.

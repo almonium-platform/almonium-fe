@@ -29,6 +29,7 @@ import {
 } from './translation-order.model';
 import {Observable} from "rxjs";
 import {BookChapter, parseBookChapters} from './book-chapter.model';
+import {ChapterVocabulary, parseChapterVocabulary} from './chapter-vocabulary.model';
 import {map, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -52,6 +53,11 @@ export class ReadService {
   getPublicChapters(editionSlug: string): Observable<BookChapter[]> {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${encodeURIComponent(editionSlug)}/chapters`)
       .pipe(map(parseBookChapters));
+  }
+
+  getChapterVocabulary(editionSlug: string, sequence: number): Observable<ChapterVocabulary> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${encodeURIComponent(editionSlug)}/chapters/${sequence}/vocabulary`)
+      .pipe(map(parseChapterVocabulary));
   }
 
   loadPublicBook(editionSlug: string): Observable<HttpResponse<ArrayBuffer>> {

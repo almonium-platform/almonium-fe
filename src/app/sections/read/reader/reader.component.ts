@@ -31,6 +31,7 @@ import {BookHtmlPipe} from './book-html.pipe';
 import {WordCardComponent} from '../word-card/word-card.component';
 import {CEFRLevel} from '../../../models/userinfo.model';
 import {BookChapter} from '../book-chapter.model';
+import {ChapterVocabularyComponent} from './chapter-vocabulary.component';
 
 @Component({
   selector: 'app-reader',
@@ -53,6 +54,7 @@ import {BookChapter} from '../book-chapter.model';
     TuiDataList,
     BookHtmlPipe,
     WordCardComponent,
+    ChapterVocabularyComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -77,6 +79,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
   @ViewChild('tocTrigger', {read: ElementRef}) private tocTrigger?: ElementRef<HTMLElement>;
   @ViewChild('settingsPanel', {read: ElementRef}) private settingsPanel?: ElementRef<HTMLElement>;
+  @ViewChild(ChapterVocabularyComponent) private vocabularyPanel?: ChapterVocabularyComponent;
 
   // --- State Properties ---
   protected chapterNav: ReaderChapter[] = [];
@@ -90,7 +93,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isLoadingParallel = false; // Specific loading state for parallel text
   protected errorMessage: string | null = null;
   protected bookId: string | null = null;
-  private bookSlug: string | null = null;
+  protected bookSlug: string | null = null;
   private privateBookId: string | null = null;
   private trackProgress = false;
 
@@ -982,16 +985,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
+    this.vocabularyPanel?.close();
     this.companionNavigationDropdown?.toggle(false);
     this.chapterNavigationDropdown = dropdown;
     dropdown.toggle(!dropdown.ref());
   }
 
   protected openCompanionMenu(dropdown: TuiDropdownDirective): void {
+    this.vocabularyPanel?.close();
     this.chapterNavigationDropdown?.toggle(false);
     this.closeParallelSettings();
     this.companionNavigationDropdown = dropdown;
     dropdown.toggle(true);
+  }
+
+  protected closeReaderMenus(): void {
+    this.chapterNavigationDropdown?.toggle(false);
+    this.companionNavigationDropdown?.toggle(false);
+    this.closeParallelSettings();
   }
 
   // --- Chapter Navigation ---
