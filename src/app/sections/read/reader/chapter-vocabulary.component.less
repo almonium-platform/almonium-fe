@@ -16,7 +16,8 @@
 .vocab__arrows button:hover { background: var(--state-hover); color: var(--text-color); }
 
 .vocab__list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.vocab__list li + li { border-top: 1px solid var(--hairline-color); }
+.vocab__list li + li { border-top: 1px solid var(--hairline-on-ground); }
+.vocab--rail .vocab__list li + li { border-top-color: var(--hairline-color); }
 .vocab__row { display: grid; width: 100%; grid-template-columns: minmax(6.5rem, 9rem) minmax(0, 1fr); gap: .25rem .9rem; padding: .75rem 0; border: 0; border-radius: .5rem; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left; }
 .vocab__row:hover, .vocab__row:focus-visible { background: var(--state-hover); outline: none; }
 .vocab__row:focus-visible { box-shadow: 0 0 0 2px var(--brand-margin); }
@@ -35,5 +36,5 @@
 .vocab--rail .vocab__row { grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); padding-right: .5rem; padding-left: .5rem; }
 
 // The chapter end (J3): a plain block under the last paragraph.
-.vocab--end { padding-top: 1.75rem; border-top: 1px solid var(--hairline-color); }
+.vocab--end { padding-top: 1.75rem; border-top: 1px solid var(--hairline-on-ground); }
 .vocab--end .vocab__title { font-size: 1.35rem; }

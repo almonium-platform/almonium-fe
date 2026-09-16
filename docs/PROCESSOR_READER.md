@@ -124,6 +124,16 @@ page's Continue row is pinned from this device's place only. The public chapter
 projection has no front/back-matter role yet, so the book page treats every
 chapter as a body chapter.
 
+Ground (2026-09-17 revision of J2/J3): the chapter page is the cream page
+ground, the same paper as the navbar, with no card under the text. White is
+only for what floats: the word card, the Words rail, the bottom bar (a pill),
+the chapter-end account panel and the contents rail's current-row pill.
+Hairlines on cream use `--hairline-on-ground` (#e6dfdb); `--hairline-color`
+(#edebe8) stays for hairlines inside white cards. The contents rail shows the
+description on the current row and on a hovered row; the live Frankenstein
+edition has every chapter `stale` with no descriptions, so that is visible only
+in the fixture screenshot `contents-rail-descriptions.png`.
+
 Verification: 290 unit tests, lint and a development build pass; 11 browser
 tests with intercepted fixtures pass (`e2e/chapter-vocabulary.spec.ts` covers
 the guest chapter page, the rail, the card ask and the book contents;
