@@ -176,7 +176,7 @@
           <div class="parallel">
             <app-parallel-translation
               #langDropdown="tuiDropdown"
-              (click)="langDropdown.toggle(true); $event.stopPropagation()"
+              (click)="openCompanionMenu(langDropdown); $event.stopPropagation()"
               (tuiActiveZoneChange)="!$event && langDropdown.toggle(false)"
               [tuiDropdown]="parallelLangMenu"
               [loading]="isLoadingParallel"

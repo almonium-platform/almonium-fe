@@ -156,6 +156,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private chapterScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private chapterMeasurementFrameId: number | null = null;
   private chapterNavigationDropdown: TuiDropdownDirective | null = null;
+  private companionNavigationDropdown: TuiDropdownDirective | null = null;
 
   private needsHeightSync = false;
 
@@ -981,8 +982,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
+    this.companionNavigationDropdown?.toggle(false);
     this.chapterNavigationDropdown = dropdown;
     dropdown.toggle(!dropdown.ref());
+  }
+
+  protected openCompanionMenu(dropdown: TuiDropdownDirective): void {
+    this.chapterNavigationDropdown?.toggle(false);
+    this.closeParallelSettings();
+    this.companionNavigationDropdown = dropdown;
+    dropdown.toggle(true);
   }
 
   // --- Chapter Navigation ---

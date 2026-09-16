@@ -48,15 +48,15 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
   await page.getByRole('button', {name: 'Open chapter navigation'}).click();
   await expect(page.getByRole('menuitem').filter({hasText: 'Estimated B2'})).toContainText('A scientist faces an unexpected result.');
   if (language === 'UK') {
-    await page.keyboard.press('Escape');
     await page.locator('app-parallel-translation').click();
+    await expect(page.getByRole('menuitem').filter({hasText: 'Estimated B2'})).not.toBeVisible();
     const toggle = page.getByRole('switch', {name: 'Include translations of other editions:'});
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
-    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-on.png`), fullPage: true});
+    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-on.png`), fullPage: true, animations: 'disabled'});
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
     await expect(page.locator('.parallel-provenance')).toHaveCount(0);
-    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-off.png`), fullPage: true});
+    await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-off.png`), fullPage: true, animations: 'disabled'});
   }
 });
 }
