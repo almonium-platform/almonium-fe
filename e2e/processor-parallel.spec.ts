@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 
-test('scrolls a full chapter list without clipping its difficulty or description', async ({page}, testInfo) => {
+test('lists a full book in the contents rail, one line per chapter, describing only the current one', async ({page}, testInfo) => {
   await page.setViewportSize({width: 1400, height: 1000});
   const id = '01989f47-4c2a-7a10-9e5b-751983624a25';
   const chapters = Array.from({length: 30}, (_, index) => ({id, sequence: index + 1, title: `Chapter ${index + 1}`, analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A chapter description that needs several lines in the narrow contents list.']}));
@@ -13,14 +13,20 @@ test('scrolls a full chapter list without clipping its difficulty or description
     else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
   });
   await page.goto('/reader/frankenstein-b2');
+  await expect(page).toHaveURL(/\/books\/frankenstein-b2\/1\?resume=1$/);
   const contents = page.getByRole('navigation', {name: 'Contents'});
-  const buttons = contents.getByRole('button');
-  await expect(buttons).toHaveCount(30);
-  await expect(buttons.first()).toContainText('Estimated B2');
+  const rows = contents.getByRole('link');
+  await expect(rows).toHaveCount(30);
+  await expect(rows.first()).toHaveAttribute('aria-current', 'page');
+  await expect(rows.first().locator('.content-map__level')).toHaveText('B2');
+  await expect(rows.first().locator('.content-map__description')).toBeVisible();
+  await expect(rows.nth(1).locator('.content-map__description')).toBeHidden();
+  await rows.nth(1).hover();
+  await expect(rows.nth(1).locator('.content-map__description')).toBeVisible();
   expect(await contents.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
-  expect(await buttons.evaluateAll(nodes => nodes.every(node => node.scrollHeight <= node.clientHeight + 1))).toBe(true);
-  await buttons.last().scrollIntoViewIfNeeded();
-  await expect(buttons.last().locator('.chapter-description')).toBeVisible();
+  await rows.last().click();
+  await expect(page).toHaveURL(/\/books\/frankenstein-b2\/30$/);
+  await expect(page.locator('.chapter-head__place')).toContainText('Chapter 30 of 30');
   await page.screenshot({path: testInfo.outputPath('chapter-navigation.png'), fullPage: true, animations: 'disabled'});
 });
 
@@ -46,7 +52,7 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
     } else if (path.endsWith('/public/books/frankenstein-b2/text')) {
       // Exercise the slow base-response race: it must not replace the loaded pair.
       await new Promise(resolve => setTimeout(resolve, 300));
-      await route.fulfill({contentType: 'text/html', body: '<section class="chapter"><h2 class="chapter-title">V</h2><p>Base text</p></section>'});
+      await route.fulfill({contentType: 'text/html', body: '<section class="chapter"><h2 class="chapter-title" id="chapter-11">V</h2><p>Base text</p></section>'});
     } else if (path.endsWith('/public/books/frankenstein-b2')) {
       await route.fulfill({json: metadata});
     } else {
@@ -69,11 +75,10 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
     await expect(page.locator('.parallel-provenance').first()).toContainText('not this adaptation');
   }
   await page.screenshot({path: testInfo.outputPath(`parallel-${language}-${mode}.png`), fullPage: true});
-  await page.getByRole('button', {name: 'Open chapter navigation'}).click();
-  await expect(page.getByRole('menuitem').filter({hasText: 'Estimated B2'})).toContainText('A scientist faces an unexpected result.');
+  await expect(page.locator('.chapter-head__place')).toContainText('Chapter 1 of 1 · Estimated B2');
+  await expect(page.locator('.chapter-head__description')).toContainText('A scientist faces an unexpected result.');
   if (language === 'UK') {
     await page.locator('app-parallel-translation').click();
-    await expect(page.getByRole('menuitem').filter({hasText: 'Estimated B2'})).not.toBeVisible();
     const toggle = page.getByRole('switch', {name: 'Include translations of other editions:'});
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
     await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-on.png`), fullPage: true, animations: 'disabled'});

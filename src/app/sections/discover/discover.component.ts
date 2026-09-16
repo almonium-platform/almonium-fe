@@ -42,6 +42,8 @@ export class DiscoverComponent implements OnInit {
   private sourceLanguage: LanguageCode | null = null;
   protected sourceBook = '';
   protected sourceBookTitle = '';
+  /** The chapter sequence, when known: "Back to book" then returns to that chapter's page. */
+  protected sourceChapter = '';
   protected sourceChapterTitle = '';
   protected readonly diacritics = ['ä', 'ö', 'ü', 'ß', 'é', 'è', 'ç', 'ñ', 'ł'];
   protected readonly intentOptions: {value: LearningIntent; label: string; detail: string}[] = [
@@ -81,6 +83,7 @@ export class DiscoverComponent implements OnInit {
       this.sourceBook = /^[a-zA-Z0-9_-]{1,200}$/.test(book) ? book : '';
       this.sourceBookTitle = (params.get('bookTitle') ?? this.sourceBook).slice(0, 200);
       this.sourceChapterTitle = (params.get('chapterTitle') ?? params.get('chapter') ?? '').slice(0, 200);
+      this.sourceChapter = /^\d{1,4}$/.test(params.get('chapter') ?? '') ? params.get('chapter')! : '';
       if (this.searchText) this.submitSearch();
     });
   }

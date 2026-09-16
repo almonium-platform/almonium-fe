@@ -30,13 +30,15 @@ import {
 import {Observable} from "rxjs";
 import {BookChapter, parseBookChapters} from './book-chapter.model';
 import {ChapterVocabulary, parseChapterVocabulary} from './chapter-vocabulary.model';
-import {map, tap} from 'rxjs/operators';
+import {map, shareReplay, tap} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReadService {
   private http = inject(HttpClient);
+  /** The chapter-end list and the rail ask for the same chapter; one request serves both. */
+  private readonly vocabularyCache = new Map<string, Observable<ChapterVocabulary>>();
 
 
   // --- Existing Methods (Keep As Is) ---
@@ -56,8 +58,14 @@ export class ReadService {
   }
 
   getChapterVocabulary(editionSlug: string, sequence: number): Observable<ChapterVocabulary> {
-    return this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${encodeURIComponent(editionSlug)}/chapters/${sequence}/vocabulary`)
-      .pipe(map(parseChapterVocabulary));
+    const key = `${editionSlug}/${sequence}`;
+    let cached = this.vocabularyCache.get(key);
+    if (!cached) {
+      cached = this.http.get<unknown>(`${AppConstants.PUBLIC_BOOKS_URL}/${encodeURIComponent(editionSlug)}/chapters/${sequence}/vocabulary`)
+        .pipe(map(parseChapterVocabulary), tap({error: () => this.vocabularyCache.delete(key)}), shareReplay(1));
+      this.vocabularyCache.set(key, cached);
+    }
+    return cached;
   }
 
   loadPublicBook(editionSlug: string): Observable<HttpResponse<ArrayBuffer>> {

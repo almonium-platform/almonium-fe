@@ -2,7 +2,7 @@
   @if (sourceBook) {
     <aside class="sentence-card" aria-label="Book source" i18n-aria-label>
       <p i18n>From {{ sourceBookTitle }} · {{ sourceChapterTitle }}</p>
-      <a [routerLink]="['/reader', sourceBook]" i18n>Back to book</a>
+      <a [routerLink]="sourceChapter ? ['/books', sourceBook, sourceChapter] : ['/reader', sourceBook]" i18n>Back to book</a>
     </aside>
   }
   <section class="discover-intro" aria-labelledby="discover-title">

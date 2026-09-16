@@ -48,7 +48,6 @@ describe('ReaderDomService', () => {
     });
 
     expect(service.scrollTopForPosition(wrapper, content, {
-      version: 1,
       scrollTop: 731,
       scrollHeight: 2000,
       clientWidth: 800,
@@ -72,7 +71,6 @@ describe('ReaderDomService', () => {
     paragraph.getBoundingClientRect = () => ({top: 400} as DOMRect);
 
     expect(service.scrollTopForPosition(wrapper, content, {
-      version: 1,
       scrollTop: 731,
       scrollHeight: 2000,
       clientWidth: 800,

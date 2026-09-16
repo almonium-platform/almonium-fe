@@ -1,6 +1,11 @@
 import {Injectable} from '@angular/core';
 import {ReaderPosition, ReaderPositionAnchor} from './reader-position.model';
 
+/** The place within the current page; the reader adds which chapter page and rendering it is in. */
+export type CapturedPlace = Omit<ReaderPosition, 'chapter' | 'presentation'>;
+/** What restoring a place needs: the scroll geometry and the anchor, whichever record carries them. */
+export type RestorablePlace = Pick<ReaderPosition, 'scrollTop' | 'scrollHeight' | 'clientWidth' | 'percentage' | 'anchor'>;
+
 export interface ReaderChapter {
   title: string;
   offsetTop: number;
@@ -58,12 +63,12 @@ export class ReaderDomService {
     return Math.max(0, Math.min(value, Math.max(0, element.scrollHeight - element.clientHeight)));
   }
 
-  capturePosition(wrapper: HTMLElement, content: HTMLElement): ReaderPosition {
+  capturePosition(wrapper: HTMLElement, content: HTMLElement): CapturedPlace {
     const maxScrollTop = Math.max(0, wrapper.scrollHeight - wrapper.clientHeight);
     const scrollTop = this.clampScrollTop(wrapper, wrapper.scrollTop);
 
     return {
-      version: 1,
+      version: 2,
       scrollTop: Math.round(scrollTop),
       scrollHeight: wrapper.scrollHeight,
       clientWidth: wrapper.clientWidth,
@@ -72,7 +77,7 @@ export class ReaderDomService {
     };
   }
 
-  scrollTopForPosition(wrapper: HTMLElement, content: HTMLElement, position: ReaderPosition): number {
+  scrollTopForPosition(wrapper: HTMLElement, content: HTMLElement, position: RestorablePlace): number {
     if (position.scrollHeight === wrapper.scrollHeight && position.clientWidth === wrapper.clientWidth) {
       return this.clampScrollTop(wrapper, position.scrollTop);
     }

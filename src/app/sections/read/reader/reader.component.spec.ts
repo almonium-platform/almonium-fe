@@ -1,10 +1,11 @@
 import {HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {ActivatedRoute, convertToParamMap} from '@angular/router';
+import {ActivatedRoute, Router, convertToParamMap, provideRouter} from '@angular/router';
 import {BehaviorSubject, Subject, of} from 'rxjs';
 
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 import {UserInfoService} from '../../../services/user-info.service';
+import {CardService} from '../../../services/card.service';
 import {ParallelModeService} from '../parallel-mode.service';
 import {ReadService} from '../read.service';
 import {ReaderComponent, sentenceAround} from './reader.component';
@@ -14,29 +15,43 @@ import {ReaderProgressTracker} from './reader-progress-tracker.service';
 describe('ReaderComponent', () => {
   let fixture: ComponentFixture<ReaderComponent>;
   let baseResponse$: Subject<HttpResponse<ArrayBuffer>>;
+  let vocabulary$: Subject<never>;
+  const chapters = [
+    {id: '01989f47-4c2a-7a10-9e5b-751983624a25', sequence: 11, title: 'CHAPTER V.', analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A long labour ends on a stormy night.']},
+    {id: '01989f47-4c2a-7a10-9e5b-751983624a26', sequence: 12, title: 'CHAPTER VI.', analysisStatus: 'complete', cefrEstimate: 'C1', descriptions: ['A letter from Geneva.']},
+  ];
+  const bookHtml = '<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2><p>It was on a dreary night of November.</p></section>'
+    + '<section class="chapter"><h2 class="chapter-title" id="chapter-12">CHAPTER VI.</h2><p>Clerval placed the letter in my hands.</p></section>';
 
   beforeEach(async () => {
     baseResponse$ = new Subject<HttpResponse<ArrayBuffer>>();
+    vocabulary$ = new Subject<never>();
 
     await TestBed.configureTestingModule({
       imports: [ReaderComponent],
       providers: [
+        provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: {paramMap: of(convertToParamMap({slug: 'modern-flirtations'})), snapshot: {queryParamMap: convertToParamMap({})}},
+          useValue: {paramMap: of(convertToParamMap({slug: 'modern-flirtations', sequence: '11'})), snapshot: {queryParamMap: convertToParamMap({})}},
         },
         {
           provide: ReadService,
           useValue: {
-            getPublicChapters: () => of([]),
+            getPublicChapters: () => of(chapters),
             getPublicBook: () => of({
               id: '01989f47-4c2a-7a10-9e5b-751983624a25',
+              title: 'Modern Flirtations',
+              author: 'Catherine Sinclair',
               language: 'EN',
+              cefrLevel: 'B2',
               languageVariants: [],
             }),
             loadPublicBook: () => baseResponse$,
+            getChapterVocabulary: () => vocabulary$,
           },
         },
+        {provide: CardService, useValue: {getCardsInLanguage: () => of([])}},
         {provide: ParallelModeService, useValue: {mode$: new BehaviorSubject('inline')}},
         {provide: PopupTemplateStateService, useValue: {open: () => undefined}},
         {provide: UserInfoService, useValue: {currentUserInfo: null}},
@@ -46,7 +61,7 @@ describe('ReaderComponent', () => {
         set: {
           providers: [
             ReaderDomService,
-            {provide: ReaderProgressTracker, useValue: {}},
+            {provide: ReaderProgressTracker, useValue: {startBook: () => null, update: () => undefined, saveOnExit: () => undefined}},
           ],
         },
       })
@@ -55,19 +70,75 @@ describe('ReaderComponent', () => {
     fixture = TestBed.createComponent(ReaderComponent);
   });
 
-  it('schedules chapter measurement after asynchronous base content arrives', () => {
+  function loadBook(): HTMLElement {
     fixture.detectChanges();
+    baseResponse$.next(new HttpResponse({status: 200, body: new TextEncoder().encode(bookHtml).buffer}));
+    fixture.detectChanges();
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows the chapter the route names: a four-line header, its text, and the next chapter after it', () => {
+    const host = loadBook();
+    expect(host.querySelector('.chapter-head__book')?.textContent).toContain('Modern Flirtations');
+    expect(host.querySelector('.chapter-head__place')?.textContent).toContain('Chapter 1 of 2');
+    expect(host.querySelector('.chapter-head__place')?.textContent).toContain('Estimated B2');
+    expect(host.querySelector('.chapter-head__title')?.textContent).toBe('Chapter V');
+    expect(host.querySelector('.chapter-head__description')?.textContent).toContain('A long labour ends');
+    expect(host.querySelector('.reader-content')?.textContent).toContain('dreary night');
+    expect(host.querySelector('.reader-content')?.textContent).not.toContain('Clerval');
+    expect(host.querySelector('.reader-content h2')).toBeNull();
+    const next = host.querySelector<HTMLAnchorElement>('.chapter-end__link--next')!;
+    expect(next.getAttribute('href')).toBe('/books/modern-flirtations/12');
+    expect(next.textContent).toContain('Estimated C1');
+    expect(next.textContent).toContain('A letter from Geneva.');
+    expect(host.querySelector('.chapter-end__link--previous')).toBeNull();
+    expect(host.querySelector('.chapter-end__account')?.textContent).toContain('Your place is kept on this device');
+    expect(document.title).toContain('Chapter V — Modern Flirtations (English, B2)');
+  });
+
+  it('lists every chapter as a link with its level, describing only the current one', () => {
+    const host = loadBook();
+    const component = fixture.componentInstance as unknown as {contentsOpen: boolean; cdRef: {markForCheck(): void}};
+    component.contentsOpen = true;
+    component.cdRef.markForCheck();
+    fixture.detectChanges();
+    const rows = host.querySelectorAll<HTMLAnchorElement>('.content-map__row');
+    expect(rows.length).toBe(2);
+    expect(rows[0].classList.contains('is-current')).toBeTrue();
+    expect(rows[0].getAttribute('aria-current')).toBe('page');
+    expect(rows[1].getAttribute('href')).toBe('/books/modern-flirtations/12');
+    expect(rows[1].querySelector('.content-map__level')?.textContent).toBe('C1');
+    expect(rows[1].querySelector('.content-map__name')?.textContent).toBe('Chapter VI');
+    expect(rows[1].textContent).not.toContain('Estimated');
+  });
+
+  it('turns to the next chapter when the arrow is pressed at the end of this one', () => {
+    loadBook();
+    const router = TestBed.inject(Router);
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    const component = fixture.componentInstance as unknown as {isAtScrollBottom: boolean; nextPage(): void; canGoForward: boolean};
+    component.isAtScrollBottom = true;
+    expect(component.canGoForward).toBeTrue();
+    component.nextPage();
+    expect(navigate).toHaveBeenCalledWith(['/books', 'modern-flirtations', '12'], {queryParams: {}});
+  });
+
+  it('opens a listed word as the card in the rail, with a way back to the list', () => {
+    const host = loadBook();
     const component = fixture.componentInstance as unknown as {
-      scheduleChapterOffsetMeasurement(): void;
+      toggleWords(): void; railView: string; openWordFromList(word: unknown): void; railFromWords: boolean;
     };
-    const scheduleMeasurement = spyOn(component, 'scheduleChapterOffsetMeasurement');
-
-    const body = new TextEncoder().encode(
-      '<section class="chapter"><h2 class="chapter-title" id="chapter-0">Chapter 1</h2></section>',
-    ).buffer;
-    baseResponse$.next(new HttpResponse({status: 200, body}));
-
-    expect(scheduleMeasurement).toHaveBeenCalledTimes(1);
+    component.toggleWords();
+    fixture.detectChanges();
+    expect(component.railView).toBe('words');
+    expect(host.querySelector('.reader-rail app-chapter-vocabulary')).not.toBeNull();
+    component.openWordFromList({lemma: 'dreary', surface: 'dreary', context: '…It was on a dreary night.…', blockId: 'c11.p1'});
+    fixture.detectChanges();
+    expect(component.railView).toBe('card');
+    expect(component.railFromWords).toBeTrue();
+    expect(host.querySelector('.reader-rail__back')).not.toBeNull();
+    expect(host.querySelector('.reader-rail app-chapter-vocabulary')).toBeNull();
   });
 
   it('highlights all sentences in the selected many-to-many group on click', () => {
@@ -96,42 +167,6 @@ describe('ReaderComponent', () => {
     expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
     selection.removeAllRanges();
     content.remove();
-  });
-
-  it('keeps a chapter navigation entry point visible when parallel text is active', () => {
-    fixture.detectChanges();
-    const body = new TextEncoder().encode(`
-      <section class="chapter"><h2 class="chapter-title" id="chapter-0">Opening</h2><p>Text</p></section>
-      <section class="chapter"><h2 class="chapter-title" id="chapter-1">The road</h2><p>More text</p></section>
-    `).buffer;
-    baseResponse$.next(new HttpResponse({status: 200, body}));
-    fixture.detectChanges();
-    fixture.detectChanges();
-
-    const host = fixture.nativeElement as HTMLElement;
-    const component = fixture.componentInstance as unknown as {
-      isParallelViewActive: boolean;
-      cdRef: {markForCheck(): void};
-      selectChapter(index: number): void;
-    };
-    const chapterButtons = host.querySelectorAll<HTMLButtonElement>('.content-map button');
-    expect(chapterButtons.length).toBe(2);
-    const readingLayout = host.querySelector('.reader-reading-layout');
-    expect(readingLayout?.classList.contains('has-content-map')).toBeTrue();
-    expect(readingLayout?.querySelector(':scope > .content-map')).not.toBeNull();
-    expect(readingLayout?.querySelector(':scope > .reader-content')).not.toBeNull();
-    const selectChapter = spyOn(component, 'selectChapter');
-    chapterButtons[1].click();
-    expect(selectChapter).toHaveBeenCalledOnceWith(1);
-
-    component.isParallelViewActive = true;
-    component.cdRef.markForCheck();
-    fixture.detectChanges();
-
-    const trigger = host.querySelector<HTMLButtonElement>('[aria-label="Open chapter navigation"]');
-    expect(host.querySelector('.content-map')).toBeNull();
-    expect(trigger).not.toBeNull();
-    expect(trigger?.closest('.chapter-nav-container')?.classList.contains('parallel-content-map')).toBeTrue();
   });
 });
 

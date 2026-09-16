@@ -6,24 +6,23 @@ import {logger} from '../../../shared/logger';
 import {ReaderPosition} from './reader-position.model';
 import {ReaderPositionStorage} from './reader-position-storage.service';
 
-/** Owns reader progress persistence and its timing policy. */
+/**
+ * Owns reader progress persistence and its timing policy. The precise place is kept on this device
+ * for everyone; the whole-book percentage goes to the server only for a signed-in reader.
+ */
 @Injectable()
 export class ReaderProgressTracker {
   private readonly readService = inject(ReadService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly positionStorage = inject(ReaderPositionStorage);
   private readonly updates$ = new Subject<number>();
-  private readonly positionUpdates$ = new Subject<{
-    bookId: string;
-    presentation: string;
-    position: ReaderPosition;
-  }>();
+  private readonly positionUpdates$ = new Subject<{bookKey: string; position: ReaderPosition}>();
   private readonly book$ = new BehaviorSubject<string | null>(null);
   private bookId: string | null = null;
+  private bookKey: string | null = null;
   private currentPercentage = 0;
   private lastSavedPercentage = -1;
   private currentPosition: ReaderPosition | null = null;
-  private presentation = 'base';
 
   constructor() {
     this.book$.pipe(
@@ -46,40 +45,28 @@ export class ReaderProgressTracker {
     this.positionUpdates$.pipe(
       debounceTime(250),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(({bookId, presentation, position}) => {
-      this.positionStorage.save(bookId, presentation, position);
+    ).subscribe(({bookKey, position}) => {
+      this.positionStorage.save(bookKey, position);
     });
   }
 
-  startBook(bookId: string): ReaderPosition | null {
+  /** Starts keeping a place for the book; the server id is null for a guest, whose place stays local. */
+  startBook(bookKey: string, serverBookId: string | null): ReaderPosition | null {
     this.flushPosition();
-    this.bookId = bookId;
+    this.bookKey = bookKey;
+    this.bookId = serverBookId;
     this.currentPercentage = 0;
     this.lastSavedPercentage = -1;
     this.currentPosition = null;
-    this.presentation = 'base';
-    this.book$.next(bookId);
-    return this.positionStorage.get(bookId, this.presentation);
-  }
-
-  startPresentation(presentation: string): ReaderPosition | null {
-    this.flushPosition();
-    this.presentation = presentation;
-    this.currentPosition = null;
-    return this.bookId === null ? null : this.positionStorage.get(this.bookId, presentation);
+    this.book$.next(serverBookId);
+    return this.positionStorage.get(bookKey);
   }
 
   update(percentage: number, position: ReaderPosition): void {
     this.currentPercentage = percentage;
     this.currentPosition = position;
-    this.updates$.next(percentage);
-    if (this.bookId !== null) {
-      this.positionUpdates$.next({
-        bookId: this.bookId,
-        presentation: this.presentation,
-        position,
-      });
-    }
+    if (this.bookId !== null) this.updates$.next(percentage);
+    if (this.bookKey !== null) this.positionUpdates$.next({bookKey: this.bookKey, position});
   }
 
   saveOnExit(useBeacon: boolean): void {
@@ -102,8 +89,8 @@ export class ReaderProgressTracker {
   }
 
   private flushPosition(): void {
-    if (this.bookId !== null && this.currentPosition) {
-      this.positionStorage.save(this.bookId, this.presentation, this.currentPosition);
+    if (this.bookKey !== null && this.currentPosition) {
+      this.positionStorage.save(this.bookKey, this.currentPosition);
     }
   }
 }

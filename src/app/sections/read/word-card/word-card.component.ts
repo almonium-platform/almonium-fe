@@ -6,6 +6,7 @@ import {LanguageCode} from '../../../models/language.enum';
 import {CardService} from '../../../services/card.service';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {UserInfoService} from '../../../services/user-info.service';
+import {ReturnPathService} from '../../../services/return-path.service';
 import {getErrorMessage} from '../../../shared/http-error';
 import {EmblemComponent} from '../../../shared/emblem/emblem.component';
 import {DiscoverLookup, DiscoverSense, DiscoverService} from '../../discover/discover.service';
@@ -29,6 +30,10 @@ export interface WordCardSense {
  * The word card as a dictionary plate (G1): headword, IPA, part of speech with the gender as an
  * article rather than a label, numbered senses, and the sentence the reader actually met it in.
  * Save keeps it for review; the fold mark opens the full sheet in Discover.
+ *
+ * A guest sees every sense (J6); only the save slot changes, into the account ask in the same
+ * shape. When no sense exists the primary action becomes the thing that can be done: write one.
+ * No primary button on the card is ever disabled.
  */
 @Component({
   selector: 'app-word-card',
@@ -46,13 +51,20 @@ export class WordCardComponent implements OnChanges {
   @Input() source = '';
   /** The book's level, shown beside the language in the kicker. */
   @Input() level: string | null = null;
+  /** The form met in the text, when it differs from the entry; it is what the sentence marks. */
+  @Input() highlight = '';
+  /** The word was kept the moment the account existed: save once the lookup lands, no second tap. */
+  @Input() autoSave = false;
   @Output() closed = new EventEmitter<void>();
+  /** The entry that was just kept, so the list behind the card can mark it. */
+  @Output() savedEntry = new EventEmitter<string>();
 
   private readonly discoverService = inject(DiscoverService);
   private readonly cardService = inject(CardService);
   private readonly userInfoService = inject(UserInfoService);
   private readonly languageNameService = inject(LanguageNameService);
   private readonly router = inject(Router);
+  private readonly returnPath = inject(ReturnPathService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -129,9 +141,10 @@ export class WordCardComponent implements OnChanges {
   protected get contextParts(): {text: string; hit: boolean}[] {
     const context = this.nonBlank(this.lookup?.sourceContext) ?? this.context;
     if (!context) return [];
-    const needle = this.entry.trim();
+    const needle = (this.highlight || this.entry).trim();
     if (!needle) return [{text: context, hit: false}];
-    const index = context.toLowerCase().indexOf(needle.toLowerCase());
+    let index = context.toLowerCase().indexOf(needle.toLowerCase());
+    if (index < 0 && this.highlight) index = context.toLowerCase().indexOf(this.entry.trim().toLowerCase());
     if (index < 0) return [{text: context, hit: false}];
     return [
       {text: context.slice(0, index), hit: false},
@@ -140,9 +153,18 @@ export class WordCardComponent implements OnChanges {
     ].filter(part => part.text.length > 0);
   }
 
+  /** Nothing to look up yet, nothing found, or nothing came back: the card has no sense to save. */
+  protected get hasSense(): boolean {
+    return this.senses.length > 0;
+  }
+
   protected get saveLabel(): string {
-    if (this.saved) return $localize`Saved to review`;
+    if (!this.signedIn) return $localize`Save to review — free account`;
     return this.saving ? $localize`Saving…` : $localize`Save to review`;
+  }
+
+  protected get writeLabel(): string {
+    return this.signedIn ? $localize`Write a meaning` : $localize`Write a meaning — free account`;
   }
 
   private nonBlank(value: string | null | undefined): string | null {
@@ -164,14 +186,25 @@ export class WordCardComponent implements OnChanges {
         this.cdr.markForCheck();
       }), takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: lookup => this.lookup = lookup,
+        next: lookup => {
+          this.lookup = lookup;
+          if (this.autoSave && this.signedIn && this.hasSense) this.save();
+        },
         error: error => this.error = getErrorMessage(error, $localize`This word could not be looked up. Try again.`),
       });
   }
 
+  /** The auth sheet returns to this exact word, and the save happens without a second tap. */
+  protected askForAccount(fragment: 'sign-up' | 'sign-in' = 'sign-up'): void {
+    const tree = this.router.parseUrl(this.router.url);
+    tree.queryParams = {...tree.queryParams, word: this.entry, context: this.context.slice(0, 300) || undefined, save: 1};
+    this.returnPath.remember(this.router.serializeUrl(tree));
+    void this.router.navigate(['/auth'], {fragment});
+  }
+
   protected save(): void {
     if (!this.signedIn) {
-      void this.router.navigate(['/auth'], {queryParams: {returnUrl: this.router.url}});
+      this.askForAccount();
       return;
     }
     const lookup = this.lookup;
@@ -199,7 +232,10 @@ export class WordCardComponent implements OnChanges {
       this.saving = false;
       this.cdr.markForCheck();
     }), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.saved = true,
+      next: () => {
+        this.saved = true;
+        this.savedEntry.emit(lookup.entry);
+      },
       error: error => this.saveError = getErrorMessage(error, $localize`The word could not be saved. Please try again.`),
     });
   }
@@ -207,5 +243,14 @@ export class WordCardComponent implements OnChanges {
   /** The fold: many becoming one. It opens the full sheet, where the reader chooses senses and intents. */
   protected openInDiscover(): void {
     void this.router.navigate(['/discover'], {queryParams: {text: this.entry, context: this.context || undefined}});
+  }
+
+  /** With no sense to save, the full sheet is where a meaning gets written; it needs an account too. */
+  protected writeMeaning(): void {
+    if (!this.signedIn) {
+      this.askForAccount();
+      return;
+    }
+    this.openInDiscover();
   }
 }

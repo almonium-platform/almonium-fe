@@ -9,7 +9,23 @@
      (touchend)="onTouchEnd()"
      (touchcancel)="onTouchCancel()">
 
-  <!-- Loading and Error States -->
+  <!-- The contents rows (J5): title and level on every row, the description on the current one and on hover. -->
+  <ng-template #contentsRows>
+    <span i18n class="content-map__heading">Contents</span>
+    @for (chapter of chapters; track chapter.key) {
+      <a class="content-map__row"
+         [class.is-current]="chapter.key === currentKey"
+         [routerLink]="chapterLink(chapter.key)"
+         [queryParams]="chapterQuery"
+         [attr.aria-current]="chapter.key === currentKey ? 'page' : null"
+         (click)="onContentsPick()">
+        <span class="content-map__name">{{ displayTitle(chapter) }}</span>
+        @if (metadataFor(chapter.key)?.cefrEstimate; as level) { <span class="content-map__level">{{ level }}</span> }
+        @if (metadataFor(chapter.key)?.descriptions?.[0]; as description) { <span class="content-map__description">{{ description }}</span> }
+      </a>
+    }
+  </ng-template>
+
   @if (isLoading) {
     <app-loading-indicator baseText="Loading book" i18n-baseText></app-loading-indicator>
   }
@@ -17,57 +33,120 @@
   @if (errorMessage) {
     <div class="error-message">{{ errorMessage }}</div>
   }
+  @if (parallelError) {
+    <p class="parallel-provenance parallel-provenance--error" role="alert">{{ parallelError }}</p>
+  }
   @if (isParallelViewActive) {
     <p class="parallel-provenance">{{ bookTitle }} · {{ bookLevel }} ↔ {{ companionLabel }}</p>
     <p class="parallel-provenance" i18n>Companion wording may differ. Click or press Enter on a marked sentence to highlight its counterpart. Other passages remain paragraph-aligned.</p>
   }
 
-  <!-- Wrapper for Native Scroll -->
-  @if (!isLoading && !errorMessage) {
+  @if (!isLoading && !errorMessage && missingChapter) {
+    <div class="error-message">
+      <p i18n>This book has no chapter {{ currentKey }}.</p>
+      <a [routerLink]="bookLink" i18n>Back to the book</a>
+    </div>
+  }
+
+  @if (!isLoading && !errorMessage && !missingChapter) {
     <div #readerContentWrapper
          class="reader-content-wrapper"
          [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
-         [class.has-word-card]="wordCard !== null"
+         [class.has-rail]="railView !== 'none'"
          (scroll)="onWrapperScroll($event)"
          (focus)="onContentHover($event)"
     >
-      <div class="reader-reading-layout" [class.has-content-map]="chapterNav.length > 0 && !isParallelViewActive">
-        @if (chapterNav.length > 0 && !isParallelViewActive) {
+      <div class="reader-reading-layout" [class.has-contents]="contentsOpen && !isNarrow && chapters.length > 1">
+        @if (contentsOpen && !isNarrow && chapters.length > 1) {
           <nav class="content-map" aria-label="Contents" i18n-aria-label>
-            <span i18n>Contents</span>
-            @for (chapter of chapterNav; track chapter; let i = $index) {
-              <button type="button" (click)="selectChapter(i)">
-                {{ chapter.title | slice:0:46 }}{{ chapter.title.length > 46 ? '…' : '' }}
-                @if (chapterMetadata[chapter.elementId]; as info) {
-                  @if (info.cefrEstimate) { <small class="chapter-level" i18n>Estimated {{ info.cefrEstimate }}</small> }
-                  @for (description of info.descriptions; track $index) { <small class="chapter-description">{{ description }}</small> }
-                }
-              </button>
-            }
+            <ng-container *ngTemplateOutlet="contentsRows"></ng-container>
           </nav>
         }
-        <!-- Content Area - PASS MODE TO PIPE -->
-        <div #readerContent
-             tabindex="-1"
-             class="reader-content"
-             [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
-             [innerHTML]="bookHtmlContent | parallelFormat:{
-                mode: isParallelViewActive ? currentParallelMode : null,
-                targetLang: targetLangCode,
-                fluentLang: fluentLangCode} | bookHtml"
-             (click)="onContentClick($event)"
-             (mouseup)="captureLookupSelection()"
-             (touchend)="captureLookupSelection()"
-             (mouseover)="onContentHover($event)"
-             (focus)="onContentHover($event)"
-             (focusin)="onContentHover($event)"
-             (keydown.enter)="onContentClick($event)">
+        <div class="reader-column">
+          <!-- The chapter header (J2): four lines, then the text starts under the hairline. -->
+          <header class="chapter-head">
+            <a class="chapter-head__book" [routerLink]="bookLink">{{ bookTitle }}@if (bookAuthor) {<span class="chapter-head__dot" aria-hidden="true"> · </span>{{ bookAuthor }}}</a>
+            <span class="chapter-head__place">
+              <ng-container i18n>Chapter {{ currentIndex + 1 }} of {{ chapters.length }}</ng-container>
+              @if (currentMetadata?.cefrEstimate; as level) { <ng-container> · </ng-container><ng-container i18n>Estimated {{ level }}</ng-container> }
+            </span>
+            <h1 class="chapter-head__title">{{ currentTitle }}</h1>
+            @if (currentMetadata?.descriptions; as descriptions) {
+              @if (descriptions.length > 0) {
+                <p class="chapter-head__description" [class.chapter-head__description--lines]="descriptions.length >= 3">
+                  @for (description of descriptions; track $index) { <span>{{ description }}</span> }
+                </p>
+              }
+            }
+          </header>
+
+          <div #readerContent
+               tabindex="-1"
+               class="reader-content"
+               [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+               [innerHTML]="bookHtmlContent | parallelFormat:{
+                  mode: isParallelViewActive ? currentParallelMode : null,
+                  targetLang: targetLangCode,
+                  fluentLang: fluentLangCode} | bookHtml"
+               (click)="onContentClick($event)"
+               (mouseup)="captureLookupSelection()"
+               (touchend)="captureLookupSelection()"
+               (mouseover)="onContentHover($event)"
+               (focus)="onContentHover($event)"
+               (focusin)="onContentHover($event)"
+               (keydown.enter)="onContentClick($event)">
+          </div>
+
+          <!-- The chapter end (J3): the words, then the next chapter, then the one ask a guest sees. -->
+          <footer class="chapter-end">
+            @if (bookSlug && currentKey) {
+              <app-chapter-vocabulary variant="end" [editionSlug]="bookSlug" [sequence]="currentKey" [chapters]="chapterList" [savedEntries]="savedEntries" (wordPicked)="openWordFromList($event)" />
+            }
+            @if (previousChapter || nextChapter) {
+              <nav class="chapter-end__nav" aria-label="Neighbouring chapters" i18n-aria-label>
+                @if (previousChapter; as previous) {
+                  <a class="chapter-end__link chapter-end__link--previous" [routerLink]="chapterLink(previous.key)" [queryParams]="chapterQuery">
+                    <small i18n>Previous</small>
+                    <span>{{ displayTitle(previous) }}</span>
+                  </a>
+                } @else { <span></span> }
+                @if (nextChapter; as next) {
+                  <a class="chapter-end__link chapter-end__link--next" [routerLink]="chapterLink(next.key)" [queryParams]="chapterQuery">
+                    <small><ng-container i18n>Next</ng-container>@if (metadataFor(next.key)?.cefrEstimate; as level) { · <ng-container i18n>Estimated {{ level }}</ng-container> }</small>
+                    <span>{{ displayTitle(next) }}</span>
+                    @if (metadataFor(next.key)?.descriptions?.[0]; as description) { <em>{{ description }}</em> }
+                  </a>
+                }
+              </nav>
+            }
+            @if (!signedIn) {
+              <aside class="chapter-end__account">
+                <p i18n>Your place is kept on this device. A free account keeps it everywhere and lets you save words.</p>
+                <button i18n type="button" (click)="readFree()">Read free</button>
+              </aside>
+            }
+          </footer>
         </div>
       </div>
     </div>
-    @if (wordCard; as card) {
-      <aside class="word-card-panel">
-        <app-word-card [entry]="card.entry" [context]="card.context" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [level]="bookLevel" (closed)="closeWordCard()"></app-word-card>
+
+    @if (contentsOpen && isNarrow && chapters.length > 1) {
+      <nav #contentsSheet class="content-map content-map--sheet" aria-label="Contents" i18n-aria-label>
+        <ng-container *ngTemplateOutlet="contentsRows"></ng-container>
+      </nav>
+    }
+
+    <!-- One rail (J4): the chapter's words or one word's card, never both, never over the text column. -->
+    @if (railView !== 'none') {
+      <aside class="reader-rail">
+        @if (railView === 'card' && wordCard; as card) {
+          @if (railFromWords) {
+            <button i18n type="button" class="reader-rail__back" (click)="backToWords()"><lucide-icon name="arrow-left" size="16" strokeWidth="1.75" aria-hidden="true"></lucide-icon> Words</button>
+          }
+          <app-word-card [entry]="card.entry" [context]="card.context" [highlight]="card.highlight" [autoSave]="card.autoSave" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [level]="bookLevel" (closed)="closeRail()" (savedEntry)="onWordSaved($event)"></app-word-card>
+        } @else if (bookSlug) {
+          <app-chapter-vocabulary variant="rail" [editionSlug]="bookSlug" [sequence]="currentKey" [chapters]="chapterList" [savedEntries]="savedEntries" (wordPicked)="openWordFromList($event)" (closed)="closeRail()" />
+        }
       </aside>
     }
     @if (parallelSettingsOpen) {
@@ -84,60 +163,33 @@
     }
   }
 
-  <!-- Pagination/Navigation Controls -->
+  <!-- The bottom bar: two toggles at the left, the arrows and slider, the companion picker. -->
   @if (!isLoading && !errorMessage) {
     <div #paginationControls class="pagination-controls">
       <div class="pagination-center-area">
-        @if (bookSlug) {
-          <app-chapter-vocabulary [editionSlug]="bookSlug" [bookTitle]="bookTitle" [chapterMetadata]="chapterMetadata" (opened)="closeReaderMenus()" />
-        }
-        <!-- Table of Contents Dropdown -->
-        @if (chapterNav.length > 0) {
-          <div class="chapter-nav-container mobile-content-map" [class.parallel-content-map]="isParallelViewActive">
-            <button
-              type="button"
-              #tocDropdown="tuiDropdown"
-              #tocTrigger
-              (click)="toggleChapterNavigation(tocDropdown)"
-              (tuiActiveZoneChange)="!$event && tocDropdown.toggle(false)"
-              [tuiDropdown]="tocDropdownContent"
-              class="chapter-nav-trigger"
-              aria-label="Open chapter navigation" i18n-aria-label
-              title="Chapters" i18n-title
-              tuiDropdown
-            >
-              <lucide-icon name="table-of-contents" size="26" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+        <div class="bar-toggles">
+          @if (chapters.length > 1) {
+            <button #contentsToggle type="button" class="bar-toggle" [class.is-on]="contentsOpen" [attr.aria-pressed]="contentsOpen" aria-label="Contents" i18n-aria-label (click)="toggleContents(); $event.stopPropagation()">
+              <lucide-icon name="table-of-contents" size="20" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+              <span i18n>Contents</span>
             </button>
-            <!-- Dropdown Content Template -->
-            <ng-template #tocDropdownContent>
-              <tui-data-list role="menu">
-                @for (chapter of chapterNav; track chapter; let i = $index) {
-                  <button
-                    (click)="selectChapter(i); tocDropdown.toggle(false)"
-                    role="menuitem"
-                    tuiOption
-                  >
-                    {{ chapter.title | slice:0:40 }}{{ chapter.title.length > 40 ? '...' : '' }}
-                    @if (chapterMetadata[chapter.elementId]; as info) {
-                      @if (info.cefrEstimate) { <small class="chapter-level" i18n>Estimated {{ info.cefrEstimate }}</small> }
-                      @for (description of info.descriptions; track $index) { <small class="chapter-description">{{ description }}</small> }
-                    }
-                  </button>
-                }
-              </tui-data-list>
-            </ng-template>
-          </div>
-        }
-        <!-- Previous Button -->
+          }
+          @if (wordsAvailable) {
+            <button type="button" class="bar-toggle" [class.is-on]="railView === 'words'" [attr.aria-pressed]="railView === 'words'" aria-label="Words from this chapter" i18n-aria-label (click)="toggleWords()">
+              <lucide-icon name="whole-word" size="20" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+              <span i18n>Words</span>
+            </button>
+          }
+        </div>
         <app-button
           appearance="text"
+          [style.visibility]="canGoBack ? null : 'hidden'"
           (mousedown)="startScrollHold('prev')"
           (touchstart)="startScrollHold('prev'); $event.preventDefault()"
           (mouseup)="stopScrollHold('prev')"
           (touchend)="stopScrollHold('prev')"
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
-          [disabled]="isAtScrollTop"
           title="Previous Page (Click) / Scroll Up (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-left"
                        size="28"
@@ -145,7 +197,6 @@
                        [absoluteStrokeWidth]="true"
           ></lucide-icon>
         </app-button>
-        <!-- Slider (Percentage) & Chapter Select -->
         <div class="slider-chapter-area">
           <input type="range"
                  class="page-slider"
@@ -157,16 +208,15 @@
                  aria-label="Scroll Position Slider" i18n-aria-label/>
           <span class="pagination-info">{{ currentScrollPercentage }}%</span>
         </div>
-        <!-- Next Button -->
         <app-button
           appearance="text"
+          [style.visibility]="canGoForward ? null : 'hidden'"
           (mousedown)="startScrollHold('next')"
           (touchstart)="startScrollHold('next'); $event.preventDefault()"
           (mouseup)="stopScrollHold('next')"
           (touchend)="stopScrollHold('next')"
           (mouseleave)="clearScrollHoldTimers()"
           (touchcancel)="clearScrollHoldTimers()"
-          [disabled]="isAtScrollBottom"
           title="Next Page (Click) / Scroll Down (Hold)" i18n-title>
           <lucide-icon name="circle-chevron-right" size="28"
                        strokeWidth="1.5"
@@ -174,7 +224,6 @@
           >
           </lucide-icon>
         </app-button>
-        <!-- Parallel Text Controls -->
         @if (parallelVersions.length > 0) {
           <div class="parallel">
             <app-parallel-translation
@@ -222,7 +271,6 @@
                     </button>
                   }
                 </tui-opt-group>
-                <!-- Група налаштувань із підписом -->
                 <tui-opt-group label="">
                   <button i18n
                     tuiOption

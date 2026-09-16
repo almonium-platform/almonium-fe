@@ -87,3 +87,47 @@ including a different learner language. No paid provider calls are made by tests
 [Live original vocabulary](evidence/reader-20260916/vocabulary-live-original.png)
 was checked against the actual backend; [Discover context](evidence/reader-20260916/discover-book-context.png)
 is fixture evidence. Mobile vocabulary remains a separate slice.
+
+## Chapter pages (2026-09-16, design J)
+
+The public reader is now one page per chapter. `/books/{editionSlug}/{sequence}`
+opens a chapter; `/reader/{editionSlug}` is the front door and redirects to the
+chapter kept on this device, else to the first chapter with `?resume=1`, which a
+signed-in reader's server percentage then resolves to the right chapter. Private
+imports follow the same shape at `/reader/private/{id}/{sequence}`.
+`?parallel={companionSlug}` still works and travels with page turns. The book is
+still fetched whole and split client-side by `section.chapter`; there is no
+server rendering in this SPA, so the title, description and the schema.org
+Chapter JSON-LD are set in the browser.
+
+What a chapter page carries: book · author (a link), "Chapter n of N ·
+Estimated X" in mono, the title in Literata with the source's trailing full
+stop and shouting caps normalised for display, the descriptions as one
+paragraph, the text under a hairline, then the chapter's words (five rows, then
+"All N words" in place), previous/next (next with level and description) and,
+for a guest, one account panel. The contents rail shows title plus level per
+row; the description shows on the current row and on hover. The bottom bar has
+two toggles, Contents and Words, at the left. Vocabulary and the word card share
+one right rail; a row opens the card with a "← Words" way back. `unavailable`
+removes the Words toggle; pending/stale shows one grey line.
+
+Guests get the whole page, every sense and the whole word list. Only keeping
+asks for an account: the save slot becomes "Save to review — free account" and
+returns to the same word with `?word=&context=&save=1`, after which the card
+saves without a second tap. No primary button on the card is ever disabled; with
+no sense, the primary becomes "Write a meaning".
+
+Reading positions changed shape (version 2, one place per book, with the
+chapter) and older bookmarks are ignored, not migrated. Server progress stays a
+whole-book percentage, mapped to a chapter by chapter text length; the book
+page's Continue row is pinned from this device's place only. The public chapter
+projection has no front/back-matter role yet, so the book page treats every
+chapter as a body chapter.
+
+Verification: 290 unit tests, lint and a development build pass; 11 browser
+tests with intercepted fixtures pass (`e2e/chapter-vocabulary.spec.ts` covers
+the guest chapter page, the rail, the card ask and the book contents;
+`e2e/processor-parallel.spec.ts` the rail with 30 chapters and the companion
+modes). Against the live backend, the front door resumed a member at chapter 22
+from 59 % server progress, the rail listed 31 words for it and Next turned to
+chapter 23. Screenshots in `docs/evidence/chapters-20260916`.

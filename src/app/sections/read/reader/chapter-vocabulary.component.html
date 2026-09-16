@@ -1,26 +1,57 @@
-<button type="button" (click)="toggle()" [attr.aria-expanded]="open" aria-controls="chapter-vocabulary-panel" i18n>Vocabulary</button>
-@if (open) {
-  <section id="chapter-vocabulary-panel" aria-label="Chapter vocabulary" i18n-aria-label>
-    <header><h2 i18n>Words from this chapter</h2><button type="button" (click)="close()" i18n>Close vocabulary</button></header>
-    <p i18n>A curated selection from this book’s useful words, not every word in the chapter. Each example comes from the text.</p>
-    @if (chapters.length) {
-      <label for="vocabulary-chapter" i18n>Chapter</label>
-      <select id="vocabulary-chapter" [(ngModel)]="sequence" (ngModelChange)="load()">
-        @for (chapter of chapters; track chapter.id) { <option [ngValue]="chapter.sequence">{{ chapter.sequence }} — {{ chapter.title }}</option> }
-      </select>
-    } @else { <p i18n>Chapter information is unavailable. You can keep reading.</p> }
-    @if (loading) { <p role="status" i18n>Loading vocabulary…</p> }
-    @if (failed) { <p role="alert" i18n>Vocabulary could not be loaded. Your book is still available.</p><button type="button" (click)="load()" i18n>Retry vocabulary</button> }
-    @if (vocabulary; as data) {
-      @if (data.status !== 'ready') { <p role="status" i18n>Current vocabulary is not available for this chapter yet.</p> }
-      @else if (!data.words.length) { <p i18n>No words from this book’s curated selection occur in this chapter.</p> }
-      @for (word of data.words; track word.lemma) {
-        <article>
-          <h3>{{ word.lemma }}</h3>
-          <p i18n>In the text: {{ word.surface }}</p>
-          <blockquote>{{ word.context }}</blockquote>
-          <a [routerLink]="['/discover']" [queryParams]="discoverParams(word)" i18n>Look up {{ word.lemma }} in Discover</a>
-        </article>
+@if (!unavailable) {
+  <section class="vocab" [class.vocab--rail]="variant === 'rail'" [class.vocab--end]="variant === 'end'" aria-label="Words from this chapter" i18n-aria-label>
+    <header class="vocab__head">
+      <h2 i18n class="vocab__title">Words from this chapter</h2>
+      @if (variant === 'rail') {
+        <button type="button" class="vocab__close" aria-label="Close the word list" i18n-aria-label (click)="closed.emit()">×</button>
+      }
+    </header>
+
+    @if (variant === 'rail') {
+      <div class="vocab__chapter">
+        <span class="vocab__chapter-copy">
+          <strong>{{ shownTitle }}</strong>
+          <span class="vocab__meta">
+            @if (vocabulary?.status === 'ready') { <ng-container i18n>{words.length, plural, =1 {1 word} other {{{words.length}} words}}</ng-container> }
+            @if (shownChapter?.cefrEstimate; as level) { <ng-container> · </ng-container><ng-container i18n>Estimated {{ level }}</ng-container> }
+          </span>
+        </span>
+        @if (chapters.length > 1) {
+          <span class="vocab__arrows">
+            <button type="button" [style.visibility]="hasPrevious ? null : 'hidden'" aria-label="Words from the previous chapter" i18n-aria-label (click)="step(-1)"><lucide-icon name="chevron-left" size="18" strokeWidth="1.75" aria-hidden="true"></lucide-icon></button>
+            <button type="button" [style.visibility]="hasNext ? null : 'hidden'" aria-label="Words from the next chapter" i18n-aria-label (click)="step(1)"><lucide-icon name="chevron-right" size="18" strokeWidth="1.75" aria-hidden="true"></lucide-icon></button>
+          </span>
+        }
+      </div>
+    } @else if (vocabulary?.status === 'ready' && words.length > 0) {
+      <p i18n class="vocab__lede">{words.length, plural, =1 {1 of the book’s useful words occurs here.} other {{{words.length}} of the book’s useful words occur here.}} Each example is from the text.</p>
+    }
+
+    @if (loading) { <p i18n class="vocab__note" role="status">Loading the words…</p> }
+    @if (failed) {
+      <p i18n class="vocab__note" role="alert">The words could not be loaded.</p>
+      <button i18n type="button" class="vocab__more" (click)="load()">Try again</button>
+    }
+    @if (notReady) { <p i18n class="vocab__note" role="status">Words for this chapter aren’t ready yet</p> }
+    @if (vocabulary?.status === 'ready' && words.length === 0) { <p i18n class="vocab__note">No useful words are listed for this chapter.</p> }
+
+    @if (visibleWords.length > 0) {
+      <ul class="vocab__list">
+        @for (word of visibleWords; track word.lemma + word.blockId) {
+          <li>
+            <button type="button" class="vocab__row" (click)="wordPicked.emit(word)">
+              <span class="vocab__word">
+                <span class="vocab__lemma">{{ word.lemma }}</span>
+                @if (showsForm(word)) { <span class="vocab__form">{{ word.surface }}</span> }
+                @if (isSaved(word)) { <span i18n class="vocab__saved">Saved</span> }
+              </span>
+              <span class="vocab__excerpt">@for (part of excerpt(word); track $index) {@if (part.hit) {<mark>{{ part.text }}</mark>} @else {{{ part.text }}}}</span>
+            </button>
+          </li>
+        }
+      </ul>
+      @if (hiddenCount > 0) {
+        <button i18n type="button" class="vocab__more" (click)="expanded = true">All {{ words.length }} words</button>
       }
     }
   </section>

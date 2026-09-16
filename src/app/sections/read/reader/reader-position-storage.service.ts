@@ -6,32 +6,26 @@ const READER_POSITIONS_KEY = 'reader_positions';
 
 type StoredPositions = Record<string, ReaderPosition>;
 
+/** One place per book and reader; a guest's place is kept on this device under its own key. */
 @Injectable({
   providedIn: 'root',
 })
 export class ReaderPositionStorage {
   private readonly localStorage = inject(LocalStorageService);
 
-  get(bookId: string, presentation: string): ReaderPosition | null {
-    const key = this.positionKey(bookId, presentation);
-    if (!key) return null;
-
-    const position = this.localStorage.getItem<StoredPositions>(READER_POSITIONS_KEY)?.[key];
+  get(bookKey: string): ReaderPosition | null {
+    const position = this.localStorage.getItem<StoredPositions>(READER_POSITIONS_KEY)?.[this.positionKey(bookKey)];
     return this.isPosition(position) ? position : null;
   }
 
-  save(bookId: string, presentation: string, position: ReaderPosition): void {
-    const key = this.positionKey(bookId, presentation);
-    if (!key) return;
-
+  save(bookKey: string, position: ReaderPosition): void {
     const positions = this.localStorage.getItem<StoredPositions>(READER_POSITIONS_KEY) ?? {};
-    positions[key] = position;
+    positions[this.positionKey(bookKey)] = position;
     this.localStorage.saveItem(READER_POSITIONS_KEY, positions);
   }
 
-  private positionKey(bookId: string, presentation: string): string | null {
-    const userId = this.localStorage.getUserInfo()?.id;
-    return userId ? `${userId}:${bookId}:${presentation}` : null;
+  private positionKey(bookKey: string): string {
+    return `${this.localStorage.getUserInfo()?.id ?? 'guest'}:${bookKey}`;
   }
 
   private isPosition(value: unknown): value is ReaderPosition {
@@ -39,7 +33,9 @@ export class ReaderPositionStorage {
     const position = value as Partial<ReaderPosition>;
     const anchor = position.anchor;
 
-    return position.version === 1
+    return position.version === 2
+      && Number.isInteger(position.chapter) && position.chapter! >= 0
+      && typeof position.presentation === 'string'
       && this.isFiniteNonNegative(position.scrollTop)
       && this.isFiniteNonNegative(position.scrollHeight)
       && this.isFiniteNonNegative(position.clientWidth)
