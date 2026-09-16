@@ -16,14 +16,14 @@
 
   @if (error) { <p class="plate__error" role="alert">{{ error }}</p> }
 
-  @if (senses.length > 0) {
+  @if (hasSense) {
     <ol class="plate__senses">
       @for (sense of senses; track sense.index) {
         <li><span class="plate__index">{{ sense.index }}</span><span class="plate__sense"><span class="plate__meaning">{{ sense.meaning }}</span>@if (sense.gloss) { <span class="plate__gloss">{{ sense.gloss }}</span> }</span></li>
       }
     </ol>
   } @else if (!loading && !error) {
-    <p i18n class="plate__empty">No dictionary sense is available for this word yet.</p>
+    <p i18n class="plate__empty">No dictionary sense yet.</p>
   }
 
   @if (contextParts.length > 0) {
@@ -34,12 +34,24 @@
     </section>
   }
 
-  <footer class="plate__actions">
-    <button type="button" class="plate__save" [class.plate__save--done]="saved" [disabled]="saving || saved || senses.length === 0" (click)="save()">{{ saveLabel }}</button>
-    <button type="button" class="plate__fold" aria-label="Open the full word sheet" i18n-aria-label title="Open in Discover" i18n-title (click)="openInDiscover()">
-      <app-emblem [motion]="'fold'" [mono]="true" [playOnLoad]="false" [label]="''"></app-emblem>
-    </button>
-  </footer>
-  @if (senses.length === 0 && !loading && !error) { <p i18n class="plate__hint">Nothing to save without a meaning; open the full sheet to write one.</p> }
+  @if (!loading && !error) {
+    <footer class="plate__actions">
+      @if (saved) {
+        <span i18n class="plate__save plate__save--done">Saved to review</span>
+      } @else if (hasSense) {
+        <button type="button" class="plate__save" [class.plate__save--busy]="saving" (click)="save()">{{ saveLabel }}</button>
+      } @else {
+        <button type="button" class="plate__save" (click)="writeMeaning()">{{ writeLabel }}</button>
+      }
+      @if (signedIn) {
+        <button type="button" class="plate__fold" aria-label="Open the full word sheet" i18n-aria-label title="Open in Discover" i18n-title (click)="openInDiscover()">
+          <app-emblem [motion]="'fold'" [mono]="true" [playOnLoad]="false" [label]="''"></app-emblem>
+        </button>
+      }
+    </footer>
+    @if (!signedIn) {
+      <p i18n class="plate__hint">Keep 100 words, no card required. <button type="button" class="plate__link" (click)="askForAccount('sign-in')">Sign in</button></p>
+    }
+  }
   @if (saveError) { <p class="plate__error" role="alert">{{ saveError }}</p> }
 </article>

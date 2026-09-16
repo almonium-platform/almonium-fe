@@ -1,26 +1,127 @@
 :host { display: block; }
 
-.settings { display: flex; flex-direction: column; gap: .9rem; width: min(92vw, 33rem); padding: 1.1rem 1.15rem 1rem; border-radius: 1.375rem; background: var(--overlay-color); box-shadow: var(--overlay-shadow); color: var(--text-color); font-family: var(--font-family-ui); }
-.modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; }
-.mode { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; padding: .85rem; border: 1px solid transparent; border-radius: 1rem; background: var(--nested-color); color: var(--text-color); cursor: pointer; font: inherit; text-align: left; }
-.mode:hover { border-color: var(--control-border-color); }
-.mode--active { border-color: var(--brand-margin); background: var(--state-selected); }
-.mode strong { font-size: .72rem; font-weight: 600; }
-.mode small { color: var(--subhead-color); font-size: .68rem; line-height: 1.45; }
+// The picker (L5): a white plate, rows inside it, the companion line under a hairline.
+.picker {
+  display: flex;
+  width: min(92vw, 35rem);
+  flex-direction: column;
+  gap: .85rem;
+  padding: 1.35rem 1.5rem 1.25rem;
+  border-radius: 1.5rem;
+  background: var(--overlay-color);
+  box-shadow: var(--overlay-shadow);
+  color: var(--text-color);
+  font-family: var(--font-family-ui);
+}
 
-// The diagrams: ink lines, one lit pair or a grey translation line. No rainbow bars.
-.diagram { display: flex; width: 100%; gap: .35rem; }
+.modes { display: flex; flex-direction: column; }
+
+// A row, not a card: the diagram, the name, one line. Selected is the tint and a plum name; no border.
+.mode {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem;
+  border: 0;
+  border-radius: .875rem;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+
+  &:hover { background: var(--state-hover); }
+  &:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: -2px; }
+}
+
+.mode--active { background: var(--state-selected); }
+.mode--active strong { color: var(--brand-primary); }
+.mode__text { display: flex; flex-direction: column; gap: .125rem; }
+.mode strong { font-size: .875rem; font-weight: 600; }
+.mode small { color: var(--subhead-color); font-size: .78rem; line-height: 1.45; }
+
+// The diagrams: grey lines, one plum pair or ink lines with thin grey ones under them.
+.diagram { display: flex; width: 100%; gap: .375rem; }
 .column { display: flex; flex: 1; flex-direction: column; gap: .25rem; }
-.column i { display: block; height: 3px; border-radius: 2px; background: var(--control-border-color); }
-.column i.lit { background: #f0e6b8; }
-.column i.grey { background: var(--metadata-color); }
+.column i { display: block; height: 3px; border-radius: 2px; background: var(--metadata-color); opacity: .6; }
+.column i.lit { background: var(--dark-raspberry); opacity: 1; }
+.column i.ink { background: var(--text-color); opacity: 1; }
+.column i.thin { height: 2px; }
+.column i.w85 { width: 85%; }
 .column i.w80 { width: 80%; }
 .column i.w70 { width: 70%; }
-.column i.w66 { width: 66%; }
-.column i.indent { margin-left: .7rem; }
+.column i.w60 { width: 60%; }
+.column i.indent { margin-left: .625rem; }
 
-.reading-note { margin: 0; padding-top: .8rem; border-top: 1px solid var(--hairline-color); color: var(--subhead-color); font-size: .78rem; line-height: 1.4; }
+.picker__note { margin: -.25rem 0 0; padding: 0 .75rem; color: var(--subhead-color); font-size: .78rem; line-height: 1.45; }
+.picker__rule { height: 1px; background: var(--hairline-color); }
 
-@media (max-width: 560px) {
-  .modes { grid-template-columns: 1fr; }
+.companion-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: 0 .75rem;
+  color: var(--metadata-color);
+  font-size: .78rem;
 }
+
+.companion-line__change {
+  padding: .25rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+
+  &:hover { text-decoration: underline; }
+  &:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: 2px; border-radius: .25rem; }
+}
+
+// The phone sheet (L7): the same rows under a grip, then the editions; selected rows are raised white.
+.picker--sheet {
+  width: 100%;
+  gap: .875rem;
+  padding: .625rem 1.25rem 1.875rem;
+  border-radius: 1.75rem 1.75rem 0 0;
+  background: var(--page-ground);
+  box-shadow: 0 -8px 24px var(--shadow-color, rgba(44, 37, 48, .14));
+}
+
+.picker__grip { width: 2.375rem; height: 4px; align-self: center; border-radius: 999px; background: var(--control-border-color); }
+.picker__eyebrow { color: var(--dark-raspberry); font-size: .69rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.picker--sheet .mode { grid-template-columns: 3.5rem 1fr; gap: .875rem; padding: .875rem .75rem; }
+.picker--sheet .mode strong { font-size: .94rem; }
+.picker--sheet .mode small { font-size: .8rem; }
+.picker--sheet .mode--active { background: var(--card-color); box-shadow: var(--box-shadow); }
+.picker--sheet .picker__rule { background: var(--hairline-on-ground); }
+
+.editions { display: flex; flex-direction: column; }
+
+.edition {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .75rem;
+  border: 0;
+  border-radius: .875rem;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+
+  &:hover { background: var(--state-hover); }
+  &:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: -2px; }
+}
+
+.edition--active { background: var(--card-color); box-shadow: var(--box-shadow); }
+.edition__text { display: flex; min-width: 0; flex-direction: column; gap: .0625rem; }
+.edition__name { font-size: .9rem; font-weight: 500; }
+.edition__kind { color: var(--metadata-color); font-size: .78rem; }
+.edition__code { flex-shrink: 0; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .69rem; }
+.edition--active .edition__code { color: var(--dark-raspberry); }
+.edition--alone { color: var(--subhead-color); font-size: .9rem; }

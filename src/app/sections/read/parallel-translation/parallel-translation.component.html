@@ -1,12 +1,12 @@
-<div class="parallel" [tuiSkeleton]="loading">
-  <img
-    src="../../../../assets/img/icons/parallel.svg"
-    alt="parallel translation icon" i18n-alt
-    [tuiHintAppearance]="'dark'"
-    tuiHintDirection="bottom"
-    [tuiHint]="showHint && tooltip"
-  />
-  <ng-template #tooltip>
-    <div i18n>You can read this book in parallel mode.</div>
-  </ng-template>
-</div>
+<button type="button" class="parallel" [class.parallel--on]="!!code" [tuiSkeleton]="loading"
+        [attr.aria-label]="code ? openLabel : closedLabel" [attr.aria-expanded]="expanded"
+        [tuiHintAppearance]="'dark'" tuiHintDirection="top" [tuiHint]="showHint && !code ? tooltip : null">
+  @if (code) {
+    <span class="parallel__code">{{ code }}</span>
+  } @else {
+    <lucide-icon name="book-open-text" size="18" strokeWidth="1.75" aria-hidden="true"></lucide-icon>
+  }
+</button>
+<ng-template #tooltip>
+  <div i18n>You can read this book in parallel mode.</div>
+</ng-template>

@@ -26,10 +26,11 @@
 .plate__context mark { padding: 0 .2rem; border-radius: 3px; background: color-mix(in srgb, var(--dark-raspberry) 12%, var(--card-color)); color: var(--dark-raspberry); }
 .plate__source { padding-left: 1rem; color: var(--metadata-color); font-size: .74rem; }
 .plate__actions { display: flex; align-items: center; gap: .6rem; margin-top: 1.3rem; }
-.plate__save { flex: 1; min-height: 2.85rem; padding: .8rem 1.25rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .92rem; font-weight: 600; }
-.plate__save:hover:not(:disabled) { background: var(--brand-hover); }
-.plate__save:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
-.plate__save--done:disabled { background: var(--success-color); color: #fff; }
+.plate__save { display: inline-flex; flex: 1; min-height: 2.85rem; align-items: center; justify-content: center; padding: .8rem 1.25rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .92rem; font-weight: 600; text-align: center; }
+.plate__save:hover { background: var(--brand-hover); }
+.plate__save--busy { cursor: progress; opacity: .8; }
+.plate__save--done { background: var(--success-color); color: #fff; cursor: default; }
+.plate__link { padding: 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .15em; }
 .plate__fold { display: grid; width: 2.85rem; height: 2.85rem; flex: 0 0 auto; place-items: center; padding: .55rem; border: 1px solid var(--text-color); border-radius: 50%; background: transparent; color: var(--text-color); cursor: pointer; }
 .plate__fold:hover { background: var(--state-hover); }
 .plate__fold app-emblem { width: 1.15rem; height: 1.15rem; }

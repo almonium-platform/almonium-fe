@@ -90,6 +90,36 @@
         </div>
         @if (parallelNote; as note) { <p class="parallel__note">{{ note }}</p> }
       </section>
+
+      @if (chapters.length > 0) {
+        <section class="contents" aria-labelledby="contents-heading">
+          <div class="contents__head">
+            <h2 i18n id="contents-heading" class="eyebrow">Contents</h2>
+            <span class="contents__range"><ng-container i18n>{chapters.length, plural, =1 {1 chapter} other {{{chapters.length}} chapters}}</ng-container>@if (levelRange; as range) { · <ng-container i18n>estimated {{ range }}</ng-container> }</span>
+          </div>
+          <ol class="contents__list">
+            @for (row of contentsRows; track row.chapter.id) {
+              @if (row.gapBefore) { <li class="contents__gap" aria-hidden="true">⋯</li> }
+              <li>
+                <a class="contents__row" [class.contents__row--continue]="row.isContinue" [routerLink]="chapterLink(row.chapter)">
+                  <span class="contents__number">{{ row.chapter.sequence }}</span>
+                  <span class="contents__title">{{ chapterTitle(row.chapter) }}</span>
+                  @if (row.chapter.descriptions[0]; as description) {
+                    <span class="contents__description">{{ description }}</span>
+                  } @else {
+                    <span i18n class="contents__description contents__description--pending">Description on its way</span>
+                  }
+                  @if (row.isContinue) { <span i18n class="contents__continue">Continue</span> }
+                  <span class="contents__level">{{ row.chapter.cefrEstimate ?? '–' }}</span>
+                </a>
+              </li>
+            }
+          </ol>
+          @if (hiddenChapterCount > 0) {
+            <button i18n type="button" class="contents__all" (click)="contentsExpanded = true">All {{ chapters.length }} chapters</button>
+          }
+        </section>
+      }
     } @else {
       <header class="book-head">
         <div class="book-thumb skeleton-block" [tuiSkeleton]="true"></div>

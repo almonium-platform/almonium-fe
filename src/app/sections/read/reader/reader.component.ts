@@ -1,7 +1,7 @@
 import {logger} from "../../../shared/logger";
-import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DOCUMENT, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
-import {CommonModule, SlicePipe} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
 import {getErrorMessage} from '../../../shared/http-error';
@@ -9,38 +9,68 @@ import {catchError, debounceTime, distinctUntilChanged, takeUntil, throttleTime}
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
-import {ActivatedRoute, Router} from "@angular/router";
+import {ActivatedRoute, Router, RouterLink} from "@angular/router";
+import {Meta, Title} from '@angular/platform-browser';
 import {BookLanguageVariant} from "../book.model";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
-import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
+import {DEFAULT_PARALLEL_MODE, ParallelMode, SIDE_BY_SIDE_MIN_WIDTH, parallelModeLabel} from '../parallel-mode.type';
+import {CompanionRow} from '../../../parallel-settings/parallel-settings.component';
+import {isReducedMotion} from '../../../services/motion-preference';
 import {ParallelModeService} from "../parallel-mode.service";
 import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/components";
 import {TuiDropdownDirective} from "@taiga-ui/core/portals";
-import {ReaderChapter, ReaderDomService} from './reader-dom.service';
+import {ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
 import {LearningActivityService} from '../../../services/learning-activity.service';
 import {LanguageCode} from '../../../models/language.enum';
 import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
 import {UserInfoService} from '../../../services/user-info.service';
+import {LanguageNameService} from '../../../services/language-name.service';
+import {ReturnPathService} from '../../../services/return-path.service';
+import {CardService} from '../../../services/card.service';
 import {BookHtmlPipe} from './book-html.pipe';
 import {WordCardComponent} from '../word-card/word-card.component';
 import {CEFRLevel} from '../../../models/userinfo.model';
+import {BookChapter, displayChapterTitle} from '../book-chapter.model';
+import {ChapterWord, wordExcerpt} from '../chapter-vocabulary.model';
+import {ChapterVocabularyComponent} from './chapter-vocabulary.component';
+import {ChapterPage, bookPercentage, placeForPercentage, splitBookChapters} from './chapter-split';
 
+/** Below this width the contents list is a sheet over the text rather than a rail beside it. */
+const CONTENTS_RAIL_MIN_WIDTH = 1281;
+/** Below this width the mode picker and the companion menu are one sheet (L7). */
+const PHONE_MAX_WIDTH = 600;
+
+/** What the right rail shows: nothing, the chapter's words, or one word's card. */
+type RailView = 'none' | 'words' | 'card';
+
+interface WordCardRequest {
+  entry: string;
+  context: string;
+  highlight: string;
+  autoSave: boolean;
+}
+
+/**
+ * The reader is the chapter page (J): one page per chapter with the header at the top, the text,
+ * the chapter's words at the end and the next chapter after that. A guest and a member get the
+ * same page; signing in adds saving, synced progress and the "Saved" marks, never a different reader.
+ */
 @Component({
   selector: 'app-reader',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     SharedLucideIconsModule,
     ButtonComponent,
     TuiSliderComponent,
-    SlicePipe,
     TuiActiveZone,
     ParallelFormatPipe,
     LoadingIndicatorComponent,
@@ -52,6 +82,7 @@ import {CEFRLevel} from '../../../models/userinfo.model';
     TuiDataList,
     BookHtmlPipe,
     WordCardComponent,
+    ChapterVocabularyComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -61,6 +92,7 @@ import {CEFRLevel} from '../../../models/userinfo.model';
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterViewChecked {
   private cdRef = inject(ChangeDetectorRef);
   private readService = inject(ReadService);
+  private cardService = inject(CardService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private ngZone = inject(NgZone);
@@ -69,47 +101,66 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private progressTracker = inject(ReaderProgressTracker);
   private learningActivity = inject(LearningActivityService);
   private userInfoService = inject(UserInfoService);
+  private languageNames = inject(LanguageNameService);
+  private returnPath = inject(ReturnPathService);
+  private pageTitle = inject(Title);
+  private meta = inject(Meta);
+  private document = inject(DOCUMENT);
 
   // --- Element References ---
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
   @ViewChild('readerContent') readerContentRef!: ElementRef<HTMLDivElement>;
   @ViewChild('paginationControls') paginationControlsRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('tocTrigger', {read: ElementRef}) private tocTrigger?: ElementRef<HTMLElement>;
   @ViewChild('settingsPanel', {read: ElementRef}) private settingsPanel?: ElementRef<HTMLElement>;
+  @ViewChild('contentsSheet', {read: ElementRef}) private contentsSheet?: ElementRef<HTMLElement>;
+  @ViewChild('contentsToggle', {read: ElementRef}) private contentsToggle?: ElementRef<HTMLElement>;
 
-  // --- State Properties ---
-  protected chapterNav: ReaderChapter[] = [];
-  private hasMeasuredChapters = false; // Flag to ensure we measure only once
+  // --- The book and its chapters ---
+  /** The base edition split into chapter pages, in reading order. */
+  protected chapters: ChapterPage[] = [];
+  /** The companion edition's pages by chapter key, while a parallel text is loaded. */
+  private companionChapters = new Map<number, ChapterPage>();
+  /** Processor chapter information by sequence; optional, its absence never blocks reading. */
+  protected chapterMetadata: Record<number, BookChapter> = {};
+  /** The chapter key from the route; resolved against the split once the text is known. */
+  protected currentKey = 0;
+  protected currentIndex = -1;
+  protected bookHtmlContent = '';
+  private baseBookHtmlContent = '';
 
-  protected bookHtmlContent = ''; // Store the raw HTML from backend
-  protected baseBookHtmlContent = ''; // Store the raw HTML from backend
-
-  protected isLoading = true;          // General loading state
-  protected isLoadingParallel = false; // Specific loading state for parallel text
+  protected isLoading = true;
+  protected isLoadingParallel = false;
   protected errorMessage: string | null = null;
+  /** A companion that could not be loaded is said above the base text, which stays readable. */
+  protected parallelError: string | null = null;
+  protected missingChapter = false;
   protected bookId: string | null = null;
-  private bookSlug: string | null = null;
+  protected bookSlug: string | null = null;
   private privateBookId: string | null = null;
-  private trackProgress = false;
+  private bookKey = '';
+  protected bookTitle = '';
+  protected bookAuthor = '';
+  protected bookLevel: CEFRLevel | null = null;
+  protected signedIn = false;
 
   // --- Native Scroll State ---
-  protected currentScrollPercentage = 0; // Current scroll position (0-100)
-  private isScrollingProgrammatically = false;  // Flag to prevent scroll event loops
+  protected currentScrollPercentage = 0;
+  private isScrollingProgrammatically = false;
 
   // --- RxJS Subjects and Subscriptions ---
   private resizeSubject = new Subject<void>();
-  private sliderValueSubject = new Subject<number>(); // Represents target scroll PERCENTAGE
+  private sliderValueSubject = new Subject<number>();
   private destroy$ = new Subject<void>();
-  private scrollEvent$ = new Subject<Event>(); // For handling scroll events
+  private scrollEvent$ = new Subject<Event>();
 
   // --- Constants ---
   private readonly RESIZE_DEBOUNCE_TIME = 300;
-  private readonly SLIDER_DEBOUNCE_TIME = 50; // Debounce slider input affecting scroll
-  private readonly SCROLL_UPDATE_THROTTLE_TIME = 100; // Throttle scroll events updating the slider
-  private readonly SCROLL_STEP_PX = 50; // Pixel step for keyboard/hold scroll
+  private readonly SLIDER_DEBOUNCE_TIME = 50;
+  private readonly SCROLL_UPDATE_THROTTLE_TIME = 100;
+  private readonly SCROLL_STEP_PX = 50;
 
   // --- Touch Scrolling State ---
-  private isTouching = false; // Simpler flag now
+  private isTouching = false;
 
   // --- Press and Hold Scrolling State ---
   private scrollIntervalId: ReturnType<typeof setInterval> | null = null;
@@ -118,122 +169,184 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private readonly SCROLL_HOLD_DELAY = 350;
   private readonly SCROLL_INTERVAL_DELAY = 50;
 
-  // --- Parallel Text (Placeholder State) ---
+  // --- Parallel Text ---
   protected parallelVersions: BookLanguageVariant[] = [];
-  protected isParallelViewActive = false; // Still needed to know *if* content has translations
-  private currentlyOpenFluentSpan: HTMLElement | null = null;
+  protected primaryEdition: BookLanguageVariant | undefined;
+  protected includeOtherEditionTranslations = true;
+  protected isParallelViewActive = false;
+  /** Two columns need the window (L2); below it Side by side reads as On demand until it widens. */
+  protected sideAvailable = window.innerWidth >= SIDE_BY_SIDE_MIN_WIDTH;
 
-  protected isAtScrollTop = true; // ADDED: True initially
-  protected isAtScrollBottom = false; // ADDED: False initially
+  protected isAtScrollTop = true;
+  protected isAtScrollBottom = false;
 
   protected currentParallelMode: ParallelMode = DEFAULT_PARALLEL_MODE;
   protected fluentLangCode: string | null = null;
   protected companionSlug: string | null = null;
-  protected targetLangCode: string | null = null; // Language of the book being read
-  /** The word card (G1): the entry and the sentence it was met in, or null while closed. */
-  protected wordCard: {entry: string; context: string} | null = null;
-  protected bookTitle = '';
-  protected bookLevel: CEFRLevel | null = null;
-  /** The settings panel (G5) lives in the bottom bar, where its effect is visible behind it. */
+  protected targetLangCode: string | null = null;
+
+  // --- The rails (J4, J5) ---
+  protected contentsOpen = false;
+  protected railView: RailView = 'none';
+  /** The card was opened from the word list, so the rail offers a way back to it. */
+  protected railFromWords = false;
+  protected wordCard: WordCardRequest | null = null;
+  /** Entries this reader already keeps, lower-cased: the "Saved" marks in the word lists. */
+  protected savedEntries = new Set<string>();
+  /** The current chapter's vocabulary status; `unavailable` removes the Words toggle from the bar. */
+  private vocabularyStatus: string | null = null;
+  private vocabularyStatusSubscription: Subscription | null = null;
+  /** The mode picker (L5) floats above the bottom bar, where its effect is visible behind it. */
   protected parallelSettingsOpen = false;
   protected selectedLookupText = '';
   private selectedLookupContext = '';
+  /** A word named in the URL (the auth sheet returning to it) opens its card once the book is known. */
+  private pendingWord: WordCardRequest | null = null;
 
-  private isSyncingHeights = false;
-
-  private initialScrollPercentage: number | null = null;
+  // --- Where to open ---
+  /** The place kept on this device, applied once to the chapter it names. */
   private initialPosition: ReaderPosition | null = null;
+  /** How far into the chapter to open, from server progress or a chapter jump. */
+  private pendingWithin: number | null = null;
   private initialScrollApplied = false;
+  /** `/reader/{slug}` without a local place: the server's percentage picks the chapter, once. */
+  private resumeRequested = false;
+  private serverPercentage: number | null = null;
+  private trackProgress = false;
   private isDestroyed = false;
   private baseLoadSubscription: Subscription | null = null;
   private bookDetailsSubscription: Subscription | null = null;
-  private heightSyncTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private chapterScrollTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private chapterMeasurementFrameId: number | null = null;
-  private chapterNavigationDropdown: TuiDropdownDirective | null = null;
-
-  private needsHeightSync = false;
+  private companionNavigationDropdown: TuiDropdownDirective | null = null;
+  private structuredData: HTMLScriptElement | null = null;
 
   // --- Lifecycle Hooks ---
 
   ngOnInit(): void {
+    this.signedIn = this.userInfoService.currentUserInfo !== null;
+    this.contentsOpen = !this.isNarrow;
     this.setupResizeListener();
     this.setupSliderListener();
     this.setupScrollListener();
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
-        const previousMode = this.currentParallelMode;
-        if (previousMode !== mode) {
+        if (this.currentParallelMode !== mode) {
           logger.debug('Reader received new parallel mode:', mode);
-          if (this.isParallelViewActive && this.fluentLangCode) {
-            this.updateScrollState();
-            if (this.trackProgress) this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${mode}`);
-          }
+          if (this.isParallelViewActive && this.fluentLangCode) this.updateScrollState();
           this.currentParallelMode = mode;
-          this.cdRef.markForCheck(); // Trigger pipe re-evaluation
-
-          // Schedule height sync specifically when switching TO 'side' mode
-          if (mode === 'side') {
-            this.scheduleHeightSync();
-          }
-          // Reset overlay state when switching away from overlay
-          if (mode !== 'overlay' && this.currentlyOpenFluentSpan) {
-            this.currentlyOpenFluentSpan.hidden = true;
-            this.currentlyOpenFluentSpan = null;
-          }
+          this.cdRef.markForCheck();
         }
       });
 
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      this.resetForBook();
       const privateId = params.get('id');
       const slug = params.get('slug');
-      if (privateId) this.openPrivateBook(privateId);
+      const sequence = params.get('sequence') ?? '';
+      const key = /^\d{1,4}$/.test(sequence) ? Number(sequence) : NaN;
+      const sameBook = privateId ? this.privateBookId === privateId : this.bookSlug === slug && this.bookSlug !== null;
+      if (sameBook) {
+        // Only the chapter changed: the book stays loaded and the page turns.
+        this.currentKey = key;
+        this.pendingWithin ??= 0;
+        this.applyChapter();
+        return;
+      }
+      this.resetForBook();
+      const query = this.route.snapshot.queryParamMap;
+      this.resumeRequested = query.get('resume') === '1';
+      this.readPendingWord();
+      this.currentKey = key;
+      if (Number.isNaN(key)) this.handleError($localize`Invalid chapter reference.`);
+      else if (privateId) this.openPrivateBook(privateId);
       else if (slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) this.openPublicBook(slug);
       else this.handleError($localize`Invalid book reference.`);
     });
   }
 
+  private readPendingWord(): void {
+    const query = this.route.snapshot.queryParamMap;
+    const word = query.get('word')?.trim() ?? '';
+    if (!word || word.length > 80) return;
+    this.pendingWord = {
+      entry: word,
+      context: (query.get('context') ?? '').slice(0, 500),
+      highlight: '',
+      autoSave: query.get('save') === '1' && this.signedIn,
+    };
+  }
+
   private resetForBook(): void {
-    this.initialScrollPercentage = null;
+    this.chapterMetadata = {};
+    this.chapters = [];
+    this.companionChapters.clear();
+    this.currentIndex = -1;
     this.initialPosition = null;
+    this.pendingWithin = null;
+    this.serverPercentage = null;
     this.initialScrollApplied = false;
     this.isLoading = true;
-    this.chapterNav = [];
-    this.hasMeasuredChapters = false;
+    this.missingChapter = false;
+    this.errorMessage = null;
+    this.parallelError = null;
     this.parallelVersions = [];
+    this.primaryEdition = undefined;
+    this.includeOtherEditionTranslations = true;
     this.selectedLookupText = '';
     this.selectedLookupContext = '';
     this.wordCard = null;
+    this.railView = 'none';
+    this.railFromWords = false;
+    this.savedEntries = new Set();
+    this.vocabularyStatus = null;
     this.parallelSettingsOpen = false;
     this.bookTitle = '';
+    this.bookAuthor = '';
     this.bookLevel = null;
+    this.bookSlug = null;
+    this.privateBookId = null;
+    this.bookId = null;
+    this.trackProgress = false;
     this.cdRef.markForCheck();
   }
 
   private openPublicBook(slug: string): void {
     this.bookSlug = slug;
     this.privateBookId = null;
+    this.bookKey = `public:${slug}`;
+    this.readService.getPublicChapters(slug).pipe(takeUntil(this.destroy$)).subscribe({
+      next: chapters => {
+        if (this.bookSlug !== slug) return;
+        this.chapterMetadata = Object.fromEntries(chapters.map(chapter => [chapter.sequence, chapter]));
+        this.describePage();
+        this.cdRef.markForCheck();
+      },
+      // Enrichment is optional: its failure must never prevent reading or navigation.
+      error: () => logger.warn('Chapter information is unavailable; keeping text navigation.'),
+    });
     this.readService.getPublicBook(slug).pipe(takeUntil(this.destroy$)).subscribe({
       next: book => {
+        if (this.bookSlug !== slug) return;
         this.bookId = book.id;
         this.targetLangCode = book.language;
         this.bookTitle = book.title;
+        this.bookAuthor = book.author;
         this.bookLevel = book.cefrLevel;
+        this.primaryEdition = book.languageVariants.find(variant => variant.id === book.id);
         this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id);
-        this.trackProgress = this.userInfoService.currentUserInfo !== null;
+        this.trackProgress = this.signedIn;
         this.startCountingReadingTime(book.language);
+        this.initialPosition = this.progressTracker.startBook(this.bookKey, this.trackProgress ? book.id : null);
         if (this.trackProgress) {
-          this.initialPosition = this.progressTracker.startBook(book.id);
           this.fetchBookData(book.id);
+          this.loadSavedEntries(book.language);
         }
         this.loadBookHtml(slug, true);
         const requested = this.route.snapshot.queryParamMap.get('parallel');
         if (requested && this.parallelVersions.some(variant => variant.editionSlug === requested)) {
           this.selectOption(requested);
         }
+        this.openPendingWord();
       },
       error: error => this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
     });
@@ -247,79 +360,293 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.privateBookId = id;
     this.bookSlug = null;
     this.bookId = id;
+    this.bookKey = `private:${id}`;
     this.trackProgress = false;
     this.readService.getBookImport(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: book => {
+        if (this.privateBookId !== id) return;
         // A ready private book always has a detected language; only a stale link could reach here without one.
         if (book.language) {
           this.targetLangCode = book.language;
           this.startCountingReadingTime(book.language);
         }
         this.bookTitle = book.title;
+        this.initialPosition = this.progressTracker.startBook(this.bookKey, null);
         this.loadBookHtml(id, true);
+        this.openPendingWord();
       },
       error: error => this.handleError(getErrorMessage(error, $localize`Could not load private book.`)),
+    });
+  }
+
+  private loadSavedEntries(language: LanguageCode): void {
+    this.cardService.getCardsInLanguage(language).pipe(takeUntil(this.destroy$)).subscribe({
+      next: cards => {
+        this.savedEntries = new Set(cards.map(card => card.entry.trim().toLowerCase()));
+        this.cdRef.markForCheck();
+      },
+      error: () => logger.warn('Saved words are unavailable; the lists show none as saved.'),
+    });
+  }
+
+  /** The auth sheet came back to this word: open its card, and drop the ask from the address. */
+  private openPendingWord(): void {
+    const pending = this.pendingWord;
+    if (!pending) return;
+    this.pendingWord = null;
+    this.showWordCard(pending, false);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {word: null, context: null, save: null},
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
   }
 
   @HostListener('window:beforeunload')
   unloadNotification(): void {
     this.updateScrollState();
-    if (this.trackProgress) this.progressTracker.saveOnExit(true);
+    this.progressTracker.saveOnExit(true);
   }
 
-  // Schedules the height sync after Angular has rendered changes
-  private scheduleHeightSync(): void {
-    if (this.currentParallelMode !== 'side' || !this.readerContentRef) {
-      logger.debug("Skipping height sync: Not in side mode or content ref missing.");
-      return;
-    }
-    logger.debug("Scheduling height synchronization...");
-    // Use setTimeout to queue it after the current rendering cycle
-    if (this.heightSyncTimeoutId !== null) {
-      clearTimeout(this.heightSyncTimeoutId);
-    }
-    this.heightSyncTimeoutId = setTimeout(() => {
-      this.heightSyncTimeoutId = null;
-      this.synchronizeColumnHeights();
-    }, 10);
+  // --- Chapter pages ---
+
+  protected get currentChapter(): ChapterPage | null {
+    return this.chapters[this.currentIndex] ?? null;
   }
 
-  // Performs PARAGRAPH-BY-PARAGRAPH height measurement and adjustment
-  // Performs PARAGRAPH-BY-PARAGRAPH height measurement and adjustment
-  // WITHIN each logical section (e.g., chapter) that contains its own columns.
-  private synchronizeColumnHeights(): void {
-    if (this.isSyncingHeights || this.currentParallelMode !== 'side' || !this.readerContentRef?.nativeElement) {
+  protected get currentTitle(): string {
+    const chapter = this.currentChapter;
+    return chapter ? displayChapterTitle(chapter.title) : '';
+  }
+
+  protected get currentMetadata(): BookChapter | null {
+    return this.chapterMetadata[this.currentKey] ?? null;
+  }
+
+  protected get chapterList(): BookChapter[] {
+    return Object.values(this.chapterMetadata).sort((a, b) => a.sequence - b.sequence);
+  }
+
+  protected get previousChapter(): ChapterPage | null { return this.chapters[this.currentIndex - 1] ?? null; }
+  protected get nextChapter(): ChapterPage | null { return this.chapters[this.currentIndex + 1] ?? null; }
+
+  protected metadataFor(key: number): BookChapter | null { return this.chapterMetadata[key] ?? null; }
+  protected displayTitle(chapter: ChapterPage): string { return displayChapterTitle(chapter.title); }
+
+  protected get bookLink(): string[] {
+    return this.privateBookId ? ['/my-books', this.privateBookId] : ['/books', this.bookSlug ?? ''];
+  }
+
+  protected chapterLink(key: number): string[] {
+    return this.privateBookId ? ['/reader', 'private', this.privateBookId, String(key)] : ['/books', this.bookSlug ?? '', String(key)];
+  }
+
+  /** The companion travels with the page; the one-time marks (resume, a returned word) do not. */
+  protected get chapterQuery(): Record<string, string> {
+    return this.companionSlug ? {parallel: this.companionSlug} : {};
+  }
+
+  protected get wordsAvailable(): boolean {
+    return this.bookSlug !== null && this.vocabularyStatus !== 'unavailable';
+  }
+
+  protected get isNarrow(): boolean {
+    return window.innerWidth < CONTENTS_RAIL_MIN_WIDTH;
+  }
+
+  /** Turns the page: the same route with another chapter, so the book stays loaded. */
+  protected goToChapter(key: number): void {
+    void this.router.navigate(this.chapterLink(key), {queryParams: this.chapterQuery});
+  }
+
+  /** Shows the chapter named by the route once the split is known; a missing one is said, not guessed. */
+  private applyChapter(): void {
+    if (this.chapters.length === 0) return;
+    this.currentIndex = this.chapters.findIndex(chapter => chapter.key === this.currentKey);
+    if (this.currentIndex < 0 && this.resumeRequested) {
+      // The front door asked for "the first chapter" and this book does not number it 1.
+      void this.router.navigate(this.chapterLink(this.chapters[0].key), {queryParams: {...this.chapterQuery, resume: 1}, replaceUrl: true});
       return;
     }
-
-    this.isSyncingHeights = true;
-    const changesMade = this.readerDom.synchronizeParallelColumns(this.readerContentRef.nativeElement);
-    this.isSyncingHeights = false;
-
-    if (changesMade) {
-      this.updateScrollState();
-      this.scheduleChapterOffsetMeasurement();
+    if (this.currentIndex < 0) {
+      this.missingChapter = true;
+      this.bookHtmlContent = '';
       this.cdRef.markForCheck();
+      return;
+    }
+    this.missingChapter = false;
+    this.errorMessage = null;
+    const page = this.isParallelViewActive ? this.companionChapters.get(this.currentKey) : null;
+    this.bookHtmlContent = page?.html ?? this.chapters[this.currentIndex].html;
+    this.initialScrollApplied = false;
+    this.watchVocabularyStatus();
+    this.describePage();
+    this.tryResumeFromServer();
+    this.cdRef.markForCheck();
+  }
+
+  private watchVocabularyStatus(): void {
+    this.vocabularyStatusSubscription?.unsubscribe();
+    this.vocabularyStatus = null;
+    if (!this.bookSlug || !this.currentKey) return;
+    this.vocabularyStatusSubscription = this.readService.getChapterVocabulary(this.bookSlug, this.currentKey)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: vocabulary => {
+          this.vocabularyStatus = vocabulary.status;
+          this.cdRef.markForCheck();
+        },
+        error: () => logger.warn('Chapter vocabulary is unavailable for the bar.'),
+      });
+  }
+
+  /** A signed-in reader arriving without a local place lands on the chapter their server progress names. */
+  private tryResumeFromServer(): void {
+    if (!this.resumeRequested || this.serverPercentage === null || this.chapters.length === 0) return;
+    this.resumeRequested = false;
+    const place = placeForPercentage(this.chapters, this.serverPercentage);
+    const target = this.chapters[place.index];
+    this.pendingWithin = place.withinChapter;
+    if (target.key === this.currentKey) {
+      this.initialScrollApplied = false;
+      return;
+    }
+    void this.router.navigate(this.chapterLink(target.key), {queryParams: this.chapterQuery, replaceUrl: true});
+  }
+
+  /** The chapter page names itself: title, description and the chapter's place in the book. */
+  private describePage(): void {
+    const chapter = this.currentChapter;
+    if (!chapter || !this.bookTitle) return;
+    const language = this.targetLangCode ? this.languageNames.getLanguageName(this.targetLangCode) : '';
+    const edition = [language, this.bookLevel].filter(Boolean).join(', ');
+    const title = displayChapterTitle(chapter.title);
+    this.pageTitle.setTitle(edition
+      ? $localize`${title}:chapter: — ${this.bookTitle}:book: (${edition}:edition:) · Almonium`
+      : $localize`${title}:chapter: — ${this.bookTitle}:book: · Almonium`);
+    const descriptions = this.currentMetadata?.descriptions ?? [];
+    this.meta.updateTag({name: 'description', content: descriptions.length
+      ? descriptions.join(' ')
+      : $localize`Read ${title}:chapter: of ${this.bookTitle}:book: on Almonium.`});
+    if (!this.bookSlug) return;
+    this.structuredData?.remove();
+    const script = this.document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Chapter',
+      name: title,
+      position: this.currentIndex + 1,
+      inLanguage: this.targetLangCode?.toLowerCase(),
+      isPartOf: {'@type': 'Book', name: this.bookTitle, author: {'@type': 'Person', name: this.bookAuthor}},
+    });
+    this.document.head.appendChild(script);
+    this.structuredData = script;
+  }
+
+  // --- The rails ---
+
+  protected toggleContents(): void {
+    this.contentsOpen = !this.contentsOpen;
+    if (this.contentsOpen && this.isNarrow) this.railView = 'none';
+    this.closeReaderMenus();
+    this.cdRef.markForCheck();
+  }
+
+  protected onContentsPick(): void {
+    if (this.isNarrow) this.contentsOpen = false;
+  }
+
+  protected toggleWords(): void {
+    if (this.railView === 'words') {
+      this.closeRail();
+      return;
+    }
+    this.railView = 'words';
+    this.railFromWords = false;
+    if (this.isNarrow) this.contentsOpen = false;
+    this.closeReaderMenus();
+    this.cdRef.markForCheck();
+  }
+
+  protected closeRail(): void {
+    this.railView = 'none';
+    this.wordCard = null;
+    this.railFromWords = false;
+    this.cdRef.markForCheck();
+  }
+
+  protected backToWords(): void {
+    this.railView = 'words';
+    this.wordCard = null;
+    this.railFromWords = false;
+    this.cdRef.markForCheck();
+  }
+
+  private showWordCard(card: WordCardRequest, fromWords: boolean): void {
+    this.wordCard = card;
+    this.railView = 'card';
+    this.railFromWords = fromWords;
+    if (this.isNarrow) this.contentsOpen = false;
+    this.closeReaderMenus();
+    this.cdRef.markForCheck();
+  }
+
+  /** A row in the word list is one target: the rail turns into that word's card, never a page. */
+  protected openWordFromList(word: ChapterWord): void {
+    const context = wordExcerpt(word).map(part => part.text).join('');
+    this.showWordCard({entry: word.lemma, context, highlight: word.surface, autoSave: false}, true);
+  }
+
+  protected onWordSaved(entry: string): void {
+    this.savedEntries = new Set([...this.savedEntries, entry.trim().toLowerCase()]);
+    this.cdRef.markForCheck();
+  }
+
+  /** The chapter-end ask (J3): the sheet returns here, to this chapter. */
+  protected readFree(): void {
+    this.returnPath.remember(this.router.url);
+    void this.router.navigate(['/auth'], {fragment: 'sign-up'});
+  }
+
+  /** The mode the text is laid out in: the chosen one, unless Side by side lacks the window for it. */
+  protected get effectiveMode(): ParallelMode {
+    return this.currentParallelMode === 'side' && !this.sideAvailable ? 'demand' : this.currentParallelMode;
+  }
+
+  /** Below the phone width the picker and the companion menu are one sheet (L7). */
+  protected get isPhone(): boolean {
+    return window.innerWidth < PHONE_MAX_WIDTH;
+  }
+
+  /**
+   * A click or Enter on a sentence group selects it on both sides (L2); in on-demand mode it also
+   * opens the group's companion under the paragraph (L3). The same unit again, or plain text, clears.
+   */
+  protected onContentClick(event: Event): void {
+    const content = this.readerContentRef?.nativeElement;
+    if (!this.isParallelViewActive || !content || window.getSelection()?.toString().trim()) return;
+    const unit = this.readerDom.unitAt(content, event.target);
+    const alreadySelected = unit.length > 0 && unit.every(element => element.classList.contains('is-aligned-current'));
+    if (unit.length === 0 || alreadySelected) {
+      this.clearSelection();
+      return;
+    }
+    this.readerDom.mark(content, unit, 'is-aligned-current');
+    if (this.effectiveMode === 'demand') {
+      this.readerDom.openCompanionFor(content, unit, !isReducedMotion(this.document.documentElement));
     }
   }
 
-  // --- Example method to handle mode-specific logic ---
-  protected onContentClick(event: Event): void {
-    if (this.currentParallelMode === 'side' && this.isParallelViewActive) {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-alignment]') : null;
-      const content = this.readerContentRef.nativeElement;
-      content.querySelectorAll('.is-aligned-current').forEach(item => item.classList.remove('is-aligned-current'));
-      const key = target?.dataset['alignment'];
-      if (key && /^\d+-\d+-\d+$/.test(key)) {
-        content.querySelectorAll(`[data-alignment="${key}"]`).forEach(item => item.classList.add('is-aligned-current'));
-      }
-      return;
-    }
-    if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) {
-      return;
-    }
-    this.readerDom.toggleOverlayTranslation(this.readerContentRef.nativeElement, event.target);
+  /** Clears the selected unit and closes the companion block it opened. */
+  protected clearSelection(): boolean {
+    const content = this.readerContentRef?.nativeElement;
+    if (!content) return false;
+    const hadSelection = content.querySelector('.is-aligned-current, .companion-block') !== null;
+    this.readerDom.mark(content, [], 'is-aligned-current');
+    this.readerDom.closeCompanionBlock(content);
+    return hadSelection;
   }
 
   protected captureLookupSelection(): void {
@@ -337,16 +664,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (text.split(' ').length <= 3) {
       this.selectedLookupText = '';
       this.selectedLookupContext = '';
-      this.wordCard = {entry: text, context};
+      this.showWordCard({entry: text, context, highlight: '', autoSave: false}, false);
     } else {
       this.selectedLookupText = text;
       this.selectedLookupContext = context;
     }
-    this.cdRef.markForCheck();
-  }
-
-  protected closeWordCard(): void {
-    this.wordCard = null;
     this.cdRef.markForCheck();
   }
 
@@ -376,54 +698,26 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.cdRef.markForCheck();
   }
 
-  // Specific handler for load errors
   private handleLoadError(loadType: 'base' | 'parallel', message: string): void {
-    this.handleError(loadType === 'parallel'
-      ? $localize`Error loading parallel content: ${message}:message:`
-      : $localize`Error loading base content: ${message}:message:`); // Show error
-    this.isLoading = false;
-    this.isLoadingParallel = false;
-    // Option: Revert to base content if parallel load failed?
     if (loadType === 'parallel') {
+      logger.error('Reader Error:', message);
+      this.parallelError = $localize`The companion text could not be loaded: ${message}:message:`;
+      this.isLoadingParallel = false;
       this.revertToBaseContent();
+      this.cdRef.markForCheck();
+      return;
     }
+    this.handleError($localize`Error loading base content: ${message}:message:`);
+    this.isLoading = false;
     this.cdRef.markForCheck();
   }
 
   ngAfterViewInit(): void {
-    // Content rendering happens via *ngFor. We measure chapter offsets after rendering.
-    this.scheduleChapterOffsetMeasurement();
-    // Initial height sync if starting in side mode
-    if (this.currentParallelMode === 'side') {
-      this.scheduleHeightSync();
-    }
-    // Also ensure initial scroll state is calculated
     this.updateScrollState();
     this.cdRef.markForCheck();
   }
 
   ngAfterViewChecked(): void {
-    // Try to measure chapters ONLY ONCE after base load
-    if (!this.hasMeasuredChapters && !this.isLoading && this.baseBookHtmlContent && !this.isParallelViewActive) {
-      logger.debug("ngAfterViewChecked: Attempting ONE-TIME chapter measurement...");
-      const measured = this.measureChapterOffsets(); // Try measuring base content
-      if (measured) {
-        this.hasMeasuredChapters = true; // Mark as done
-        logger.debug("ngAfterViewChecked: ONE-TIME chapter measurement successful.");
-        this.cdRef.markForCheck(); // Update ToC dropdown
-      } else {
-        logger.warn("ngAfterViewChecked: ONE-TIME chapter measurement failed. Will retry on next check.");
-      }
-    }
-
-    // Check if height sync is pending (only for side mode)
-    if (this.needsHeightSync && this.currentParallelMode === 'side') {
-      // ... (existing height sync logic) ...
-      this.synchronizeColumnHeights();
-      this.needsHeightSync = false;
-    }
-
-    // Always attempt initial scroll
     this.attemptInitialScroll();
   }
 
@@ -434,9 +728,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.baseLoadSubscription?.unsubscribe();
     this.bookDetailsSubscription?.unsubscribe();
     this.parallelLoadSubscription?.unsubscribe();
+    this.vocabularyStatusSubscription?.unsubscribe();
     this.updateScrollState();
-    if (this.trackProgress) this.progressTracker.saveOnExit(false);
+    this.progressTracker.saveOnExit(false);
     this.learningActivity.stop();
+    this.structuredData?.remove();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -446,22 +742,17 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (this.userInfoService.currentUserInfo) this.learningActivity.start('READ', language);
   }
 
-// Modify loadBookHtml to trigger the scroll AFTER load
   private loadBookHtml(bookId: string, isBase = false): void {
     if (isBase) {
       this.isLoading = true;
       this.isParallelViewActive = false;
-      this.hasMeasuredChapters = false; // Allow re-measurement if base is reloaded
-      this.chapterNav = []; // Clear nav if base is reloaded
     } else {
       this.isLoadingParallel = true;
     }
     this.errorMessage = null;
     if (isBase) this.baseBookHtmlContent = '';
     this.bookHtmlContent = '';
-    if (isBase) this.chapterNav = [];
     this.cdRef.markForCheck();
-    this.needsHeightSync = false
 
     const stream$ = isBase
       ? this.privateBookId
@@ -469,9 +760,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         : this.readService.loadPublicBook(bookId)
       : this.readService.getPublicParallelText(bookId, this.companionSlug!);
 
-    if (isBase) {
-      this.baseLoadSubscription?.unsubscribe();
-    }
+    if (isBase) this.baseLoadSubscription?.unsubscribe();
     const subscription = stream$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response.status === 200 && response.body) {
@@ -479,27 +768,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
             const fetchedHtml = this.readerDom.decode(response.body);
             if (isBase) {
               this.baseBookHtmlContent = fetchedHtml;
-              if (!this.isParallelViewActive) this.bookHtmlContent = fetchedHtml;
+              this.chapters = splitBookChapters(fetchedHtml, this.targetLangCode);
             } else {
-              this.bookHtmlContent = fetchedHtml;
+              this.companionChapters = new Map(splitBookChapters(fetchedHtml, this.targetLangCode).map(page => [page.key, page]));
               this.isParallelViewActive = true;
             }
-
             this.isLoading = false;
             if (!isBase) this.isLoadingParallel = false;
             this.errorMessage = null;
             logger.debug(`Loaded ${isBase ? 'base' : 'parallel'} HTML content.`);
-            this.currentlyOpenFluentSpan = null;
-            this.cdRef.markForCheck(); // Ensure view updates with content
-
-            // The reader content is behind an @if while the book is loading, so its
-            // ViewChild does not exist during ngAfterViewInit. Measure after this
-            // response has caused the base content view to render.
-            if (isBase) this.scheduleChapterOffsetMeasurement();
-
-            if (this.currentParallelMode === 'side') {
-              this.needsHeightSync = true;
-            }
+            this.applyChapter();
           } catch (e) {
             this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to decode content: ${e instanceof Error ? e.message : String(e)}:reason:`);
           }
@@ -509,174 +787,99 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       },
       error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, $localize`Unknown error loading content.`)),
     });
-    if (isBase) {
-      this.baseLoadSubscription = subscription;
-    }
+    if (isBase) this.baseLoadSubscription = subscription;
   }
 
-  // attemptInitialScroll checks everything and scrolls if needed
+  private get presentation(): string {
+    return this.isParallelViewActive ? `parallel:${this.companionSlug}:${this.effectiveMode}` : 'base';
+  }
+
+  /** Opens the chapter at its kept place, once its text has laid out. */
   private attemptInitialScroll(): void {
-    // Added check: Don't attempt if component destroyed
-    if (this.isDestroyed) {
-      return;
-    }
+    if (this.isDestroyed || this.initialScrollApplied || this.isLoading || this.isLoadingParallel || this.missingChapter) return;
+    const wrapper = this.readerContentWrapperRef?.nativeElement;
+    const content = this.readerContentRef?.nativeElement;
+    if (!wrapper || !content || !this.bookHtmlContent || wrapper.scrollHeight <= 0) return;
 
-    // Conditions: Not loading, target known, not applied yet, wrapper exists
-    const hasInitialTarget = this.initialPosition !== null || this.initialScrollPercentage !== null;
-    if (!this.isLoading && !this.isLoadingParallel && hasInitialTarget && !this.initialScrollApplied && this.readerContentWrapperRef?.nativeElement) {
-      const wrapper = this.readerContentWrapperRef.nativeElement;
-      const targetPercentage = this.initialPosition?.percentage ?? this.initialScrollPercentage ?? 0;
-      // Add extra check for scrollHeight to ensure layout is likely ready
-      const scrollHeight = wrapper.scrollHeight;
-      const clientHeight = wrapper.clientHeight;
-
-      if (scrollHeight > 0 && (scrollHeight > clientHeight || targetPercentage === 0)) { // Check scrollHeight > 0 and scroll is possible or target is 0
-        if (this.initialPosition && this.readerContentRef?.nativeElement) {
-          const targetScrollTop = this.readerDom.scrollTopForPosition(
-            wrapper,
-            this.readerContentRef.nativeElement,
-            this.initialPosition,
-          );
-          logger.debug(`Restoring precise local reader position at ${targetScrollTop}px.`);
-          this.setScrollTop(targetScrollTop);
-        } else {
-          logger.debug(`Restoring server reader progress at ${targetPercentage}%.`);
-          this.scrollToPercentage(targetPercentage);
-        }
-        this.initialScrollApplied = true; // Mark as applied
-        this.updateScrollState();
-      } else {
-        logger.debug(`Skipped initial scroll attempt: scrollHeight=${scrollHeight}, clientHeight=${clientHeight}, target=${targetPercentage}`);
-      }
-    } else if (!this.initialScrollApplied && hasInitialTarget) {
-      // Log only if we expected to scroll but didn't yet
-      // logger.debug(`Skipped initial scroll attempt (in ngAfterViewChecked): isLoading=${this.isLoading}, target=${this.initialScrollPercentage}, applied=${this.initialScrollApplied}, wrapper=${!!this.readerContentWrapperRef?.nativeElement}`);
-    }
-  }
-
-
-  // Reverts the view to the base language content
-  private revertToBaseContent(): void {
-    logger.debug("Reverting to base content.");
-
-    // Check if content or state actually needs reverting
-    if (this.bookHtmlContent !== this.baseBookHtmlContent || this.isParallelViewActive || this.fluentLangCode !== null) {
-      this.bookHtmlContent = this.baseBookHtmlContent;
-      this.isParallelViewActive = false;
-      this.currentlyOpenFluentSpan = null;
-      this.fluentLangCode = null;
-      this.companionSlug = null;
-      this.initialPosition = this.trackProgress ? this.progressTracker.startPresentation('base') : null;
-      this.initialScrollPercentage = this.initialPosition ? null : this.currentScrollPercentage;
-
-      this.isLoadingParallel = false;
-      this.cdRef.markForCheck();
-
-      this.initialScrollApplied = false; // Re-apply the scroll when content changes
-      logger.debug("Reverted to base, flags set for ngAfterViewChecked.");
+    const position = this.initialPosition;
+    if (position?.chapter === this.currentKey) {
+      const resolvable = position.presentation === this.presentation ? position : {...position, anchor: null};
+      const targetScrollTop = this.readerDom.scrollTopForPosition(wrapper, content, resolvable);
+      logger.debug(`Restoring the kept place at ${targetScrollTop}px.`);
+      this.setScrollTop(targetScrollTop);
+      this.initialPosition = null;
+    } else if (this.pendingWithin !== null) {
+      this.scrollToPercentage(this.pendingWithin * 100);
+      this.pendingWithin = null;
     } else {
-      logger.debug("Already in base content state.");
+      this.setScrollTop(0);
     }
+    this.initialScrollApplied = true;
+    this.updateScrollState();
   }
 
-  // Placeholder fetch for parallel languages options
+  private revertToBaseContent(): void {
+    if (!this.isParallelViewActive && this.fluentLangCode === null && this.companionChapters.size === 0) return;
+    this.isParallelViewActive = false;
+    this.companionChapters.clear();
+    this.fluentLangCode = null;
+    this.companionSlug = null;
+    this.isLoadingParallel = false;
+    // The same place in the same chapter, in the base rendering.
+    this.pendingWithin = this.currentScrollPercentage / 100;
+    this.applyChapter();
+  }
+
+  /** Server-side progress and the parallel options a signed-in reader has. */
   private fetchBookData(bookId: string): void {
     this.bookDetailsSubscription?.unsubscribe();
     this.bookDetailsSubscription = this.readService.getMiniBookDetailsById(bookId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (book) => {
-        if (book) {
-          this.targetLangCode = book.language; // <-- ADD THIS LINE
-          logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
-          this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
-          if (!this.initialPosition) {
-            this.initialScrollPercentage = book.progressPercentage ?? 0;
-            logger.debug(`Stored server scroll fallback: ${this.initialScrollPercentage}%`);
-          }
-          this.cdRef.markForCheck();
-        }
+        if (!book) return;
+        this.targetLangCode = book.language;
+        this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
+        this.primaryEdition = book.languageVariants.find(t => t.id === bookId);
+        this.serverPercentage = book.progressPercentage ?? 0;
+        this.tryResumeFromServer();
+        this.cdRef.markForCheck();
       },
       error: (error) => logger.error('Error fetching book details for parallel options:', error)
     });
   }
 
-  // General error handler
   private handleError(message: string): void {
     logger.error("Reader Error:", message);
     this.errorMessage = message;
     this.isLoading = false;
-    this.chapterNav = [];
     this.currentScrollPercentage = 0;
     this.cdRef.markForCheck();
   }
 
-  // --- Chapter Offset Measurement ---
-  // Measures the top offset of rendered chapter elements relative to the scroll container
-  // --- Chapter Offset Measurement (Adapted for Direct HTML) ---
-  private measureChapterOffsets(): boolean {
-    if (this.hasMeasuredChapters || this.isParallelViewActive || !this.baseBookHtmlContent) {
-      return this.hasMeasuredChapters;
-    }
-
-    const contentElement = this.readerContentRef?.nativeElement;
-    if (!contentElement || this.isLoading) return false;
-
-    this.chapterNav = this.readerDom.measureChapters(contentElement, this.targetLangCode);
-    return this.chapterNav.length > 0;
-  }
-
-
-  // Schedules chapter measurement reliably after view updates
-  private scheduleChapterOffsetMeasurement(): void {
-    if (this.chapterMeasurementFrameId !== null) {
-      cancelAnimationFrame(this.chapterMeasurementFrameId);
-    }
-    this.chapterMeasurementFrameId = requestAnimationFrame(() => {
-      this.chapterMeasurementFrameId = null;
-      if (this.isDestroyed) {
-        logger.debug("scheduleChapterOffsetMeasurement: Component destroyed, skipping.");
-        return;
-      }
-      const measurementSuccess = this.measureChapterOffsets();
-      if (measurementSuccess) {
-        this.updateScrollState(); // Update scroll state based on new measurements
-        this.cdRef.markForCheck(); // Update dropdown
-      } else {
-        logger.warn("scheduleChapterOffsetMeasurement: Measurement failed or refs not ready.");
-      }
-    });
-  }
-
   // --- Event Listeners Setup ---
-  // Handles window resize to remeasure chapter offsets
   private setupResizeListener(): void {
     this.resizeSubject.pipe(
       debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      logger.debug('Window resized...');
-      this.scheduleChapterOffsetMeasurement(); // Keep chapter remeasurement
-      // Also re-sync heights if in side-by-side mode
-      if (this.currentParallelMode === 'side') {
-        this.scheduleHeightSync();
-      }
-      this.updateScrollState(); // Update scroll percentage after potential layout changes
+      this.sideAvailable = window.innerWidth >= SIDE_BY_SIDE_MIN_WIDTH;
+      this.updateScrollState();
       this.cdRef.markForCheck();
     });
   }
 
-  // Handles slider input to scroll the content
+  @HostListener('window:resize')
+  protected onWindowResize(): void {
+    this.resizeSubject.next();
+  }
+
   private setupSliderListener(): void {
     this.sliderValueSubject.pipe(
       debounceTime(this.SLIDER_DEBOUNCE_TIME),
       distinctUntilChanged(),
       takeUntil(this.destroy$)
-    ).subscribe(percentage => {
-      logger.debug(`Slider target percentage: ${percentage}`);
-      this.scrollToPercentage(percentage);
-    });
+    ).subscribe(percentage => this.scrollToPercentage(percentage));
   }
 
-  // Handles native scroll events to update the slider/percentage display
   private setupScrollListener(): void {
     this.scrollEvent$.pipe(
       throttleTime(this.SCROLL_UPDATE_THROTTLE_TIME, undefined, {leading: true, trailing: true}),
@@ -691,141 +894,107 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     });
   }
 
-
   // --- Scrolling Logic (Native) ---
 
-
-  // Called by the (scroll) event binding on the wrapper
   protected onWrapperScroll(event: Event): void {
-    // Use NgZone.runOutsideAngular to prevent excessive change detection cycles during rapid scroll events
-    this.ngZone.runOutsideAngular(() => {
-      this.scrollEvent$.next(event);
-    });
+    this.ngZone.runOutsideAngular(() => this.scrollEvent$.next(event));
   }
 
-  // Calculates and updates the current scroll percentage state
   private updateScrollState(): void {
     if (!this.readerContentWrapperRef) return;
     const state = this.readerDom.getScrollState(this.readerContentWrapperRef.nativeElement);
     this.isAtScrollTop = state.isAtTop;
     this.isAtScrollBottom = state.isAtBottom;
+    if (state.percentage !== this.currentScrollPercentage) this.currentScrollPercentage = state.percentage;
 
-    if (state.percentage !== this.currentScrollPercentage) {
-      this.currentScrollPercentage = state.percentage;
-    }
-
-    if (this.trackProgress && this.initialScrollApplied && this.readerContentRef?.nativeElement) {
-      const position = this.readerDom.capturePosition(
+    if (this.initialScrollApplied && this.currentIndex >= 0 && this.readerContentRef?.nativeElement) {
+      const captured = this.readerDom.capturePosition(
         this.readerContentWrapperRef.nativeElement,
         this.readerContentRef.nativeElement,
       );
-      this.progressTracker.update(state.percentage, position);
+      const position: ReaderPosition = {...captured, chapter: this.currentKey, presentation: this.presentation};
+      this.progressTracker.update(bookPercentage(this.chapters, this.currentIndex, state.percentage / 100), position);
     }
   }
 
-// Keep the guards in scrollToPercentage
   private scrollToPercentage(percentage: number): void {
     if (!this.readerContentWrapperRef?.nativeElement) return;
     const element = this.readerContentWrapperRef.nativeElement;
     const targetScrollTop = this.readerDom.scrollTopForPercentage(element, percentage);
-    if (targetScrollTop !== null) this.setScrollTop(targetScrollTop);
+    this.setScrollTop(targetScrollTop ?? 0);
   }
 
-  // Centralized method to set scrollTop and manage the programmatic scroll flag
   private setScrollTop(value: number): void {
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
-
     const clampedValue = this.readerDom.clampScrollTop(element, value);
-
-    // Only scroll if the value is actually different
-    if (Math.round(element.scrollTop) === Math.round(clampedValue)) {
-      return;
-    }
+    if (Math.round(element.scrollTop) === Math.round(clampedValue)) return;
 
     this.isScrollingProgrammatically = true;
     element.scrollTop = clampedValue;
-
-    // Update percentage immediately after programmatic scroll
-    // Run this inside NgZone if update needs to trigger immediate UI update
     this.ngZone.run(() => {
-      this.updateScrollState(); // Call updated function
+      this.updateScrollState();
       this.cdRef.markForCheck();
     });
-
-    // Reset the flag shortly after, outside Angular zone
     this.ngZone.runOutsideAngular(() => {
-      if (this.scrollFlagTimeoutId !== null) {
-        clearTimeout(this.scrollFlagTimeoutId);
-      }
+      if (this.scrollFlagTimeoutId !== null) clearTimeout(this.scrollFlagTimeoutId);
       this.scrollFlagTimeoutId = setTimeout(() => {
         this.scrollFlagTimeoutId = null;
         this.isScrollingProgrammatically = false;
-      }, this.SCROLL_UPDATE_THROTTLE_TIME + 50); // Delay slightly longer than throttle time
+      }, this.SCROLL_UPDATE_THROTTLE_TIME + 50);
     });
   }
 
-  // Called by slider's (input) event
   protected onSliderInput(event: Event): void {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    // Update display immediately for perceived responsiveness
     this.currentScrollPercentage = value;
-    // Let debounced handler actually perform the scroll
     this.sliderValueSubject.next(value);
   }
 
-
   // --- Navigation ---
-  // Scrolls down by approximately one viewport height
+
+  /** The arrows are only ever absent at the book's ends; at a chapter's end they turn the page. */
+  protected get canGoForward(): boolean { return !this.isAtScrollBottom || this.nextChapter !== null; }
+  protected get canGoBack(): boolean { return !this.isAtScrollTop || this.previousChapter !== null; }
+
   protected nextPage(): void {
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
-    // Use 90% of clientHeight for a slight overlap effect if desired
-    const scrollAmount = element.clientHeight * 0.95;
-    this.setScrollTop(element.scrollTop + scrollAmount);
+    if (this.isAtScrollBottom) {
+      const next = this.nextChapter;
+      if (next) this.goToChapter(next.key);
+      return;
+    }
+    this.setScrollTop(element.scrollTop + element.clientHeight * 0.95);
   }
 
-  // Scrolls up by approximately one viewport height
   protected prevPage(): void {
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
-    const scrollAmount = element.clientHeight * 0.95;
-    this.setScrollTop(element.scrollTop - scrollAmount);
+    if (this.isAtScrollTop) {
+      const previous = this.previousChapter;
+      if (previous) this.goToChapter(previous.key);
+      return;
+    }
+    this.setScrollTop(element.scrollTop - element.clientHeight * 0.95);
   }
 
-  // Scrolls by a small fixed pixel amount (for hold/keys)
   private performScrollStep(direction: 'prev' | 'next'): void {
     if (!this.readerContentWrapperRef) return;
     const element = this.readerContentWrapperRef.nativeElement;
-    let newScrollTop = element.scrollTop;
-
-    if (direction === 'prev') {
-      newScrollTop -= this.SCROLL_STEP_PX;
-    } else { // direction === 'next'
-      newScrollTop += this.SCROLL_STEP_PX;
-    }
-    this.setScrollTop(newScrollTop); // setScrollTop handles clamping
+    this.setScrollTop(element.scrollTop + (direction === 'prev' ? -this.SCROLL_STEP_PX : this.SCROLL_STEP_PX));
   }
 
   // --- Touch & Hold Scroll ---
-  // Flag start/end of touch interaction
   protected onTouchStart(): void {
     this.isTouching = true;
-    this.clearScrollHoldTimers(); // Prevent hold scroll if touch interaction starts
+    this.clearScrollHoldTimers();
   }
 
-  protected onTouchMove(): void { /* Browser handles native scroll */
-  }
+  protected onTouchMove(): void { /* Browser handles native scroll */ }
+  protected onTouchEnd(): void { this.isTouching = false; }
+  protected onTouchCancel(): void { this.isTouching = false; }
 
-  protected onTouchEnd(): void {
-    this.isTouching = false;
-  }
-
-  protected onTouchCancel(): void {
-    this.isTouching = false;
-  }
-
-  // Clears timers for hold-scrolling
   protected clearScrollHoldTimers(): void {
     if (this.scrollHoldTimeoutId) {
       clearTimeout(this.scrollHoldTimeoutId);
@@ -838,16 +1007,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.isHoldingForScroll = false;
   }
 
-  // Initiates hold-to-scroll behavior
   protected startScrollHold(direction: 'prev' | 'next'): void {
-    if (this.isTouching) return; // Don't start if user is touching the screen
+    if (this.isTouching) return;
     this.clearScrollHoldTimers();
-    this.isHoldingForScroll = false; // Reset flag
-
+    this.isHoldingForScroll = false;
     this.scrollHoldTimeoutId = setTimeout(() => {
       this.isHoldingForScroll = true;
       this.scrollIntervalId = setInterval(() => {
-        // Double-check if touch started during the interval
         if (this.isTouching) {
           this.clearScrollHoldTimers();
           return;
@@ -857,20 +1023,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }, this.SCROLL_HOLD_DELAY);
   }
 
-  // Stops hold-to-scroll and handles click vs. hold release
   protected stopScrollHold(triggerAction: 'prev' | 'next'): void {
     const wasHoldScrollActive = this.isHoldingForScroll;
-    this.clearScrollHoldTimers(); // Always clear timers
-
-    // If it wasn't a hold scroll that activated, AND not currently touching
+    this.clearScrollHoldTimers();
     if (!wasHoldScrollActive && !this.isTouching) {
-      logger.debug("Performing single page action on click/release.");
       if (triggerAction === 'prev') this.prevPage();
       else this.nextPage();
-    } else if (wasHoldScrollActive) {
-      logger.debug("Hold scroll stopped.");
     }
-    // isHoldingForScroll is reset in clearScrollHoldTimers
   }
 
   // --- Keyboard Nav ---
@@ -879,7 +1038,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (this.isLoading) return;
     const target = event.target as HTMLElement;
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(target?.tagName?.toUpperCase())) return;
-    if (event.ctrlKey || event.altKey || event.metaKey) return; // Ignore modified keys
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
 
     let handled = false;
     switch (event.key) {
@@ -890,7 +1049,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         break;
       case 'ArrowRight':
       case 'PageDown':
-      case ' ': // Space bar
+      case ' ':
         this.nextPage();
         handled = true;
         break;
@@ -913,131 +1072,186 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
         handled = true;
         break;
+      case 'Escape':
+        if (this.parallelSettingsOpen) {
+          this.closeParallelSettings();
+          handled = true;
+        } else if (this.clearSelection()) {
+          handled = true;
+        } else if (this.railView !== 'none') {
+          this.closeRail();
+          handled = true;
+        } else if (this.contentsOpen && this.isNarrow) {
+          this.contentsOpen = false;
+          this.cdRef.markForCheck();
+          handled = true;
+        }
+        break;
     }
-    if (handled) {
-      event.preventDefault(); // Prevent default browser action (like scrolling page)
-    }
+    if (handled) event.preventDefault();
   }
 
   // --- Whitespace Click ---
-  // Handles clicks in the empty areas around the content
+  /** A click on the empty ground beside the column turns the page; anything with content in it does not. */
   protected onWrapperClick(event: MouseEvent): void {
-    if (!this.readerContentRef || !this.paginationControlsRef || !this.readerContentWrapperRef) return;
-    const targetNode = event.target as Node;
-    // Ignore clicks on controls or inside the actual rendered content elements
-    if (this.paginationControlsRef.nativeElement.contains(targetNode) ||
-      this.readerContentRef.nativeElement.contains(targetNode)) {
-      return;
-    }
-    // Click was in the wrapper but outside content/controls
+    if (!this.readerContentWrapperRef) return;
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const isGround = ['reader-content-wrapper', 'reader-reading-layout', 'reader-column'].some(name => target.classList.contains(name));
+    if (!isGround) return;
     const wrapperRect = this.readerContentWrapperRef.nativeElement.getBoundingClientRect();
-    if (event.clientX > wrapperRect.left + wrapperRect.width / 2) {
-      this.nextPage();
-    } else {
-      this.prevPage();
-    }
+    if (event.clientX > wrapperRect.left + wrapperRect.width / 2) this.nextPage();
+    else this.prevPage();
   }
 
+  /** The unit under the pointer or focus lights on both sides at once (L); leaving the text clears it. */
   protected onContentHover(event: Event): void {
     const content = this.readerContentRef?.nativeElement;
-    if (!content || this.currentParallelMode !== 'side') return;
-    const segment = event.target instanceof Element ? event.target.closest<HTMLElement>('.sbs-segment') : null;
-    content.querySelectorAll('.sbs-segment.is-current').forEach(item => item.classList.remove('is-current'));
-    const pair = segment?.dataset['pair'];
-    if (!pair || !/^\d+$/.test(pair)) return;
-    content.querySelectorAll<HTMLElement>(`.sbs-segment[data-pair="${pair}"]`).forEach(item => item.classList.add('is-current'));
+    if (!content || !this.isParallelViewActive) return;
+    this.readerDom.mark(content, this.readerDom.unitAt(content, event.target), 'is-lit');
+  }
+
+  protected clearLit(): void {
+    const content = this.readerContentRef?.nativeElement;
+    if (content) this.readerDom.mark(content, [], 'is-lit');
   }
 
   @HostListener('document:click', ['$event'])
-  protected closeChapterNavigation(event: MouseEvent): void {
+  protected closeOverlays(event: MouseEvent): void {
     const target = event.target;
-    if (target instanceof Node && this.tocTrigger?.nativeElement.contains(target)) return;
-    this.chapterNavigationDropdown?.toggle(false);
-    // The settings panel closes on any click outside it; the menu item that opened it is inside a dropdown list.
-    if (this.parallelSettingsOpen && target instanceof Node
+    if (!(target instanceof Node)) return;
+    // The picker closes on any click outside it and outside what opens it.
+    if (this.parallelSettingsOpen
       && !this.settingsPanel?.nativeElement.contains(target)
-      && !(target instanceof Element && target.closest('tui-data-list'))) {
+      && !(target instanceof Element && target.closest('.chapter-head__mode, app-parallel-translation, tui-data-list'))) {
       this.closeParallelSettings();
     }
+    // A click away from the text clears the selected sentence group (L).
+    if (target instanceof Element && !target.closest('.reader-content, .parallel-settings-panel, tui-data-list, .pagination-controls')) {
+      this.clearSelection();
+    }
+    // The contents sheet on a narrow screen closes like a menu.
+    if (this.contentsOpen && this.isNarrow
+      && !this.contentsSheet?.nativeElement.contains(target)
+      && !this.contentsToggle?.nativeElement.contains(target)) {
+      this.contentsOpen = false;
+      this.cdRef.markForCheck();
+    }
   }
 
-  protected toggleChapterNavigation(dropdown: TuiDropdownDirective): void {
-    this.chapterNavigationDropdown = dropdown;
-    dropdown.toggle(!dropdown.ref());
-  }
-
-  // --- Chapter Navigation ---
-  // Scrolls to the measured offsetTop of a selected chapter
-  protected jumpToChapter(chapterIndex: number): void { // Parameter is index
-    if (this.isLoading || !this.readerContentWrapperRef || chapterIndex < 0 || chapterIndex >= this.chapterNav.length) {
-      logger.warn(`Cannot jump: Invalid chapter index ${chapterIndex} or prerequisites not met.`);
+  /**
+   * The bar's companion button: on a phone, or with a companion open, it is the picker (L5, L7),
+   * which also lists the editions on a phone; otherwise the companion menu.
+   */
+  protected openCompanionMenu(dropdown: TuiDropdownDirective): void {
+    if (this.isNarrow) this.contentsOpen = false;
+    this.companionNavigationDropdown = dropdown;
+    if (this.isPhone || this.isParallelViewActive) {
+      dropdown.toggle(false);
+      this.toggleParallelSettings();
       return;
     }
+    this.closeParallelSettings();
+    dropdown.toggle(true);
+    this.cdRef.markForCheck();
+  }
 
-    const contentElement = this.readerContentRef?.nativeElement;
-    if (!contentElement) {
-      logger.warn(`Cannot jump: contentElement not available.`);
-      return;
-    }
+  /** The picker's Change link: the companion menu in place of the picker. */
+  protected changeCompanion(): void {
+    this.closeParallelSettings();
+    this.companionNavigationDropdown?.toggle(true);
+    this.cdRef.markForCheck();
+  }
 
-    // 1. Get the stored info, including the unique elementId ('chapX')
-    const targetChapterInfo = this.chapterNav[chapterIndex];
-    if (!targetChapterInfo?.elementId) {
-      logger.warn(`Cannot jump: Chapter info or elementId missing for index ${chapterIndex}.`);
-      return;
-    }
+  /** The companion edition now open, if any. */
+  protected get companionEdition(): BookLanguageVariant | undefined {
+    return this.parallelVersions.find(item => item.editionSlug === this.companionSlug);
+  }
 
-    logger.debug(`Jumping to chapter index: ${chapterIndex} (Title: ${targetChapterInfo.title}, ID: ${targetChapterInfo.elementId})`); // Log the ID
+  /** The header's pair line (L1): codes in mono, then the companion's language and kind in words. */
+  protected get primaryCode(): string {
+    return [this.targetLangCode, this.bookLevel].filter(Boolean).join(' ');
+  }
 
-    const elementToScrollTo = this.readerDom.findChapter(contentElement, targetChapterInfo.elementId);
+  protected get companionCode(): string {
+    const edition = this.companionEdition;
+    return edition ? [edition.language, edition.cefrLevel].filter(Boolean).join(' ') : '';
+  }
 
-    // Perform the scroll if element found
-    if (elementToScrollTo) {
-      logger.debug(`Scrolling to element for index ${chapterIndex} (ID: ${targetChapterInfo.elementId}):`, elementToScrollTo);
-      elementToScrollTo.scrollIntoView({behavior: 'smooth', block: 'start'});
-      // Update percentage after scroll finishes
-      if (this.chapterScrollTimeoutId !== null) {
-        clearTimeout(this.chapterScrollTimeoutId);
-      }
-      this.chapterScrollTimeoutId = setTimeout(() => {
-        this.chapterScrollTimeoutId = null;
-        if (!this.isDestroyed) {
-          this.updateScrollState();
-          this.cdRef.markForCheck();
-        }
-      }, 350); // Increased timeout slightly just in case
-    } else {
-      logger.warn(`Cannot jump: Final check failed, elementToScrollTo is null for ID ${targetChapterInfo.elementId}.`);
+  protected get companionWords(): string {
+    const edition = this.companionEdition;
+    return edition ? `${this.languageNames.getLanguageName(edition.language)}, ${this.editionKind(edition)}` : '';
+  }
+
+  /** The picker's companion line (L5): language and level, then the kind. */
+  protected get companionLine(): string {
+    const edition = this.companionEdition;
+    if (!edition) return '';
+    const name = [this.languageNames.getLanguageName(edition.language), edition.cefrLevel].filter(Boolean).join(' ');
+    return $localize`Companion: ${name}:companion:, ${this.editionKind(edition)}:kind:`;
+  }
+
+  protected get modeLabel(): string {
+    return parallelModeLabel(this.effectiveMode);
+  }
+
+  /** The edition's kind in words; an indirect translation says what it translates. */
+  protected editionKind(edition: BookLanguageVariant): string {
+    if (this.isOtherEditionTranslation(edition)) return $localize`translation of the original`;
+    switch (edition.editionType) {
+      case 'machine_translation': return $localize`machine translation`;
+      case 'human_translation': return $localize`translation`;
+      case 'adaptation': return $localize`adaptation`;
+      case 'original': return $localize`original`;
+      default: return $localize`edition`;
     }
   }
 
-// Modify selectChapter to pass the INDEX
-  protected selectChapter(chapterIndex: number): void { // Parameter is now index
-    logger.debug("Chapter selected by index:", chapterIndex);
-    if (chapterIndex !== null && chapterIndex >= 0) {
-      this.jumpToChapter(chapterIndex);
-    } else {
-      logger.warn("Invalid index received from chapter selection:", chapterIndex);
-    }
+  /** The phone sheet's edition rows (L7): the open one first, then the rest the menu would list. */
+  protected get companionRows(): CompanionRow[] {
+    const current = this.companionEdition;
+    const rows = [...(current ? [current] : []), ...this.availableEditions];
+    return rows.map(edition => ({
+      slug: edition.editionSlug,
+      name: [this.languageNames.getLanguageName(edition.language), edition.cefrLevel].filter(Boolean).join(' · '),
+      kind: this.editionKind(edition),
+      code: edition.language,
+      selected: edition.editionSlug === this.companionSlug,
+    }));
   }
 
-  // Getter for parallel language options used in template
-  get langs() {
-    return this.parallelVersions.map(t => t.language);
-  }
-
-  get availableLangs(): string[] {
-    logger.debug('Recalculating availableLangs'); // Add this to see how often it runs
-    return this.langs.filter(l => l !== this.fluentLangCode);
+  protected closeReaderMenus(): void {
+    this.companionNavigationDropdown?.toggle(false);
+    this.closeParallelSettings();
   }
 
   get availableEditions(): BookLanguageVariant[] {
-    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug);
+    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug
+      && (this.includeOtherEditionTranslations || !this.isOtherEditionTranslation(edition)));
+  }
+
+  isOtherEditionTranslation(edition: BookLanguageVariant): boolean {
+    return this.primaryEdition?.editionType === 'adaptation'
+      && ['machine_translation', 'human_translation'].includes(edition.editionType ?? '')
+      && !!edition.sourceEditionSlug && edition.sourceEditionSlug !== this.primaryEdition.editionSlug;
+  }
+
+  get hasOtherEditionTranslations(): boolean {
+    return this.parallelVersions.some(edition => this.isOtherEditionTranslation(edition));
+  }
+
+  toggleOtherEditionTranslations(): void {
+    this.includeOtherEditionTranslations = !this.includeOtherEditionTranslations;
+    const selected = this.parallelVersions.find(edition => edition.editionSlug === this.companionSlug);
+    if (!this.includeOtherEditionTranslations && selected && this.isOtherEditionTranslation(selected)) {
+      this.selectOption(null);
+    }
   }
 
   editionLabel(edition: BookLanguageVariant): string {
     const kind = edition.editionType?.replaceAll('_', ' ') ?? 'edition';
-    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}`;
+    const origin = this.isOtherEditionTranslation(edition) ? ' · based on another edition, not this adaptation' : '';
+    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}${origin}`;
   }
 
   get companionLabel(): string {
@@ -1048,120 +1262,69 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private parallelLoadSubscription: Subscription | null = null;
 
   private clearScheduledWork(): void {
-    if (this.heightSyncTimeoutId !== null) {
-      clearTimeout(this.heightSyncTimeoutId);
-      this.heightSyncTimeoutId = null;
-    }
     if (this.scrollFlagTimeoutId !== null) {
       clearTimeout(this.scrollFlagTimeoutId);
       this.scrollFlagTimeoutId = null;
-    }
-    if (this.chapterScrollTimeoutId !== null) {
-      clearTimeout(this.chapterScrollTimeoutId);
-      this.chapterScrollTimeoutId = null;
-    }
-    if (this.chapterMeasurementFrameId !== null) {
-      cancelAnimationFrame(this.chapterMeasurementFrameId);
-      this.chapterMeasurementFrameId = null;
     }
   }
 
   selectOption(editionSlug: string | null): void {
     const edition = this.parallelVersions.find(item => item.editionSlug === editionSlug);
     const langCode = edition?.language ?? null;
-    logger.debug(`%c[Checkpoint 1B] Fluent Language selected:`, 'color: green; font-weight: bold;', langCode);
+    if (editionSlug !== null && editionSlug === this.companionSlug) return;
 
-    if (editionSlug !== null && editionSlug === this.companionSlug) {
-      logger.debug(`Language ${langCode} is already selected.`);
-      // Optionally close the dropdown here if needed, depending on your template structure
-      return; // Exit early
-    }
-
-    // --- 1. Cancel Previous Request ---
     this.parallelLoadSubscription?.unsubscribe();
-
+    this.parallelError = null;
     this.fluentLangCode = langCode;
     this.companionSlug = edition?.editionSlug ?? null;
 
-    // --- 2. Handle Selection ---
     if (langCode && this.bookSlug) {
-      // --- 2a. Start Loading Process ---
+      this.isParallelViewActive = false;
+      this.isLoadingParallel = true;
+      this.errorMessage = null;
+      this.cdRef.markForCheck();
 
-      // Perform pre-fetch UI updates (from original 'tap')
-      if (this.currentlyOpenFluentSpan) {
-        this.currentlyOpenFluentSpan.hidden = true;
-        this.currentlyOpenFluentSpan = null;
-      }
-      this.isParallelViewActive = false; // Tentatively set false
-      this.isLoadingParallel = true;    // Show loader
-      this.errorMessage = null;         // Clear previous errors
-      this.cdRef.markForCheck();        // Update UI
-
-      // Initiate the network call (from original 'switchMap')
       this.parallelLoadSubscription = this.readService.getPublicParallelText(this.bookSlug, this.companionSlug!).pipe(
-        takeUntil(this.destroy$), // Auto-unsubscribe on component destroy
+        takeUntil(this.destroy$),
         finalize(() => {
-          // Runs on completion, error, or unsubscribe
-          this.isLoadingParallel = false; // ALWAYS hide loader eventually
+          this.isLoadingParallel = false;
           this.cdRef.markForCheck();
         }),
         catchError(error => {
-          // Handle error within the stream (from original 'catchError')
           this.handleLoadError('parallel', getErrorMessage(error, $localize`Unknown error fetching parallel content.`));
-          this.revertToBaseContent(); // Revert UI on error
-          return EMPTY; // Prevent observable from completing incorrectly
+          this.revertToBaseContent();
+          return EMPTY;
         })
       ).subscribe({
         next: (response) => {
-          // Handle successful response (from original 'subscribe.next')
           if (response.status === 200 && response.body) {
             try {
-              // Decode and update content
-              this.bookHtmlContent = this.readerDom.decode(response.body);
-              this.isParallelViewActive = true;   // Now parallel view is active
-              this.errorMessage = null;         // Clear previous errors
-              logger.debug(`Loaded parallel HTML content for ${langCode}.`);
-              this.initialPosition = this.trackProgress
-                ? this.progressTracker.startPresentation(`parallel:${this.companionSlug}:${this.currentParallelMode}`)
-                : null;
-              // Trigger layout updates and scrolling
-              // *** Schedule height sync AFTER parallel content is loaded AND if in side mode ***
-              // Note: Pipe re-runs automatically due to cdRef.markForCheck()
-              if (this.currentParallelMode === 'side') {
-                this.needsHeightSync = true;
-              }
-              logger.debug("Parallel content loaded, flags set for ngAfterViewChecked.");
-              // Resume this exact presentation when it has been used before.
-              this.initialScrollPercentage = this.initialPosition ? null : 0;
-              this.initialScrollApplied = false; // Ensure ngAfterViewChecked applies it
+              const html = this.readerDom.decode(response.body);
+              this.companionChapters = new Map(splitBookChapters(html, this.targetLangCode).map(page => [page.key, page]));
+              this.isParallelViewActive = true;
+              this.errorMessage = null;
+              // The same place in the same chapter, now in the pair.
+              this.pendingWithin = this.currentScrollPercentage / 100;
+              this.applyChapter();
             } catch (e) {
-              // Handle decoding error
               this.handleLoadError('parallel', $localize`Failed to decode parallel content: ${e instanceof Error ? e.message : String(e)}:reason:`);
-              this.revertToBaseContent(); // Revert UI on decoding error
+              this.revertToBaseContent();
             }
           } else {
-            // Handle non-200 success status
             this.handleLoadError('parallel', $localize`Failed to load parallel content. Status: ${response.status}:status:`);
-            this.revertToBaseContent(); // Revert UI on load failure
+            this.revertToBaseContent();
           }
-          // isLoadingParallel is handled by finalize
-          this.cdRef.markForCheck(); // Ensure UI reflects changes
+          this.cdRef.markForCheck();
         },
-        // Error handler in subscribe is less likely due to catchError, but good practice
         error: (err) => {
           logger.error("Unexpected error in parallel load subscription:", err);
           this.handleLoadError('parallel', $localize`An unexpected error occurred during parallel load.`);
-          this.revertToBaseContent(); // Revert UI on unexpected error
-          // isLoadingParallel is handled by finalize
+          this.revertToBaseContent();
           this.cdRef.markForCheck();
         }
       });
-
     } else {
-      // --- 2b. Language Deselected or Missing bookId: Revert to Base ---
-      logger.debug("Reverting to base content (no valid language selected or missing bookId).");
       this.revertToBaseContent();
-      // Ensure loader is off if we bail out early
       if (this.isLoadingParallel) {
         this.isLoadingParallel = false;
         this.cdRef.markForCheck();
@@ -1169,8 +1332,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
-  openParallelSettings() {
+  protected toggleParallelSettings(): void {
     this.parallelSettingsOpen = !this.parallelSettingsOpen;
+    if (this.parallelSettingsOpen && this.isNarrow) this.contentsOpen = false;
     this.cdRef.markForCheck();
   }
 

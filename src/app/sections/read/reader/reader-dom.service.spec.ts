@@ -48,7 +48,6 @@ describe('ReaderDomService', () => {
     });
 
     expect(service.scrollTopForPosition(wrapper, content, {
-      version: 1,
       scrollTop: 731,
       scrollHeight: 2000,
       clientWidth: 800,
@@ -72,7 +71,6 @@ describe('ReaderDomService', () => {
     paragraph.getBoundingClientRect = () => ({top: 400} as DOMRect);
 
     expect(service.scrollTopForPosition(wrapper, content, {
-      version: 1,
       scrollTop: 731,
       scrollHeight: 2000,
       clientWidth: 800,
@@ -81,17 +79,41 @@ describe('ReaderDomService', () => {
     })).toBe(325);
   });
 
-  it('opens only the selected overlay translation', () => {
+  it('answers for a sentence group on both sides, or a whole paragraph pair where none exists', () => {
     const content = document.createElement('div');
     content.innerHTML = `
-      <span class="seg-pair"><span id="first" class="segment">One</span><span class="fluent-segment-overlay is-visible">Uno</span></span>
-      <span class="seg-pair"><span id="second" class="segment">Two</span><span id="translation" class="fluent-segment-overlay">Dos</span></span>
+      <p><span class="segment" data-pair="0"><span data-alignment="1-1-0">One.</span> Plain.</span><span class="companion-source" data-pair="0"><span class="segment"><span data-alignment="1-1-0">Uno.</span></span></span></p>
+      <p><span class="segment" data-pair="1">Whole.</span><span class="companion-source" data-pair="1"><span class="segment">Entero.</span></span></p>
     `;
+    const group = content.querySelector('[data-alignment]')!;
+    expect(service.unitAt(content, group).map(element => element.textContent)).toEqual(['One.', 'Uno.']);
+    expect(service.unitAt(content, group.nextSibling as unknown as EventTarget)).toEqual([]);
+    expect(service.unitAt(content, content.querySelector('[data-pair="1"]')).map(element => element.textContent)).toEqual(['Whole.']);
+    expect(service.unitAt(content, document.body)).toEqual([]);
+  });
 
-    service.toggleOverlayTranslation(content, content.querySelector('#second'));
+  it('marks one unit and opens only its companion sentences right after the group', () => {
+    const content = document.createElement('div');
+    content.innerHTML = `
+      <p id="first"><span class="segment" data-pair="0"><span data-alignment="1-1-0">One.</span> <span data-alignment="1-1-1">Two.</span></span><span class="companion-source"><span class="segment" lang="es"><span data-alignment="1-1-0">Uno.</span> <span data-alignment="1-1-1">Dos.</span></span></span></p>
+    `;
+    const first = service.unitAt(content, content.querySelector('[data-alignment="1-1-0"]'));
+    service.mark(content, first, 'is-lit');
+    expect(content.querySelectorAll('.is-lit').length).toBe(2);
+    service.mark(content, service.unitAt(content, content.querySelector('[data-alignment="1-1-1"]')), 'is-lit');
+    expect(Array.from(content.querySelectorAll('.is-lit')).map(element => element.textContent)).toEqual(['Two.', 'Dos.']);
 
-    expect(content.querySelector('#first')?.nextElementSibling?.classList.contains('is-visible')).toBeFalse();
-    expect(content.querySelector('#translation')?.classList.contains('is-visible')).toBeTrue();
+    expect(service.openCompanionFor(content, first, false)).toBeTrue();
+    const block = content.querySelector('[data-alignment="1-1-0"] + .companion-block');
+    expect(block?.textContent).toBe('Uno.');
+    expect(block?.querySelector('.companion-block__text')?.getAttribute('lang')).toBe('es');
+    expect(block?.nextSibling?.textContent).toBe(' ');
+    expect(block?.classList.contains('is-open')).toBeTrue();
+    service.openCompanionFor(content, service.unitAt(content, content.querySelector('[data-alignment="1-1-1"]')), false);
+    expect(content.querySelectorAll('.companion-block').length).toBe(1);
+    expect(content.querySelector('.companion-block')?.textContent).toBe('Dos.');
+    service.closeCompanionBlock(content);
+    expect(content.querySelector('.companion-block')).toBeNull();
   });
 
   it('measures only identified chapter headings', () => {

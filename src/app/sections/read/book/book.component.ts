@@ -21,6 +21,19 @@ import {PopupTemplateStateService} from '../../../shared/modals/popup-template/p
 import {SupportedLanguagesService} from '../../../services/supported-langs.service';
 import {Language} from '../../../models/language.model';
 import {FormsModule} from '@angular/forms';
+import {BookChapter, chapterLevelRange, displayChapterTitle} from '../book-chapter.model';
+import {ReaderPositionStorage} from '../reader/reader-position-storage.service';
+
+/** How many contents rows the book page shows before "All N chapters". */
+const CONTENTS_PREVIEW_ROWS = 8;
+
+/** A contents row (J1): the chapter, and whether it is the one the reader left off in. */
+interface ContentsRow {
+  chapter: BookChapter;
+  isContinue: boolean;
+  /** Rows skipped between this one and the previous, when the Continue row is pinned past the preview. */
+  gapBefore: boolean;
+}
 
 /** `other` is the one dashed chip that stands for every language not on the reader's fluent list. */
 type ChipState = 'reading' | 'available' | 'asked' | 'requestable' | 'other';
@@ -58,6 +71,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private meta = inject(Meta);
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private supportedLanguagesService = inject(SupportedLanguagesService);
+  private positionStorage = inject(ReaderPositionStorage);
 
   @ViewChild('requestSheet', {static: true}) private requestSheet!: TemplateRef<unknown>;
 
@@ -79,6 +93,9 @@ export class BookComponent implements OnInit, OnDestroy {
   protected orderLoading = false;
   protected sheetLanguage: LanguageCode | null = null;
   protected bookLoading = true;
+  /** The contents (J1): every chapter the processor knows, with its level and description. */
+  protected chapters: BookChapter[] = [];
+  protected contentsExpanded = false;
 
   ngOnInit() {
     const user = this.userInfoService.currentUserInfo;
@@ -119,6 +136,7 @@ export class BookComponent implements OnInit, OnDestroy {
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
           logger.debug(`Successfully loaded book: ${book.title}`);
           this.loadRequests();
+          this.loadChapters(book.editionSlug);
           this.cdr.detectChanges();
         }
       });
@@ -154,6 +172,53 @@ export class BookComponent implements OnInit, OnDestroy {
       this.quota = quota;
       this.cdr.detectChanges();
     });
+  }
+
+  /** Chapter information is optional: without it the page still reads and opens. */
+  private loadChapters(slug: string): void {
+    this.chapters = [];
+    this.contentsExpanded = false;
+    this.readService.getPublicChapters(slug).pipe(takeUntil(this.destroy$)).subscribe({
+      next: chapters => {
+        if (this.bookSlug !== slug) return;
+        this.chapters = [...chapters].sort((a, b) => a.sequence - b.sequence);
+        this.cdr.detectChanges();
+      },
+      error: () => logger.warn('Chapter information is unavailable for the book page.'),
+    });
+  }
+
+  protected chapterTitle(chapter: BookChapter): string {
+    return displayChapterTitle(chapter.title);
+  }
+
+  protected get levelRange(): string | null {
+    return chapterLevelRange(this.chapters);
+  }
+
+  /** The chapter this reader left off in on this device; the Continue row is member-only. */
+  private get continueSequence(): number | null {
+    if (!this.authenticated || !this.bookSlug) return null;
+    const chapter = this.positionStorage.get(`public:${this.bookSlug}`)?.chapter ?? null;
+    return chapter !== null && this.chapters.some(item => item.sequence === chapter) ? chapter : null;
+  }
+
+  /** The first rows, and the Continue row pinned into view when it lies past them. */
+  protected get contentsRows(): ContentsRow[] {
+    const continueAt = this.continueSequence;
+    const rows = this.chapters.map(chapter => ({chapter, isContinue: chapter.sequence === continueAt, gapBefore: false}));
+    if (this.contentsExpanded || rows.length <= CONTENTS_PREVIEW_ROWS) return rows;
+    const preview = rows.slice(0, CONTENTS_PREVIEW_ROWS);
+    const pinned = rows.slice(CONTENTS_PREVIEW_ROWS).find(row => row.isContinue);
+    return pinned ? [...preview, {...pinned, gapBefore: true}] : preview;
+  }
+
+  protected get hiddenChapterCount(): number {
+    return this.contentsExpanded ? 0 : Math.max(0, this.chapters.length - this.contentsRows.length);
+  }
+
+  protected chapterLink(chapter: BookChapter): string[] {
+    return ['/books', this.bookSlug ?? '', String(chapter.sequence)];
   }
 
   private get originalBookId(): string | null {

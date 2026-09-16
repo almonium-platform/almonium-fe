@@ -1,4 +1,10 @@
 <main class="discover-page">
+  @if (sourceBook) {
+    <aside class="sentence-card" aria-label="Book source" i18n-aria-label>
+      <p i18n>From {{ sourceBookTitle }} · {{ sourceChapterTitle }}</p>
+      <a [routerLink]="sourceChapter ? ['/books', sourceBook, sourceChapter] : ['/reader', sourceBook]" i18n>Back to book</a>
+    </aside>
+  }
   <section class="discover-intro" aria-labelledby="discover-title">
     <p i18n class="eyebrow">Discover · {{ currentLanguage }}</p>
     <h1 i18n id="discover-title">Look up a word, or paste the sentence it was in</h1>

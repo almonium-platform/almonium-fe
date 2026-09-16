@@ -38,6 +38,26 @@
 .lang-chip:disabled { cursor: wait; opacity: .6; }
 .parallel__note { margin: 0; color: var(--metadata-color); font-size: .78rem; line-height: 1.55; }
 
+// The contents (J1): number, title, one-line description and the level in mono, never a badge.
+.contents { display: flex; flex-direction: column; gap: .6rem; padding-top: 1.25rem; border-top: 1px solid var(--hairline-color); }
+.contents__head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.contents__head .eyebrow { margin: 0; }
+.contents__range { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .7rem; white-space: nowrap; }
+.contents__list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.contents__list li + li { border-top: 1px solid var(--hairline-color); }
+.contents__gap { padding: .2rem 0 .2rem .35rem; color: var(--metadata-color); letter-spacing: .2em; }
+.contents__row { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto auto; grid-template-areas: "number title continue level" "number description continue level"; align-items: baseline; column-gap: .75rem; padding: .55rem .35rem; border-radius: .5rem; color: inherit; text-decoration: none; }
+.contents__row:hover { background: var(--state-hover); }
+.contents__row--continue { background: var(--state-selected); }
+.contents__number { grid-area: number; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .72rem; text-align: right; }
+.contents__title { grid-area: title; overflow: hidden; font-family: var(--font-family-reading); font-size: .95rem; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.contents__description { grid-area: description; overflow: hidden; color: var(--subhead-color); font-size: .78rem; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+.contents__description--pending { color: var(--metadata-color); font-style: italic; }
+.contents__continue { grid-area: continue; padding: .15rem .55rem; border-radius: 999px; background: var(--dark-raspberry); color: #fff; font-size: .62rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.contents__level { grid-area: level; min-width: 1.5rem; color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .72rem; text-align: right; }
+.contents__all { align-self: flex-start; padding: .35rem 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.contents__all:hover { text-decoration: underline; }
+
 .skeleton-block { border-radius: .5rem; }
 .skeleton-title { width: 60%; height: 1.75rem; margin-bottom: .5rem; }
 .skeleton-meta { width: 40%; height: 1rem; }

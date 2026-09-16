@@ -1,0 +1,43 @@
+:host { display: block; font-family: var(--font-family-ui); color: var(--text-color); }
+
+.vocab { display: flex; flex-direction: column; gap: .6rem; }
+.vocab__head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.vocab__title { margin: 0; font-family: var(--font-family-reading); font-size: 1.2rem; font-weight: 600; line-height: 1.2; }
+.vocab__close { width: 2rem; height: 2rem; border: 0; border-radius: 50%; background: transparent; color: var(--metadata-color); cursor: pointer; font-size: 1.3rem; line-height: 1; }
+.vocab__close:hover { background: var(--state-hover); color: var(--text-color); }
+.vocab__lede, .vocab__note { margin: 0; color: var(--metadata-color); font-size: .8rem; line-height: 1.5; }
+
+.vocab__chapter { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .5rem 0 .6rem; border-bottom: 1px solid var(--hairline-color); }
+.vocab__chapter-copy { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
+.vocab__chapter-copy strong { overflow: hidden; font-size: .9rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.vocab__meta { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .7rem; }
+.vocab__arrows { display: flex; flex: 0 0 auto; gap: .15rem; }
+.vocab__arrows button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--subhead-color); cursor: pointer; }
+.vocab__arrows button:hover { background: var(--state-hover); color: var(--text-color); }
+
+.vocab__list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.vocab__list li + li { border-top: 1px solid var(--hairline-on-ground); }
+.vocab--rail .vocab__list li + li { border-top-color: var(--hairline-color); }
+// The hover tint hangs past the text on both sides, so the text stays on the column's edge.
+.vocab__row { display: grid; width: calc(100% + 1.5rem); grid-template-columns: minmax(6.5rem, 9rem) minmax(0, 1fr); gap: .25rem .9rem; margin: 0 -.75rem; padding: .75rem .75rem; border: 0; border-radius: .75rem; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left; }
+.vocab__row:hover, .vocab__row:focus-visible { background: var(--state-hover); outline: none; }
+.vocab__row:focus-visible { box-shadow: 0 0 0 2px var(--brand-margin); }
+.vocab__word { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
+.vocab__lemma { font-family: var(--font-family-reading); font-size: 1rem; font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
+.vocab__form { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .72rem; }
+.vocab__saved { align-self: flex-start; padding: .1rem .45rem; border-radius: 999px; background: var(--success-bg-color); color: var(--success-color); font-size: .6rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.vocab__excerpt { color: var(--subhead-color); font-family: var(--font-family-reading); font-size: .86rem; line-height: 1.55; }
+.vocab__excerpt mark { padding: 0 .15rem; border-radius: 3px; background: color-mix(in srgb, var(--dark-raspberry) 12%, var(--card-color)); color: var(--dark-raspberry); }
+.vocab__more { align-self: flex-start; padding: .35rem 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.vocab__more:hover { text-decoration: underline; }
+
+// The rail (J4): the same frame as the word card, its list scrolling inside it.
+.vocab--rail { flex: 1 1 auto; min-height: 0; padding: 1.4rem 1.5rem 1.2rem; border-radius: 1.75rem; background: var(--card-color); box-shadow: var(--overlay-shadow); }
+// The header stays; the list scrolls inside the plate, so the frame and its shadow stay whole.
+// The scrolling list carries the gutters the rows hang into, so the scroll box does not clip the hover tint.
+.vocab--rail .vocab__list { flex: 1 1 auto; min-height: 0; margin: 0 -.75rem; padding: 0 .75rem; overflow-y: auto; scrollbar-width: thin; }
+.vocab--rail .vocab__row { grid-template-columns: minmax(5.5rem, 7.5rem) minmax(0, 1fr); }
+
+// The chapter end (J3): a plain block under the last paragraph.
+.vocab--end { padding-top: 1.75rem; border-top: 1px solid var(--hairline-on-ground); }
+.vocab--end .vocab__title { font-size: 1.35rem; }

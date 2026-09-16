@@ -6,10 +6,12 @@ import {ReaderPositionStorage} from './reader-position-storage.service';
 describe('ReaderPositionStorage', () => {
   let localStorage: LocalStorageService;
   let storage: ReaderPositionStorage;
-  const bookId = '01989f47-4c2a-7a10-9e5b-751983624a25';
+  const bookKey = 'public:shelley-frankenstein-en-orig';
 
   const position: ReaderPosition = {
-    version: 1,
+    version: 2,
+    chapter: 11,
+    presentation: 'base',
     scrollTop: 731,
     scrollHeight: 2000,
     clientWidth: 800,
@@ -26,18 +28,26 @@ describe('ReaderPositionStorage', () => {
 
   afterEach(() => window.localStorage.clear());
 
-  it('keeps precise positions separate for each reader presentation', () => {
-    storage.save(bookId, 'base', position);
-    storage.save(bookId, 'parallel:UK:side', {...position, scrollTop: 900});
+  it('keeps one place per book, and the chapter with it', () => {
+    storage.save(bookKey, position);
+    storage.save(bookKey, {...position, chapter: 12, scrollTop: 900});
 
-    expect(storage.get(bookId, 'base')).toEqual(position);
-    expect(storage.get(bookId, 'parallel:UK:side')?.scrollTop).toBe(900);
+    expect(storage.get(bookKey)?.chapter).toBe(12);
+    expect(storage.get(bookKey)?.scrollTop).toBe(900);
   });
 
-  it('does not expose one user position to another user', () => {
-    storage.save(bookId, 'base', position);
+  it('does not expose one reader position to another reader, and keeps a guest place on the device', () => {
+    storage.save(bookKey, position);
     localStorage.saveItem('user_info', {id: 'reader-2'});
+    expect(storage.get(bookKey)).toBeNull();
 
-    expect(storage.get(bookId, 'base')).toBeNull();
+    window.localStorage.removeItem('user_info');
+    storage.save(bookKey, {...position, chapter: 3});
+    expect(storage.get(bookKey)?.chapter).toBe(3);
+  });
+
+  it('ignores a bookmark from the earlier record shape', () => {
+    localStorage.saveItem('reader_positions', {[`reader-1:${bookKey}`]: {...position, version: 1}});
+    expect(storage.get(bookKey)).toBeNull();
   });
 });

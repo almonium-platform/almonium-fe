@@ -38,6 +38,13 @@ export class DiscoverComponent implements OnInit {
   protected errorMessage = '';
   protected saveError = '';
   protected currentLanguage = LanguageCode.EN;
+  private preferredLanguage = LanguageCode.EN;
+  private sourceLanguage: LanguageCode | null = null;
+  protected sourceBook = '';
+  protected sourceBookTitle = '';
+  /** The chapter sequence, when known: "Back to book" then returns to that chapter's page. */
+  protected sourceChapter = '';
+  protected sourceChapterTitle = '';
   protected readonly diacritics = ['ä', 'ö', 'ü', 'ß', 'é', 'è', 'ç', 'ñ', 'ł'];
   protected readonly intentOptions: {value: LearningIntent; label: string; detail: string}[] = [
     {value: 'UNDERSTAND', label: $localize`Understand it`, detail: $localize`Recognise it while reading`},
@@ -63,11 +70,20 @@ export class DiscoverComponent implements OnInit {
 
   ngOnInit(): void {
     this.languageService.currentLanguage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(language => {
-      this.currentLanguage = language || LanguageCode.EN;
+      this.preferredLanguage = language || LanguageCode.EN;
+      this.currentLanguage = this.sourceLanguage ?? this.preferredLanguage;
     });
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.searchText = params.get('text') ?? '';
       this.context = params.get('context') ?? '';
+      const language = params.get('language')?.toUpperCase();
+      this.sourceLanguage = Object.values(LanguageCode).includes(language as LanguageCode) ? language as LanguageCode : null;
+      this.currentLanguage = this.sourceLanguage ?? this.preferredLanguage;
+      const book = params.get('book') ?? '';
+      this.sourceBook = /^[a-zA-Z0-9_-]{1,200}$/.test(book) ? book : '';
+      this.sourceBookTitle = (params.get('bookTitle') ?? this.sourceBook).slice(0, 200);
+      this.sourceChapterTitle = (params.get('chapterTitle') ?? params.get('chapter') ?? '').slice(0, 200);
+      this.sourceChapter = /^\d{1,4}$/.test(params.get('chapter') ?? '') ? params.get('chapter')! : '';
       if (this.searchText) this.submitSearch();
     });
   }

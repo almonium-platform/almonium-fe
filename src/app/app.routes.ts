@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {authGuard} from "./authentication/auth/guard/auth.guard";
 import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 import {adminGuard} from "./authentication/auth/guard/admin.guard";
+import {readerEntryGuard} from "./sections/read/reader/reader-entry.guard";
 
 export const routes: Routes = [
   {path: '', loadComponent: () => import('./sections/landing/landing.component').then(m => m.LandingComponent)},
@@ -24,7 +25,8 @@ export const routes: Routes = [
       {path: 'review', loadComponent: () => import('./sections/review/review.component').then(m => m.ReviewComponent)},
       {path: 'my-books/import', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
       {path: 'my-books/:id', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
-      {path: 'reader/private/:id', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
+      {path: 'reader/private/:id', canActivate: [readerEntryGuard], children: []},
+      {path: 'reader/private/:id/:sequence', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
       {path: 'social', loadComponent: () => import('./sections/social/social.component').then(m => m.SocialComponent)},
       {path: 'membership', loadComponent: () => import('./sections/membership/membership.component').then(m => m.MembershipComponent)},
       {
@@ -71,7 +73,9 @@ export const routes: Routes = [
   {path: 'discover', loadComponent: () => import('./sections/discover/discover.component').then(m => m.DiscoverComponent)},
   {path: 'read', loadComponent: () => import('./sections/read/read.component').then(m => m.ReadComponent)},
   {path: 'books/:slug', loadComponent: () => import('./sections/read/book/book.component').then(m => m.BookComponent)},
-  {path: 'reader/:slug', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
+  // One page per chapter (J): the public reader is the chapter page. `/reader/{slug}` is its front door.
+  {path: 'books/:slug/:sequence', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},
+  {path: 'reader/:slug', canActivate: [readerEntryGuard], children: []},
 
   // Test route
   {path: 'test', loadComponent: () => import('./test/test.component').then(m => m.TestComponent)},

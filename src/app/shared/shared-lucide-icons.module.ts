@@ -68,6 +68,7 @@ import {
   UserRoundX,
   UsersRound,
   VenetianMask,
+  WholeWord,
   X
 } from 'lucide-angular'
 
@@ -141,6 +142,7 @@ import {
       UserRoundX,
       UsersRound,
       VenetianMask,
+      WholeWord,
       X
     }),
   ],
