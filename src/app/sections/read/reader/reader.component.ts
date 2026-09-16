@@ -122,6 +122,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   // --- Parallel Text (Placeholder State) ---
   protected parallelVersions: BookLanguageVariant[] = [];
+  protected primaryEdition: BookLanguageVariant | undefined;
+  protected includeOtherEditionTranslations = true;
   protected isParallelViewActive = false; // Still needed to know *if* content has translations
   private currentlyOpenFluentSpan: HTMLElement | null = null;
 
@@ -207,6 +209,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.chapterNav = [];
     this.hasMeasuredChapters = false;
     this.parallelVersions = [];
+    this.primaryEdition = undefined;
+    this.includeOtherEditionTranslations = true;
     this.selectedLookupText = '';
     this.selectedLookupContext = '';
     this.wordCard = null;
@@ -234,6 +238,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.targetLangCode = book.language;
         this.bookTitle = book.title;
         this.bookLevel = book.cefrLevel;
+        this.primaryEdition = book.languageVariants.find(variant => variant.id === book.id);
         this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id);
         this.trackProgress = this.userInfoService.currentUserInfo !== null;
         this.startCountingReadingTime(book.language);
@@ -601,6 +606,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.targetLangCode = book.language; // <-- ADD THIS LINE
           logger.debug(`%c[Checkpoint 1A] Target Language set:`, 'color: green; font-weight: bold;', this.targetLangCode);
           this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
+          this.primaryEdition = book.languageVariants.find(t => t.id === bookId);
           if (!this.initialPosition) {
             this.initialScrollPercentage = book.progressPercentage ?? 0;
             logger.debug(`Stored server scroll fallback: ${this.initialScrollPercentage}%`);
@@ -1045,12 +1051,32 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   get availableEditions(): BookLanguageVariant[] {
-    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug);
+    return this.parallelVersions.filter(edition => edition.editionSlug !== this.companionSlug
+      && (this.includeOtherEditionTranslations || !this.isOtherEditionTranslation(edition)));
+  }
+
+  isOtherEditionTranslation(edition: BookLanguageVariant): boolean {
+    return this.primaryEdition?.editionType === 'adaptation'
+      && ['machine_translation', 'human_translation'].includes(edition.editionType ?? '')
+      && !!edition.sourceEditionSlug && edition.sourceEditionSlug !== this.primaryEdition.editionSlug;
+  }
+
+  get hasOtherEditionTranslations(): boolean {
+    return this.parallelVersions.some(edition => this.isOtherEditionTranslation(edition));
+  }
+
+  toggleOtherEditionTranslations(): void {
+    this.includeOtherEditionTranslations = !this.includeOtherEditionTranslations;
+    const selected = this.parallelVersions.find(edition => edition.editionSlug === this.companionSlug);
+    if (!this.includeOtherEditionTranslations && selected && this.isOtherEditionTranslation(selected)) {
+      this.selectOption(null);
+    }
   }
 
   editionLabel(edition: BookLanguageVariant): string {
     const kind = edition.editionType?.replaceAll('_', ' ') ?? 'edition';
-    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}`;
+    const origin = this.isOtherEditionTranslation(edition) ? ' · based on another edition, not this adaptation' : '';
+    return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}${origin}`;
   }
 
   get companionLabel(): string {

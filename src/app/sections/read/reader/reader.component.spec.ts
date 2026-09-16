@@ -136,6 +136,32 @@ describe('ReaderComponent', () => {
 });
 
 describe('sentenceAround', () => {
+  it('offers original-derived translations honestly and lets readers hide them', () => {
+    interface Variant {editionSlug: string; editionType: string; language?: string; sourceEditionSlug?: string}
+    const component = Object.create(ReaderComponent.prototype) as {
+      primaryEdition: Variant; parallelVersions: Variant[]; includeOtherEditionTranslations: boolean;
+      companionSlug: string | null; selectOption: jasmine.Spy;
+      hasOtherEditionTranslations: boolean; availableEditions: Variant[];
+      editionLabel(edition: Variant): string; toggleOtherEditionTranslations(): void;
+    };
+    component.primaryEdition = {editionSlug: 'b2', editionType: 'adaptation'};
+    const original = {editionSlug: 'original', editionType: 'original', language: 'EN'};
+    const inherited = {editionSlug: 'uk', editionType: 'machine_translation', sourceEditionSlug: 'original', language: 'UK'};
+    const direct = {editionSlug: 'b2-uk', editionType: 'machine_translation', sourceEditionSlug: 'b2', language: 'UK'};
+    component.parallelVersions = [original, inherited, direct];
+    component.includeOtherEditionTranslations = true;
+    component.companionSlug = 'uk';
+    component.selectOption = jasmine.createSpy();
+    expect(component.hasOtherEditionTranslations).toBeTrue();
+    expect(component.editionLabel(inherited)).toContain('not this adaptation');
+    component.toggleOtherEditionTranslations();
+    expect(component.availableEditions).toEqual([original, direct]);
+    expect(component.selectOption).toHaveBeenCalledWith(null);
+    component.toggleOtherEditionTranslations();
+    component.companionSlug = null;
+    expect(component.availableEditions).toEqual([original, inherited, direct]);
+  });
+
   it('cuts the paragraph to the sentence that holds the word', () => {
     const paragraph = 'It was late. The Publishers of the Standard Novels expressed a wish. I complied, gladly.';
     expect(sentenceAround(paragraph, 'Publishers')).toBe('The Publishers of the Standard Novels expressed a wish.');

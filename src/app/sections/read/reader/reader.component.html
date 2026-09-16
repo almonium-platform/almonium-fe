@@ -190,6 +190,14 @@
                 class="context-menu"
               >
                 <tui-opt-group label="Companion editions" i18n-label>
+                  @if (hasOtherEditionTranslations) {
+                    <button tuiOption type="button" role="switch" i18n
+                      [attr.aria-checked]="includeOtherEditionTranslations"
+                      (click)="toggleOtherEditionTranslations()">
+                      Include translations of other editions: {{ includeOtherEditionTranslations ? 'On' : 'Off' }}
+                    </button>
+                    <p i18n>These translations may use more literary wording than this adaptation.</p>
+                  }
                   @for (edition of availableEditions; track edition.editionSlug) {
                     <button
                       tuiOption
