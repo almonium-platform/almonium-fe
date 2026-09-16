@@ -17,9 +17,10 @@ of language. The companion may translate the original rather than the adaptation
 
 ## Check it
 
-The real paid Frankenstein preview is staff-only in the processor until editorial
-publication. It covers `c11.p2`, `c11.p13`, `c11.p20` in both adaptation/original
-and adaptation/Ukrainian pairs. Nothing was published for testing.
+The real Frankenstein B2 preview is staff-only until editorial publication.
+Both complete 815-block pairs now have offline sentence correspondences; the
+three-block paid pilot is historical, not the current coverage limit. Nothing
+was published for testing.
 
 The Angular browser integration test uses intercepted HTTP responses (no paid
 calls, no publication or authentication bypass in application code):
@@ -30,14 +31,14 @@ E2E_DIST=dist/almonium-fe/browser E2E_PORT=4201 node node_modules/@playwright/te
 ```
 
 Add `--headed` to watch it. The Node invocation works around this checkout's
-non-executable Playwright CLI shim. The ordinary production-config E2E server
-currently fails the unchanged `ops.component.less` size budget (16.81 kB versus
-16 kB); the development build and reader tests pass. Do not claim a production
-build or live frontend/backend deployment was verified here.
+non-executable Playwright CLI shim. As of 2026-09-16, full lint, 267 tests,
+production build and six browser pair/mode checks pass. Browser pair tests use
+intercepted fixtures; they do not prove publication of the real B2/UK editions.
+Screenshots, including the companion switch, are in `docs/evidence/reader-20260916`.
 
-Next: approve/publish an honest-level edition and test against the live backend;
-then typed chapter metadata/difficulty/vocabulary, eligible-pair discovery and
-clearer source/review labels; then chapter-wide sentence and clause highlighting.
+Next: the owner reviews fidelity and decides publication, then test those real
+editions against the live backend. Chapter metadata and full-book sentence
+highlights are implemented; vocabulary and clause highlighting remain future work.
 The existing backend HTML adapter is still used—this iteration does not pretend
 all processor artifacts already reach the app.
 # Chapter information (2026-09-15)
@@ -47,10 +48,17 @@ text. Existing chapter anchors join metadata by processor chapter sequence, not
 array index or translated title. The sidebar and chapter dropdown show estimated
 CEFR and spoiler-free descriptions. Missing/failed enrichment keeps normal text
 navigation. Edition-level editorial CEFR is unchanged. Private imports do not
-call the public enrichment endpoint. Mobile still needs this integration.
+call the public enrichment endpoint. Mobile now consumes this same enrichment
+optionally alongside local heading-based navigation.
 # Sentence interaction parity (2026-09-16)
 
 Marked sentence groups highlight in side-by-side, inline and overlay modes.
 Existing text selections take precedence over click highlighting/overlay toggling.
 The processor's full-book offline matcher now supplies genuine 1:N/N:1 groups;
 uncertain passages stay paragraph-aligned. No browser request runs an AI job.
+
+Adaptations include translations of other editions by default. The companion
+menu explicitly labels indirect translations and lets the reader hide them;
+hiding the active one returns to base reading. This is a product default for
+the owner to evaluate, not an editorial approval. Chapter and companion menus
+close each other rather than overlapping.
