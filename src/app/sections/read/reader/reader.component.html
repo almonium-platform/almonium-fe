@@ -34,11 +34,7 @@
     <div class="error-message">{{ errorMessage }}</div>
   }
   @if (parallelError) {
-    <p class="parallel-provenance parallel-provenance--error" role="alert">{{ parallelError }}</p>
-  }
-  @if (isParallelViewActive) {
-    <p class="parallel-provenance">{{ bookTitle }} · {{ bookLevel }} ↔ {{ companionLabel }}</p>
-    <p class="parallel-provenance" i18n>Companion wording may differ. Click or press Enter on a marked sentence to highlight its counterpart. Other passages remain paragraph-aligned.</p>
+    <p class="parallel-error" role="alert">{{ parallelError }}</p>
   }
 
   @if (!isLoading && !errorMessage && missingChapter) {
@@ -51,7 +47,7 @@
   @if (!isLoading && !errorMessage && !missingChapter) {
     <div #readerContentWrapper
          class="reader-content-wrapper"
-         [class.mode-side]="isParallelViewActive && currentParallelMode === 'side'"
+         [class.mode-side]="isParallelViewActive && effectiveMode === 'side'"
          [class.has-rail]="railView !== 'none'"
          (scroll)="onWrapperScroll($event)"
          (focus)="onContentHover($event)"
@@ -78,22 +74,34 @@
                 </p>
               }
             }
+            <!-- The pair line (L1): codes in mono, the companion in words, the mode as a link into the picker. -->
+            @if (isParallelViewActive) {
+              <p class="chapter-head__pair">
+                <span class="chapter-head__code">{{ primaryCode }}</span>&ngsp;
+                <span class="chapter-head__arrow" aria-hidden="true">↔</span>&ngsp;
+                <span class="chapter-head__code">{{ companionCode }}</span>&ngsp;
+                <span class="chapter-head__words"><span class="chapter-head__dot" aria-hidden="true">· </span>{{ companionWords }}</span>&ngsp;
+                <button type="button" class="chapter-head__mode" [attr.aria-expanded]="parallelSettingsOpen" (click)="toggleParallelSettings()">{{ modeLabel }}</button>
+              </p>
+            }
           </header>
 
           <div #readerContent
                tabindex="-1"
                class="reader-content"
-               [ngClass]="isParallelViewActive ? ('mode-' + currentParallelMode) : null"
+               [ngClass]="isParallelViewActive ? ('mode-' + effectiveMode) : null"
                [innerHTML]="bookHtmlContent | parallelFormat:{
-                  mode: isParallelViewActive ? currentParallelMode : null,
+                  mode: isParallelViewActive ? effectiveMode : null,
                   targetLang: targetLangCode,
                   fluentLang: fluentLangCode} | bookHtml"
                (click)="onContentClick($event)"
                (mouseup)="captureLookupSelection()"
                (touchend)="captureLookupSelection()"
                (mouseover)="onContentHover($event)"
+               (mouseleave)="clearLit()"
                (focus)="onContentHover($event)"
                (focusin)="onContentHover($event)"
+               (focusout)="clearLit()"
                (keydown.enter)="onContentClick($event)">
           </div>
 
@@ -150,8 +158,18 @@
       </aside>
     }
     @if (parallelSettingsOpen) {
-      <div #settingsPanel class="parallel-settings-panel">
-        <app-parallel-settings></app-parallel-settings>
+      <div #settingsPanel class="parallel-settings-panel" [class.parallel-settings-panel--sheet]="isPhone">
+        <app-parallel-settings
+          [sheet]="isPhone"
+          [companionOpen]="isParallelViewActive"
+          [sideAvailable]="sideAvailable"
+          [companionLine]="companionLine"
+          [editions]="companionRows"
+          [hasOtherEditionTranslations]="hasOtherEditionTranslations"
+          [includeOtherEditionTranslations]="includeOtherEditionTranslations"
+          (changeCompanion)="changeCompanion()"
+          (editionPicked)="selectOption($event); closeParallelSettings()"
+          (otherEditionsToggled)="toggleOtherEditionTranslations()"></app-parallel-settings>
       </div>
     }
     @if (selectedLookupText) {
@@ -233,6 +251,8 @@
               [tuiDropdown]="parallelLangMenu"
               [loading]="isLoadingParallel"
               [showHint]="false"
+              [code]="isParallelViewActive ? (companionEdition?.language ?? null) : null"
+              [expanded]="parallelSettingsOpen"
             >
             </app-parallel-translation>
             <ng-template #parallelLangMenu>
@@ -270,15 +290,6 @@
                       Read this edition alone
                     </button>
                   }
-                </tui-opt-group>
-                <tui-opt-group label="">
-                  <button i18n
-                    tuiOption
-                    type="button"
-                    (click)="openParallelSettings(); langDropdown.toggle(false)"
-                  >
-                    Settings
-                  </button>
                 </tui-opt-group>
               </tui-data-list>
             </ng-template>

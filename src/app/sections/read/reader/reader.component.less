@@ -119,9 +119,9 @@
   bottom: 4.6rem;
 }
 
-@media (max-width: 560px) {
-  .parallel-settings-panel { right: .5rem; left: .5rem; display: flex; justify-content: center; }
-}
+// On a phone the picker is a sheet from the bottom edge, over the bar (L7).
+.parallel-settings-panel--sheet { right: 0; bottom: 0; left: 0; z-index: 8; }
+.parallel-settings-panel--sheet app-parallel-settings { display: block; width: 100%; }
 
 // --- Loading & Error ---
 .loading-indicator,
@@ -174,9 +174,10 @@
   }
 }
 
+// Side by side (L2): the column widens to hold two columns of Literata at 18/1.7 with a 56px gutter.
 .reader-content-wrapper.mode-side .reader-reading-layout { width: 100%; }
-.reader-content-wrapper.mode-side .reader-reading-layout.has-contents { grid-template-columns: 13rem minmax(0, 1fr); }
-.reader-content-wrapper.mode-side .reader-column { width: 100%; }
+.reader-content-wrapper.mode-side .reader-reading-layout.has-contents { grid-template-columns: 13rem minmax(0, 72rem); width: min(calc(100% - 2rem), 88rem); }
+.reader-content-wrapper.mode-side .reader-column { width: min(100%, 72rem); }
 
 // --- The chapter header (J2) ---
 .chapter-head {
@@ -204,6 +205,39 @@
 .chapter-head__description span + span::before { content: ' '; }
 .chapter-head__description--lines span { display: block; }
 .chapter-head__description--lines span + span::before { content: none; }
+
+// The pair line (L1): it never wraps; at narrow widths the words drop and the codes stay.
+.chapter-head__pair {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin: .6rem 0 0;
+  color: var(--subhead-color);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+
+.chapter-head__code { font-family: var(--font-family-mono); font-size: .72rem; letter-spacing: .02em; }
+.chapter-head__arrow { color: var(--metadata-color); }
+.chapter-head__words { overflow: hidden; text-overflow: ellipsis; }
+.chapter-head__words .chapter-head__dot { color: var(--metadata-color); }
+
+.chapter-head__mode {
+  margin-left: auto;
+  padding: .2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: 500 .8rem/1.2 var(--font-family-ui);
+
+  &:hover { text-decoration: underline; }
+  &:focus-visible { border-radius: .25rem; outline: 2px solid var(--brand-margin); outline-offset: 2px; }
+}
+
+@media (max-width: 640px) {
+  .chapter-head__words { display: none; }
+}
 
 // --- The chapter end (J3) ---
 .chapter-end {
@@ -397,153 +431,91 @@
     }
   }
 
-  // --- OVERLAY MODE ---
-  &.mode-overlay {
-    ::ng-deep {
-      .seg-pair > .segment {
-        cursor: help;
-        transition: background-color 0.2s ease-out;
-        border-radius: 4px;
+  // --- The companion modes (design L) ---
+  // Alignment is invisible at rest. Sentence spans stay in the DOM for hit-testing and have no paint
+  // until the reader hovers a unit (the tint on both sides) or selects one (the tint and a plum rule).
+  // The rule is a border under the run, never an outline, so it breaks cleanly per line.
+  ::ng-deep {
+    .aligned-sentence, .sbs-segment, .companion-run, [data-pair] { cursor: pointer; }
+    .aligned-sentence:focus-visible, .sbs-segment:focus-visible, .segment:focus-visible, .companion-run:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: 1px; border-radius: 2px; }
 
-        &:hover {
-          text-decoration: underline;
-          text-decoration-color: var(--metadata-color);
-        }
-      }
-
-      .fluent-segment-overlay {
-        display: none;
-      }
-
-      .fluent-segment-overlay.is-visible {
-        display: block;
-        margin: .2rem 0 .45rem 1.5rem;
-
-        .segment {
-          color: var(--subhead-color);
-          background: transparent;
-          padding: 0;
-          font-size: .85em;
-          font-style: normal;
-        }
-      }
+    .is-lit, .is-aligned-current {
+      padding: 1px 0;
+      border-radius: 2px;
+      background: var(--parallel-tint);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
     }
+
+    .is-aligned-current { border-bottom: 2px solid var(--dark-raspberry); }
   }
 
-  &.mode-inline {
+  // On demand (L3): the companion stays hidden until one unit opens it under its paragraph.
+  &.mode-demand {
     ::ng-deep {
-      .fluent-segment-inline .segment {
-        color: var(--subhead-color);
-        background: transparent;
-        padding: 0;
-        font-size: .85em;
-        font-style: normal;
-        margin: 0 .25em;
-        display: inline;
+      .companion-source { display: none; }
 
-        &::before {
-          margin-right: 0.1em;
-        }
-
-        &::after {
-          margin-left: 0.1em;
-        }
-      }
-    }
-  }
-
-  // Side-by-side mode
-  &.mode-side {
-    max-width: none;
-    padding: 0;
-
-    ::ng-deep {
-      .chapter {
-        width: 100%;
-        box-sizing: border-box;
-        display: flow-root;
-      }
-
-      .sbs-block-container {
+      .companion-block {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px;
-        align-items: start;
-        width: 100%;
-        box-sizing: border-box;
-        margin-bottom: 1em;
+        grid-template-rows: 0fr;
+        margin: -.35em 0 .8em;
+        transition: grid-template-rows 160ms ease;
+
+        &.is-open { grid-template-rows: 1fr; }
+        > * { min-height: 0; overflow: hidden; }
       }
 
-      .sbs-column p,
-      .sbs-column h2 {
-        margin-bottom: 0;
-      }
-
-      .sbs-column {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        min-height: 1em;
-        min-width: 0;
-        box-sizing: border-box;
-        padding: 0;
-      }
-
-      .sbs-column-main {
-        grid-column: 1;
-      }
-
-      .sbs-column-secondary {
-        grid-column: 2;
-      }
-
-      .sbs-original-h2 .sbs-column {
-        text-align: center;
-      }
-
-      .sbs-segment {
-        display: inline;
-        margin-right: 0.2em;
-        line-height: inherit;
-        border-radius: 2px;
-        padding: 1px 2px;
-        transition: background-color .12s ease;
-      }
-
-      .sbs-segment.is-current, .sbs-segment:focus-visible {
-        background-color: var(--hairline-color);
-        outline: 1px solid var(--metadata-color);
-      }
-
-      p, h2, div.poem {
-        margin-bottom: 1em;
-      }
-
-      h2 .sbs-block-container {
-        text-align: center;
-
-        .sbs-column {
-          text-align: center;
-        }
-      }
-
-      .seg-pair > span.segment {
-        display: none !important;
+      .companion-block__text {
+        margin: 0;
+        padding-left: 1.125rem;
+        border-left: 2px solid var(--hairline-on-ground);
+        color: var(--subhead-color);
+        font-size: 16px;
+        line-height: 1.6;
+        text-indent: 0;
       }
     }
+  }
 
-    @media (max-width: 650px) {
-      padding: 0 5px;
-      font-size: 14px;
-      line-height: 1.4;
+  // Inline (L4): each sentence group is followed by its companion, three steps down in size and two
+  // in ink, in the same flow; the line opens a touch to hold the mixed sizes.
+  &.mode-inline {
+    line-height: 1.75;
 
-      ::ng-deep {
-        .sbs-block-container {
-          gap: 10px;
-        }
+    ::ng-deep {
+      .companion-run { color: var(--companion-ink); font-size: 16px; }
+      .companion-paragraph { color: var(--companion-ink); font-size: 16px; text-indent: 0; }
+      // The pair is already adjacent, so the selection needs no rule here.
+      .is-aligned-current { border-bottom: 0; }
+    }
+  }
+
+  // Side by side (L2): one grid per chapter, a row per paragraph pair, the taller cell setting the
+  // row. No column backgrounds, no borders, no height sync.
+  &.mode-side {
+    font-size: 18px;
+    line-height: 1.7;
+
+    ::ng-deep {
+      .sbs-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 3.5rem;
+        row-gap: 0;
+        align-items: start;
       }
+
+      .sbs-span { grid-column: 1 / -1; }
+      .sbs-cell { min-width: 0; overflow-wrap: break-word; }
+      .sbs-cell--companion { text-indent: 0; }
+      p.sbs-cell { text-indent: 0; }
+      h3.sbs-cell { text-align: left; }
     }
   }
 }
+
+// The companion that could not be loaded is said above the text, which stays readable.
+.parallel-error { margin: 0; padding: .25rem 1rem; color: var(--error-color); font-family: var(--font-family-ui); font-size: .85rem; }
 
 // --- The bottom bar (J4): a white pill floating over the cream ground ---
 .pagination-controls {
@@ -630,8 +602,4 @@
   .pagination-center-area { gap: .5rem; }
 }
 
-.parallel-provenance { padding: .25rem 1rem; margin: 0; font-size: .85rem; color: var(--text-color); }
-.parallel-provenance--error { color: var(--error-color); font-family: var(--font-family-ui); }
-:host ::ng-deep .aligned-sentence { cursor: pointer; border-radius: .15em; }
-:host ::ng-deep .aligned-sentence:focus-visible { outline: 2px solid var(--brand-margin); }
-:host ::ng-deep .aligned-sentence.is-aligned-current { background: #e4bf6260; box-shadow: 0 2px 0 #bd922d; }
+

@@ -3,7 +3,7 @@ import {Injectable} from '@angular/core';
 import {LanguageCode} from "../models/language.enum";
 import {AuthMethod} from "../authentication/auth/auth.types";
 import {Language} from "../models/language.model";
-import {DEFAULT_PARALLEL_MODE, ParallelMode} from "../sections/read/parallel-mode.type";
+import {DEFAULT_PARALLEL_MODE, ParallelMode, isParallelMode} from "../sections/read/parallel-mode.type";
 import {UserInfo, UserInfoData} from "../models/userinfo.model";
 
 const PARALLEL_MODE_KEY = 'parallel_mode';
@@ -167,10 +167,7 @@ export class LocalStorageService {
 
   getParallelMode(): ParallelMode {
     const storedMode = this.getItem<string>(PARALLEL_MODE_KEY);
-    if (storedMode === 'side' || storedMode === 'overlay' || storedMode === 'inline') {
-      return storedMode;
-    }
-    return DEFAULT_PARALLEL_MODE;
+    return isParallelMode(storedMode) ? storedMode : DEFAULT_PARALLEL_MODE;
   }
 
   clearParallelMode(): void {

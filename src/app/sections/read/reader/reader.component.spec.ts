@@ -52,7 +52,7 @@ describe('ReaderComponent', () => {
           },
         },
         {provide: CardService, useValue: {getCardsInLanguage: () => of([])}},
-        {provide: ParallelModeService, useValue: {mode$: new BehaviorSubject('inline')}},
+        {provide: ParallelModeService, useValue: {mode$: new BehaviorSubject('inline'), setMode: () => undefined}},
         {provide: PopupTemplateStateService, useValue: {open: () => undefined}},
         {provide: UserInfoService, useValue: {currentUserInfo: null}},
       ],
@@ -141,32 +141,65 @@ describe('ReaderComponent', () => {
     expect(host.querySelector('.reader-rail app-chapter-vocabulary')).toBeNull();
   });
 
-  it('highlights all sentences in the selected many-to-many group on click', () => {
+  it('selects every sentence of the group on click, on both sides, and clears on a second click or Esc', () => {
     fixture.detectChanges();
     const component = fixture.componentInstance as unknown as {
       currentParallelMode: string; isParallelViewActive: boolean;
-      readerContentRef: {nativeElement: HTMLElement}; onContentClick(event: Event): void;
+      readerContentRef: {nativeElement: HTMLElement}; onContentClick(event: Event): void; handleKeyboardEvent(event: KeyboardEvent): void; isLoading: boolean;
     };
+    component.isLoading = false;
     const content = document.createElement('div');
-    content.innerHTML = '<span data-alignment="11-2-0">One.</span><span data-alignment="11-2-0">Two.</span><span data-alignment="11-2-0">Both.</span><span data-alignment="11-2-1">Other.</span>';
+    content.className = 'reader-content';
+    content.innerHTML = '<p><span data-alignment="11-2-0">One.</span><span data-alignment="11-2-0">Two.</span> Plain. <span data-alignment="11-2-1">Other.</span></p>'
+      + '<p><span class="companion-source"><span class="segment"><span data-alignment="11-2-0">Both.</span></span></span></p>';
     component.readerContentRef = {nativeElement: content};
     component.isParallelViewActive = true;
     content.addEventListener('click', event => component.onContentClick(event));
-    for (const mode of ['side', 'inline', 'overlay']) {
+    for (const mode of ['side', 'inline', 'demand']) {
       component.currentParallelMode = mode;
-      (content.firstElementChild as HTMLElement).click();
+      (content.firstElementChild!.firstElementChild as HTMLElement).click();
       expect(content.querySelectorAll('.is-aligned-current').length).withContext(mode).toBe(3);
-      expect(content.lastElementChild?.classList.contains('is-aligned-current')).toBeFalse();
+      expect(content.querySelector('[data-alignment="11-2-1"]')?.classList.contains('is-aligned-current')).toBeFalse();
+      (content.firstElementChild!.firstElementChild as HTMLElement).click();
+      expect(content.querySelectorAll('.is-aligned-current').length).withContext(`${mode} again`).toBe(0);
     }
+    (content.firstElementChild!.firstElementChild as HTMLElement).click();
+    expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
+    component.handleKeyboardEvent(new KeyboardEvent('keydown', {key: 'Escape'}));
+    expect(content.querySelectorAll('.is-aligned-current').length).toBe(0);
     const selection = window.getSelection()!;
     const range = document.createRange();
     document.body.appendChild(content);
-    range.selectNodeContents(content.lastElementChild!);
+    (content.firstElementChild!.firstElementChild as HTMLElement).click();
+    range.selectNodeContents(content.querySelector('[data-alignment="11-2-1"]')!);
     selection.addRange(range);
-    (content.lastElementChild as HTMLElement).click();
+    content.querySelector<HTMLElement>('[data-alignment="11-2-1"]')!.click();
     expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
     selection.removeAllRanges();
     content.remove();
+  });
+
+  it('opens one companion block under the paragraph in on-demand mode and closes it with the selection', () => {
+    fixture.detectChanges();
+    const component = fixture.componentInstance as unknown as {
+      currentParallelMode: string; isParallelViewActive: boolean;
+      readerContentRef: {nativeElement: HTMLElement}; onContentClick(event: Event): void; clearSelection(): boolean;
+    };
+    const content = document.createElement('div');
+    content.innerHTML = '<p><span class="segment" data-pair="0"><span data-alignment="11-2-0">One.</span> <span data-alignment="11-2-1">Two.</span></span>'
+      + '<span class="companion-source"><span class="segment" lang="uk"><span data-alignment="11-2-0">Раз.</span> <span data-alignment="11-2-1">Два.</span></span></span></p>';
+    component.readerContentRef = {nativeElement: content};
+    component.isParallelViewActive = true;
+    component.currentParallelMode = 'demand';
+    content.addEventListener('click', event => component.onContentClick(event));
+    content.querySelector<HTMLElement>('[data-alignment="11-2-0"]')!.click();
+    expect(content.querySelector('p + .companion-block')?.textContent).toBe('Раз.');
+    content.querySelector<HTMLElement>('[data-alignment="11-2-1"]')!.click();
+    expect(content.querySelectorAll('.companion-block').length).toBe(1);
+    expect(content.querySelector('.companion-block')?.textContent).toBe('Два.');
+    expect(component.clearSelection()).toBeTrue();
+    expect(content.querySelector('.companion-block')).toBeNull();
+    expect(component.clearSelection()).toBeFalse();
   });
 });
 

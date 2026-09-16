@@ -30,7 +30,7 @@ test('lists a full book in the contents rail, one line per chapter, describing o
   await page.screenshot({path: testInfo.outputPath('chapter-navigation.png'), fullPage: true, animations: 'disabled'});
 });
 
-for (const mode of ['side', 'inline', 'overlay']) {
+for (const mode of ['side', 'inline', 'demand']) {
 for (const language of ['EN', 'UK']) {
 test(`selects a ${language} companion and highlights sentence groups in ${mode} mode`, async ({page}, testInfo) => {
   await page.addInitScript(value => localStorage.setItem('parallel_mode', JSON.stringify(value)), mode);
@@ -59,34 +59,94 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
       await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
     }
   });
+  await page.setViewportSize({width: 1280, height: 900});
   await page.goto('/reader/frankenstein-b2?parallel=frankenstein-original');
-  const primaryPane = mode === 'side' ? page.locator('.sbs-column-main').last() : page.locator('.reader-content span.segment[data-side="primary"]');
-  const companionPane = mode === 'side' ? page.locator('.sbs-column-secondary').last() : page.locator('.reader-content span.segment[data-side="secondary"]');
+  const primaryPane = mode === 'side' ? page.locator('.sbs-cell--primary').last() : page.locator('.reader-content span.segment[data-side="primary"]');
+  const companionPane = mode === 'side' ? page.locator('.sbs-cell--companion').last()
+    : mode === 'inline' ? page.locator('.reader-content .companion-run') : page.locator('.reader-content .companion-source');
   await expect(primaryPane).toContainText('The rain fell.');
   await expect(companionPane).toContainText(companionText);
+  if (mode === 'demand') await expect(companionPane).toBeHidden();
   expect(requestedPair).toBeTruthy();
+  // Nothing is painted at rest; the group lights on hover on both sides, and the selection adds the rule.
+  await expect(page.locator('.is-lit')).toHaveCount(0);
+  await primaryPane.locator('.aligned-sentence').first().hover();
+  await expect(page.locator('.is-lit')).toHaveCount(3);
   await primaryPane.locator('.aligned-sentence').first().click();
   await expect(page.locator('.is-aligned-current')).toHaveCount(3);
-  await companionPane.locator('.aligned-sentence').focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.is-aligned-current')).toHaveCount(3);
-  await expect(page.locator('.parallel-provenance').first()).toContainText(`C1 · ${language === 'EN' ? 'original' : 'machine translation'}`);
-  if (language === 'UK') {
-    await expect(page.locator('.parallel-provenance').first()).toContainText('not this adaptation');
+  if (mode === 'demand') {
+    await expect(page.locator('.companion-block')).toHaveText(companionText);
   }
-  await page.screenshot({path: testInfo.outputPath(`parallel-${language}-${mode}.png`), fullPage: true});
+  if (mode !== 'demand') {
+    await (mode === 'inline' ? companionPane.first() : companionPane.locator('[data-alignment]').first()).focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.is-aligned-current')).toHaveCount(0);
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.is-aligned-current')).toHaveCount(3);
+  }
+  await page.screenshot({path: testInfo.outputPath(`parallel-${language}-${mode}.png`), fullPage: true, animations: 'disabled'});
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.is-aligned-current')).toHaveCount(0);
+  await expect(page.locator('.companion-block')).toHaveCount(0);
+  const pair = page.locator('.chapter-head__pair');
+  await expect(pair).toContainText(`EN B2 ↔ ${language} C1`);
+  await expect(pair).toContainText(language === 'EN' ? 'English, original' : 'Ukrainian, translation of the original');
+  await expect(pair.locator('.chapter-head__mode')).toHaveText({side: 'Side by side', inline: 'Inline', demand: 'On demand'}[mode]!);
   await expect(page.locator('.chapter-head__place')).toContainText('Chapter 1 of 1 · Estimated B2');
   await expect(page.locator('.chapter-head__description')).toContainText('A scientist faces an unexpected result.');
   if (language === 'UK') {
+    // The bar's companion button opens the picker (L5); Change leads on to the companion menu.
     await page.locator('app-parallel-translation').click();
+    const picker = page.getByRole('group', {name: 'Companion and reading mode'});
+    await expect(picker.getByRole('radio', {checked: true})).toHaveText(new RegExp({side: 'Side by side', inline: 'Inline', demand: 'On demand'}[mode]!));
+    await expect(picker).toContainText('Companion: Ukrainian C1, translation of the original');
+    await page.screenshot({path: testInfo.outputPath(`picker-${mode}.png`), fullPage: true, animations: 'disabled'});
+    await picker.getByRole('button', {name: 'Change'}).click();
     const toggle = page.getByRole('switch', {name: 'Include translations of other editions:'});
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
     await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-on.png`), fullPage: true, animations: 'disabled'});
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-checked', 'false');
-    await expect(page.locator('.parallel-provenance')).toHaveCount(0);
+    await expect(page.locator('.chapter-head__pair')).toHaveCount(0);
     await page.screenshot({path: testInfo.outputPath(`companion-switch-${mode}-off.png`), fullPage: true, animations: 'disabled'});
   }
 });
 }
 }
+
+test('falls back to On demand below 1100px and offers the merged sheet on a phone', async ({page}, testInfo) => {
+  await page.addInitScript(() => localStorage.setItem('parallel_mode', JSON.stringify('side')));
+  const primary = {id: '01989f47-4c2a-7a10-9e5b-751983624a25', editionSlug: 'frankenstein-b2', language: 'EN', editionType: 'adaptation', cefrLevel: 'B2'};
+  const companion = {id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-uk', language: 'UK', editionType: 'machine_translation', cefrLevel: 'C1', sourceEditionSlug: 'frankenstein-b2'};
+  const metadata = {...primary, workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: true, languageVariants: [primary, companion]};
+  const pairHtml = '<section class="chapter"><h2 id="chapter-11" class="chapter-title">Chapter V</h2><p><span class="seg-pair"><span class="segment" data-side="primary" lang="en"><span class="aligned-sentence" role="button" tabindex="0" data-alignment="11-2-0">The rain fell.</span></span><span class="segment" data-side="secondary" lang="uk"><span class="aligned-sentence" role="button" tabindex="0" data-alignment="11-2-0">Дощ падав.</span></span></span></p></section>';
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/parallel-edition/frankenstein-uk')) await route.fulfill({contentType: 'text/html', body: pairHtml});
+    else if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: []});
+    else if (path.endsWith('/frankenstein-b2/text')) await route.fulfill({contentType: 'text/html', body: '<section class="chapter"><h2 class="chapter-title" id="chapter-11">V</h2><p>Base text</p></section>'});
+    else if (path.endsWith('/frankenstein-b2')) await route.fulfill({json: metadata});
+    else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
+  });
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/reader/frankenstein-b2?parallel=frankenstein-uk');
+  await expect(page.locator('.reader-content')).toHaveClass(/mode-demand/);
+  await expect(page.locator('.chapter-head__mode')).toHaveText('On demand');
+  await expect(page.locator('.chapter-head__words')).toBeHidden();
+  await page.locator('.aligned-sentence').first().click();
+  await expect(page.locator('.companion-block')).toHaveText('Дощ падав.');
+  await page.screenshot({path: testInfo.outputPath('phone-demand-open.png'), fullPage: true, animations: 'disabled'});
+  await page.locator('app-parallel-translation').click();
+  const sheet = page.getByRole('group', {name: 'Companion and reading mode'});
+  await expect(sheet.getByRole('radio')).toHaveCount(2);
+  await expect(sheet.getByRole('radio', {checked: true})).toHaveText(/On demand/);
+  await expect(sheet.getByRole('button', {name: /Ukrainian · C1/})).toHaveAttribute('aria-pressed', 'true');
+  await expect(sheet.getByRole('button', {name: 'Read without a companion'})).toBeVisible();
+  await page.screenshot({path: testInfo.outputPath('phone-sheet.png'), fullPage: true, animations: 'disabled'});
+  await sheet.getByRole('radio', {name: /Inline/}).click();
+  await expect(page.locator('.reader-content')).toHaveClass(/mode-inline/);
+  await expect(page.locator('.companion-run')).toHaveText('Дощ падав.');
+  await sheet.getByRole('button', {name: 'Read without a companion'}).click();
+  await expect(page.locator('.chapter-head__pair')).toHaveCount(0);
+  await expect(page.locator('.reader-content')).toContainText('Base text');
+});

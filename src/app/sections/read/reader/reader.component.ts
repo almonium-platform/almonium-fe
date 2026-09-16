@@ -17,7 +17,9 @@ import {ParallelFormatPipe} from "./parallel-format.pipe";
 import {LoadingIndicatorComponent} from "../../../shared/loading-indicator/loading-indicator.component";
 import {ParallelTranslationComponent} from "../parallel-translation/parallel-translation.component";
 import {ParallelSettingsComponent} from "../../../parallel-settings/parallel-settings.component";
-import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../parallel-mode.type';
+import {DEFAULT_PARALLEL_MODE, ParallelMode, SIDE_BY_SIDE_MIN_WIDTH, parallelModeLabel} from '../parallel-mode.type';
+import {CompanionRow} from '../../../parallel-settings/parallel-settings.component';
+import {isReducedMotion} from '../../../services/motion-preference';
 import {ParallelModeService} from "../parallel-mode.service";
 import {TuiDataList, TuiOptGroup, TuiSliderComponent} from "@taiga-ui/core/components";
 import {TuiDropdownDirective} from "@taiga-ui/core/portals";
@@ -41,6 +43,8 @@ import {ChapterPage, bookPercentage, placeForPercentage, splitBookChapters} from
 
 /** Below this width the contents list is a sheet over the text rather than a rail beside it. */
 const CONTENTS_RAIL_MIN_WIDTH = 1281;
+/** Below this width the mode picker and the companion menu are one sheet (L7). */
+const PHONE_MAX_WIDTH = 600;
 
 /** What the right rail shows: nothing, the chapter's words, or one word's card. */
 type RailView = 'none' | 'words' | 'card';
@@ -170,7 +174,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected primaryEdition: BookLanguageVariant | undefined;
   protected includeOtherEditionTranslations = true;
   protected isParallelViewActive = false;
-  private currentlyOpenFluentSpan: HTMLElement | null = null;
+  /** Two columns need the window (L2); below it Side by side reads as On demand until it widens. */
+  protected sideAvailable = window.innerWidth >= SIDE_BY_SIDE_MIN_WIDTH;
 
   protected isAtScrollTop = true;
   protected isAtScrollBottom = false;
@@ -191,14 +196,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   /** The current chapter's vocabulary status; `unavailable` removes the Words toggle from the bar. */
   private vocabularyStatus: string | null = null;
   private vocabularyStatusSubscription: Subscription | null = null;
-  /** The settings panel (G5) lives in the bottom bar, where its effect is visible behind it. */
+  /** The mode picker (L5) floats above the bottom bar, where its effect is visible behind it. */
   protected parallelSettingsOpen = false;
   protected selectedLookupText = '';
   private selectedLookupContext = '';
   /** A word named in the URL (the auth sheet returning to it) opens its card once the book is known. */
   private pendingWord: WordCardRequest | null = null;
-
-  private isSyncingHeights = false;
 
   // --- Where to open ---
   /** The place kept on this device, applied once to the chapter it names. */
@@ -213,12 +216,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private isDestroyed = false;
   private baseLoadSubscription: Subscription | null = null;
   private bookDetailsSubscription: Subscription | null = null;
-  private heightSyncTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private companionNavigationDropdown: TuiDropdownDirective | null = null;
   private structuredData: HTMLScriptElement | null = null;
-
-  private needsHeightSync = false;
 
   // --- Lifecycle Hooks ---
 
@@ -231,17 +231,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.parallelModeService.mode$
       .pipe(takeUntil(this.destroy$))
       .subscribe(mode => {
-        const previousMode = this.currentParallelMode;
-        if (previousMode !== mode) {
+        if (this.currentParallelMode !== mode) {
           logger.debug('Reader received new parallel mode:', mode);
           if (this.isParallelViewActive && this.fluentLangCode) this.updateScrollState();
           this.currentParallelMode = mode;
           this.cdRef.markForCheck();
-          if (mode === 'side') this.scheduleHeightSync();
-          if (mode !== 'overlay' && this.currentlyOpenFluentSpan) {
-            this.currentlyOpenFluentSpan.hidden = true;
-            this.currentlyOpenFluentSpan = null;
-          }
         }
       });
 
@@ -485,9 +479,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.errorMessage = null;
     const page = this.isParallelViewActive ? this.companionChapters.get(this.currentKey) : null;
     this.bookHtmlContent = page?.html ?? this.chapters[this.currentIndex].html;
-    this.currentlyOpenFluentSpan = null;
     this.initialScrollApplied = false;
-    if (this.currentParallelMode === 'side') this.needsHeightSync = true;
     this.watchVocabularyStatus();
     this.describePage();
     this.tryResumeFromServer();
@@ -618,39 +610,43 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     void this.router.navigate(['/auth'], {fragment: 'sign-up'});
   }
 
-  private scheduleHeightSync(): void {
-    if (this.currentParallelMode !== 'side' || !this.readerContentRef) return;
-    if (this.heightSyncTimeoutId !== null) clearTimeout(this.heightSyncTimeoutId);
-    this.heightSyncTimeoutId = setTimeout(() => {
-      this.heightSyncTimeoutId = null;
-      this.synchronizeColumnHeights();
-    }, 10);
+  /** The mode the text is laid out in: the chosen one, unless Side by side lacks the window for it. */
+  protected get effectiveMode(): ParallelMode {
+    return this.currentParallelMode === 'side' && !this.sideAvailable ? 'demand' : this.currentParallelMode;
   }
 
-  private synchronizeColumnHeights(): void {
-    if (this.isSyncingHeights || this.currentParallelMode !== 'side' || !this.readerContentRef?.nativeElement) return;
-    this.isSyncingHeights = true;
-    const changesMade = this.readerDom.synchronizeParallelColumns(this.readerContentRef.nativeElement);
-    this.isSyncingHeights = false;
-    if (changesMade) {
-      this.updateScrollState();
-      this.cdRef.markForCheck();
-    }
+  /** Below the phone width the picker and the companion menu are one sheet (L7). */
+  protected get isPhone(): boolean {
+    return window.innerWidth < PHONE_MAX_WIDTH;
   }
 
+  /**
+   * A click or Enter on a sentence group selects it on both sides (L2); in on-demand mode it also
+   * opens the group's companion under the paragraph (L3). The same unit again, or plain text, clears.
+   */
   protected onContentClick(event: Event): void {
-    if (!this.isParallelViewActive || window.getSelection()?.toString().trim()) return;
-    if (this.readerContentRef?.nativeElement) {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-alignment]') : null;
-      const content = this.readerContentRef.nativeElement;
-      content.querySelectorAll('.is-aligned-current').forEach(item => item.classList.remove('is-aligned-current'));
-      const key = target?.dataset['alignment'];
-      if (key && /^\d+-\d+-\d+$/.test(key)) {
-        content.querySelectorAll(`[data-alignment="${key}"]`).forEach(item => item.classList.add('is-aligned-current'));
-      }
+    const content = this.readerContentRef?.nativeElement;
+    if (!this.isParallelViewActive || !content || window.getSelection()?.toString().trim()) return;
+    const unit = this.readerDom.unitAt(content, event.target);
+    const alreadySelected = unit.length > 0 && unit.every(element => element.classList.contains('is-aligned-current'));
+    if (unit.length === 0 || alreadySelected) {
+      this.clearSelection();
+      return;
     }
-    if (this.currentParallelMode !== 'overlay' || !this.isParallelViewActive) return;
-    this.readerDom.toggleOverlayTranslation(this.readerContentRef.nativeElement, event.target);
+    this.readerDom.mark(content, unit, 'is-aligned-current');
+    if (this.effectiveMode === 'demand') {
+      this.readerDom.openCompanionFor(content, unit, !isReducedMotion(this.document.documentElement));
+    }
+  }
+
+  /** Clears the selected unit and closes the companion block it opened. */
+  protected clearSelection(): boolean {
+    const content = this.readerContentRef?.nativeElement;
+    if (!content) return false;
+    const hadSelection = content.querySelector('.is-aligned-current, .companion-block') !== null;
+    this.readerDom.mark(content, [], 'is-aligned-current');
+    this.readerDom.closeCompanionBlock(content);
+    return hadSelection;
   }
 
   protected captureLookupSelection(): void {
@@ -717,16 +713,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   ngAfterViewInit(): void {
-    if (this.currentParallelMode === 'side') this.scheduleHeightSync();
     this.updateScrollState();
     this.cdRef.markForCheck();
   }
 
   ngAfterViewChecked(): void {
-    if (this.needsHeightSync && this.currentParallelMode === 'side') {
-      this.synchronizeColumnHeights();
-      this.needsHeightSync = false;
-    }
     this.attemptInitialScroll();
   }
 
@@ -762,7 +753,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (isBase) this.baseBookHtmlContent = '';
     this.bookHtmlContent = '';
     this.cdRef.markForCheck();
-    this.needsHeightSync = false;
 
     const stream$ = isBase
       ? this.privateBookId
@@ -801,7 +791,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   private get presentation(): string {
-    return this.isParallelViewActive ? `parallel:${this.companionSlug}:${this.currentParallelMode}` : 'base';
+    return this.isParallelViewActive ? `parallel:${this.companionSlug}:${this.effectiveMode}` : 'base';
   }
 
   /** Opens the chapter at its kept place, once its text has laid out. */
@@ -832,7 +822,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (!this.isParallelViewActive && this.fluentLangCode === null && this.companionChapters.size === 0) return;
     this.isParallelViewActive = false;
     this.companionChapters.clear();
-    this.currentlyOpenFluentSpan = null;
     this.fluentLangCode = null;
     this.companionSlug = null;
     this.isLoadingParallel = false;
@@ -872,7 +861,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       debounceTime(this.RESIZE_DEBOUNCE_TIME),
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      if (this.currentParallelMode === 'side') this.scheduleHeightSync();
+      this.sideAvailable = window.innerWidth >= SIDE_BY_SIDE_MIN_WIDTH;
       this.updateScrollState();
       this.cdRef.markForCheck();
     });
@@ -1084,7 +1073,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         handled = true;
         break;
       case 'Escape':
-        if (this.railView !== 'none') {
+        if (this.parallelSettingsOpen) {
+          this.closeParallelSettings();
+          handled = true;
+        } else if (this.clearSelection()) {
+          handled = true;
+        } else if (this.railView !== 'none') {
           this.closeRail();
           handled = true;
         } else if (this.contentsOpen && this.isNarrow) {
@@ -1110,25 +1104,31 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     else this.prevPage();
   }
 
+  /** The unit under the pointer or focus lights on both sides at once (L); leaving the text clears it. */
   protected onContentHover(event: Event): void {
     const content = this.readerContentRef?.nativeElement;
-    if (!content || this.currentParallelMode !== 'side') return;
-    const segment = event.target instanceof Element ? event.target.closest<HTMLElement>('.sbs-segment') : null;
-    content.querySelectorAll('.sbs-segment.is-current').forEach(item => item.classList.remove('is-current'));
-    const pair = segment?.dataset['pair'];
-    if (!pair || !/^\d+$/.test(pair)) return;
-    content.querySelectorAll<HTMLElement>(`.sbs-segment[data-pair="${pair}"]`).forEach(item => item.classList.add('is-current'));
+    if (!content || !this.isParallelViewActive) return;
+    this.readerDom.mark(content, this.readerDom.unitAt(content, event.target), 'is-lit');
+  }
+
+  protected clearLit(): void {
+    const content = this.readerContentRef?.nativeElement;
+    if (content) this.readerDom.mark(content, [], 'is-lit');
   }
 
   @HostListener('document:click', ['$event'])
   protected closeOverlays(event: MouseEvent): void {
     const target = event.target;
     if (!(target instanceof Node)) return;
-    // The settings panel closes on any click outside it; the menu item that opened it is inside a dropdown list.
+    // The picker closes on any click outside it and outside what opens it.
     if (this.parallelSettingsOpen
       && !this.settingsPanel?.nativeElement.contains(target)
-      && !(target instanceof Element && target.closest('tui-data-list'))) {
+      && !(target instanceof Element && target.closest('.chapter-head__mode, app-parallel-translation, tui-data-list'))) {
       this.closeParallelSettings();
+    }
+    // A click away from the text clears the selected sentence group (L).
+    if (target instanceof Element && !target.closest('.reader-content, .parallel-settings-panel, tui-data-list, .pagination-controls')) {
+      this.clearSelection();
     }
     // The contents sheet on a narrow screen closes like a menu.
     if (this.contentsOpen && this.isNarrow
@@ -1139,12 +1139,85 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
+  /**
+   * The bar's companion button: on a phone, or with a companion open, it is the picker (L5, L7),
+   * which also lists the editions on a phone; otherwise the companion menu.
+   */
   protected openCompanionMenu(dropdown: TuiDropdownDirective): void {
     if (this.isNarrow) this.contentsOpen = false;
-    this.closeParallelSettings();
     this.companionNavigationDropdown = dropdown;
+    if (this.isPhone || this.isParallelViewActive) {
+      dropdown.toggle(false);
+      this.toggleParallelSettings();
+      return;
+    }
+    this.closeParallelSettings();
     dropdown.toggle(true);
     this.cdRef.markForCheck();
+  }
+
+  /** The picker's Change link: the companion menu in place of the picker. */
+  protected changeCompanion(): void {
+    this.closeParallelSettings();
+    this.companionNavigationDropdown?.toggle(true);
+    this.cdRef.markForCheck();
+  }
+
+  /** The companion edition now open, if any. */
+  protected get companionEdition(): BookLanguageVariant | undefined {
+    return this.parallelVersions.find(item => item.editionSlug === this.companionSlug);
+  }
+
+  /** The header's pair line (L1): codes in mono, then the companion's language and kind in words. */
+  protected get primaryCode(): string {
+    return [this.targetLangCode, this.bookLevel].filter(Boolean).join(' ');
+  }
+
+  protected get companionCode(): string {
+    const edition = this.companionEdition;
+    return edition ? [edition.language, edition.cefrLevel].filter(Boolean).join(' ') : '';
+  }
+
+  protected get companionWords(): string {
+    const edition = this.companionEdition;
+    return edition ? `${this.languageNames.getLanguageName(edition.language)}, ${this.editionKind(edition)}` : '';
+  }
+
+  /** The picker's companion line (L5): language and level, then the kind. */
+  protected get companionLine(): string {
+    const edition = this.companionEdition;
+    if (!edition) return '';
+    const name = [this.languageNames.getLanguageName(edition.language), edition.cefrLevel].filter(Boolean).join(' ');
+    return $localize`Companion: ${name}:companion:, ${this.editionKind(edition)}:kind:`;
+  }
+
+  protected get modeLabel(): string {
+    return parallelModeLabel(this.effectiveMode);
+  }
+
+  /** The edition's kind in words; an indirect translation says what it translates. */
+  protected editionKind(edition: BookLanguageVariant): string {
+    if (this.isOtherEditionTranslation(edition)) return $localize`translation of the original`;
+    switch (edition.editionType) {
+      case 'machine_translation': return $localize`machine translation`;
+      case 'human_translation': return $localize`translation`;
+      case 'adaptation': return $localize`adaptation`;
+      case 'original': return $localize`original`;
+      default: return $localize`edition`;
+    }
+  }
+
+  /** The phone sheet's edition rows (L7): the open one first, then the rest the menu would list. */
+  protected get companionRows(): CompanionRow[] {
+    const current = this.companionEdition;
+    const rows = [...(current ? [current] : []), ...this.availableEditions];
+    return rows.map(edition => ({
+      slug: edition.editionSlug,
+      name: [this.languageNames.getLanguageName(edition.language), edition.cefrLevel].filter(Boolean).join(' · '),
+      kind: this.editionKind(edition),
+      code: edition.language,
+      selected: edition.editionSlug === this.companionSlug,
+    }));
   }
 
   protected closeReaderMenus(): void {
@@ -1189,10 +1262,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private parallelLoadSubscription: Subscription | null = null;
 
   private clearScheduledWork(): void {
-    if (this.heightSyncTimeoutId !== null) {
-      clearTimeout(this.heightSyncTimeoutId);
-      this.heightSyncTimeoutId = null;
-    }
     if (this.scrollFlagTimeoutId !== null) {
       clearTimeout(this.scrollFlagTimeoutId);
       this.scrollFlagTimeoutId = null;
@@ -1210,10 +1279,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.companionSlug = edition?.editionSlug ?? null;
 
     if (langCode && this.bookSlug) {
-      if (this.currentlyOpenFluentSpan) {
-        this.currentlyOpenFluentSpan.hidden = true;
-        this.currentlyOpenFluentSpan = null;
-      }
       this.isParallelViewActive = false;
       this.isLoadingParallel = true;
       this.errorMessage = null;
@@ -1267,8 +1332,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     }
   }
 
-  openParallelSettings() {
+  protected toggleParallelSettings(): void {
     this.parallelSettingsOpen = !this.parallelSettingsOpen;
+    if (this.parallelSettingsOpen && this.isNarrow) this.contentsOpen = false;
     this.cdRef.markForCheck();
   }
 

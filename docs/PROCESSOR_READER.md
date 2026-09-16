@@ -141,3 +141,47 @@ the guest chapter page, the rail, the card ask and the book contents;
 modes). Against the live backend, the front door resumed a member at chapter 22
 from 59 % server progress, the rail listed 31 words for it and Next turned to
 chapter 23. Screenshots in `docs/evidence/chapters-20260916`.
+
+## Parallel text at sentence level (2026-09-17, design L)
+
+Alignment is invisible until you ask. Sentence spans and paragraph runs have
+no paint at rest; the unit under the pointer or focus (a sentence group, or
+the whole paragraph pair where no group exists) takes the word-card tint
+(`--parallel-tint`) on both sides at once, and a click or Enter keeps the tint
+and adds a 2px plum rule under the run. The same unit again, Esc, or a click
+away clears it. The yellow fill and the plum outline are gone.
+
+The modes are `side`, `demand` (renamed from `overlay`) and `inline`;
+`demand` is the default everywhere and a stored `overlay` falls back to it.
+
+- **Side by side** is one CSS grid per chapter with a primary and a companion
+  cell per block, so paragraph pairs stay level without the old JavaScript
+  height sync. It needs a 1100px window: below that the row is absent from
+  the picker, one line says why, and the reader lays the text out on demand
+  until the window widens.
+- **On demand** keeps the companion in the DOM, hidden, and opens one block
+  under the paragraph with only the group's companion sentences (the whole
+  companion paragraph where the paragraph is the unit); it slides open in
+  160ms and snaps under reduced motion.
+- **Inline** interleaves each sentence group with its companion as a grey
+  16px run in the same flow; a paragraph without groups is followed by its
+  companion paragraph.
+
+The two provenance paragraphs above the text are gone. The chapter header
+has a fourth line while a companion is open: the codes in mono, an arrow,
+the companion's language and kind in words ("machine translation",
+"adaptation", "original", "translation of the original" for an indirect
+one), and the mode as a plum link that opens the picker. Below 640px the
+words drop and the codes stay. The picker is rows, not cards, with a
+companion line and a Change link into the companion menu; the bar's
+companion button is a filled plum circle with the companion's code while
+one is open and opens the picker, or the menu when none is. On a phone
+(under 600px) the picker is one sheet that also lists the editions and
+"Read without a companion".
+
+Verification: 294 unit tests, a development build, eslint on the changed
+files and ten browser tests with intercepted fixtures pass
+(`e2e/processor-parallel.spec.ts` covers hover, selection, Esc, the on-demand
+block, the pair line, the picker, the phone sheet and the width fallback).
+Screenshots in `docs/evidence/parallel-20260917`. Not checked against the
+live backend: it still has no published pair.

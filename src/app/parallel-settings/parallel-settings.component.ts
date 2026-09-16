@@ -1,6 +1,6 @@
 import {logger} from "../shared/logger";
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
-import {DEFAULT_PARALLEL_MODE, ParallelMode} from '../sections/read/parallel-mode.type';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject} from '@angular/core';
+import {DEFAULT_PARALLEL_MODE, ParallelMode, parallelModeLabel} from '../sections/read/parallel-mode.type';
 import {Subject, takeUntil} from "rxjs";
 import {ParallelModeService} from "../sections/read/parallel-mode.service";
 
@@ -10,10 +10,22 @@ interface ModeOption {
   explanation: string;
 }
 
+/** One companion edition as the phone sheet lists it (L7). */
+export interface CompanionRow {
+  slug: string;
+  /** Language and level in words, e.g. "Ukrainian · C1". */
+  name: string;
+  /** The edition kind in words, e.g. "Machine translation". */
+  kind: string;
+  code: string;
+  selected: boolean;
+}
+
 /**
- * The three parallel modes as three tiles (G5): the diagrams are drawn in ink and grey, the tile
- * is the selector, and the whole panel sits in the reader's bottom bar so the effect is visible
- * behind it.
+ * The mode picker (L5): rows, not cards. A 64px ink-and-grey diagram, the name, one line that holds
+ * the only instructional hint. Under a hairline, the companion line with a Change link into the
+ * companion menu. On a phone (L7) the same rows are a sheet that also lists the editions, since two
+ * sheets for one decision is one too many.
  */
 @Component({
   selector: 'app-parallel-settings',
@@ -24,27 +36,54 @@ export class ParallelSettingsComponent implements OnInit, OnDestroy {
   private parallelModeService = inject(ParallelModeService);
   private cdRef = inject(ChangeDetectorRef);
 
-  protected currentMode: ParallelMode = DEFAULT_PARALLEL_MODE;
+  /** Side by side needs the window (L2); below it the row is absent and one line says why. */
+  @Input() sideAvailable = true;
+  /** A companion is open, so the mode rows apply. */
+  @Input() companionOpen = false;
+  /** The phone layout (L7): a sheet that lists the editions too. */
+  @Input() sheet = false;
+  /** The desktop companion line, e.g. "Companion: Ukrainian C1, machine translation". */
+  @Input() companionLine = '';
+  @Input() editions: CompanionRow[] = [];
+  @Input() hasOtherEditionTranslations = false;
+  @Input() includeOtherEditionTranslations = true;
 
-  protected readonly modeOptions: ModeOption[] = [
+  @Output() changeCompanion = new EventEmitter<void>();
+  @Output() editionPicked = new EventEmitter<string | null>();
+  @Output() otherEditionsToggled = new EventEmitter<void>();
+
+  protected currentMode: ParallelMode = DEFAULT_PARALLEL_MODE;
+  protected readonly onLabel = $localize`On`;
+  protected readonly offLabel = $localize`Off`;
+
+  private readonly allModes: ModeOption[] = [
     {
       mode: 'side',
-      label: $localize`Side by side`,
-      explanation: $localize`Read both editions together. Marked sentences highlight their counterparts.`,
+      label: parallelModeLabel('side'),
+      explanation: $localize`Both editions in two columns. Click a sentence to light its counterpart.`,
     },
     {
-      mode: 'overlay',
-      label: $localize`On demand`,
-      explanation: $localize`Tap a passage to reveal its companion paragraph in grey ink.`,
+      mode: 'demand',
+      label: parallelModeLabel('demand'),
+      explanation: $localize`Read one edition. Tap a sentence to open its companion under it.`,
     },
     {
       mode: 'inline',
-      label: $localize`Inline`,
-      explanation: $localize`Each paragraph followed by its companion version. Grey, one size down.`,
+      label: parallelModeLabel('inline'),
+      explanation: $localize`Every sentence followed by its companion, in smaller grey.`,
     },
   ];
 
   private destroy$ = new Subject<void>();
+
+  protected get modeOptions(): ModeOption[] {
+    return this.sideAvailable ? this.allModes : this.allModes.filter(option => option.mode !== 'side');
+  }
+
+  /** The row that reads as selected: the chosen mode, or On demand while Side by side lacks the window. */
+  protected get shownMode(): ParallelMode {
+    return this.currentMode === 'side' && !this.sideAvailable ? 'demand' : this.currentMode;
+  }
 
   ngOnInit(): void {
     this.parallelModeService.mode$

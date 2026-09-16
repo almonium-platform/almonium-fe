@@ -151,54 +151,72 @@ export class ReaderDomService {
     return current instanceof HTMLElement ? current : null;
   }
 
-  toggleOverlayTranslation(content: HTMLElement, eventTarget: EventTarget | null): void {
-    const closeOpenSegment = () => {
-      content.querySelector('.fluent-segment-overlay.is-visible')?.classList.remove('is-visible');
-    };
-    const clickedSegment = eventTarget instanceof Element
-      ? eventTarget.closest('.seg-pair > .segment')
-      : null;
-
-    if (!clickedSegment) {
-      closeOpenSegment();
-      return;
+  /**
+   * The elements that answer for the alignment unit under a point in the text (design L): every
+   * element of the sentence group the target is in, or, where the paragraph has no sentence groups,
+   * the paragraph pair's runs. Empty when the target is plain text between groups.
+   */
+  unitAt(content: HTMLElement, target: EventTarget | null): HTMLElement[] {
+    if (!(target instanceof Element) || !content.contains(target)) return [];
+    const grouped = target.closest<HTMLElement>('[data-alignment]');
+    const key = grouped?.dataset['alignment'];
+    if (key && /^\d+-\d+-\d+$/.test(key)) {
+      return Array.from(content.querySelectorAll<HTMLElement>(`[data-alignment="${key}"]`));
     }
-
-    const overlay = clickedSegment.parentElement?.querySelector('.fluent-segment-overlay');
-    if (!overlay) return;
-
-    const wasVisible = overlay.classList.contains('is-visible');
-    closeOpenSegment();
-    if (!wasVisible) overlay.classList.add('is-visible');
+    const paired = target.closest<HTMLElement>('[data-pair]');
+    const pair = paired?.dataset['pair'];
+    if (!pair || !/^\d+$/.test(pair) || paired?.querySelector('[data-alignment]')) return [];
+    return Array.from(content.querySelectorAll<HTMLElement>(`[data-pair="${pair}"]`))
+      .filter(element => !element.classList.contains('companion-source'));
   }
 
-  synchronizeParallelColumns(content: HTMLElement): boolean {
-    let changed = false;
-
-    content.querySelectorAll<HTMLElement>('.chapter').forEach(wrapper => {
-      const mainBlocks = wrapper.querySelectorAll<HTMLElement>('.sbs-column-main p, .sbs-column-main h2');
-      const secondaryBlocks = wrapper.querySelectorAll<HTMLElement>('.sbs-column-secondary p, .sbs-column-secondary h2');
-      const blockCount = Math.min(mainBlocks.length, secondaryBlocks.length);
-
-      for (let index = 0; index < blockCount; index++) {
-        const main = mainBlocks[index];
-        const secondary = secondaryBlocks[index];
-        main.style.minHeight = '';
-        secondary.style.minHeight = '';
-        const maxHeight = Math.max(main.offsetHeight, secondary.offsetHeight);
-
-        if (Math.abs(main.offsetHeight - maxHeight) > 1) {
-          main.style.minHeight = `${maxHeight}px`;
-          changed = true;
-        }
-        if (Math.abs(secondary.offsetHeight - maxHeight) > 1) {
-          secondary.style.minHeight = `${maxHeight}px`;
-          changed = true;
-        }
-      }
+  /** Marks one unit and no other: the hover tint or the selection, by class. */
+  mark(content: HTMLElement, unit: HTMLElement[], className: string): void {
+    content.querySelectorAll(`.${className}`).forEach(element => {
+      if (!unit.includes(element as HTMLElement)) element.classList.remove(className);
     });
+    unit.forEach(element => element.classList.add(className));
+  }
 
-    return changed;
+  /** The one open companion block in on-demand mode (L3); absent when nothing is open. */
+  openCompanionBlock(content: HTMLElement): HTMLElement | null {
+    return content.querySelector<HTMLElement>('.companion-block');
+  }
+
+  closeCompanionBlock(content: HTMLElement): void {
+    this.openCompanionBlock(content)?.remove();
+  }
+
+  /**
+   * Opens the unit's companion under its paragraph: the group's companion sentences, or the whole
+   * companion paragraph where the paragraph is the unit. Returns whether a block opened.
+   */
+  openCompanionFor(content: HTMLElement, unit: HTMLElement[], animate: boolean): boolean {
+    this.closeCompanionBlock(content);
+    const anchor = unit.find(element => !element.closest('.companion-source'));
+    const block = anchor?.closest<HTMLElement>('p, h1, h2, h3, h4, h5, h6, blockquote, li, div.poem');
+    const source = block?.querySelector<HTMLElement>('.companion-source .segment');
+    if (!anchor || !block || !source || !block.parentElement) return false;
+
+    const key = anchor.dataset['alignment'];
+    const sentences = key
+      ? Array.from(source.querySelectorAll<HTMLElement>(`[data-alignment="${key}"]`))
+      : [source];
+    if (sentences.length === 0) return false;
+
+    const companion = document.createElement('div');
+    companion.className = 'companion-block';
+    if (key) companion.dataset['alignment'] = key;
+    const text = document.createElement('p');
+    text.className = 'companion-block__text';
+    if (source.lang) text.lang = source.lang;
+    text.textContent = sentences.map(sentence => sentence.textContent?.replace(/\s+/g, ' ').trim() ?? '').filter(Boolean).join(' ');
+    companion.appendChild(text);
+    block.parentElement.insertBefore(companion, block.nextSibling);
+
+    if (animate) requestAnimationFrame(() => companion.classList.add('is-open'));
+    else companion.classList.add('is-open');
+    return true;
   }
 
   measureChapters(content: HTMLElement, targetLanguage: string | null): ReaderChapter[] {

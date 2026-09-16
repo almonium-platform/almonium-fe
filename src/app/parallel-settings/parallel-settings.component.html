@@ -1,25 +1,57 @@
-<div class="settings" role="group" aria-label="Parallel reading mode" i18n-aria-label>
-  <div class="modes">
-    @for (option of modeOptions; track option.mode) {
-      <button type="button" class="mode" [class.mode--active]="option.mode === currentMode" [attr.aria-pressed]="option.mode === currentMode" (click)="pick(option.mode)">
-        <span class="diagram" [attr.data-mode]="option.mode" aria-hidden="true">
-          @switch (option.mode) {
-            @case ('side') {
-              <span class="column"><i></i><i class="lit"></i><i></i><i></i></span>
-              <span class="column"><i></i><i class="lit"></i><i></i><i></i></span>
+<div class="picker" [class.picker--sheet]="sheet" role="group" aria-label="Companion and reading mode" i18n-aria-label>
+  @if (sheet) {
+    <span class="picker__grip" aria-hidden="true"></span>
+    <span i18n class="picker__eyebrow">Companion</span>
+  }
+  @if (companionOpen) {
+    <div class="modes" role="radiogroup" aria-label="Reading mode" i18n-aria-label>
+      @for (option of modeOptions; track option.mode) {
+        <button type="button" class="mode" role="radio" [class.mode--active]="option.mode === shownMode" [attr.aria-checked]="option.mode === shownMode" (click)="pick(option.mode)">
+          <span class="diagram" [attr.data-mode]="option.mode" aria-hidden="true">
+            @switch (option.mode) {
+              @case ('side') {
+                <span class="column"><i></i><i class="lit"></i><i class="w70"></i></span>
+                <span class="column"><i></i><i class="lit"></i><i class="w80"></i></span>
+              }
+              @case ('demand') {
+                <span class="column"><i></i><i class="lit"></i><i class="w60 indent"></i><i></i></span>
+              }
+              @case ('inline') {
+                <span class="column"><i class="ink"></i><i class="thin w85"></i><i class="ink"></i><i class="thin w70"></i></span>
+              }
             }
-            @case ('overlay') {
-              <span class="column"><i></i><i class="w80"></i><i class="grey w66 indent"></i><i></i></span>
-            }
-            @case ('inline') {
-              <span class="column"><i></i><i></i><i class="grey"></i><i class="grey w70"></i></span>
-            }
-          }
-        </span>
-        <strong>{{ option.label }}</strong>
-        <small>{{ option.explanation }}</small>
-      </button>
+          </span>
+          <span class="mode__text"><strong>{{ option.label }}</strong><small>{{ option.explanation }}</small></span>
+        </button>
+      }
+    </div>
+    @if (!sideAvailable && !sheet) {
+      <p i18n class="picker__note">Side by side needs a wider window.</p>
     }
-  </div>
-  <p i18n class="reading-note">Use the companion to compare wording. It may be an original, an adaptation, or a translation.</p>
+    <div class="picker__rule"></div>
+  }
+  @if (sheet) {
+    <div class="editions">
+      @if (hasOtherEditionTranslations) {
+        <button type="button" class="edition edition--switch" role="switch" [attr.aria-checked]="includeOtherEditionTranslations" (click)="otherEditionsToggled.emit()">
+          <span class="edition__text"><span i18n class="edition__name">Include translations of other editions</span><span i18n class="edition__kind">They may use more literary wording than this adaptation.</span></span>
+          <span class="edition__code">{{ includeOtherEditionTranslations ? onLabel : offLabel }}</span>
+        </button>
+      }
+      @for (edition of editions; track edition.slug) {
+        <button type="button" class="edition" [class.edition--active]="edition.selected" [attr.aria-pressed]="edition.selected" (click)="editionPicked.emit(edition.slug)">
+          <span class="edition__text"><span class="edition__name">{{ edition.name }}</span><span class="edition__kind">{{ edition.kind }}</span></span>
+          <span class="edition__code">{{ edition.code }}</span>
+        </button>
+      }
+      @if (companionOpen) {
+        <button i18n type="button" class="edition edition--alone" (click)="editionPicked.emit(null)">Read without a companion</button>
+      }
+    </div>
+  } @else {
+    <div class="companion-line">
+      <span>{{ companionLine }}</span>
+      <button i18n type="button" class="companion-line__change" (click)="changeCompanion.emit()">Change</button>
+    </div>
+  }
 </div>
