@@ -160,9 +160,10 @@ The modes are `side`, `demand` (renamed from `overlay`) and `inline`;
   the picker, one line says why, and the reader lays the text out on demand
   until the window widens.
 - **On demand** keeps the companion in the DOM, hidden, and opens one block
-  under the paragraph with only the group's companion sentences (the whole
-  companion paragraph where the paragraph is the unit); it slides open in
-  160ms and snaps under reduced motion.
+  right after the group's last sentence, so the paragraph splits there and
+  continues under the block, with only the group's companion sentences (the
+  whole companion paragraph where the paragraph is the unit); it slides open
+  in 160ms and snaps under reduced motion (`demand-split.png`).
 - **Inline** interleaves each sentence group with its companion as a grey
   16px run in the same flow; a paragraph without groups is followed by its
   companion paragraph.

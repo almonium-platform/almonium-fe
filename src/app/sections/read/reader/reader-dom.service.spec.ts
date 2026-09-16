@@ -92,7 +92,7 @@ describe('ReaderDomService', () => {
     expect(service.unitAt(content, document.body)).toEqual([]);
   });
 
-  it('marks one unit and opens only its companion sentences under the paragraph', () => {
+  it('marks one unit and opens only its companion sentences right after the group', () => {
     const content = document.createElement('div');
     content.innerHTML = `
       <p id="first"><span class="segment" data-pair="0"><span data-alignment="1-1-0">One.</span> <span data-alignment="1-1-1">Two.</span></span><span class="companion-source"><span class="segment" lang="es"><span data-alignment="1-1-0">Uno.</span> <span data-alignment="1-1-1">Dos.</span></span></span></p>
@@ -104,9 +104,10 @@ describe('ReaderDomService', () => {
     expect(Array.from(content.querySelectorAll('.is-lit')).map(element => element.textContent)).toEqual(['Two.', 'Dos.']);
 
     expect(service.openCompanionFor(content, first, false)).toBeTrue();
-    const block = content.querySelector('#first + .companion-block');
+    const block = content.querySelector('[data-alignment="1-1-0"] + .companion-block');
     expect(block?.textContent).toBe('Uno.');
-    expect(block?.querySelector('p')?.lang).toBe('es');
+    expect(block?.querySelector('.companion-block__text')?.getAttribute('lang')).toBe('es');
+    expect(block?.nextSibling?.textContent).toBe(' ');
     expect(block?.classList.contains('is-open')).toBeTrue();
     service.openCompanionFor(content, service.unitAt(content, content.querySelector('[data-alignment="1-1-1"]')), false);
     expect(content.querySelectorAll('.companion-block').length).toBe(1);

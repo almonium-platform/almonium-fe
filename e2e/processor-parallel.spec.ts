@@ -75,7 +75,8 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
   await primaryPane.locator('.aligned-sentence').first().click();
   await expect(page.locator('.is-aligned-current')).toHaveCount(3);
   if (mode === 'demand') {
-    await expect(page.locator('.companion-block')).toHaveText(companionText);
+    // The block opens right after the group's last sentence, splitting the paragraph there.
+    await expect(page.locator('.aligned-sentence:nth-of-type(2) + .companion-block')).toHaveText(companionText);
   }
   if (mode !== 'demand') {
     await (mode === 'inline' ? companionPane.first() : companionPane.locator('[data-alignment]').first()).focus();

@@ -455,24 +455,25 @@
     ::ng-deep {
       .companion-source { display: none; }
 
+      // The block sits in the paragraph flow right after the sentence, so the text splits there.
       .companion-block {
         display: grid;
         grid-template-rows: 0fr;
-        margin: -.35em 0 .8em;
+        margin: .3em 0 .45em;
         transition: grid-template-rows 160ms ease;
+        text-indent: 0;
 
         &.is-open { grid-template-rows: 1fr; }
         > * { min-height: 0; overflow: hidden; }
       }
 
       .companion-block__text {
-        margin: 0;
+        display: block;
         padding-left: 1.125rem;
         border-left: 2px solid var(--hairline-on-ground);
         color: var(--subhead-color);
         font-size: 16px;
         line-height: 1.6;
-        text-indent: 0;
       }
     }
   }

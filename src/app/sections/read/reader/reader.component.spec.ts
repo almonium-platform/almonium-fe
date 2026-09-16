@@ -193,7 +193,7 @@ describe('ReaderComponent', () => {
     component.currentParallelMode = 'demand';
     content.addEventListener('click', event => component.onContentClick(event));
     content.querySelector<HTMLElement>('[data-alignment="11-2-0"]')!.click();
-    expect(content.querySelector('p + .companion-block')?.textContent).toBe('Раз.');
+    expect(content.querySelector('[data-alignment="11-2-0"] + .companion-block')?.textContent).toBe('Раз.');
     content.querySelector<HTMLElement>('[data-alignment="11-2-1"]')!.click();
     expect(content.querySelectorAll('.companion-block').length).toBe(1);
     expect(content.querySelector('.companion-block')?.textContent).toBe('Два.');

@@ -188,15 +188,18 @@ export class ReaderDomService {
   }
 
   /**
-   * Opens the unit's companion under its paragraph: the group's companion sentences, or the whole
-   * companion paragraph where the paragraph is the unit. Returns whether a block opened.
+   * Opens the unit's companion right where it ends (L3): the paragraph splits after the last
+   * sentence of the group and the group's companion sentences open in a block there, the rest of
+   * the paragraph continuing under it. Where the paragraph is the unit, the whole companion
+   * paragraph opens after it. Returns whether a block opened.
    */
   openCompanionFor(content: HTMLElement, unit: HTMLElement[], animate: boolean): boolean {
     this.closeCompanionBlock(content);
-    const anchor = unit.find(element => !element.closest('.companion-source'));
+    const primary = unit.filter(element => !element.closest('.companion-source'));
+    const anchor = primary[primary.length - 1];
     const block = anchor?.closest<HTMLElement>('p, h1, h2, h3, h4, h5, h6, blockquote, li, div.poem');
     const source = block?.querySelector<HTMLElement>('.companion-source .segment');
-    if (!anchor || !block || !source || !block.parentElement) return false;
+    if (!anchor || !block || !source) return false;
 
     const key = anchor.dataset['alignment'];
     const sentences = key
@@ -204,15 +207,15 @@ export class ReaderDomService {
       : [source];
     if (sentences.length === 0) return false;
 
-    const companion = document.createElement('div');
+    const companion = document.createElement('span');
     companion.className = 'companion-block';
     if (key) companion.dataset['alignment'] = key;
-    const text = document.createElement('p');
+    const text = document.createElement('span');
     text.className = 'companion-block__text';
     if (source.lang) text.lang = source.lang;
     text.textContent = sentences.map(sentence => sentence.textContent?.replace(/\s+/g, ' ').trim() ?? '').filter(Boolean).join(' ');
     companion.appendChild(text);
-    block.parentElement.insertBefore(companion, block.nextSibling);
+    anchor.after(companion);
 
     if (animate) requestAnimationFrame(() => companion.classList.add('is-open'));
     else companion.classList.add('is-open');
