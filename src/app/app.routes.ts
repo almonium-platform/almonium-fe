@@ -66,7 +66,6 @@ export const routes: Routes = [
 
   // Marketing
   {path: 'pricing', loadComponent: () => import('./static/pricing/pricing.component').then(m => m.PricingComponent)},
-  {path: 'about', loadComponent: () => import('./static/about-us/about.component').then(m => m.AboutComponent)},
 
   // sections of both auth and unauth
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},

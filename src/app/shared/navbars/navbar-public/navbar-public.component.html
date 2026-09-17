@@ -26,12 +26,6 @@
           [ngClass]="{'active-link': currentRoute === '/pricing'}">
           Pricing
         </a>
-        <a i18n
-          routerLink="/about"
-          class="nav-link section"
-          [ngClass]="{'active-link': currentRoute === '/about'}">
-          About
-        </a>
       </div>
     }
     <div class="nav-actions">
@@ -51,7 +45,6 @@
       <a i18n routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Read</a>
       <a i18n routerLink="/" [fragment]="'books'" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
       <a i18n routerLink="/pricing" class="menu-item" (click)="discoverOnClickOutside()">Pricing</a>
-      <a i18n routerLink="/about" class="menu-item" (click)="discoverOnClickOutside()">About</a>
     </nav>
   </div>
 }

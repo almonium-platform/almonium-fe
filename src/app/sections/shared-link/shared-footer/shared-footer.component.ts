@@ -17,7 +17,6 @@ import {RouterLink} from '@angular/router';
           <span i18n>Reading in another language</span>
         </a>
         <nav aria-label="Footer navigation" i18n-aria-label>
-          <a i18n routerLink="/about">About</a>
           <a i18n routerLink="/privacy-policy">Privacy</a>
           <a i18n routerLink="/terms-of-use">Terms</a>
           <a i18n href="mailto:support@almonium.com?subject=Report%20a%20shared%20page">Report</a>
