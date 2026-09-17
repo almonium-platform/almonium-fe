@@ -32,6 +32,9 @@ jobs:
   prod:
     needs: staging
     if: github.event_name == 'push' && vars.PROD_FOLLOWS_STAGING == 'true'
+    permissions:
+      contents: write # the deploy moves main to the commit production runs
+      packages: write
     uses: ./.github/workflows/reusable-build-and-deploy.yaml
     with:
       environment: prod

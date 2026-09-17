@@ -218,3 +218,27 @@ jobs:
             --extra-vars "deploy_image_tag=${{ needs.setup.outputs.image_tag }}"
             --extra-vars "deploy_gh_actor=${{ github.actor }}"
             --extra-vars "deploy_gh_token=${{ secrets.GITHUB_TOKEN }}"
+
+  # `main` is a pointer this pipeline owns: it marks the commit production runs, so a rollback
+  # by tag moves it back. Nothing merges into it; the commit is the tag's SHA prefix.
+  record-main:
+    needs: [setup, deploy]
+    if: always() && needs.deploy.result == 'success' && inputs.environment == 'prod'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Point main at the deployed commit
+        env:
+          IMAGE_TAG: ${{ needs.setup.outputs.image_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sha="${IMAGE_TAG%%-*}"
+          if [[ ! "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Image tag '$IMAGE_TAG' does not start with a commit SHA" >&2
+            exit 1
+          fi
+          # A rollback deploys an older commit, so the pointer must be allowed to move back.
+          gh api --method PATCH "repos/$GH_REPO/git/refs/heads/main" -f sha="$sha" -F force=true > /dev/null
+          echo "- \`main\` now points at \`$sha\`, the commit production runs" >> "$GITHUB_STEP_SUMMARY"

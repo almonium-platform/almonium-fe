@@ -42,6 +42,8 @@ repositories:
   repository's frontend Ansible playbook; production follows from the same
   commit unless the repository variable `PROD_FOLLOWS_STAGING` holds it back,
   and `deploy-prod.yaml` is the manual path for rollbacks and held releases.
+  `main` is moved by the pipeline to the commit production runs; never merge
+  into it.
   SSH access does not authorize bypassing this deployment path or making
   ad-hoc production changes.
 - For an end-to-end feature, validate the browser behavior against the matching
