@@ -20,13 +20,8 @@ on:
         required: false
         type: boolean
         default: true
-    secrets:
-      INFRA_REPO_CHECKOUT_KEY:
-        required: true
-      CLOUD_KEY:
-        required: true
-      CLOUD_KNOWN_HOSTS:
-        required: true
+    # The deploy secrets are environment secrets, so they are not declared here: the caller passes
+    # `secrets: inherit` and the deploy job reads them through its environment.
 
 permissions:
   contents: read
