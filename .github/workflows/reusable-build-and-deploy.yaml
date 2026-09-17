@@ -23,9 +23,8 @@ on:
     # The deploy secrets are environment secrets, so they are not declared here: the caller passes
     # `secrets: inherit` and the deploy job reads them through its environment.
 
-permissions:
-  contents: read
-  packages: write
+# No permissions block: a called workflow can only narrow what its caller granted, and the prod
+# caller grants contents: write so record-main can move main. Jobs inherit the caller's token.
 
 env:
   BUILD_CONFIGURATION: ${{ inputs.environment == 'prod' && 'production' || 'staging' }}
