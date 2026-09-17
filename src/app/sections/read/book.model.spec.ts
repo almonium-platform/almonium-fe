@@ -17,6 +17,8 @@ describe('book API runtime validation', () => {
     language: LanguageCode.EN,
     cefrLevel: CEFRLevel.B1,
     progressPercentage: null,
+    currentChapter: null,
+    chapterCount: null,
     isTranslation: false,
     hasParallelTranslation: false,
     hasTranslation: false,
@@ -51,6 +53,8 @@ describe('book API runtime validation', () => {
   it('rejects malformed mini-details arrays', () => {
     expect(() => parseBookMiniDetails({
       progressPercentage: 20,
+      currentChapter: null,
+      chapterCount: null,
       language: LanguageCode.EN,
       languageVariants: {},
     })).toThrowError(ApiContractError);

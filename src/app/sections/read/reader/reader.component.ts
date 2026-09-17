@@ -913,7 +913,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.readerContentRef.nativeElement,
       );
       const position: ReaderPosition = {...captured, chapter: this.currentKey, presentation: this.presentation};
-      this.progressTracker.update(bookPercentage(this.chapters, this.currentIndex, state.percentage / 100), position);
+      this.progressTracker.update(
+        bookPercentage(this.chapters, this.currentIndex, state.percentage / 100),
+        position,
+        this.chapters.length ? {chapter: this.currentKey, chapterCount: this.chapters.length} : null,
+      );
     }
   }
 

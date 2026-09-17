@@ -10,6 +10,7 @@ import {
   parseBookMiniDetails,
   parseBooks,
   parseBookshelfView,
+  ReadingPlace,
 } from "./book.model";
 import {
   BookImport,
@@ -217,10 +218,11 @@ export class ReadService {
    * Saves progress using a standard HTTP POST request with query parameters.
    * Use for regular saves and ngOnDestroy.
    */
-  saveProgress(bookId: string, percentage: number): Observable<void> {
+  saveProgress(bookId: string, percentage: number, place: ReadingPlace | null = null): Observable<void> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
-    const params = new HttpParams().set('percentage', percentage.toString());
+    let params = new HttpParams().set('percentage', percentage.toString());
+    if (place) params = params.set('chapter', String(place.chapter)).set('chapterCount', String(place.chapterCount));
 
     return this.http.post<void>(url, null, {params, withCredentials: true}).pipe(
       tap(() => logger.debug(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
@@ -231,14 +233,15 @@ export class ReadService {
    * Saves progress using the Beacon API.
    * Use for 'beforeunload' event. Returns true if beacon was queued, false otherwise.
    */
-  sendProgressBeacon(bookId: string, percentage: number): boolean {
+  sendProgressBeacon(bookId: string, percentage: number, place: ReadingPlace | null = null): boolean {
     if (!navigator.sendBeacon) {
       logger.warn('ReadService: Beacon API not supported.');
       return false;
     }
 
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
-    const url = `${AppConstants.BOOKS_URL}/${bookId}/progress?percentage=${percentage}`;
+    const placeQuery = place ? `&chapter=${place.chapter}&chapterCount=${place.chapterCount}` : '';
+    const url = `${AppConstants.BOOKS_URL}/${bookId}/progress?percentage=${percentage}${placeQuery}`;
 
     try {
       const sent = navigator.sendBeacon(url);

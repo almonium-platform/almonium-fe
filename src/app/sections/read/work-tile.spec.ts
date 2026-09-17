@@ -17,6 +17,8 @@ function edition(overrides: Partial<Book>): Book {
     language: LanguageCode.EN,
     cefrLevel: CEFRLevel.C1,
     progressPercentage: null,
+    currentChapter: null,
+    chapterCount: null,
     isTranslation: false,
     hasParallelTranslation: true,
     hasTranslation: true,

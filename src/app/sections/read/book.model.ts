@@ -26,6 +26,9 @@ export interface Book {
   /** original, adaptation, machine_translation or human_translation; the shelf needs it to pick a tile's edition. */
   editionType?: string;
   progressPercentage: number | null;
+  /** The place beside the percentage, as a reader last numbered it; null until a reader sends it. */
+  currentChapter: number | null;
+  chapterCount: number | null;
   isTranslation: boolean;
   hasParallelTranslation: boolean;
   hasTranslation: boolean;
@@ -36,6 +39,12 @@ export interface Book {
   /** The original's title when this edition is titled differently, e.g. a translation. */
   originalTitle?: string;
   translator?: string;
+}
+
+/** The chapter being read and how many the reader counted; saved with the percentage, said back by the shelf. */
+export interface ReadingPlace {
+  chapter: number;
+  chapterCount: number;
 }
 
 export interface BookMiniDetails {
@@ -101,6 +110,8 @@ export function parseBook(value: unknown, path = 'book'): Book {
     cefrLevel: expectEnum(data['cefrLevel'], Object.values(CEFRLevel), `${path}.cefrLevel`),
     ...optionalString(data['editionType'], 'editionType', path),
     progressPercentage: expectNullableNumber(data['progressPercentage'], `${path}.progressPercentage`),
+    currentChapter: data['currentChapter'] === undefined ? null : expectNullableNumber(data['currentChapter'], `${path}.currentChapter`),
+    chapterCount: data['chapterCount'] === undefined ? null : expectNullableNumber(data['chapterCount'], `${path}.chapterCount`),
     isTranslation: expectBoolean(data['isTranslation'], `${path}.isTranslation`),
     hasParallelTranslation: expectBoolean(
       data['hasParallelTranslation'],

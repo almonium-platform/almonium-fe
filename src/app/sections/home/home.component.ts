@@ -160,6 +160,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   protected progressLabel(book: Book): string {
+    if (book.currentChapter && book.chapterCount) {
+      return $localize`chapter ${book.currentChapter}:chapter: of ${book.chapterCount}:count:`;
+    }
     const progress = book.progressPercentage ?? 0;
     if (progress >= 90) return $localize`Almost finished`;
     if (progress >= 50) return $localize`Well underway`;
