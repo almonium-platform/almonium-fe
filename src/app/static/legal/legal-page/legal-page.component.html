@@ -1,0 +1,31 @@
+<div class="legal-page">
+  <div class="legal-layout">
+    <nav class="rail" aria-label="Legal pages" i18n-aria-label>
+      <div class="rail-pages">
+        <a i18n routerLink="/privacy-policy" [class.current]="current() === 'privacy'" [attr.aria-current]="current() === 'privacy' ? 'page' : null">Privacy Policy</a>
+        <a i18n routerLink="/terms-of-use" [class.current]="current() === 'terms'" [attr.aria-current]="current() === 'terms' ? 'page' : null">Terms of Use</a>
+      </div>
+      @if (sections().length) {
+        <div class="rail-sections">
+          @for (section of sections(); track section.id) {
+            <a [href]="'#' + section.id">{{ section.label }}</a>
+          }
+        </div>
+      }
+    </nav>
+
+    <article class="legal-content">
+      <header class="legal-head">
+        <span i18n class="eyebrow">Legal</span>
+        <h1>{{ title() }}</h1>
+        <p class="lede">{{ lede() }}</p>
+        <span i18n class="updated">Last updated {{ updated() | date:'longDate' }}</span>
+      </header>
+      <div class="legal-body">
+        <ng-content></ng-content>
+      </div>
+    </article>
+  </div>
+
+  <app-public-footer></app-public-footer>
+</div>

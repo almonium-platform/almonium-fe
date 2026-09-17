@@ -4,10 +4,11 @@ import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {LANDING_ACCOUNT_DELETED_PARAM} from '../../authentication/logout/logout-reason';
 import {PaywallComponent} from '../../shared/paywall/paywall.component';
+import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, NgTemplateOutlet, PaywallComponent],
+  imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.less'
 })

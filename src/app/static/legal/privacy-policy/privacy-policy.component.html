@@ -1,1 +1,51 @@
-<app-not-ready></app-not-ready>
+<app-legal-page [current]="'privacy'" [title]="title" [lede]="lede" [updated]="updated">
+  <h2 i18n id="covers">1. What this covers</h2>
+  <p i18n>This policy applies to almonium.com, the Almonium web and mobile apps, and the emails we send. The operator is Almonium LLC (ТОВ «Алмоніум»), a company registered in Ukraine. When this policy says “we”, it means that company, which in practice is one person.</p>
+  <p i18n>You can read every book in the library and look up words without an account. Almost everything below applies only once you sign up.</p>
+
+  <h2 i18n id="collect">2. What we collect</h2>
+  <p i18n><strong>Account.</strong> Your email address, a display name, and an optional avatar. If you sign in with Google or Apple, we receive the name and email those providers share. We never see your password; sign-in is handled by Firebase Authentication.</p>
+  <p i18n><strong>Learning data.</strong> The languages you learn and speak, your level, the words and phrases you save, the sentences they came from, your review history and results, the books you open and how far you have read, and the interests you choose. This is the product. Without it there is nothing to keep.</p>
+  <p i18n><strong>Payment.</strong> If you subscribe, Paddle takes your payment. We receive your subscription status, plan, country, and a transaction reference. We never receive your card number.</p>
+  <p i18n><strong>Messages.</strong> If you use chat, the messages you send and the people you send them to.</p>
+  <p i18n><strong>Usage.</strong> Which features you use and when, which pages you open, the device and browser you use, and your approximate region. We use this to see what is working and what is broken.</p>
+  <p i18n><strong>Support.</strong> Whatever you write to us, and the email address you write from.</p>
+
+  <h2 i18n id="why">3. Why we use it</h2>
+  <p i18n>To run the product: sync your words across devices, schedule your reviews, resume your books, and show you the meaning of a word in the languages you speak. To take payment and know who has paid. To send you the emails you asked for, such as verification, password resets, receipts, and review reminders if you turn them on. To find bugs and understand which features people actually use. To answer you when you write to us.</p>
+  <p i18n>We do not sell your data. We do not show ads. We do not use your saved words, reading, or messages to train machine learning models.</p>
+
+  <h2 i18n id="parties">4. Who else touches it</h2>
+  <p i18n>We use a small number of services to run Almonium. Each receives only what it needs for its job.</p>
+  <dl class="parties">
+    <div><dt>{{ 'Firebase (Google)' }}</dt><dd i18n>Sign-in and account security; push notifications on mobile. Receives your email, sign-in method, and device token.</dd></div>
+    <div><dt>{{ 'Paddle' }}</dt><dd i18n>Billing. Paddle is the merchant of record: it charges you, handles VAT and refunds, and holds your payment details. Receives your email, country, and what you bought.</dd></div>
+    <div><dt>{{ 'Stream' }}</dt><dd i18n>Chat delivery. Receives your display name, avatar, and the messages you send.</dd></div>
+    <div><dt>{{ 'Google Analytics' }}</dt><dd i18n>Usage statistics. Receives page views, feature events, device type, and approximate region. IP addresses are truncated.</dd></div>
+    <div><dt>{{ 'Zepto Mail' }}</dt><dd i18n>Sends our emails. Receives your email address and the content of each message.</dd></div>
+    <div><dt>{{ 'Oracle Cloud, Backblaze' }}</dt><dd i18n>Hosting and encrypted backups. Hold everything above on our behalf.</dd></div>
+  </dl>
+  <p i18n>We will also share data if the law requires it, or to protect someone from harm. That has never happened.</p>
+
+  <h2 i18n id="where">5. Where it lives</h2>
+  <p i18n>Our servers are in the European Union. Some of the services above are based in the United States. Where data leaves the EU, it does so under the European Commission’s standard contractual clauses or an equivalent safeguard.</p>
+
+  <h2 i18n id="retention">6. How long we keep it</h2>
+  <p i18n>For as long as you have an account. When you delete your account, your learning data, messages, and profile are removed within 30 days, and disappear from backups within 90. We keep payment records for as long as tax law requires, which in Ukraine is three years. Anonymous usage statistics are kept indefinitely; they cannot be traced back to you.</p>
+
+  <h2 i18n id="rights">7. Your rights</h2>
+  <p i18n>You can see and change your account details, languages, and saved words in the app at any time. You can export your words from Settings. You can delete your account and everything in it from Settings, without asking us; the button says “Delete account and all data” and means it.</p>
+  <p i18n>If you are in the EU, the UK, or anywhere with similar law, you also have the right to receive a copy of your data, to correct it, to restrict or object to how we use it, and to complain to your local data protection authority. Write to us and we will act within 30 days.</p>
+
+  <h2 i18n id="cookies">8. Cookies</h2>
+  <p i18n>We use a session cookie to keep you signed in and local storage to remember your settings. Google Analytics sets its own cookie to tell returning visitors from new ones. There are no advertising cookies and no third-party trackers beyond that one.</p>
+
+  <h2 i18n id="age">9. Age</h2>
+  <p i18n>You must be 16 or older to create an account. If we learn that someone younger has signed up, we delete the account. Reading without an account has no age limit, though some of the books in the library are nineteenth-century novels and not written for children.</p>
+
+  <h2 i18n id="changes">10. Changes</h2>
+  <p i18n>If this policy changes in a way that matters, we will email you before it takes effect. Small wording fixes are just made, with the date above updated.</p>
+
+  <h2 i18n id="contact">11. Contact</h2>
+  <p i18n>Almonium LLC (ТОВ «Алмоніум»), Kyiv, Ukraine. <a href="mailto:support@almonium.com">support&#64;almonium.com</a>. The founder reads and answers every message.</p>
+</app-legal-page>
