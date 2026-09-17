@@ -7,7 +7,7 @@ import {Meta, Title} from '@angular/platform-browser';
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
-import {Book} from "../book.model";
+import {Book, BookLanguageVariant} from "../book.model";
 import {LanguageCode} from "../../../models/language.enum";
 import {TranslationOrder, TranslationOrderStatus, TranslationRequestQuota} from "../translation-order.model";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
@@ -23,6 +23,8 @@ import {Language} from '../../../models/language.model';
 import {FormsModule} from '@angular/forms';
 import {BookChapter, chapterLevelRange, displayChapterTitle} from '../book-chapter.model';
 import {ReaderPositionStorage} from '../reader/reader-position-storage.service';
+import {editionKind, editionKindLabel} from '../edition-kind';
+import {levelRank} from '../work-tile';
 
 /** How many contents rows the book page shows before "All N chapters". */
 const CONTENTS_PREVIEW_ROWS = 8;
@@ -43,6 +45,15 @@ interface LanguageChip {
   code: LanguageCode | null;
   name: string;
   state: ChipState;
+}
+
+/** An edition of the work in the reading language (G15): kind · level, and the hairline of a started one. */
+interface EditionChip {
+  editionSlug: string;
+  label: string;
+  selected: boolean;
+  /** Percent read, when this reader has started the edition; null otherwise. */
+  progress: number | null;
 }
 
 @Component({
@@ -246,19 +257,56 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * The Edition row (G15): the work's editions in the reading language, the original first and the rest by
+   * level, this one solid, the others one tap away. It shows only when there are two or more; a
+   * single-edition work has no row.
+   */
+  protected get editionChips(): EditionChip[] {
+    const book = this.book;
+    if (!book) return [];
+    const editions = book.languageVariants
+      .filter(variant => variant.language === book.language)
+      .sort((a, b) => Number(editionKind(a.editionType) !== 'original') - Number(editionKind(b.editionType) !== 'original') || levelRank(a.cefrLevel) - levelRank(b.cefrLevel));
+    if (editions.length < 2) return [];
+    return editions.map(edition => ({
+      editionSlug: edition.editionSlug,
+      label: [editionKindLabel(edition.editionType), edition.cefrLevel].filter(Boolean).join(' · '),
+      selected: edition.id === book.id,
+      progress: this.editionProgress(edition),
+    }));
+  }
+
+  /** Progress is per edition: the server's figure for this one, the place kept on this device for any. */
+  private editionProgress(edition: BookLanguageVariant): number | null {
+    const device = this.positionStorage.get(`public:${edition.editionSlug}`)?.percentage ?? null;
+    const server = edition.id === this.book?.id ? this.book.progressPercentage : null;
+    const progress = Math.max(server ?? 0, device ?? 0);
+    return progress > 0 ? progress : null;
+  }
+
+  /** Companions are the work's editions in other languages; same-language editions are the Edition row. */
+  private get companions(): BookLanguageVariant[] {
+    const book = this.book;
+    return book ? book.languageVariants.filter(variant => variant.id !== book.id && variant.language !== book.language) : [];
+  }
+
+  /**
    * Solid is the pair the reader will open, outline is one tap to switch, dashed with a plus is
    * requestable: only languages on the fluent list, only on library books, and only when signed in.
+   * A chip is the language's name; the level joins it only when the language has two editions here.
    */
   protected get languageChips(): LanguageChip[] {
     const book = this.book;
     if (!book) return [];
-    const variants = book.languageVariants.filter(variant => variant.id !== book.id);
+    const variants = this.companions;
     const available = variants.map(variant => variant.language);
     const defaultPair = this.fluentLanguages.find(language => available.includes(language)) ?? available[0] ?? null;
     const chips: LanguageChip[] = variants.map(variant => ({
       code: variant.language,
       editionSlug: variant.editionSlug,
-      name: `${this.languageName(variant.language)} · ${variant.cefrLevel ?? ''} · ${variant.editionType?.replaceAll('_', ' ') ?? 'edition'}`,
+      name: available.filter(language => language === variant.language).length > 1 && variant.cefrLevel
+        ? `${this.languageName(variant.language)} · ${variant.cefrLevel}`
+        : this.languageName(variant.language),
       state: variant.language === defaultPair ? 'reading' : 'available',
     }));
     if (!this.authenticated) return chips;
@@ -287,6 +335,28 @@ export class BookComponent implements OnInit, OnDestroy {
       ...this.fluentLanguages,
     ]);
     return this.supportedLanguages.filter(language => !taken.has(language.code));
+  }
+
+  /**
+   * Alignment follows the source (G15): a companion translated from another edition of the work lines up
+   * with that one, not with this text. The language exists, only the pairing is loose, so this is a grey
+   * line rather than a dashed chip.
+   */
+  protected get alignmentNotes(): string[] {
+    const book = this.book;
+    if (!book) return [];
+    const thisKind = editionKind(book.languageVariants.find(variant => variant.id === book.id)?.editionType);
+    const sameLanguageSlugs = new Set(book.languageVariants.filter(variant => variant.language === book.language).map(variant => variant.editionSlug));
+    const notes: string[] = [];
+    for (const companion of this.companions) {
+      const source = companion.sourceEditionSlug;
+      if (!source || source === book.editionSlug || !sameLanguageSlugs.has(source)) continue;
+      const name = this.languageName(companion.language);
+      notes.push(thisKind === 'adapted'
+        ? $localize`${name}:language: follows the original text, not this adaptation.`
+        : $localize`${name}:language: follows another edition of this book, not this one.`);
+    }
+    return notes;
   }
 
   protected get parallelNote(): string | null {

@@ -28,7 +28,10 @@
 .parallel .eyebrow { margin: 0; }
 .chip-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .chip-row__empty { margin: 0; color: var(--metadata-color); font-size: .82rem; }
-.lang-chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.1rem; padding: .4rem .95rem; border: 1px solid transparent; border-radius: 999px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; text-decoration: none; }
+.lang-chip { position: relative; display: inline-flex; align-items: center; gap: .4rem; min-height: 2.1rem; padding: .4rem .95rem; border: 1px solid transparent; border-radius: 999px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; text-decoration: none; }
+// A started edition's chip carries its own hairline of progress (G15), never a percentage.
+.lang-chip__hairline { position: absolute; bottom: 4px; left: .95rem; display: block; max-width: calc(100% - 1.9rem); height: 2px; border-radius: 1px; background: currentColor; opacity: .55; }
+.lang-chip--solid .lang-chip__hairline { opacity: .8; }
 .lang-chip--solid { background: var(--dark-raspberry); color: #fff; font-weight: 600; }
 .lang-chip--outline { border-color: var(--hairline-color); background: transparent; color: var(--subhead-color); }
 .lang-chip--outline:hover { border-color: var(--control-border-color); color: var(--text-color); }

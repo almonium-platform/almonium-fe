@@ -66,6 +66,22 @@
 
       <span class="hairline" aria-hidden="true"></span>
 
+      @if (editionChips.length > 0) {
+        <!-- The Edition row (G15): kind · level, this one solid, a started one carrying its own hairline. -->
+        <section class="parallel" aria-labelledby="edition-heading">
+          <h2 i18n id="edition-heading" class="eyebrow">Edition</h2>
+          <div class="chip-row">
+            @for (chip of editionChips; track chip.editionSlug) {
+              @if (chip.selected) {
+                <span class="lang-chip lang-chip--solid" aria-current="page">{{ chip.label }}@if (chip.progress; as progress) { <i class="lang-chip__hairline" aria-hidden="true" [style.width.%]="progress"></i> }</span>
+              } @else {
+                <a class="lang-chip lang-chip--outline" [routerLink]="['/books', chip.editionSlug]">{{ chip.label }}@if (chip.progress; as progress) { <i class="lang-chip__hairline" aria-hidden="true" [style.width.%]="progress"></i> }</a>
+              }
+            }
+          </div>
+        </section>
+      }
+
       <section class="parallel" aria-labelledby="parallel-heading">
         <h2 i18n id="parallel-heading" class="eyebrow">Parallel text</h2>
         <div class="chip-row">
@@ -90,6 +106,7 @@
           }
           @if (languageChips.length === 0) { <p i18n class="chip-row__empty">No parallel text for this book yet.</p> }
         </div>
+        @for (note of alignmentNotes; track note) { <p class="parallel__note">{{ note }}</p> }
         @if (parallelNote; as note) { <p class="parallel__note">{{ note }}</p> }
       </section>
 

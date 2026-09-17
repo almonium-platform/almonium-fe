@@ -23,6 +23,8 @@ export interface Book {
   wordCount: number;
   language: LanguageCode;
   cefrLevel: CEFRLevel;
+  /** original, adaptation, machine_translation or human_translation; the shelf needs it to pick a tile's edition. */
+  editionType?: string;
   progressPercentage: number | null;
   isTranslation: boolean;
   hasParallelTranslation: boolean;
@@ -97,6 +99,7 @@ export function parseBook(value: unknown, path = 'book'): Book {
     wordCount: expectNumber(data['wordCount'], `${path}.wordCount`),
     language: expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
     cefrLevel: expectEnum(data['cefrLevel'], Object.values(CEFRLevel), `${path}.cefrLevel`),
+    ...optionalString(data['editionType'], 'editionType', path),
     progressPercentage: expectNullableNumber(data['progressPercentage'], `${path}.progressPercentage`),
     isTranslation: expectBoolean(data['isTranslation'], `${path}.isTranslation`),
     hasParallelTranslation: expectBoolean(
@@ -136,7 +139,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
   });
 }
 
-function optionalString<K extends 'translator' | 'originalTitle'>(
+function optionalString<K extends 'translator' | 'originalTitle' | 'editionType'>(
   value: unknown,
   key: K,
   path: string,

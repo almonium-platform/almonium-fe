@@ -52,7 +52,7 @@
       <div class="kicker-row"><h2 i18n id="continue-heading" class="kicker">Continue</h2><span class="rule" aria-hidden="true"></span></div>
       <div class="continue-row">
         @for (book of continueBooks; track book.id) {
-          <a class="continue-card" [routerLink]="['/books', book.editionSlug]" [style.--book-color]="bookColor(book.id, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
+          <a class="continue-card" [routerLink]="['/books', book.editionSlug]" [style.--book-color]="bookColor(book.workSlug, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
             @if (book.coverUrl) { <app-book-cover class="continue-art" [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover> }
             @else { <strong class="continue-title">{{ book.title }}</strong> }
             <span class="continue-foot"><small>{{ book.author }}</small><span class="progress-hairline"><i [style.width.%]="book.progressPercentage ?? 0"></i></span></span>
@@ -87,19 +87,21 @@
 
   <section class="book-shelf" aria-labelledby="library-heading">
     <div class="kicker-row">
-      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container> @if ((loading$ | async) === false) { <span class="kicker__count">· {{ shelfBooks.length }}</span> }</h2>
+      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container> @if ((loading$ | async) === false) { <span class="kicker__count">· {{ shelfTiles.length }}</span> }</h2>
       <span class="rule" aria-hidden="true"></span>
       <div class="view-toggle" role="group" aria-label="Library view" i18n-aria-label><button i18n type="button" [class.active]="libraryView === 'spines'" [attr.aria-pressed]="libraryView === 'spines'" (click)="setShelfView('library', 'spines')">Spines</button><button i18n type="button" [class.active]="libraryView === 'covers'" [attr.aria-pressed]="libraryView === 'covers'" (click)="setShelfView('library', 'covers')">Covers</button></div>
     </div>
     @if (loading$ | async) { <div i18n class="loading-row" [tuiSkeleton]="true">Loading library</div> }
-    @else if (shelfBooks.length > 0) {
+    @else if (shelfTiles.length > 0) {
+      <!-- One tile per work (G14): the title, level and progress are the edition the tile opens. -->
       <div class="shelf" [class.cover-shelf]="libraryView === 'covers'">
-        @for (book of shelfBooks; track book.id) {
+        @for (tile of shelfTiles; track tile.key) {
+          @let book = tile.edition;
           <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
             @if (libraryView === 'covers') {
-              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ book.cefrLevel }}</small></span></a>
+              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ captionFor(book) }}</small></span></a>
             } @else {
-              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.id, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }} · {{ pagesLabel(book.wordCount) }} · {{ book.cefrLevel }}</small></span></a>
+              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(book, true) }}</small></span></a>
             }
           </div>
         }

@@ -24,6 +24,8 @@ import {LanguageNameService} from '../../services/language-name.service';
 import {LanguageCode} from '../../models/language.enum';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} from './book-hue';
 import {getErrorMessage} from '../../shared/http-error';
+import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst} from './work-tile';
+import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 
 type ShelfViewMode = 'covers' | 'spines';
 
@@ -57,6 +59,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private localStorageService = inject(LocalStorageService);
   private languageNameService = inject(LanguageNameService);
+  private positionStorage = inject(ReaderPositionStorage);
 
   @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
 
@@ -74,7 +77,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected requestQuota: TranslationRequestQuota | null = null;
   protected withdrawing: string | null = null;
   protected currentLanguageName = '';
-  /** Hues sampled from cover art, by book id; anything missing falls back to the hash. */
+  private currentLanguage: LanguageCode | null = null;
+  /** Hues sampled from cover art, by work (or import id); anything missing falls back to the hash. */
   private sampledHues = new Map<string, BookHue>();
 
   titleFormControl = new FormControl<string>('');
@@ -96,7 +100,8 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   selectedBook: Book | null = null;
   parallelTranslationToggle = false;
-  includeTranslationsToggle = false;
+  /** On by default for every language (G17): the point of the chip is to have something to read. */
+  includeTranslationsToggle = true;
   protected libraryView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_library_view') ?? 'covers';
   protected privateView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_private_view') ?? 'spines';
 
@@ -114,6 +119,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       }
     });
     this.targetLanguageDropdownService.currentLanguage$.pipe(takeUntil(this.destroy$)).subscribe(language => {
+      this.currentLanguage = language;
       this.currentLanguageName = this.languageNameService.getLanguageName(language);
     });
     this.listenToBookSearch();
@@ -236,12 +242,15 @@ export class ReadComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Snap each cover's dominant colour to the palette so a spine matches the art it stands for. */
+  /**
+   * Snap each cover's dominant colour to the palette so a spine matches the art it stands for. The hue is
+   * kept per work, so a tile keeps its colour whichever edition it opens.
+   */
   private sampleCoverHues(books: Book[]): void {
     for (const book of books) {
-      if (!book.coverUrl || this.sampledHues.has(book.id)) continue;
+      if (!book.coverUrl || this.sampledHues.has(book.workSlug)) continue;
       void dominantBookHue(book.coverUrl).then(hue => {
-        if (hue !== null) this.sampledHues.set(book.id, hue);
+        if (hue !== null) this.sampledHues.set(book.workSlug, hue);
       });
     }
   }
@@ -369,17 +378,20 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   private sortBooks(books: Book[]) {
-    const sortBy = this.sortControl.value;
+    books.sort((a, b) => this.compareBooks(a, b));
+  }
 
-    books.sort((a, b) => {
-      if (sortBy === 'Newest first') return b.publicationYear - a.publicationYear;
-      if (sortBy === 'Oldest first') return a.publicationYear - b.publicationYear;
-      if (sortBy === 'Shortest first') return a.wordCount - b.wordCount;
-      if (sortBy === 'Longest first') return b.wordCount - a.wordCount;
-      if (sortBy === 'Level: low to high') return this.cefrLevelToNumber(a.cefrLevel) - this.cefrLevelToNumber(b.cefrLevel);
-      if (sortBy === 'Level: high to low') return this.cefrLevelToNumber(b.cefrLevel) - this.cefrLevelToNumber(a.cefrLevel);
-      return 0;
-    });
+  /** The chosen order; when its keys tie, originals come before translations (G17). */
+  private compareBooks(a: Book, b: Book): number {
+    const sortBy = this.sortControl.value;
+    let order = 0;
+    if (sortBy === 'Newest first') order = b.publicationYear - a.publicationYear;
+    if (sortBy === 'Oldest first') order = a.publicationYear - b.publicationYear;
+    if (sortBy === 'Shortest first') order = a.wordCount - b.wordCount;
+    if (sortBy === 'Longest first') order = b.wordCount - a.wordCount;
+    if (sortBy === 'Level: low to high') order = this.cefrLevelToNumber(a.cefrLevel) - this.cefrLevelToNumber(b.cefrLevel);
+    if (sortBy === 'Level: high to low') order = this.cefrLevelToNumber(b.cefrLevel) - this.cefrLevelToNumber(a.cefrLevel);
+    return order || originalsFirst(a, b);
   }
 
   private cefrLevelToNumber(level: string): number {
@@ -434,9 +446,45 @@ export class ReadComponent implements OnInit, OnDestroy {
     return this.continueReading.slice(0, 3);
   }
 
-  protected get shelfBooks(): Book[] {
+  /**
+   * One tile per work (G14): the editions that passed the filters, grouped by work after the filter so a
+   * level filter never hides a work with an edition at that level, then ordered by the edition each tile
+   * opens. The Continue row is a row of bookmarks, so the editions lying there do not stand on the shelf too.
+   */
+  protected get shelfTiles(): WorkTile[] {
     const continuing = new Set(this.continueBooks.map(book => book.id));
-    return this.filteredBooks.filter(book => !continuing.has(book.id));
+    const editions = this.filteredBooks.filter(book => !continuing.has(book.id));
+    return groupIntoWorks(editions, this.tilePreferences).sort((a, b) => this.compareBooks(a.edition, b.edition));
+  }
+
+  /**
+   * What decides which edition a tile opens: the level filter, then the edition last opened (the server's
+   * reading order first, then a place kept on this device), then the level closest at or below the
+   * reader's own, then the lowest. A guest gets the original, or the lowest.
+   */
+  private get tilePreferences(): TilePreferences {
+    const level = this.cefrLevelControl.value;
+    const lastOpenedRank = new Map<string, number>();
+    this.continueReading.forEach((book, index) => lastOpenedRank.set(book.editionSlug, index));
+    for (const book of this.filteredBooks) {
+      if (!lastOpenedRank.has(book.editionSlug) && this.positionStorage.get(`public:${book.editionSlug}`)) {
+        lastOpenedRank.set(book.editionSlug, lastOpenedRank.size);
+      }
+    }
+    const learner = this.userInfoService.currentUserInfo?.learners.find(item => item.language === this.currentLanguage);
+    return {
+      levelFilter: level && level !== 'Any level' ? level : null,
+      lastOpenedRank,
+      selfLevel: learner?.selfReportedLevel ?? null,
+      guest: !this.isAuthenticated,
+    };
+  }
+
+  /** The tile's caption (G17): author, level, and the one honest word when the prose is a translation. */
+  protected captionFor(book: Book, pages = false): string {
+    const parts = [book.author, ...(pages ? [this.pagesLabel(book.wordCount)] : []), book.cefrLevel];
+    if (book.isTranslation) parts.push($localize`Translation`);
+    return parts.join(' · ');
   }
 
   /** Search and sort act on the private shelf too; level does not, because imports are not levelled. */
@@ -469,29 +517,30 @@ export class ReadComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected bookColor(id: string, coverUrl: string | null = null): string {
-    return bookColor(this.hueFor(id, coverUrl));
+  /** `key` is the work for a library book and the import id for a private one: the same book, the same colour forever. */
+  protected bookColor(key: string, coverUrl: string | null = null): string {
+    return bookColor(this.hueFor(key, coverUrl));
   }
 
-  private hueFor(id: string, coverUrl: string | null): BookHue {
-    return (coverUrl ? this.sampledHues.get(id) : undefined) ?? hashedBookHue(id);
+  private hueFor(key: string, coverUrl: string | null): BookHue {
+    return (coverUrl ? this.sampledHues.get(key) : undefined) ?? hashedBookHue(key);
   }
 
   /**
    * A spine's colour comes from the palette, its thickness from the id, and its height from the
    * page count within a 142–174px band: two dimensions of variation is what makes a shelf scannable.
    */
-  protected spineStyle(id: string, wordCount: number, coverUrl: string | null = null): Record<string, string> {
+  protected spineStyle(key: string, wordCount: number, coverUrl: string | null = null): Record<string, string> {
     const height = 142 + Math.min(32, Math.max(0, Math.round(wordCount / 3500)));
     return {
-      '--book-color': bookColor(this.hueFor(id, coverUrl)),
-      '--spine-width': `${hashedSpineWidth(id)}px`,
+      '--book-color': bookColor(this.hueFor(key, coverUrl)),
+      '--spine-width': `${hashedSpineWidth(key)}px`,
       '--spine-height': `${height}px`,
     };
   }
 
   /** Author drops off below 44px: a spine is a handle, not a citation. */
-  protected showSpineAuthor(id: string): boolean {
-    return hashedSpineWidth(id) >= 44;
+  protected showSpineAuthor(key: string): boolean {
+    return hashedSpineWidth(key) >= 44;
   }
 }

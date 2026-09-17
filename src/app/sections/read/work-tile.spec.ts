@@ -1,0 +1,71 @@
+import {CEFRLevel} from '../../models/userinfo.model';
+import {LanguageCode} from '../../models/language.enum';
+import {Book} from './book.model';
+import {TilePreferences, groupIntoWorks, originalsFirst, pickTileEdition} from './work-tile';
+
+function edition(overrides: Partial<Book>): Book {
+  return {
+    id: '01989f47-4c2a-7a10-9e5b-751983624a25',
+    editionSlug: 'frankenstein-en-c1',
+    workSlug: 'frankenstein',
+    title: 'Frankenstein; or, The Modern Prometheus',
+    author: 'Mary Shelley',
+    description: '',
+    publicationYear: 1818,
+    coverUrl: null,
+    wordCount: 77706,
+    language: LanguageCode.EN,
+    cefrLevel: CEFRLevel.C1,
+    progressPercentage: null,
+    isTranslation: false,
+    hasParallelTranslation: true,
+    hasTranslation: true,
+    languageVariants: [],
+    favorite: false,
+    editionType: 'original',
+    ...overrides,
+  };
+}
+
+const original = edition({});
+const adapted = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-en-b2', cefrLevel: CEFRLevel.B2, editionType: 'adaptation'});
+const ukrainian = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a27', editionSlug: 'frankenstein-uk-b2', language: LanguageCode.UK, cefrLevel: CEFRLevel.B2, editionType: 'machine_translation', isTranslation: true, title: 'Франкенштейн, або Сучасний Прометей', author: 'Мері Шеллі'});
+const other = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a28', editionSlug: 'lisova-pisnya-uk', workSlug: 'lisova-pisnya', language: LanguageCode.UK, cefrLevel: CEFRLevel.C1});
+
+const member: TilePreferences = {levelFilter: null, lastOpenedRank: new Map(), selfLevel: CEFRLevel.B2, guest: false};
+
+describe('work tiles', () => {
+  it('shows a work once per language, never once per edition', () => {
+    const tiles = groupIntoWorks([original, adapted, ukrainian, other], member);
+    expect(tiles.map(tile => tile.key)).toEqual(['frankenstein|EN', 'frankenstein|UK', 'lisova-pisnya|UK']);
+    expect(tiles[0].editions.length).toBe(2);
+  });
+
+  it('opens the edition at the level filter when one is set', () => {
+    expect(pickTileEdition([original, adapted], {...member, levelFilter: CEFRLevel.C1})).toBe(original);
+    expect(pickTileEdition([original, adapted], {...member, levelFilter: CEFRLevel.B2})).toBe(adapted);
+  });
+
+  it('otherwise opens the edition the reader last opened', () => {
+    const lastOpenedRank = new Map([[original.editionSlug, 0], [adapted.editionSlug, 1]]);
+    expect(pickTileEdition([original, adapted], {...member, lastOpenedRank})).toBe(original);
+  });
+
+  it('otherwise opens the closest level at or below the self-reported level, else the lowest', () => {
+    expect(pickTileEdition([original, adapted], member)).toBe(adapted);
+    expect(pickTileEdition([original, adapted], {...member, selfLevel: CEFRLevel.C2})).toBe(original);
+    expect(pickTileEdition([original, adapted], {...member, selfLevel: CEFRLevel.A2})).toBe(adapted);
+    expect(pickTileEdition([original, adapted], {...member, selfLevel: null})).toBe(adapted);
+  });
+
+  it('opens the original for a guest, or the lowest level when the shelf language has none', () => {
+    const guest: TilePreferences = {levelFilter: null, lastOpenedRank: new Map(), selfLevel: null, guest: true};
+    expect(pickTileEdition([adapted, original], guest)).toBe(original);
+    const adaptedC1 = edition({...adapted, editionSlug: 'frankenstein-en-c1-adapted', cefrLevel: CEFRLevel.C1});
+    expect(pickTileEdition([adaptedC1, adapted], guest)).toBe(adapted);
+  });
+
+  it('puts originals before translations when sort keys tie', () => {
+    expect([ukrainian, other].sort(originalsFirst)).toEqual([other, ukrainian]);
+  });
+});
