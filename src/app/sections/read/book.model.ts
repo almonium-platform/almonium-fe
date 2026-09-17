@@ -31,6 +31,8 @@ export interface Book {
   favorite: boolean;
   originalLanguage?: LanguageCode;
   originalId?: string;
+  /** The original's title when this edition is titled differently, e.g. a translation. */
+  originalTitle?: string;
   translator?: string;
 }
 
@@ -110,6 +112,7 @@ export function parseBook(value: unknown, path = 'book'): Book {
       : expectBoolean(data['favorite'], `${path}.favorite`),
     ...optionalEnum(data['originalLanguage'], Object.values(LanguageCode), 'originalLanguage', path),
     ...optionalUuid(data['originalId'], 'originalId', path),
+    ...optionalString(data['originalTitle'], 'originalTitle', path),
     ...optionalString(data['translator'], 'translator', path),
   };
 }
@@ -133,14 +136,14 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
   });
 }
 
-function optionalString(
+function optionalString<K extends 'translator' | 'originalTitle'>(
   value: unknown,
-  key: 'translator',
+  key: K,
   path: string,
-): Partial<Pick<Book, 'translator'>> {
+): Partial<Pick<Book, K>> {
   return value === null || value === undefined
     ? {}
-    : {[key]: expectString(value, `${path}.${key}`)};
+    : {[key]: expectString(value, `${path}.${key}`)} as Partial<Pick<Book, K>>;
 }
 
 function optionalUuid(

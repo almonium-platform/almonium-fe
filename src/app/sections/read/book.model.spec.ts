@@ -33,6 +33,13 @@ describe('book API runtime validation', () => {
     expect(view.continueReading[0].favorite).toBeFalse();
   });
 
+  it('keeps the original title only when the API names one', () => {
+    expect(parseBook(book).originalTitle).toBeUndefined();
+    expect(parseBook({...book, originalTitle: null}).originalTitle).toBeUndefined();
+    expect(parseBook({...book, title: 'Книга', originalTitle: 'The Book'}).originalTitle).toBe('The Book');
+    expect(() => parseBook({...book, originalTitle: 7})).toThrowError(ApiContractError);
+  });
+
   it('rejects an unknown language before it reaches reader state', () => {
     expect(() => parseBook({...book, language: 'INVALID'})).toThrowError(ApiContractError);
   });

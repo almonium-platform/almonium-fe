@@ -43,8 +43,10 @@
         </a>
         <div class="book-head__copy">
           <h1 class="book-title">{{ book.title }}</h1>
-          <p class="book-meta">{{ book.author }} · {{ bookLanguage }} · {{ book.cefrLevel }}</p>
+          @if (book.originalTitle) { <p class="book-original-title">{{ book.originalTitle }}</p> }
+          <p class="book-meta">{{ book.author }} · {{ bookLanguage }}</p>
           <div class="book-pills">
+            <span class="pill pill--level">{{ book.cefrLevel }}</span>
             <span i18n class="pill">{pages, plural, =1 {1 page} other {{{pages}} pages}}</span>
             @if (book.publicationYear) { <span i18n class="pill">Published {{ book.publicationYear }}</span> }
             @if (book.isTranslation && book.translator) { <span i18n class="pill">Translated by {{ book.translator }}</span> }
