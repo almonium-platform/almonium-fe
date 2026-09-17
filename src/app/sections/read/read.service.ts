@@ -237,7 +237,7 @@ export class ReadService {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress`;
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
     let params = new HttpParams().set('percentage', percentage.toString());
-    if (place) params = params.set('chapter', String(place.chapter)).set('chapterCount', String(place.chapterCount));
+    if (place) params = params.set('chapter', String(place.chapter));
 
     return this.http.post<void>(url, null, {params, withCredentials: true}).pipe(
       tap(() => logger.debug(`ReadService: Saved progress ${percentage}% for ${bookId}`)),
@@ -255,7 +255,7 @@ export class ReadService {
     }
 
     percentage = Math.max(0, Math.min(100, Math.round(percentage)));
-    const placeQuery = place ? `&chapter=${place.chapter}&chapterCount=${place.chapterCount}` : '';
+    const placeQuery = place ? `&chapter=${place.chapter}` : '';
     const url = `${AppConstants.BOOKS_URL}/${bookId}/progress?percentage=${percentage}${placeQuery}`;
 
     try {

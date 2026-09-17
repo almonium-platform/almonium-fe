@@ -917,7 +917,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       this.progressTracker.update(
         bookPercentage(this.chapters, this.currentIndex, state.percentage / 100),
         position,
-        this.chapters.length ? {chapter: this.currentKey, chapterCount: this.chapters.length} : null,
+        this.chapters.length ? {chapter: this.currentKey} : null,
       );
     }
   }

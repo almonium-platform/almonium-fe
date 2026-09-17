@@ -26,8 +26,9 @@ export interface Book {
   /** original, adaptation, machine_translation or human_translation; the shelf needs it to pick a tile's edition. */
   editionType?: string;
   progressPercentage: number | null;
-  /** The place beside the percentage, as a reader last numbered it; null until a reader sends it. */
+  /** The chapter a reader stopped in, as the processor numbers it; null until a reader sends it. */
   currentChapter: number | null;
+  /** How many chapters the processor published; null for an edition published before it said. */
   chapterCount: number | null;
   isTranslation: boolean;
   hasParallelTranslation: boolean;
@@ -41,10 +42,9 @@ export interface Book {
   translator?: string;
 }
 
-/** The chapter being read and how many the reader counted; saved with the percentage, said back by the shelf. */
+/** The chapter being read, as the processor numbers it; saved with the percentage, said back by every shelf against the book's count. */
 export interface ReadingPlace {
   chapter: number;
-  chapterCount: number;
 }
 
 export interface BookMiniDetails {

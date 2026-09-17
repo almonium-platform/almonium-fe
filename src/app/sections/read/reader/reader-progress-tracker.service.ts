@@ -13,7 +13,7 @@ interface ProgressUpdate {
 }
 
 function sameUpdate(a: ProgressUpdate, b: ProgressUpdate): boolean {
-  return a.percentage === b.percentage && a.place?.chapter === b.place?.chapter && a.place?.chapterCount === b.place?.chapterCount;
+  return a.percentage === b.percentage && a.place?.chapter === b.place?.chapter;
 }
 
 /**
