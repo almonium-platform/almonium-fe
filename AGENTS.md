@@ -39,8 +39,11 @@ repositories:
   being targeted. A frontend environment/configuration change may require the
   matching backend binding and infra deployment configuration.
 - The frontend staging workflow builds an ARM64 image and invokes the infra
-  repository's frontend Ansible playbook. SSH access does not authorize
-  bypassing this deployment path or making ad-hoc production changes.
+  repository's frontend Ansible playbook; production follows from the same
+  commit unless the repository variable `PROD_FOLLOWS_STAGING` holds it back,
+  and `deploy-prod.yaml` is the manual path for rollbacks and held releases.
+  SSH access does not authorize bypassing this deployment path or making
+  ad-hoc production changes.
 - For an end-to-end feature, validate the browser behavior against the matching
   backend environment, including cookies and CSRF behavior where applicable.
 

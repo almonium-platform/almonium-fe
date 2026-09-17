@@ -1,0 +1,220 @@
+name: Reusable Build and Deploy
+
+# Builds the bundle for one environment, images it and deploys it through the infra
+# playbook. The Angular configuration bakes the API hostname and Firebase project in, so
+# staging and production are different bundles and different image tags of the same commit.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: staging or prod
+        required: true
+        type: string
+      image_tag:
+        description: An existing image tag to re-deploy instead of building
+        required: false
+        type: string
+      verify:
+        description: Lint, test, audit and smoke-test; off when this commit was already verified for another environment
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      INFRA_REPO_CHECKOUT_KEY:
+        required: true
+      CLOUD_KEY:
+        required: true
+      CLOUD_KNOWN_HOSTS:
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  BUILD_CONFIGURATION: ${{ inputs.environment == 'prod' && 'production' || 'staging' }}
+  DIST_DIR: dist/almonium-fe/browser
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.get_tag.outputs.tag }}
+      build_needed: ${{ steps.get_tag.outputs.build_needed }}
+    steps:
+      - name: Determine image tag
+        id: get_tag
+        env:
+          REQUESTED_IMAGE_TAG: ${{ inputs.image_tag }}
+          BUILT_IMAGE_TAG: ${{ github.sha }}-${{ inputs.environment }}
+        run: |
+          if [[ -n "$REQUESTED_IMAGE_TAG" ]]; then
+            echo "tag=$REQUESTED_IMAGE_TAG" >> "$GITHUB_OUTPUT"
+            echo "build_needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=$BUILT_IMAGE_TAG" >> "$GITHUB_OUTPUT"
+            echo "build_needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Builds the bundle once, natively. The smoke tests and the image both use
+  # this exact output, so nothing downstream compiles anything again.
+  quality:
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.build_needed == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        if: inputs.verify
+        run: npm run lint
+
+      - name: Run unit tests
+        if: inputs.verify
+        run: npm run test:ci
+
+      - name: Audit production dependencies
+        if: inputs.verify
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build application
+        run: npm run build -- --configuration "$BUILD_CONFIGURATION"
+
+      - name: Upload built bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ needs.setup.outputs.image_tag }}
+          path: ${{ env.DIST_DIR }}
+          retention-days: 1
+          if-no-files-found: error
+
+  smoke:
+    runs-on: ubuntu-latest
+    needs: [setup, quality]
+    if: needs.setup.outputs.build_needed == 'true' && inputs.verify
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download built bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ needs.setup.outputs.image_tag }}
+          path: ${{ env.DIST_DIR }}
+
+      - name: Read Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run browser smoke tests against the built bundle
+        run: npm run test:e2e
+        env:
+          E2E_DIST: ${{ env.DIST_DIR }}
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ inputs.environment }}
+          path: playwright-report/
+          retention-days: 7
+
+  # Only copies files into the nginx base, so the ARM64 image builds on the
+  # x86 runner without emulating anything.
+  image:
+    runs-on: ubuntu-latest
+    needs: [setup, quality]
+    if: needs.setup.outputs.build_needed == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download built bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-${{ needs.setup.outputs.image_tag }}
+          path: ${{ env.DIST_DIR }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/almonium-platform/almonium-fe:${{ needs.setup.outputs.image_tag }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [setup, quality, smoke, image]
+    if: always() && needs.setup.result == 'success' && (needs.quality.result == 'success' || needs.quality.result == 'skipped') && (needs.smoke.result == 'success' || needs.smoke.result == 'skipped') && (needs.image.result == 'success' || needs.image.result == 'skipped')
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: deploy-almonium-fe-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout almonium-infra repository
+        uses: actions/checkout@v5
+        with:
+          repository: almonium-platform/almonium-infra
+          path: almonium-infra
+          ssh-key: ${{ secrets.INFRA_REPO_CHECKOUT_KEY }}
+
+      - name: Run Ansible Playbook
+        uses: dawidd6/action-ansible-playbook@v4
+        with:
+          playbook: playbook-deploy-almonium-fe.yaml
+          directory: almonium-infra/ansible
+          key: ${{ secrets.CLOUD_KEY }}
+          known_hosts: ${{ secrets.CLOUD_KNOWN_HOSTS }}
+          options: |
+            -i inventory/hosts.ini
+            --limit almonium
+            --extra-vars "deploy_environment=${{ inputs.environment }}"
+            --extra-vars "deploy_image_tag=${{ needs.setup.outputs.image_tag }}"
+            --extra-vars "deploy_gh_actor=${{ github.actor }}"
+            --extra-vars "deploy_gh_token=${{ secrets.GITHUB_TOKEN }}"
