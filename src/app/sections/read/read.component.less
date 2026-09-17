@@ -83,6 +83,32 @@
 .empty-state button { min-height: 2.2rem; background: transparent; box-shadow: inset 0 0 0 1px var(--control-border-color); color: var(--brand-margin); }
 .loading-row { min-height: 10rem; padding: 2rem; }
 
+// The foot of the shelf (G18): one quiet line, centred, grey with the verb in plum. Never a tile.
+.shelf-end { display: block; height: 1px; }
+.ask-line { margin: .9rem 0 0; color: var(--metadata-color); font-size: .82rem; text-align: center; }
+.ask-line--empty { min-height: 5.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem; margin: 0; padding: 1rem; border: 1px solid var(--border-color); border-radius: .9rem; }
+.ask-line__verb { padding: 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-weight: 600; }
+.ask-line__verb:hover { text-decoration: underline; }
+.ask-line__quiet { margin-left: .5rem; padding: 0; border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; }
+
+// The ask sheet (G19), in the shared popup shell.
+.sheet { display: flex; width: min(88vw, 22rem); flex-direction: column; gap: .85rem; padding: 1.5rem 1.5rem 1.25rem; border-radius: 1.375rem; background: var(--overlay-color); color: var(--text-color); }
+.sheet__title { margin: 0; font-family: var(--font-family-reading); font-size: 1.2rem; font-weight: 600; line-height: 1.25; }
+.sheet__note { margin: 0; padding: .7rem .9rem; border-radius: .75rem; background: var(--nested-color); color: var(--subhead-color); font-size: .76rem; line-height: 1.5; }
+.sheet__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
+.sheet__primary { min-height: 2.6rem; padding: .6rem 1.25rem; border: 0; border-radius: 999px; background: var(--dark-raspberry); color: #fff; cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.sheet__primary:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
+.sheet__quiet { border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .82rem; }
+.sheet__hint { margin: -.35rem 0 0; color: var(--metadata-color); font-size: .74rem; line-height: 1.5; }
+.ask-sheet__question { margin: 0; color: var(--subhead-color); font-size: .82rem; font-weight: 600; }
+.ask-option { display: flex; flex-direction: column; gap: .3rem; padding: .85rem 1rem; border: 1px solid var(--hairline-color); border-radius: .9rem; background: transparent; color: var(--text-color); cursor: pointer; font: inherit; text-align: left; }
+.ask-option:hover { border-color: var(--control-border-color); background: var(--state-hover); }
+.ask-option strong { font-size: .88rem; font-weight: 600; }
+.ask-option small { color: var(--subhead-color); font-size: .76rem; line-height: 1.5; }
+.ask-field { display: flex; flex-direction: column; gap: .4rem; color: var(--subhead-color); font-size: .76rem; font-weight: 600; }
+.ask-field input { min-height: 2.6rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: .75rem; background: var(--nested-color); color: var(--text-color); font: inherit; font-size: .88rem; font-weight: 400; }
+.ask-field__chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+
 // The fulfilment notice and the request list, in the card grammar of the rest of the app.
 .notice-card, .requests-card { padding: 1.4rem 1.6rem; border-radius: var(--card-radius); background: var(--card-color); box-shadow: var(--box-shadow); }
 .notice-card { display: flex; flex-direction: column; gap: 1.25rem; }

@@ -205,6 +205,38 @@ export interface LibrarySuggestionRow {
   createdAt: string;
 }
 
+export type BookRequestStatus = 'OPEN' | 'IN_PROGRESS' | 'PUBLISHED' | 'DECLINED';
+
+/**
+ * One work in the book-request queue (G20), grouped by title, author and language; the asker count is the weight.
+ * publicDomain is the lookup result stored at ask time: gutenberg with an id, yes by year, unlikely otherwise.
+ */
+export interface BookRequestRow {
+  id: string;
+  title: string;
+  author: string;
+  language: string;
+  workSlug: string | null;
+  haveLanguages: string[];
+  publicationYear: number | null;
+  gutenbergId: number | null;
+  publicDomain: 'gutenberg' | 'yes' | 'unlikely';
+  askers: number;
+  status: BookRequestStatus;
+  editorialUrl: string;
+  askedAt: string;
+  decidedAt: string | null;
+}
+
+export interface BookRequestQueue {
+  open: number;
+  inProgress: number;
+  published: number;
+  declined: number;
+  askers: number;
+  rows: BookRequestRow[];
+}
+
 export interface LibrarySuggestionQueue {
   open: number;
   ingesting: number;
@@ -389,6 +421,24 @@ export class OpsService {
   cancelSuggestionIngest(id: string): Observable<unknown> {
     const url = `${AppConstants.OPS_URL}/books/library-suggestions/${id}/cancel`;
     return this.http.post(url, {}, {withCredentials: true});
+  }
+
+  // --- Books: the request queue (G20) ---
+
+  bookRequests(): Observable<BookRequestQueue> {
+    const url = `${AppConstants.OPS_URL}/books/requests`;
+    return this.http.get<BookRequestQueue>(url, {withCredentials: true});
+  }
+
+  /** "Add edition" or "New work": the row moves to In progress; the reviewer opens the editorial catalogue. */
+  startBookRequest(id: string): Observable<BookRequestRow> {
+    const url = `${AppConstants.OPS_URL}/books/requests/${id}/start`;
+    return this.http.post<BookRequestRow>(url, {}, {withCredentials: true});
+  }
+
+  declineBookRequest(id: string): Observable<BookRequestRow> {
+    const url = `${AppConstants.OPS_URL}/books/requests/${id}/decline`;
+    return this.http.post<BookRequestRow>(url, {}, {withCredentials: true});
   }
 
   /** The reviewer's read-only copy of the upload; streamed through the backend, never a processor URL. */

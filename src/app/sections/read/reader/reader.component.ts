@@ -333,7 +333,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.bookAuthor = book.author;
         this.bookLevel = book.cefrLevel;
         this.primaryEdition = book.languageVariants.find(variant => variant.id === book.id);
-        this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id);
+        // Companions are other-language editions only; switching within the language is the book page's Edition row.
+        this.parallelVersions = book.languageVariants.filter(variant => variant.id !== book.id && variant.language !== book.language);
         this.trackProgress = this.signedIn;
         this.startCountingReadingTime(book.language);
         this.initialPosition = this.progressTracker.startBook(this.bookKey, this.trackProgress ? book.id : null);
@@ -837,7 +838,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       next: (book) => {
         if (!book) return;
         this.targetLangCode = book.language;
-        this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId);
+        this.parallelVersions = book.languageVariants.filter(t => t.id !== bookId && t.language !== book.language);
         this.primaryEdition = book.languageVariants.find(t => t.id === bookId);
         this.serverPercentage = book.progressPercentage ?? 0;
         this.tryResumeFromServer();

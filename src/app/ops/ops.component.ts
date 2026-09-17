@@ -8,6 +8,8 @@ import {RecentAuthGuardService} from '../authentication/auth/recent-auth-guard.s
 import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-guard.component';
 import {
   AccessGrantRequest,
+  BookRequestQueue,
+  BookRequestRow,
   FirebaseAccountSummary,
   LibrarySuggestionQueue,
   LibrarySuggestionRow,
@@ -302,6 +304,7 @@ export class OpsComponent implements OnInit {
     this.loadSpend();
     this.loadTranslationQueue();
     this.loadLibrarySuggestions();
+    this.loadBookRequests();
 
     // The backend names the environment in the phrase, so the console shows what it will accept
     // rather than guessing: a client pointed at a different backend than you assume is exactly the
@@ -703,6 +706,67 @@ export class OpsComponent implements OnInit {
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to cancel the job'), 'negative'),
       });
+  }
+
+  // --- Books: the request queue (G20) ---
+
+  protected bookRequestQueue: BookRequestQueue | null = null;
+  protected loadingBookRequests = false;
+  protected bookRequestsError = '';
+  protected decidingBookRequest: string | null = null;
+
+  protected loadBookRequests(): void {
+    this.loadingBookRequests = true;
+    this.bookRequestsError = '';
+    this.opsService.bookRequests()
+      .pipe(finalize(() => this.loadingBookRequests = false))
+      .subscribe({
+        next: (queue) => this.bookRequestQueue = queue,
+        error: (error) => {
+          this.bookRequestQueue = null;
+          this.bookRequestsError = getErrorMessage(error, 'The book requests could not be loaded');
+        },
+      });
+  }
+
+  /** The Public domain column: the lookup result stored at ask time, never a legal verdict. */
+  protected publicDomainLabel(row: BookRequestRow): string {
+    switch (row.publicDomain) {
+      case 'gutenberg': return `Gutenberg #${row.gutenbergId}`;
+      case 'yes': return 'Yes';
+      default: return 'Unlikely';
+    }
+  }
+
+  /** Author, year, and the languages the work already exists in when it does. */
+  protected bookRequestMeta(row: BookRequestRow): string {
+    const parts = [row.author || 'Unknown author'];
+    if (row.publicationYear) parts.push(String(row.publicationYear));
+    if (row.haveLanguages.length) parts.push(`have ${row.haveLanguages.join(', ')}`);
+    return parts.join(' · ');
+  }
+
+  /** "Add edition" or "New work": the row moves to In progress and the editorial catalogue opens prefilled. */
+  protected onStartBookRequest(row: BookRequestRow): void {
+    if (this.decidingBookRequest) return;
+    this.recentAuthGuardService.guardAction(() => this.performBookRequestDecision(row, 'start'), false, row.workSlug ? 'Add edition' : 'New work');
+  }
+
+  protected onDeclineBookRequest(row: BookRequestRow): void {
+    if (this.decidingBookRequest) return;
+    this.recentAuthGuardService.guardAction(() => this.performBookRequestDecision(row, 'decline'), false, 'Decline');
+  }
+
+  private performBookRequestDecision(row: BookRequestRow, decision: 'start' | 'decline'): void {
+    this.decidingBookRequest = row.id;
+    const call = decision === 'start' ? this.opsService.startBookRequest(row.id) : this.opsService.declineBookRequest(row.id);
+    call.pipe(finalize(() => this.decidingBookRequest = null)).subscribe({
+      next: (updated) => {
+        if (decision === 'start') window.open(updated.editorialUrl, '_blank', 'noopener');
+        this.loadBookRequests();
+      },
+      error: (error) => this.notify(getErrorMessage(error, `Failed to ${decision} the request`), 'negative'),
+    });
   }
 
   // --- Books: library suggestions (G13) ---

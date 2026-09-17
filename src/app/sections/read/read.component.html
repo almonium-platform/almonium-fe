@@ -6,6 +6,47 @@
   </tui-data-list>
 </ng-template>
 
+<ng-template #askSheet>
+  <div class="sheet ask-sheet">
+    <h2 class="sheet__title" i18n>Ask for a book</h2>
+    @if (askStep === 'route') {
+      <p class="ask-sheet__question" i18n>Do you have the text?</p>
+      <button type="button" class="ask-option" (click)="chooseHaveText(false)">
+        <strong i18n>No, add it for everyone</strong>
+        <small i18n>Works whose copyright has expired, roughly anything published before 1929. We prepare the text and it appears on the shelf for all readers.</small>
+      </button>
+      <button type="button" class="ask-option" (click)="chooseHaveText(true)">
+        <strong i18n>Yes, I’ll bring my own</strong>
+        <small i18n>Upload an EPUB or text. Only you can read it. Private import is part of Premium.</small>
+      </button>
+      <div class="sheet__actions">
+        <button i18n type="button" class="sheet__quiet" (click)="closeAskSheet()">Cancel</button>
+      </div>
+    } @else {
+      <label class="ask-field">
+        <span i18n>Title and author</span>
+        <input type="text" [formControl]="askTitleControl" placeholder="Dracula, Bram Stoker" i18n-placeholder autocomplete="off" />
+      </label>
+      @if (askLanguages.length > 1) {
+        <div class="ask-field" role="group" aria-label="Language you’d read it in" i18n-aria-label>
+          <span i18n>Language you’d read it in</span>
+          <div class="ask-field__chips">
+            @for (code of askLanguages; track code) {
+              <button type="button" class="filter-chip" [class.active]="askLanguage === code" [attr.aria-pressed]="askLanguage === code" (click)="pickAskLanguage(code)">{{ languageName(code) }}</button>
+            }
+          </div>
+        </div>
+      }
+      @if (askResultLine; as line) { <p class="sheet__note">{{ line }}</p> }
+      <div class="sheet__actions">
+        <button type="button" class="sheet__primary" [disabled]="!canAsk && !askLookup?.onShelf" (click)="submitAsk()">{{ askButtonLabel }}</button>
+        <button i18n type="button" class="sheet__quiet" (click)="closeAskSheet()">Cancel</button>
+      </div>
+      @if (askBlockedNote; as note) { <p class="sheet__hint">{{ note }}</p> }
+    }
+  </div>
+</ng-template>
+
 <ng-template #translationsHint><div i18n>Also show books not originally written in {{ currentLanguageName }} — you'll read a {{ currentLanguageName }} translation.</div></ng-template>
 <ng-template #parallelHint><div i18n>Books that can be read side by side with a translation.</div></ng-template>
 
@@ -106,7 +147,16 @@
           </div>
         }
       </div>
+    } @else if (emptySearchTerm; as term) {
+      <!-- The empty search is the same quiet line with the term in it (G18); no placeholder tile. -->
+      <p class="ask-line ask-line--empty"><ng-container i18n>Nothing for ‘{{ term }}’.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for it.</button>&ngsp;<button i18n type="button" class="ask-line__quiet" (click)="clearFilters()">Clear filters</button></p>
     } @else { <div class="empty-state"><p>{{ emptyLibraryMessage }}</p><button i18n type="button" (click)="clearFilters()">Clear filters</button></div> }
+    @if (shelfTiles.length > 0) {
+      <span #shelfEnd class="shelf-end" aria-hidden="true"></span>
+      @if (shelfEndReached) {
+        <p class="ask-line"><ng-container i18n>Missing a classic?</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for a book</button></p>
+      }
+    }
   </section>
 
   @if (isAuthenticated && orders.length > 0) {

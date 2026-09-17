@@ -60,6 +60,8 @@ export interface BookLanguageVariant {
   editionType?: string;
   cefrLevel?: string;
   sourceEditionSlug?: string;
+  /** Editorial's one sentence about the edition, shown under the Edition chips. */
+  editionNote?: string;
 }
 
 export interface BookshelfView {
@@ -146,6 +148,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
       ...(data['editionType'] == null ? {} : {editionType: expectString(data['editionType'], `${itemPath}.editionType`)}),
       ...(data['cefrLevel'] == null ? {} : {cefrLevel: expectString(data['cefrLevel'], `${itemPath}.cefrLevel`)}),
       ...(data['sourceEditionSlug'] == null ? {} : {sourceEditionSlug: expectString(data['sourceEditionSlug'], `${itemPath}.sourceEditionSlug`)}),
+      ...(data['editionNote'] == null ? {} : {editionNote: expectString(data['editionNote'], `${itemPath}.editionNote`)}),
     };
   });
 }

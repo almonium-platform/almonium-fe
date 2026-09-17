@@ -1,5 +1,5 @@
 import {logger} from "../../shared/logger";
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {Router, RouterLink} from "@angular/router";
@@ -7,6 +7,7 @@ import {TargetLanguageDropdownService} from "../../services/target-language-drop
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {TuiDataListDropdownManager, TuiSkeleton} from "@taiga-ui/kit/directives";
 import {BehaviorSubject, debounceTime, forkJoin, of, Subject, take} from "rxjs";
+import {BookLookup} from './book-request.model';
 import {catchError, distinctUntilChanged, filter, finalize, switchMap, takeUntil, tap} from "rxjs/operators";
 import {CEFRLevel} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
@@ -24,7 +25,7 @@ import {LanguageNameService} from '../../services/language-name.service';
 import {LanguageCode} from '../../models/language.enum';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} from './book-hue';
 import {getErrorMessage} from '../../shared/http-error';
-import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst} from './work-tile';
+import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, workKey} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 
 type ShelfViewMode = 'covers' | 'spines';
@@ -62,6 +63,38 @@ export class ReadComponent implements OnInit, OnDestroy {
   private positionStorage = inject(ReaderPositionStorage);
 
   @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
+  @ViewChild('askSheet', {static: true}) private askSheet!: TemplateRef<unknown>;
+
+  /** The foot of the shelf (G18): the ask line shows once the reader has scrolled to it, so a full shelf never advertises what it lacks. */
+  @ViewChild('shelfEnd') set shelfEnd(element: ElementRef<HTMLElement> | undefined) {
+    this.shelfEndObserver?.disconnect();
+    this.shelfEndObserver = null;
+    if (!element || this.shelfEndReached) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      this.shelfEndReached = true;
+      return;
+    }
+    this.shelfEndObserver = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        this.shelfEndReached = true;
+        this.shelfEndObserver?.disconnect();
+        this.shelfEndObserver = null;
+      }
+    });
+    this.shelfEndObserver.observe(element.nativeElement);
+  }
+
+  private shelfEndObserver: IntersectionObserver | null = null;
+  protected shelfEndReached = false;
+
+  // --- Asking for a book (G19) ---
+  protected askStep: 'route' | 'form' = 'route';
+  protected askTitleControl = new FormControl<string>('', {nonNullable: true});
+  protected askLanguage: LanguageCode | null = null;
+  protected askLookup: BookLookup | null = null;
+  protected askLookupPending = false;
+  protected asking = false;
+  private readonly askLookup$ = new Subject<void>();
 
   private readonly destroy$ = new Subject<void>();
   filteredBooks: Book[] = [];
@@ -125,9 +158,11 @@ export class ReadComponent implements OnInit, OnDestroy {
     this.listenToBookSearch();
     this.listenToSortChanges();
     this.listenToCefrLevelChanges();
+    this.listenToAskLookup();
   }
 
   ngOnDestroy() {
+    this.shelfEndObserver?.disconnect();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -377,6 +412,138 @@ export class ReadComponent implements OnInit, OnDestroy {
       });
   }
 
+  // --- Asking for a book (G18, G19) ---
+
+  /** The reader's active languages, the shelf's language first: the chips of the sheet. */
+  protected get askLanguages(): LanguageCode[] {
+    const active = this.userInfoService.currentUserInfo?.learners.filter(learner => learner.active).map(learner => learner.language) ?? [];
+    const current = this.currentLanguage;
+    return current && active.includes(current) ? [current, ...active.filter(code => code !== current)] : active;
+  }
+
+  /** The quiet line's verb, and the empty search's "Ask for it": a guest is sent to sign in first. */
+  protected openAskSheet(): void {
+    if (!this.isAuthenticated) {
+      void this.router.navigate(['/auth'], {queryParams: {returnUrl: '/read'}});
+      return;
+    }
+    this.askStep = 'route';
+    this.askLookup = null;
+    this.askLanguage = this.currentLanguage ?? this.askLanguages[0] ?? null;
+    this.askTitleControl.setValue(this.titleFormControl.value?.trim() ?? '', {emitEvent: false});
+    this.popupTemplateStateService.open(this.askSheet, 'ask-for-a-book');
+  }
+
+  /** One question routes the ask: no text means a public-domain request, a text of their own means the import flow. */
+  protected chooseHaveText(hasText: boolean): void {
+    if (hasText) {
+      this.closeAskSheet();
+      this.startImport();
+      return;
+    }
+    this.askStep = 'form';
+    this.askLookup$.next();
+  }
+
+  protected pickAskLanguage(code: LanguageCode): void {
+    this.askLanguage = code;
+    this.askLookup$.next();
+  }
+
+  protected closeAskSheet(): void {
+    this.popupTemplateStateService.close();
+  }
+
+  private listenToAskLookup(): void {
+    this.askTitleControl.valueChanges.pipe(debounceTime(400), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => this.askLookup$.next());
+    this.askLookup$.pipe(
+      switchMap(() => {
+        const query = this.askTitleControl.value.trim();
+        const language = this.askLanguage;
+        if (query.length < 2 || !language) {
+          this.askLookupPending = false;
+          return of(null);
+        }
+        this.askLookupPending = true;
+        return this.readService.lookupBookRequest(query, language).pipe(
+          catchError(() => of(null)),
+          finalize(() => this.askLookupPending = false),
+        );
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(lookup => this.askLookup = lookup);
+  }
+
+  /** The grey line under the field: the index result, and how many already asked when that is two or more. */
+  protected get askResultLine(): string | null {
+    const query = this.askTitleControl.value.trim();
+    if (query.length < 2 || this.askLookupPending) return null;
+    const lookup = this.askLookup;
+    const found = lookup?.publicDomain === 'gutenberg'
+      ? $localize`We found ${lookup.title}:title: on Project Gutenberg.`
+      : $localize`We couldn’t confirm this is public domain. We’ll check.`;
+    const askers = lookup?.askers ?? 0;
+    return askers >= 2 ? `${found} ${$localize`${askers}:count: readers have asked for it.`}` : found;
+  }
+
+  /** The title the ask goes out under: the index's spelling when it matched, the reader's otherwise. */
+  private get askTitle(): string {
+    const lookup = this.askLookup;
+    if (lookup?.publicDomain === 'gutenberg' && lookup.title) return lookup.title;
+    return this.askTitleControl.value.split(',')[0].trim();
+  }
+
+  protected get askButtonLabel(): string {
+    if (this.askLookup?.onShelf) return $localize`Open it`;
+    const title = this.askTitle;
+    return title ? $localize`Ask for ${title}:title:` : $localize`Ask for it`;
+  }
+
+  /** The line under a greyed Ask button: what the reader still has to do. */
+  protected get askBlockedNote(): string | null {
+    if (this.canAsk || this.askLookup?.onShelf || this.asking) return null;
+    if (this.askLookupPending) return $localize`Checking the title…`;
+    if (this.askTitle.length === 0) return $localize`Type the title to ask for it.`;
+    if (this.askLanguage === null) return $localize`Pick the language you’d read it in.`;
+    return null;
+  }
+
+  protected get canAsk(): boolean {
+    return !this.asking && !this.askLookupPending && this.askTitle.length > 0 && this.askLanguage !== null;
+  }
+
+  protected submitAsk(): void {
+    const onShelf = this.askLookup?.onShelf;
+    if (onShelf) {
+      this.closeAskSheet();
+      void this.router.navigate(['/books', onShelf.editionSlug]);
+      return;
+    }
+    const language = this.askLanguage;
+    if (!this.canAsk || !language) return;
+    const rest = this.askTitleControl.value.split(',').slice(1);
+    const lookup = this.askLookup;
+    const title = this.askTitle;
+    const author = lookup?.publicDomain === 'gutenberg' && lookup.author ? lookup.author : rest.join(',').trim();
+    this.asking = true;
+    this.readService.askForBook({title, author, language})
+      .pipe(finalize(() => this.asking = false))
+      .subscribe({
+        next: () => {
+          this.closeAskSheet();
+          this.alertService.open($localize`Asked. We’ll tell you when ${title}:title: is on the shelf.`, {appearance: 'positive'}).subscribe();
+        },
+        error: error => this.alertService.open(getErrorMessage(error, $localize`Couldn’t send the ask`), {appearance: 'negative'}).subscribe(),
+      });
+  }
+
+  /** The empty search says what to do (G18): the term, and the one verb. */
+  protected get emptySearchTerm(): string | null {
+    const term = this.titleFormControl.value?.trim() ?? '';
+    return term.length > 0 ? term : null;
+  }
+
   private sortBooks(books: Book[]) {
     books.sort((a, b) => this.compareBooks(a, b));
   }
@@ -449,11 +616,11 @@ export class ReadComponent implements OnInit, OnDestroy {
   /**
    * One tile per work (G14): the editions that passed the filters, grouped by work after the filter so a
    * level filter never hides a work with an edition at that level, then ordered by the edition each tile
-   * opens. The Continue row is a row of bookmarks, so the editions lying there do not stand on the shelf too.
+   * opens. A work is open once any edition is: it lies in the Continue row and does not stand on the shelf.
    */
   protected get shelfTiles(): WorkTile[] {
-    const continuing = new Set(this.continueBooks.map(book => book.id));
-    const editions = this.filteredBooks.filter(book => !continuing.has(book.id));
+    const open = new Set(this.continueBooks.map(workKey));
+    const editions = this.filteredBooks.filter(book => !open.has(workKey(book)));
     return groupIntoWorks(editions, this.tilePreferences).sort((a, b) => this.compareBooks(a.edition, b.edition));
   }
 

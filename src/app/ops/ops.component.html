@@ -519,6 +519,82 @@
     }
   </section>
 
+  <section class="ops-card ops-card--books" aria-labelledby="book-requests-title">
+    <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+      <div>
+        <p class="ops-books__path">/ops / book requests</p>
+        <h2 id="book-requests-title" class="ops-books__title">
+          @if (bookRequestQueue; as queue) {
+            {{ queue.open }} open · {{ queue.askers }} {{ queue.askers === 1 ? 'asker' : 'askers' }}
+          } @else {
+            Book requests
+          }
+        </h2>
+        <p>
+          Books readers asked for that the shelf does not have. Rows are works, not submissions: title, author and
+          language collapse, and the asker count is the row's weight. Public domain is the lookup result stored at ask
+          time, never a legal verdict. Add edition appears when the work already exists in another language; it and
+          New work open the editorial catalogue prefilled and move the row to In progress. Decline is one click, no
+          reason, no mail. Publishing the edition settles the row and mails every asker.
+        </p>
+      </div>
+      <div class="ops-books__spend">
+        @if (bookRequestQueue; as queue) {
+          <div class="ops-books__chips">
+            <span class="ops-books__chip ops-books__chip--ink">Open {{ queue.open }}</span>
+            <span class="ops-books__chip">In progress {{ queue.inProgress }}</span>
+            <span class="ops-books__chip">Published {{ queue.published }}</span>
+            <span class="ops-books__chip">Declined {{ queue.declined }}</span>
+          </div>
+        }
+        <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingBookRequests" (click)="loadBookRequests()">
+          {{ loadingBookRequests ? 'Refreshing…' : 'Refresh' }}
+        </button>
+      </div>
+    </div>
+
+    @if (bookRequestsError) {
+      <div class="ops-maintenance__result" role="alert">
+        <span class="ops-summary__status-dot" aria-hidden="true"></span>
+        <span>{{ bookRequestsError }}</span>
+      </div>
+    } @else if (!bookRequestQueue) {
+      <p class="ops-maintenance__more">Loading…</p>
+    } @else if (bookRequestQueue.rows.length) {
+      <div class="ops-queue ops-queue--requests">
+        <div class="ops-queue__head"><span>Book</span><span>Lang</span><span>Asked</span><span>Public domain</span><span></span></div>
+        @for (row of bookRequestQueue.rows; track row.id) {
+          <div class="ops-queue__row" [class.ops-queue__row--live]="row.status === 'IN_PROGRESS'">
+            <span class="ops-queue__book"><strong>{{ row.title }}</strong><small>{{ bookRequestMeta(row) }}</small></span>
+            <code>{{ row.language | lowercase }}</code>
+            <code>{{ row.askers }}</code>
+            <code class="ops-queue__flag" [class.ops-queue__flag--pd]="row.publicDomain !== 'unlikely'">{{ publicDomainLabel(row) }}</code>
+            <span class="ops-queue__actions">
+              @switch (row.status) {
+                @case ('OPEN') {
+                  @if (row.publicDomain !== 'unlikely') {
+                    <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="decidingBookRequest === row.id" (click)="onStartBookRequest(row)">{{ row.workSlug ? 'Add edition' : 'New work' }}</button>
+                  }
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingBookRequest === row.id" (click)="onDeclineBookRequest(row)">Decline</button>
+                }
+                @case ('IN_PROGRESS') {
+                  <code class="ops-queue__stamp">started {{ row.decidedAt | date:'MMM d' }}</code>
+                  <a class="ops-button ops-button--quiet ops-button--tiny" [href]="row.editorialUrl" target="_blank" rel="noopener">Open catalogue</a>
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingBookRequest === row.id" (click)="onDeclineBookRequest(row)">Decline</button>
+                }
+                @default {
+                  <code class="ops-queue__stamp">{{ row.status | lowercase }}</code>
+                }
+              }
+            </span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="ops-maintenance__more">Nobody is asking for a book right now.</p>
+    }
+  </section>
+
   <section class="ops-card ops-card--spend" aria-labelledby="spend-title">
     <div class="ops-card__heading ops-card__heading--plain">
       <div>

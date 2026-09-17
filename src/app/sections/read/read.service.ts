@@ -30,6 +30,7 @@ import {
 } from './translation-order.model';
 import {Observable} from "rxjs";
 import {BookChapter, parseBookChapters} from './book-chapter.model';
+import {BookLookup, BookRequest, BookRequestAsk, parseBookLookup, parseBookRequest} from './book-request.model';
 import {ChapterVocabulary, parseChapterVocabulary} from './chapter-vocabulary.model';
 import {map, shareReplay, tap} from 'rxjs/operators';
 
@@ -185,6 +186,20 @@ export class ReadService {
   cancelTranslationOrder(bookId: string, language: string): Observable<unknown> {
     const url = `${AppConstants.BOOKS_URL}/${bookId}/language/${language}/orders`;
     return this.http.delete(url, {withCredentials: true});
+  }
+
+  // --- Asking for a book (G19) ---
+
+  /** What the sheet learns as the reader types: the index match, the asker count, the shelf copy if any. */
+  lookupBookRequest(query: string, language: string): Observable<BookLookup> {
+    const params = new HttpParams().set('q', query).set('language', language);
+    return this.http.get<unknown>(`${AppConstants.BOOKS_URL}/requests/lookup`, {params, withCredentials: true})
+      .pipe(map(parseBookLookup));
+  }
+
+  askForBook(ask: BookRequestAsk): Observable<BookRequest> {
+    return this.http.post<unknown>(`${AppConstants.BOOKS_URL}/requests`, ask, {withCredentials: true})
+      .pipe(map(parseBookRequest));
   }
 
   favoriteBook(bookId: string, language: string): Observable<unknown> {

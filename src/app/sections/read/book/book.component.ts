@@ -276,6 +276,13 @@ export class BookComponent implements OnInit, OnDestroy {
     }));
   }
 
+  /** Editorial's one sentence about the edition being read, under its chip; nothing when editorial wrote none. */
+  protected get editionNote(): string | null {
+    const book = this.book;
+    const note = book?.languageVariants.find(variant => variant.id === book.id)?.editionNote?.trim() ?? '';
+    return note.length > 0 ? note : null;
+  }
+
   /** Progress is per edition: the server's figure for this one, the place kept on this device for any. */
   private editionProgress(edition: BookLanguageVariant): number | null {
     const device = this.positionStorage.get(`public:${edition.editionSlug}`)?.percentage ?? null;

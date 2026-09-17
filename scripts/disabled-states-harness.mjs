@@ -23,6 +23,7 @@ const SCOPES = {
   'onboarding': 'src/app/onboarding/onboarding.component.less',
   'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
+  'read': 'src/app/sections/read/read.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
@@ -192,6 +193,34 @@ const CARDS = [
             <p class="owner-note" data-note>Available once the book is ready.</p>
           </section>
         </article>
+      </div>`,
+  },
+  {
+    id: 'ask-for-a-book',
+    title: 'Read — the ask sheet before the reader has given it a title',
+    source: 'read.component.html: #askSheet',
+    rule: 'The ask needs a title and a language; the line under the button names the one still missing.',
+    control: {
+      label: 'askTitle',
+      type: 'select',
+      options: [
+        {value: 'typed', label: '"Dracula, Bram Stoker", language picked', note: '', blocked: false},
+        {value: 'empty', label: 'nothing typed yet', note: 'Type the title to ask for it.', blocked: true},
+        {value: 'checking', label: 'lookup still in flight', note: 'Checking the title…', blocked: true},
+      ],
+    },
+    body: `
+      <div class="scope-read harness-frame">
+        <div class="sheet ask-sheet">
+          <h2 class="sheet__title">Ask for a book</h2>
+          <label class="ask-field"><span>Title and author</span><input type="text" placeholder="Dracula, Bram Stoker" /></label>
+          <div class="ask-field"><span>Language you’d read it in</span><div class="ask-field__chips"><button type="button" class="filter-chip active">English</button><button type="button" class="filter-chip">Ukrainian</button></div></div>
+          <div class="sheet__actions">
+            <button type="button" class="sheet__primary" data-blocked>Ask for Dracula</button>
+            <button type="button" class="sheet__quiet">Cancel</button>
+          </div>
+          <p class="sheet__hint" data-note>Type the title to ask for it.</p>
+        </div>
       </div>`,
   },
   {

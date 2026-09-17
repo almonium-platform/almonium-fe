@@ -52,6 +52,7 @@
   --nested-color: #F9F6F5;
   --overlay-color: #fff;
   --hairline-color: #edebe8;
+  --hairline-on-ground: #e6dfdb;
   --control-border-color: #d8cfd6;
   --secondary-control-border-color: var(--control-border-color);
   --secondary-control-fill: var(--card-color);
@@ -67,6 +68,8 @@
   --state-hover: rgba(44, 37, 48, 0.04);
   --state-pressed: rgba(44, 37, 48, 0.08);
   --state-selected: #faf6fb;
+  --parallel-tint: #f7e3ec;
+  --companion-ink: #7e7e7e;
   --chat-selected-color: #F3EDF6;
   --almo-disc-color: #F3EDF6;
   --notification-unread-color: #F6F0F4;
@@ -1608,6 +1611,780 @@ tui-data-list button[tuiOption].context-button.negative {
     justify-content: center;
   }
   .scope-book-import .settled-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.scope-read .read-container {
+  align-items: stretch;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 1.75rem;
+  padding: 1.35rem clamp(1rem, 4vw, 5rem) 4rem;
+}
+.scope-read .read-header,
+.scope-read .continue-section,
+.scope-read .book-shelf,
+.scope-read .notice-card,
+.scope-read .requests-card {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+}
+.scope-read .read-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.35rem 1.5rem 1.15rem;
+  border-radius: 1.25rem;
+  background: var(--nested-color);
+}
+.scope-read .read-header__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.scope-read .read-header__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.scope-read .read-header__title .eyebrow {
+  margin: 0;
+}
+.scope-read .read-header h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.scope-read .quota {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.scope-read .read-header__row .import-book-action {
+  margin-left: auto;
+}
+.scope-read .quota + .import-book-action {
+  margin-left: 0;
+}
+.scope-read .import-book-action,
+.scope-read .empty-state button,
+.scope-read .solid-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scope-read .import-book-action:hover,
+.scope-read .solid-pill:hover {
+  background: var(--brand-hover);
+}
+.scope-read .import-book-action.premium-gate {
+  background: var(--premium-gradient);
+  color: #FDF4F8;
+}
+.scope-read .filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border-radius: 1rem;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-read .search-field {
+  display: flex;
+  flex: 1 1 12rem;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 9rem;
+  color: var(--metadata-color);
+}
+.scope-read .search-field input {
+  width: 100%;
+  min-height: 2.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+.scope-read .search-field input::placeholder {
+  color: var(--metadata-color);
+}
+.scope-read .native-select select {
+  min-height: 2.1rem;
+  padding: 0 1.8rem 0 0.7rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.6rem;
+  background: var(--card-color);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.8rem;
+}
+.scope-read .sort-select select {
+  max-width: 11rem;
+}
+.scope-read .filter-chip {
+  min-height: 2.1rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.scope-read .filter-chip.active {
+  border-color: color-mix(in srgb, var(--brand-margin) 45%, var(--card-color));
+  background: var(--state-selected);
+  color: var(--brand-margin);
+}
+.scope-read .kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.scope-read .kicker {
+  margin: 0;
+  color: var(--dark-raspberry);
+  font: 600 0.66rem/1.2 var(--font-family-ui);
+  letter-spacing: 0.085rem;
+  text-transform: uppercase;
+}
+.scope-read .kicker__count {
+  color: var(--metadata-color);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.scope-read .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--hairline-color);
+}
+.scope-read .view-toggle {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.15rem;
+  border-radius: 999px;
+  background: var(--card-color);
+  box-shadow: inset 0 0 0 1px var(--hairline-color);
+}
+.scope-read .view-toggle button {
+  padding: 0.25rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.scope-read .view-toggle button.active {
+  background: var(--state-selected);
+  color: var(--brand-margin);
+}
+.scope-read .continue-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-end;
+}
+.scope-read .continue-card {
+  position: relative;
+  display: flex;
+  width: 7rem;
+  height: 9.4rem;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: var(--book-color);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(44, 37, 48, 0.18);
+}
+.scope-read .continue-card:hover {
+  transform: translateY(-2px);
+}
+.scope-read .continue-art {
+  position: absolute;
+  inset: 0;
+}
+.scope-read .continue-title {
+  position: relative;
+  font-family: var(--font-family-reading);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+.scope-read .continue-foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: auto;
+}
+.scope-read .continue-card:has(.continue-art) .continue-foot {
+  padding: 0.4rem 0.5rem 0.1rem;
+  margin: 0 -0.6rem -0.6rem;
+  background: linear-gradient(to top, rgba(20, 14, 22, 0.78), rgba(20, 14, 22, 0));
+}
+.scope-read .continue-foot small {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.62rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-read .progress-hairline {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+.scope-read .progress-hairline i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: #fff;
+}
+.scope-read .shelf {
+  display: flex;
+  align-items: end;
+  gap: 5px;
+  min-height: 184px;
+  padding: 4.75rem 1rem 1.5rem;
+  overflow-x: auto;
+  background: linear-gradient(var(--control-border-color), var(--control-border-color)) left 0 bottom calc(1.5rem - 5px) / 100% 3px no-repeat;
+}
+.scope-read .book-context {
+  flex: 0 0 auto;
+}
+.scope-read .shelf-book {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  text-decoration: none;
+}
+.scope-read .book-spine {
+  justify-content: flex-start;
+  width: var(--spine-width);
+  height: var(--spine-height);
+  padding: 8px 5px;
+  overflow: visible;
+  border-radius: 4px 4px 2px 2px;
+  background: var(--book-color);
+  box-shadow: 0 2px 5px rgba(44, 37, 48, 0.16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.scope-read .book-spine:hover,
+.scope-read .book-spine:focus-visible {
+  transform: translateY(-8px);
+  box-shadow: 0 6px 14px rgba(44, 37, 48, 0.28);
+}
+.scope-read .spine-title,
+.scope-read .spine-author {
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-read .spine-title {
+  font-family: var(--font-family-reading);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.scope-read .spine-author {
+  margin-top: auto;
+  font-size: 0.58rem;
+  opacity: 0.78;
+}
+.scope-read .ink-spine {
+  --book-color: #3d3d3d;
+}
+.scope-read .ink-spine .spine-title {
+  font-family: var(--font-family-mono);
+  font-size: 0.66rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+.scope-read .spine-status {
+  position: absolute;
+  right: 2px;
+  bottom: 3px;
+  left: 2px;
+  padding: 2px;
+  overflow: hidden;
+  background: rgba(44, 37, 48, 0.72);
+  font-size: 0.52rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-read .hover-label {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  display: none;
+  width: max-content;
+  min-width: 9.5rem;
+  max-width: 14rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.75rem;
+  background: var(--overlay-color);
+  color: var(--text-color);
+  box-shadow: 0 8px 22px rgba(44, 37, 48, 0.18);
+  transform: translateX(-50%);
+}
+.scope-read .hover-label strong {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--font-family-reading);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-read .hover-label small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--metadata-color);
+  font-size: 0.66rem;
+}
+.scope-read .shelf-book:hover .hover-label,
+.scope-read .shelf-book:focus-visible .hover-label {
+  display: block;
+}
+.scope-read .shelf > :nth-child(-n+3) .hover-label {
+  left: 0;
+  transform: none;
+}
+.scope-read .cover-shelf {
+  align-items: start;
+  gap: 0.85rem;
+  min-height: 0;
+  padding: 0.5rem 0.5rem 1rem;
+  background: none;
+}
+.scope-read .cover-book,
+.scope-read .private-cover {
+  display: flex;
+  flex: 0 0 8.5rem;
+  width: 8.5rem;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: var(--text-color);
+  text-decoration: none;
+}
+.scope-read .cover-book app-book-cover {
+  display: block;
+  width: 8.5rem;
+  height: 12.2rem;
+  overflow: hidden;
+  border-radius: 0.45rem;
+  box-shadow: 0 2px 6px rgba(44, 37, 48, 0.18);
+}
+.scope-read .cover-book > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.scope-read .cover-book strong,
+.scope-read .cover-book small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-read .cover-book strong {
+  font-family: var(--font-family-reading);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+.scope-read .cover-book small {
+  color: var(--metadata-color);
+  font-size: 0.7rem;
+}
+.scope-read .private-cover {
+  justify-content: space-between;
+  height: 12.2rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 0.45rem;
+  background: var(--book-color);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(44, 37, 48, 0.18);
+}
+.scope-read .private-cover .spine-title,
+.scope-read .private-cover .spine-author {
+  writing-mode: initial;
+  transform: none;
+  white-space: normal;
+}
+.scope-read .private-cover .spine-title {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+.scope-read .private-cover .spine-status {
+  position: static;
+  margin-top: 0.4rem;
+  border-radius: 3px;
+}
+.scope-read .empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 5.5rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+}
+.scope-read .empty-state p {
+  margin: 0;
+}
+.scope-read .empty-state button {
+  min-height: 2.2rem;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--control-border-color);
+  color: var(--brand-margin);
+}
+.scope-read .loading-row {
+  min-height: 10rem;
+  padding: 2rem;
+}
+.scope-read .shelf-end {
+  display: block;
+  height: 1px;
+}
+.scope-read .ask-line {
+  margin: 0.9rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.82rem;
+  text-align: center;
+}
+.scope-read .ask-line--empty {
+  min-height: 5.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+}
+.scope-read .ask-line__verb {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.scope-read .ask-line__verb:hover {
+  text-decoration: underline;
+}
+.scope-read .ask-line__quiet {
+  margin-left: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+}
+.scope-read .sheet {
+  display: flex;
+  width: min(88vw, 22rem);
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-radius: 1.375rem;
+  background: var(--overlay-color);
+  color: var(--text-color);
+}
+.scope-read .sheet__title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-read .sheet__note {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.scope-read .sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-read .sheet__primary {
+  min-height: 2.6rem;
+  padding: 0.6rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dark-raspberry);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.scope-read .sheet__primary:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-read .sheet__quiet {
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
+.scope-read .sheet__hint {
+  margin: -0.35rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.scope-read .ask-sheet__question {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.scope-read .ask-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 0.9rem;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.scope-read .ask-option:hover {
+  border-color: var(--control-border-color);
+  background: var(--state-hover);
+}
+.scope-read .ask-option strong {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.scope-read .ask-option small {
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.scope-read .ask-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.scope-read .ask-field input {
+  min-height: 2.6rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+.scope-read .ask-field__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.scope-read .notice-card,
+.scope-read .requests-card {
+  padding: 1.4rem 1.6rem;
+  border-radius: var(--card-radius);
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-read .notice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.scope-read .mono-kicker {
+  margin: 0 0 0.6rem;
+  color: var(--metadata-color);
+  font: 0.66rem/1.4 var(--font-family-mono);
+  letter-spacing: 0.025rem;
+}
+.scope-read .fulfilled h2 {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-family-reading);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-read .fulfilled__copy {
+  max-width: 60ch;
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+.scope-read .fulfilled__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+.scope-read .fulfilled__left {
+  color: var(--metadata-color);
+  font-size: 0.78rem;
+}
+.scope-read .requests-card .eyebrow {
+  margin-bottom: 0.35rem;
+}
+.scope-read .requests-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scope-read .requests-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--hairline-color);
+  font-size: 0.86rem;
+}
+.scope-read .requests-list li:last-child {
+  border-bottom: 0;
+}
+.scope-read .requests-list__pair {
+  color: var(--text-color);
+  text-decoration: none;
+}
+.scope-read .requests-list__pair:hover {
+  color: var(--brand-margin);
+}
+.scope-read .requests-list__state {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.scope-read .requests-list .ready {
+  color: var(--success-color);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 600;
+}
+.scope-read .requests-list .asked {
+  color: var(--metadata-color);
+  font-size: 0.74rem;
+}
+.scope-read .text-action {
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--dark-raspberry);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.scope-read .text-action--quiet {
+  color: var(--subhead-color);
+}
+.scope-read .text-action:disabled {
+  color: var(--disabled-label-color);
+  cursor: wait;
+}
+@media (max-width: 900px) {
+  .scope-read .filter-bar {
+    flex-wrap: wrap;
+    min-height: 0;
+  }
+  .scope-read .search-field {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .scope-read .read-header {
+    padding: 1.1rem 1rem 1rem;
+  }
+  .scope-read .read-header__row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .scope-read .quota {
+    flex-basis: 100%;
+    margin-left: 0;
+    order: 3;
+  }
+  .scope-read .read-header__row .import-book-action {
+    margin-left: auto;
+  }
+  .scope-read .filter-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .scope-read .native-select select,
+  .scope-read .sort-select select {
+    width: 100%;
+    max-width: none;
+  }
+  .scope-read .filter-chip {
+    text-align: left;
+  }
+  .scope-read .kicker-row {
+    flex-wrap: wrap;
+  }
+  .scope-read .requests-list li {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -3609,6 +4386,10 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-ops .ops-queue--suggestions .ops-queue__row {
   grid-template-columns: 1.4fr 0.4fr 0.85fr 0.9fr 15rem;
 }
+.scope-ops .ops-queue--requests .ops-queue__head,
+.scope-ops .ops-queue--requests .ops-queue__row {
+  grid-template-columns: 1.6fr 0.4fr 0.5fr 1fr 15rem;
+}
 .scope-ops .ops-queue__head {
   padding: 0 0 0.45rem;
   border-bottom: 1.5px solid var(--brand-ink);
@@ -3930,6 +4711,30 @@ tui-data-list button[tuiOption].context-button.negative {
         </article>
       </div>
   </section>
+  <section class="harness-card" id="ask-for-a-book">
+    <header>
+      <h2>Read — the ask sheet before the reader has given it a title</h2>
+      <p class="harness-source">read.component.html: #askSheet</p>
+      <p class="harness-rule">The ask needs a title and a language; the line under the button names the one still missing.</p>
+      <label class="harness-toggle">
+      <code>askTitle</code>
+      <select data-card="ask-for-a-book"><option value="typed" selected>"Dracula, Bram Stoker", language picked</option><option value="empty">nothing typed yet</option><option value="checking">lookup still in flight</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-read harness-frame">
+        <div class="sheet ask-sheet">
+          <h2 class="sheet__title">Ask for a book</h2>
+          <label class="ask-field"><span>Title and author</span><input type="text" placeholder="Dracula, Bram Stoker" /></label>
+          <div class="ask-field"><span>Language you’d read it in</span><div class="ask-field__chips"><button type="button" class="filter-chip active">English</button><button type="button" class="filter-chip">Ukrainian</button></div></div>
+          <div class="sheet__actions">
+            <button type="button" class="sheet__primary" data-blocked>Ask for Dracula</button>
+            <button type="button" class="sheet__quiet">Cancel</button>
+          </div>
+          <p class="sheet__hint" data-note>Type the title to ask for it.</p>
+        </div>
+      </div>
+  </section>
   <section class="harness-card" id="re-upload">
     <header>
       <h2>Read — Re-upload while the processor is still reading the file</h2>
@@ -4132,7 +4937,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"ask-for-a-book":{"typed":{"value":"typed","label":"\"Dracula, Bram Stoker\", language picked","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Type the title to ask for it.","blocked":true},"checking":{"value":"checking","label":"lookup still in flight","note":"Checking the title…","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {

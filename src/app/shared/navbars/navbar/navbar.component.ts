@@ -602,6 +602,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     switch (notification.type) {
       case NotificationType.TRANSLATION_ORDER_COMPLETED: return $localize`Open chapter one`;
       case NotificationType.LIBRARY_SUGGESTION_PUBLISHED: return $localize`Open the library copy`;
+      case NotificationType.BOOK_REQUEST_PUBLISHED: return $localize`Open the book`;
       case NotificationType.BOOK_IMPORT_READY: return $localize`Start reading`;
       case NotificationType.BOOK_IMPORT_FAILED: return $localize`See what happened`;
       default: return null;
