@@ -326,6 +326,7 @@
   font-size: .8rem;
   line-height: 1.3;
   text-decoration: none;
+  transition: background-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
 
   &:hover, &:focus-visible { background: var(--state-hover); color: var(--text-color); outline: none; }
   // The current row is the one white pill on the cream ground.
@@ -334,10 +335,35 @@
 
 .content-map__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .content-map__level { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .68rem; }
-.content-map__description { display: none; grid-column: 1 / -1; margin-top: .25rem; color: var(--subhead-color); font-size: .74rem; line-height: 1.45; }
+
+// The description unfolds under its row and fades in, rather than snapping: the row you leave
+// folds away as the one you reach opens, and a sweep across the list waits a beat before opening.
+.content-map__description {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  color: var(--subhead-color);
+  font-size: .74rem;
+  line-height: 1.45;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 220ms ease, margin-top 220ms ease, opacity 160ms ease, visibility 0s linear 220ms;
+
+  > span { min-height: 0; overflow: hidden; }
+}
+
 .content-map__row.is-current .content-map__description,
 .content-map__row:hover .content-map__description,
-.content-map__row:focus-visible .content-map__description { display: block; }
+.content-map__row:focus-visible .content-map__description {
+  grid-template-rows: 1fr;
+  margin-top: .25rem;
+  opacity: 1;
+  visibility: visible;
+  transition: grid-template-rows 220ms ease, margin-top 220ms ease, opacity 200ms ease 60ms, visibility 0s;
+}
+
+.content-map__row:not(.is-current):hover .content-map__description { transition-delay: 90ms, 90ms, 120ms, 90ms; }
 
 .content-map--sheet {
   position: absolute;

@@ -21,7 +21,7 @@
          (click)="onContentsPick()">
         <span class="content-map__name">{{ displayTitle(chapter) }}</span>
         @if (metadataFor(chapter.key)?.cefrEstimate; as level) { <span class="content-map__level">{{ level }}</span> }
-        @if (metadataFor(chapter.key)?.descriptions?.[0]; as description) { <span class="content-map__description">{{ description }}</span> }
+        @if (metadataFor(chapter.key)?.descriptions?.[0]; as description) { <span class="content-map__description"><span>{{ description }}</span></span> }
       </a>
     }
   </ng-template>

@@ -106,7 +106,9 @@ stop and shouting caps normalised for display, the descriptions as one
 paragraph, the text under a hairline, then the chapter's words (five rows, then
 "All N words" in place), previous/next (next with level and description) and,
 for a guest, one account panel. The contents rail shows title plus level per
-row; the description shows on the current row and on hover. The bottom bar has
+row; the description shows on the current row and on hover, unfolding and
+fading in over 220ms after a short beat, so a sweep across the rows does not
+flicker and the row you leave folds as the next one opens. The bottom bar has
 two toggles, Contents and Words, at the left. Vocabulary and the word card share
 one right rail; a row opens the card with a "← Words" way back. `unavailable`
 removes the Words toggle; pending/stale shows one grey line.
