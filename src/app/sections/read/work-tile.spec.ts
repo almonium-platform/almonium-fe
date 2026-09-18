@@ -1,7 +1,7 @@
 import {CEFRLevel} from '../../models/userinfo.model';
 import {LanguageCode} from '../../models/language.enum';
 import {Book} from './book.model';
-import {TilePreferences, groupIntoWorks, originalsFirst, pickTileEdition} from './work-tile';
+import {TilePreferences, groupIntoWorks, originalsFirst, pickTileEdition, tileEditionsLabel} from './work-tile';
 
 function edition(overrides: Partial<Book>): Book {
   return {
@@ -69,5 +69,19 @@ describe('work tiles', () => {
 
   it('puts originals before translations when sort keys tie', () => {
     expect([ukrainian, other].sort(originalsFirst)).toEqual([other, ukrainian]);
+  });
+});
+
+describe('the tile caption', () => {
+  it('lists the editions the work actually has, original first, and promises nothing else', () => {
+    const original = edition({});
+    const adapted = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-en-b2', cefrLevel: CEFRLevel.B2, editionType: 'adaptation'});
+    expect(tileEditionsLabel([adapted, original])).toBe('Original C1 · Adapted B2');
+    expect(tileEditionsLabel([original])).toBe('Original C1');
+  });
+  it('names a translation as one and reads a duplicate level once', () => {
+    const translation = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a27', editionSlug: 'frankenstein-uk', language: LanguageCode.UK, isTranslation: true, editionType: 'machine_translation'});
+    const again = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a28', editionSlug: 'frankenstein-uk-2', language: LanguageCode.UK, isTranslation: true, editionType: 'human_translation'});
+    expect(tileEditionsLabel([translation, again])).toBe('Translation C1');
   });
 });

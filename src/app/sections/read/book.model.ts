@@ -25,6 +25,8 @@ export interface Book {
   cefrLevel: CEFRLevel;
   /** original, adaptation, machine_translation or human_translation; the shelf needs it to pick a tile's edition. */
   editionType?: string;
+  /** The lowest level a faithful adaptation of the work reached both of its gates at, found per book; absent until one has. */
+  adaptsTo?: CEFRLevel;
   progressPercentage: number | null;
   /** The chapter a reader stopped in, as the processor numbers it; null until a reader sends it. */
   currentChapter: number | null;
@@ -111,6 +113,7 @@ export function parseBook(value: unknown, path = 'book'): Book {
     language: expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
     cefrLevel: expectEnum(data['cefrLevel'], Object.values(CEFRLevel), `${path}.cefrLevel`),
     ...optionalString(data['editionType'], 'editionType', path),
+    ...optionalEnum(data['adaptsTo'], Object.values(CEFRLevel), 'adaptsTo', path),
     progressPercentage: expectNullableNumber(data['progressPercentage'], `${path}.progressPercentage`),
     currentChapter: data['currentChapter'] === undefined ? null : expectNullableNumber(data['currentChapter'], `${path}.currentChapter`),
     chapterCount: data['chapterCount'] === undefined ? null : expectNullableNumber(data['chapterCount'], `${path}.chapterCount`),
@@ -173,9 +176,9 @@ function optionalUuid(
     : {[key]: expectUuid(value, `${path}.${key}`)};
 }
 
-function optionalEnum<K extends 'originalLanguage'>(
+function optionalEnum<K extends 'originalLanguage' | 'adaptsTo'>(
   value: unknown,
-  values: readonly LanguageCode[],
+  values: readonly (LanguageCode | CEFRLevel)[],
   key: K,
   path: string,
 ): Partial<Pick<Book, K>> {

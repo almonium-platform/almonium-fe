@@ -1,6 +1,6 @@
 import {CEFRLevel} from '../../models/userinfo.model';
 import {Book} from './book.model';
-import {editionKind} from './edition-kind';
+import {editionKind, editionKindLabel} from './edition-kind';
 
 /**
  * One tile per work (G14). The list endpoint stays flat and per edition; the client groups editions by
@@ -74,6 +74,28 @@ export function pickTileEdition(editions: readonly Book[], preferences: TilePref
     if (atOrBelow.length > 0) return atOrBelow[atOrBelow.length - 1];
   }
   return lowest;
+}
+
+/**
+ * What a tile says the work reaches (decision 13): the editions it actually has on this shelf, kind by kind,
+ * "Original C1 · Adapted B2". No level is promised that no edition reaches; the original comes first, then the
+ * rest from the easiest up. Two editions of one kind at one level read once.
+ */
+export function tileEditionsLabel(editions: readonly Book[]): string {
+  const sorted = [...editions].sort(
+    (a, b) => kindOrder(a) - kindOrder(b) || levelRank(a.cefrLevel) - levelRank(b.cefrLevel),
+  );
+  const labels = sorted.map(edition => [editionKindLabel(edition.editionType), edition.cefrLevel].filter(Boolean).join(' '));
+  return [...new Set(labels)].join(' · ');
+}
+
+function kindOrder(edition: Pick<Book, 'editionType' | 'isTranslation'>): number {
+  switch (editionKind(edition.editionType)) {
+    case 'original': return 0;
+    case 'adapted': return 1;
+    case 'translation': return 2;
+    default: return edition.isTranslation ? 2 : 1;
+  }
 }
 
 /** When sort keys tie, originals come before translations (G17). */

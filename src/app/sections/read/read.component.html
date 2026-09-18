@@ -140,9 +140,9 @@
           @let book = tile.edition;
           <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
             @if (libraryView === 'covers') {
-              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ captionFor(book) }}</small></span></a>
+              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ captionFor(tile) }}</small></span></a>
             } @else {
-              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(book, true) }}</small></span></a>
+              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(tile, true) }}</small></span></a>
             }
           </div>
         }

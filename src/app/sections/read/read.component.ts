@@ -25,7 +25,7 @@ import {LanguageNameService} from '../../services/language-name.service';
 import {LanguageCode} from '../../models/language.enum';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} from './book-hue';
 import {getErrorMessage} from '../../shared/http-error';
-import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, workKey} from './work-tile';
+import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel, workKey} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 
 type ShelfViewMode = 'covers' | 'spines';
@@ -648,10 +648,10 @@ export class ReadComponent implements OnInit, OnDestroy {
   }
 
   /** The tile's caption (G17): author, level, and the one honest word when the prose is a translation. */
-  protected captionFor(book: Book, pages = false): string {
-    const parts = [book.author, ...(pages ? [this.pagesLabel(book.wordCount)] : []), book.cefrLevel];
-    if (book.isTranslation) parts.push($localize`Translation`);
-    return parts.join(' · ');
+  /** Author, pages when asked, then the levels the work's editions reach on this shelf: "Original C1 · Adapted B2". */
+  protected captionFor(tile: WorkTile, pages = false): string {
+    const book = tile.edition;
+    return [book.author, ...(pages ? [this.pagesLabel(book.wordCount)] : []), tileEditionsLabel(tile.editions)].join(' · ');
   }
 
   /** Search and sort act on the private shelf too; level does not, because imports are not levelled. */
