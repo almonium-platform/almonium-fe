@@ -85,3 +85,15 @@ describe('the tile caption', () => {
     expect(tileEditionsLabel([translation, again])).toBe('Translation C1');
   });
 });
+
+
+describe('multiple adaptation levels', () => {
+  it('preserves every available level and opens the specifically filtered edition', () => {
+    const levels = [CEFRLevel.A1, CEFRLevel.A2, CEFRLevel.B1, CEFRLevel.B2, CEFRLevel.C1, CEFRLevel.C2];
+    const variants = levels.map(level => edition({id: level, editionSlug: `book-${level}`, cefrLevel: level, editionType: 'adaptation'}));
+    expect(tileEditionsLabel(variants)).toBe('Adapted A1 · Adapted A2 · Adapted B1 · Adapted B2 · Adapted C1 · Adapted C2');
+    for (const level of levels) {
+      expect(pickTileEdition(variants, {...member, levelFilter: level}).editionSlug).toBe(`book-${level}`);
+    }
+  });
+});
