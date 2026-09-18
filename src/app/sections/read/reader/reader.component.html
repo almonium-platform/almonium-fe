@@ -107,6 +107,10 @@
 
           <!-- The chapter end (J3): the words, then the next chapter, then the one ask a guest sees. -->
           <footer class="chapter-end">
+            <!-- The moment (K3): the last page, then the certificate, then the decision. -->
+            @if (bookFinished && bookId) {
+              <app-certificate-moment [bookId]="bookId" [endLine]="endLine" />
+            }
             @if (bookSlug && currentKey) {
               <app-chapter-vocabulary variant="end" [editionSlug]="bookSlug" [sequence]="currentKey" [chapters]="chapterList" [savedEntries]="savedEntries" (wordPicked)="openWordFromList($event)" />
             }
@@ -151,7 +155,7 @@
           @if (railFromWords) {
             <button i18n type="button" class="reader-rail__back" (click)="backToWords()"><lucide-icon name="arrow-left" size="16" strokeWidth="1.75" aria-hidden="true"></lucide-icon> Words</button>
           }
-          <app-word-card [entry]="card.entry" [context]="card.context" [highlight]="card.highlight" [autoSave]="card.autoSave" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [level]="bookLevel" (closed)="closeRail()" (savedEntry)="onWordSaved($event)"></app-word-card>
+          <app-word-card [entry]="card.entry" [context]="card.context" [highlight]="card.highlight" [autoSave]="card.autoSave" [language]="cardLanguage" [translationLanguage]="cardTranslationLanguage" [source]="bookTitle" [sourceBookId]="bookSlug ? bookId : null" [level]="bookLevel" (closed)="closeRail()" (savedEntry)="onWordSaved($event)"></app-word-card>
         } @else if (bookSlug) {
           <app-chapter-vocabulary variant="rail" [editionSlug]="bookSlug" [sequence]="currentKey" [chapters]="chapterList" [savedEntries]="savedEntries" (wordPicked)="openWordFromList($event)" (closed)="closeRail()" />
         }

@@ -3,6 +3,7 @@ import {authGuard} from "./authentication/auth/guard/auth.guard";
 import {unauthGuard} from "./authentication/auth/guard/unauth.guard";
 import {adminGuard} from "./authentication/auth/guard/admin.guard";
 import {readerEntryGuard} from "./sections/read/reader/reader-entry.guard";
+import {certificatePageMatcher} from "./sections/read/certificate/certificate-page.matcher";
 
 export const routes: Routes = [
   {path: '', loadComponent: () => import('./sections/landing/landing.component').then(m => m.LandingComponent)},
@@ -71,6 +72,8 @@ export const routes: Routes = [
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},
   {path: 'discover', loadComponent: () => import('./sections/discover/discover.component').then(m => m.DiscoverComponent)},
   {path: 'read', loadComponent: () => import('./sections/read/read.component').then(m => m.ReadComponent)},
+  // The public certificate (K1): /read/@{username}/{editionSlug}, indexable, 404 while the reader keeps it off.
+  {matcher: certificatePageMatcher, loadComponent: () => import('./sections/read/certificate/certificate-page.component').then(m => m.CertificatePageComponent)},
   {path: 'books/:slug', loadComponent: () => import('./sections/read/book/book.component').then(m => m.BookComponent)},
   // One page per chapter (J): the public reader is the chapter page. `/reader/{slug}` is its front door.
   {path: 'books/:slug/:sequence', loadComponent: () => import('./sections/read/reader/reader.component').then(m => m.ReaderComponent)},

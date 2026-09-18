@@ -52,6 +52,8 @@ export interface CardCreationDto {
   partOfSpeech?: string;
   selectedSense?: string;
   sourceContext?: string;
+  /** The library edition the word was met in, when it was saved from the reader; what a certificate counts. */
+  sourceBookId?: string;
   learningIntents: LearningIntent[];
   itemType: LearningItemType;
   examples: {example: string; translation: string}[];

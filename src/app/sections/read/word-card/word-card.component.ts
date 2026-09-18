@@ -49,6 +49,8 @@ export class WordCardComponent implements OnChanges {
   @Input({required: true}) translationLanguage: LanguageCode = LanguageCode.EN;
   /** Where the sentence comes from: the book's title, shown under the quotation. */
   @Input() source = '';
+  /** The library edition the word is being read in, so a saved word remembers where it was met. */
+  @Input() sourceBookId: string | null = null;
   /** The book's level, shown beside the language in the kicker. */
   @Input() level: string | null = null;
   /** The form met in the text, when it differs from the entry; it is what the sentence marks. */
@@ -222,6 +224,7 @@ export class WordCardComponent implements OnChanges {
       partOfSpeech: sense?.partOfSpeech ?? undefined,
       selectedSense: sense ? `${sense.index}: ${meaning}` : meaning,
       sourceContext: context ?? undefined,
+      sourceBookId: this.sourceBookId ?? undefined,
       learningIntents: ['UNDERSTAND'],
       itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
       examples: context ? [{example: context, translation: ''}] : [],

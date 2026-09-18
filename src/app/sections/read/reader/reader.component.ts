@@ -39,6 +39,7 @@ import {CEFRLevel} from '../../../models/userinfo.model';
 import {BookChapter, displayChapterTitle} from '../book-chapter.model';
 import {ChapterWord, wordExcerpt} from '../chapter-vocabulary.model';
 import {ChapterVocabularyComponent} from './chapter-vocabulary.component';
+import {CertificateMomentComponent} from '../certificate/certificate-moment.component';
 import {ChapterPage, bookPercentage, placeForPercentage, splitBookChapters} from './chapter-split';
 
 /** Below this width the contents list is a sheet over the text rather than a rail beside it. */
@@ -83,6 +84,7 @@ interface WordCardRequest {
     BookHtmlPipe,
     WordCardComponent,
     ChapterVocabularyComponent,
+    CertificateMomentComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -142,6 +144,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected bookAuthor = '';
   protected bookLevel: CEFRLevel | null = null;
   protected signedIn = false;
+  /** The end of the last chapter has been reached by a member: the certificate arrives under the final paragraph (K3). */
+  protected bookFinished = false;
 
   // --- Native Scroll State ---
   protected currentScrollPercentage = 0;
@@ -307,6 +311,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.privateBookId = null;
     this.bookId = null;
     this.trackProgress = false;
+    this.bookFinished = false;
     this.cdRef.markForCheck();
   }
 
@@ -446,6 +451,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   /** The companion travels with the page; the one-time marks (resume, a returned word) do not. */
   protected get chapterQuery(): Record<string, string> {
     return this.companionSlug ? {parallel: this.companionSlug} : {};
+  }
+
+  /** "Chapter 10 of 10 · the end": the rule above the certificate. */
+  protected get endLine(): string {
+    const count = this.chapters.length;
+    return $localize`Chapter ${count}:current: of ${count}:total: · the end`;
   }
 
   protected get wordsAvailable(): boolean {
@@ -907,6 +918,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.isAtScrollTop = state.isAtTop;
     this.isAtScrollBottom = state.isAtBottom;
     if (state.percentage !== this.currentScrollPercentage) this.currentScrollPercentage = state.percentage;
+    if (state.isAtBottom && this.initialScrollApplied && this.trackProgress && this.bookId && this.currentIndex >= 0 && !this.nextChapter) {
+      this.bookFinished = true;
+    }
 
     if (this.initialScrollApplied && this.currentIndex >= 0 && this.readerContentRef?.nativeElement) {
       const captured = this.readerDom.capturePosition(

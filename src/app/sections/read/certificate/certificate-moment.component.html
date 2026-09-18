@@ -1,0 +1,43 @@
+<section class="moment" [class.moment--sheet]="sheet" aria-label="Book finished" i18n-aria-label>
+  @if (endLine) {
+    <p class="moment__end"><span aria-hidden="true"></span><span>{{ endLine }}</span><span aria-hidden="true"></span></p>
+  }
+
+  @if (loading) {
+    <p i18n class="moment__note" role="status">Preparing your certificate…</p>
+  } @else if (loadError) {
+    <p class="moment__note" role="alert">{{ loadError }}</p>
+    <button i18n type="button" class="moment__retry" (click)="load()">Try again</button>
+  } @else if (certificate; as certificate) {
+    <app-certificate-card [certificate]="certificate" [raised]="!sheet"></app-certificate-card>
+
+    <div class="decision">
+      <div class="page-row">
+        <span class="page-row__copy">
+          <span i18n class="page-row__label">Public page</span>
+          <span class="page-row__address">{{ publicAddress }}</span>
+        </span>
+        @if (certificate.publicPage) {
+          <button type="button" class="page-row__copy-link" (click)="copyLink()">
+            <ng-container i18n>{copied, select, true {Copied} other {Copy link}}</ng-container>
+          </button>
+        }
+        <button type="button" class="switch" role="switch" [attr.aria-checked]="certificate.publicPage" [class.switch--on]="certificate.publicPage" [disabled]="switching" aria-label="Public page" i18n-aria-label (click)="togglePublicPage()"><span class="switch__knob"></span></button>
+      </div>
+      @if (!certificate.publicPage) {
+        <p i18n class="page-row__off">Off: the link is not found by anyone, and nothing about you shows.</p>
+      }
+      <div class="actions">
+        <button type="button" class="action action--primary" [disabled]="saving" (click)="saveImage()">
+          <ng-container i18n>{saving, select, true {Saving…} other {Save as image}}</ng-container>
+        </button>
+        @if (sheet) {
+          <button i18n type="button" class="action action--outline" (click)="closed.emit()">Close</button>
+        } @else {
+          <a i18n class="action action--outline" routerLink="/read">Back to your books</a>
+        }
+        <span i18n class="actions__note">{certificate.wordsSaved, plural, =0 {No words in review yet} =1 {1 word is in review} other {{{certificate.wordsSaved}} words are in review}}</span>
+      </div>
+    </div>
+  }
+</section>

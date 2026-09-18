@@ -1,0 +1,26 @@
+<article class="paper" [class.paper--raised]="raised" [attr.aria-label]="certificate.title">
+  <div class="frame"><div class="frame__inner">
+    <img class="mark" src="/assets/img/logo/logo-flat.svg" alt="" width="44" height="44">
+    <div class="titles">
+      <p i18n class="eyebrow">Read to the end</p>
+      <h2 class="title">{{ certificate.title }}</h2>
+      <p class="byline"><ng-container i18n>{{ certificate.author }} · {{ languageName }} · read by <span class="byline__name">{{ '@' + certificate.username }}</span></ng-container></p>
+    </div>
+    <span class="rule" aria-hidden="true"></span>
+    @if (certificate.words.length > 0) {
+      <section class="words" aria-labelledby="rarest-words">
+        <h3 i18n id="rarest-words" class="words__label">The twelve rarest words you met</h3>
+        <ul class="words__grid">
+          @for (word of certificate.words; track $index) { <li>{{ word }}</li> }
+        </ul>
+      </section>
+      <span class="rule" aria-hidden="true"></span>
+    }
+    <p class="counts">
+      <span i18n><strong>{{ certificate.wordsRead | number }}</strong> words read</span>
+      <span i18n><strong>{{ certificate.wordsSaved | number }}</strong> saved</span>
+      <span>{{ certificate.finishedAt | date:'MMMM y' }}</span>
+    </p>
+    <img class="wordmark" src="/assets/img/titles/title-purple.svg" alt="Almonium" i18n-alt>
+  </div></div>
+</article>

@@ -1,0 +1,55 @@
+:host { display: block; }
+
+// The only motion: a 320ms ease-out rise as the certificate arrives under the final paragraph.
+.moment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.75rem;
+  width: 100%;
+  font-family: var(--font-family-ui);
+  animation: rise 320ms ease-out both;
+}
+.moment--sheet { gap: 1.5rem; animation: none; }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+:host-context(html[data-motion="reduced"]) .moment { animation: none; }
+
+.moment__end { display: flex; align-items: center; gap: .9rem; width: 100%; margin: 0; color: var(--metadata-color); font-size: .82rem; }
+.moment__end > [aria-hidden] { flex: 1; height: 1px; background: var(--hairline-on-ground); }
+
+.moment__note { margin: 0; color: var(--subhead-color); font-size: .86rem; }
+.moment__retry { padding: .4rem .9rem; border: 1px solid var(--control-border-color); border-radius: 999px; background: transparent; color: var(--text-color); cursor: pointer; font: inherit; font-size: .82rem; }
+
+.decision { display: flex; width: 100%; flex-direction: column; gap: 1.4rem; }
+
+.page-row { display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--hairline-on-ground); border-bottom: 1px solid var(--hairline-on-ground); }
+.page-row__copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .2rem; }
+.page-row__label { color: var(--text-color); font-size: .9rem; font-weight: 500; }
+.page-row__address { overflow: hidden; color: var(--subhead-color); font: .75rem/1.4 var(--font-family-mono); text-overflow: ellipsis; white-space: nowrap; }
+.page-row__copy-link { padding: .3rem 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; white-space: nowrap; }
+.page-row__copy-link:hover { text-decoration: underline; }
+.page-row__off { margin: -.9rem 0 0; color: var(--metadata-color); font-size: .78rem; line-height: 1.5; }
+
+.switch { display: flex; flex: 0 0 auto; width: 44px; height: 26px; align-items: center; padding: 3px; border: 0; border-radius: 999px; background: var(--control-border-color); cursor: pointer; transition: background-color 150ms ease; }
+.switch--on { background: var(--brand-primary); }
+.switch:disabled { cursor: wait; }
+.switch:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: 2px; }
+.switch__knob { display: block; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 150ms ease; }
+.switch--on .switch__knob { transform: translateX(18px); }
+:host-context(html[data-motion="reduced"]) .switch, :host-context(html[data-motion="reduced"]) .switch__knob { transition: none; }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem; }
+.action { display: inline-flex; align-items: center; min-height: 2.6rem; padding: .6rem 1.4rem; border-radius: 999px; cursor: pointer; font: inherit; font-size: .9rem; font-weight: 600; text-decoration: none; }
+.action--primary { border: 0; background: var(--brand-primary); color: var(--on-brand-color); }
+.action--primary:hover { background: var(--brand-hover); }
+.action--primary:disabled { cursor: wait; opacity: .7; }
+.action--outline { border: 1.5px solid var(--text-color); background: transparent; color: var(--text-color); }
+.action--outline:hover { background: var(--state-hover); }
+.actions__note { margin-left: auto; color: var(--metadata-color); font-size: .82rem; }
+
+// Under 1000px the switch row stacks and the note takes its own line.
+@media (max-width: 62.5rem) {
+  .page-row { flex-wrap: wrap; }
+  .page-row__copy { flex-basis: 100%; }
+  .actions__note { flex-basis: 100%; margin-left: 0; }
+}

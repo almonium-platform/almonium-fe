@@ -1,0 +1,16 @@
+:host { display: block; }
+
+// The certificate on cream (the card rule), then one door; the marketing header comes from the shell.
+.certificate-page { display: flex; min-height: calc(100vh - var(--header-height)); flex-direction: column; background: var(--page-ground); color: var(--text-color); font-family: var(--font-family-ui); }
+.certificate-page__main { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 2.25rem; width: min(calc(100% - 2.5rem), 42.5rem); margin: 0 auto; padding: 3.5rem 0 4rem; }
+.certificate-page__note { margin: 0; color: var(--subhead-color); font-size: .9rem; }
+
+.door { display: flex; max-width: 52ch; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+.door__copy { margin: 0; color: var(--subhead-color); font-size: 1rem; line-height: 1.6; text-wrap: pretty; }
+.door__button { display: inline-flex; align-items: center; min-height: 2.9rem; padding: .8rem 1.65rem; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); font-size: .95rem; font-weight: 600; text-decoration: none; }
+.door__button:hover { background: var(--brand-hover); }
+.door__note { color: var(--metadata-color); font-size: .82rem; }
+
+@media (max-width: 600px) {
+  .certificate-page__main { width: min(calc(100% - 2rem), 42.5rem); padding: 2rem 0 3rem; }
+}

@@ -6,6 +6,15 @@
   </tui-data-list>
 </ng-template>
 
+<!-- The finished book's certificate (K4): K3's sheet without the final paragraph. -->
+<ng-template #certificateSheet>
+  <div class="sheet certificate-sheet">
+    @if (certificateBook; as book) {
+      <app-certificate-moment [bookId]="book.id" [sheet]="true" (closed)="closeCertificate()" />
+    }
+  </div>
+</ng-template>
+
 <ng-template #askSheet>
   <div class="sheet ask-sheet">
     <h2 class="sheet__title" i18n>Ask for a book</h2>
@@ -93,11 +102,24 @@
       <div class="kicker-row"><h2 i18n id="continue-heading" class="kicker">Continue</h2><span class="rule" aria-hidden="true"></span></div>
       <div class="continue-row">
         @for (book of continueBooks; track book.id) {
-          <a class="continue-card" [routerLink]="['/books', book.editionSlug]" [style.--book-color]="bookColor(book.workSlug, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
-            @if (book.coverUrl) { <app-book-cover class="continue-art" [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover> }
-            @else { <strong class="continue-title">{{ book.title }}</strong> }
-            <span class="continue-foot"><small>{{ book.author }}</small><span class="progress-hairline"><i [style.width.%]="book.progressPercentage ?? 0"></i></span></span>
-          </a>
+          @if (isFinished(book)) {
+            <!-- A finished book (K4): the bar is full, the caption says so, and two actions appear on hover. -->
+            <div class="continue-card continue-card--finished" [style.--book-color]="bookColor(book.workSlug, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
+              @if (book.coverUrl) { <app-book-cover class="continue-art" [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover> }
+              @else { <strong class="continue-title">{{ book.title }}</strong> }
+              <span class="continue-foot"><small i18n>Read to the end</small><span class="progress-hairline"><i style="width: 100%"></i></span></span>
+              <span class="continue-card__actions">
+                <a i18n class="continue-card__action continue-card__action--primary" [routerLink]="['/books', book.editionSlug]">Read again</a>
+                <button i18n type="button" class="continue-card__action continue-card__action--outline" (click)="openCertificate(book)">Certificate</button>
+              </span>
+            </div>
+          } @else {
+            <a class="continue-card" [routerLink]="['/books', book.editionSlug]" [style.--book-color]="bookColor(book.workSlug, book.coverUrl)" [attr.aria-label]="bookAriaLabel(book)">
+              @if (book.coverUrl) { <app-book-cover class="continue-art" [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover> }
+              @else { <strong class="continue-title">{{ book.title }}</strong> }
+              <span class="continue-foot"><small>{{ book.author }}</small><span class="progress-hairline"><i [style.width.%]="book.progressPercentage ?? 0"></i></span></span>
+            </a>
+          }
         }
       </div>
     </section>

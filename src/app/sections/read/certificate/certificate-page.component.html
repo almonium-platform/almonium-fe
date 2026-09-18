@@ -1,0 +1,17 @@
+<div class="certificate-page">
+  <main class="certificate-page__main">
+    @if (loading) {
+      <p i18n class="certificate-page__note" role="status">Loading the certificate…</p>
+    } @else if (loadError) {
+      <p class="certificate-page__note" role="alert">{{ loadError }}</p>
+    } @else if (certificate; as certificate) {
+      <app-certificate-card [certificate]="certificate"></app-certificate-card>
+      <div class="door">
+        <p i18n class="door__copy">The whole book is free to read, in {{ languageName }} or beside a translation, with every word one tap from its meaning.</p>
+        <a i18n class="door__button" [routerLink]="['/reader', certificate.editionSlug]">Read {{ certificate.title }}</a>
+        <span i18n class="door__note">Chapter 1 · no account needed</span>
+      </div>
+    }
+  </main>
+  <app-public-footer></app-public-footer>
+</div>

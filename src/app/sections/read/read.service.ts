@@ -32,6 +32,7 @@ import {Observable} from "rxjs";
 import {BookChapter, parseBookChapters} from './book-chapter.model';
 import {BookLookup, BookRequest, BookRequestAsk, parseBookLookup, parseBookRequest} from './book-request.model';
 import {ChapterVocabulary, parseChapterVocabulary} from './chapter-vocabulary.model';
+import {BookCertificate, parseBookCertificate} from './certificate/certificate.model';
 import {map, shareReplay, tap} from 'rxjs/operators';
 
 @Injectable({
@@ -219,6 +220,30 @@ export class ReadService {
       responseType: 'arraybuffer',
       observe: 'response'
     });
+  }
+
+  // --- The certificate (K) ---
+
+  /** Reaching the end of the last chapter: the certificate is issued, or the one already issued comes back. */
+  issueCertificate(bookId: string): Observable<BookCertificate> {
+    return this.http.post<unknown>(`${AppConstants.BOOKS_URL}/${bookId}/certificate`, {}, {withCredentials: true})
+      .pipe(map(parseBookCertificate));
+  }
+
+  setCertificateVisibility(bookId: string, publicPage: boolean): Observable<BookCertificate> {
+    return this.http.put<unknown>(`${AppConstants.BOOKS_URL}/${bookId}/certificate/visibility`, {publicPage}, {withCredentials: true})
+      .pipe(map(parseBookCertificate));
+  }
+
+  /** "Save as image": the 1200×630 PNG the link unfurls into, for the owner whether or not the page is on. */
+  getCertificateImage(bookId: string): Observable<Blob> {
+    return this.http.get(`${AppConstants.BOOKS_URL}/${bookId}/certificate/image`, {withCredentials: true, responseType: 'blob'});
+  }
+
+  /** The public page's record; a page that is off is a 404, which the page shows as the missing-page state. */
+  getPublicCertificate(username: string, editionSlug: string): Observable<BookCertificate> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/certificates/${encodeURIComponent(username)}/${encodeURIComponent(editionSlug)}`)
+      .pipe(map(parseBookCertificate));
   }
 
   // --- Progress Methods ---

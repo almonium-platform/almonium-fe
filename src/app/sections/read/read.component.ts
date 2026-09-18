@@ -27,6 +27,7 @@ import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} fr
 import {getErrorMessage} from '../../shared/http-error';
 import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel, workKey} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
+import {CertificateMomentComponent} from './certificate/certificate-moment.component';
 
 type ShelfViewMode = 'covers' | 'spines';
 
@@ -47,6 +48,7 @@ type ShelfViewMode = 'covers' | 'spines';
     TuiOption,
     BookCoverComponent,
     PaywallComponent,
+    CertificateMomentComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -64,6 +66,9 @@ export class ReadComponent implements OnInit, OnDestroy {
 
   @ViewChild(PaywallComponent) private paywallComponent?: PaywallComponent;
   @ViewChild('askSheet', {static: true}) private askSheet!: TemplateRef<unknown>;
+  @ViewChild('certificateSheet', {static: true}) private certificateSheet!: TemplateRef<unknown>;
+  /** The finished book whose certificate the sheet shows (K4). */
+  protected certificateBook: Book | null = null;
 
   /** The foot of the shelf (G18): the ask line shows once the reader has scrolled to it, so a full shelf never advertises what it lacks. */
   @ViewChild('shelfEnd') set shelfEnd(element: ElementRef<HTMLElement> | undefined) {
@@ -607,6 +612,20 @@ export class ReadComponent implements OnInit, OnDestroy {
       this.privateView = view;
       this.localStorageService.saveItem('read_private_view', view);
     }
+  }
+
+  /** Read to the end: the bar is full and the tile offers the certificate instead of a place to continue from. */
+  protected isFinished(book: Book): boolean {
+    return (book.progressPercentage ?? 0) >= 100;
+  }
+
+  protected openCertificate(book: Book): void {
+    this.certificateBook = book;
+    this.popupTemplateStateService.open(this.certificateSheet, 'certificate');
+  }
+
+  protected closeCertificate(): void {
+    this.popupTemplateStateService.close();
   }
 
   protected get continueBooks(): Book[] {
