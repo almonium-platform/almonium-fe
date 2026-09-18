@@ -153,26 +153,6 @@ export class AppSettingsComponent implements OnInit, OnDestroy {
     this.appearanceService.apply();
   }
 
-  protected clearOfflineBooks() {
-    this.loadingSubject$.next(true); // Show loading indicator
-
-    this.localStorageService.clearReaderPositions();
-    const cacheClear$ = typeof caches === 'undefined'
-      ? Promise.resolve()
-      : caches.keys().then(names => Promise.all(
-        names.filter(name => /book|read|content/i.test(name)).map(name => caches.delete(name)),
-      )).then(() => undefined);
-
-    void cacheClear$.then(() => {
-      this.loadingSubject$.next(false);
-      this.alertService.open($localize`Offline books cleared`, {appearance: 'positive'}).subscribe();
-    }).catch(error => {
-      this.loadingSubject$.next(false);
-      logger.error('Failed to clear offline books:', error);
-      this.alertService.open($localize`Failed to clear offline books`, {appearance: 'negative'}).subscribe();
-    });
-  }
-
   protected reloadCachedAppData() {
     this.loadingSubject$.next(true);
 

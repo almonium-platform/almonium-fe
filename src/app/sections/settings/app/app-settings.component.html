@@ -69,10 +69,6 @@
       <section class="section-block card">
         <div i18n class="eyebrow">Data &amp; storage</div>
         <div class="data-action">
-          <span><strong i18n>Offline books</strong><small i18n>Remove downloaded book content and saved reading positions.</small></span>
-          <app-button appearance="bw" label="Clear offline books" i18n-label width="fit" gap=".5rem" (click)="clearOfflineBooks()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.trash"/></app-button>
-        </div>
-        <div class="data-action">
           <span><strong i18n>Refresh app data</strong><small i18n>Reload account and language data without changing your preferences.</small></span>
           <app-button appearance="bw" label="Refresh" i18n-label width="fit" gap=".5rem" (click)="reloadCachedAppData()" [loading$]="loading$"><tui-icon [style.width.px]="16" [style.height.px]="16" icon="@tui.fa.solid.rotate"/></app-button>
         </div>
