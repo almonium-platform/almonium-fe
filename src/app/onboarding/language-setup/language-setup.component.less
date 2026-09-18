@@ -1,7 +1,9 @@
 @import '../onboarding.styles.less';
 
 .language-step { max-width: 42rem; align-items: stretch; }
-.language-step:has(.sheet-heading) { width: min(38rem, calc(100vw - 2rem)); padding: 1.5rem 1.75rem 1.75rem; }
+/* The settings sheet: `.card.step` centres and caps its children at 30rem, so the sheet restates the
+   width and lets the heading and form share the left edge. */
+.language-step:has(.sheet-heading) { width: min(38rem, calc(100vw - 2rem)); max-width: none; align-items: stretch; gap: 1.25rem; padding: 1.5rem 1.75rem 1.75rem; }
 .header-row { justify-content: flex-start; padding: 0; font-family: var(--font-family-reading); color: var(--text-color); }
 .step-description, .native-language, .native-note, .language-explanation { margin: 0; color: var(--subhead-color); font-size: .9rem; text-align: left; }
 .step-description { margin: .35rem 0 1.25rem; }
@@ -34,7 +36,7 @@
 .back-link { border: 0; background: none; color: var(--metadata-color); cursor: pointer; font: inherit; font-size: .9rem; }
 form { display: flex; flex-direction: column; width: 100%; }
 .form-group { margin-bottom: 1.5rem; text-align: left; }
-.form-label { margin-bottom: .5rem; font-size: .9rem; font-weight: 600; }
+.form-label { display: block; margin-bottom: .5rem; font-size: .9rem; font-weight: 600; }
 .cefr-rows { width: 100%; margin-bottom: 1.5rem; }
 .cefr-language-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
 .cefr-lang-chip { padding: .75rem 1rem; }
