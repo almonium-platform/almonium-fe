@@ -207,7 +207,7 @@ export function paidTierFeatures(offer: PlanOffer | null): string[] {
     ?? PAID_BOOK_IMPORTS_FALLBACK;
   return [
     $localize`Unlimited saved words, and ${languages}:languages: languages at once`,
-    $localize`Every book at your level — B1, B2 and C1 editions`,
+    $localize`Every book at the levels it honestly reaches — adapted editions and the original`,
     $localize`Chat with Almo, who uses the words you’re learning`,
     $localize`Narrated audiobooks`,
     $localize`Import your own books, ${imports}:imports: a month`,
