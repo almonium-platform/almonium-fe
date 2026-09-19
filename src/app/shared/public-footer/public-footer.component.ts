@@ -13,7 +13,7 @@ import {RouterLink} from '@angular/router';
       <div class="footer-inner">
         <a class="brand" routerLink="/" aria-label="Almonium home" i18n-aria-label>
           <img class="brand-emblem" src="/assets/img/logo/logo-flat-tint.svg" alt="">
-          <img class="brand-wordmark" src="/email/wordmark-white.png" alt="">
+          <img class="brand-wordmark" src="/assets/img/titles/wordmark-cream.svg" alt="">
         </a>
         <p i18n>Read anything. Keep every word.</p>
         <nav aria-label="Footer navigation" i18n-aria-label>
