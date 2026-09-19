@@ -70,6 +70,9 @@
   --state-selected: #faf6fb;
   --parallel-tint: #f7e3ec;
   --companion-ink: #7e7e7e;
+  --pair-ink-plum: rgba(135, 38, 87, 0.32);
+  --pair-ink-teal: rgba(46, 118, 112, 0.36);
+  --pair-ink-ochre: rgba(178, 122, 32, 0.4);
   --chat-selected-color: #F3EDF6;
   --almo-disc-color: #F3EDF6;
   --notification-unread-color: #F6F0F4;
@@ -559,6 +562,10 @@ tui-data-list button[tuiOption].context-button.negative {
   letter-spacing: 0.09375rem;
   text-transform: uppercase;
 }
+.scope-language-setup {
+  /* The settings sheet: `.card.step` centres and caps its children at 30rem, so the sheet restates the
+   width and lets the heading and form share the left edge. */
+}
 .scope-language-setup .card.step {
   display: flex;
   flex-direction: column;
@@ -601,6 +608,9 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-language-setup .language-step:has(.sheet-heading) {
   width: min(38rem, calc(100vw - 2rem));
+  max-width: none;
+  align-items: stretch;
+  gap: 1.25rem;
   padding: 1.5rem 1.75rem 1.75rem;
 }
 .scope-language-setup .header-row {
@@ -761,6 +771,7 @@ tui-data-list button[tuiOption].context-button.negative {
   text-align: left;
 }
 .scope-language-setup .form-label {
+  display: block;
   margin-bottom: 0.5rem;
   font-size: 0.9rem;
   font-weight: 600;
@@ -1657,20 +1668,10 @@ tui-data-list button[tuiOption].context-button.negative {
   font-weight: 600;
   line-height: 1.15;
 }
-.scope-read .quota {
-  margin-left: auto;
-  color: var(--metadata-color);
-  font-size: 0.72rem;
-  white-space: nowrap;
-}
 .scope-read .read-header__row .import-book-action {
   margin-left: auto;
 }
-.scope-read .quota + .import-book-action {
-  margin-left: 0;
-}
 .scope-read .import-book-action,
-.scope-read .empty-state button,
 .scope-read .solid-pill {
   display: inline-flex;
   align-items: center;
@@ -1872,6 +1873,58 @@ tui-data-list button[tuiOption].context-button.negative {
   border-radius: 2px;
   background: #fff;
 }
+.scope-read .continue-card--finished {
+  cursor: default;
+}
+.scope-read .continue-card--finished:hover {
+  transform: none;
+  box-shadow: 0 6px 16px rgba(44, 37, 48, 0.24);
+}
+.scope-read .continue-card__actions {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  background: rgba(44, 37, 48, 0.72);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.scope-read .continue-card--finished:hover .continue-card__actions,
+.scope-read .continue-card--finished:focus-within .continue-card__actions {
+  opacity: 1;
+}
+.scope-read .continue-card__action {
+  display: block;
+  padding: 0.45rem 0.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+.scope-read .continue-card__action--primary {
+  border: 0;
+  background: #fff;
+  color: #2c2530;
+}
+.scope-read .continue-card__action--outline {
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: transparent;
+  color: #fff;
+}
+.scope-read .sheet.certificate-sheet {
+  width: min(92vw, 46rem);
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+}
 .scope-read .shelf {
   display: flex;
   align-items: end;
@@ -2056,27 +2109,6 @@ tui-data-list button[tuiOption].context-button.negative {
   margin-top: 0.4rem;
   border-radius: 3px;
 }
-.scope-read .empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  min-height: 5.5rem;
-  padding: 1rem 1.15rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.9rem;
-  color: var(--subhead-color);
-  font-size: 0.9rem;
-}
-.scope-read .empty-state p {
-  margin: 0;
-}
-.scope-read .empty-state button {
-  min-height: 2.2rem;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--control-border-color);
-  color: var(--brand-margin);
-}
 .scope-read .loading-row {
   min-height: 10rem;
   padding: 2rem;
@@ -2115,14 +2147,20 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-read .ask-line__verb:hover {
   text-decoration: underline;
 }
-.scope-read .ask-line__quiet {
-  margin-left: 0.5rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--subhead-color);
-  cursor: pointer;
-  font: inherit;
+.scope-read .almo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem 1rem;
+}
+.scope-read .almo-empty__pose {
+  display: block;
+  width: 8rem;
+  height: auto;
+}
+.scope-read .almo-empty .ask-line {
+  margin: 0;
 }
 .scope-read .sheet {
   display: flex;
@@ -2360,11 +2398,6 @@ tui-data-list button[tuiOption].context-button.negative {
   .scope-read .read-header__row {
     flex-wrap: wrap;
     align-items: flex-start;
-  }
-  .scope-read .quota {
-    flex-basis: 100%;
-    margin-left: 0;
-    order: 3;
   }
   .scope-read .read-header__row .import-book-action {
     margin-left: auto;
@@ -4662,28 +4695,28 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
   <section class="harness-card" id="book-import">
     <header>
-      <h2>Read — Import book against the allowance</h2>
+      <h2>Read — Import book against the shelf cap</h2>
       <p class="harness-source">book-import.component.html:58</p>
-      <p class="harness-rule">Quota block, restated where the greyed button is rather than only in the card above it.</p>
+      <p class="harness-rule">A full shelf, restated where the greyed button is rather than only in the card above it.</p>
       <label class="harness-toggle">
       <code>quota</code>
-      <select data-card="book-import"><option value="left" selected>2 of 3 imports left</option><option value="none">none left this month</option><option value="premium">Premium-only (limit 0)</option></select>
+      <select data-card="book-import"><option value="left" selected>2 of 10 places on the shelf</option><option value="none">shelf full</option><option value="premium">Premium-only (limit 0)</option></select>
     </label>
     </header>
     
       <div class="scope-book-import harness-frame">
         <div class="quota-card" data-quota-card>
           <div>
-            <span class="quota-label">Import allowance</span>
-            <strong data-quota-message>2 of 3 imports left this month</strong>
-            <span>Resets Oct 1, 2026</span>
+            <span class="quota-label">Your shelf</span>
+            <strong data-quota-message>2 of 10 places on your shelf</strong>
+            <span>Deleting a book frees its place.</span>
           </div>
           <button type="button" class="secondary-action" data-premium-cta hidden>See Premium</button>
         </div>
         <form onsubmit="return false">
           <label>Title<input value="Madame Bovary"></label>
           <button class="primary-action" type="submit" data-blocked>Import book</button>
-          <p class="blocked-note" data-note>No imports left this month.</p>
+          <p class="blocked-note" data-note>Your shelf is full. Delete a book to make room for this one.</p>
         </form>
       </div>
   </section>
@@ -4937,7 +4970,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 3 imports left","note":"","blocked":false},"none":{"value":"none","label":"none left this month","note":"No imports left this month.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"ask-for-a-book":{"typed":{"value":"typed","label":"\"Dracula, Bram Stoker\", language picked","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Type the title to ask for it.","blocked":true},"checking":{"value":"checking","label":"lookup still in flight","note":"Checking the title…","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"ask-for-a-book":{"typed":{"value":"typed","label":"\"Dracula, Bram Stoker\", language picked","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Type the title to ask for it.","blocked":true},"checking":{"value":"checking","label":"lookup still in flight","note":"Checking the title…","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {
@@ -4975,9 +5008,9 @@ tui-data-list button[tuiOption].context-button.negative {
       if (select.dataset.card === 'book-import') {
         card.querySelector('[data-quota-card]').classList.toggle('exhausted', option.blocked);
         card.querySelector('[data-quota-message]').textContent =
-          select.value === 'left' ? '2 of 3 imports left this month'
-          : select.value === 'none' ? '0 of 3 imports left this month'
-          : '0 of 0 imports left this month';
+          select.value === 'left' ? '2 of 10 places on your shelf'
+          : select.value === 'none' ? '0 of 10 places on your shelf'
+          : 'Private import is part of Premium.';
         card.querySelector('[data-premium-cta]').hidden = select.value !== 'premium';
       }
       if (select.dataset.card === 'learner-lock') {

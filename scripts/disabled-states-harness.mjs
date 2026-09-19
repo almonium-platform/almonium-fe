@@ -138,15 +138,15 @@ const CARDS = [
   },
   {
     id: 'book-import',
-    title: 'Read — Import book against the allowance',
+    title: 'Read — Import book against the shelf cap',
     source: 'book-import.component.html:58',
-    rule: 'Quota block, restated where the greyed button is rather than only in the card above it.',
+    rule: 'A full shelf, restated where the greyed button is rather than only in the card above it.',
     control: {
       label: 'quota',
       type: 'select',
       options: [
-        {value: 'left', label: '2 of 3 imports left', note: '', blocked: false},
-        {value: 'none', label: 'none left this month', note: 'No imports left this month.', blocked: true},
+        {value: 'left', label: '2 of 10 places on the shelf', note: '', blocked: false},
+        {value: 'none', label: 'shelf full', note: 'Your shelf is full. Delete a book to make room for this one.', blocked: true},
         {value: 'premium', label: 'Premium-only (limit 0)', note: 'Importing books is a Premium feature.', blocked: true},
       ],
     },
@@ -154,16 +154,16 @@ const CARDS = [
       <div class="scope-book-import harness-frame">
         <div class="quota-card" data-quota-card>
           <div>
-            <span class="quota-label">Import allowance</span>
-            <strong data-quota-message>2 of 3 imports left this month</strong>
-            <span>Resets Oct 1, 2026</span>
+            <span class="quota-label">Your shelf</span>
+            <strong data-quota-message>2 of 10 places on your shelf</strong>
+            <span>Deleting a book frees its place.</span>
           </div>
           <button type="button" class="secondary-action" data-premium-cta hidden>See Premium</button>
         </div>
         <form onsubmit="return false">
           <label>Title<input value="Madame Bovary"></label>
           <button class="primary-action" type="submit" data-blocked>Import book</button>
-          <p class="blocked-note" data-note>No imports left this month.</p>
+          <p class="blocked-note" data-note>Your shelf is full. Delete a book to make room for this one.</p>
         </form>
       </div>`,
   },
@@ -513,9 +513,9 @@ const SCRIPT = `
       if (select.dataset.card === 'book-import') {
         card.querySelector('[data-quota-card]').classList.toggle('exhausted', option.blocked);
         card.querySelector('[data-quota-message]').textContent =
-          select.value === 'left' ? '2 of 3 imports left this month'
-          : select.value === 'none' ? '0 of 3 imports left this month'
-          : '0 of 0 imports left this month';
+          select.value === 'left' ? '2 of 10 places on your shelf'
+          : select.value === 'none' ? '0 of 10 places on your shelf'
+          : 'Private import is part of Premium.';
         card.querySelector('[data-premium-cta]').hidden = select.value !== 'premium';
       }
       if (select.dataset.card === 'learner-lock') {

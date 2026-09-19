@@ -63,11 +63,10 @@ export interface BookImportMetadataUpdate {
   publicationYear: number | null;
 }
 
+/** The private cap: how many imports may stand on the shelf at a time, and how many do. */
 export interface BookImportQuota {
   limit: number;
   used: number;
-  periodStartsAt: string;
-  periodEndsAt: string;
 }
 
 export function parseBookImport(value: unknown): BookImport {
@@ -142,7 +141,5 @@ export function parseBookImportQuota(value: unknown): BookImportQuota {
   return {
     limit: expectNumber(data['limit'], 'bookImportQuota.limit'),
     used: expectNumber(data['used'], 'bookImportQuota.used'),
-    periodStartsAt: expectString(data['periodStartsAt'], 'bookImportQuota.periodStartsAt'),
-    periodEndsAt: expectString(data['periodEndsAt'], 'bookImportQuota.periodEndsAt'),
   };
 }

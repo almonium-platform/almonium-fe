@@ -132,7 +132,7 @@ test('a finished book on the shelf offers Read again and the certificate', async
     else if (path.endsWith('/books/language/EN')) await route.fulfill({json: {continueReading: [finished], available: [], favorites: []}});
     else if (path.endsWith('/public/books')) await route.fulfill({json: [finished]});
     else if (path.endsWith('/book-imports')) await route.fulfill({json: []});
-    else if (path.endsWith('/book-imports/quota')) await route.fulfill({json: {limit: 3, used: 0, periodStartsAt: '2026-09-01T00:00:00Z', periodEndsAt: '2026-10-01T00:00:00Z'}});
+    else if (path.endsWith('/book-imports/quota')) await route.fulfill({json: {limit: 10, used: 0}});
     else if (path.endsWith('/books/orders')) await route.fulfill({json: []});
     else if (path.endsWith('/books/orders/quota')) await route.fulfill({json: {limit: 1, used: 0, periodStartsAt: '2026-09-01T00:00:00Z', periodEndsAt: '2026-10-01T00:00:00Z'}});
     else if (path.endsWith('/public/plans')) await route.fulfill({json: []});

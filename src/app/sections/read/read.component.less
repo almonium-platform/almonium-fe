@@ -2,16 +2,15 @@
 .read-header, .continue-section, .book-shelf, .notice-card, .requests-card { width: min(100%, 76rem); margin: 0 auto; }
 
 // The header is the page furniture: one label, one title, the counter and the import button in the
-// height of a single row, with the filter bar sitting inside the same block. No hero.
+// height of a single row, with the filter bar sitting inside the same block. No hero, no counter: the private cap
+// is a shelf count, said on the Yours label.
 .read-header { display: flex; flex-direction: column; gap: 1.1rem; padding: 1.35rem 1.5rem 1.15rem; border-radius: 1.25rem; background: var(--nested-color); }
 .read-header__row { display: flex; align-items: flex-end; gap: 1rem; }
 .read-header__title { display: flex; flex-direction: column; gap: .15rem; }
 .read-header__title .eyebrow { margin: 0; }
 .read-header h1 { margin: 0; font-size: 1.65rem; font-weight: 600; line-height: 1.15; }
-.quota { margin-left: auto; color: var(--metadata-color); font-size: .72rem; white-space: nowrap; }
 .read-header__row .import-book-action { margin-left: auto; }
-.quota + .import-book-action { margin-left: 0; }
-.import-book-action, .empty-state button, .solid-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: .55rem 1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+.import-book-action, .solid-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: .55rem 1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; white-space: nowrap; }
 .import-book-action:hover, .solid-pill:hover { background: var(--brand-hover); }
 .import-book-action.premium-gate { background: var(--premium-gradient); color: #FDF4F8; }
 
@@ -88,9 +87,6 @@
 .private-cover .spine-title, .private-cover .spine-author { writing-mode: initial; transform: none; white-space: normal; }
 .private-cover .spine-title { font-size: .9rem; line-height: 1.25; }
 .private-cover .spine-status { position: static; margin-top: .4rem; border-radius: 3px; }
-.empty-state { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 5.5rem; padding: 1rem 1.15rem; border: 1px solid var(--border-color); border-radius: .9rem; color: var(--subhead-color); font-size: .9rem; }
-.empty-state p { margin: 0; }
-.empty-state button { min-height: 2.2rem; background: transparent; box-shadow: inset 0 0 0 1px var(--control-border-color); color: var(--brand-margin); }
 .loading-row { min-height: 10rem; padding: 2rem; }
 
 // The foot of the shelf (G18): one quiet line, centred, grey with the verb in plum. Never a tile.
@@ -99,7 +95,10 @@
 .ask-line--empty { min-height: 5.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35rem; margin: 0; padding: 1rem; border: 1px solid var(--border-color); border-radius: .9rem; }
 .ask-line__verb { padding: 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-weight: 600; }
 .ask-line__verb:hover { text-decoration: underline; }
-.ask-line__quiet { margin-left: .5rem; padding: 0; border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; }
+// A catalogue with nothing for this language (G21): Almo's searching pose where the grid would be, and one line under it.
+.almo-empty { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.5rem 1rem 1rem; }
+.almo-empty__pose { display: block; width: 8rem; height: auto; }
+.almo-empty .ask-line { margin: 0; }
 
 // The ask sheet (G19), in the shared popup shell.
 .sheet { display: flex; width: min(88vw, 22rem); flex-direction: column; gap: .85rem; padding: 1.5rem 1.5rem 1.25rem; border-radius: 1.375rem; background: var(--overlay-color); color: var(--text-color); }
@@ -144,7 +143,6 @@
 @media (max-width: 600px) {
   .read-header { padding: 1.1rem 1rem 1rem; }
   .read-header__row { flex-wrap: wrap; align-items: flex-start; }
-  .quota { flex-basis: 100%; margin-left: 0; order: 3; }
   .read-header__row .import-book-action { margin-left: auto; }
   .filter-bar { align-items: stretch; flex-direction: column; }
   .native-select select, .sort-select select { width: 100%; max-width: none; }

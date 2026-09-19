@@ -241,7 +241,7 @@
       <div>
         <h2 id="limits-title">Reset a user's limits</h2>
         <p>
-          The monthly allowances, handed back before the month turns. A lookup above fills the ID in.
+          The once-a-month language switch, handed back before the month turns. A lookup above fills the ID in.
         </p>
       </div>
     </div>
@@ -258,30 +258,10 @@
             </button>
           </div>
         </label>
-
-        <label class="ops-form__field">
-          <span>Reason <em>book imports only</em></span>
-          <input type="text" formControlName="reason" placeholder="Why is the quota being reset?" />
-        </label>
       </div>
     </form>
 
     <div class="ops-maintenance">
-      <div class="ops-maintenance__row">
-        <div>
-          <strong>Book-import quota</strong>
-          <p>Credits back every import spent in the current period. The reason is kept with it.</p>
-        </div>
-        <button
-          class="ops-button ops-button--quiet"
-          type="button"
-          [disabled]="resettingQuota"
-          (click)="onResetImportQuota()"
-        >
-          {{ resettingQuota ? 'Resetting…' : 'Reset quota' }}
-        </button>
-      </div>
-
       <div class="ops-maintenance__row">
         <div>
           <strong>Active-language switch</strong>

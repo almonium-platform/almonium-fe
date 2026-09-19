@@ -65,7 +65,6 @@
   <header class="read-header">
     <div class="read-header__row">
       <div class="read-header__title"><p i18n class="eyebrow">Read</p><h1 i18n>Your books</h1></div>
-      @if (isPremium && quotaLabel(); as quota) { <span class="quota">{{ quota }}</span> }
       <button type="button" class="import-book-action" [class.premium-gate]="isAuthenticated && !isPremium" (click)="startImport()">
         <lucide-icon [name]="isAuthenticated && !isPremium ? 'lock' : 'plus'" size="16"></lucide-icon>
         {{ importActionLabel() }}
@@ -125,32 +124,9 @@
     </section>
   }
 
-  @if (isAuthenticated) {
-    <section class="book-shelf" aria-labelledby="my-books-heading">
-      <div class="kicker-row">
-        <h2 id="my-books-heading" class="kicker"><ng-container i18n>Yours</ng-container> <span class="kicker__count">· {{ privateBooks.length }}</span></h2>
-        <span class="rule" aria-hidden="true"></span>
-        <div class="view-toggle" role="group" aria-label="Your books view" i18n-aria-label><button i18n type="button" [class.active]="privateView === 'spines'" [attr.aria-pressed]="privateView === 'spines'" (click)="setShelfView('private', 'spines')">Spines</button><button i18n type="button" [class.active]="privateView === 'covers'" [attr.aria-pressed]="privateView === 'covers'" (click)="setShelfView('private', 'covers')">Covers</button></div>
-      </div>
-      @if (privateBooks.length > 0) {
-        @if (privateShelfBooks.length > 0) {
-          <div class="shelf" [class.cover-shelf]="privateView === 'covers'">
-            @for (book of privateShelfBooks; track book.id) {
-              <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [class.ink-spine]="isUnnamed(book)" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/my-books', book.id]" [attr.aria-label]="bookAriaLabel(book)">
-                <span class="spine-title">{{ book.title }}</span>@if (privateView === 'covers' || showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }
-                @if (book.status !== importStatus.READY) { <span i18n class="spine-status">{book.status, select, FAILED {Needs attention} other {Preparing}}</span> }
-                @if (privateView === 'spines') { <span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span> }
-              </a>
-            }
-          </div>
-        } @else { <div class="empty-state"><p i18n>None of your books match this search.</p><button i18n type="button" (click)="clearFilters()">Clear filters</button></div> }
-      } @else { <div class="empty-state"><p i18n>No private books yet.</p><button i18n type="button" (click)="startImport()">{isPremium, select, true {Import your first book} other {Learn about private imports}}</button></div> }
-    </section>
-  }
-
-  <section class="book-shelf" aria-labelledby="library-heading">
+  <section class="book-shelf book-shelf--library" aria-labelledby="library-heading">
     <div class="kicker-row">
-      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container> @if ((loading$ | async) === false) { <span class="kicker__count">· {{ shelfTiles.length }}</span> }</h2>
+      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container>@if (shelfTiles.length > 0) {&ngsp;<span class="kicker__count">· {{ shelfTiles.length }}</span> }</h2>
       <span class="rule" aria-hidden="true"></span>
       <div class="view-toggle" role="group" aria-label="Library view" i18n-aria-label><button i18n type="button" [class.active]="libraryView === 'spines'" [attr.aria-pressed]="libraryView === 'spines'" (click)="setShelfView('library', 'spines')">Spines</button><button i18n type="button" [class.active]="libraryView === 'covers'" [attr.aria-pressed]="libraryView === 'covers'" (click)="setShelfView('library', 'covers')">Covers</button></div>
     </div>
@@ -171,8 +147,17 @@
       </div>
     } @else if (emptySearchTerm; as term) {
       <!-- The empty search is the same quiet line with the term in it (G18); no placeholder tile. -->
-      <p class="ask-line ask-line--empty"><ng-container i18n>Nothing for ‘{{ term }}’.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for it.</button>&ngsp;<button i18n type="button" class="ask-line__quiet" (click)="clearFilters()">Clear filters</button></p>
-    } @else { <div class="empty-state"><p>{{ emptyLibraryMessage }}</p><button i18n type="button" (click)="clearFilters()">Clear filters</button></div> }
+      <p class="ask-line ask-line--empty"><ng-container i18n>Nothing for ‘{{ term }}’.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for it.</button></p>
+    } @else if (filtersSet) {
+      <!-- Filters but no term: the line says which filters emptied the shelf, and the verb undoes them. -->
+      <p class="ask-line ask-line--empty">{{ emptyFilterMessage }}&ngsp;<button i18n type="button" class="ask-line__verb" (click)="clearFilters()">Clear filters</button></p>
+    } @else {
+      <!-- Nothing set and nothing on the shelf (G21): the catalogue is empty for this language, so Almo searches where the grid would be. -->
+      <div class="almo-empty">
+        <img src="assets/img/almo/searching.webp" alt="" class="almo-empty__pose">
+        <p class="ask-line"><ng-container i18n>Nothing in {{ currentLanguageName }} yet.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for a book.</button></p>
+      </div>
+    }
     @if (shelfTiles.length > 0) {
       <span #shelfEnd class="shelf-end" aria-hidden="true"></span>
       @if (shelfEndReached) {
@@ -181,11 +166,33 @@
     }
   </section>
 
-  @if (isAuthenticated && orders.length > 0) {
+  <!-- Yours (G3, G21): absent until the first import; the header's "+ Import a book" is the whole affordance before that. -->
+  @if (isAuthenticated && privateBooks.length > 0) {
+    <section class="book-shelf book-shelf--yours" aria-labelledby="my-books-heading">
+      <div class="kicker-row">
+        <h2 id="my-books-heading" class="kicker"><ng-container i18n>Yours</ng-container> <span class="kicker__count">· {{ yoursCountLabel }}</span></h2>
+        <span class="rule" aria-hidden="true"></span>
+        <div class="view-toggle" role="group" aria-label="Your books view" i18n-aria-label><button i18n type="button" [class.active]="privateView === 'spines'" [attr.aria-pressed]="privateView === 'spines'" (click)="setShelfView('private', 'spines')">Spines</button><button i18n type="button" [class.active]="privateView === 'covers'" [attr.aria-pressed]="privateView === 'covers'" (click)="setShelfView('private', 'covers')">Covers</button></div>
+      </div>
+      @if (privateShelfBooks.length > 0) {
+        <div class="shelf" [class.cover-shelf]="privateView === 'covers'">
+          @for (book of privateShelfBooks; track book.id) {
+            <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [class.ink-spine]="isUnnamed(book)" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/my-books', book.id]" [attr.aria-label]="bookAriaLabel(book)">
+              <span class="spine-title">{{ book.title }}</span>@if (privateView === 'covers' || showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }
+              @if (book.status !== importStatus.READY) { <span i18n class="spine-status">{book.status, select, FAILED {Needs attention} other {Preparing}}</span> }
+              @if (privateView === 'spines') { <span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span> }
+            </a>
+          }
+        </div>
+      } @else { <p class="ask-line ask-line--empty"><ng-container i18n>None of your books match this search.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="clearFilters()">Clear filters</button></p> }
+    </section>
+  }
+
+  @if (isAuthenticated && openOrders.length > 0) {
     <section class="requests-card" aria-labelledby="requests-heading">
       <h2 i18n id="requests-heading" class="eyebrow">Your requests</h2>
       <ul class="requests-list">
-        @for (order of orders; track order.id) {
+        @for (order of openOrders; track order.id) {
           <li>
             <a class="requests-list__pair" [routerLink]="['/books', order.bookEditionSlug]">{{ order.bookTitle }} → {{ languageName(order.language) }}</a>
             <span class="requests-list__state">

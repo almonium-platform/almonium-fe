@@ -9,7 +9,7 @@ import {
 import {PlanDto} from './plan.model';
 import {ApiContractError} from '../shared/runtime-validation';
 
-const LIMITS = {MAX_ACTIVE_LANGS: 5, MAX_BOOK_IMPORTS_PER_MONTH: 3};
+const LIMITS = {MAX_ACTIVE_LANGS: 5, MAX_BOOK_IMPORTS_ON_SHELF: 10};
 
 const PLANS: PlanDto[] = [
   {id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8, limits: LIMITS},
@@ -159,18 +159,18 @@ describe('paidTierFeatures', () => {
     const offer = new PlanOffer(
       [{
         id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8,
-        limits: {MAX_ACTIVE_LANGS: 8, MAX_BOOK_IMPORTS_PER_MONTH: 10},
+        limits: {MAX_ACTIVE_LANGS: 8, MAX_BOOK_IMPORTS_ON_SHELF: 12},
       }],
       {capacity: 20, claimed: 7},
     );
 
     expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
-    expect(paidTierFeatures(offer)).toContain('Import your own books, 10 a month');
+    expect(paidTierFeatures(offer)).toContain('Import your own books, up to 12 on your shelf');
   });
 
   it('prints the drawn numbers until the plans land, rather than an empty promise', () => {
     expect(paidTierFeatures(null)).toContain('Unlimited saved words, and 3 languages at once');
-    expect(paidTierFeatures(null)).toContain('Import your own books, 3 a month');
+    expect(paidTierFeatures(null)).toContain('Import your own books, up to 10 on your shelf');
   });
 
   it('falls back per key when the server sends limits it does not model yet', () => {
@@ -183,7 +183,7 @@ describe('paidTierFeatures', () => {
     );
 
     expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
-    expect(paidTierFeatures(offer)).toContain('Import your own books, 3 a month');
+    expect(paidTierFeatures(offer)).toContain('Import your own books, up to 10 on your shelf');
   });
 });
 

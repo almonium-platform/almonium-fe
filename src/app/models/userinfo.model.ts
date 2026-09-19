@@ -308,7 +308,7 @@ export const PlanLimitKeys = {
   // pricing card quotes.
   MAX_ACTIVE_LANGS: 'MAX_ACTIVE_LANGS',
   MAX_FLUENT_LANGS: 'MAX_FLUENT_LANGS',
-  MAX_BOOK_IMPORTS_PER_MONTH: 'MAX_BOOK_IMPORTS_PER_MONTH',
+  MAX_BOOK_IMPORTS_ON_SHELF: 'MAX_BOOK_IMPORTS_ON_SHELF',
 };
 
 export enum PlanType {

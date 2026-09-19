@@ -163,9 +163,9 @@
 
       <div class="quota-card" [class.exhausted]="quota && !canImport">
         <div>
-          <span i18n class="quota-label">Import allowance</span>
+          <span i18n class="quota-label">Your shelf</span>
           <strong>{{ quotaMessage }}</strong>
-          @if (quota) { <span i18n>Resets {{ quota.periodEndsAt | date:'MMM d, y' }}</span> }
+          @if (quota && quota.limit > 0) { <span i18n>Deleting a book frees its place.</span> }
         </div>
         @if (quota && !canImport && quota.limit === 0) {
           <button i18n type="button" class="secondary-action" (click)="openPaywall()">See Premium</button>

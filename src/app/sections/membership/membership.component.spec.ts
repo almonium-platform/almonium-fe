@@ -245,12 +245,7 @@ async function createFixture(
   ]));
 
   const readService = jasmine.createSpyObj<ReadService>('ReadService', ['getBookImportQuota']);
-  readService.getBookImportQuota.and.returnValue(of({
-    limit: 3,
-    used: 1,
-    periodStartsAt: '2027-03-01T00:00:00Z',
-    periodEndsAt: '2027-04-01T00:00:00Z',
-  }));
+  readService.getBookImportQuota.and.returnValue(of({limit: 10, used: 1}));
 
   await TestBed.configureTestingModule({
     imports: [MembershipComponent],
@@ -287,7 +282,7 @@ function userInfo(premium: boolean, subscription: Partial<SubscriptionDto> = {})
     subscription: {
       name: premium ? 'PREMIUM' : 'FREE',
       limits: premium
-        ? {MAX_TARGET_LANGS: -1, MAX_FLUENT_LANGS: -1, MAX_BOOK_IMPORTS_PER_MONTH: 3}
+        ? {MAX_TARGET_LANGS: -1, MAX_FLUENT_LANGS: -1, MAX_BOOK_IMPORTS_ON_SHELF: 10}
         : {MAX_TARGET_LANGS: 1, MAX_FLUENT_LANGS: 1},
       type: premium ? PlanType.YEARLY : PlanType.LIFETIME,
       autoRenewal: premium,

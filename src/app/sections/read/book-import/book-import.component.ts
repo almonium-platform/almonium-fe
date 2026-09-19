@@ -133,17 +133,18 @@ export class BookImportComponent implements OnInit, OnDestroy {
   protected get importBlockedNote(): string {
     if (!this.quota) return $localize`Your import allowance could not be read. Reload the page to try again.`;
     if (this.quota.limit === 0) return $localize`Importing books is a Premium feature.`;
-    return $localize`No imports left this month.`;
+    return $localize`Your shelf is full. Delete a book to make room for this one.`;
   }
 
   protected get quotaMessage(): string {
     if (!this.quota) return $localize`Checking your import allowance…`;
     if (this.quota.limit < 0) return $localize`Unlimited imports`;
+    if (this.quota.limit === 0) return $localize`Private import is part of Premium.`;
     const remaining = Math.max(0, this.quota.limit - this.quota.used);
     const limit = this.quota.limit;
     return limit === 1
-      ? $localize`${remaining}:remaining: of 1 import left this month`
-      : $localize`${remaining}:remaining: of ${limit}:limit: imports left this month`;
+      ? $localize`${remaining}:remaining: of 1 place on your shelf`
+      : $localize`${remaining}:remaining: of ${limit}:limit: places on your shelf`;
   }
 
   protected readonly importFailedFallback = $localize`The processor could not import this file.`;

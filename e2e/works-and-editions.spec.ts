@@ -30,25 +30,25 @@ test('the library shows a work once per language and a guest tile opens the orig
   const english = tiles.filter({hasText: 'Mary Shelley'});
   await expect(english).toHaveCount(1);
   await expect(english).toHaveAttribute('href', '/books/frankenstein-en-c1');
-  await expect(english.locator('small')).toHaveText('Mary Shelley · C1');
+  await expect(english.locator('small')).toHaveText('Mary Shelley · Original C1 · Adapted B2');
 
-  // The translated edition is titled in its own language, and the caption says so in one word.
+  // The translated edition is titled in its own language, and the caption names the kind and level of each edition.
   const translated = tiles.filter({hasText: 'Франкенштейн'});
-  await expect(translated.locator('small')).toHaveText('Мері Шеллі · B2 · Translation');
-  await expect(tiles.filter({hasText: 'Лісова пісня'}).locator('small')).toHaveText('Леся Українка · C1');
+  await expect(translated.locator('small')).toHaveText('Мері Шеллі · Translation B2');
+  await expect(tiles.filter({hasText: 'Лісова пісня'}).locator('small')).toHaveText('Леся Українка · Original C1');
   await page.screenshot({path: testInfo.outputPath('library-works.png'), animations: 'disabled'});
 
   // The level filter changes which edition the same tile opens; it never adds a tile.
   await page.locator('.filter-bar select').first().selectOption('B2');
   await expect(tiles).toHaveCount(2);
   await expect(tiles.filter({hasText: 'Mary Shelley'})).toHaveAttribute('href', '/books/frankenstein-en-b2');
-  await expect(tiles.filter({hasText: 'Mary Shelley'}).locator('small')).toHaveText('Mary Shelley · B2');
+  await expect(tiles.filter({hasText: 'Mary Shelley'}).locator('small')).toHaveText('Mary Shelley · Adapted B2');
 
   // Spines carry the same caption in the hover label.
   await page.getByRole('group', {name: 'Library view'}).getByRole('button', {name: 'Spines'}).click();
   const spine = shelf.locator('.book-spine').filter({hasText: 'Франкенштейн'});
   await spine.hover();
-  await expect(spine.locator('.hover-label small')).toHaveText('Мері Шеллі · 255 pp · B2 · Translation');
+  await expect(spine.locator('.hover-label small')).toHaveText('Мері Шеллі · 255 pp · Translation B2');
   await page.screenshot({path: testInfo.outputPath('library-spines.png'), animations: 'disabled'});
 });
 

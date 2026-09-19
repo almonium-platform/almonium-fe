@@ -25,7 +25,7 @@ import {LanguageNameService} from '../../services/language-name.service';
 import {LanguageCode} from '../../models/language.enum';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} from './book-hue';
 import {getErrorMessage} from '../../shared/http-error';
-import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel, workKey} from './work-tile';
+import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 import {CertificateMomentComponent} from './certificate/certificate-moment.component';
 
@@ -319,14 +319,14 @@ export class ReadComponent implements OnInit, OnDestroy {
     return this.isPremium ? $localize`Import a book` : $localize`Unlock private imports`;
   }
 
-  protected quotaLabel(): string | null {
-    if (!this.importQuota) return null;
-    if (this.importQuota.limit < 0) return $localize`Unlimited imports`;
-    const remaining = Math.max(0, this.importQuota.limit - this.importQuota.used);
-    const limit = this.importQuota.limit;
-    return limit === 1
-      ? $localize`${remaining}:remaining: of 1 import left this month`
-      : $localize`${remaining}:remaining: of ${limit}:limit: imports left this month`;
+  /**
+   * The Yours label's count: the books on the shelf, and from the eighth "8 of 10", because the private cap is
+   * ten books at a time rather than a monthly allowance (G3). Nothing counts down in the header.
+   */
+  protected get yoursCountLabel(): string {
+    const count = this.privateBooks.length;
+    const limit = this.importQuota?.limit ?? 0;
+    return limit > 0 && count >= limit - 2 ? $localize`${count}:count: of ${limit}:limit:` : `${count}`;
   }
 
   /** The line under the fulfilment notice: how much of the monthly allowance is still free. */
@@ -356,16 +356,23 @@ export class ReadComponent implements OnInit, OnDestroy {
     return book.author ? $localize`${book.title}:title: by ${book.author}:author:` : book.title;
   }
 
-  /** The empty library says which filters emptied it, so the reader knows what to undo. */
-  protected get emptyLibraryMessage(): string {
+  /** Whether anything besides the search narrows the shelf: only then is there something to clear. */
+  protected get filtersSet(): boolean {
+    return this.filterParts.length > 0;
+  }
+
+  /** The empty shelf says which filters emptied it (G18): "Nothing at B2 with translations off." */
+  protected get emptyFilterMessage(): string {
+    return $localize`Nothing ${this.filterParts.join(' ')}:filters:.`;
+  }
+
+  private get filterParts(): string[] {
     const level = this.cefrLevelControl.value;
     const parts: string[] = [];
     if (level && level !== 'Any level') parts.push($localize`at ${level}:level:`);
     if (this.parallelTranslationToggle) parts.push($localize`with parallel text`);
     if (this.isAuthenticated && !this.includeTranslationsToggle) parts.push($localize`with translations off`);
-    if (this.searchTerm) parts.push($localize`matching “${this.titleFormControl.value?.trim()}:search:”`);
-    if (parts.length === 0) return $localize`Nothing on the shelf yet.`;
-    return $localize`Nothing ${parts.join(' ')}:filters:.`;
+    return parts;
   }
 
   private loadPrivateLibrary(): void {
@@ -391,6 +398,15 @@ export class ReadComponent implements OnInit, OnDestroy {
   /** Fulfilled requests the reader has not opened yet: the notice at the top of the page. */
   protected get unseenReadyOrders(): TranslationOrder[] {
     return this.orders.filter(order => order.status === TranslationOrderStatus.READY && !order.seenAt);
+  }
+
+  /**
+   * What is still owed to the reader (G8): asked rows, and ready rows until they are opened. A ready row leaves the
+   * moment its Read is tapped or the pair is opened from the shelf; the book is on the shelf now, and that is where it
+   * lives. The card is not a history.
+   */
+  protected get openOrders(): TranslationOrder[] {
+    return this.orders.filter(order => order.status !== TranslationOrderStatus.READY || !order.seenAt);
   }
 
   protected openFulfilled(order: TranslationOrder): void {
@@ -635,12 +651,11 @@ export class ReadComponent implements OnInit, OnDestroy {
   /**
    * One tile per work (G14): the editions that passed the filters, grouped by work after the filter so a
    * level filter never hides a work with an edition at that level, then ordered by the edition each tile
-   * opens. A work is open once any edition is: it lies in the Continue row and does not stand on the shelf.
+   * opens. Continue is a shortcut, not a partition (G3): an open book still stands here, so a one-book
+   * account never sees an empty Library.
    */
   protected get shelfTiles(): WorkTile[] {
-    const open = new Set(this.continueBooks.map(workKey));
-    const editions = this.filteredBooks.filter(book => !open.has(workKey(book)));
-    return groupIntoWorks(editions, this.tilePreferences).sort((a, b) => this.compareBooks(a.edition, b.edition));
+    return groupIntoWorks(this.filteredBooks, this.tilePreferences).sort((a, b) => this.compareBooks(a.edition, b.edition));
   }
 
   /**
@@ -695,8 +710,8 @@ export class ReadComponent implements OnInit, OnDestroy {
     this.titleFormControl.setValue('');
     this.cefrLevelControl.setValue('Any level');
     this.parallelTranslationToggle = false;
-    if (this.includeTranslationsToggle) {
-      this.includeTranslationsToggle = false;
+    if (!this.includeTranslationsToggle) {
+      this.includeTranslationsToggle = true;
       this.refreshBooks();
     } else {
       this.applyFiltersAndSort();

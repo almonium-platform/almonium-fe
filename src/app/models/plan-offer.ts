@@ -198,19 +198,19 @@ export function freeTierFeatures(savedItems: number | null): string[] {
 
 // The numbers the card was drawn with, and what it prints until the offer lands.
 const PAID_ACTIVE_LANGS_FALLBACK = 3;
-const PAID_BOOK_IMPORTS_FALLBACK = 3;
+const PAID_BOOK_IMPORTS_FALLBACK = 10;
 
 export function paidTierFeatures(offer: PlanOffer | null): string[] {
   const languages = offer?.limitFor(PlanLimitKeys.MAX_ACTIVE_LANGS, PAID_ACTIVE_LANGS_FALLBACK)
     ?? PAID_ACTIVE_LANGS_FALLBACK;
-  const imports = offer?.limitFor(PlanLimitKeys.MAX_BOOK_IMPORTS_PER_MONTH, PAID_BOOK_IMPORTS_FALLBACK)
+  const imports = offer?.limitFor(PlanLimitKeys.MAX_BOOK_IMPORTS_ON_SHELF, PAID_BOOK_IMPORTS_FALLBACK)
     ?? PAID_BOOK_IMPORTS_FALLBACK;
   return [
     $localize`Unlimited saved words, and ${languages}:languages: languages at once`,
     $localize`Every book at the levels it honestly reaches — adapted editions and the original`,
     $localize`Chat with Almo, who uses the words you’re learning`,
     $localize`Narrated audiobooks`,
-    $localize`Import your own books, ${imports}:imports: a month`,
+    $localize`Import your own books, up to ${imports}:imports: on your shelf`,
     $localize`Share word packs with friends`,
   ];
 }
