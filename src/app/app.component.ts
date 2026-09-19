@@ -74,7 +74,7 @@ export class AppComponent implements OnInit {
     });
   }
 
-  /** Ctrl/Cmd+Shift+L flips light and dark from any page, inputs included: the chord types nothing. */
+  /** Ctrl/Cmd+/ flips light and dark from any page, inputs included: the chord types nothing. */
   @HostListener('window:keydown', ['$event'])
   handleAppearanceShortcut(event: KeyboardEvent): void {
     if (!AppearanceService.isToggleShortcut(event)) return;

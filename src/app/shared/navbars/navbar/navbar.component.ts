@@ -335,7 +335,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!this.hasLanguageChoices || this.isEditableTarget(event.target)) return;
 
     const modifierPressed = event.metaKey || event.ctrlKey;
-    // With Shift the same key flips the theme (see AppearanceService), so the dropdown leaves it alone.
     if (modifierPressed && !event.shiftKey && isLetterL(event)) {
       event.preventDefault();
       this.openLanguageDropdown();

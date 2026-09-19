@@ -15,7 +15,7 @@ interface StoredAppPreferences {
 
 /**
  * Owns the light/dark/system choice: reads it from local storage, paints it onto the document, Taiga, Stream, and
- * the favicon, and flips it on the Ctrl/Cmd+Shift+L shortcut. Settings and the root component share it so a toggle
+ * the favicon, and flips it on the Ctrl/Cmd+/ shortcut. Settings and the root component share it so a toggle
  * made anywhere shows up in the theme control at once.
  */
 /** The L key on any layout: by the character it types, or by its physical position. */
@@ -26,10 +26,13 @@ export function isLetterL(event: KeyboardEvent): boolean {
 @Injectable({providedIn: 'root'})
 export class AppearanceService {
   static readonly PREFERENCES_KEY = 'app_preferences';
-  /** The toggle chord, in the same spelling as the navbar's language shortcut. */
+  /**
+   * The toggle chord, in the same spelling as the navbar's language shortcut. No Shift: on machines where
+   * Ctrl+Shift switches the keyboard layout, a Ctrl+Shift chord never reaches the page.
+   */
   static readonly SHORTCUT_LABEL = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
-    ? '⌘⇧L'
-    : 'Ctrl+Shift+L';
+    ? '⌘/'
+    : 'Ctrl+/';
 
   private localStorageService = inject(LocalStorageService);
   private taigaDarkMode = inject(TUI_DARK_MODE);
@@ -78,11 +81,12 @@ export class AppearanceService {
   }
 
   /**
-   * True when the event is the toggle chord: Ctrl or Cmd, Shift, and L. The physical key counts too, so the chord
-   * works on a Cyrillic or other non-Latin layout where `key` is not a Latin letter.
+   * True when the event is the toggle chord: Ctrl or Cmd and the slash key. The physical key counts too, so the
+   * chord works on a Cyrillic or other layout where that key types something else.
    */
   static isToggleShortcut(event: KeyboardEvent): boolean {
-    return (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && isLetterL(event);
+    return (event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey
+      && (event.key === '/' || event.code === 'Slash');
   }
 
   /** Repaints when the OS theme or motion setting changes while 'system' is chosen. Returns the teardown. */

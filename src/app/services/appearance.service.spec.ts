@@ -67,15 +67,15 @@ describe('AppearanceService', () => {
     expect(document.documentElement.style.colorScheme).toBe('light dark');
   });
 
-  it('recognises Ctrl or Cmd with Shift and L, and nothing looser', () => {
+  it('recognises Ctrl or Cmd with the slash key, and nothing looser', () => {
     const chord = (init: KeyboardEventInit) => AppearanceService.isToggleShortcut(new KeyboardEvent('keydown', init));
 
-    expect(chord({key: 'L', ctrlKey: true, shiftKey: true})).toBeTrue();
-    expect(chord({key: 'l', metaKey: true, shiftKey: true})).toBeTrue();
-    // A Cyrillic layout reports the letter it types; the physical key still counts.
-    expect(chord({key: 'Д', code: 'KeyL', ctrlKey: true, shiftKey: true})).toBeTrue();
-    expect(chord({key: 'l', ctrlKey: true})).toBeFalse();
-    expect(chord({key: 'l', shiftKey: true})).toBeFalse();
-    expect(chord({key: 'L', ctrlKey: true, shiftKey: true, altKey: true})).toBeFalse();
+    expect(chord({key: '/', ctrlKey: true})).toBeTrue();
+    expect(chord({key: '/', metaKey: true})).toBeTrue();
+    // A Cyrillic layout types something else on that key; the physical key still counts.
+    expect(chord({key: '.', code: 'Slash', ctrlKey: true})).toBeTrue();
+    expect(chord({key: '/'})).toBeFalse();
+    expect(chord({key: '/', ctrlKey: true, shiftKey: true})).toBeFalse();
+    expect(chord({key: '/', ctrlKey: true, altKey: true})).toBeFalse();
   });
 });
