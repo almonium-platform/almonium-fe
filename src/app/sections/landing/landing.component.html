@@ -98,13 +98,16 @@
       <div class="difference-grid"><article i18n>Shows a word’s meaning in every language you already speak, not just one</article><article i18n>Knows the difference between understanding a word and being able to use it</article><article i18n>Notices which words you confuse with each other</article><article i18n>Gives you the same book at the level you can actually read</article><article i18n>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
     </section>
 
-    <section class="section section-white" id="founder">
-      <div class="container founder"><div class="founder-photo" aria-label="Portrait placeholder" i18n-aria-label><span>{{ 'YK' }}</span></div><div><span i18n class="eyebrow">Who built this</span><blockquote i18n>I took my English to C2 on my own, using about a dozen disconnected tools. Then I started German and hit the same wall. A dictionary that does not know what I am reading, flashcards that do not know what I understood, a reader that forgets everything the moment I close it.</blockquote><blockquote i18n>Almonium is the tool I wanted. I use it every day.</blockquote><p i18n>— Yevhenii, Kyiv</p></div></div>
-    </section>
-
     <section class="section container" id="pricing">
       <app-paywall #paywall [layout]="'page'"></app-paywall>
       <ng-container *ngTemplateOutlet="paywall.content"></ng-container>
+      <div class="founder" id="founder">
+        <div class="founder-photo"><img src="assets/img/other/founder.webp" alt="A drawn portrait of the founder" i18n-alt></div>
+        <div>
+          <p i18n>Almonium was created by one person. This is the way of learning I settled on after years of trial and error, and I built the tool for myself first. It may or may not work for you. If it does, welcome.</p>
+          <small>{{ '@wanderbild' }} &middot; <ng-container i18n>Kyiv</ng-container></small>
+        </div>
+      </div>
     </section>
 
     <section class="final-cta"><h2 i18n>Start with one page of a book.</h2><a i18n class="button button-primary" routerLink="/read">Start reading, no account needed</a></section>
