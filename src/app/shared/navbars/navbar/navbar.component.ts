@@ -10,6 +10,7 @@ import {NgClickOutsideDirective} from 'ng-click-outside2';
 import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, forkJoin, interval, map, Observable, Subject, takeUntil} from "rxjs";
 import {TargetLanguageDropdownService} from "../../../services/target-language-dropdown.service";
+import {isLetterL} from "../../../services/appearance.service";
 import {AvatarComponent} from "../../avatar/avatar.component";
 import {PopupTemplateStateService} from "../../modals/popup-template/popup-template-state.service";
 import {ManageAvatarComponent} from "../../../sections/settings/profile/avatar/manage-avatar/manage-avatar.component";
@@ -182,6 +183,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly anonymousLearner = $localize`Anonymous Learner`;
   protected readonly notLoggedIn = $localize`Not logged in`;
 
+  /** The digit that reaches this language, or null past the ninth. */
+  protected shortcutNumber(language: LanguageCode): number | null {
+    const index = this.targetLanguages.indexOf(language);
+    return index >= 0 && index < 9 ? index + 1 : null;
+  }
+
   protected get shortcutModifier(): string {
     return typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
   }
@@ -329,17 +336,19 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     const modifierPressed = event.metaKey || event.ctrlKey;
     // With Shift the same key flips the theme (see AppearanceService), so the dropdown leaves it alone.
-    if (modifierPressed && !event.shiftKey && event.key.toLocaleLowerCase() === 'l') {
+    if (modifierPressed && !event.shiftKey && isLetterL(event)) {
       event.preventDefault();
       this.openLanguageDropdown();
       return;
     }
 
+    // A digit names a fixed position in the learning-language list, so the same key always reaches the same
+    // language no matter which one is current or what the menu is showing.
     if (modifierPressed && /^[1-9]$/.test(event.key)) {
-      const language = this.displayedLanguages[Number(event.key) - 1];
+      const language = this.targetLanguages[Number(event.key) - 1];
       if (language) {
         event.preventDefault();
-        this.changeLanguage(language);
+        if (language !== this.currentLanguage) this.changeLanguage(language);
       }
     }
   }

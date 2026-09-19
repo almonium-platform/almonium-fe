@@ -72,6 +72,8 @@ describe('AppearanceService', () => {
 
     expect(chord({key: 'L', ctrlKey: true, shiftKey: true})).toBeTrue();
     expect(chord({key: 'l', metaKey: true, shiftKey: true})).toBeTrue();
+    // A Cyrillic layout reports the letter it types; the physical key still counts.
+    expect(chord({key: 'Д', code: 'KeyL', ctrlKey: true, shiftKey: true})).toBeTrue();
     expect(chord({key: 'l', ctrlKey: true})).toBeFalse();
     expect(chord({key: 'l', shiftKey: true})).toBeFalse();
     expect(chord({key: 'L', ctrlKey: true, shiftKey: true, altKey: true})).toBeFalse();

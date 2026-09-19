@@ -18,6 +18,11 @@ interface StoredAppPreferences {
  * the favicon, and flips it on the Ctrl/Cmd+Shift+L shortcut. Settings and the root component share it so a toggle
  * made anywhere shows up in the theme control at once.
  */
+/** The L key on any layout: by the character it types, or by its physical position. */
+export function isLetterL(event: KeyboardEvent): boolean {
+  return event.key.toLowerCase() === 'l' || event.code === 'KeyL';
+}
+
 @Injectable({providedIn: 'root'})
 export class AppearanceService {
   static readonly PREFERENCES_KEY = 'app_preferences';
@@ -72,9 +77,12 @@ export class AppearanceService {
     this.set(this.isDark ? 'light' : 'dark');
   }
 
-  /** True when the event is the toggle chord: Ctrl or Cmd, Shift, and L. */
+  /**
+   * True when the event is the toggle chord: Ctrl or Cmd, Shift, and L. The physical key counts too, so the chord
+   * works on a Cyrillic or other non-Latin layout where `key` is not a Latin letter.
+   */
   static isToggleShortcut(event: KeyboardEvent): boolean {
-    return (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.key.toLowerCase() === 'l';
+    return (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && isLetterL(event);
   }
 
   /** Repaints when the OS theme or motion setting changes while 'system' is chosen. Returns the teardown. */

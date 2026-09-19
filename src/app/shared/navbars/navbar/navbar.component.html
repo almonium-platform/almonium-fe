@@ -89,8 +89,8 @@
                   @if (getLanguageLevel(lang); as level) {
                     <span class="language-level">{{ level }}</span>
                   }
-                  @if (i < 9) {
-                    <kbd class="language-number-shortcut">{{ shortcutModifier }}{{ i + 1 }}</kbd>
+                  @if (shortcutNumber(lang); as number) {
+                    <kbd class="language-number-shortcut">{{ shortcutModifier }}{{ number }}</kbd>
                   }
                 </button>
               } @empty {
