@@ -213,6 +213,7 @@ function userInfo(premium: boolean, language: LanguageCode = LanguageCode.DE): U
     uiPreferences: {
       navbar: {discover: true, review: true, play: true, read: true, write: true, notifications: true, social: true, timer: true},
       profileMenu: {billing: false},
+      reader: {showPairs: false},
     },
   });
 }

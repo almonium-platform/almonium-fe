@@ -5,6 +5,8 @@ import {BehaviorSubject, Subject, of} from 'rxjs';
 
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 import {UserInfoService} from '../../../services/user-info.service';
+import {ProfileSettingsService} from '../../settings/profile/profile-settings.service';
+import {DEFAULT_UI_PREFERENCES} from '../../../models/userinfo.model';
 import {CardService} from '../../../services/card.service';
 import {ParallelModeService} from '../parallel-mode.service';
 import {ReadService} from '../read.service';
@@ -55,6 +57,7 @@ describe('ReaderComponent', () => {
         {provide: ParallelModeService, useValue: {mode$: new BehaviorSubject('inline'), setMode: () => undefined}},
         {provide: PopupTemplateStateService, useValue: {open: () => undefined}},
         {provide: UserInfoService, useValue: {currentUserInfo: null}},
+        {provide: ProfileSettingsService, useValue: {saveUiPreferences: () => of(undefined)}},
       ],
     })
       .overrideComponent(ReaderComponent, {
@@ -177,6 +180,30 @@ describe('ReaderComponent', () => {
     expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
     selection.removeAllRanges();
     content.remove();
+  });
+
+  it('keeps a guest\'s sentence-pairs switch for the visit and a member\'s on the account', () => {
+    fixture.detectChanges();
+    const userInfo = TestBed.inject(UserInfoService) as unknown as {currentUserInfo: unknown; updateUserInfo?: jasmine.Spy};
+    const profileSettings = TestBed.inject(ProfileSettingsService);
+    const save = spyOn(profileSettings, 'saveUiPreferences').and.returnValue(of(undefined));
+    const component = fixture.componentInstance as unknown as {showPairs: boolean; toggleShowPairs(): void};
+    expect(component.showPairs).toBeFalse();
+    component.toggleShowPairs();
+    expect(component.showPairs).toBeTrue();
+    expect(save).not.toHaveBeenCalled();
+
+    const preferences = structuredClone(DEFAULT_UI_PREFERENCES);
+    userInfo.currentUserInfo = {uiPreferences: preferences};
+    userInfo.updateUserInfo = jasmine.createSpy('updateUserInfo');
+    component.toggleShowPairs();
+    expect(component.showPairs).toBeFalse();
+    expect(userInfo.updateUserInfo).toHaveBeenCalledWith({uiPreferences: jasmine.objectContaining({reader: {showPairs: false}})});
+    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: {showPairs: false}, navbar: preferences.navbar}));
+    // The stored preferences are not mutated in place: the copy carries the change.
+    expect(preferences.reader.showPairs).toBeFalse();
+    component.toggleShowPairs();
+    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: {showPairs: true}}));
   });
 
   it('opens one companion block under the paragraph in on-demand mode and closes it with the selection', () => {

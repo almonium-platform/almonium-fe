@@ -88,6 +88,7 @@ function userInfo(interests: Interest[]): UserInfo {
         timer: true,
       },
       profileMenu: {billing: true},
+      reader: {showPairs: false},
     },
   });
 }

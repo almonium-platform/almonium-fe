@@ -17,7 +17,9 @@ const PARAGRAPH_BLOCKS = new Set(['P', 'BLOCKQUOTE']);
  *
  * - `side`: one CSS grid per chapter, a primary cell and a companion cell per block, so paragraph
  *   pairs stay level without any height sync. Each cell wraps its text in an inline run that shares a
- *   `data-pair` id with its counterpart, the unit where no sentence groups exist.
+ *   `data-pair` id with its counterpart, the unit where no sentence groups exist. Every sentence group
+ *   also carries a `data-ink` from a three-ink cycle (L8), which the reader paints only while the
+ *   reader has asked to see the pairs.
  * - `inline`: every sentence group is followed by its companion inside the same paragraph flow as a
  *   grey run; a paragraph with no groups is followed by its companion paragraph.
  * - `demand`: the companion segment stays in the DOM, hidden, so a click can open just the group's
@@ -95,6 +97,24 @@ export class ParallelFormatPipe implements PipeTransform {
       Array.from(grid.children).forEach(child => {
         if (!child.classList.contains('sbs-cell')) child.classList.add('sbs-span');
       });
+    });
+    this.inkSentenceGroups(doc);
+  }
+
+  /**
+   * The pairs' inks (L8): a three-ink cycle keyed on the group's order in the primary column, so a
+   * swapped order or a 1→2 split reads without hovering; both halves of a pair share the key.
+   * Paragraph-only alignments get none, since a whole underlined paragraph says nothing.
+   */
+  private inkSentenceGroups(doc: Document): void {
+    const inkOf = new Map<string, number>();
+    doc.querySelectorAll<HTMLElement>('.sbs-cell--primary [data-alignment]').forEach(sentence => {
+      const key = sentence.dataset['alignment'];
+      if (key && !inkOf.has(key)) inkOf.set(key, inkOf.size % 3);
+    });
+    doc.querySelectorAll<HTMLElement>('.sbs-cell [data-alignment]').forEach(sentence => {
+      const ink = inkOf.get(sentence.dataset['alignment'] ?? '');
+      if (ink !== undefined) sentence.dataset['ink'] = `${ink}`;
     });
   }
 

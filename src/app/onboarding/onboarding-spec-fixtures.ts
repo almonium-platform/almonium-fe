@@ -48,6 +48,7 @@ export function onboardingUserInfo(setupStep: SetupStep, interests: Interest[] =
         timer: true,
       },
       profileMenu: {billing: true},
+      reader: {showPairs: false},
     },
   });
 }

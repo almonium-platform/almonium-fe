@@ -90,6 +90,7 @@
                tabindex="-1"
                class="reader-content"
                [ngClass]="isParallelViewActive ? ('mode-' + effectiveMode) : null"
+               [class.show-pairs]="isParallelViewActive && effectiveMode === 'side' && showPairs"
                [innerHTML]="bookHtmlContent | parallelFormat:{
                   mode: isParallelViewActive ? effectiveMode : null,
                   targetLang: targetLangCode,
@@ -168,10 +169,12 @@
           [companionOpen]="isParallelViewActive"
           [sideAvailable]="sideAvailable"
           [companionLine]="companionLine"
+          [showPairs]="showPairs"
           [editions]="companionRows"
           [hasOtherEditionTranslations]="hasOtherEditionTranslations"
           [includeOtherEditionTranslations]="includeOtherEditionTranslations"
           (changeCompanion)="changeCompanion()"
+          (showPairsToggled)="toggleShowPairs()"
           (editionPicked)="selectOption($event); closeParallelSettings()"
           (otherEditionsToggled)="toggleOtherEditionTranslations()"></app-parallel-settings>
       </div>

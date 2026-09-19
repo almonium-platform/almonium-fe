@@ -22,6 +22,27 @@ describe('ParallelFormatPipe', () => {
     }
   });
 
+  it('inks sentence groups in a three-ink cycle by their order in the primary column, the same ink on both halves', () => {
+    const sentence = (key: string, text: string): string => `<span class="aligned-sentence" data-alignment="${key}">${text}</span>`;
+    const html = '<p><span class="seg-pair"><span class="segment" data-side="primary" lang="en">'
+      + sentence('11-2-0', 'One.') + ' ' + sentence('11-2-1', 'Two.') + ' ' + sentence('11-2-1', 'Still two.') + ' ' + sentence('11-2-2', 'Three.') + ' ' + sentence('11-2-3', 'Four.')
+      + '</span><span class="segment" data-side="secondary" lang="uk">'
+      + sentence('11-2-1', 'Два.') + ' ' + sentence('11-2-0', 'Раз.') + ' ' + sentence('11-2-2', 'Три.') + ' ' + sentence('11-2-3', 'Чотири.')
+      + '</span></span></p>'
+      + '<p><span class="seg-pair"><span class="segment" data-side="primary" lang="en">Whole paragraph.</span><span class="segment" data-side="secondary" lang="uk">Цілий абзац.</span></span></p>';
+    const result = new DOMParser().parseFromString(pipe.transform(html, {mode: 'side', targetLang: 'en', fluentLang: 'uk'}), 'text/html');
+    const inks = (selector: string): string[] => Array.from(result.querySelectorAll<HTMLElement>(selector), span => span.dataset['ink'] ?? '');
+    expect(inks('.sbs-cell--primary [data-alignment]')).toEqual(['0', '1', '1', '2', '0']);
+    // The counterpart keeps its group's ink wherever it lands, so a swapped order reads without hovering.
+    expect(inks('.sbs-cell--companion [data-alignment]')).toEqual(['1', '0', '2', '0']);
+    // A paragraph-only alignment draws nothing.
+    expect(result.querySelectorAll('[data-ink]').length).toBe(9);
+    expect(result.querySelector('[data-pair="1"]')?.hasAttribute('data-ink')).toBeFalse();
+    for (const mode of ['inline', 'demand'] as const) {
+      expect(pipe.transform(html, {mode, targetLang: 'en', fluentLang: 'uk'})).withContext(mode).not.toContain('data-ink');
+    }
+  });
+
   it('removes executable markup and unsafe attributes from book HTML', () => {
     const maliciousHtml = `
       <h2 id="chapter-1" onclick="alert(1)">Chapter</h2>

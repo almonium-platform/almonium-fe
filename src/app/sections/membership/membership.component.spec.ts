@@ -316,6 +316,7 @@ function userInfo(premium: boolean, subscription: Partial<SubscriptionDto> = {})
         timer: true,
       },
       profileMenu: {billing: true},
+      reader: {showPairs: false},
     },
   });
 }

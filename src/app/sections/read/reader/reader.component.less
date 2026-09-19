@@ -538,6 +538,26 @@
       p.sbs-cell { text-indent: 0; }
       h3.sbs-cell { text-align: left; }
     }
+
+    // Pairs shown (L8, opt-in): each sentence group underlined in one of three low-chroma inks, the
+    // same ink on both halves; the line opens to make room under the descenders. Underline, not
+    // background: it does not hug the glyphs or stair-step at line ends, and hover stays the only fill.
+    &.show-pairs {
+      line-height: 1.85;
+
+      ::ng-deep {
+        [data-ink] {
+          text-decoration-line: underline;
+          text-decoration-thickness: 2px;
+          text-underline-offset: 6px;
+          text-decoration-skip-ink: none;
+        }
+
+        [data-ink="0"] { text-decoration-color: var(--pair-ink-plum); }
+        [data-ink="1"] { text-decoration-color: var(--pair-ink-teal); }
+        [data-ink="2"] { text-decoration-color: var(--pair-ink-ochre); }
+      }
+    }
   }
 }
 

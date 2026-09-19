@@ -6,23 +6,36 @@
   @if (companionOpen) {
     <div class="modes" role="radiogroup" aria-label="Reading mode" i18n-aria-label>
       @for (option of modeOptions; track option.mode) {
-        <button type="button" class="mode" role="radio" [class.mode--active]="option.mode === shownMode" [attr.aria-checked]="option.mode === shownMode" (click)="pick(option.mode)">
-          <span class="diagram" [attr.data-mode]="option.mode" aria-hidden="true">
-            @switch (option.mode) {
-              @case ('side') {
-                <span class="column"><i></i><i class="lit"></i><i class="w70"></i></span>
-                <span class="column"><i></i><i class="lit"></i><i class="w80"></i></span>
+        <div class="mode-row" [class.mode-row--active]="option.mode === shownMode">
+          <button type="button" class="mode" role="radio" [class.mode--active]="option.mode === shownMode" [attr.aria-checked]="option.mode === shownMode" (click)="pick(option.mode)">
+            <span class="diagram" [attr.data-mode]="option.mode" aria-hidden="true">
+              @switch (option.mode) {
+                @case ('side') {
+                  <span class="column"><i></i><i class="lit"></i><i class="w70"></i></span>
+                  <span class="column"><i></i><i class="lit"></i><i class="w80"></i></span>
+                }
+                @case ('demand') {
+                  <span class="column"><i></i><i class="lit"></i><i class="w60 indent"></i><i></i></span>
+                }
+                @case ('inline') {
+                  <span class="column"><i class="ink"></i><i class="thin w85"></i><i class="ink"></i><i class="thin w70"></i></span>
+                }
               }
-              @case ('demand') {
-                <span class="column"><i></i><i class="lit"></i><i class="w60 indent"></i><i></i></span>
-              }
-              @case ('inline') {
-                <span class="column"><i class="ink"></i><i class="thin w85"></i><i class="ink"></i><i class="thin w70"></i></span>
-              }
-            }
-          </span>
-          <span class="mode__text"><strong>{{ option.label }}</strong><small>{{ option.explanation }}</small></span>
-        </button>
+            </span>
+            <span class="mode__text"><strong>{{ option.label }}</strong><small>{{ option.explanation }}</small></span>
+          </button>
+          <!-- The pairs switch (L8) lives inside the Side by side row only: the option means nothing outside that layout. -->
+          @if (option.mode === 'side' && !sheet) {
+            <div class="pairs" [class.pairs--open]="shownMode === 'side'" [attr.aria-hidden]="shownMode !== 'side'" [attr.inert]="shownMode !== 'side' ? '' : null">
+              <div class="pairs__inner">
+                <button type="button" class="pairs__row" role="switch" [attr.aria-checked]="showPairs" (click)="showPairsToggled.emit()">
+                  <span class="pairs__text"><span i18n class="pairs__name">Show sentence pairs</span><span i18n class="pairs__hint">Faint underlines match each sentence to its counterpart.</span></span>
+                  <span class="switch" aria-hidden="true"><span class="switch__knob"></span></span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
       }
     </div>
     @if (!sideAvailable && !sheet) {

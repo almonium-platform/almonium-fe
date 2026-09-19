@@ -30,6 +30,7 @@ import {LanguageCode} from '../../../models/language.enum';
 import {ReaderPosition} from './reader-position.model';
 import {isUuid} from '../../../shared/runtime-validation';
 import {UserInfoService} from '../../../services/user-info.service';
+import {ProfileSettingsService} from '../../settings/profile/profile-settings.service';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {ReturnPathService} from '../../../services/return-path.service';
 import {CardService} from '../../../services/card.service';
@@ -103,6 +104,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private progressTracker = inject(ReaderProgressTracker);
   private learningActivity = inject(LearningActivityService);
   private userInfoService = inject(UserInfoService);
+  private profileSettings = inject(ProfileSettingsService);
   private languageNames = inject(LanguageNameService);
   private returnPath = inject(ReturnPathService);
   private pageTitle = inject(Title);
@@ -180,6 +182,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isParallelViewActive = false;
   /** Two columns need the window (L2); below it Side by side reads as On demand until it widens. */
   protected sideAvailable = window.innerWidth >= SIDE_BY_SIDE_MIN_WIDTH;
+  /** Faint underlines pairing the sentences in Side by side (L8): an account preference; a guest's lasts the visit. */
+  protected showPairs = false;
 
   protected isAtScrollTop = true;
   protected isAtScrollBottom = false;
@@ -228,6 +232,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   ngOnInit(): void {
     this.signedIn = this.userInfoService.currentUserInfo !== null;
+    this.showPairs = this.userInfoService.currentUserInfo?.uiPreferences.reader.showPairs ?? false;
     this.contentsOpen = !this.isNarrow;
     this.setupResizeListener();
     this.setupSliderListener();
@@ -1349,6 +1354,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         this.cdRef.markForCheck();
       }
     }
+  }
+
+  /** The picker's pairs switch (L8): the page behind it repaints at once; a member's choice is kept on the account. */
+  protected toggleShowPairs(): void {
+    this.showPairs = !this.showPairs;
+    this.cdRef.markForCheck();
+    const user = this.userInfoService.currentUserInfo;
+    if (!user) return;
+    const uiPreferences = structuredClone(user.uiPreferences);
+    uiPreferences.reader.showPairs = this.showPairs;
+    this.userInfoService.updateUserInfo({uiPreferences});
+    this.profileSettings.saveUiPreferences(uiPreferences).subscribe({
+      error: (error: unknown) => logger.warn('Could not save the sentence-pairs preference', error),
+    });
   }
 
   protected toggleParallelSettings(): void {

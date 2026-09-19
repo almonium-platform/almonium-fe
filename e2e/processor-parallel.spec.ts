@@ -115,6 +115,73 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
 }
 }
 
+test('underlines the sentence pairs in Side by side only once asked, from a switch under that row', async ({page}, testInfo) => {
+  await page.addInitScript(() => localStorage.setItem('parallel_mode', JSON.stringify('side')));
+  const primary = {id: '01989f47-4c2a-7a10-9e5b-751983624a25', editionSlug: 'frankenstein-b2', language: 'EN', editionType: 'adaptation', cefrLevel: 'B2'};
+  const companion = {id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-uk', language: 'UK', editionType: 'machine_translation', cefrLevel: 'C1', sourceEditionSlug: 'frankenstein-b2'};
+  const metadata = {...primary, workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: true, languageVariants: [primary, companion]};
+  const sentence = (key: string, text: string): string => `<span class="aligned-sentence" role="button" tabindex="0" data-alignment="${key}">${text}</span>`;
+  const pairHtml = '<section class="chapter"><h2 id="chapter-11" class="chapter-title">Chapter X</h2><p><span class="seg-pair"><span class="segment" data-side="primary" lang="en">'
+    + sentence('11-2-0', 'I spent the following day roaming through the valley.') + ' '
+    + sentence('11-2-1', 'I stood beside the sources of the Arveiron, which take their rise in a glacier, that with slow pace is advancing down from the summit of the hills, to barricade the valley.') + ' '
+    + sentence('11-2-2', 'The abrupt sides of vast mountains were before me; the icy wall of the glacier overhung me; a few shattered pines were scattered around;') + ' '
+    + sentence('11-2-3', 'and the solemn silence of this glorious presence-chamber of imperial Nature was broken only by the brawling waves, or the fall of some vast fragment, the thunder sound of the avalanche.') + ' '
+    + sentence('11-2-4', 'These sublime and magnificent scenes afforded me the greatest consolation that I was capable of receiving.')
+    + '</span><span class="segment" data-side="secondary" lang="uk">'
+    + sentence('11-2-0', 'Наступний день я провів, блукаючи долиною.') + ' '
+    + sentence('11-2-1', 'Я стояв біля витоків Арвейрону, що беруть початок у льодовику, який повільно спускається з вершини пагорбів, аби загатити долину.') + ' '
+    + sentence('11-2-2', 'Переді мною височіли стрімкі схили величезних гір; наді мною нависала крижана стіна льодовика; довкола були розкидані кілька потрощених сосон;') + ' '
+    + sentence('11-2-3', 'і врочисту тишу цієї славної тронної зали величної Природи порушували лише шумливі хвилі, або падіння якогось велетенського уламка, громоподібний звук лавини.') + ' '
+    + sentence('11-2-4', 'Ці піднесені й величні краєвиди давали мені найбільшу втіху, яку я тільки міг прийняти.')
+    + '</span></span></p><p><span class="seg-pair"><span class="segment" data-side="primary" lang="en">A paragraph aligned as a whole.</span><span class="segment" data-side="secondary" lang="uk">Абзац, вирівняний цілком.</span></span></p></section>';
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/parallel-edition/frankenstein-uk')) await route.fulfill({contentType: 'text/html', body: pairHtml});
+    else if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: []});
+    else if (path.endsWith('/frankenstein-b2/text')) await route.fulfill({contentType: 'text/html', body: '<section class="chapter"><h2 class="chapter-title" id="chapter-11">X</h2><p>Base text</p></section>'});
+    else if (path.endsWith('/frankenstein-b2')) await route.fulfill({json: metadata});
+    else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
+  });
+  await page.setViewportSize({width: 1280, height: 900});
+  await page.goto('/reader/frankenstein-b2?parallel=frankenstein-uk');
+  const content = page.locator('.reader-content');
+  await expect(content).toHaveClass(/mode-side/);
+  // Off by default: the inks are in the DOM, nothing is painted.
+  await expect(content).not.toHaveClass(/show-pairs/);
+  await expect(content.locator('[data-ink]')).toHaveCount(10);
+  const underline = content.locator('.sbs-cell--companion [data-alignment="11-2-1"]');
+  expect(await underline.evaluate(node => getComputedStyle(node).textDecorationLine)).toBe('none');
+
+  await page.locator('app-parallel-translation').click();
+  const picker = page.getByRole('group', {name: 'Companion and reading mode'});
+  const pairs = picker.getByRole('switch', {name: 'Show sentence pairs'});
+  await expect(pairs).toHaveAttribute('aria-checked', 'false');
+  await pairs.click();
+  await expect(pairs).toHaveAttribute('aria-checked', 'true');
+  await expect(content).toHaveClass(/show-pairs/);
+  expect(await underline.evaluate(node => getComputedStyle(node).textDecorationLine)).toBe('underline');
+  // Both halves of a pair share an ink; the paragraph-only pair has none.
+  const inkOf = (side: string, key: string): Promise<string | null> => content.locator(`.sbs-cell--${side} [data-alignment="${key}"]`).getAttribute('data-ink');
+  expect(await inkOf('primary', '11-2-3')).toBe('0');
+  expect(await inkOf('companion', '11-2-3')).toBe('0');
+  expect(await inkOf('primary', '11-2-4')).toBe('1');
+  await expect(content.locator('[data-pair="1"][data-ink]')).toHaveCount(0);
+  // Hover paints on top of the underline.
+  await content.locator('.sbs-cell--primary [data-alignment="11-2-3"]').hover();
+  await expect(content.locator('.is-lit')).toHaveCount(2);
+  await page.screenshot({path: testInfo.outputPath('side-pairs-on.png'), fullPage: true, animations: 'disabled'});
+
+  // The switch belongs to the Side by side row: picking another row folds it away.
+  await picker.getByRole('radio', {name: /On demand/}).click();
+  await expect(content).toHaveClass(/mode-demand/);
+  await expect(pairs).toBeHidden();
+  await page.screenshot({path: testInfo.outputPath('picker-pairs-folded.png'), fullPage: true, animations: 'disabled'});
+  await picker.getByRole('radio', {name: /Side by side/}).click();
+  await expect(pairs).toBeVisible();
+  await expect(pairs).toHaveAttribute('aria-checked', 'true');
+  await expect(content).toHaveClass(/show-pairs/);
+});
+
 test('falls back to On demand below 1100px and offers the merged sheet on a phone', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('parallel_mode', JSON.stringify('side')));
   const primary = {id: '01989f47-4c2a-7a10-9e5b-751983624a25', editionSlug: 'frankenstein-b2', language: 'EN', editionType: 'adaptation', cefrLevel: 'B2'};
@@ -140,6 +207,7 @@ test('falls back to On demand below 1100px and offers the merged sheet on a phon
   await page.locator('app-parallel-translation').click();
   const sheet = page.getByRole('group', {name: 'Companion and reading mode'});
   await expect(sheet.getByRole('radio')).toHaveCount(2);
+  await expect(sheet.getByRole('switch', {name: 'Show sentence pairs'})).toHaveCount(0);
   await expect(sheet.getByRole('radio', {checked: true})).toHaveText(/On demand/);
   await expect(sheet.getByRole('button', {name: /Ukrainian · C1/})).toHaveAttribute('aria-pressed', 'true');
   await expect(sheet.getByRole('button', {name: 'Read without a companion'})).toBeVisible();

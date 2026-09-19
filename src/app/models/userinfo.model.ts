@@ -146,6 +146,10 @@ export interface UIPreferences {
   profileMenu: {
     billing: boolean;
   };
+  /** The reader (design L8): faint underlines that pair the sentences in Side by side. Off by default. */
+  reader: {
+    showPairs: boolean;
+  };
 }
 
 export const DEFAULT_UI_PREFERENCES: UIPreferences = {
@@ -161,6 +165,9 @@ export const DEFAULT_UI_PREFERENCES: UIPreferences = {
   },
   profileMenu: {
     billing: false,
+  },
+  reader: {
+    showPairs: false,
   },
 };
 
@@ -410,6 +417,9 @@ function parseUiPreferences(value: unknown): UIPreferences {
   const profileMenu = preferences['profileMenu'] === undefined
     ? {}
     : expectRecord(preferences['profileMenu'], 'user.uiPreferences.profileMenu');
+  const reader = preferences['reader'] === undefined
+    ? {}
+    : expectRecord(preferences['reader'], 'user.uiPreferences.reader');
 
   return {
     navbar: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.navbar, navbar, 'user.uiPreferences.navbar'),
@@ -418,6 +428,7 @@ function parseUiPreferences(value: unknown): UIPreferences {
       profileMenu,
       'user.uiPreferences.profileMenu',
     ),
+    reader: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.reader, reader, 'user.uiPreferences.reader'),
   };
 }
 
