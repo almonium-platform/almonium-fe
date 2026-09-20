@@ -16,6 +16,8 @@
                 [class.selected]="varietyControl(learner.language).value === variety.tag"
                 [attr.aria-checked]="varietyControl(learner.language).value === variety.tag"
                 [attr.aria-label]="variety.name"
+                [attr.tabindex]="varietyControl(learner.language).value === variety.tag ? 0 : -1"
+                (keydown)="onVarietyKeydown($event, learner.language, row)"
                 (click)="chooseVariety(learner.language, variety)">{{ variety.label }}</button>
             }
           </div>

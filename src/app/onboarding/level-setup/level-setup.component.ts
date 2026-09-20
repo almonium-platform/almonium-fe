@@ -101,6 +101,21 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
     this.varietyControl(language).setValue(variety.tag);
   }
 
+  protected onVarietyKeydown(event: KeyboardEvent, language: string, row: LanguageVarietyRow): void {
+    const index = row.varieties.findIndex(variety => variety.tag === this.varietyControl(language).value);
+    let next: number;
+    switch (event.key) {
+      case 'ArrowRight': case 'ArrowDown': next = (index + 1) % row.varieties.length; break;
+      case 'ArrowLeft': case 'ArrowUp': next = (index + row.varieties.length - 1) % row.varieties.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = row.varieties.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    this.chooseVariety(language, row.varieties[next]);
+    (event.target as HTMLElement).parentElement?.querySelectorAll<HTMLButtonElement>('button')[next]?.focus();
+  }
+
   protected submit(): void {
     if (!this.userInfo || this.loadingSubject$.value) return;
     const levels = this.userInfo.learners.map(learner => ({

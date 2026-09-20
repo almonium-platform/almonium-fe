@@ -179,7 +179,7 @@ export class Learner {
     public active: boolean,
     /**
      * Which English, which German (design V): the BCP-47 tag of what is being learnt to say, resolved to the
-     * language's default by the server. Null for a language with one supported variety.
+     * language's default by the server, including languages without a variety selector.
      */
     public variety: string | null = null,
   ) {

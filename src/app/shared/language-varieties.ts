@@ -26,8 +26,8 @@ export interface LanguageVarietyRow {
   varieties: LanguageVariety[];
 }
 
-const HELPER_VOICE_SPELLING_SENSE = $localize`Sets the voice you hear, the spelling you see, and which meaning comes first. Every other variety stays one tap away.`;
-const HELPER_VOICE_WORDS = $localize`Sets the voice you hear and which words come first. Every other variety stays one tap away.`;
+const HELPER_VOICE_SPELLING_SENSE = $localize`Saves the variety you are learning. Pronunciation uses this choice where audio is available.`;
+const HELPER_VOICE_WORDS = $localize`Saves the variety you are learning. Pronunciation uses this choice where audio is available.`;
 
 export const LANGUAGE_VARIETIES: Partial<Record<LanguageCode, LanguageVarietyRow>> = {
   [LanguageCode.EN]: {
@@ -70,7 +70,7 @@ export const LANGUAGE_VARIETIES: Partial<Record<LanguageCode, LanguageVarietyRow
   },
   [LanguageCode.DE]: {
     question: $localize`Which German?`,
-    helper: $localize`Swiss Standard German: no ß, Swiss words first, a Swiss voice. Dialect is not on offer, and we say so.`,
+    helper: $localize`Switzerland means Swiss Standard German, not dialect. Pronunciation is available only where a matching voice is supported.`,
     varieties: [
       {tag: 'de-DE', label: $localize`Germany`, name: $localize`German of Germany`},
       {tag: 'de-AT', label: $localize`Austria`, name: $localize`Austrian German`},

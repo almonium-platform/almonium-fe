@@ -47,7 +47,7 @@ test('the level step asks which English and which German, with the default chose
   await expect(english.locator('.variety-question')).toHaveText('Which English?');
   await expect(english.locator('.variety-pill')).toHaveText(['American', 'British', 'Australian', 'Indian']);
   await expect(english.locator('.variety-pill.selected')).toHaveText('American');
-  await expect(english.locator('.variety-helper')).toHaveText('Sets the voice you hear, the spelling you see, and which meaning comes first. Every other variety stays one tap away.');
+  await expect(english.locator('.variety-helper')).toHaveText('Saves the variety you are learning. Pronunciation uses this choice where audio is available.');
   // The row is read before the levels it qualifies.
   const rowBox = (await english.locator('.variety-row').boundingBox())!;
   const levelsBox = (await english.locator('.level-options').boundingBox())!;
@@ -81,7 +81,7 @@ test('settings shows the variety beside the level, frozen with a set-aside langu
   await rows.nth(1).locator('.variety-trigger').click();
   const list = rows.nth(1).locator('.variety-list');
   await expect(list.locator('.level-option')).toHaveText(['GermanyGerman of Germany', 'AustriaAustrian German', 'SwitzerlandSwiss Standard German']);
-  await expect(list.locator('.variety-helper')).toContainText('Dialect is not on offer');
+  await expect(list.locator('.variety-helper')).toContainText('Swiss Standard German');
   await page.screenshot({path: testInfo.outputPath('v4-settings-open.png'), animations: 'disabled'});
 
   await list.locator('.level-option', {hasText: 'Austria'}).click();

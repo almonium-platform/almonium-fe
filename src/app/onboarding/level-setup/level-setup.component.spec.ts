@@ -61,11 +61,21 @@ describe('LevelSetupComponent', () => {
     expect(german.querySelector('.variety-question')!.textContent.trim()).toBe('Which German?');
     expect(pillLabels(fixture, 0)).toEqual(['Germany', 'Austria', 'Switzerland']);
     expect(selectedVariety(fixture, 0)).toBe('Germany');
-    expect(german.querySelector('.variety-helper')!.textContent).toContain('no ß');
+    expect(german.querySelector('.variety-helper')!.textContent).toContain('Swiss Standard German');
     expect(questionAt(fixture, 1).querySelector('.variety-row')).toBeNull();
     // The row precedes the levels: it is read before the question it qualifies.
     expect(german.querySelector('.variety-row')!.compareDocumentPosition(german.querySelector('.level-options')!))
       .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('moves selection and focus with the radio-group arrow keys', async () => {
+    const fixture = await createFixture();
+    const germany = pillButton(fixture, 'Germany');
+    germany.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowRight', bubbles: true}));
+    fixture.detectChanges();
+    expect(selectedVariety(fixture)).toBe('Austria');
+    expect(pillButton(fixture, 'Austria').tabIndex).toBe(0);
+    expect(germany.tabIndex).toBe(-1);
   });
 
   it('keeps the pill that was tapped, and resumes on it after a drop-off', async () => {
