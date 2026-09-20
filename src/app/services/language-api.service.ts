@@ -41,7 +41,7 @@ export class LanguageApiService {
     return this.http.put<unknown>(url, {language}, {withCredentials: true}).pipe(map(parseActiveLanguagePolicy));
   }
 
-  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: CEFRLevel }>): Observable<Learner | null> {
+  updateLearner(language: LanguageCode, updates: Partial<{ active: boolean; level: CEFRLevel; variety: string }>): Observable<Learner | null> {
     const url = `${AppConstants.LEARNER_PROFILES_URL}/${language}`;
     return this.http.patch<unknown>(url, updates, {withCredentials: true}).pipe(
       map((response) => response === null ? null : Learner.fromJSON(response)),

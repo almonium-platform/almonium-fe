@@ -5,6 +5,23 @@
       @if (first) {
         <p i18n>Pick whichever sounds most like you. You can change it whenever you like.</p>
       }
+      <!-- A preset row, not a question: the default is already selected, and the helper says what the choice
+           changes so the reader who has never thought about it knows why the row is there. -->
+      @if (varieties(learner.language); as row) {
+        <div class="variety-row" role="radiogroup" [attr.aria-label]="row.question">
+          <span class="variety-question">{{ row.question }}</span>
+          <div class="variety-pills">
+            @for (variety of row.varieties; track variety.tag) {
+              <button type="button" role="radio" class="variety-pill"
+                [class.selected]="varietyControl(learner.language).value === variety.tag"
+                [attr.aria-checked]="varietyControl(learner.language).value === variety.tag"
+                [attr.aria-label]="variety.name"
+                (click)="chooseVariety(learner.language, variety)">{{ variety.label }}</button>
+            }
+          </div>
+          <span class="variety-helper">{{ row.helper }}</span>
+        </div>
+      }
       <div class="level-options">
         @for (level of levels; track level[0]) {
           <button type="button" class="level-option" [class.selected]="control(learner.language).value === level[0]"

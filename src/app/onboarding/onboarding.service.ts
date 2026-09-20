@@ -2,8 +2,8 @@ import { Injectable, inject } from "@angular/core";
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {AppConstants} from "../app.constants";
-import {LanguageSetupRequest} from "./language-setup/language-setup.model";
-import {CEFRLevel, Learner, SetupStep} from "../models/userinfo.model";
+import {LanguageSetupRequest, TargetLanguageWithProficiency} from "./language-setup/language-setup.model";
+import {Learner, SetupStep} from "../models/userinfo.model";
 
 @Injectable({
   providedIn: 'root',
@@ -22,7 +22,7 @@ export class OnboardingService {
     return this.http.put<Learner[]>(url, payload, {withCredentials: true});
   }
 
-  setupLevels(levels: {language: string; cefrLevel: CEFRLevel}[]): Observable<unknown> {
+  setupLevels(levels: TargetLanguageWithProficiency[]): Observable<unknown> {
     return this.http.put(`${AppConstants.ONBOARDING_URL}/levels`, levels, {withCredentials: true});
   }
 

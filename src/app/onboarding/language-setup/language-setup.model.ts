@@ -3,6 +3,8 @@ import {CEFRLevel, Learner} from '../../models/userinfo.model';
 export interface TargetLanguageWithProficiency {
   language: string;
   cefrLevel: CEFRLevel;
+  /** BCP-47 tag of the variety chosen beside the level; absent means the language's default. */
+  variety?: string;
 }
 
 export interface LanguageSetupRequest {
@@ -21,5 +23,6 @@ export function reconcileSubmittedLearnerLevels(
     learner.language,
     submittedLevels.get(learner.language) ?? learner.selfReportedLevel,
     learner.active,
+    learner.variety,
   ));
 }

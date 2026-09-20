@@ -12,6 +12,8 @@ import {UserInfoService} from '../services/user-info.service';
 export interface OnboardingDraft {
   targetLangs?: LanguageCode[];
   levels?: Partial<Record<LanguageCode, CEFRLevel>>;
+  /** The variety picked beside the level, by BCP-47 tag; only languages with a row are present. */
+  varieties?: Partial<Record<LanguageCode, string>>;
   interests?: Interest[];
 }
 

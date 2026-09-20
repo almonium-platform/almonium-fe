@@ -85,6 +85,54 @@
               </div>
 
               <div class="learner-controls">
+                <!-- Which English, which German (design V4): the same trigger as Level, one slot to its left. A
+                     one-variety language keeps the slot as an empty spacer so the grid holds its right edge. -->
+                @if (varietyRow(learner.language); as row) {
+                  <div
+                    #varietySelect
+                    class="level-select variety-select"
+                    [clickOutsideEnabled]="varietyPickerLearnerId === learner.id"
+                    (clickOutside)="closeVarietyPicker()">
+                    <button
+                      #varietyTrigger
+                      type="button"
+                      class="level-trigger variety-trigger"
+                      [class.open]="varietyPickerLearnerId === learner.id"
+                      [class.frozen]="!learner.active"
+                      [disabled]="!learner.active || updatingLearnerIds.has(learner.id)"
+                      aria-haspopup="listbox"
+                      [attr.aria-expanded]="varietyPickerLearnerId === learner.id"
+                      [attr.aria-label]="varietyTriggerLabel(learner)"
+                      (click)="toggleVarietyPicker(learner, varietySelect)">
+                      {{ varietyLabel(learner) }}
+                    </button>
+
+                    @if (varietyPickerLearnerId === learner.id) {
+                      <div
+                        class="level-list variety-list"
+                        role="listbox"
+                        tabindex="-1"
+                        [attr.aria-label]="row.question"
+                        (keydown)="onLevelListKeydown($event, varietyTrigger)">
+                        @for (variety of row.varieties; track variety.tag) {
+                          <button
+                            type="button"
+                            role="option"
+                            class="level-option"
+                            [class.selected]="varietyOf(learner) === variety"
+                            [attr.aria-selected]="varietyOf(learner) === variety"
+                            (click)="selectVariety(learner, variety.tag, varietyTrigger)">
+                            <strong>{{ variety.label }}</strong><span>{{ variety.name }}</span>
+                          </button>
+                        }
+                        <p class="variety-helper">{{ row.helper }}</p>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <span class="variety-spacer" aria-hidden="true"></span>
+                }
+
                 <!-- The code is what is stored, but the sentence is what was chosen at onboarding, so the open
                      list carries both. Closed, it is still the bare code: a row holds three of these. -->
                 <div

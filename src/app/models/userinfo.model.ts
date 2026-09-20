@@ -177,6 +177,11 @@ export class Learner {
     public language: LanguageCode, // Adjust the type if `Language` is an enum or a class
     public selfReportedLevel: CEFRLevel,
     public active: boolean,
+    /**
+     * Which English, which German (design V): the BCP-47 tag of what is being learnt to say, resolved to the
+     * language's default by the server. Null for a language with one supported variety.
+     */
+    public variety: string | null = null,
   ) {
   }
 
@@ -187,6 +192,7 @@ export class Learner {
       expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
       expectEnum(data['selfReportedLevel'], Object.values(CEFRLevel), `${path}.selfReportedLevel`),
       expectBoolean(data['active'], `${path}.active`),
+      data['variety'] === undefined ? null : expectNullableString(data['variety'], `${path}.variety`),
     );
   }
 }
@@ -196,6 +202,7 @@ export interface LearnerDto {
   language: LanguageCode;
   selfReportedLevel: CEFRLevel;
   active: boolean;
+  variety?: string | null;
 }
 
 export enum CEFRLevel {

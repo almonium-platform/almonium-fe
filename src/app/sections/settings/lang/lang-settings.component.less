@@ -180,6 +180,16 @@ button { font: inherit; }
 }
 
 .level-trigger.frozen::after { content: none; }
+
+/* The variety slot (design V4): 124px, the label left and the caret right, or an empty spacer of the same width
+   for a language with one variety so the level and the switch keep their column. */
+.variety-trigger { width: 7.75rem; justify-content: space-between; padding: .375rem .625rem .375rem .75rem; font-family: inherit; font-size: .78125rem; font-weight: 400; }
+.variety-trigger.frozen { justify-content: center; }
+.variety-spacer { width: 7.75rem; flex: 0 0 7.75rem; }
+.variety-list { width: 18rem; }
+.variety-list .level-option strong { flex: 0 0 5.5rem; font-size: .84375rem; font-weight: 500; }
+.variety-list .level-option span { color: var(--metadata-color); }
+.variety-helper { margin: .25rem .75rem .375rem; color: var(--metadata-color); font-size: .75rem; line-height: 1.5; }
 .active-switch { display: flex; flex: 0 0 auto; }
 
 /* Only the open list is wide: it carries the onboarding sentence beside each code. */
@@ -300,6 +310,7 @@ button { font: inherit; }
   .level-select { position: static; }
   .learner-row { position: relative; }
   .level-list { right: 0; left: 0; width: auto; }
+  .variety-spacer { display: none; }
 }
 
 @media (max-width: 410px) {

@@ -341,7 +341,7 @@ const CARDS = [
     id: 'learner-lock',
     title: 'Settings · Languages — a locked learner row',
     source: 'lang-settings.component.html:82,172',
-    rule: 'One line per row, whichever rule applies. A set-aside row keeps the same five slots as an active one, so the two align down the right edge.',
+    rule: 'One line per row, whichever rule applies. A set-aside row keeps the same six slots as an active one — the variety freezes with the level — so the two align down the right edge; a one-variety language keeps that slot as an empty spacer.',
     control: {
       label: 'row state',
       type: 'select',
@@ -365,6 +365,7 @@ const CARDS = [
                   <span class="aside-tag" data-aside-tag hidden>Set aside</span>
                 </div>
                 <div class="learner-controls">
+                  <div class="level-select variety-select"><button type="button" class="level-trigger variety-trigger" data-variety>France</button></div>
                   <div class="level-select"><button type="button" class="level-trigger" data-level>B1</button></div>
                   <span class="active-switch"><span class="harness-stub-switch" data-blocked data-on></span></span>
                   <a class="row-action open-record" href="#learner-lock" data-open-record hidden>›</a>
@@ -378,7 +379,20 @@ const CARDS = [
                 <button type="button" class="colour-trigger" style="background:#a08a3c"></button>
                 <div class="language-copy"><strong class="language-name">English</strong></div>
                 <div class="learner-controls">
+                  <div class="level-select variety-select"><button type="button" class="level-trigger variety-trigger">American</button></div>
                   <div class="level-select"><button type="button" class="level-trigger">B2</button></div>
+                  <span class="active-switch"><span class="harness-stub-switch" data-on></span></span>
+                  <span class="row-action empty-action"></span>
+                </div>
+              </div>
+            </div>
+            <div class="learner-record">
+              <div class="learner-row">
+                <button type="button" class="colour-trigger" style="background:#5E8C6A"></button>
+                <div class="language-copy"><strong class="language-name">Italian</strong></div>
+                <div class="learner-controls">
+                  <span class="variety-spacer" aria-hidden="true"></span>
+                  <div class="level-select"><button type="button" class="level-trigger">A2</button></div>
                   <span class="active-switch"><span class="harness-stub-switch" data-on></span></span>
                   <span class="row-action empty-action"></span>
                 </div>
@@ -524,9 +538,10 @@ const SCRIPT = `
         card.querySelector('[data-aside-tag]').hidden = !setAside;
         card.querySelector('[data-open-record]').hidden = !setAside;
         card.querySelector('[data-empty-action]').hidden = setAside;
-        const level = card.querySelector('[data-level]');
-        level.classList.toggle('frozen', setAside);
-        level.disabled = setAside;
+        for (const control of card.querySelectorAll('[data-level], [data-variety]')) {
+          control.classList.toggle('frozen', setAside);
+          control.disabled = setAside;
+        }
         card.querySelector('[data-blocked].harness-stub-switch').toggleAttribute('data-on', !setAside);
       }
     };

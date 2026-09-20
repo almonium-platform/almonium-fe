@@ -32,6 +32,7 @@ import {PopupTemplateStateService} from "../../../shared/modals/popup-template/p
 import {UtilsService} from "../../../services/utils.service";
 import {LANGUAGE_COLOURS} from "../../../shared/language-colours";
 import {CEFR_LEVEL_COPY, CEFR_LEVEL_ENTRIES} from "../../../shared/cefr-level-copy";
+import {LanguageVariety, LanguageVarietyRow, varietyOf, varietyRow} from "../../../shared/language-varieties";
 import {NgClickOutsideDirective} from "ng-click-outside2";
 
 @Component({
@@ -98,6 +99,8 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected colourPickerLanguage: LanguageCode | null = null;
   /** Which row's level list is open. One at a time: the panel is wider than the control it hangs off. */
   protected levelPickerLearnerId: string | null = null;
+  /** Which row's variety list is open; the same rule. */
+  protected varietyPickerLearnerId: string | null = null;
   protected readonly cefrLevelEntries = CEFR_LEVEL_ENTRIES;
   protected readonly languageColours = LANGUAGE_COLOURS;
   protected readonly updatingLearnerIds = new Set<string>();
@@ -174,18 +177,44 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   }
 
   protected onCefrLevelChange(learner: Learner, newValue: CEFRLevel): void {
-    if (learner.selfReportedLevel === newValue || this.updatingLearnerIds.has(learner.id)) {
+    if (learner.selfReportedLevel === newValue) {
+      return;
+    }
+    this.saveLearnerChange(
+      learner,
+      {level: newValue},
+      new Learner(learner.id, learner.language, newValue, learner.active, learner.variety),
+    );
+  }
+
+  /** Takes effect at once for the voice; what the learner has kept stays exactly as kept (design V7). */
+  protected onVarietyChange(learner: Learner, tag: string): void {
+    if (this.varietyOf(learner)?.tag === tag) {
+      return;
+    }
+    this.saveLearnerChange(
+      learner,
+      {variety: tag},
+      new Learner(learner.id, learner.language, learner.selfReportedLevel, learner.active, tag),
+    );
+  }
+
+  private saveLearnerChange(
+    learner: Learner,
+    updates: Partial<{level: CEFRLevel; variety: string}>,
+    optimisticLearner: Learner,
+  ): void {
+    if (this.updatingLearnerIds.has(learner.id)) {
       return;
     }
 
     const previousLearners = this.learners;
-    const optimisticLearner = new Learner(learner.id, learner.language, newValue, learner.active);
     this.learners = this.learners.map((currentLearner) =>
       currentLearner.id === learner.id ? optimisticLearner : currentLearner,
     );
     this.updatingLearnerIds.add(learner.id);
 
-    this.languageApiService.updateLearner(learner.language, {level: newValue}).pipe(
+    this.languageApiService.updateLearner(learner.language, updates).pipe(
       finalize(() => {
         this.updatingLearnerIds.delete(learner.id);
         this.returnLevelFocus();
@@ -199,8 +228,13 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
         this.userInfoService.updateUserInfo({learners: this.learners});
       },
       error: (err) => {
-        logger.error('Failed to update CEFR:', err);
-        this.alertService.open($localize`Failed to update CEFR level`, {appearance: 'negative'}).subscribe();
+        logger.error('Failed to update the language', err);
+        this.alertService.open(
+          updates.variety !== undefined
+            ? $localize`Failed to update the variety`
+            : $localize`Failed to update CEFR level`,
+          {appearance: 'negative'},
+        ).subscribe();
         this.learners = previousLearners;
       },
     });
@@ -492,6 +526,46 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     return $localize`Level for ${this.getLanguageName(learner.language)}:language:`;
   }
 
+  protected varietyRow(language: LanguageCode): LanguageVarietyRow | null {
+    return varietyRow(language);
+  }
+
+  protected varietyOf(learner: Learner): LanguageVariety | null {
+    return varietyOf(learner.language, learner.variety);
+  }
+
+  /** The closed control's text: a place or an adjective, never a tag. */
+  protected varietyLabel(learner: Learner): string {
+    return this.varietyOf(learner)?.label ?? '';
+  }
+
+  protected varietyTriggerLabel(learner: Learner): string {
+    return $localize`Variety for ${this.getLanguageName(learner.language)}:language:: ${this.varietyOf(learner)?.name ?? ''}:variety:`;
+  }
+
+  protected toggleVarietyPicker(learner: Learner, anchor: HTMLElement): void {
+    if (this.varietyPickerLearnerId === learner.id) {
+      this.closeVarietyPicker();
+      return;
+    }
+    this.colourPickerLanguage = null;
+    this.levelPickerLearnerId = null;
+    this.varietyPickerLearnerId = learner.id;
+    this.cdr.detectChanges();
+    anchor.querySelector<HTMLElement>('.level-option.selected')?.focus();
+  }
+
+  protected closeVarietyPicker(): void {
+    this.varietyPickerLearnerId = null;
+  }
+
+  protected selectVariety(learner: Learner, tag: string, trigger: HTMLElement): void {
+    this.closeVarietyPicker();
+    trigger.focus();
+    this.levelTriggerToRefocus = this.varietyOf(learner)?.tag === tag ? null : trigger;
+    this.onVarietyChange(learner, tag);
+  }
+
   protected activeToggleLabel(learner: Learner): string {
     const name = this.getLanguageName(learner.language);
     return learner.active ? $localize`Deactivate ${name}:language:` : $localize`Activate ${name}:language:`;
@@ -511,6 +585,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
 
   protected toggleColourPicker(languageCode: LanguageCode): void {
     this.levelPickerLearnerId = null;
+    this.varietyPickerLearnerId = null;
     this.colourPickerLanguage = this.colourPickerLanguage === languageCode ? null : languageCode;
   }
 
@@ -525,6 +600,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       return;
     }
     this.colourPickerLanguage = null;
+    this.varietyPickerLearnerId = null;
     this.levelPickerLearnerId = learner.id;
     // The list opens on the level already held, so the first arrow key steps from there rather than from the top.
     // Event coalescing defers the render past a timeout, so draw the list before reaching into it for the option.
@@ -554,11 +630,12 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
     trigger.focus();
   }
 
-  /** Arrow keys walk the list, Escape hands focus back to the control that opened it. */
+  /** Arrow keys walk the list, Escape hands focus back to the control that opened it. Serves both lists. */
   protected onLevelListKeydown(event: KeyboardEvent, trigger: HTMLElement): void {
     if (event.key === 'Escape') {
       event.preventDefault();
       this.closeLevelPicker();
+      this.closeVarietyPicker();
       trigger.focus();
       return;
     }

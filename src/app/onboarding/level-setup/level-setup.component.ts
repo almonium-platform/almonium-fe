@@ -1,7 +1,7 @@
 import {Component, EventEmitter, OnDestroy, OnInit, Output, inject} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {BehaviorSubject, Subject, finalize, takeUntil} from 'rxjs';
-import {CEFRLevel, SetupStep, UserInfo} from '../../models/userinfo.model';
+import {CEFRLevel, Learner, SetupStep, UserInfo} from '../../models/userinfo.model';
 import {LanguageCode} from '../../models/language.enum';
 import {LanguageNameService} from '../../services/language-name.service';
 import {UserInfoService} from '../../services/user-info.service';
@@ -11,6 +11,7 @@ import {logger} from '../../shared/logger';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {OnboardingDraftService} from '../onboarding-draft.service';
 import {CEFR_LEVEL_ENTRIES} from '../../shared/cefr-level-copy';
+import {LanguageVariety, LanguageVarietyRow, varietyOf, varietyRow} from '../../shared/language-varieties';
 
 @Component({
   selector: 'app-level-setup',
@@ -31,6 +32,11 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
   @Output() back = new EventEmitter<void>();
   protected readonly levels = CEFR_LEVEL_ENTRIES;
   protected readonly levelControls = new Map<string, FormControl<CEFRLevel>>();
+  /**
+   * Which English, which German (design V1): one control per language that has a row, holding a BCP-47 tag. The
+   * default is selected before the step renders, so not touching the row is the answer "I don't mind".
+   */
+  protected readonly varietyControls = new Map<string, FormControl<string>>();
   protected readonly loading$ = this.loadingSubject$.asObservable();
   protected userInfo: UserInfo | null = null;
 
@@ -39,6 +45,7 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
       if (!userInfo) return;
       this.userInfo = userInfo;
       const draftLevels = this.draft.read('levels') ?? {};
+      const draftVarieties = this.draft.read('varieties') ?? {};
       userInfo.learners.forEach(learner => {
         if (!this.levelControls.has(learner.language)) {
           const control = new FormControl(
@@ -48,6 +55,12 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
           control.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveDraft());
           this.levelControls.set(learner.language, control);
         }
+        const variety = varietyOf(learner.language, draftVarieties[learner.language] ?? learner.variety);
+        if (variety && !this.varietyControls.has(learner.language)) {
+          const control = new FormControl(variety.tag, {nonNullable: true});
+          control.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.saveDraft());
+          this.varietyControls.set(learner.language, control);
+        }
       });
     });
   }
@@ -56,6 +69,10 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
     const levels: Partial<Record<LanguageCode, CEFRLevel>> = {};
     this.levelControls.forEach((control, language) => levels[language as LanguageCode] = control.value);
     this.draft.write('levels', levels);
+    if (this.varietyControls.size === 0) return;
+    const varieties: Partial<Record<LanguageCode, string>> = {};
+    this.varietyControls.forEach((control, language) => varieties[language as LanguageCode] = control.value);
+    this.draft.write('varieties', varieties);
   }
 
   ngOnDestroy(): void {
@@ -71,11 +88,25 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
     return this.levelControls.get(language)!;
   }
 
+  /** The row for a language with a choice to make; null for Italian, Ukrainian, Polish, and the step is unchanged. */
+  protected varieties(language: LanguageCode): LanguageVarietyRow | null {
+    return varietyRow(language);
+  }
+
+  protected varietyControl(language: string): FormControl<string> {
+    return this.varietyControls.get(language)!;
+  }
+
+  protected chooseVariety(language: string, variety: LanguageVariety): void {
+    this.varietyControl(language).setValue(variety.tag);
+  }
+
   protected submit(): void {
     if (!this.userInfo || this.loadingSubject$.value) return;
     const levels = this.userInfo.learners.map(learner => ({
       language: learner.language,
       cefrLevel: this.control(learner.language).value,
+      variety: this.varietyControls.get(learner.language)?.value,
     }));
 
     this.loadingSubject$.next(true);
@@ -83,11 +114,15 @@ export class LevelSetupComponent implements OnInit, OnDestroy {
       .pipe(finalize(() => this.loadingSubject$.next(false)))
       .subscribe({
         next: () => {
-          const learners = this.userInfo!.learners.map(learner => ({
-            ...learner,
-            selfReportedLevel: this.control(learner.language).value,
-          }));
+          const learners = this.userInfo!.learners.map(learner => new Learner(
+            learner.id,
+            learner.language,
+            this.control(learner.language).value,
+            learner.active,
+            this.varietyControls.get(learner.language)?.value ?? learner.variety,
+          ));
           this.draft.discard('levels');
+          this.draft.discard('varieties');
           this.userInfoService.updateUserInfo({learners, setupStep: SetupStep.INTERESTS});
         },
         error: error => {

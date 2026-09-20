@@ -54,6 +54,47 @@ describe('LangSettingsComponent', () => {
     expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: languageSettings.learners}]]);
   });
 
+  it('sends only the variety, keeps the level, and shows the choice while the save is in flight', () => {
+    const originalLearner = new Learner('learner-1', LanguageCode.DE, CEFRLevel.A1, true, 'de-DE');
+    const languageApi = jasmine.createSpyObj<LanguageApiService>('LanguageApiService', ['updateLearner']);
+    const userInfo = jasmine.createSpyObj<UserInfoService>('UserInfoService', ['updateUserInfo']);
+    languageApi.updateLearner.and.returnValue(of(new Learner('learner-1', LanguageCode.DE, CEFRLevel.A1, true, 'de-CH')));
+
+    TestBed.configureTestingModule({
+      providers: [
+        {provide: LanguageApiService, useValue: languageApi},
+        {provide: LanguageNameService, useValue: {}},
+        {provide: UserInfoService, useValue: userInfo},
+        {provide: TuiNotificationService, useValue: {}},
+        {provide: ChangeDetectorRef, useValue: {}},
+        {provide: TargetLanguageDropdownService, useValue: {}},
+        {provide: PopupTemplateStateService, useValue: {}},
+        {provide: ActivatedRoute, useValue: {}},
+        {provide: UrlService, useValue: {}},
+        {provide: RecentAuthGuardService, useValue: {}},
+        {provide: SupportedLanguagesService, useValue: {}},
+        {provide: UtilsService, useValue: {}},
+      ],
+    });
+
+    const component = TestBed.runInInjectionContext(() => new LangSettingsComponent());
+    const languageSettings = component as unknown as {
+      learners: Learner[];
+      onVarietyChange(learner: Learner, tag: string): void;
+      varietyLabel(learner: Learner): string;
+    };
+    languageSettings.learners = [originalLearner];
+    expect(languageSettings.varietyLabel(originalLearner)).toBe('Germany');
+
+    languageSettings.onVarietyChange(originalLearner, 'de-CH');
+
+    expect(languageApi.updateLearner.calls.allArgs()).toEqual([[LanguageCode.DE, {variety: 'de-CH'}]]);
+    expect(languageSettings.learners[0].variety).toBe('de-CH');
+    expect(languageSettings.learners[0].selfReportedLevel).toBe(CEFRLevel.A1);
+    expect(languageSettings.varietyLabel(languageSettings.learners[0])).toBe('Switzerland');
+    expect(userInfo.updateUserInfo.calls.allArgs()).toEqual([[{learners: languageSettings.learners}]]);
+  });
+
   function activeStatusHarness(fetched: UserInfo | null) {
     const languageApi = jasmine.createSpyObj<LanguageApiService>(
       'LanguageApiService', ['updateLearner', 'getActiveLanguagePolicy']);

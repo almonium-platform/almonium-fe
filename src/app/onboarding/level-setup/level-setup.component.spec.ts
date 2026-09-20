@@ -3,7 +3,7 @@ import {Router} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {BehaviorSubject, of} from 'rxjs';
 import {LanguageCode} from '../../models/language.enum';
-import {SetupStep, UserInfo} from '../../models/userinfo.model';
+import {CEFRLevel, SetupStep, UserInfo} from '../../models/userinfo.model';
 import {UserInfoService} from '../../services/user-info.service';
 import {OnboardingService} from '../onboarding.service';
 import {ONBOARDING_DRAFTS_KEY, onboardingUserInfo, seedDraft, storedDraft} from '../onboarding-spec-fixtures';
@@ -30,7 +30,7 @@ describe('LevelSetupComponent', () => {
     fixture.detectChanges();
 
     expect(selectedLevel(fixture)).toBe('A2');
-    expect(storedDraft()).toEqual({levels: {DE: 'A2'}});
+    expect(storedDraft()).toEqual({levels: {DE: 'A2'}, varieties: {DE: 'de-DE'}});
   });
 
   it('asks once per language, and explains the choice only once', async () => {
@@ -51,7 +51,53 @@ describe('LevelSetupComponent', () => {
 
     expect(selectedLevel(fixture, 0)).toBe('B1');
     expect(selectedLevel(fixture, 1)).toBe('A2');
-    expect(storedDraft()).toEqual({levels: {DE: 'B1', FR: 'A2'}});
+    expect(storedDraft()).toEqual({levels: {DE: 'B1', FR: 'A2'}, varieties: {DE: 'de-DE', FR: 'fr-FR'}});
+  });
+
+  it('asks which German under the title, with Germany already chosen, and not at all for Italian', async () => {
+    const fixture = await createFixture([LanguageCode.DE, LanguageCode.IT]);
+
+    const german = questionAt(fixture, 0);
+    expect(german.querySelector('.variety-question')!.textContent.trim()).toBe('Which German?');
+    expect(pillLabels(fixture, 0)).toEqual(['Germany', 'Austria', 'Switzerland']);
+    expect(selectedVariety(fixture, 0)).toBe('Germany');
+    expect(german.querySelector('.variety-helper')!.textContent).toContain('no ß');
+    expect(questionAt(fixture, 1).querySelector('.variety-row')).toBeNull();
+    // The row precedes the levels: it is read before the question it qualifies.
+    expect(german.querySelector('.variety-row')!.compareDocumentPosition(german.querySelector('.level-options')!))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('keeps the pill that was tapped, and resumes on it after a drop-off', async () => {
+    const fixture = await createFixture();
+
+    pillButton(fixture, 'Switzerland').click();
+    fixture.detectChanges();
+
+    expect(selectedVariety(fixture)).toBe('Switzerland');
+    expect(storedDraft()).toEqual({levels: {DE: 'B1'}, varieties: {DE: 'de-CH'}});
+  });
+
+  it('resumes on the pill picked before a drop-off', async () => {
+    seedDraft({varieties: {DE: 'de-CH'}});
+    const fixture = await createFixture();
+    expect(selectedVariety(fixture)).toBe('Switzerland');
+  });
+
+  it('sends the variety beside the level, and only for a language that has one', async () => {
+    const fixture = await createFixture([LanguageCode.DE, LanguageCode.IT]);
+    const onboarding = TestBed.inject(OnboardingService);
+    const setupLevels = spyOn(onboarding, 'setupLevels').and.returnValue(of(undefined));
+
+    pillButton(fixture, 'Austria').click();
+    host(fixture).querySelector('app-button')!.dispatchEvent(new Event('click'));
+    fixture.detectChanges();
+
+    expect(setupLevels).toHaveBeenCalledWith([
+      {language: LanguageCode.DE, cefrLevel: CEFRLevel.B1, variety: 'de-AT'},
+      {language: LanguageCode.IT, cefrLevel: CEFRLevel.B1, variety: undefined},
+    ]);
+    expect(storedDraft()).toEqual({});
   });
 
   it('drops the draft once the server has the level', async () => {
@@ -72,6 +118,19 @@ function selectedLevel(fixture: ComponentFixture<LevelSetupComponent>, question 
 function levelButton(fixture: ComponentFixture<LevelSetupComponent>, level: string, question = 0): HTMLButtonElement {
   const buttons = Array.from(questionAt(fixture, question).querySelectorAll<HTMLButtonElement>('.level-option'));
   return buttons.find(button => button.querySelector('code')?.textContent?.trim() === level)!;
+}
+
+function pillLabels(fixture: ComponentFixture<LevelSetupComponent>, question = 0): string[] {
+  return Array.from(questionAt(fixture, question).querySelectorAll('.variety-pill')).map(pill => pill.textContent.trim());
+}
+
+function selectedVariety(fixture: ComponentFixture<LevelSetupComponent>, question = 0): string {
+  return questionAt(fixture, question).querySelector('.variety-pill.selected')?.textContent?.trim() ?? '';
+}
+
+function pillButton(fixture: ComponentFixture<LevelSetupComponent>, label: string, question = 0): HTMLButtonElement {
+  const pills = Array.from(questionAt(fixture, question).querySelectorAll<HTMLButtonElement>('.variety-pill'));
+  return pills.find(pill => pill.textContent?.trim() === label)!;
 }
 
 function questionAt(fixture: ComponentFixture<LevelSetupComponent>, question: number): HTMLElement {
