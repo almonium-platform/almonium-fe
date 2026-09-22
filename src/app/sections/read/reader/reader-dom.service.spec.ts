@@ -79,7 +79,7 @@ describe('ReaderDomService', () => {
     })).toBe(325);
   });
 
-  it('answers for a sentence group on both sides, or a whole paragraph pair where none exists', () => {
+  it('answers for a sentence group or its paragraph when plain text has no confident pairing', () => {
     const content = document.createElement('div');
     content.innerHTML = `
       <p><span class="segment" data-pair="0"><span data-alignment="1-1-0">One.</span> Plain.</span><span class="companion-source" data-pair="0"><span class="segment"><span data-alignment="1-1-0">Uno.</span></span></span></p>
@@ -88,6 +88,11 @@ describe('ReaderDomService', () => {
     const group = content.querySelector('[data-alignment]')!;
     expect(service.unitAt(content, group).map(element => element.textContent)).toEqual(['One.', 'Uno.']);
     expect(service.unitAt(content, group.nextSibling as unknown as EventTarget)).toEqual([]);
+    const plainText = content.querySelector<HTMLElement>('.segment[data-pair="0"]')!;
+    const paragraph = service.unitAt(content, plainText);
+    expect(paragraph).toEqual([plainText]);
+    expect(service.openCompanionFor(content, paragraph, false)).toBeTrue();
+    expect(content.querySelector('.companion-block')?.textContent).toBe('Uno.');
     expect(service.unitAt(content, content.querySelector('[data-pair="1"]')).map(element => element.textContent)).toEqual(['Whole.']);
     expect(service.unitAt(content, document.body)).toEqual([]);
   });

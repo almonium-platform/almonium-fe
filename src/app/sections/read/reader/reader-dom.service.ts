@@ -153,8 +153,8 @@ export class ReaderDomService {
 
   /**
    * The elements that answer for the alignment unit under a point in the text (design L): every
-   * element of the sentence group the target is in, or, where the paragraph has no sentence groups,
-   * the paragraph pair's runs. Empty when the target is plain text between groups.
+   * element of the sentence group the target is in, or the paragraph pair's runs when
+   * the target is outside a confident sentence group.
    */
   unitAt(content: HTMLElement, target: EventTarget | null): HTMLElement[] {
     if (!(target instanceof Element) || !content.contains(target)) return [];
@@ -165,7 +165,7 @@ export class ReaderDomService {
     }
     const paired = target.closest<HTMLElement>('[data-pair]');
     const pair = paired?.dataset['pair'];
-    if (!pair || !/^\d+$/.test(pair) || paired?.querySelector('[data-alignment]')) return [];
+    if (!pair || !/^\d+$/.test(pair)) return [];
     return Array.from(content.querySelectorAll<HTMLElement>(`[data-pair="${pair}"]`))
       .filter(element => !element.classList.contains('companion-source'));
   }
