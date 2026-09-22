@@ -1222,6 +1222,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   /** The edition's kind in words; an indirect translation says what it translates. */
   protected editionKind(edition: BookLanguageVariant): string {
     if (this.isOtherEditionTranslation(edition)) return $localize`translation of the original`;
+    if (edition.editionType === 'adaptation' && edition.literaryRegister === 'lightly modernised') return $localize`lightly modernised original`;
     switch (edition.editionType) {
       case 'machine_translation': return $localize`machine translation`;
       case 'human_translation': return $localize`translation`;
@@ -1273,7 +1274,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   }
 
   editionLabel(edition: BookLanguageVariant): string {
-    const kind = edition.editionType?.replaceAll('_', ' ') ?? 'edition';
+    const kind = this.editionKind(edition);
     const origin = this.isOtherEditionTranslation(edition) ? ' · based on another edition, not this adaptation' : '';
     return `${edition.language} · ${edition.cefrLevel ?? 'level pending'} · ${kind}${origin}`;
   }

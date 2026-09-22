@@ -270,7 +270,7 @@ export class BookComponent implements OnInit, OnDestroy {
     if (editions.length < 2) return [];
     return editions.map(edition => ({
       editionSlug: edition.editionSlug,
-      label: [editionKindLabel(edition.editionType), edition.cefrLevel].filter(Boolean).join(' · '),
+      label: [editionKindLabel(edition.editionType, edition.literaryRegister), edition.cefrLevel].filter(Boolean).join(' · '),
       selected: edition.id === book.id,
       progress: this.editionProgress(edition),
     }));

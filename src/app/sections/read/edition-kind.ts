@@ -1,6 +1,6 @@
 /**
  * An edition's kind, in words (G15): the processor names it original, adaptation, machine_translation or
- * human_translation; the reader sees Original, Adapted or Translation. "Machine" never reaches a shelf or a
+ * human_translation; the reader also sees Lightly modernised when the register says so. "Machine" never reaches a shelf or a
  * chip; the pill on the book page that names the translator is where that detail lives.
  */
 export type EditionKind = 'original' | 'adapted' | 'translation' | 'edition';
@@ -15,7 +15,8 @@ export function editionKind(editionType: string | undefined | null): EditionKind
   }
 }
 
-export function editionKindLabel(editionType: string | undefined | null): string {
+export function editionKindLabel(editionType: string | undefined | null, literaryRegister?: string | null): string {
+  if (editionType === 'adaptation' && literaryRegister === 'lightly modernised') return $localize`Lightly modernised`;
   switch (editionKind(editionType)) {
     case 'original': return $localize`Original`;
     case 'adapted': return $localize`Adapted`;

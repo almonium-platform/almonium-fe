@@ -31,6 +31,7 @@ function edition(overrides: Partial<Book>): Book {
 
 const original = edition({});
 const adapted = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-en-b2', cefrLevel: CEFRLevel.B2, editionType: 'adaptation'});
+const modernised = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a29', editionSlug: 'frankenstein-en-c1-modern', cefrLevel: CEFRLevel.C1, editionType: 'adaptation', literaryRegister: 'lightly modernised'});
 const ukrainian = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a27', editionSlug: 'frankenstein-uk-b2', language: LanguageCode.UK, cefrLevel: CEFRLevel.B2, editionType: 'machine_translation', isTranslation: true, title: 'Франкенштейн, або Сучасний Прометей', author: 'Мері Шеллі'});
 const other = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a28', editionSlug: 'lisova-pisnya-uk', workSlug: 'lisova-pisnya', language: LanguageCode.UK, cefrLevel: CEFRLevel.C1});
 
@@ -73,6 +74,9 @@ describe('work tiles', () => {
 });
 
 describe('the tile caption', () => {
+  it('distinguishes a same-level modernisation from the original', () => {
+    expect(tileEditionsLabel([modernised, original])).toBe('Original C1 · Lightly modernised C1');
+  });
   it('lists the editions the work actually has, original first, and promises nothing else', () => {
     const original = edition({});
     const adapted = edition({id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-en-b2', cefrLevel: CEFRLevel.B2, editionType: 'adaptation'});

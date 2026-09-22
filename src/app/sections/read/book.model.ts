@@ -25,6 +25,7 @@ export interface Book {
   cefrLevel: CEFRLevel;
   /** original, adaptation, machine_translation or human_translation; the shelf needs it to pick a tile's edition. */
   editionType?: string;
+  literaryRegister?: string;
   /** The lowest level a faithful adaptation of the work reached both of its gates at, found per book; absent until one has. */
   adaptsTo?: CEFRLevel;
   progressPercentage: number | null;
@@ -60,6 +61,7 @@ export interface BookLanguageVariant {
   editionSlug: string;
   language: LanguageCode;
   editionType?: string;
+  literaryRegister?: string;
   cefrLevel?: string;
   sourceEditionSlug?: string;
   /** Editorial's one sentence about the edition, shown under the Edition chips. */
@@ -113,6 +115,7 @@ export function parseBook(value: unknown, path = 'book'): Book {
     language: expectEnum(data['language'], Object.values(LanguageCode), `${path}.language`),
     cefrLevel: expectEnum(data['cefrLevel'], Object.values(CEFRLevel), `${path}.cefrLevel`),
     ...optionalString(data['editionType'], 'editionType', path),
+    ...optionalString(data['literaryRegister'], 'literaryRegister', path),
     ...optionalEnum(data['adaptsTo'], Object.values(CEFRLevel), 'adaptsTo', path),
     progressPercentage: expectNullableNumber(data['progressPercentage'], `${path}.progressPercentage`),
     currentChapter: data['currentChapter'] === undefined ? null : expectNullableNumber(data['currentChapter'], `${path}.currentChapter`),
@@ -149,6 +152,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
       editionSlug: expectString(data['editionSlug'], `${itemPath}.editionSlug`),
       language: expectEnum(data['language'], Object.values(LanguageCode), `${itemPath}.language`),
       ...(data['editionType'] == null ? {} : {editionType: expectString(data['editionType'], `${itemPath}.editionType`)}),
+      ...(data['literaryRegister'] == null ? {} : {literaryRegister: expectString(data['literaryRegister'], `${itemPath}.literaryRegister`)}),
       ...(data['cefrLevel'] == null ? {} : {cefrLevel: expectString(data['cefrLevel'], `${itemPath}.cefrLevel`)}),
       ...(data['sourceEditionSlug'] == null ? {} : {sourceEditionSlug: expectString(data['sourceEditionSlug'], `${itemPath}.sourceEditionSlug`)}),
       ...(data['editionNote'] == null ? {} : {editionNote: expectString(data['editionNote'], `${itemPath}.editionNote`)}),
@@ -156,7 +160,7 @@ function parseLanguageVariants(value: unknown, path: string): BookLanguageVarian
   });
 }
 
-function optionalString<K extends 'translator' | 'originalTitle' | 'editionType'>(
+function optionalString<K extends 'translator' | 'originalTitle' | 'editionType' | 'literaryRegister'>(
   value: unknown,
   key: K,
   path: string,

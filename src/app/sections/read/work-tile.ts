@@ -85,7 +85,7 @@ export function tileEditionsLabel(editions: readonly Book[]): string {
   const sorted = [...editions].sort(
     (a, b) => kindOrder(a) - kindOrder(b) || levelRank(a.cefrLevel) - levelRank(b.cefrLevel),
   );
-  const labels = sorted.map(edition => [editionKindLabel(edition.editionType), edition.cefrLevel].filter(Boolean).join(' '));
+  const labels = sorted.map(edition => [editionKindLabel(edition.editionType, edition.literaryRegister), edition.cefrLevel].filter(Boolean).join(' '));
   return [...new Set(labels)].join(' · ');
 }
 
