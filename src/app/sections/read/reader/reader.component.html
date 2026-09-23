@@ -103,8 +103,17 @@
                (focus)="onContentHover($event)"
                (focusin)="onContentHover($event)"
                (focusout)="clearLit()"
-               (keydown.enter)="onContentClick($event)">
+               (keydown.enter)="onContentClick($event)"
+               (keydown.space)="onGlossSpace($event)">
           </div>
+
+          @if (activeGloss; as gloss) {
+            <aside class="gloss-popover" role="note" aria-label="Contextual note" i18n-aria-label>
+              <div class="gloss-popover__top"><span i18n>Context</span><button type="button" aria-label="Close note" i18n-aria-label (click)="activeGloss = null">×</button></div>
+              <strong>{{ gloss.quote }}</strong>
+              <p>{{ gloss.body }}</p>
+            </aside>
+          }
 
           <!-- The chapter end (J3): the words, then the next chapter, then the one ask a guest sees. -->
           <footer class="chapter-end">

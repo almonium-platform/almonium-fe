@@ -73,13 +73,22 @@ describe('ReaderComponent', () => {
     fixture = TestBed.createComponent(ReaderComponent);
   });
 
-  function loadBook(): HTMLElement {
+  function loadBook(html = bookHtml): HTMLElement {
     fixture.detectChanges();
-    baseResponse$.next(new HttpResponse({status: 200, body: new TextEncoder().encode(bookHtml).buffer}));
+    baseResponse$.next(new HttpResponse({status: 200, body: new TextEncoder().encode(html).buffer}));
     fixture.detectChanges();
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('opens a reviewed contextual gloss from the book text', () => {
+    const html = '<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2>'
+      + '<p>An <span class="almonium-gloss" role="button" tabindex="0" data-gloss-note="An eagle nest.">eyry</span> stood.</p></section>';
+    const host = loadBook(html);
+    host.querySelector<HTMLElement>('.almonium-gloss')!.click();
+    fixture.detectChanges();
+    expect(host.querySelector('.gloss-popover')?.textContent).toContain('An eagle nest.');
+  });
 
   it('shows the chapter the route names: a four-line header, its text, and the next chapter after it', () => {
     const host = loadBook();

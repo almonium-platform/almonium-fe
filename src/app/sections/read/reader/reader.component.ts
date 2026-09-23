@@ -130,6 +130,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected currentKey = 0;
   protected currentIndex = -1;
   protected bookHtmlContent = '';
+  protected activeGloss: {quote: string; body: string} | null = null;
   private baseBookHtmlContent = '';
 
   protected isLoading = true;
@@ -496,6 +497,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.errorMessage = null;
     const page = this.isParallelViewActive ? this.companionChapters.get(this.currentKey) : null;
     this.bookHtmlContent = page?.html ?? this.chapters[this.currentIndex].html;
+    this.activeGloss = null;
     this.initialScrollApplied = false;
     this.watchVocabularyStatus();
     this.describePage();
@@ -642,6 +644,17 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
    * opens the group's companion under the paragraph (L3). The same unit again, or plain text, clears.
    */
   protected onContentClick(event: Event): void {
+    const gloss = event.target instanceof Element ? event.target.closest<HTMLElement>('.almonium-gloss') : null;
+    if (gloss) {
+      const body = gloss.getAttribute('data-gloss-note');
+      if (body) {
+        if (event instanceof KeyboardEvent) event.preventDefault();
+        this.activeGloss = {quote: gloss.textContent?.trim() ?? '', body};
+        event.stopPropagation();
+        this.cdRef.markForCheck();
+        return;
+      }
+    }
     const content = this.readerContentRef?.nativeElement;
     if (!this.isParallelViewActive || !content || window.getSelection()?.toString().trim()) return;
     const unit = this.readerDom.unitAt(content, event.target);
@@ -653,6 +666,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.readerDom.mark(content, unit, 'is-aligned-current');
     if (this.effectiveMode === 'demand') {
       this.readerDom.openCompanionFor(content, unit, !isReducedMotion(this.document.documentElement));
+    }
+  }
+
+  protected onGlossSpace(event: Event): void {
+    if (event.target instanceof Element && event.target.closest('.almonium-gloss')) {
+      this.onContentClick(event);
     }
   }
 

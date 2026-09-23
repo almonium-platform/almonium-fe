@@ -390,6 +390,8 @@
   overflow-x: hidden;
 
   ::ng-deep {
+    .almonium-gloss { cursor: pointer; border-bottom: 1px dotted var(--brand-margin); text-decoration: none; }
+    .almonium-gloss:hover, .almonium-gloss:focus-visible { background: var(--parallel-tint); outline: 2px solid var(--brand-margin); outline-offset: 2px; }
     pre {
       white-space: pre-wrap;
       overflow-wrap: break-word;
@@ -561,6 +563,30 @@
   }
 }
 
+.gloss-popover {
+  position: fixed;
+  z-index: 40;
+  top: 30%;
+  right: max(1rem, calc((100vw - 86rem) / 2));
+  width: min(17rem, calc(100vw - 2rem));
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--hairline-on-ground);
+  border-radius: 1rem;
+  background: var(--float-color);
+  color: var(--text-color);
+  box-shadow: 0 10px 35px #0002;
+  font-size: .9rem;
+  line-height: 1.5;
+  &__top { display: flex; justify-content: space-between; align-items: center; color: var(--metadata-color); font: 700 .7rem var(--font-family-ui); text-transform: uppercase; letter-spacing: .07em; }
+  &__top button { border: 0; background: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
+  strong { display: block; margin-top: .35rem; font-family: var(--font-family); font-size: 1.05rem; }
+  p { margin: .4rem 0 0; }
+}
+
+@media (max-width: 900px) {
+  .gloss-popover { top: auto; right: 1rem; bottom: 5rem; width: min(25rem, calc(100vw - 2rem)); }
+}
+
 // The companion that could not be loaded is said above the text, which stays readable.
 .parallel-error { margin: 0; padding: .25rem 1rem; color: var(--error-color); font-family: var(--font-family-ui); font-size: .85rem; }
 
@@ -648,5 +674,4 @@
   .bar-toggle { padding: .3rem .5rem; }
   .pagination-center-area { gap: .5rem; }
 }
-
 

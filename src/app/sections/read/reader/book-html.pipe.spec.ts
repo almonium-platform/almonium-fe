@@ -18,4 +18,13 @@ describe('BookHtmlPipe', () => {
     expect(document.querySelector('section.chapter > h2#chapter-0')?.textContent).toBe('Chapter 1');
     expect(document.querySelector('script')).toBeNull();
   });
+  it('keeps reviewed gloss data while removing event handlers', () => {
+    TestBed.configureTestingModule({});
+    const pipe = TestBed.runInInjectionContext(() => new BookHtmlPipe());
+    const sanitizer = TestBed.inject(DomSanitizer);
+    const html = sanitizer.sanitize(SecurityContext.HTML, pipe.transform('<span class="almonium-gloss" data-gloss-note="A nest" onclick="bad()">eyry</span>')) ?? '';
+    const element = new DOMParser().parseFromString(html, 'text/html').querySelector('span')!;
+    expect(element.getAttribute('data-gloss-note')).toBe('A nest');
+    expect(element.hasAttribute('onclick')).toBeFalse();
+  });
 });
