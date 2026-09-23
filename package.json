@@ -43,7 +43,7 @@
     "@taiga-ui/icons-fontawesome": "^4.91.0",
     "@taiga-ui/kit": "^5.15.0",
     "@taiga-ui/layout": "^5.15.0",
-    "@taiga-ui/legacy": "^5.15.0",
+    "@taiga-ui/legacy": "^5.23.0",
     "@taiga-ui/styles": "^5.15.0",
     "@tinkoff/angular-contenteditable-accessor": "^2.0.0",
     "@tsparticles/angular": "^4.3.2",
