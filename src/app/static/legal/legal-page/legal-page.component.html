@@ -4,6 +4,7 @@
       <div class="rail-pages">
         <a i18n routerLink="/privacy-policy" [class.current]="current() === 'privacy'" [attr.aria-current]="current() === 'privacy' ? 'page' : null">Privacy Policy</a>
         <a i18n routerLink="/terms-of-use" [class.current]="current() === 'terms'" [attr.aria-current]="current() === 'terms' ? 'page' : null">Terms of Use</a>
+        <a i18n routerLink="/delete-account" [class.current]="current() === 'delete'" [attr.aria-current]="current() === 'delete' ? 'page' : null">Delete account</a>
       </div>
       @if (sections().length) {
         <div class="rail-sections">

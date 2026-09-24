@@ -46,3 +46,7 @@ ds-bundle/
 
 # Generated alongside tools/disabled-states-harness.html, only for publishing
 tools/disabled-states-harness.artifact.html
+
+# Playwright output: screenshots and run state are build artifacts, not sources.
+test-results/
+playwright-report/

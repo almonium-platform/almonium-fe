@@ -43,6 +43,15 @@ h1 { margin: 0; font: 600 clamp(36px, 5.5vw, 48px)/1.08 var(--font-family-readin
 .legal-body ::ng-deep .parties > div { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .legal-body ::ng-deep .parties dt { font-weight: 600; }
 .legal-body ::ng-deep .parties dd { margin: 0; color: var(--copy); }
+/* The one action a legal page may carry: solid plum-black, so it reads as the page's button rather
+   than as another berry link in the prose. Lives here, next to .parties, because the body link
+   colour above would otherwise win over a projected page's own rule. */
+.legal-body ::ng-deep a.cta {
+  display: inline-flex; align-items: center; margin-top: 12px; padding: 10px 22px;
+  border-radius: 9999px; background: var(--ink); color: var(--ground);
+  font: 600 14px/1 var(--font-family-ui);
+}
+.legal-body ::ng-deep a.cta:hover { background: #443a49; color: var(--ground); }
 
 @media (max-width: 900px) {
   .legal-layout { grid-template-columns: 1fr; gap: 40px; width: min(calc(100% - 36px), 1056px); padding-block: 44px 72px; }

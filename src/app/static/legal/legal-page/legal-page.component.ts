@@ -3,10 +3,10 @@ import {DatePipe} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {PublicFooterComponent} from '../../../shared/public-footer/public-footer.component';
 
-export type LegalPage = 'privacy' | 'terms';
+export type LegalPage = 'privacy' | 'terms' | 'delete';
 
 /**
- * The shell both legal pages share: a sticky rail that switches between them and jumps to
+ * The shell the legal pages share: a sticky rail that switches between them and jumps to
  * sections, a heading block, the projected body, and the dark public footer. The rail's section
  * links are read off the body's `h2[id]` headings after render, so a page declares each section
  * once, in its template, and the rail follows whatever the translation says.

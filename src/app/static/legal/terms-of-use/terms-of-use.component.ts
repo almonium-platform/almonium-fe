@@ -1,9 +1,10 @@
 import {Component} from '@angular/core';
+import {RouterLink} from '@angular/router';
 import {LegalPageComponent} from '../legal-page/legal-page.component';
 
 @Component({
   selector: 'app-terms-of-use',
-  imports: [LegalPageComponent],
+  imports: [LegalPageComponent, RouterLink],
   templateUrl: './terms-of-use.component.html',
 })
 export class TermsOfUseComponent {

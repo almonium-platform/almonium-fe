@@ -60,6 +60,8 @@ export const routes: Routes = [
   // Static pages
   {path: 'terms-of-use', loadComponent: () => import('./static/legal/terms-of-use/terms-of-use.component').then(m => m.TermsOfUseComponent)},
   {path: 'privacy-policy', loadComponent: () => import('./static/legal/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent)},
+  // Public by policy: Google Play's data-deletion link is opened by a signed-out reviewer.
+  {path: 'delete-account', loadComponent: () => import('./static/legal/delete-account/delete-account.component').then(m => m.DeleteAccountComponent)},
 
   // Payment
   {path: 'payment/checkout', loadComponent: () => import('./static/payment-checkout/payment-checkout.component').then(m => m.PaymentCheckoutComponent)},

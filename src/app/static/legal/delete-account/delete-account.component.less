@@ -1,0 +1,31 @@
+/* Only what the legal shell doesn't already provide: the shell's `.parties` hairline rows carry the
+   two definition tables, so this file holds the list of what goes and the one button on the page. */
+.gone {
+  margin: 0;
+  padding-left: 1.1em;
+  list-style: none;
+}
+
+.gone li {
+  text-wrap: pretty;
+}
+
+/* A middot rather than a bullet: the list is a sentence continued, not an inventory. */
+.gone li::before {
+  content: '·';
+  display: inline-block;
+  width: 1.1em;
+  margin-left: -1.1em;
+  color: #a99aa8;
+}
+
+.parties dd .lead {
+  display: block;
+  color: #2c2530;
+  font-weight: 500;
+}
+
+.parties dd .lead + span {
+  display: block;
+  margin-top: 6px;
+}
