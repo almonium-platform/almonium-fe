@@ -31,7 +31,8 @@ test('lists a full book in the contents rail, one line per chapter, describing o
 });
 
 for (const mode of ['side', 'inline', 'demand']) {
-for (const language of ['EN', 'UK']) {
+// Companions are other-language editions only (c015cc5); an English original is the book page's Edition row.
+for (const language of ['UK']) {
 test(`selects a ${language} companion and highlights sentence groups in ${mode} mode`, async ({page}, testInfo) => {
   await page.addInitScript(value => localStorage.setItem('parallel_mode', JSON.stringify(value)), mode);
   const primary = {id: '01989f47-4c2a-7a10-9e5b-751983624a25', editionSlug: 'frankenstein-b2', language: 'EN', editionType: 'adaptation', cefrLevel: 'B2'};
@@ -114,6 +115,32 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
 });
 }
 }
+
+test('does not pair a same-language original as the companion', async ({page}) => {
+  const primary = {id: '01989f47-4c2a-7a10-9e5b-751983624a25', editionSlug: 'frankenstein-b2', language: 'EN', editionType: 'adaptation', cefrLevel: 'B2'};
+  const original = {id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-original', language: 'EN', editionType: 'original', cefrLevel: 'C1'};
+  const metadata = {...primary, workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: true, languageVariants: [primary, original]};
+  let requestedPair = false;
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.includes('/parallel-edition/')) {
+      requestedPair = true;
+      await route.fulfill({contentType: 'text/html', body: ''});
+    } else if (path.endsWith('/public/books/frankenstein-b2/chapters')) {
+      await route.fulfill({json: [{id: primary.id, sequence: 11, title: 'Chapter V', analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: []}]});
+    } else if (path.endsWith('/public/books/frankenstein-b2/text')) {
+      await route.fulfill({contentType: 'text/html', body: '<section class="chapter"><h2 class="chapter-title" id="chapter-11">V</h2><p>Base text</p></section>'});
+    } else if (path.endsWith('/public/books/frankenstein-b2')) {
+      await route.fulfill({json: metadata});
+    } else {
+      await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
+    }
+  });
+  await page.goto('/reader/frankenstein-b2?parallel=frankenstein-original');
+  await expect(page.locator('.reader-content')).toContainText('Base text');
+  await expect(page.locator('.chapter-head__pair')).toHaveCount(0);
+  expect(requestedPair).toBe(false);
+});
 
 test('underlines the sentence pairs in Side by side only once asked, from a switch under that row', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('parallel_mode', JSON.stringify('side')));
