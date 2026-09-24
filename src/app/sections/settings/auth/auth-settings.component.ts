@@ -113,8 +113,10 @@ export class AuthSettingsComponent implements OnInit, OnDestroy {
   protected modalConfirmText = '';
   protected modalAction: (() => void) | null = null;
   protected useCountdown = false;
-  /** The word typed to confirm deletion; the modal compares against this same value. */
-  protected readonly deleteConfirmationWord = $localize`DELETE`;
+  /** Typed to confirm deletion, as on mobile and as the public /delete-account page tells Play reviewers. */
+  protected get deleteConfirmationWord(): string {
+    return this.userInfo?.username ?? '';
+  }
   protected readonly emailTokenModalTitle = $localize`Verification Requests`;
   protected readonly emailTokenResendText = $localize`Resend email`;
   protected readonly emailTokenCancelText = $localize`Cancel request`;

@@ -145,7 +145,7 @@ export class ConfirmModalComponent implements OnChanges, OnDestroy {
 
   get isButtonDisabled(): boolean {
     return this.countdownDisabled
-      || (!!this.confirmationWord && this.confirmationValue !== this.confirmationWord);
+      || (!!this.confirmationWord && this.confirmationValue.trim() !== this.confirmationWord);
   }
 
   onBackdropPointerDown(event: PointerEvent) {

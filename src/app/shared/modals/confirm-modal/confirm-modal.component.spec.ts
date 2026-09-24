@@ -2,9 +2,9 @@ import {SimpleChange} from '@angular/core';
 import {ConfirmModalComponent} from './confirm-modal.component';
 
 describe('ConfirmModalComponent', () => {
-  it('requires the configured confirmation word', () => {
+  it('requires the configured confirmation word, case-sensitive but ignoring surrounding spaces', () => {
     const component = new ConfirmModalComponent();
-    component.confirmationWord = 'DELETE';
+    component.confirmationWord = 'olena_k';
 
     component.ngOnChanges({
       isVisible: new SimpleChange(false, true, false),
@@ -12,10 +12,10 @@ describe('ConfirmModalComponent', () => {
 
     expect(component.isButtonDisabled).toBeTrue();
 
-    component.confirmationValue = 'delete';
+    component.confirmationValue = 'Olena_K';
     expect(component.isButtonDisabled).toBeTrue();
 
-    component.confirmationValue = 'DELETE';
+    component.confirmationValue = ' olena_k ';
     expect(component.isButtonDisabled).toBeFalse();
   });
 
