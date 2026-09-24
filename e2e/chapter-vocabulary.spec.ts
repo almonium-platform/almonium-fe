@@ -33,6 +33,10 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
   await page.goto('/reader/original-en');
   await expect(page).toHaveURL(/\/books\/original-en\/11/);
   await expect(page).toHaveTitle('Chapter V — Book (English, B2) · Almonium');
+  // A search engine sees one page per chapter, on the production domain, whatever query the reader carries.
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/11');
+  const chapterData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() ?? '{}');
+  expect(chapterData).toMatchObject({'@type': 'Chapter', name: 'Chapter V', url: 'https://almonium.com/books/original-en/11', isPartOf: {'@type': 'Book', url: 'https://almonium.com/books/original-en'}});
   const header = page.locator('.chapter-head');
   await expect(header).toContainText('Book · Author');
   await expect(header).toContainText('Chapter 1 of 2 · Estimated B2');
@@ -68,6 +72,8 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
   await end.locator('.chapter-end__link--next').click();
   await expect(page).toHaveURL(/\/books\/original-en\/12$/);
   await expect(header.locator('h1')).toHaveText('Chapter VI');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/12');
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   await expect(page.locator('.reader-content')).toContainText('Clerval');
   await expect(end.locator('.chapter-end__link--previous')).toContainText('Chapter V');
 });
@@ -77,10 +83,14 @@ test('the book page lists the contents with levels and links each row to its cha
   await page.route('**/api/v1/**', async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books/original-en/chapters')) await route.fulfill({json: many});
+    else if (path.endsWith('/public/books/original-en/text')) await route.fulfill({contentType: 'text/html', body: many.map(chapter => `<section class="chapter"><h2 class="chapter-title" id="chapter-${chapter.sequence}">${chapter.title}</h2><p>Text.</p></section>`).join('')});
     else if (path.endsWith('/public/books/original-en')) await route.fulfill({json: book});
     else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
   });
   await page.goto('/books/original-en');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en');
+  const bookData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() ?? '{}');
+  expect(bookData).toMatchObject({'@context': 'https://schema.org', '@type': 'Book', name: 'Book', inLanguage: 'en', educationalLevel: 'B2'});
   const contents = page.getByRole('region', {name: 'Contents'});
   await expect(contents).toContainText('12 chapters · estimated B2–C1');
   await expect(contents.locator('.contents__row')).toHaveCount(8);
@@ -93,4 +103,9 @@ test('the book page lists the contents with levels and links each row to its cha
   await expect(contents.locator('.contents__row').last()).toContainText('Description on its way');
   await expect(contents.locator('.contents__row').last().locator('.contents__level')).toHaveText('–');
   await page.screenshot({path: testInfo.outputPath('book-contents.png'), fullPage: true, animations: 'disabled'});
+
+  // Opening a chapter leaves the book's tags behind: one canonical link and one JSON-LD block, the chapter's.
+  await contents.locator('.contents__row').first().click();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/1');
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
 });

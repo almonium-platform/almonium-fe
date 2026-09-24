@@ -3,7 +3,6 @@ import {getErrorMessage} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {filter, finalize, forkJoin, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
-import {Meta, Title} from '@angular/platform-browser';
 import {TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {ReadService} from "../read.service";
@@ -25,6 +24,7 @@ import {BookChapter, chapterLevelRange, displayChapterTitle} from '../book-chapt
 import {ReaderPositionStorage} from '../reader/reader-position-storage.service';
 import {editionKind, editionKindLabel} from '../edition-kind';
 import {levelRank} from '../work-tile';
+import {PageSeoService} from '../../../shared/seo/page-seo.service';
 
 /** How many contents rows the book page shows before "All N chapters". */
 const CONTENTS_PREVIEW_ROWS = 8;
@@ -78,8 +78,7 @@ export class BookComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private userInfoService = inject(UserInfoService);
-  private pageTitle = inject(Title);
-  private meta = inject(Meta);
+  private seo = inject(PageSeoService);
   private popupTemplateStateService = inject(PopupTemplateStateService);
   private supportedLanguagesService = inject(SupportedLanguagesService);
   private positionStorage = inject(ReaderPositionStorage);
@@ -142,8 +141,7 @@ export class BookComponent implements OnInit, OnDestroy {
         if (book) {
           this.book = book;
           this.bookId = book.id;
-          this.pageTitle.setTitle($localize`${book.title}:title: by ${book.author}:author: | Almonium`);
-          this.meta.updateTag({name: 'description', content: book.description || $localize`Read ${book.title}:title: by ${book.author}:author: on Almonium.`});
+          this.describePage(book);
           this.bookLanguage = this.languageNameService.getLanguageName(book.language);
           logger.debug(`Successfully loaded book: ${book.title}`);
           this.loadRequests();
@@ -154,8 +152,31 @@ export class BookComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.seo.clear();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /** Title, description, canonical URL and the schema.org Book a search result is built from (docs/SEO.md). */
+  private describePage(book: Book): void {
+    const path = `/books/${book.editionSlug}`;
+    const description = book.description || $localize`Read ${book.title}:title: by ${book.author}:author: on Almonium.`;
+    this.seo.describe({
+      title: $localize`${book.title}:title: by ${book.author}:author: | Almonium`,
+      description,
+      path,
+      image: book.coverUrl,
+      structuredData: {
+        '@type': 'Book',
+        name: book.title,
+        author: {'@type': 'Person', name: book.author},
+        description,
+        inLanguage: book.language.toLowerCase(),
+        educationalLevel: book.cefrLevel,
+        url: PageSeoService.url(path),
+        ...(book.coverUrl ? {image: book.coverUrl} : {}),
+      },
+    });
   }
 
   get actionBtnLabel() {

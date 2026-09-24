@@ -10,7 +10,6 @@ import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.modul
 import {ButtonComponent} from "../../../shared/button/button.component";
 import {TuiDataListDropdownManager} from "@taiga-ui/kit/directives";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
-import {Meta, Title} from '@angular/platform-browser';
 import {BookLanguageVariant} from "../book.model";
 import {TuiActiveZone} from "@taiga-ui/cdk/directives";
 import {ParallelFormatPipe} from "./parallel-format.pipe";
@@ -42,6 +41,7 @@ import {ChapterWord, wordExcerpt} from '../chapter-vocabulary.model';
 import {ChapterVocabularyComponent} from './chapter-vocabulary.component';
 import {CertificateMomentComponent} from '../certificate/certificate-moment.component';
 import {ChapterPage, bookPercentage, placeForPercentage, splitBookChapters} from './chapter-split';
+import {PageSeoService} from '../../../shared/seo/page-seo.service';
 
 /** Below this width the contents list is a sheet over the text rather than a rail beside it. */
 const CONTENTS_RAIL_MIN_WIDTH = 1281;
@@ -107,8 +107,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private profileSettings = inject(ProfileSettingsService);
   private languageNames = inject(LanguageNameService);
   private returnPath = inject(ReturnPathService);
-  private pageTitle = inject(Title);
-  private meta = inject(Meta);
+  private seo = inject(PageSeoService);
   private document = inject(DOCUMENT);
 
   // --- Element References ---
@@ -227,7 +226,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private bookDetailsSubscription: Subscription | null = null;
   private scrollFlagTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private companionNavigationDropdown: TuiDropdownDirective | null = null;
-  private structuredData: HTMLScriptElement | null = null;
 
   // --- Lifecycle Hooks ---
 
@@ -534,34 +532,40 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     void this.router.navigate(this.chapterLink(target.key), {queryParams: this.chapterQuery, replaceUrl: true});
   }
 
-  /** The chapter page names itself: title, description and the chapter's place in the book. */
+  /**
+   * The chapter page names itself: title, description and the chapter's place in the book. A public chapter's
+   * canonical URL drops the companion query, so every reading mode of it is one page to a search engine.
+   */
   private describePage(): void {
     const chapter = this.currentChapter;
     if (!chapter || !this.bookTitle) return;
     const language = this.targetLangCode ? this.languageNames.getLanguageName(this.targetLangCode) : '';
     const edition = [language, this.bookLevel].filter(Boolean).join(', ');
     const title = displayChapterTitle(chapter.title);
-    this.pageTitle.setTitle(edition
-      ? $localize`${title}:chapter: — ${this.bookTitle}:book: (${edition}:edition:) · Almonium`
-      : $localize`${title}:chapter: — ${this.bookTitle}:book: · Almonium`);
     const descriptions = this.currentMetadata?.descriptions ?? [];
-    this.meta.updateTag({name: 'description', content: descriptions.length
-      ? descriptions.join(' ')
-      : $localize`Read ${title}:chapter: of ${this.bookTitle}:book: on Almonium.`});
-    if (!this.bookSlug) return;
-    this.structuredData?.remove();
-    const script = this.document.createElement('script');
-    script.type = 'application/ld+json';
-    script.text = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'Chapter',
-      name: title,
-      position: this.currentIndex + 1,
-      inLanguage: this.targetLangCode?.toLowerCase(),
-      isPartOf: {'@type': 'Book', name: this.bookTitle, author: {'@type': 'Person', name: this.bookAuthor}},
+    const path = this.bookSlug ? `/books/${this.bookSlug}/${chapter.key}` : undefined;
+    this.seo.describe({
+      title: edition
+        ? $localize`${title}:chapter: — ${this.bookTitle}:book: (${edition}:edition:) · Almonium`
+        : $localize`${title}:chapter: — ${this.bookTitle}:book: · Almonium`,
+      description: descriptions.length
+        ? descriptions.join(' ')
+        : $localize`Read ${title}:chapter: of ${this.bookTitle}:book: on Almonium.`,
+      path,
+      structuredData: path && this.bookSlug ? {
+        '@type': 'Chapter',
+        name: title,
+        position: this.currentIndex + 1,
+        inLanguage: this.targetLangCode?.toLowerCase(),
+        url: PageSeoService.url(path),
+        isPartOf: {
+          '@type': 'Book',
+          name: this.bookTitle,
+          author: {'@type': 'Person', name: this.bookAuthor},
+          url: PageSeoService.url(`/books/${this.bookSlug}`),
+        },
+      } : undefined,
     });
-    this.document.head.appendChild(script);
-    this.structuredData = script;
   }
 
   // --- The rails ---
@@ -768,7 +772,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.updateScrollState();
     this.progressTracker.saveOnExit(false);
     this.learningActivity.stop();
-    this.structuredData?.remove();
+    this.seo.clear();
     this.destroy$.next();
     this.destroy$.complete();
   }

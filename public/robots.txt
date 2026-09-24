@@ -1,0 +1,26 @@
+# Production only: nginx answers staging with "Disallow: /" instead (docs/SEO.md).
+User-agent: *
+Disallow: /home
+Disallow: /onboarding
+Disallow: /review
+Disallow: /my-books
+Disallow: /reader/
+Disallow: /social
+Disallow: /membership
+Disallow: /settings
+Disallow: /ops
+Disallow: /play/
+Disallow: /auth
+Disallow: /login
+Disallow: /reset-password
+Disallow: /logout
+Disallow: /change-email
+Disallow: /verify-email
+Disallow: /payment/
+Disallow: /users/
+Disallow: /c/
+Disallow: /d/
+Disallow: /test
+Disallow: /404
+
+Sitemap: https://almonium.com/sitemap.xml
