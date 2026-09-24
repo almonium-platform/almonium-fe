@@ -2,6 +2,7 @@ import {logger} from "../../../shared/logger";
 import {inject} from '@angular/core';
 import {CanActivateFn, Router} from '@angular/router';
 import {UserInfoService} from "../../../services/user-info.service";
+import {ReturnPathService} from "../../../services/return-path.service";
 import {firstValueFrom} from "rxjs";
 import {SetupStep, UserInfo} from "../../../models/userinfo.model";
 
@@ -9,11 +10,18 @@ import {SetupStep, UserInfo} from "../../../models/userinfo.model";
 export const authGuard: CanActivateFn = async (route, state) => {
   const userService = inject(UserInfoService);
   const router = inject(Router);
+  const returnPath = inject(ReturnPathService);
+
+  // Whoever is sent to sign in was on their way somewhere: remember it, so signing in finishes the
+  // journey instead of dropping them on home. The deletion page links into settings this way, and a
+  // bookmarked page behaves the same. The newest attempt wins, and only same-origin paths are kept.
+  const rememberWhereTheyWereHeaded = () => returnPath.remember(state.url);
 
   try {
     const userInfo: UserInfo | null = await firstValueFrom(userService.loadUserInfo());
 
     if (!userInfo) {
+      rememberWhereTheyWereHeaded();
       return router.createUrlTree(['/auth']);
     }
 
@@ -24,6 +32,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
     return true;
   } catch (error) {
     logger.error('Error loading user info in authGuard:', error);
+    rememberWhereTheyWereHeaded();
     return router.createUrlTree(['/auth'])
   }
 };
