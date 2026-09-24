@@ -107,11 +107,20 @@
                (keydown.space)="onGlossSpace($event)">
           </div>
 
+          <!-- A reader note (J12): under its phrase, never over it; a short sheet on a phone (J13). -->
           @if (activeGloss; as gloss) {
-            <aside class="gloss-popover" role="note" aria-label="Contextual note" i18n-aria-label>
-              <div class="gloss-popover__top"><span i18n>Context</span><button type="button" aria-label="Close note" i18n-aria-label (click)="activeGloss = null">×</button></div>
-              <strong>{{ gloss.quote }}</strong>
-              <p>{{ gloss.body }}</p>
+            <aside #glossNote class="gloss-note" role="note" aria-label="Reader note" i18n-aria-label
+                   (touchstart)="onGlossTouchStart($event)" (touchend)="onGlossTouchEnd($event)">
+              <span class="gloss-note__handle" aria-hidden="true"></span>
+              <div class="gloss-note__top">
+                <span class="gloss-note__label" i18n>Note</span>
+                <button type="button" class="gloss-note__close" aria-label="Close note" i18n-aria-label (click)="closeGloss(true)">×</button>
+              </div>
+              <strong class="gloss-note__quote">{{ gloss.quote }}</strong>
+              <p class="gloss-note__body">{{ gloss.body }}</p>
+              @if (gloss.headword; as headword) {
+                <button type="button" class="gloss-note__look-up" (click)="lookUpGloss(gloss)" i18n>Look up “{{ headword }}”</button>
+              }
             </aside>
           }
 

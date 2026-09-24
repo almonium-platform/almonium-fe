@@ -10,7 +10,7 @@ import {DEFAULT_UI_PREFERENCES} from '../../../models/userinfo.model';
 import {CardService} from '../../../services/card.service';
 import {ParallelModeService} from '../parallel-mode.service';
 import {ReadService} from '../read.service';
-import {ReaderComponent, sentenceAround} from './reader.component';
+import {ReaderComponent, glossHeadword, sentenceAround} from './reader.component';
 import {ReaderDomService} from './reader-dom.service';
 import {ReaderProgressTracker} from './reader-progress-tracker.service';
 
@@ -81,13 +81,43 @@ describe('ReaderComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('opens a reviewed contextual gloss from the book text', () => {
+  it('opens a reader note under its phrase, marks the phrase open, and closes it on Escape', () => {
     const html = '<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2>'
-      + '<p>An <span class="almonium-gloss" role="button" tabindex="0" data-gloss-note="An eagle nest.">eyry</span> stood.</p></section>';
+      + '<p>Mr. Kirwin is <span class="almonium-gloss" role="button" tabindex="0" data-gloss-note="A local official.">a magistrate</span>; and you are.</p></section>';
     const host = loadBook(html);
+    const mark = host.querySelector<HTMLElement>('.almonium-gloss')!;
+    mark.click();
+    fixture.detectChanges();
+    const note = host.querySelector<HTMLElement>('.gloss-note')!;
+    expect(note.textContent).toContain('A local official.');
+    expect(note.querySelector('.gloss-note__look-up')?.textContent).toContain('magistrate');
+    expect(mark.classList).toContain('is-open');
+    expect(mark.getAttribute('aria-expanded')).toBe('true');
+
+    window.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'}));
+    fixture.detectChanges();
+    expect(host.querySelector('.gloss-note')).toBeNull();
+    expect(mark.classList).not.toContain('is-open');
+  });
+
+  it('closes a reader note on a click outside it, and Look up opens the word card in the rail', () => {
+    const html = '<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2>'
+      + '<p>Mr. Kirwin is <span class="almonium-gloss" role="button" tabindex="0" data-gloss-note="A local official.">a magistrate</span>; and you are.</p></section>';
+    const host = loadBook(html);
+    const component = fixture.componentInstance as unknown as {railView: string; wordCard: {entry: string} | null};
     host.querySelector<HTMLElement>('.almonium-gloss')!.click();
     fixture.detectChanges();
-    expect(host.querySelector('.gloss-popover')?.textContent).toContain('An eagle nest.');
+    document.body.click();
+    fixture.detectChanges();
+    expect(host.querySelector('.gloss-note')).toBeNull();
+
+    host.querySelector<HTMLElement>('.almonium-gloss')!.click();
+    fixture.detectChanges();
+    host.querySelector<HTMLElement>('.gloss-note__look-up')!.click();
+    fixture.detectChanges();
+    expect(host.querySelector('.gloss-note')).toBeNull();
+    expect(component.railView).toBe('card');
+    expect(component.wordCard?.entry).toBe('magistrate');
   });
 
   it('shows the chapter the route names: a four-line header, its text, and the next chapter after it', () => {
@@ -236,6 +266,18 @@ describe('ReaderComponent', () => {
     expect(component.clearSelection()).toBeTrue();
     expect(content.querySelector('.companion-block')).toBeNull();
     expect(component.clearSelection()).toBeFalse();
+  });
+});
+
+describe('glossHeadword', () => {
+  it('is the one word of the phrase, after an article', () => {
+    expect(glossHeadword('a magistrate')).toBe('magistrate');
+    expect(glossHeadword('eyry')).toBe('eyry');
+    expect(glossHeadword("the ne'er-do-well,")).toBe("ne'er-do-well");
+  });
+
+  it('is absent for a longer phrase', () => {
+    expect(glossHeadword('in some degree')).toBeNull();
   });
 });
 

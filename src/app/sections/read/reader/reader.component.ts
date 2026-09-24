@@ -51,6 +51,13 @@ const PHONE_MAX_WIDTH = 600;
 /** What the right rail shows: nothing, the chapter's words, or one word's card. */
 type RailView = 'none' | 'words' | 'card';
 
+/** An open reader note (J12): the phrase it explains, the note, and the word the phrase can be looked up as. */
+interface GlossNote {
+  quote: string;
+  body: string;
+  headword: string | null;
+}
+
 interface WordCardRequest {
   entry: string;
   context: string;
@@ -117,6 +124,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('settingsPanel', {read: ElementRef}) private settingsPanel?: ElementRef<HTMLElement>;
   @ViewChild('contentsSheet', {read: ElementRef}) private contentsSheet?: ElementRef<HTMLElement>;
   @ViewChild('contentsToggle', {read: ElementRef}) private contentsToggle?: ElementRef<HTMLElement>;
+  @ViewChild('glossNote') private glossNoteRef?: ElementRef<HTMLElement>;
 
   // --- The book and its chapters ---
   /** The base edition split into chapter pages, in reading order. */
@@ -129,7 +137,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected currentKey = 0;
   protected currentIndex = -1;
   protected bookHtmlContent = '';
-  protected activeGloss: {quote: string; body: string} | null = null;
+  protected activeGloss: GlossNote | null = null;
+  /** The marked phrase whose note is open; the note is placed against it. */
+  private glossMark: HTMLElement | null = null;
   private baseBookHtmlContent = '';
 
   protected isLoading = true;
@@ -495,7 +505,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.errorMessage = null;
     const page = this.isParallelViewActive ? this.companionChapters.get(this.currentKey) : null;
     this.bookHtmlContent = page?.html ?? this.chapters[this.currentIndex].html;
-    this.activeGloss = null;
+    this.closeGloss(false);
     this.initialScrollApplied = false;
     this.watchVocabularyStatus();
     this.describePage();
@@ -649,15 +659,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
    */
   protected onContentClick(event: Event): void {
     const gloss = event.target instanceof Element ? event.target.closest<HTMLElement>('.almonium-gloss') : null;
-    if (gloss) {
-      const body = gloss.getAttribute('data-gloss-note');
-      if (body) {
-        if (event instanceof KeyboardEvent) event.preventDefault();
-        this.activeGloss = {quote: gloss.textContent?.trim() ?? '', body};
-        event.stopPropagation();
-        this.cdRef.markForCheck();
-        return;
-      }
+    const body = gloss?.getAttribute('data-gloss-note');
+    if (gloss && body) {
+      if (event instanceof KeyboardEvent) event.preventDefault();
+      event.stopPropagation();
+      if (gloss === this.glossMark) this.closeGloss(false);
+      else this.openGloss(gloss, body);
+      return;
     }
     const content = this.readerContentRef?.nativeElement;
     if (!this.isParallelViewActive || !content || window.getSelection()?.toString().trim()) return;
@@ -677,6 +685,89 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     if (event.target instanceof Element && event.target.closest('.almonium-gloss')) {
       this.onContentClick(event);
     }
+  }
+
+  /**
+   * A reader note (J12) opens against its phrase and never covers it: below the phrase from its
+   * left edge, or above it when the note would pass the bottom of the view. On a phone it is a
+   * short sheet (J13), and the text scrolls if the sheet would cover the phrase.
+   */
+  private openGloss(mark: HTMLElement, body: string): void {
+    this.closeGloss(false);
+    const quote = mark.textContent?.trim().replace(/\s+/g, ' ') ?? '';
+    this.glossMark = mark;
+    mark.classList.add('is-open');
+    mark.setAttribute('aria-expanded', 'true');
+    this.activeGloss = {quote, body, headword: glossHeadword(quote)};
+    this.cdRef.detectChanges();
+    this.placeGloss();
+  }
+
+  private placeGloss(): void {
+    const note = this.glossNoteRef?.nativeElement;
+    const mark = this.glossMark;
+    const wrapper = this.readerContentWrapperRef?.nativeElement;
+    if (!note || !mark || !wrapper) return;
+    if (!mark.isConnected) {
+      this.closeGloss(false);
+      return;
+    }
+    note.style.top = '';
+    note.style.left = '';
+    if (this.isPhone) {
+      const hidden = mark.getBoundingClientRect().bottom - (window.innerHeight - note.offsetHeight - 16);
+      if (hidden > 0) wrapper.scrollTop += hidden;
+      return;
+    }
+    // A phrase that wraps is several boxes: the note goes under the last one, or over the first,
+    // and starts where the last one starts, which keeps it over the column either way.
+    const lines = mark.getClientRects();
+    const first = lines[0] ?? mark.getBoundingClientRect();
+    const last = lines[lines.length - 1] ?? first;
+    const parent = note.offsetParent ?? wrapper;
+    const origin = parent.getBoundingClientRect();
+    const view = wrapper.getBoundingClientRect();
+    const bar = this.paginationControlsRef?.nativeElement.getBoundingClientRect();
+    const viewBottom = Math.min(view.bottom, bar && bar.height > 0 ? bar.top : view.bottom);
+    const gap = 10;
+    const below = last.bottom + gap + note.offsetHeight <= viewBottom;
+    const top = below ? last.bottom + gap : first.top - gap - note.offsetHeight;
+    const left = Math.max(view.left + 16, Math.min(last.left, view.right - 16 - note.offsetWidth));
+    note.style.top = `${top - origin.top}px`;
+    note.style.left = `${left - origin.left}px`;
+  }
+
+  protected closeGloss(returnFocus: boolean): void {
+    const mark = this.glossMark;
+    this.glossMark = null;
+    mark?.classList.remove('is-open');
+    mark?.setAttribute('aria-expanded', 'false');
+    if (!this.activeGloss) return;
+    this.activeGloss = null;
+    if (returnFocus && mark?.isConnected) mark.focus();
+    this.cdRef.markForCheck();
+  }
+
+  /** Look up swaps the note for the word card in the rail (G1), with the phrase's sentence as context. */
+  protected lookUpGloss(gloss: GlossNote): void {
+    if (!gloss.headword) return;
+    const paragraph = this.glossMark?.closest('p, li, blockquote, div')?.textContent?.trim().replace(/\s+/g, ' ') ?? gloss.quote;
+    const context = sentenceAround(paragraph, gloss.quote).slice(0, 500);
+    this.closeGloss(false);
+    this.showWordCard({entry: gloss.headword, context, highlight: gloss.headword, autoSave: false}, false);
+  }
+
+  /** On the phone sheet a swipe down closes the note (J13). */
+  private glossSwipeStart: number | null = null;
+
+  protected onGlossTouchStart(event: TouchEvent): void {
+    this.glossSwipeStart = event.touches[0]?.clientY ?? null;
+  }
+
+  protected onGlossTouchEnd(event: TouchEvent): void {
+    const end = event.changedTouches[0]?.clientY;
+    if (this.glossSwipeStart !== null && end !== undefined && end - this.glossSwipeStart > 48) this.closeGloss(false);
+    this.glossSwipeStart = null;
   }
 
   /** Clears the selected unit and closes the companion block it opened. */
@@ -909,6 +1000,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   @HostListener('window:resize')
   protected onWindowResize(): void {
+    if (this.activeGloss) this.placeGloss();
     this.resizeSubject.next();
   }
 
@@ -1120,7 +1212,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         handled = true;
         break;
       case 'Escape':
-        if (this.parallelSettingsOpen) {
+        if (this.activeGloss) {
+          this.closeGloss(true);
+          handled = true;
+        } else if (this.parallelSettingsOpen) {
           this.closeParallelSettings();
           handled = true;
         } else if (this.clearSelection()) {
@@ -1167,6 +1262,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected closeOverlays(event: MouseEvent): void {
     const target = event.target;
     if (!(target instanceof Node)) return;
+    // A reader note closes on any click outside it; a click on another mark opens that one instead.
+    if (this.activeGloss && !this.glossNoteRef?.nativeElement.contains(target)) {
+      this.closeGloss(false);
+    }
     // The picker closes on any click outside it and outside what opens it.
     if (this.parallelSettingsOpen
       && !this.settingsPanel?.nativeElement.contains(target)
@@ -1408,6 +1507,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 }
 
 /** The sentence a word was met in: the paragraph cut at the sentence ends on either side of the hit. */
+/**
+ * The word a reader note's phrase can be looked up as: the phrase itself when it is one word, or
+ * one word after an English article ("a magistrate" → "magistrate"). Longer phrases have none.
+ */
+export function glossHeadword(quote: string): string | null {
+  const word = quote.trim().replace(/^(?:a|an|the)\s+/i, '').replace(/^[\p{P}\s]+|[\p{P}\s]+$/gu, '');
+  return /^\p{L}+(?:['’-]\p{L}+)*$/u.test(word) ? word : null;
+}
+
 export function sentenceAround(paragraph: string, hit: string): string {
   const index = paragraph.toLowerCase().indexOf(hit.toLowerCase());
   if (index < 0) return paragraph;
