@@ -7,6 +7,8 @@ const chapters = [
   {id, sequence: 11, title: 'CHAPTER V.', analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A long labour ends on a stormy night.']},
   {id: '01989f47-4c2a-7a10-9e5b-751983624a26', sequence: 12, title: 'CHAPTER VI.', analysisStatus: 'complete', cefrEstimate: 'C1', descriptions: ['A letter from Geneva brings news of home.']},
 ];
+// Canonical URLs sit on the domain of the environment the bundle was built for: staging in CI, production locally.
+const canonical = (path: string) => new RegExp(`^https://(staging\\.)?almonium\\.com${path}$`);
 const text = `<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2><p>${context}</p></section>`
   + '<section class="chapter"><h2 class="chapter-title" id="chapter-12">CHAPTER VI.</h2><p>Clerval placed the letter in my hands.</p></section>';
 
@@ -33,10 +35,10 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
   await page.goto('/reader/original-en');
   await expect(page).toHaveURL(/\/books\/original-en\/11/);
   await expect(page).toHaveTitle('Chapter V — Book (English, B2) · Almonium');
-  // A search engine sees one page per chapter, on the production domain, whatever query the reader carries.
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/11');
+  // A search engine sees one page per chapter, whatever query the reader carries.
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical('/books/original-en/11'));
   const chapterData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() ?? '{}');
-  expect(chapterData).toMatchObject({'@type': 'Chapter', name: 'Chapter V', url: 'https://almonium.com/books/original-en/11', isPartOf: {'@type': 'Book', url: 'https://almonium.com/books/original-en'}});
+  expect(chapterData).toMatchObject({'@type': 'Chapter', name: 'Chapter V', url: expect.stringMatching(canonical('/books/original-en/11')), isPartOf: {'@type': 'Book', url: expect.stringMatching(canonical('/books/original-en'))}});
   const header = page.locator('.chapter-head');
   await expect(header).toContainText('Book · Author');
   await expect(header).toContainText('Chapter 1 of 2 · Estimated B2');
@@ -72,7 +74,7 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
   await end.locator('.chapter-end__link--next').click();
   await expect(page).toHaveURL(/\/books\/original-en\/12$/);
   await expect(header.locator('h1')).toHaveText('Chapter VI');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/12');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical('/books/original-en/12'));
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
   await expect(page.locator('.reader-content')).toContainText('Clerval');
   await expect(end.locator('.chapter-end__link--previous')).toContainText('Chapter V');
@@ -88,7 +90,7 @@ test('the book page lists the contents with levels and links each row to its cha
     else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
   });
   await page.goto('/books/original-en');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical('/books/original-en'));
   const bookData = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent() ?? '{}');
   expect(bookData).toMatchObject({'@context': 'https://schema.org', '@type': 'Book', name: 'Book', inLanguage: 'en', educationalLevel: 'B2'});
   const contents = page.getByRole('region', {name: 'Contents'});
@@ -106,6 +108,6 @@ test('the book page lists the contents with levels and links each row to its cha
 
   // Opening a chapter leaves the book's tags behind: one canonical link and one JSON-LD block, the chapter's.
   await contents.locator('.contents__row').first().click();
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://almonium.com/books/original-en/1');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical('/books/original-en/1'));
   await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
 });
