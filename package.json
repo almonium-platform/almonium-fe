@@ -35,7 +35,7 @@
     "@fontsource/literata": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@ngx-translate/core": "^17.0.0",
-    "@paddle/paddle-js": "^1.6.4",
+    "@paddle/paddle-js": "^1.6.5",
     "@taiga-ui/cdk": "^5.26.0",
     "@taiga-ui/core": "^5.26.0",
     "@taiga-ui/dompurify": "^5.0.1",
