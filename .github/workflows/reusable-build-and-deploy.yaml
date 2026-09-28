@@ -86,7 +86,7 @@ jobs:
         run: npm run build -- --configuration "$BUILD_CONFIGURATION"
 
       - name: Upload built bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bundle-${{ needs.setup.outputs.image_tag }}
           path: ${{ env.DIST_DIR }}
@@ -142,7 +142,7 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ inputs.environment }}
           path: playwright-report/
