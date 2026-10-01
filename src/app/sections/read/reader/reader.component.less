@@ -200,6 +200,8 @@
   &:hover { color: var(--brand-margin); text-decoration: underline; }
 }
 
+// 400x31 is 0.77 of the 520x40 drawing, which keeps its strokes about 1px; it shrinks with a narrow column.
+.chapter-head__ornament { display: block; width: min(400px, 100%); height: auto; aspect-ratio: 520 / 40; margin: .55rem 0 calc(.875rem - .3rem); color: var(--brand-raspberry); }
 .chapter-head__place { color: var(--metadata-color); font-family: var(--font-family-mono); font-size: .72rem; letter-spacing: .02em; }
 .chapter-head__title { margin: .3rem 0 0; font-family: var(--font-family-reading); font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 600; line-height: 1.15; }
 .chapter-head__description { margin: .4rem 0 0; color: var(--subhead-color); font-size: .92rem; line-height: 1.6; }

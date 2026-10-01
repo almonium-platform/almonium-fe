@@ -43,6 +43,8 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
   await expect(header).toContainText('Book · Author');
   await expect(header).toContainText('Chapter 1 of 2 · Estimated B2');
   await expect(header.locator('h1')).toHaveText('Chapter V');
+  await expect(header.locator('.chapter-head__ornament')).toBeVisible();
+  await header.screenshot({path: testInfo.outputPath('chapter-head.png'), animations: 'disabled'});
   await expect(page.locator('.reader-content')).toContainText(context);
 
   // The chapter end carries the words, the next chapter and the one ask.
