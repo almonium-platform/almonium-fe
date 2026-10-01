@@ -549,10 +549,11 @@ tui-data-list button[tuiOption].context-button.negative {
   box-shadow: inset 0 0 0 1px var(--avatar-hue-4-edge);
 }
 /*
- * The eyebrow: the small uppercase label that sits over a section heading, on every surface.
- * 11px, 550, 1.5px of tracking, raspberry, and 8px of air before whatever it introduces. It is
- * a block so the gap holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground
- * may recolour it, and nothing else about it is the surface's to decide.
+ * The eyebrow: a kicker only, a short uppercase label carrying different information from the
+ * heading under it (German · B2 over the headword, Checkout over the plan name). At most three
+ * words or one X · Y pair, at most one per card; see Constitution v3.4. 11px, 550, 1.5px of
+ * tracking, raspberry, and 8px of air before whatever it introduces. It is a block so the gap
+ * holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground may recolour it.
  */
 .eyebrow {
   display: block;
@@ -561,6 +562,20 @@ tui-data-list button[tuiOption].context-button.negative {
   font: 550 0.6875rem/1.2 var(--font-family-ui);
   letter-spacing: 0.09375rem;
   text-transform: uppercase;
+}
+/* Section label: sentence case, above a Literata heading or a block. Replaces .eyebrow as a section header. */
+.section-label {
+  display: block;
+  margin: 0 0 0.5rem;
+  color: var(--subhead-color);
+  font: 500 0.8125rem/1.3 var(--font-family-ui);
+}
+/* Card title: the heading of a settings or profile card, and the strongest text in it. */
+.card-title {
+  display: block;
+  margin: 0 0 0.5rem;
+  color: var(--brand-ink);
+  font: 600 1.0625rem/1.3 var(--font-family-reading);
 }
 .scope-language-setup {
   /* The settings sheet: `.card.step` centres and caps its children at 30rem, so the sheet restates the
@@ -1267,7 +1282,7 @@ tui-data-list button[tuiOption].context-button.negative {
   flex-direction: column;
   gap: 0.6rem;
 }
-.scope-book-import .parallel .eyebrow {
+.scope-book-import .parallel .section-label {
   margin: 0;
 }
 .scope-book-import .parallel__copy {
@@ -1659,9 +1674,6 @@ tui-data-list button[tuiOption].context-button.negative {
   flex-direction: column;
   gap: 0.15rem;
 }
-.scope-read .read-header__title .eyebrow {
-  margin: 0;
-}
 .scope-read .read-header h1 {
   margin: 0;
   font-size: 1.65rem;
@@ -1765,10 +1777,8 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-read .kicker {
   margin: 0;
-  color: var(--dark-raspberry);
-  font: 600 0.66rem/1.2 var(--font-family-ui);
-  letter-spacing: 0.085rem;
-  text-transform: uppercase;
+  color: var(--subhead-color);
+  font: 500 0.8125rem/1.3 var(--font-family-ui);
 }
 .scope-read .kicker__count {
   color: var(--metadata-color);
@@ -2323,7 +2333,7 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--metadata-color);
   font-size: 0.78rem;
 }
-.scope-read .requests-card .eyebrow {
+.scope-read .requests-card .section-label {
   margin-bottom: 0.35rem;
 }
 .scope-read .requests-list {
@@ -2826,7 +2836,7 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .known-card.editing .known-copy {
   display: contents;
 }
-.scope-lang-settings .known-card.editing .eyebrow {
+.scope-lang-settings .known-card.editing .card-title {
   grid-row: 1;
   grid-column: 1;
   margin-bottom: 0;
@@ -2919,8 +2929,6 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--metadata-color);
   font-family: var(--font-family-mono);
   font-size: 0.625rem;
-  letter-spacing: 0.0375rem;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 .scope-lang-settings .learner-controls {
@@ -3124,10 +3132,8 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-lang-settings .colour-title {
   margin-bottom: 0.75rem;
-  font-family: var(--font-family-ui);
-  font-weight: 600;
-  letter-spacing: 0.075rem;
-  text-transform: uppercase;
+  color: var(--subhead-color);
+  font: 500 0.8125rem/1.3 var(--font-family-ui);
 }
 .scope-lang-settings .colour-grid {
   display: grid;
@@ -3544,7 +3550,7 @@ tui-data-list button[tuiOption].context-button.negative {
   background: var(--brand-ink);
   color: var(--page-ground);
 }
-.scope-discover .keep-panel .eyebrow {
+.scope-discover .keep-panel .section-label {
   color: #c9a8c4;
 }
 .scope-discover .keep-panel h3 {

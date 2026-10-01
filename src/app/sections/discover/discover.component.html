@@ -30,7 +30,7 @@
 
   @if (sentenceTokens.length > 1) {
     <section class="sentence-card" aria-labelledby="sentence-title">
-      <p i18n class="eyebrow" id="sentence-title">Your sentence</p>
+      <p i18n class="section-label" id="sentence-title">Your sentence</p>
       <p class="sentence-copy">
         @for (token of sentenceTokens; track $index) {
           <button type="button" [class.active]="lookup?.entry?.toLocaleLowerCase() === token.toLocaleLowerCase()"
@@ -68,7 +68,7 @@
       </header>
 
       <section class="senses" aria-labelledby="senses-title">
-        <p i18n class="eyebrow" id="senses-title">Senses</p>
+        <p i18n class="section-label" id="senses-title">Senses</p>
         @if (lookup.senses.length) {
           @for (sense of lookup.senses; track sense.index; let i = $index) {
             <button type="button" class="sense-card" [class.selected]="selectedSenseIndex === i" (click)="selectSense(i)">
@@ -89,12 +89,12 @@
       </section>
 
       @if (lookup.sourceContext) {
-        <blockquote><span i18n class="eyebrow">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
+        <blockquote><span i18n class="section-label">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
       }
 
       <section class="keep-panel" aria-labelledby="keep-title">
         <div>
-          <p i18n class="eyebrow" id="keep-title">Keep it</p>
+          <p i18n class="section-label" id="keep-title">Keep it</p>
           <h3 i18n>What do you want from this word?</h3>
         </div>
         <div class="intent-grid">

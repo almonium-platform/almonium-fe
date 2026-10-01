@@ -453,10 +453,11 @@ tui-data-list button[tuiOption].context-button {
 .avatar-hue-4 { background: var(--avatar-hue-4); box-shadow: inset 0 0 0 1px var(--avatar-hue-4-edge); }
 
 /*
- * The eyebrow: the small uppercase label that sits over a section heading, on every surface.
- * 11px, 550, 1.5px of tracking, raspberry, and 8px of air before whatever it introduces. It is
- * a block so the gap holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground
- * may recolour it, and nothing else about it is the surface's to decide.
+ * The eyebrow: a kicker only, a short uppercase label carrying different information from the
+ * heading under it (German · B2 over the headword, Checkout over the plan name). At most three
+ * words or one X · Y pair, at most one per card; see Constitution v3.4. 11px, 550, 1.5px of
+ * tracking, raspberry, and 8px of air before whatever it introduces. It is a block so the gap
+ * holds whether it is a <p>, a <div> or a <span>; a surface on a dark ground may recolour it.
  */
 .eyebrow {
   display: block;
@@ -465,4 +466,20 @@ tui-data-list button[tuiOption].context-button {
   font: 550 .6875rem/1.2 var(--font-family-ui);
   letter-spacing: .09375rem;
   text-transform: uppercase;
+}
+
+/* Section label: sentence case, above a Literata heading or a block. Replaces .eyebrow as a section header. */
+.section-label {
+  display: block;
+  margin: 0 0 .5rem;
+  color: var(--subhead-color);
+  font: 500 .8125rem/1.3 var(--font-family-ui);
+}
+
+/* Card title: the heading of a settings or profile card, and the strongest text in it. */
+.card-title {
+  display: block;
+  margin: 0 0 .5rem;
+  color: var(--brand-ink);
+  font: 600 1.0625rem/1.3 var(--font-family-reading);
 }

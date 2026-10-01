@@ -33,7 +33,7 @@
 
   <main class="account-layout">
     <section class="account-card card">
-      <div i18n class="eyebrow">Email</div>
+      <div i18n class="card-title">Email</div>
       <div class="email-row">
         <div class="email-content">
           @if (emailEditable) {
@@ -74,7 +74,7 @@
     </section>
 
     <section class="account-card card">
-      <div i18n class="eyebrow">How you sign in</div>
+      <div i18n class="card-title">How you sign in</div>
       <div class="method-list">
         @for (provider of ['google', 'apple']; track provider) {
           <div class="method-row">

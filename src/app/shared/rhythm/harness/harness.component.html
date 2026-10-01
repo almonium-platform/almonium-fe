@@ -2,7 +2,7 @@
   @if (view.rhythm; as rhythm) {
     <section class="record" [style.--crest-color]="view.crest" aria-labelledby="record-title">
       <div class="record-head">
-        <span i18n class="eyebrow" id="record-title">The record</span>
+        <span i18n class="section-label" id="record-title">The record</span>
         <span i18n class="record-language">
           {{ view.languageName }}@if (!rhythm.editable) { · set aside }
         </span>
@@ -63,7 +63,7 @@
     </section>
   } @else if (!view.loaded) {
     <section class="record" aria-busy="true">
-      <div class="record-head"><span i18n class="eyebrow">The record</span></div>
+      <div class="record-head"><span i18n class="section-label">The record</span></div>
       <div class="weeks" aria-hidden="true">
         @for (slot of [1,2,3,4,5,6,7,8,9,10,11,12]; track slot) { <i class="week level-0"></i> }
       </div>

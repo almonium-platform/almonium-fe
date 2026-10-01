@@ -21,7 +21,7 @@
         <section class="home-card suggestions" aria-labelledby="suggestions-title">
           <header class="card-heading">
             <div>
-              <p i18n class="eyebrow">Where most people start</p>
+              <p i18n class="section-label">Where most people start</p>
               @if (learnerLevel) {
                 <h2 i18n id="suggestions-title">Short {{ languageName }}, {{ learnerLevel }} and up</h2>
               } @else {
@@ -45,7 +45,7 @@
 
       <aside class="side-column" aria-label="Learning overview" i18n-aria-label>
         <section class="home-card review-card empty-due">
-          <p i18n class="eyebrow">Due today</p>
+          <p i18n class="section-label">Due today</p>
           <div class="review-count"><strong>0</strong><span i18n>nothing scheduled</span></div>
           <p i18n>Reviews appear a day after you keep your first word.</p>
         </section>
@@ -57,12 +57,12 @@
       @if (continueBook; as book) {
         <div class="hero-cover"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover></div>
         <div class="continue-copy">
-          <p i18n class="eyebrow">Continue reading</p><h1 id="continue-title">{{ book.title }}</h1><p>{{ book.author }} · {{ book.cefrLevel }} {{ languageName }}</p>
+          <p i18n class="section-label">Continue reading</p><h1 id="continue-title">{{ book.title }}</h1><p>{{ book.author }} · {{ book.cefrLevel }} {{ languageName }}</p>
           <div class="progress-row"><span class="progress-track" role="progressbar" [attr.aria-label]="progressAriaLabel(book)" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="book.progressPercentage ?? 0"><i [style.width.%]="book.progressPercentage ?? 0"></i></span><small>{{ book.progressPercentage ?? 0 }}% · {{ progressLabel(book) }}</small></div>
         </div>
         <div class="continue-actions"><a i18n class="primary-action" [routerLink]="['/reader', book.editionSlug]">Continue</a><a i18n class="text-action" routerLink="/read">Start something else</a></div>
       } @else {
-        <div class="continue-copy choose-copy"><p i18n class="eyebrow">Continue reading</p><h1 i18n id="continue-title">Choose your next page</h1><p i18n>Your saved words are waiting. A book will give them somewhere to return.</p></div>
+        <div class="continue-copy choose-copy"><p i18n class="section-label">Continue reading</p><h1 i18n id="continue-title">Choose your next page</h1><p i18n>Your saved words are waiting. A book will give them somewhere to return.</p></div>
         <a i18n class="primary-action" routerLink="/read">Open the library</a>
       }
     </section>
@@ -70,7 +70,7 @@
     <div class="dashboard-grid">
       <div class="main-column">
         <section class="home-card kept-card" aria-labelledby="kept-title">
-          <header class="card-heading"><div><p i18n class="eyebrow">Kept while reading</p><h2 i18n id="kept-title">{cards.length, plural, =1 {1 saved word} other {{{cards.length}} saved words}}</h2></div><a i18n routerLink="/review">All saved words</a></header>
+          <header class="card-heading"><div><p i18n class="section-label">Kept while reading</p><h2 i18n id="kept-title">{cards.length, plural, =1 {1 saved word} other {{{cards.length}} saved words}}</h2></div><a i18n routerLink="/review">All saved words</a></header>
           @if (recentCards.length > 0) {
             <div class="word-list">
               @for (card of recentCards; track card.id ?? card.entry) {
@@ -85,7 +85,7 @@
         </section>
 
         <section class="home-card shelf-card" aria-labelledby="shelf-title">
-          <header class="card-heading"><div><p i18n class="eyebrow">Your shelf</p><h2 i18n id="shelf-title">{shelfBooks.length, plural, =1 {1 book open} other {{{shelfBooks.length}} books open}}</h2></div><a i18n routerLink="/read">Browse the library</a></header>
+          <header class="card-heading"><div><p i18n class="section-label">Your shelf</p><h2 i18n id="shelf-title">{shelfBooks.length, plural, =1 {1 book open} other {{{shelfBooks.length}} books open}}</h2></div><a i18n routerLink="/read">Browse the library</a></header>
           @if (shelfBooks.length > 0) {
             <div class="book-row">
               @for (book of shelfBooks; track book.id; let index = $index) { <a class="book-spine spine-{{ index + 1 }}" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span>{{ book.title }}</span></a> }
@@ -96,9 +96,9 @@
       </div>
 
       <aside class="side-column" aria-label="Learning overview" i18n-aria-label>
-        <section class="home-card review-card"><p i18n class="eyebrow">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ languageName }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
+        <section class="home-card review-card"><p i18n class="section-label">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ languageName }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
         <app-harness></app-harness>
-        <section class="home-card plan-card"><p i18n class="eyebrow">Your plan</p><p i18n>{cards.length, plural, =1 {You’re on {{planName}} with 1 saved word in {{languageName}}.} other {You’re on {{planName}} with {{cards.length}} saved words in {{languageName}}.}}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
+        <section class="home-card plan-card"><p i18n class="section-label">Your plan</p><p i18n>{cards.length, plural, =1 {You’re on {{planName}} with 1 saved word in {{languageName}}.} other {You’re on {{planName}} with {{cards.length}} saved words in {{languageName}}.}}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
       </aside>
     </div>
   }

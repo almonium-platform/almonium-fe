@@ -69,7 +69,7 @@
       @if (editionChips.length > 0) {
         <!-- The Edition row (G15): kind · level, this one solid, a started one carrying its own hairline. -->
         <section class="parallel" aria-labelledby="edition-heading">
-          <h2 i18n id="edition-heading" class="eyebrow">Edition</h2>
+          <h2 i18n id="edition-heading" class="section-label">Edition</h2>
           <div class="chip-row">
             @for (chip of editionChips; track chip.editionSlug) {
               @if (chip.selected) {
@@ -84,7 +84,7 @@
       }
 
       <section class="parallel" aria-labelledby="parallel-heading">
-        <h2 i18n id="parallel-heading" class="eyebrow">Parallel text</h2>
+        <h2 i18n id="parallel-heading" class="section-label">Parallel text</h2>
         <div class="chip-row">
           @for (chip of languageChips; track chip.editionSlug ?? chip.code ?? 'other') {
             @switch (chip.state) {
@@ -114,7 +114,7 @@
       @if (chapters.length > 0) {
         <section class="contents" aria-labelledby="contents-heading">
           <div class="contents__head">
-            <h2 i18n id="contents-heading" class="eyebrow">Contents</h2>
+            <h2 i18n id="contents-heading" class="section-label">Contents</h2>
             <span class="contents__range"><ng-container i18n>{chapters.length, plural, =1 {1 chapter} other {{{chapters.length}} chapters}}</ng-container>@if (levelRange; as range) { · <ng-container i18n>estimated {{ range }}</ng-container> }</span>
           </div>
           <ol class="contents__list">

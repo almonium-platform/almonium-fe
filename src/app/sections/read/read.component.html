@@ -64,7 +64,7 @@
 
   <header class="read-header">
     <div class="read-header__row">
-      <div class="read-header__title"><p i18n class="eyebrow">Read</p><h1 i18n>Your books</h1></div>
+      <div class="read-header__title"><h1 i18n>Your books</h1></div>
       <button type="button" class="import-book-action" [class.premium-gate]="isAuthenticated && !isPremium" (click)="startImport()">
         <lucide-icon [name]="isAuthenticated && !isPremium ? 'lock' : 'plus'" size="16"></lucide-icon>
         {{ importActionLabel() }}
@@ -190,7 +190,7 @@
 
   @if (isAuthenticated && openOrders.length > 0) {
     <section class="requests-card" aria-labelledby="requests-heading">
-      <h2 i18n id="requests-heading" class="eyebrow">Your requests</h2>
+      <h2 i18n id="requests-heading" class="section-label">Your requests</h2>
       <ul class="requests-list">
         @for (order of openOrders; track order.id) {
           <li>

@@ -8,7 +8,7 @@
 
   <main class="profile-layout">
     <section class="profile-card card">
-      <div i18n class="eyebrow">Profile</div>
+      <div i18n class="card-title">Profile</div>
 
       @if (userInfo) {
         <div class="identity-row">
@@ -47,11 +47,11 @@
         @if (profileEdit) {
           <div class="profile-editor">
             <div class="editor-field">
-              <div i18n class="eyebrow">How you appear</div>
+              <div i18n class="card-title">How you appear</div>
               <app-avatar-picker [userInfo]="userInfo" />
             </div>
             <div class="editor-field">
-              <div i18n class="eyebrow">Username</div>
+              <div i18n class="card-title">Username</div>
               <app-username />
               <p i18n class="field-note">Only used if you share a word pack.</p>
             </div>
@@ -61,7 +61,7 @@
         <section class="record-strip" aria-labelledby="record-strip-title">
           <!-- The header always names its language, so the numbers are never anonymous. -->
           <div class="record-head">
-            <span i18n id="record-strip-title" class="eyebrow">Your record</span>
+            <span i18n id="record-strip-title" class="card-title">Your record</span>
             @if (activeLanguage) {
               <span class="record-language">
                 <span class="record-crest" [style.background]="crestColour(activeLanguage)" aria-hidden="true"></span>
@@ -106,7 +106,7 @@
         </section>
 
         <div class="interests-section">
-          <div i18n class="eyebrow">Interests</div>
+          <div i18n class="card-title">Interests</div>
           @if (!interestsEdit) {
             <div class="chips-box">
               @for (interest of interests; track interest.id) {
@@ -164,7 +164,7 @@
          sidebar object; rendered at body width under the main card it reads as a stray section. -->
     <aside class="sidebar">
     <section class="plan-card card">
-      <div i18n class="eyebrow">Plan</div>
+      <div i18n class="card-title">Plan</div>
       <div class="plan-name">
         <strong i18n>{premium, select, true {Premium} other {Free}}</strong>
         @if (premium) {
@@ -184,7 +184,7 @@
          says so in its title, and the weeks fraction goes: 0/0 is not a number. -->
     @if (otherLanguages.length) {
       <section class="also-card card">
-        <div i18n class="eyebrow">{allOthersSetAside, select, true {Set aside} other {Also learning}}</div>
+        <div i18n class="card-title">{allOthersSetAside, select, true {Set aside} other {Also learning}}</div>
         @for (other of otherLanguages; track other.language) {
           <a
             class="also-row"

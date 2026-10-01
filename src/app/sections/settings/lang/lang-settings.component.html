@@ -22,7 +22,7 @@
   <main class="learning-layout">
     <section class="known-card card" [class.editing]="fluentEditable">
       <div class="known-copy">
-        <div i18n class="eyebrow">I Know</div>
+        <div i18n class="card-title">I know</div>
 
         @if (fluentEditable) {
           <app-fluent-language-selector
@@ -55,7 +55,7 @@
 
     <section class="learning-card card">
       <div class="learning-head">
-        <div i18n class="eyebrow">I'm Learning</div>
+        <div i18n class="card-title">I'm learning</div>
         @if (allowance !== null) {
           <span i18n class="allowance-count">{{ getActiveLearnersCount() }} of {{ allowance }} active</span>
         }

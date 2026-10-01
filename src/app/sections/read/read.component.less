@@ -7,7 +7,6 @@
 .read-header { display: flex; flex-direction: column; gap: 1.1rem; padding: 1.35rem 1.5rem 1.15rem; border-radius: 1.25rem; background: var(--nested-color); }
 .read-header__row { display: flex; align-items: flex-end; gap: 1rem; }
 .read-header__title { display: flex; flex-direction: column; gap: .15rem; }
-.read-header__title .eyebrow { margin: 0; }
 .read-header h1 { margin: 0; font-size: 1.65rem; font-weight: 600; line-height: 1.15; }
 .read-header__row .import-book-action { margin-left: auto; }
 .import-book-action, .solid-pill { display: inline-flex; align-items: center; gap: .45rem; min-height: 2.5rem; padding: .55rem 1rem; border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; white-space: nowrap; }
@@ -24,10 +23,10 @@
 .filter-chip { min-height: 2.1rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: 999px; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .8rem; white-space: nowrap; }
 .filter-chip.active { border-color: color-mix(in srgb, var(--brand-margin) 45%, var(--card-color)); background: var(--state-selected); color: var(--brand-margin); }
 
-// Kicker rows: a small plum label, a rule, and whatever control the row owns. Section headers
+// Kicker rows: a sentence-case section label, a rule, and whatever control the row owns. Section headers
 // with their own kickers were more structure than a page with three books deserves.
 .kicker-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
-.kicker { margin: 0; color: var(--dark-raspberry); font: 600 .66rem/1.2 var(--font-family-ui); letter-spacing: .085rem; text-transform: uppercase; }
+.kicker { margin: 0; color: var(--subhead-color); font: 500 .8125rem/1.3 var(--font-family-ui); }
 .kicker__count { color: var(--metadata-color); font-weight: 500; letter-spacing: 0; }
 .rule { flex: 1; height: 1px; background: var(--hairline-color); }
 .view-toggle { display: flex; gap: .15rem; padding: .15rem; border-radius: 999px; background: var(--card-color); box-shadow: inset 0 0 0 1px var(--hairline-color); }
@@ -126,7 +125,7 @@
 .fulfilled__copy { max-width: 60ch; margin: 0; color: var(--subhead-color); font-size: .86rem; line-height: 1.65; }
 .fulfilled__actions { display: flex; align-items: center; gap: .9rem; margin-top: .9rem; }
 .fulfilled__left { color: var(--metadata-color); font-size: .78rem; }
-.requests-card .eyebrow { margin-bottom: .35rem; }
+.requests-card .section-label { margin-bottom: .35rem; }
 .requests-list { margin: 0; padding: 0; list-style: none; }
 .requests-list li { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem 0; border-bottom: 1px solid var(--hairline-color); font-size: .86rem; }
 .requests-list li:last-child { border-bottom: 0; }
