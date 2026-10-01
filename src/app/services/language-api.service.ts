@@ -6,12 +6,18 @@ import {LanguageCode} from "../models/language.enum";
 import {TargetLanguageWithProficiency} from "../onboarding/language-setup/language-setup.model";
 import {CEFRLevel, Learner} from "../models/userinfo.model";
 import {ActiveLanguagePolicy, parseActiveLanguagePolicy} from "../models/active-language-policy.model";
+import {VoiceAvailability} from '../models/voice-availability.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LanguageApiService {
   private http = inject(HttpClient);
+
+  getVoices(language?: LanguageCode): Observable<VoiceAvailability[]> {
+    const suffix = language ? `/${language}` : '';
+    return this.http.get<VoiceAvailability[]>(`${AppConstants.API_URL}/lang/voices${suffix}`, {withCredentials: true});
+  }
 
 
   saveFluentLanguages(payload: { langCodes: string[] }): Observable<unknown> {

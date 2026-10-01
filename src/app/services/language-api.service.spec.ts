@@ -21,6 +21,24 @@ describe('LanguageApiService', () => {
 
   afterEach(() => httpTesting.verify());
 
+  it('requests all voices or one language with session credentials', () => {
+    service.getVoices().subscribe();
+    const all = httpTesting.expectOne(`${AppConstants.API_URL}/lang/voices`);
+    expect(all.request.withCredentials).toBeTrue();
+    all.flush([]);
+
+    let result: unknown;
+    service.getVoices(LanguageCode.DE).subscribe(value => result = value);
+    const german = httpTesting.expectOne(`${AppConstants.API_URL}/lang/voices/DE`);
+    expect(german.request.method).toBe('GET');
+    expect(german.request.withCredentials).toBeTrue();
+    const unavailable = {language: 'DE', variety: 'de-CH', defaultVariety: false,
+      available: false, unavailableReason: 'NO_ENABLED_VOICE', provider: null,
+      languageCode: null, voiceId: null, gender: null};
+    german.flush([unavailable]);
+    expect(result).toEqual([unavailable]);
+  });
+
   it('accepts the learner update endpoint returning no content', () => {
     let result: unknown = 'not emitted';
     service.updateLearner(LanguageCode.DE, {level: CEFRLevel.B2}).subscribe((learner) => result = learner);
