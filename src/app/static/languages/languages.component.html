@@ -1,0 +1,105 @@
+<div class="languages-page">
+  <div class="languages-layout">
+    <header class="languages-head">
+      <span i18n class="eyebrow">Languages</span>
+      <h1 i18n>What Almonium can do, language by language</h1>
+      <p i18n class="lede">You can keep words and review them in any of {{ total }} languages. The deeper tools arrive one language at a time, and this table says exactly where each one stands. Nothing here is rounded up.</p>
+      <span i18n class="updated">Last updated {{ updated | date:'longDate' }}</span>
+    </header>
+
+    <section class="legend" aria-labelledby="legend-title">
+      <h2 i18n id="legend-title">How to read it</h2>
+      <dl>
+        <div><dt class="status live" i18n>Live</dt><dd i18n>You can use it in the app today.</dd></div>
+        <div><dt class="status ready" i18n>Tested</dt><dd i18n>Built or verified by test, not switched on in the app yet.</dd></div>
+        <div><dt class="status planned" i18n>Planned</dt><dd i18n>Intended, not started.</dd></div>
+        <div><dt class="status none">—</dt><dd i18n>Not available, or nobody has tested it.</dd></div>
+      </dl>
+    </section>
+
+    <section class="summary" aria-label="Summary" i18n-aria-label>
+      <p i18n><strong>{{ withVoice }}</strong> of {{ total }} languages have a voice picked. In <strong>{{ followingIpa }}</strong> of them the voice was heard to say the pronunciation as written in IPA, instead of guessing from the spelling.</p>
+    </section>
+
+    <div class="controls">
+      <div class="sort" role="group" aria-label="Sort the table" i18n-aria-label>
+        <span i18n class="controls-label">Sort by</span>
+        <button type="button" i18n [class.current]="sortKey() === 'speakers'" [attr.aria-pressed]="sortKey() === 'speakers'" (click)="sortBy('speakers')">Native speakers</button>
+        <button type="button" i18n [class.current]="sortKey() === 'name'" [attr.aria-pressed]="sortKey() === 'name'" (click)="sortBy('name')">Name</button>
+      </div>
+      <label class="filter">
+        <input type="checkbox" [checked]="withVoiceOnly()" (change)="toggleVoiceOnly($any($event.target).checked)">
+        <span i18n>Only languages with a voice</span>
+      </label>
+    </div>
+
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Language capabilities" i18n-aria-label>
+      <table>
+        <thead>
+          <tr>
+            <th i18n scope="col">Language</th>
+            <th i18n scope="col" class="numeric">Native speakers</th>
+            <th i18n scope="col">Voice</th>
+            <th i18n scope="col">Audio follows the IPA</th>
+            <th i18n scope="col">Word forms</th>
+            <th i18n scope="col">Frequency</th>
+            <th i18n scope="col">Dictionary entries</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.code) {
+            <tr>
+              <th scope="row">{{ row.name }} <span class="code">{{ row.code }}</span></th>
+              <td class="numeric">{{ row.speakers }}@if (!row.speakersFromEthnologue && row.nativeSpeakersMillions > 0) {<span class="approx" aria-hidden="true">*</span>}</td>
+              <td>
+                @if (row.voice.engine) {
+                  <span class="engine">{{ row.voice.engine }}</span>
+                  <span class="status" [class]="row.voice.status">{{ statusLabels[row.voice.status] }}</span>
+                } @else {
+                  <span class="status none">—</span>
+                }
+              </td>
+              <td><span class="ipa" [class]="row.ipaMatch">{{ ipaLabels[row.ipaMatch] }}</span></td>
+              <td><span class="status" [class]="row.wordForms">{{ statusLabels[row.wordForms] }}</span></td>
+              <td><span class="status" [class]="row.frequency">{{ statusLabels[row.frequency] }}</span></td>
+              <td><span class="status" [class]="row.entries">{{ statusLabels[row.entries] }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <section class="notes">
+      <h2 i18n>What the columns mean</h2>
+      <dl>
+        <div>
+          <dt i18n>Native speakers</dt>
+          <dd i18n>People who speak the language as a first language, rounded. Figures without an asterisk are Ethnologue’s 2026 counts. Figures with one are our own rough estimates, there to give a sense of scale and nothing more.</dd>
+        </div>
+        <div>
+          <dt i18n>Voice</dt>
+          <dd i18n>The speech engine picked for a word’s audio. We name it because you are entitled to know whose voice you will hear. Word audio is not switched on in the app yet, so every voice here is tested, not live.</dd>
+        </div>
+        <div>
+          <dt i18n>Audio follows the IPA</dt>
+          <dd i18n>A voice normally guesses a pronunciation from the spelling, and for a word like <em>read</em> or <em>record</em> it can guess the wrong one. Here the voice is given the same IPA you see on the page. “Sounds and stress” means we heard it say those sounds with the stress where the IPA marks it. “Sounds” means the sounds follow and the stress was not obeyed or not judged. “Reads the spelling only” means no engine we tried follows IPA for that language, so the audio and the transcription can disagree.</dd>
+        </div>
+        <div>
+          <dt i18n>Word forms</dt>
+          <dd i18n>Recognising an inflected form as its dictionary word, so that <em>ging</em> leads to <em>gehen</em>. It runs today on the books we publish and is tested for the other languages listed.</dd>
+        </div>
+        <div>
+          <dt i18n>Frequency</dt>
+          <dd i18n>How common a word is, with the corpus it was counted in.</dd>
+        </div>
+        <div>
+          <dt i18n>Dictionary entries</dt>
+          <dd i18n>A stored entry with every sense of a word and a level for each one. This is the work in progress the rest of the table waits on.</dd>
+        </div>
+      </dl>
+      <p i18n class="method">How the pronunciation column was tested: each voice was sent a made-up word whose IPA spelled a different word than its text. A voice that says the IPA’s word follows the IPA; a voice that says the text does not. The stress was then moved from syllable to syllable and listened to. An engine accepting the request counted for nothing; only what was heard did.</p>
+    </section>
+  </div>
+
+  <app-public-footer></app-public-footer>
+</div>

@@ -69,6 +69,8 @@ export const routes: Routes = [
 
   // Marketing
   {path: 'pricing', loadComponent: () => import('./static/pricing/pricing.component').then(m => m.PricingComponent)},
+  // What works in which language, with the speech engines named. Public and indexable.
+  {path: 'languages', loadComponent: () => import('./static/languages/languages.component').then(m => m.LanguagesComponent)},
 
   // sections of both auth and unauth
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},

@@ -19,6 +19,7 @@ import {RouterLink} from '@angular/router';
         <nav aria-label="Footer navigation" i18n-aria-label>
           <a i18n routerLink="/" fragment="books">Books</a>
           <a i18n routerLink="/" fragment="pricing">Pricing</a>
+          <a i18n routerLink="/languages">Languages</a>
           <a i18n routerLink="/" fragment="founder">About</a>
           <a i18n routerLink="/terms-of-use">Terms</a>
           <a i18n routerLink="/privacy-policy">Privacy</a>
