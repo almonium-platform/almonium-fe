@@ -79,6 +79,28 @@ const SPEAKERS: Record<LanguageCode, Speakers> = {
   ES: [487, true], SU: [32], SW: [5], SV: [10], TL: [29], TG: [8], TA: [79, true], TT: [5], TE: [83, true], TH: [21],
   TI: [9], TS: [4], TR: [86, true], TK: [7], AK: [9], UK: [33], UR: [78, true], UG: [11], UZ: [34], VI: [86, true],
   CY: [0.6], XH: [8], YI: [0.6], YO: [45], ZU: [13],
+  // Added with the wider language list; rough figures from Wikidata, none of them Ethnologue's.
+  ACE: [3.5], ACH: [1.2], AJG: [1.1], AA: [1.6], ARQ: [42.3], AWA: [22], BFY: [8], BGQ: [1.9], BQI: [2.5],
+  BAN: [3.3], BAL: [7.6], BJN: [3.5], BCI: [2.1], BA: [1.2], BAR: [14.1], BEJ: [1.2], BEM: [3.6], BEW: [5],
+  BHB: [3.3], BIK: [2.5], BRX: [1.5], PCC: [2], BRH: [1.8], BUG: [5], WES: [2], YUE: [73.1], TZM: [4.5], SHU: [2.6],
+  CE: [1.4], HNE: [16.3], CTG: [13], CV: [1.3], DGA: [1.1], DAG: [3.2], PRS: [9.6], DHD: [9.6], DIN: [1.4],
+  DYU: [2.7], RMT: [1.3], CDO: [10.3], TAJ: [1.2], BIN: [1.6], EFI: [2.7], ARZ: [64.6], EGL: [1.3], FON: [1.9],
+  FF: [24], GAN: [22.1], GBM: [3], GRT: [1], GPE: [5], GLK: [2.5], GON: [3], GOR: [1], GUW: [1.5], AYH: [4.5],
+  HAK: [48.2], BGC: [14], MEY: [3.8], HAZ: [2.2], ACW: [14.5], HIL: [8.2], HOC: [1.5], CZH: [4.6], IBA: [2.3],
+  IGL: [1.6], ACM: [15.7], TTS: [15], JAM: [3.2], CJY: [46.9], QUC: [2], KBD: [1.6], KBP: [1], KAB: [5.6],
+  KBR: [1.5], KMC: [1.5], KAM: [3.9], KR: [15], PAM: [2.4], KAI: [1.8], KRJ: [1.1], KS: [6.9], KHG: [1.5],
+  KHN: [1.5], CGG: [2.4], KI: [6.6], RN: [10.8], KG: [5], KFY: [2.3], KRU: [2], LKI: [1.5], LMN: [6], LAJ: [2.1],
+  APC: [24.6], AYL: [4.3], LI: [1.6], LMO: [3.9], NDS: [5], LUA: [6.3], LUO: [3], MAD: [15], MAG: [20.7], MDH: [1.1],
+  MAK: [1.6], VMW: [7.4], KDE: [1.7], MUP: [10], BTM: [1.1], MNK: [1.4], MWR: [14], MZN: [3.3], MNI: [1.5], WRY: [4],
+  MTR: [5], WTM: [5], MIN: [5.5], ARY: [27.5], MOS: [7.6], UNR: [1.5], MTQ: [1.1], SCK: [7], NAP: [7.5], PCM: [4.7],
+  NOE: [1.5], KXM: [1.4], LRC: [1.5], MNP: [11], ND: [1.6], NOD: [6], II: [2], NYN: [2.3], PFL: [1], PAG: [1.1],
+  PMS: [2], CPX: [2.5], RAJ: [25], RHG: [1.8], RGN: [1.1], ROM: [3.5], KSW: [4], AEC: [22.4], SPV: [2.6],
+  AYN: [11.4], SG: [4.6], SAT: [7.2], SKR: [20], SC: [1.3], SAS: [2], SCO: [1.5], SGW: [1.5], SRR: [1.2], SHN: [3],
+  SHY: [2.3], SHK: [2], SCN: [4.7], SID: [1.8], SNK: [1.1], AZB: [13.8], SDH: [3], LUZ: [1], NAN: [50.1], SOU: [4.5],
+  APD: [31.9], SUK: [5.4], SUS: [2.4], SS: [2], GSW: [10], SYL: [12], ACQ: [10.5], RIF: [4.4], SHI: [8], TSG: [1.1],
+  BO: [1.2], BBC: [2], TPI: [4], TOI: [1.3], TSC: [1.2], TN: [4.5], TMH: [1.2], TCY: [2], TUM: [7], AEB: [11.6],
+  TYZ: [1.5], UMB: [6], SXU: [2], URH: [1.1], VE: [1.3], VEC: [2], WAR: [3.1], VLS: [1.4], WAL: [5.8], WO: [3.7],
+  WUU: [81.4], HSN: [37.3], ZZA: [1.6], ZA: [16],
 };
 
 type Pronunciation = readonly [engine: VoiceEngine, match: IpaMatch];

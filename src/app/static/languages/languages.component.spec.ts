@@ -48,7 +48,9 @@ describe('LanguagesComponent', () => {
     const byName = Array.from(page.querySelectorAll<HTMLButtonElement>('.sort button'))[1];
     byName.click();
     fixture.detectChanges();
-    expect(rowNames()[0]).toContain('Afrikaans');
+    const names = rowNames();
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    expect(names[0].startsWith('A')).toBeTrue();
     expect(byName.getAttribute('aria-pressed')).toBe('true');
   });
 
