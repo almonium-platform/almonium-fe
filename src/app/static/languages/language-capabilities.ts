@@ -133,6 +133,23 @@ const PRONUNCIATION: Partial<Record<LanguageCode, Pronunciation>> = {
   VI: ['Azure Neural', 'sounds'], HR: ['Azure Neural', 'sounds'], SL: ['Azure Neural', 'sounds'],
   ZH: ['Azure Neural', 'sounds'], JA: ['Azure Neural', 'sounds'], MR: ['Azure Neural', 'sounds'],
   TE: ['Azure Neural', 'sounds'], UR: ['Azure Neural', 'sounds'], GU: ['Azure Neural', 'sounds'],
+  // Azure, for languages the app had no voice for: sounds follow. The Arabic voices are tagged by country
+  // and mostly read Standard Arabic with a regional accent, so they fit the spoken language loosely.
+  AS: ['Azure Neural', 'sounds'], OR: ['Azure Neural', 'sounds'], YUE: ['Azure Neural', 'sounds'],
+  ARZ: ['Azure Neural', 'sounds'], AEC: ['Azure Neural', 'sounds'], APC: ['Azure Neural', 'sounds'],
+  ACM: ['Azure Neural', 'sounds'], AYL: ['Azure Neural', 'sounds'], ARY: ['Azure Neural', 'sounds'],
+  ARQ: ['Azure Neural', 'sounds'], AEB: ['Azure Neural', 'sounds'], ACW: ['Azure Neural', 'sounds'],
+  AYH: ['Azure Neural', 'sounds'], AYN: ['Azure Neural', 'sounds'], ACQ: ['Azure Neural', 'sounds'],
+  // Azure has a voice that reads the spelling and ignores IPA.
+  SQ: ['Azure Neural', 'not-followed'], HY: ['Azure Neural', 'not-followed'], AZ: ['Azure Neural', 'not-followed'],
+  BS: ['Azure Neural', 'not-followed'], GA: ['Azure Neural', 'not-followed'], JV: ['Azure Neural', 'not-followed'],
+  KK: ['Azure Neural', 'not-followed'], KM: ['Azure Neural', 'not-followed'], MK: ['Azure Neural', 'not-followed'],
+  MT: ['Azure Neural', 'not-followed'], MN: ['Azure Neural', 'not-followed'], FA: ['Azure Neural', 'not-followed'],
+  SI: ['Azure Neural', 'not-followed'], SO: ['Azure Neural', 'not-followed'], SU: ['Azure Neural', 'not-followed'],
+  UZ: ['Azure Neural', 'not-followed'], CY: ['Azure Neural', 'not-followed'], WUU: ['Azure Neural', 'not-followed'],
+  ZU: ['Azure Neural', 'not-followed'], AM: ['Azure Neural', 'not-followed'], KA: ['Azure Neural', 'not-followed'],
+  LO: ['Azure Neural', 'not-followed'], MY: ['Azure Neural', 'not-followed'], NE: ['Azure Neural', 'not-followed'],
+  PS: ['Azure Neural', 'not-followed'],
   // A voice exists and reads the spelling; neither provider follows IPA.
   EU: ['Google Standard', 'not-followed'], ET: ['Google Chirp 3 HD', 'not-followed'],
   GL: ['Google Standard', 'not-followed'], LT: ['Google Chirp 3 HD', 'not-followed'],
