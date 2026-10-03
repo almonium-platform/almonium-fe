@@ -1525,6 +1525,7 @@
     "8705960693712132092": "Failed to update avatar",
     "1936299846942137550": "Read anything. Keep every word.",
     "2350687709484433717": "Refunds",
+    "4771617485933503361": "© 2026 Almonium LLC",
     "430998734504529372": "Failed to generate QR code",
     "8522739058789559839": "Confirm it’s you",
     "259999037750879615": " This is a sensitive action, so please verify your identity once more. {$START_BLOCK_IF} You are signed in as {$START_TAG_STRONG}{$INTERPOLATION}{$CLOSE_TAG_STRONG}. {$CLOSE_BLOCK_IF}",

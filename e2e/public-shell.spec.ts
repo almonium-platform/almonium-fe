@@ -12,6 +12,7 @@ test('serves the legal pages with a rail that switches between them', async ({pa
   const rail = page.getByRole('navigation', {name: 'Legal pages'});
   await expect(rail.getByRole('link', {name: 'Terms of Use'})).toHaveAttribute('aria-current', 'page');
   await expect(rail.getByRole('link', {name: '12. Changes and contact'})).toHaveAttribute('href', '#changes');
+  await expect(page.getByRole('contentinfo').getByText('© 2026 Almonium LLC')).toBeVisible();
   await page.screenshot({path: 'test-results/legal-terms.png', fullPage: true, animations: 'disabled'});
 
   await rail.getByRole('link', {name: 'Privacy Policy'}).click();
