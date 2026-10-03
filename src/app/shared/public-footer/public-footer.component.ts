@@ -23,6 +23,7 @@ import {RouterLink} from '@angular/router';
           <a i18n routerLink="/" fragment="founder">About</a>
           <a i18n routerLink="/terms-of-use">Terms</a>
           <a i18n routerLink="/privacy-policy">Privacy</a>
+          <a i18n routerLink="/refund-policy">Refunds</a>
           <a i18n routerLink="/delete-account">Delete account</a>
         </nav>
       </div>

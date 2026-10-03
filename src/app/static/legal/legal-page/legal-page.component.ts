@@ -3,7 +3,7 @@ import {DatePipe} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {PublicFooterComponent} from '../../../shared/public-footer/public-footer.component';
 
-export type LegalPage = 'privacy' | 'terms' | 'delete';
+export type LegalPage = 'privacy' | 'terms' | 'refunds' | 'delete';
 
 /**
  * The shell the legal pages share: a sticky rail that switches between them and jumps to

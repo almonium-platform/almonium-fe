@@ -62,6 +62,7 @@ export const routes: Routes = [
   {path: 'privacy-policy', loadComponent: () => import('./static/legal/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent)},
   // Public by policy: Google Play's data-deletion link is opened by a signed-out reviewer.
   {path: 'delete-account', loadComponent: () => import('./static/legal/delete-account/delete-account.component').then(m => m.DeleteAccountComponent)},
+  {path: 'refund-policy', loadComponent: () => import('./static/legal/refund-policy/refund-policy.component').then(m => m.RefundPolicyComponent)},
 
   // Payment
   {path: 'payment/checkout', loadComponent: () => import('./static/payment-checkout/payment-checkout.component').then(m => m.PaymentCheckoutComponent)},
