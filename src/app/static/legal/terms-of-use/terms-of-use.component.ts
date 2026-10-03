@@ -11,5 +11,5 @@ export class TermsOfUseComponent {
   protected readonly title = $localize`Terms of Use`;
   protected readonly lede = $localize`The agreement between you and Almonium. Short, because there is not much to agree on: read, save words, pay if you want more, be decent to other people.`;
   /** The date this text last changed, not the deploy date: bump it with the wording. */
-  protected readonly updated = new Date(2026, 8, 17);
+  protected readonly updated = new Date(2026, 9, 3);
 }

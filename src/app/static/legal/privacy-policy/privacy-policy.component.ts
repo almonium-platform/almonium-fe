@@ -11,5 +11,5 @@ export class PrivacyPolicyComponent {
   protected readonly title = $localize`Privacy Policy`;
   protected readonly lede = $localize`What Almonium knows about you, why, who else sees it, and how to make us forget it. Written to be read, not skimmed past.`;
   /** The date this text last changed, not the deploy date: bump it with the wording. */
-  protected readonly updated = new Date(2026, 8, 24);
+  protected readonly updated = new Date(2026, 9, 3);
 }
