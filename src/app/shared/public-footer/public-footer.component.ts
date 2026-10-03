@@ -23,8 +23,8 @@ import {RouterLink} from '@angular/router';
           <a i18n routerLink="/privacy-policy">Privacy</a>
           <a i18n routerLink="/refund-policy">Refunds</a>
           <a i18n routerLink="/delete-account">Delete account</a>
+          <span class="copyright" i18n>© 2026 Almonium LLC</span>
         </nav>
-        <small class="copyright" i18n>© 2026 Almonium LLC</small>
       </div>
     </footer>
   `,
@@ -32,7 +32,7 @@ import {RouterLink} from '@angular/router';
     :host { display: block; }
     * { box-sizing: border-box; }
     .public-footer { background: #2c2530; color: #f9f6f5; font-family: var(--font-family-ui); }
-    .footer-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; width: min(calc(100% - 64px), 1056px); min-height: 104px; padding-block: 28px; margin-inline: auto; }
+    .footer-inner { display: flex; align-items: center; gap: 18px; width: min(calc(100% - 64px), 1056px); min-height: 104px; margin-inline: auto; }
     .footer-inner p { margin: 0; color: #a99aa8; font-size: 13px; }
     a { color: inherit; text-decoration: none; }
     a:hover { color: #872657; }
@@ -43,7 +43,7 @@ import {RouterLink} from '@angular/router';
     .brand-wordmark { display: block; width: 8rem; height: auto; }
     nav { display: flex; align-items: center; gap: 24px; margin-left: auto; font-size: 13px; }
     nav a { color: #c9c0cc; }
-    .copyright { flex-basis: 100%; color: #a99aa8; font-size: 12px; }
+    .copyright { color: #a99aa8; }
     @media (max-width: 700px) {
       .footer-inner { align-items: flex-start; flex-direction: column; width: min(calc(100% - 36px), 1056px); padding-block: 30px; }
       nav { margin: 0; flex-wrap: wrap; }
