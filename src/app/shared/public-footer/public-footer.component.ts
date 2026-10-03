@@ -2,8 +2,8 @@ import {Component} from '@angular/core';
 import {RouterLink} from '@angular/router';
 
 /**
- * The dark footer under every public marketing surface: the landing and the legal pages. Books,
- * Pricing and About are fragments of the landing, so from any other page they route home first.
+ * The dark footer under every public marketing surface: the landing and the legal pages. Books
+ * and Pricing are fragments of the landing, so from any other page they route home first.
  */
 @Component({
   selector: 'app-public-footer',
@@ -20,7 +20,6 @@ import {RouterLink} from '@angular/router';
           <a i18n routerLink="/" fragment="books">Books</a>
           <a i18n routerLink="/" fragment="pricing">Pricing</a>
           <a i18n routerLink="/languages">Languages</a>
-          <a i18n routerLink="/" fragment="founder">About</a>
           <a i18n routerLink="/terms-of-use">Terms</a>
           <a i18n routerLink="/privacy-policy">Privacy</a>
           <a i18n routerLink="/refund-policy">Refunds</a>
