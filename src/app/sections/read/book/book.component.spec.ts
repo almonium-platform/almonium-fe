@@ -57,4 +57,12 @@ describe('BookComponent', () => {
     expect(host.querySelector('app-unavailable-in-country')).toBeNull();
     expect(open).toHaveBeenCalledTimes(1);
   });
+
+  it('offers the report button quietly at the foot of the book, to guests too', () => {
+    const {host, popupOpen} = setup(() => of(book));
+    const link = host.querySelector<HTMLButtonElement>('.rights-line__link')!;
+    expect(link.textContent).toContain('Report a problem with this book’s rights');
+    link.click();
+    expect(popupOpen).toHaveBeenCalledOnceWith(jasmine.anything(), 'rights-report');
+  });
 });

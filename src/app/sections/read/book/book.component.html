@@ -34,6 +34,12 @@
   </div>
 </ng-template>
 
+<ng-template #rightsSheet>
+  @if (book) {
+    <app-rights-report [editionSlug]="book.editionSlug" [bookTitle]="book.title" [guest]="!authenticated" (closed)="closeRightsReport()" />
+  }
+</ng-template>
+
 @if (unavailable) {
   <app-unavailable-in-country />
 } @else {
@@ -143,6 +149,8 @@
           }
         </section>
       }
+
+      <p class="rights-line"><button i18n type="button" class="rights-line__link" (click)="openRightsReport()">Report a problem with this book’s rights</button></p>
     } @else {
       <header class="book-head">
         <div class="book-thumb skeleton-block" [tuiSkeleton]="true"></div>

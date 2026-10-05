@@ -2432,6 +2432,134 @@ tui-data-list button[tuiOption].context-button.negative {
     flex-direction: column;
   }
 }
+.scope-rights-report .sheet {
+  display: flex;
+  width: min(88vw, 24rem);
+  max-height: calc(100vh - 6rem);
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-radius: 1.375rem;
+  background: var(--overlay-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+.scope-rights-report .sheet__title {
+  margin: 0;
+  font-family: var(--font-family-reading);
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.scope-rights-report .sheet__copy {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+.scope-rights-report .sheet__error {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.75rem;
+  background: var(--danger-bg-color);
+  color: var(--danger-text-color);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.scope-rights-report .sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.15rem;
+}
+.scope-rights-report .sheet__primary {
+  min-height: 2.6rem;
+  padding: 0.6rem 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--dark-raspberry);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.scope-rights-report .sheet__primary:disabled {
+  background: var(--disabled-fill-color);
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+}
+.scope-rights-report .sheet__quiet {
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+}
+.scope-rights-report .sheet__hint {
+  margin: -0.35rem 0 0;
+  color: var(--metadata-color);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.scope-rights-report .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--subhead-color);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.scope-rights-report .field legend {
+  margin-bottom: 0.4rem;
+  padding: 0;
+}
+.scope-rights-report .field em {
+  color: var(--metadata-color);
+  font-style: normal;
+  font-weight: 400;
+}
+.scope-rights-report .field input[type='text'],
+.scope-rights-report .field input[type='email'],
+.scope-rights-report .field select,
+.scope-rights-report .field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.6rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--control-border-color);
+  border-radius: 0.75rem;
+  background: var(--nested-color);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+.scope-rights-report .field textarea {
+  min-height: 6.5rem;
+  padding: 0.6rem 0.8rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+.scope-rights-report .radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  font-size: 0.84rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+.scope-rights-report .radio input {
+  margin: 0;
+  accent-color: var(--dark-raspberry);
+}
 .scope-auth-settings .base-container {
   display: flex;
   flex-direction: column;
@@ -4811,6 +4939,36 @@ tui-data-list button[tuiOption].context-button.negative {
         </div>
       </div>
   </section>
+  <section class="harness-card" id="rights-report">
+    <header>
+      <h2>Book — the rights report before it says enough to send</h2>
+      <p class="harness-source">rights-report.component.html: Send</p>
+      <p class="harness-rule">A report needs who is writing, ten characters about the problem, and, from a guest, an email; the line under Send names the first one still missing.</p>
+      <label class="harness-toggle">
+      <code>draft</code>
+      <select data-card="rights-report"><option value="ready" selected>role, message and email given</option><option value="role">nothing picked yet</option><option value="message">message "Wrong"</option><option value="email">guest, no email</option><option value="bad-email">guest, email "holder@"</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-rights-report harness-frame">
+        <div class="sheet">
+          <h2 class="sheet__title">Report a problem with this book’s rights</h2>
+          <fieldset class="field"><legend>Who are you?</legend>
+            <label class="radio"><input type="radio" name="harness-role" checked /><span>I hold or represent the rights</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>I’m a reader</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>Other</span></label>
+          </fieldset>
+          <label class="field"><span>Email</span><input type="email" placeholder="you@example.com" /></label>
+          <label class="field"><span>Which country is it about?</span><select><option>Everywhere</option></select></label>
+          <label class="field"><span>What is wrong?</span><textarea rows="3"></textarea></label>
+          <div class="sheet__actions">
+            <button type="button" class="sheet__primary" data-blocked>Send</button>
+            <button type="button" class="sheet__quiet">Cancel</button>
+          </div>
+          <p class="sheet__hint" data-note>Say who you are.</p>
+        </div>
+      </div>
+  </section>
   <section class="harness-card" id="re-upload">
     <header>
       <h2>Read — Re-upload while the processor is still reading the file</h2>
@@ -5027,7 +5185,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"ask-for-a-book":{"typed":{"value":"typed","label":"\"Dracula, Bram Stoker\", language picked","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Type the title to ask for it.","blocked":true},"checking":{"value":"checking","label":"lookup still in flight","note":"Checking the title…","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"ask-for-a-book":{"typed":{"value":"typed","label":"\"Dracula, Bram Stoker\", language picked","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Type the title to ask for it.","blocked":true},"checking":{"value":"checking","label":"lookup still in flight","note":"Checking the title…","blocked":true}},"rights-report":{"ready":{"value":"ready","label":"role, message and email given","note":"","blocked":false},"role":{"value":"role","label":"nothing picked yet","note":"Say who you are.","blocked":true},"message":{"value":"message","label":"message \"Wrong\"","note":"Describe the problem: 5 more characters at least.","blocked":true},"email":{"value":"email","label":"guest, no email","note":"Leave your email so we can answer.","blocked":true},"bad-email":{"value":"bad-email","label":"guest, email \"holder@\"","note":"Check the email address.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {

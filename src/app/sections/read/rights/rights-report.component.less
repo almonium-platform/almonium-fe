@@ -1,0 +1,18 @@
+// The report sheet, in the shared popup shell and the book page's sheet grammar.
+.sheet { display: flex; width: min(88vw, 24rem); max-height: calc(100vh - 6rem); flex-direction: column; gap: .85rem; overflow-y: auto; padding: 1.5rem 1.5rem 1.25rem; border-radius: 1.375rem; background: var(--overlay-color); color: var(--text-color); box-sizing: border-box; }
+.sheet__title { margin: 0; font-family: var(--font-family-reading); font-size: 1.2rem; font-weight: 600; line-height: 1.25; }
+.sheet__copy { margin: 0; color: var(--subhead-color); font-size: .82rem; line-height: 1.6; }
+.sheet__error { margin: 0; padding: .6rem .8rem; border-radius: .75rem; background: var(--danger-bg-color); color: var(--danger-text-color); font-size: .78rem; line-height: 1.5; }
+.sheet__actions { display: flex; align-items: center; gap: .75rem; margin-top: .15rem; }
+.sheet__primary { min-height: 2.6rem; padding: .6rem 1.25rem; border: 0; border-radius: 999px; background: var(--dark-raspberry); color: #fff; cursor: pointer; font: inherit; font-size: .84rem; font-weight: 600; }
+.sheet__primary:disabled { background: var(--disabled-fill-color); color: var(--disabled-label-color); cursor: not-allowed; }
+.sheet__quiet { border: 0; background: transparent; color: var(--subhead-color); cursor: pointer; font: inherit; font-size: .82rem; }
+.sheet__hint { margin: -.35rem 0 0; color: var(--metadata-color); font-size: .74rem; line-height: 1.5; }
+
+.field { display: flex; flex-direction: column; gap: .4rem; min-width: 0; margin: 0; padding: 0; border: 0; color: var(--subhead-color); font-size: .76rem; font-weight: 600; }
+.field legend { margin-bottom: .4rem; padding: 0; }
+.field em { color: var(--metadata-color); font-style: normal; font-weight: 400; }
+.field input[type='text'], .field input[type='email'], .field select, .field textarea { box-sizing: border-box; width: 100%; min-height: 2.6rem; padding: 0 .8rem; border: 1px solid var(--control-border-color); border-radius: .75rem; background: var(--nested-color); color: var(--text-color); font: inherit; font-size: .88rem; font-weight: 400; }
+.field textarea { min-height: 6.5rem; padding: .6rem .8rem; line-height: 1.5; resize: vertical; }
+.radio { display: flex; align-items: center; gap: .5rem; color: var(--text-color); font-size: .84rem; font-weight: 400; cursor: pointer; }
+.radio input { margin: 0; accent-color: var(--dark-raspberry); }

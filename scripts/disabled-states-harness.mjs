@@ -24,6 +24,7 @@ const SCOPES = {
   'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
   'read': 'src/app/sections/read/read.component.less',
+  'rights-report': 'src/app/sections/read/rights/rights-report.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
@@ -220,6 +221,42 @@ const CARDS = [
             <button type="button" class="sheet__quiet">Cancel</button>
           </div>
           <p class="sheet__hint" data-note>Type the title to ask for it.</p>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'rights-report',
+    title: 'Book — the rights report before it says enough to send',
+    source: 'rights-report.component.html: Send',
+    rule: 'A report needs who is writing, ten characters about the problem, and, from a guest, an email; the line under Send names the first one still missing.',
+    control: {
+      label: 'draft',
+      type: 'select',
+      options: [
+        {value: 'ready', label: 'role, message and email given', note: '', blocked: false},
+        {value: 'role', label: 'nothing picked yet', note: 'Say who you are.', blocked: true},
+        {value: 'message', label: 'message "Wrong"', note: 'Describe the problem: 5 more characters at least.', blocked: true},
+        {value: 'email', label: 'guest, no email', note: 'Leave your email so we can answer.', blocked: true},
+        {value: 'bad-email', label: 'guest, email "holder@"', note: 'Check the email address.', blocked: true},
+      ],
+    },
+    body: `
+      <div class="scope-rights-report harness-frame">
+        <div class="sheet">
+          <h2 class="sheet__title">Report a problem with this book’s rights</h2>
+          <fieldset class="field"><legend>Who are you?</legend>
+            <label class="radio"><input type="radio" name="harness-role" checked /><span>I hold or represent the rights</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>I’m a reader</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>Other</span></label>
+          </fieldset>
+          <label class="field"><span>Email</span><input type="email" placeholder="you@example.com" /></label>
+          <label class="field"><span>Which country is it about?</span><select><option>Everywhere</option></select></label>
+          <label class="field"><span>What is wrong?</span><textarea rows="3"></textarea></label>
+          <div class="sheet__actions">
+            <button type="button" class="sheet__primary" data-blocked>Send</button>
+            <button type="button" class="sheet__quiet">Cancel</button>
+          </div>
+          <p class="sheet__hint" data-note>Say who you are.</p>
         </div>
       </div>`,
   },

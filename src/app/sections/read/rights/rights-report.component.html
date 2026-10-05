@@ -1,0 +1,53 @@
+<div class="sheet">
+  <h2 i18n class="sheet__title">Report a problem with this book’s rights</h2>
+  @if (contact) {
+    <p class="sheet__copy" role="status">{{ thanks }}</p>
+    <div class="sheet__actions">
+      <button i18n type="button" class="sheet__primary" (click)="closed.emit()">Close</button>
+    </div>
+  } @else {
+    @if (bookTitle) { <p i18n class="sheet__copy">About <em>{{ bookTitle }}</em>. A person reads every report.</p> }
+
+    <fieldset class="field">
+      <legend i18n>Who are you?</legend>
+      @for (option of roles; track option.value) {
+        <label class="radio"><input type="radio" name="reporter-role" [value]="option.value" [formControl]="role" /><span>{{ option.label }}</span></label>
+      }
+    </fieldset>
+
+    <label class="field">
+      <span><ng-container i18n>Name</ng-container> <em i18n>optional</em></span>
+      <input type="text" [formControl]="name" [attr.maxlength]="nameMax" autocomplete="name" />
+    </label>
+
+    @if (guest) {
+      <label class="field">
+        <span i18n>Email</span>
+        <input type="email" [formControl]="email" autocomplete="email" placeholder="you@example.com" i18n-placeholder />
+      </label>
+    }
+
+    <label class="field">
+      <span i18n>Which country is it about?</span>
+      <select [formControl]="country">
+        <option i18n value="">Everywhere</option>
+        @for (option of countries; track option.code) { <option [value]="option.code">{{ option.name }}</option> }
+      </select>
+    </label>
+
+    <label class="field">
+      <span i18n>What is wrong?</span>
+      <textarea [formControl]="message" rows="5" [attr.maxlength]="messageMax"></textarea>
+    </label>
+
+    @if (error) { <p class="sheet__error" role="alert">{{ error }}</p> }
+
+    <div class="sheet__actions">
+      <button type="button" class="sheet__primary" [disabled]="missing !== null || sending" (click)="send()">
+        @if (sending) { <ng-container i18n>Sending…</ng-container> } @else { <ng-container i18n>Send</ng-container> }
+      </button>
+      <button i18n type="button" class="sheet__quiet" (click)="closed.emit()">Cancel</button>
+    </div>
+    @if (missing; as note) { <p class="sheet__hint">{{ note }}</p> }
+  }
+</div>
