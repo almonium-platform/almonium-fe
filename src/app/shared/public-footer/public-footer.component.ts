@@ -23,6 +23,8 @@ import {RouterLink} from '@angular/router';
           <a i18n routerLink="/privacy-policy">Privacy</a>
           <a i18n routerLink="/refund-policy">Refunds</a>
           <a i18n routerLink="/delete-account">Delete account</a>
+          <!-- DB-IP's free country database places readers for the copyright rules; its licence (CC BY 4.0) asks for this credit. -->
+          <a i18n href="https://db-ip.com" target="_blank" rel="noopener">IP geolocation by DB-IP</a>
           <span class="copyright" i18n>© 2026 Almonium LLC</span>
         </nav>
       </div>
@@ -41,12 +43,12 @@ import {RouterLink} from '@angular/router';
     .brand { display: inline-flex; align-items: center; gap: 1rem; }
     .brand-emblem { display: block; width: 1.0625rem; height: 1.0625rem; }
     .brand-wordmark { display: block; width: 8rem; height: auto; }
-    nav { display: flex; align-items: center; gap: 24px; margin-left: auto; font-size: 13px; }
+    nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 24px; margin-left: auto; font-size: 13px; }
     nav a { color: #c9c0cc; }
     .copyright { color: #a99aa8; }
     @media (max-width: 700px) {
       .footer-inner { align-items: flex-start; flex-direction: column; width: min(calc(100% - 36px), 1056px); padding-block: 30px; }
-      nav { margin: 0; flex-wrap: wrap; }
+      nav { margin: 0; justify-content: flex-start; }
     }
   `],
 })
