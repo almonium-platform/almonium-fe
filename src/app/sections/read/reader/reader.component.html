@@ -30,21 +30,23 @@
     <app-loading-indicator baseText="Loading book" i18n-baseText></app-loading-indicator>
   }
 
-  @if (errorMessage) {
+  @if (unavailable) {
+    <app-unavailable-in-country />
+  } @else if (errorMessage) {
     <div class="error-message">{{ errorMessage }}</div>
   }
   @if (parallelError) {
     <p class="parallel-error" role="alert">{{ parallelError }}</p>
   }
 
-  @if (!isLoading && !errorMessage && missingChapter) {
+  @if (!isLoading && !blocked && missingChapter) {
     <div class="error-message">
       <p i18n>This book has no chapter {{ currentKey }}.</p>
       <a [routerLink]="bookLink" i18n>Back to the book</a>
     </div>
   }
 
-  @if (!isLoading && !errorMessage && !missingChapter) {
+  @if (!isLoading && !blocked && !missingChapter) {
     <div #readerContentWrapper
          class="reader-content-wrapper"
          [class.mode-side]="isParallelViewActive && effectiveMode === 'side'"
@@ -215,7 +217,7 @@
   }
 
   <!-- The bottom bar: two toggles at the left, the arrows and slider, the companion picker. -->
-  @if (!isLoading && !errorMessage) {
+  @if (!isLoading && !blocked) {
     <div #paginationControls class="pagination-controls">
       <div class="pagination-center-area">
         <div class="bar-toggles">

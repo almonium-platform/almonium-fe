@@ -34,6 +34,9 @@
   </div>
 </ng-template>
 
+@if (unavailable) {
+  <app-unavailable-in-country />
+} @else {
 <div class="base-container book-page">
   <article class="book-card" [class.book-card--loading]="bookLoading">
     @if (book) {
@@ -151,5 +154,6 @@
     }
   </article>
 </div>
+}
 
 <ng-template #askedHint><div i18n>You asked for this one. Tap to withdraw the request.</div></ng-template>

@@ -1,8 +1,9 @@
-import {HttpResponse} from '@angular/common/http';
+import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ActivatedRoute, Router, convertToParamMap, provideRouter} from '@angular/router';
 import {BehaviorSubject, Subject, of} from 'rxjs';
 
+import {AppHttpError} from '../../../shared/app-http-error';
 import {PopupTemplateStateService} from '../../../shared/modals/popup-template/popup-template-state.service';
 import {UserInfoService} from '../../../services/user-info.service';
 import {ProfileSettingsService} from '../../settings/profile/profile-settings.service';
@@ -80,6 +81,17 @@ describe('ReaderComponent', () => {
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('says plainly that a book its text answers 451 for is not available in the reader’s country', () => {
+    fixture.detectChanges();
+    baseResponse$.error(new AppHttpError(new HttpErrorResponse({status: 451, error: {success: false, message: 'This book isn’t available in your country.'}})));
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('app-unavailable-in-country')?.textContent).toContain('This book isn’t available in your country');
+    expect(host.querySelector('a[href="/read"]')?.textContent).toContain('Back to the shelf');
+    expect(host.querySelector('.error-message')).toBeNull();
+    expect(host.querySelector('.pagination-controls')).toBeNull();
+  });
 
   it('opens a reader note under its phrase, marks the phrase open, and closes it on Escape', () => {
     const html = '<section class="chapter"><h2 class="chapter-title" id="chapter-11">CHAPTER V.</h2>'

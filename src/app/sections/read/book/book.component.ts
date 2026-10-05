@@ -1,5 +1,5 @@
 import {logger} from "../../../shared/logger";
-import {getErrorMessage} from '../../../shared/http-error';
+import {getErrorMessage, isUnavailableInCountry} from '../../../shared/http-error';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
 import {filter, finalize, forkJoin, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -25,6 +25,7 @@ import {ReaderPositionStorage} from '../reader/reader-position-storage.service';
 import {editionKind, editionKindLabel} from '../edition-kind';
 import {levelRank} from '../work-tile';
 import {PageSeoService} from '../../../shared/seo/page-seo.service';
+import {UnavailableInCountryComponent} from '../unavailable/unavailable-in-country.component';
 
 /** How many contents rows the book page shows before "All N chapters". */
 const CONTENTS_PREVIEW_ROWS = 8;
@@ -66,6 +67,7 @@ interface EditionChip {
     RouterLink,
     DatePipe,
     FormsModule,
+    UnavailableInCountryComponent,
   ],
   templateUrl: './book.component.html',
   styleUrl: './book.component.less'
@@ -103,6 +105,8 @@ export class BookComponent implements OnInit, OnDestroy {
   protected orderLoading = false;
   protected sheetLanguage: LanguageCode | null = null;
   protected bookLoading = true;
+  /** The book answered 451: still under copyright in the reader's country. */
+  protected unavailable = false;
   /** The contents (J1): every chapter the processor knows, with its level and description. */
   protected chapters: BookChapter[] = [];
   protected contentsExpanded = false;
@@ -124,8 +128,15 @@ export class BookComponent implements OnInit, OnDestroy {
         switchMap(slug => {
           logger.debug(`Route changed or initial load. Fetching book slug: ${slug}`);
           this.bookSlug = slug;
+          this.unavailable = false;
           return this.readService.getPublicBook(slug).pipe(
             catchError(error => {
+              this.book = null;
+              if (isUnavailableInCountry(error)) {
+                this.unavailable = true;
+                this.cdr.detectChanges();
+                return of(null);
+              }
               logger.error(`Failed to fetch book data for slug ${slug}:`, error);
               this.alertService.open($localize`Failed to load book details.`, {appearance: 'negative'}).subscribe();
               this.book = null;
