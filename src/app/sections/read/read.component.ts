@@ -28,6 +28,7 @@ import {getErrorMessage} from '../../shared/http-error';
 import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 import {CertificateMomentComponent} from './certificate/certificate-moment.component';
+import {CatalogResultsComponent} from './catalog/catalog-results.component';
 
 type ShelfViewMode = 'covers' | 'spines';
 
@@ -49,6 +50,7 @@ type ShelfViewMode = 'covers' | 'spines';
     BookCoverComponent,
     PaywallComponent,
     CertificateMomentComponent,
+    CatalogResultsComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -115,7 +117,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected requestQuota: TranslationRequestQuota | null = null;
   protected withdrawing: string | null = null;
   protected currentLanguageName = '';
-  private currentLanguage: LanguageCode | null = null;
+  protected currentLanguage: LanguageCode | null = null;
   /** Hues sampled from cover art, by work (or import id); anything missing falls back to the hash. */
   private sampledHues = new Map<string, BookHue>();
 

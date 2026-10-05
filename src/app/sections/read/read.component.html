@@ -166,6 +166,9 @@
     }
   </section>
 
+  <!-- Search across every notable book (W1, W2): what the shelf does not have, under it, as rows. -->
+  <app-catalog-results [query]="titleFormControl.value" [language]="currentLanguage" [authenticated]="isAuthenticated" (importRequested)="startImport()" />
+
   <!-- Yours (G3, G21): absent until the first import; the header's "+ Import a book" is the whole affordance before that. -->
   @if (isAuthenticated && privateBooks.length > 0) {
     <section class="book-shelf book-shelf--yours" aria-labelledby="my-books-heading">
