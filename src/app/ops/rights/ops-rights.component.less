@@ -1,0 +1,149 @@
+// The rights sections sit inside the ops page and speak its grammar exactly: the cards, queues, chips and forms
+// come from the page's own sheet, and only what is new to rights is added here.
+@import '../ops.component.less';
+
+// The page's :host paints the whole console; this host is a run of cards within it.
+:host { display: block; min-height: 0; background: none; }
+
+.ops-queue--rights-reports .ops-queue__head,
+.ops-queue--rights-reports .ops-queue__row {
+  grid-template-columns: 1.2fr 1fr .55fr 1.6fr 12rem;
+}
+
+.ops-queue--rights-works .ops-queue__head,
+.ops-queue--rights-works .ops-queue__row {
+  grid-template-columns: 1.7fr .6fr .7fr .5fr .6fr 6rem;
+}
+
+.ops-queue__book a {
+  color: inherit;
+}
+
+.ops-rights__message {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--ops-muted);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.ops-rights__full {
+  margin: 0;
+  color: var(--ops-ink);
+  font-size: .82rem;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.ops-rights__override {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  margin-top: .85rem;
+}
+
+.ops-queue__job.ops-rights__override {
+  margin-top: 0;
+}
+
+.ops-rights__override-grid {
+  display: grid;
+  grid-template-columns: 6rem 8rem minmax(0, 1fr);
+  gap: .65rem;
+}
+
+.ops-rights__override-grid .ops-form__field input,
+.ops-rights__override-grid .ops-form__field select {
+  min-height: 2.2rem;
+  padding: .4rem .6rem;
+}
+
+.ops-rights__missing {
+  margin: 0;
+  color: var(--ops-muted);
+  font-size: .74rem;
+}
+
+.ops-rights__alarm {
+  color: var(--ops-danger) !important;
+}
+
+.ops-rights__detail {
+  gap: 1.1rem;
+  font-size: .82rem;
+}
+
+.ops-rights__detail p {
+  margin: 0 0 .4rem;
+}
+
+.ops-rights__detail .ops-spend__subtitle {
+  margin: 0 0 .45rem;
+  font-size: .78rem;
+}
+
+.ops-rights__facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.ops-rights__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-rights__list li {
+  padding: .25rem 0;
+}
+
+.ops-rights__list strong {
+  font-weight: 500;
+}
+
+.ops-rights__list code,
+.ops-rights__detail p code {
+  font: .74rem/1.4 var(--font-family-mono);
+}
+
+.ops-rights__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  max-height: 9rem;
+  overflow-y: auto;
+}
+
+.ops-rights__chips .ops-books__chip {
+  padding: .2rem .5rem;
+  font-size: .68rem;
+}
+
+.ops-rights__hits {
+  margin: .6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-rights__hits li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--ops-border);
+}
+
+.ops-rights__hits li:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .ops-rights__facts,
+  .ops-rights__override-grid {
+    grid-template-columns: 1fr;
+  }
+}
