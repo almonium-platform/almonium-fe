@@ -24,6 +24,8 @@ export const routes: Routes = [
       {path: 'onboarding', loadComponent: () => import('./onboarding/onboarding.component').then(m => m.OnboardingComponent)},
       {path: 'home', loadComponent: () => import('./sections/home/home.component').then(m => m.HomeComponent)},
       {path: 'review', loadComponent: () => import('./sections/review/review.component').then(m => m.ReviewComponent)},
+      // The Wanted page (W3): the public queue of books readers want, members only.
+      {path: 'read/wanted', loadComponent: () => import('./sections/read/wanted/wanted.component').then(m => m.WantedComponent)},
       {path: 'my-books/import', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
       {path: 'my-books/:id', loadComponent: () => import('./sections/read/book-import/book-import.component').then(m => m.BookImportComponent)},
       {path: 'reader/private/:id', canActivate: [readerEntryGuard], children: []},

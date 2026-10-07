@@ -27,17 +27,22 @@
 .catalog-row__note { color: var(--metadata-color); font-size: .74rem; }
 .catalog-row__note a { color: var(--dark-raspberry); font-weight: 600; text-decoration: none; }
 .catalog-row__note a:hover { text-decoration: underline; }
-.catalog-row__action { flex: 0 0 auto; }
+.catalog-row__action { display: flex; flex: 0 0 auto; align-items: center; gap: .6rem; }
+.catalog-readers { color: var(--metadata-color); font-size: .74rem; white-space: nowrap; }
 
 .want-button { min-height: 2rem; padding: .3rem .9rem; border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); border-radius: 999px; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .78rem; font-weight: 600; white-space: nowrap; }
 .want-button:hover { background: var(--state-selected); }
 .want-button:disabled { cursor: wait; opacity: .6; }
-.catalog-wanted { color: var(--success-color); font-size: .78rem; font-weight: 600; }
+// Wanted is a state the reader can undo: the same pill, in green, and tapping it again takes the want back.
+.want-button--wanted { border-color: color-mix(in srgb, var(--success-color) 45%, var(--card-color)); color: var(--success-color); }
+.want-button--wanted:hover { background: color-mix(in srgb, var(--success-color) 10%, transparent); }
 .catalog-muted { color: var(--metadata-color); font-size: .76rem; }
 
 .catalog-link { padding: 0; border: 0; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .82rem; font-weight: 600; }
 .catalog-link:hover { text-decoration: underline; }
 .catalog-more { margin-top: .6rem; }
+
+.wanted-toast__link { color: inherit; font-weight: 600; text-decoration: underline; }
 
 @media (max-width: 600px) {
   .catalog-row { flex-wrap: wrap; }

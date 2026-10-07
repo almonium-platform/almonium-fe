@@ -5,26 +5,27 @@ import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Observable, Subject, of, throwError} from 'rxjs';
 import {LanguageCode} from '../../../models/language.enum';
 import {AppHttpError} from '../../../shared/app-http-error';
-import {ReadService} from '../read.service';
+import {WantedService} from '../wanted/wanted.service';
 import {CATALOG_DEBOUNCE_MS, CatalogResultsComponent} from './catalog-results.component';
 import {CatalogHit} from './catalog.model';
 import {CatalogService} from './catalog.service';
 
 describe('CatalogResultsComponent', () => {
   const hit = (title: string, state: CatalogHit['state'], extra: Partial<CatalogHit> = {}): CatalogHit => ({
-    id: title, title, originalTitle: null, originalLanguage: null, author: 'Jules Verne', year: 1870, state, workSlug: null, freeFrom: null, ...extra,
+    id: title, title, originalTitle: null, originalLanguage: null, author: 'Jules Verne', year: 1870, state, workSlug: null, freeFrom: null, readers: null, wantedByMe: false, ...extra,
   });
 
   function setup(answers: Record<string, Observable<CatalogHit[]>>, authenticated = true) {
     const search = jasmine.createSpy('search').and.callFake((query: string) => answers[query] ?? of([]));
-    const askForBook = jasmine.createSpy('askForBook').and.returnValue(of({}));
+    const want = jasmine.createSpy('want').and.returnValue(of({catalogWorkId: 'x', language: LanguageCode.FR, rank: 2, readers: null}));
+    const withdraw = jasmine.createSpy('withdraw').and.returnValue(of(null));
     const open = jasmine.createSpy('open').and.returnValue(of(undefined));
     TestBed.configureTestingModule({
       imports: [CatalogResultsComponent],
       providers: [
         provideRouter([]),
         {provide: CatalogService, useValue: {search}},
-        {provide: ReadService, useValue: {askForBook}},
+        {provide: WantedService, useValue: {want, withdraw}},
         {provide: TuiNotificationService, useValue: {open}},
       ],
     });
@@ -38,7 +39,7 @@ describe('CatalogResultsComponent', () => {
       tick(CATALOG_DEBOUNCE_MS);
       fixture.detectChanges();
     };
-    return {fixture, host, search, askForBook, open, type};
+    return {fixture, host, search, want, withdraw, open, type};
   }
 
   it('waits for the reader to stop typing and lists what the shelf lacks as rows, five at first', fakeAsync(() => {
@@ -51,7 +52,7 @@ describe('CatalogResultsComponent', () => {
     fixture.detectChanges();
     tick(CATALOG_DEBOUNCE_MS);
     fixture.detectChanges();
-    expect(search).toHaveBeenCalledOnceWith('verne');
+    expect(search).toHaveBeenCalledOnceWith('verne', 20, LanguageCode.FR);
     expect(host.textContent).toContain('Not on the shelf yet');
     expect(host.textContent).not.toContain('On the shelf');
     expect(host.querySelectorAll('.catalog-row').length).toBe(5);
@@ -80,28 +81,50 @@ describe('CatalogResultsComponent', () => {
     expect(host.querySelector('.catalog')).toBeNull();
   }));
 
-  it('wants a book through the ask flow in the shelf language, and a repeated ask counts as wanted', fakeAsync(() => {
-    const {fixture, host, askForBook, type} = setup({verne: of([hit('Twenty Thousand Leagues', 'WANTABLE', {workSlug: 'twenty-thousand-leagues'}), hit('Around the World', 'WANTABLE')])});
+  it('wants a book in the shelf language, says its place in line, and takes it back silently', fakeAsync(() => {
+    const {fixture, host, want, withdraw, open, type} = setup({verne: of([hit('Twenty Thousand Leagues', 'WANTABLE', {id: 'w1'})])});
     type('verne');
     host.querySelector<HTMLButtonElement>('.want-button')!.click();
     fixture.detectChanges();
-    expect(askForBook).toHaveBeenCalledOnceWith({title: 'Twenty Thousand Leagues', author: 'Jules Verne', language: LanguageCode.FR, workSlug: 'twenty-thousand-leagues'});
-    expect(host.querySelectorAll('.catalog-wanted').length).toBe(1);
+    expect(want).toHaveBeenCalledOnceWith('w1', LanguageCode.FR);
+    expect(open).toHaveBeenCalledOnceWith(jasmine.anything(), {appearance: 'positive', data: 'Added to Wanted. It’s 2nd in line.'});
+    const wanted = host.querySelector<HTMLButtonElement>('.want-button--wanted')!;
+    expect(wanted.textContent).toContain('✓ Wanted');
 
-    askForBook.and.returnValue(throwError(() => new AppHttpError(new HttpErrorResponse({status: 409, error: {message: 'You’ve asked for this one.'}}))));
+    wanted.click();
+    fixture.detectChanges();
+    expect(withdraw).toHaveBeenCalledOnceWith('w1', LanguageCode.FR);
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(host.querySelector('.want-button--wanted')).toBeNull();
+    expect(host.querySelector('.want-button')?.textContent).toContain('I want this');
+  }));
+
+  it('starts from the search’s own wants and reader counts', fakeAsync(() => {
+    const {host, type} = setup({verne: of([hit('Mine', 'WANTABLE', {readers: 7, wantedByMe: true}), hit('Quiet', 'WANTABLE')])});
+    type('verne');
+    const rows = host.querySelectorAll('.catalog-row');
+    expect(rows[0].querySelector('.catalog-readers')?.textContent).toBe('7 readers');
+    expect(rows[0].querySelector('.want-button--wanted')).not.toBeNull();
+    expect(rows[1].querySelector('.catalog-readers')).toBeNull();
+  }));
+
+  it('shows the server’s reason under the row when a want is refused', fakeAsync(() => {
+    const {fixture, host, want, open, type} = setup({verne: of([hit('Lolita', 'WANTABLE')])});
+    want.and.returnValue(throwError(() => new AppHttpError(new HttpErrorResponse({status: 409, error: {message: 'This one is under copyright, so we can’t offer it.'}}))));
+    type('verne');
     host.querySelector<HTMLButtonElement>('.want-button')!.click();
     fixture.detectChanges();
-    expect(askForBook).toHaveBeenCalledWith({title: 'Around the World', author: 'Jules Verne', language: LanguageCode.FR});
-    expect(host.querySelectorAll('.catalog-wanted').length).toBe(2);
-    expect(host.textContent).toContain('✓ Wanted');
+    expect(host.querySelector('.catalog-row__note')?.textContent).toContain('This one is under copyright, so we can’t offer it.');
+    expect(host.querySelector('.want-button--wanted')).toBeNull();
+    expect(open).not.toHaveBeenCalled();
   }));
 
   it('asks a guest to sign in instead of wanting', fakeAsync(() => {
-    const {fixture, host, askForBook, type} = setup({verne: of([hit('Michel Strogoff', 'WANTABLE')])}, false);
+    const {fixture, host, want, type} = setup({verne: of([hit('Michel Strogoff', 'WANTABLE')])}, false);
     type('verne');
     host.querySelector<HTMLButtonElement>('.want-button')!.click();
     fixture.detectChanges();
-    expect(askForBook).not.toHaveBeenCalled();
+    expect(want).not.toHaveBeenCalled();
     expect(host.querySelector('.catalog-row__note')?.textContent).toContain('Sign in to want this book.');
   }));
 

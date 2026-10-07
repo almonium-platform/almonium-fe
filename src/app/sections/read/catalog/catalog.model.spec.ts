@@ -2,17 +2,19 @@ import {CatalogHit, catalogMeta, isCatalogQuery, parseCatalogHits, planCatalogRe
 
 describe('catalog model', () => {
   const hit = (title: string, state: CatalogHit['state'], extra: Partial<CatalogHit> = {}): CatalogHit => ({
-    id: title, title, originalTitle: null, originalLanguage: null, author: 'Someone', year: 1900, state, workSlug: null, freeFrom: null, ...extra,
+    id: title, title, originalTitle: null, originalLanguage: null, author: 'Someone', year: 1900, state, workSlug: null, freeFrom: null, readers: null, wantedByMe: false, ...extra,
   });
 
   it('reads the search answer, with every optional field allowed to be missing', () => {
     const [first, second] = parseCatalogHits([
-      {id: 'a', title: 'Dracula', originalTitle: null, originalLanguage: 'en', author: 'Bram Stoker', year: 1897, state: 'WANTABLE', workSlug: null, freeFrom: 1983},
+      {id: 'a', title: 'Dracula', originalTitle: null, originalLanguage: 'en', author: 'Bram Stoker', year: 1897, state: 'WANTABLE', workSlug: null, freeFrom: 1983, readers: 4, wantedByMe: true},
       {id: 'b', title: 'Untitled', state: 'UNDER_COPYRIGHT'},
     ]);
-    expect(first).toEqual({id: 'a', title: 'Dracula', originalTitle: null, originalLanguage: 'en', author: 'Bram Stoker', year: 1897, state: 'WANTABLE', workSlug: null, freeFrom: 1983});
+    expect(first).toEqual({id: 'a', title: 'Dracula', originalTitle: null, originalLanguage: 'en', author: 'Bram Stoker', year: 1897, state: 'WANTABLE', workSlug: null, freeFrom: 1983, readers: 4, wantedByMe: true});
     expect(second.author).toBeNull();
     expect(second.year).toBeNull();
+    expect(second.readers).toBeNull();
+    expect(second.wantedByMe).toBeFalse();
     expect(() => parseCatalogHits([{id: 'c', title: 'X', state: 'LOCKED'}])).toThrowError(/hits\[0\]\.state/);
   });
 

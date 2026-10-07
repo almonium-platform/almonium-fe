@@ -1,5 +1,6 @@
 import {
   expectArray,
+  expectBoolean,
   expectEnum,
   expectNullableNumber,
   expectNullableString,
@@ -27,6 +28,10 @@ export interface CatalogHit {
   workSlug: string | null;
   /** The year it became free (WANTABLE) or the soonest it can (UNDER_COPYRIGHT); null when unknown. */
   freeFrom: number | null;
+  /** Distinct members wanting it in the language searched for; null below three, or when no language was sent. */
+  readers: number | null;
+  /** Whether the signed-in viewer wants it in that language; always false for a guest. */
+  wantedByMe: boolean;
 }
 
 export function parseCatalogHit(value: unknown, path = 'hit'): CatalogHit {
@@ -41,6 +46,8 @@ export function parseCatalogHit(value: unknown, path = 'hit'): CatalogHit {
     state: expectEnum(data['state'], CATALOG_STATES, `${path}.state`),
     workSlug: expectNullableString(data['workSlug'], `${path}.workSlug`),
     freeFrom: expectNullableNumber(data['freeFrom'], `${path}.freeFrom`),
+    readers: expectNullableNumber(data['readers'], `${path}.readers`),
+    wantedByMe: data['wantedByMe'] === undefined ? false : expectBoolean(data['wantedByMe'], `${path}.wantedByMe`),
   };
 }
 

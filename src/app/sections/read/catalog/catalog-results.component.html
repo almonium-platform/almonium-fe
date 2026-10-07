@@ -1,3 +1,8 @@
+<!-- The toast after a want (W4): the place in line, and the way to the queue. Withdrawing is silent. -->
+<ng-template #wantedToast let-observer let-message="data">
+  <span class="wanted-toast">{{ message }}&ngsp;<a i18n class="wanted-toast__link" routerLink="/read/wanted" (click)="observer.complete()">See the queue</a></span>
+</ng-template>
+
 @if (hasResults) {
   <section class="catalog" aria-labelledby="catalog-heading">
     <div class="kicker-row"><h2 i18n id="catalog-heading" class="kicker">Not on the shelf yet</h2><span class="rule" aria-hidden="true"></span></div>
@@ -27,14 +32,20 @@
               @if (signInFor === hit.id) {
                 <span class="catalog-row__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in to want this book.</a></span>
               }
+              @if (refusal?.id === hit.id) {
+                <span class="catalog-row__note" role="status">{{ refusal?.message }}</span>
+              }
             </span>
             <span class="catalog-row__action">
               @if (hit.state === 'NOT_IN_YOUR_COUNTRY') {
                 <span i18n class="catalog-muted">Not available in your country</span>
-              } @else if (wanted.has(hit.id)) {
-                <span i18n class="catalog-wanted">✓ Wanted</span>
               } @else {
-                <button i18n type="button" class="want-button" [disabled]="wanting === hit.id" (click)="want(hit)">I want this</button>
+                @if (readersLabel(hit); as readers) { <span class="catalog-readers">{{ readers }}</span> }
+                @if (wanted.has(hit.id)) {
+                  <button i18n type="button" class="want-button want-button--wanted" [attr.aria-pressed]="true" [disabled]="busy === hit.id" (click)="toggle(hit)">✓ Wanted</button>
+                } @else {
+                  <button i18n type="button" class="want-button" [attr.aria-pressed]="false" [disabled]="busy === hit.id" (click)="toggle(hit)">I want this</button>
+                }
               }
             </span>
           </li>
