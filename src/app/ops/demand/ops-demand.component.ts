@@ -147,7 +147,7 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
       next: sources => {
         if (this.pickingFor !== key) return;
         this.sources = sources;
-        this.chosenSource = preferredSource(sources, row.language)?.id ?? null;
+        this.chosenSource = (previousSource(sources, row.preparing) ?? preferredSource(sources, row.language))?.id ?? null;
       },
       error: error => {
         if (this.pickingFor !== key) return;
@@ -291,4 +291,10 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
 export function preferredSource(sources: readonly TextSource[], language: string): TextSource | null {
   const wanted = language.toLowerCase();
   return sources.find(source => source.status !== 'PROTECTED' && source.language.toLowerCase() === wanted) ?? null;
+}
+
+/** On a retry, the text the failed preparation used, while it is still listed and can still be chosen. */
+export function previousSource(sources: readonly TextSource[], preparing: DemandPreparing | null): TextSource | null {
+  if (!preparing) return null;
+  return sources.find(source => source.status !== 'PROTECTED' && source.pageUrl === preparing.sourceUrl) ?? null;
 }

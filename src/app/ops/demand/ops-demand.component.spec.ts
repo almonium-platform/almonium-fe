@@ -7,7 +7,7 @@ import {RecentAuthGuardService} from '../../authentication/auth/recent-auth-guar
 import {CatalogHit} from '../../sections/read/catalog/catalog.model';
 import {CatalogService} from '../../sections/read/catalog/catalog.service';
 import {Demand, OpsDemandService, TextSource} from '../ops-demand.service';
-import {OpsDemandComponent, preferredSource} from './ops-demand.component';
+import {OpsDemandComponent, preferredSource, previousSource} from './ops-demand.component';
 
 describe('OpsDemandComponent', () => {
   const demand: Demand = {
@@ -168,6 +168,35 @@ describe('OpsDemandComponent', () => {
     expect(preparing.querySelector('.ops-queue__error')?.textContent).toContain('EPUB download returned 404');
     expect(preparing.querySelector('.ops-queue__phase--on')).toBeNull();
     expect(preparing.querySelector('.ops-queue__stamp--failed')?.textContent).toContain('failed');
+  });
+
+  it('retries a failed preparation with a text, opening on the one it used', () => {
+    const {fixture, host, ops} = setup();
+    const failed = {...demand.wanted[1], preparing: {...demand.wanted[1].preparing!, sourceUrl: 'https://www.gutenberg.org/ebooks/en1', phase: 'failed', error: 'timeout'}};
+    ops.demand.and.returnValue(of({...demand, wanted: [demand.wanted[0], failed]}));
+    Array.from(host.querySelectorAll<HTMLButtonElement>('button')).find(button => button.textContent?.trim() === 'Refresh')!.click();
+    fixture.detectChanges();
+    const retry = Array.from(host.querySelectorAll<HTMLButtonElement>('.ops-queue__row button')).find(button => button.textContent?.trim() === 'Try again with a text')!;
+    retry.click();
+    fixture.detectChanges();
+    expect(ops.sources).toHaveBeenCalledOnceWith('c2');
+    expect(host.querySelectorAll<HTMLInputElement>('.ops-demand__source input')[0].checked).toBeTrue();
+    expect(pickerButton(host, 'Start without a text')).toBeUndefined();
+    pickerButton(host, 'Start with this text').click();
+    expect(ops.start).toHaveBeenCalledOnceWith(failed, 'en1');
+  });
+
+  it('offers no retry while a preparation is still running', () => {
+    const {host} = setup();
+    expect(host.querySelector('.ops-queue--demand-wanted')?.textContent).not.toContain('Try again with a text');
+  });
+
+  it('finds the text a failed preparation used only while it can still be chosen', () => {
+    const used = (sourceUrl: string) => ({sourceKind: 'GUTENBERG', sourceUrl, sourceLanguage: 'fr', phase: 'failed', stagesDone: 0, error: null});
+    expect(previousSource(sources, used('https://www.gutenberg.org/ebooks/fr1'))?.id).toBe('fr1');
+    expect(previousSource(sources, used('https://www.gutenberg.org/ebooks/fr2'))).toBeNull();
+    expect(previousSource(sources, used('https://elsewhere.example'))).toBeNull();
+    expect(previousSource(sources, null)).toBeNull();
   });
 
   it('opens on the first text that can be chosen in the wanted language', () => {

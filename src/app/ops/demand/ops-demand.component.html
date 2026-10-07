@@ -9,7 +9,7 @@
         What readers want and what they looked for. Wanted rows are a work in a language, ranked by distinct readers;
         Start lists the work's free texts: start with one and the book processor fetches and ingests it, showing its
         four stages on the Wanted page, or start without a text to open the editorial catalogue prefilled in a new tab.
-        Either way the row moves to Being prepared. Decline drops it without a mail. Publishing the edition settles every want and tells each reader.
+        Either way the row moves to Being prepared; a failed preparation offers Try again with a text. Decline drops it without a mail. Publishing the edition settles every want and tells each reader.
         Under copyright lists searches whose best hit is protected, with the publisher where Wikidata has one, as
         research for a licensing conversation. No match lists searches that found nothing; Link to work teaches search
         that the query means a catalogue work.
@@ -56,6 +56,9 @@
                   @if (row.status === 'OPEN') {
                     <button class="ops-button ops-button--primary ops-button--tiny" type="button" [attr.aria-expanded]="pickingFor === wantedKey(row)" [disabled]="deciding === wantedKey(row)" (click)="onStart(row)">{{ pickingFor === wantedKey(row) ? 'Close' : 'Start' }}</button>
                   } @else {
+                    @if (row.preparing?.phase === 'failed') {
+                      <button class="ops-button ops-button--primary ops-button--tiny" type="button" [attr.aria-expanded]="pickingFor === wantedKey(row)" [disabled]="deciding === wantedKey(row)" (click)="onStart(row)">{{ pickingFor === wantedKey(row) ? 'Close' : 'Try again with a text' }}</button>
+                    }
                     <a class="ops-button ops-button--quiet ops-button--tiny" [href]="row.editorialUrl" target="_blank" rel="noopener">Open catalogue</a>
                   }
                   <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="deciding === wantedKey(row)" (click)="onDecline(row)">Decline</button>
@@ -93,7 +96,10 @@
                         @if (sources.length) {
                           <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="!chosenSource || deciding === wantedKey(row)" (click)="onStartWithSource(row)">Start with this text</button>
                         }
-                        <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="deciding === wantedKey(row)" (click)="onStartWithoutSource(row)">Start without a text</button>
+                        <!-- A plain start only takes an open row; a failed preparation is retried with a text. -->
+                        @if (row.status === 'OPEN') {
+                          <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="deciding === wantedKey(row)" (click)="onStartWithoutSource(row)">Start without a text</button>
+                        }
                       </span>
                     </div>
                   }
