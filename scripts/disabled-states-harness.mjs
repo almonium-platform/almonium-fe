@@ -28,6 +28,7 @@ const SCOPES = {
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
   'ops': 'src/app/ops/ops.component.less',
+  'ops-demand': 'src/app/ops/demand/ops-demand.component.less',
 };
 
 async function appCss() {
@@ -273,6 +274,48 @@ const CARDS = [
               </span>
             </div>
           </div>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'ops-demand-source',
+    title: '/ops · Demand — Start with this text before a text is picked',
+    source: 'ops-demand.component.html (Start, source picker)',
+    rule: 'A protected text is greyed and says until when; Start with this text waits for a free or unknown one, and the foot says so. Start without a text is always open.',
+    control: {label: 'chosenSource === null', type: 'checkbox', checked: true},
+    body: `
+      <div class="scope-ops harness-frame">
+        <!-- Less imports ops.component.less once, under the ops scope, so the demand sheet's own rules sit inside it. -->
+        <div class="scope-ops-demand ops-page" style="padding:0">
+        <div class="ops-queue ops-queue--demand-wanted">
+          <div class="ops-queue__job ops-demand__picker" style="margin:0">
+            <fieldset class="ops-demand__sources">
+              <legend>Text to prepare de from</legend>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Gutenberg · en · Dracula</strong><small>original · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--free">free</code>
+              </label>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Wikisource · de · Dracula (Übersetzung)</strong><small>translator unknown · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--unknown">unknown</code>
+              </label>
+              <label class="ops-demand__source ops-demand__source--blocked">
+                <input type="radio" name="harness-source" disabled />
+                <span class="ops-queue__book"><strong>Gutenberg · de · Dracula. Ein Vampyr-Roman</strong><small>translation by Heinz Widtmann (d. 1985) · <a href="#">page</a></small><small class="ops-demand__reason">Under copyright where we make books until 1 January 2056.</small></span>
+                <code class="ops-demand__status ops-demand__status--protected">under copyright</code>
+              </label>
+            </fieldset>
+            <div class="ops-queue__job-foot">
+              <code class="ops-demand__hint" data-note>Pick a free or unknown text to start with it.</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Start with this text</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Start without a text</button>
+              </span>
+            </div>
+          </div>
+        </div>
         </div>
       </div>`,
   },

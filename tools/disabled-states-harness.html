@@ -3947,6 +3947,123 @@ tui-data-list button[tuiOption].context-button.negative {
     justify-content: flex-start;
   }
 }
+.scope-ops-demand :host {
+  display: block;
+  min-height: 0;
+  background: none;
+}
+.scope-ops-demand .ops-demand__choice {
+  background: transparent;
+  cursor: pointer;
+}
+.scope-ops-demand .ops-demand__choice.ops-books__chip--ink {
+  background: var(--brand-ink);
+}
+.scope-ops-demand .ops-queue--demand-wanted .ops-queue__head,
+.scope-ops-demand .ops-queue--demand-wanted .ops-queue__row {
+  grid-template-columns: 1.7fr 0.4fr 0.5fr 0.8fr 13rem;
+}
+.scope-ops-demand .ops-queue--demand-copyright .ops-queue__head,
+.scope-ops-demand .ops-queue--demand-copyright .ops-queue__row {
+  grid-template-columns: 1.7fr 0.45fr 0.5fr 0.5fr 1.2fr;
+}
+.scope-ops-demand .ops-queue--demand-nomatch .ops-queue__head,
+.scope-ops-demand .ops-queue--demand-nomatch .ops-queue__row {
+  grid-template-columns: 2fr 0.5fr 0.5fr 8rem;
+}
+.scope-ops-demand .ops-demand__publisher {
+  overflow: hidden;
+  color: var(--ops-muted);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-ops-demand .ops-demand__hits {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.scope-ops-demand .ops-demand__hits li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ops-border);
+}
+.scope-ops-demand .ops-demand__hits li:last-child {
+  border-bottom: 0;
+}
+.scope-ops-demand .ops-demand__sources {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.scope-ops-demand .ops-demand__sources legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  color: var(--ops-muted);
+  font: 500 0.62rem/1.3 var(--font-family-mono);
+  letter-spacing: 0.05rem;
+  text-transform: uppercase;
+}
+.scope-ops-demand .ops-demand__source {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--ops-border);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.scope-ops-demand .ops-demand__source:last-of-type {
+  border-bottom: 0;
+}
+.scope-ops-demand .ops-demand__source input {
+  accent-color: var(--brand-ink);
+}
+.scope-ops-demand .ops-demand__source a {
+  color: var(--ops-accent);
+}
+.scope-ops-demand .ops-demand__source--blocked {
+  cursor: not-allowed;
+}
+.scope-ops-demand .ops-demand__source--blocked .ops-queue__book strong {
+  color: var(--ops-muted);
+}
+.scope-ops-demand .ops-demand__reason {
+  color: var(--ops-danger) !important;
+}
+.scope-ops-demand .ops-demand__status {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font: 500 0.66rem/1.3 var(--font-family-mono);
+  white-space: nowrap;
+}
+.scope-ops-demand .ops-demand__status--free {
+  background: color-mix(in srgb, var(--success-color) 16%, transparent);
+  color: var(--ops-ink);
+}
+.scope-ops-demand .ops-demand__status--unknown {
+  background: var(--ops-soft);
+  box-shadow: inset 0 0 0 1px var(--ops-border);
+  color: var(--ops-muted);
+}
+.scope-ops-demand .ops-demand__status--protected {
+  background: color-mix(in srgb, var(--ops-danger) 10%, transparent);
+  color: var(--ops-danger);
+}
+.scope-ops-demand .ops-demand__hint {
+  color: var(--ops-muted);
+  font-size: 0.7rem;
+}
+.scope-ops-demand .ops-demand__preparing a {
+  color: inherit;
+}
 </style>
 </head>
 <body>
@@ -4200,6 +4317,52 @@ tui-data-list button[tuiOption].context-button.negative {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+  </section>
+  <section class="harness-card" id="ops-demand-source">
+    <header>
+      <h2>/ops · Demand — Start with this text before a text is picked</h2>
+      <p class="harness-source">ops-demand.component.html (Start, source picker)</p>
+      <p class="harness-rule">A protected text is greyed and says until when; Start with this text waits for a free or unknown one, and the foot says so. Start without a text is always open.</p>
+      <label class="harness-toggle">
+        <input type="checkbox" data-card="ops-demand-source" checked>
+        <code>chosenSource === null</code>
+      </label>
+    </header>
+    
+      <div class="scope-ops harness-frame">
+        <!-- Less imports ops.component.less once, under the ops scope, so the demand sheet's own rules sit inside it. -->
+        <div class="scope-ops-demand ops-page" style="padding:0">
+        <div class="ops-queue ops-queue--demand-wanted">
+          <div class="ops-queue__job ops-demand__picker" style="margin:0">
+            <fieldset class="ops-demand__sources">
+              <legend>Text to prepare de from</legend>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Gutenberg · en · Dracula</strong><small>original · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--free">free</code>
+              </label>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Wikisource · de · Dracula (Übersetzung)</strong><small>translator unknown · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--unknown">unknown</code>
+              </label>
+              <label class="ops-demand__source ops-demand__source--blocked">
+                <input type="radio" name="harness-source" disabled />
+                <span class="ops-queue__book"><strong>Gutenberg · de · Dracula. Ein Vampyr-Roman</strong><small>translation by Heinz Widtmann (d. 1985) · <a href="#">page</a></small><small class="ops-demand__reason">Under copyright where we make books until 1 January 2056.</small></span>
+                <code class="ops-demand__status ops-demand__status--protected">under copyright</code>
+              </label>
+            </fieldset>
+            <div class="ops-queue__job-foot">
+              <code class="ops-demand__hint" data-note>Pick a free or unknown text to start with it.</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Start with this text</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Start without a text</button>
+              </span>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
   </section>
