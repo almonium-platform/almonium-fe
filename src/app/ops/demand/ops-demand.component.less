@@ -1,0 +1,57 @@
+// Demand sits inside the ops page and speaks its grammar exactly: the cards, queues, chips and forms come from the
+// page's own sheet, and only what is new to demand is added here.
+@import '../ops.component.less';
+
+// The page's :host paints the whole console; this host is one card within it.
+:host { display: block; min-height: 0; background: none; }
+
+.ops-demand__choice {
+  background: transparent;
+  cursor: pointer;
+}
+
+.ops-demand__choice.ops-books__chip--ink {
+  background: var(--brand-ink);
+}
+
+.ops-queue--demand-wanted .ops-queue__head,
+.ops-queue--demand-wanted .ops-queue__row {
+  grid-template-columns: 1.7fr .4fr .5fr .8fr 13rem;
+}
+
+.ops-queue--demand-copyright .ops-queue__head,
+.ops-queue--demand-copyright .ops-queue__row {
+  grid-template-columns: 1.7fr .45fr .5fr .5fr 1.2fr;
+}
+
+.ops-queue--demand-nomatch .ops-queue__head,
+.ops-queue--demand-nomatch .ops-queue__row {
+  grid-template-columns: 2fr .5fr .5fr 8rem;
+}
+
+.ops-demand__publisher {
+  overflow: hidden;
+  color: var(--ops-muted);
+  font-size: .8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-demand__hits {
+  margin: .6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-demand__hits li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--ops-border);
+}
+
+.ops-demand__hits li:last-child {
+  border-bottom: 0;
+}
