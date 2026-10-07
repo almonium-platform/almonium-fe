@@ -22,4 +22,16 @@ export class CatalogService {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/search`, {params, withCredentials: true})
       .pipe(map(parseCatalogHits));
   }
+
+  /**
+   * Public Domain Day: the best-known works that become free on 1 January of `year` (next year by the server's
+   * calendar when null), as search hits, so readers and the viewer's own want come along with a language.
+   */
+  comingFree(year: number | null = null, limit = 12, language: LanguageCode | null = null): Observable<CatalogHit[]> {
+    let params = new HttpParams().set('limit', String(limit));
+    if (year !== null) params = params.set('year', String(year));
+    if (language) params = params.set('language', language);
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/coming-free`, {params, withCredentials: true})
+      .pipe(map(parseCatalogHits));
+  }
 }

@@ -128,6 +128,8 @@
 
   <!-- Search across every notable book (W1, W2): what the shelf does not have, under it, as rows. -->
   <app-catalog-results [query]="titleFormControl.value" [language]="currentLanguage" [authenticated]="isAuthenticated" (importRequested)="startImport()" />
+  <!-- Public Domain Day while nothing is searched: what frees up next 1 January, counted down. -->
+  @if (!titleFormControl.value?.trim()) { <app-coming-free [language]="currentLanguage" [preview]="comingFreePreview" /> }
 
   <!-- Yours (G3, G21): absent until the first import; the header's "+ Import a book" is the whole affordance before that. -->
   @if (isAuthenticated && privateBooks.length > 0) {

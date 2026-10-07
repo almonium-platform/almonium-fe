@@ -36,4 +36,25 @@ describe('CatalogService', () => {
     expect(request.request.params.get('language')).toBe('FR');
     request.flush([]);
   });
+
+  it('asks for next year’s public domain by default, twelve works', async () => {
+    const result = firstValueFrom(service.comingFree());
+    const request = http.expectOne(req => req.url === `${AppConstants.PUBLIC_URL}/catalog/coming-free`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.has('year')).toBeFalse();
+    expect(request.request.params.get('limit')).toBe('12');
+    expect(request.request.params.has('language')).toBeFalse();
+    expect(request.request.withCredentials).toBeTrue();
+    request.flush([{id: 'p', title: 'Winnie-the-Pooh', author: 'A. A. Milne', year: 1926, state: 'UNDER_COPYRIGHT', freeFrom: 2027}]);
+    expect((await result)[0].freeFrom).toBe(2027);
+  });
+
+  it('names the year and the shelf language when given', () => {
+    service.comingFree(2027, 5, LanguageCode.DE).subscribe();
+    const request = http.expectOne(req => req.url === `${AppConstants.PUBLIC_URL}/catalog/coming-free`);
+    expect(request.request.params.get('year')).toBe('2027');
+    expect(request.request.params.get('limit')).toBe('5');
+    expect(request.request.params.get('language')).toBe('DE');
+    request.flush([]);
+  });
 });

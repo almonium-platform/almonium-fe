@@ -28,6 +28,7 @@ import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsL
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 import {CertificateMomentComponent} from './certificate/certificate-moment.component';
 import {CatalogResultsComponent} from './catalog/catalog-results.component';
+import {ComingFreeComponent} from './catalog/coming-free.component';
 
 type ShelfViewMode = 'covers' | 'spines';
 
@@ -50,6 +51,7 @@ type ShelfViewMode = 'covers' | 'spines';
     PaywallComponent,
     CertificateMomentComponent,
     CatalogResultsComponent,
+    ComingFreeComponent,
   ],
   templateUrl: './read.component.html',
   styleUrl: './read.component.less'
@@ -107,6 +109,8 @@ export class ReadComponent implements OnInit, OnDestroy {
   protected withdrawing: string | null = null;
   protected currentLanguageName = '';
   protected currentLanguage: LanguageCode | null = null;
+  /** Public Domain Day rows under the shelf before "Show N more": a glance, the Wanted page has the rest. */
+  protected readonly comingFreePreview = 3;
   /** Hues sampled from cover art, by work (or import id); anything missing falls back to the hash. */
   private sampledHues = new Map<string, BookHue>();
 
