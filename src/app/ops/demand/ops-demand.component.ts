@@ -5,13 +5,28 @@ import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Subject, of} from 'rxjs';
 import {catchError, debounceTime, distinctUntilChanged, finalize, switchMap, takeUntil} from 'rxjs/operators';
 import {RecentAuthGuardService} from '../../authentication/auth/recent-auth-guard.service';
-import {getErrorMessage} from '../../shared/http-error';
+import {getErrorMessage, httpStatus} from '../../shared/http-error';
 import {CatalogHit, catalogMeta, isCatalogQuery} from '../../sections/read/catalog/catalog.model';
 import {CatalogService} from '../../sections/read/catalog/catalog.service';
-import {Demand, DemandNoMatchRow, DemandWantedRow, OpsDemandService, demandWorkMeta} from '../ops-demand.service';
+import {StageState, stageStates} from '../../sections/read/wanted/wanted.model';
+import {
+  Demand,
+  DemandNoMatchRow,
+  DemandPreparing,
+  DemandWantedRow,
+  OpsDemandService,
+  TextSource,
+  demandWorkMeta,
+  sourceBlockedReason,
+  sourceTranslationLine,
+} from '../ops-demand.service';
 
 export type DemandTab = 'wanted' | 'underCopyright' | 'noMatch';
 export const DEMAND_WINDOWS = [7, 30, 90] as const;
+/** The Wanted page's four stages, as /ops names them. */
+export const PREPARATION_STAGES = ['Text', 'Chapters', 'Level & words', 'On the shelf'] as const;
+const SOURCE_KIND_LABELS: Record<string, string> = {GUTENBERG: 'Gutenberg', WIKISOURCE: 'Wikisource'};
+const SOURCE_STATUS_LABELS: Record<string, string> = {FREE: 'free', UNKNOWN: 'unknown', PROTECTED: 'under copyright'};
 
 /**
  * /ops → Demand (W5), replacing the book-requests queue: what readers want, what they searched for that is still
@@ -38,6 +53,15 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
   protected error = '';
   /** The wanted row being started or declined, by key. */
   protected deciding: string | null = null;
+
+  /** The wanted row whose source picker is open under it, by key. */
+  protected pickingFor: string | null = null;
+  /** The work's text sources, free first; null while they load. */
+  protected sources: TextSource[] | null = null;
+  protected sourcesError = '';
+  protected chosenSource: string | null = null;
+  /** The server's reason a start was refused (409), inside the picker. */
+  protected startError = '';
 
   /** The no-match query whose catalogue picker is open under it. */
   protected linkingQuery: string | null = null;
@@ -104,8 +128,77 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
 
   // --- Wanted ---
 
-  /** Start: the editorial catalogue opens prefilled in a new tab, and the row moves to Being prepared. */
+  /**
+   * Start opens the source picker under the row: the work's free texts, one of which the book processor can fetch and
+   * ingest, or "Start without a text", which opens the editorial catalogue prefilled as before.
+   */
   protected onStart(row: DemandWantedRow): void {
+    const key = this.wantedKey(row);
+    if (this.pickingFor === key) {
+      this.closePicker();
+      return;
+    }
+    this.pickingFor = key;
+    this.sources = null;
+    this.sourcesError = '';
+    this.chosenSource = null;
+    this.startError = '';
+    this.demandService.sources(row.catalogWorkId).subscribe({
+      next: sources => {
+        if (this.pickingFor !== key) return;
+        this.sources = sources;
+        this.chosenSource = preferredSource(sources, row.language)?.id ?? null;
+      },
+      error: error => {
+        if (this.pickingFor !== key) return;
+        this.sources = [];
+        this.sourcesError = getErrorMessage(error, 'The sources could not be loaded');
+      },
+    });
+  }
+
+  protected closePicker(): void {
+    this.pickingFor = null;
+    this.sources = null;
+    this.chosenSource = null;
+    this.startError = '';
+  }
+
+  protected chooseSource(source: TextSource): void {
+    if (this.blockedReason(source)) return;
+    this.chosenSource = source.id;
+    this.startError = '';
+  }
+
+  /** Start with the chosen text: the processor fetches it, and the row moves to Being prepared. */
+  protected onStartWithSource(row: DemandWantedRow): void {
+    const sourceId = this.chosenSource;
+    if (this.deciding || !sourceId) return;
+    this.recentAuthGuardService.guardAction(() => this.performStartWithSource(row, sourceId), false, 'Start with this text');
+  }
+
+  private performStartWithSource(row: DemandWantedRow, sourceId: string): void {
+    this.deciding = this.wantedKey(row);
+    this.startError = '';
+    this.demandService.start(row, sourceId).pipe(finalize(() => this.deciding = null)).subscribe({
+      next: () => {
+        const source = this.sources?.find(item => item.id === sourceId);
+        this.notify(`Preparing ${row.title} from ${source ? this.sourceKind(source.kind) : 'the chosen text'}.`, 'positive');
+        this.closePicker();
+        this.load();
+      },
+      error: error => {
+        if (httpStatus(error) === 409) {
+          this.startError = getErrorMessage(error, 'The book processor can’t start this one.');
+          return;
+        }
+        this.notify(getErrorMessage(error, 'Failed to start the row'), 'negative');
+      },
+    });
+  }
+
+  /** Start without a text: the editorial catalogue opens prefilled in a new tab, and the row moves to Being prepared. */
+  protected onStartWithoutSource(row: DemandWantedRow): void {
     if (this.deciding) return;
     this.recentAuthGuardService.guardAction(() => this.performStart(row), false, row.workSlug ? 'Add edition' : 'New work');
   }
@@ -113,7 +206,36 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
   private performStart(row: DemandWantedRow): void {
     // Opened before the request so the browser still counts it as the operator's click.
     window.open(row.editorialUrl, '_blank', 'noopener');
+    this.closePicker();
     this.decide(row, 'start');
+  }
+
+  protected sourceKind(kind: string): string {
+    return SOURCE_KIND_LABELS[kind] ?? kind.toLowerCase();
+  }
+
+  protected sourceStatus(source: TextSource): string {
+    return SOURCE_STATUS_LABELS[source.status] ?? source.status.toLowerCase();
+  }
+
+  protected translationLine(source: TextSource): string {
+    return sourceTranslationLine(source);
+  }
+
+  protected blockedReason(source: TextSource): string | null {
+    return sourceBlockedReason(source);
+  }
+
+  /** The four stages of a preparation, as the ops phase chips: done, under way (unless it failed), still to come. */
+  protected preparationStages(preparing: DemandPreparing): {label: string; state: StageState}[] {
+    return stageStates(preparing.stagesDone).map((state, index) => ({
+      label: PREPARATION_STAGES[index],
+      state: state === 'current' && this.preparationFailed(preparing) ? 'todo' : state,
+    }));
+  }
+
+  protected preparationFailed(preparing: DemandPreparing): boolean {
+    return preparing.phase === 'failed' || (!!preparing.error && preparing.phase !== 'published');
   }
 
   protected onDecline(row: DemandWantedRow): void {
@@ -163,4 +285,10 @@ export class OpsDemandComponent implements OnInit, OnDestroy {
         error: error => this.notify(getErrorMessage(error, 'Failed to link the query'), 'negative'),
       });
   }
+}
+
+/** The text a picker opens on: the first one that can be chosen in the language readers want, if any. */
+export function preferredSource(sources: readonly TextSource[], language: string): TextSource | null {
+  const wanted = language.toLowerCase();
+  return sources.find(source => source.status !== 'PROTECTED' && source.language.toLowerCase() === wanted) ?? null;
 }
