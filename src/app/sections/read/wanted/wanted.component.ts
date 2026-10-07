@@ -6,7 +6,8 @@ import {catchError, finalize, switchMap, takeUntil} from 'rxjs/operators';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {getErrorMessage, httpStatus} from '../../../shared/http-error';
 import {bookColor, hashedBookHue} from '../book-hue';
-import {ArrivedRow, WantedQueue, WantedRow, readersLabel} from './wanted.model';
+import {ComingFreeComponent} from '../catalog/coming-free.component';
+import {ArrivedRow, StageState, WantedQueue, WantedRow, readersLabel, stageStates} from './wanted.model';
 import {WantedService} from './wanted.service';
 
 export type WantedView = 'everyone' | 'mine';
@@ -17,7 +18,7 @@ export type WantedView = 'everyone' | 'mine';
  */
 @Component({
   selector: 'app-wanted',
-  imports: [RouterLink],
+  imports: [RouterLink, ComingFreeComponent],
   templateUrl: './wanted.component.html',
   styleUrl: './wanted.component.less',
 })
@@ -25,6 +26,14 @@ export class WantedComponent implements OnInit, OnDestroy {
   private wantedService = inject(WantedService);
   private languageNameService = inject(LanguageNameService);
   private alertService = inject(TuiNotificationService);
+
+  /** The four stages of a work being prepared from a free text, in order. */
+  protected readonly stageLabels = [
+    $localize`:A stage of preparing a book:Text`,
+    $localize`:A stage of preparing a book:Chapters`,
+    $localize`:A stage of preparing a book:Level & words`,
+    $localize`:A stage of preparing a book:On the shelf`,
+  ];
 
   protected view: WantedView = 'everyone';
   protected wanted: WantedQueue | null = null;
@@ -101,6 +110,12 @@ export class WantedComponent implements OnInit, OnDestroy {
 
   protected readersLabel(row: WantedRow): string | null {
     return readersLabel(row.readers);
+  }
+
+  /** The card's four bars, or none when the work is not being prepared from a free text. */
+  protected stages(row: WantedRow): {label: string; state: StageState}[] | null {
+    if (row.stagesDone === null) return null;
+    return stageStates(row.stagesDone).map((state, index) => ({label: this.stageLabels[index], state}));
   }
 
   protected coverColor(row: ArrivedRow): string {

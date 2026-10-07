@@ -6,6 +6,8 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {LanguageCode} from '../../../models/language.enum';
 import {CEFRLevel} from '../../../models/userinfo.model';
 import {AppHttpError} from '../../../shared/app-http-error';
+import {CatalogHit} from '../catalog/catalog.model';
+import {CatalogService} from '../catalog/catalog.service';
 import {WantedComponent} from './wanted.component';
 import {WantedQueue, WantedRow} from './wanted.model';
 import {WantedService} from './wanted.service';
@@ -13,7 +15,7 @@ import {WantedService} from './wanted.service';
 describe('WantedComponent', () => {
   const row = (title: string, extra: Partial<WantedRow> = {}): WantedRow => ({
     catalogWorkId: title, title, author: 'Jules Verne', language: LanguageCode.FR, workSlug: null, rank: 1, readers: null,
-    wantedByMe: false, status: 'OPEN', ...extra,
+    wantedByMe: false, status: 'OPEN', stagesDone: null, ...extra,
   });
   const everyone: WantedQueue = {
     beingPrepared: [row('Emma', {author: 'Jane Austen', language: LanguageCode.DE, wantedByMe: true, status: 'IN_PROGRESS'})],
@@ -26,7 +28,10 @@ describe('WantedComponent', () => {
   };
   const mine: WantedQueue = {beingPrepared: [], queue: [], recentlyArrived: [], mineCount: 0};
 
-  function setup(queue = jasmine.createSpy('queue').and.callFake((onlyMine: boolean) => of(onlyMine ? mine : everyone))) {
+  function setup(
+    queue = jasmine.createSpy('queue').and.callFake((onlyMine: boolean) => of(onlyMine ? mine : everyone)),
+    comingFree: CatalogHit[] = [],
+  ) {
     const want = jasmine.createSpy('want').and.returnValue(of({catalogWorkId: 'x', language: LanguageCode.FR, rank: 2, readers: null}));
     const withdraw = jasmine.createSpy('withdraw').and.returnValue(of(null));
     TestBed.configureTestingModule({
@@ -35,6 +40,7 @@ describe('WantedComponent', () => {
         provideRouter([]),
         {provide: WantedService, useValue: {queue, want, withdraw}},
         {provide: TuiNotificationService, useValue: {open: () => of(undefined)}},
+        {provide: CatalogService, useValue: {comingFree: () => of(comingFree)}},
       ],
     });
     const fixture = TestBed.createComponent(WantedComponent);
@@ -101,5 +107,53 @@ describe('WantedComponent', () => {
     host.querySelector<HTMLButtonElement>('.wanted-empty button')!.click();
     fixture.detectChanges();
     expect(host.textContent).toContain('Michel Strogoff');
+  });
+
+  it('shows a card’s four stages when its work is prepared from a free text, and none otherwise', () => {
+    const {host} = setup(jasmine.createSpy('queue').and.returnValue(of({
+      ...everyone,
+      beingPrepared: [
+        row('Emma', {status: 'IN_PROGRESS', stagesDone: 2}),
+        row('Persuasion', {status: 'IN_PROGRESS'}),
+      ],
+    })));
+    const cards = host.querySelectorAll('.prepared-card');
+    const stages = Array.from(cards[0].querySelectorAll('.stage'));
+    expect(stages.map(stage => stage.querySelector('.stage__label')?.textContent?.replace(/,.*/, '').trim()))
+      .toEqual(['Text', 'Chapters', 'Level & words', 'On the shelf']);
+    expect(stages.map(stage => stage.className))
+      .toEqual(['stage stage--done', 'stage stage--done', 'stage stage--current', 'stage stage--todo']);
+    expect(stages[2].textContent).toContain('in progress');
+    expect(cards[1].querySelector('.stages')).toBeNull();
+  });
+
+  it('counts down to Public Domain Day under the queue, without a want button', () => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 9, 9, 12));
+    try {
+      const pooh: CatalogHit = {
+        id: 'pooh', title: 'Winnie-the-Pooh', originalTitle: null, originalLanguage: 'en', author: 'A. A. Milne', year: 1926,
+        state: 'UNDER_COPYRIGHT', workSlug: null, freeFrom: 2027, readers: null, wantedByMe: false,
+      };
+      const {host} = setup(undefined, [pooh]);
+      const section = host.querySelector('.coming-free')!;
+      expect(section.querySelector('h2')?.textContent).toContain('Free on 1 January 2027');
+      expect(section.querySelector('.free-note--chip')?.textContent).toContain('Free in 84 days');
+      const shelfRow = section.querySelector('.coming-free__row')!;
+      expect(shelfRow.textContent).toContain('Winnie-the-Pooh');
+      expect(shelfRow.textContent).toContain('A. A. Milne · 1926');
+      expect(shelfRow.textContent).toContain('Free in 84 days');
+      expect(shelfRow.querySelector('button')).toBeNull();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('leaves Public Domain Day out of the reader’s own wants and out when nothing frees up', () => {
+    const {fixture, host} = setup();
+    expect(host.querySelector('.coming-free')).toBeNull();
+    host.querySelectorAll<HTMLButtonElement>('.view-toggle button')[1].click();
+    fixture.detectChanges();
+    expect(host.querySelector('app-coming-free')).toBeNull();
   });
 });

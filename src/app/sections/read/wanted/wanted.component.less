@@ -1,7 +1,7 @@
 // The Wanted page (W3) in the read page's grammar: a quiet header block, kicker rows, and list rows with one
-// action each. Order and state only; nothing here is a date or a progress bar.
+// action each. Order and state only; nothing here is a date, and the only progress is four stages, not a percentage.
 .wanted-container { align-items: stretch; flex-direction: column; justify-content: flex-start; gap: 1.5rem; padding: 1.35rem clamp(1rem, 4vw, 5rem) 4rem; }
-.wanted-header, .wanted-section, .wanted-empty { width: min(100%, 52rem); margin: 0 auto; }
+.wanted-header, .wanted-section, .wanted-empty, .wanted-coming-free { width: min(100%, 52rem); margin: 0 auto; }
 
 .wanted-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1.35rem 1.5rem 1.15rem; border-radius: 1.25rem; background: var(--nested-color); }
 .wanted-header__title { display: flex; flex-direction: column; gap: .2rem; }
@@ -26,6 +26,20 @@
 .prepared-card__copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .2rem; }
 .prepared-card__label { color: var(--success-color); font-size: .7rem; font-weight: 600; letter-spacing: .02em; }
 .prepared-card__title { font-size: 1.1rem; font-weight: 600; white-space: normal; }
+// The stages of a work prepared from a free text: four bars with a label each, done ones solid green, the one under
+// way light green, the rest grey with a muted label.
+.stages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; margin: .55rem 0 0; padding: 0; list-style: none; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.stage { display: flex; min-width: 0; flex-direction: column; gap: .3rem; }
+.stage__bar { height: 4px; border-radius: 999px; background: #ebe5e3; }
+.stage__label { overflow: hidden; color: var(--subhead-color); font-size: .68rem; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.stage--done .stage__bar { background: #16BA7F; }
+.stage--current .stage__bar { background: #bfe9d9; }
+.stage--todo .stage__label { color: var(--metadata-color); }
+:host-context(html[data-theme='dark']) .stage__bar { background: rgba(255, 255, 255, .12); }
+:host-context(html[data-theme='dark']) .stage--done .stage__bar { background: #16BA7F; }
+:host-context(html[data-theme='dark']) .stage--current .stage__bar { background: rgba(22, 186, 127, .38); }
+
 .prepared-card__mine { flex: 0 0 auto; color: var(--success-color); font-size: .76rem; font-weight: 600; }
 
 .wanted-rows { margin: 0; padding: 0; list-style: none; }

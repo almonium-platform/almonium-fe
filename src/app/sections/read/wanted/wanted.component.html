@@ -23,6 +23,17 @@
               <span i18n class="prepared-card__label">Being prepared</span>
               <h2 class="wanted-title prepared-card__title">{{ row.title }}</h2>
               <p class="wanted-meta">{{ rowMeta(row) }}</p>
+              @if (stages(row); as stages) {
+                <!-- Where the free text is (W3): done stages solid, the one under way light, the rest grey. -->
+                <ol class="stages" aria-label="Stages" i18n-aria-label>
+                  @for (stage of stages; track stage.label) {
+                    <li [class]="'stage stage--' + stage.state">
+                      <span class="stage__bar" aria-hidden="true"></span>
+                      <span class="stage__label">{{ stage.label }}@switch (stage.state) { @case ('done') { <span i18n class="visually-hidden">, done</span> } @case ('current') { <span i18n class="visually-hidden">, in progress</span> } }</span>
+                    </li>
+                  }
+                </ol>
+              }
             </div>
             @if (row.wantedByMe) { <span i18n class="prepared-card__mine">You want this</span> }
           </article>
@@ -63,6 +74,8 @@
         <p i18n class="wanted-empty">Nobody is waiting for a book yet. <a routerLink="/read" class="wanted-link">Search for one</a> you’d like to read.</p>
       }
     }
+
+    @if (view === 'everyone') { <app-coming-free class="wanted-coming-free" /> }
 
     @if (wanted.recentlyArrived.length > 0) {
       <section class="wanted-section" aria-labelledby="arrived-heading">

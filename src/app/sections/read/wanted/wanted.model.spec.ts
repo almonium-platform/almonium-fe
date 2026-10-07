@@ -1,6 +1,6 @@
 import {LanguageCode} from '../../../models/language.enum';
 import {CEFRLevel} from '../../../models/userinfo.model';
-import {ordinal, parseWantReceipt, parseWantedQueue, readersLabel, wantedToastMessage} from './wanted.model';
+import {ordinal, parseWantReceipt, parseWantedQueue, readersLabel, stageStates, wantedToastMessage} from './wanted.model';
 
 describe('wanted model', () => {
   it('says the place in line as an English ordinal', () => {
@@ -27,17 +27,27 @@ describe('wanted model', () => {
 
   it('reads the Wanted page, with nullable authors, slugs, levels and covers', () => {
     const queue = parseWantedQueue({
-      beingPrepared: [{catalogWorkId: 'p1', title: 'Emma', author: 'Jane Austen', language: 'DE', workSlug: 'emma', rank: 1, readers: 9, wantedByMe: true, status: 'IN_PROGRESS'}],
+      beingPrepared: [{catalogWorkId: 'p1', title: 'Emma', author: 'Jane Austen', language: 'DE', workSlug: 'emma', rank: 1, readers: 9, wantedByMe: true, status: 'IN_PROGRESS', stagesDone: 2}],
       queue: [{catalogWorkId: 'q1', title: 'Untitled', author: null, language: 'FR', workSlug: null, rank: 2, readers: null, wantedByMe: false, status: 'OPEN'}],
       recentlyArrived: [{catalogWorkId: 'a1', title: 'Dracula', author: 'Bram Stoker', language: 'EN', editionSlug: 'dracula-b2-en', cefrLevel: 'B2', coverUrl: null, arrivedAt: '2026-10-01T00:00:00Z'}],
       mineCount: 1,
     });
     expect(queue.beingPrepared[0].workSlug).toBe('emma');
+    expect(queue.beingPrepared[0].stagesDone).toBe(2);
     expect(queue.queue[0].author).toBeNull();
+    expect(queue.queue[0].stagesDone).toBeNull();
     expect(queue.recentlyArrived[0]).toEqual({
       catalogWorkId: 'a1', title: 'Dracula', author: 'Bram Stoker', language: LanguageCode.EN, editionSlug: 'dracula-b2-en', cefrLevel: CEFRLevel.B2, coverUrl: null,
     });
     expect(queue.mineCount).toBe(1);
     expect(() => parseWantedQueue({beingPrepared: [], queue: [{status: 'DONE'}], recentlyArrived: [], mineCount: 0})).toThrowError(/wanted\.queue\[0\]/);
+  });
+
+  it('lays the stages out as done, the one under way, and the rest', () => {
+    expect(stageStates(0)).toEqual(['current', 'todo', 'todo', 'todo']);
+    expect(stageStates(2)).toEqual(['done', 'done', 'current', 'todo']);
+    expect(stageStates(4)).toEqual(['done', 'done', 'done', 'done']);
+    expect(stageStates(7)).toEqual(['done', 'done', 'done', 'done']);
+    expect(stageStates(-1)).toEqual(['current', 'todo', 'todo', 'todo']);
   });
 });

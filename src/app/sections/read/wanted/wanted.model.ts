@@ -39,6 +39,22 @@ export interface WantedRow {
   readers: number | null;
   wantedByMe: boolean;
   status: WantStatus;
+  /** Being prepared from a free text: how many of the four stages are done, in order; null otherwise. */
+  stagesDone: number | null;
+}
+
+/** The four stages a work being prepared from a free text goes through, in order. */
+export const PREPARATION_STAGE_COUNT = 4;
+export type StageState = 'done' | 'current' | 'todo';
+
+/**
+ * Each stage's state for a count of stages done: the done ones, then the one under way, then the rest. Out-of-range
+ * counts are clamped rather than trusted.
+ */
+export function stageStates(stagesDone: number): StageState[] {
+  const done = Math.max(0, Math.min(PREPARATION_STAGE_COUNT, Math.floor(stagesDone)));
+  return Array.from({length: PREPARATION_STAGE_COUNT}, (_, index) =>
+    index < done ? 'done' : index === done ? 'current' : 'todo');
 }
 
 /** A wanted work that reached the shelf lately. The page shows order and state only, never the date. */
@@ -83,6 +99,7 @@ function parseWantedRow(value: unknown, path: string): WantedRow {
     readers: expectNullableNumber(data['readers'], `${path}.readers`),
     wantedByMe: expectBoolean(data['wantedByMe'], `${path}.wantedByMe`),
     status: expectEnum(data['status'], WANT_STATUSES, `${path}.status`),
+    stagesDone: data['stagesDone'] === undefined ? null : expectNullableNumber(data['stagesDone'], `${path}.stagesDone`),
   };
 }
 
