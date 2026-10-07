@@ -14,7 +14,10 @@
         <div class="copyright-card__copy">
           <h3 class="catalog-title">{{ hit.title }}</h3>
           @if (meta(hit); as line) { <p class="catalog-meta">{{ line }}</p> }
-          <span i18n class="copyright-chip">Under copyright</span>
+          <span class="copyright-card__chips">
+            <span i18n class="copyright-chip">Under copyright</span>
+            <app-free-from-note [note]="countdown(hit)" />
+          </span>
           <p i18n class="copyright-card__text">We can only publish books whose copyright has expired, so we can’t offer this one. If you own a copy, you can import it and read it here privately.</p>
           <button i18n type="button" class="catalog-link" (click)="importRequested.emit()">Import your copy</button>
         </div>
@@ -29,6 +32,7 @@
             <span class="catalog-row__copy">
               <span class="catalog-title">{{ hit.title }}</span>
               @if (meta(hit); as line) { <span class="catalog-meta">{{ line }}</span> }
+              @if (hit.state === 'WANTABLE' && freeSince(hit); as note) { <span class="catalog-row__note"><app-free-from-note [note]="note" /></span> }
               @if (signInFor === hit.id) {
                 <span class="catalog-row__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in to want this book.</a></span>
               }

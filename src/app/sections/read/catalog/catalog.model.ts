@@ -26,7 +26,10 @@ export interface CatalogHit {
   state: CatalogState;
   /** The shelf work it is linked to, when there is one. */
   workSlug: string | null;
-  /** The year it became free (WANTABLE) or the soonest it can (UNDER_COPYRIGHT); null when unknown. */
+  /**
+   * Set only when exact: the year it becomes free where we make books, from 1 January (UNDER_COPYRIGHT), or the year
+   * it became free (WANTABLE); null when unknown or only a lower bound.
+   */
   freeFrom: number | null;
   /** Distinct members wanting it in the language searched for; null below three, or when no language was sent. */
   readers: number | null;

@@ -9,6 +9,7 @@ import {WantedService} from '../wanted/wanted.service';
 import {CATALOG_DEBOUNCE_MS, CatalogResultsComponent} from './catalog-results.component';
 import {CatalogHit} from './catalog.model';
 import {CatalogService} from './catalog.service';
+import {daysUntilNewYear} from './public-domain-day';
 
 describe('CatalogResultsComponent', () => {
   const hit = (title: string, state: CatalogHit['state'], extra: Partial<CatalogHit> = {}): CatalogHit => ({
@@ -155,4 +156,42 @@ describe('CatalogResultsComponent', () => {
     type('verne');
     expect(host.querySelector('.catalog')).toBeNull();
   }));
+
+  describe('public domain day', () => {
+    const thisYear = new Date().getFullYear();
+    const freeIn = (days: number) => days === 1 ? 'Free tomorrow' : `Free in ${days} days`;
+
+    it('counts the protected best hit down when it frees up next 1 January', fakeAsync(() => {
+      const {host, type} = setup({pooh: of([hit('Winnie-the-Pooh', 'UNDER_COPYRIGHT', {freeFrom: thisYear + 1})])});
+      type('pooh');
+      const chip = host.querySelector('.copyright-card .free-note--chip');
+      expect(chip?.textContent).toContain(freeIn(daysUntilNewYear(thisYear + 1, new Date())));
+    }));
+
+    it('names the date and the years when it is later, and says nothing when the year is unknown', fakeAsync(() => {
+      const {host, type} = setup({
+        styles: of([hit('The Mysterious Affair at Styles', 'UNDER_COPYRIGHT', {freeFrom: thisYear + 21})]),
+        potter: of([hit('Harry Potter', 'UNDER_COPYRIGHT')]),
+      });
+      type('styles');
+      expect(host.querySelector('.copyright-card .free-note')?.textContent?.replace(/\s+/g, ' ').trim())
+        .toBe(`Free on 1 January ${thisYear + 21} · in 21 years`);
+      type('potter');
+      expect(host.querySelector('.copyright-card')).not.toBeNull();
+      expect(host.querySelector('.copyright-card .free-note')).toBeNull();
+    }));
+
+    it('notes a row that turned free this 1 January, and only that', fakeAsync(() => {
+      const {host, type} = setup({brecht: of([
+        hit('Baal', 'WANTABLE', {freeFrom: thisYear}),
+        hit('Older', 'WANTABLE', {freeFrom: thisYear - 1}),
+        hit('Elsewhere', 'NOT_IN_YOUR_COUNTRY', {freeFrom: thisYear}),
+      ])});
+      type('brecht');
+      const rows = host.querySelectorAll('.catalog-row');
+      expect(rows[0].querySelector('.free-note--since')?.textContent).toContain('Free since 1 January');
+      expect(rows[1].querySelector('.free-note')).toBeNull();
+      expect(rows[2].querySelector('.free-note')).toBeNull();
+    }));
+  });
 });

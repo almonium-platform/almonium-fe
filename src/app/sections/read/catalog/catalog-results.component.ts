@@ -10,6 +10,8 @@ import {readersLabel, wantedToastMessage} from '../wanted/wanted.model';
 import {WantedService} from '../wanted/wanted.service';
 import {CatalogHit, CatalogResultsPlan, catalogMeta, isCatalogQuery, planCatalogResults} from './catalog.model';
 import {CatalogService} from './catalog.service';
+import {FreeFromNoteComponent} from './free-from-note.component';
+import {FreeFromNote, copyrightCountdown, freeSinceNote} from './public-domain-day';
 
 /** Rows shown before "Show N more". */
 export const CATALOG_PREVIEW_ROWS = 5;
@@ -27,7 +29,7 @@ const EMPTY_PLAN: CatalogResultsPlan = {copyright: null, rows: []};
  */
 @Component({
   selector: 'app-catalog-results',
-  imports: [RouterLink],
+  imports: [RouterLink, FreeFromNoteComponent],
   templateUrl: './catalog-results.component.html',
   styleUrl: './catalog-results.component.less',
 })
@@ -117,6 +119,16 @@ export class CatalogResultsComponent implements OnDestroy {
 
   protected meta(hit: CatalogHit): string {
     return catalogMeta(hit);
+  }
+
+  /** When the protected best hit frees up, if the catalogue knows the exact year. */
+  protected countdown(hit: CatalogHit): FreeFromNote | null {
+    return copyrightCountdown(hit.freeFrom, new Date());
+  }
+
+  /** "Free since 1 January" on a row that turned free this year. */
+  protected freeSince(hit: CatalogHit): FreeFromNote | null {
+    return freeSinceNote(hit.freeFrom, new Date());
   }
 
   /** "N readers" beside the button, once three or more want it. */
