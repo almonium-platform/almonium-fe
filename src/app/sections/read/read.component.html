@@ -15,47 +15,6 @@
   </div>
 </ng-template>
 
-<ng-template #askSheet>
-  <div class="sheet ask-sheet">
-    <h2 class="sheet__title" i18n>Ask for a book</h2>
-    @if (askStep === 'route') {
-      <p class="ask-sheet__question" i18n>Do you have the text?</p>
-      <button type="button" class="ask-option" (click)="chooseHaveText(false)">
-        <strong i18n>No, add it for everyone</strong>
-        <small i18n>Works whose copyright has expired, roughly anything published before 1929. We prepare the text and it appears on the shelf for all readers.</small>
-      </button>
-      <button type="button" class="ask-option" (click)="chooseHaveText(true)">
-        <strong i18n>Yes, I’ll bring my own</strong>
-        <small i18n>Upload an EPUB or text. Only you can read it. Private import is part of Premium.</small>
-      </button>
-      <div class="sheet__actions">
-        <button i18n type="button" class="sheet__quiet" (click)="closeAskSheet()">Cancel</button>
-      </div>
-    } @else {
-      <label class="ask-field">
-        <span i18n>Title and author</span>
-        <input type="text" [formControl]="askTitleControl" placeholder="Dracula, Bram Stoker" i18n-placeholder autocomplete="off" />
-      </label>
-      @if (askLanguages.length > 1) {
-        <div class="ask-field" role="group" aria-label="Language you’d read it in" i18n-aria-label>
-          <span i18n>Language you’d read it in</span>
-          <div class="ask-field__chips">
-            @for (code of askLanguages; track code) {
-              <button type="button" class="filter-chip" [class.active]="askLanguage === code" [attr.aria-pressed]="askLanguage === code" (click)="pickAskLanguage(code)">{{ languageName(code) }}</button>
-            }
-          </div>
-        </div>
-      }
-      @if (askResultLine; as line) { <p class="sheet__note">{{ line }}</p> }
-      <div class="sheet__actions">
-        <button type="button" class="sheet__primary" [disabled]="!canAsk && !askLookup?.onShelf" (click)="submitAsk()">{{ askButtonLabel }}</button>
-        <button i18n type="button" class="sheet__quiet" (click)="closeAskSheet()">Cancel</button>
-      </div>
-      @if (askBlockedNote; as note) { <p class="sheet__hint">{{ note }}</p> }
-    }
-  </div>
-</ng-template>
-
 <ng-template #translationsHint><div i18n>Also show books not originally written in {{ currentLanguageName }} — you'll read a {{ currentLanguageName }} translation.</div></ng-template>
 <ng-template #parallelHint><div i18n>Books that can be read side by side with a translation.</div></ng-template>
 
@@ -146,8 +105,8 @@
         }
       </div>
     } @else if (emptySearchTerm; as term) {
-      <!-- The empty search is the same quiet line with the term in it (G18); no placeholder tile. -->
-      <p class="ask-line ask-line--empty"><ng-container i18n>Nothing for ‘{{ term }}’.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for it.</button></p>
+      <!-- The empty search is the same quiet line with the term in it (G18); the catalogue rows below say what to do. -->
+      <p i18n class="ask-line ask-line--empty">Nothing on the shelf for ‘{{ term }}’.</p>
     } @else if (filtersSet) {
       <!-- Filters but no term: the line says which filters emptied the shelf, and the verb undoes them. -->
       <p class="ask-line ask-line--empty">{{ emptyFilterMessage }}&ngsp;<button i18n type="button" class="ask-line__verb" (click)="clearFilters()">Clear filters</button></p>
@@ -155,16 +114,22 @@
       <!-- Nothing set and nothing on the shelf (G21): the catalogue is empty for this language, so Almo searches where the grid would be. -->
       <div class="almo-empty">
         <img src="assets/img/almo/searching.webp" alt="" class="almo-empty__pose">
-        <p class="ask-line"><ng-container i18n>Nothing in {{ currentLanguageName }} yet.</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for a book.</button></p>
+        <p class="ask-line"><ng-container i18n>Nothing in {{ currentLanguageName }} yet. Search for a book you’d like to read.</ng-container>@if (isAuthenticated) {&ngsp;<a i18n class="ask-line__verb" routerLink="/read/wanted">See what readers want.</a>}</p>
       </div>
     }
     @if (shelfTiles.length > 0) {
       <span #shelfEnd class="shelf-end" aria-hidden="true"></span>
-      @if (shelfEndReached) {
-        <p class="ask-line"><ng-container i18n>Missing a classic?</ng-container>&ngsp;<button i18n type="button" class="ask-line__verb" (click)="openAskSheet()">Ask for a book</button></p>
+      <!-- The foot of the shelf (W3): the way to the Wanted page, for a member who has scrolled this far. -->
+      @if (shelfEndReached && isAuthenticated) {
+        <p class="ask-line"><ng-container i18n>Missing a classic? Search for it and want it.</ng-container>&ngsp;<a i18n class="ask-line__verb" routerLink="/read/wanted">Wanted</a></p>
       }
     }
   </section>
+
+  <!-- Search across every notable book (W1, W2): what the shelf does not have, under it, as rows. -->
+  <app-catalog-results [query]="titleFormControl.value" [language]="currentLanguage" [authenticated]="isAuthenticated" (importRequested)="startImport()" />
+  <!-- Public Domain Day while nothing is searched: what frees up next 1 January, counted down. -->
+  @if (!titleFormControl.value?.trim()) { <app-coming-free [language]="currentLanguage" [preview]="comingFreePreview" /> }
 
   <!-- Yours (G3, G21): absent until the first import; the header's "+ Import a book" is the whole affordance before that. -->
   @if (isAuthenticated && privateBooks.length > 0) {

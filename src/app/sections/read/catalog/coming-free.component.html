@@ -1,0 +1,28 @@
+@if (hits.length > 0) {
+  <section class="coming-free" aria-labelledby="coming-free-heading">
+    <div class="kicker-row">
+      <h2 i18n id="coming-free-heading" class="kicker">Free on 1 January {{ year }}</h2>
+      <span class="rule" aria-hidden="true"></span>
+      <app-free-from-note [note]="countdown" />
+    </div>
+    <p i18n class="coming-free__lede">On Public Domain Day their copyright runs out, and they can join the shelf.</p>
+    <ul class="coming-free__rows">
+      @for (hit of visibleHits; track hit.id) {
+        <li class="coming-free__row">
+          <span class="outline-cover" aria-hidden="true"></span>
+          <span class="coming-free__copy">
+            <span class="coming-free__title">{{ hit.title }}</span>
+            @if (meta(hit); as line) { <span class="coming-free__meta">{{ line }}</span> }
+          </span>
+          <span class="coming-free__aside">
+            @if (readersLabel(hit); as readers) { <span class="coming-free__readers">{{ readers }}</span> }
+            <app-free-from-note [note]="rowCountdown(hit)" [muted]="true" />
+          </span>
+        </li>
+      }
+    </ul>
+    @if (hiddenCount > 0) {
+      <button i18n type="button" class="coming-free__more" (click)="expanded = true">Show {{ hiddenCount }} more</button>
+    }
+  </section>
+}

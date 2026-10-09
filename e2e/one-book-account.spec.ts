@@ -41,7 +41,7 @@ test('one open book stands in Continue and on the Library shelf, and nothing els
   await expect(library.locator('.kicker')).toHaveText('Library · 1');
   // The foot line waits for the reader to reach the end of the shelf, which here is below the fold.
   await library.locator('.shelf-end').scrollIntoViewIfNeeded();
-  await expect(library.locator('.ask-line')).toHaveText('Missing a classic? Ask for a book');
+  await expect(library.locator('.ask-line')).toHaveText('Missing a classic? Search for it and want it. Wanted');
 
   // Gone against the old build: the header counter, the Yours shelf, the Clear filters button, the requests card.
   await expect(page.locator('.read-header .quota')).toHaveCount(0);
@@ -78,7 +78,7 @@ test('a shelf language with no books yet shows Almo searching and one ask line, 
   await page.goto('/read');
   const library = page.locator('.book-shelf--library');
   await expect(library.locator('.almo-empty__pose')).toBeVisible();
-  await expect(library.locator('.almo-empty .ask-line')).toHaveText('Nothing in English yet. Ask for a book.');
+  await expect(library.locator('.almo-empty .ask-line')).toHaveText('Nothing in English yet. Search for a book you’d like to read. See what readers want.');
   await expect(library.locator('.ask-line')).toHaveCount(1);
   await expect(page.getByRole('button', {name: 'Clear filters'})).toHaveCount(0);
   await page.screenshot({path: testInfo.outputPath('g21-empty-catalogue.png'), animations: 'disabled'});

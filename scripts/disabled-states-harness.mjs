@@ -23,11 +23,12 @@ const SCOPES = {
   'onboarding': 'src/app/onboarding/onboarding.component.less',
   'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
-  'read': 'src/app/sections/read/read.component.less',
+  'rights-report': 'src/app/sections/read/rights/rights-report.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
   'ops': 'src/app/ops/ops.component.less',
+  'ops-demand': 'src/app/ops/demand/ops-demand.component.less',
 };
 
 async function appCss() {
@@ -196,30 +197,38 @@ const CARDS = [
       </div>`,
   },
   {
-    id: 'ask-for-a-book',
-    title: 'Read — the ask sheet before the reader has given it a title',
-    source: 'read.component.html: #askSheet',
-    rule: 'The ask needs a title and a language; the line under the button names the one still missing.',
+    id: 'rights-report',
+    title: 'Book — the rights report before it says enough to send',
+    source: 'rights-report.component.html: Send',
+    rule: 'A report needs who is writing, ten characters about the problem, and, from a guest, an email; the line under Send names the first one still missing.',
     control: {
-      label: 'askTitle',
+      label: 'draft',
       type: 'select',
       options: [
-        {value: 'typed', label: '"Dracula, Bram Stoker", language picked', note: '', blocked: false},
-        {value: 'empty', label: 'nothing typed yet', note: 'Type the title to ask for it.', blocked: true},
-        {value: 'checking', label: 'lookup still in flight', note: 'Checking the title…', blocked: true},
+        {value: 'ready', label: 'role, message and email given', note: '', blocked: false},
+        {value: 'role', label: 'nothing picked yet', note: 'Say who you are.', blocked: true},
+        {value: 'message', label: 'message "Wrong"', note: 'Describe the problem: 5 more characters at least.', blocked: true},
+        {value: 'email', label: 'guest, no email', note: 'Leave your email so we can answer.', blocked: true},
+        {value: 'bad-email', label: 'guest, email "holder@"', note: 'Check the email address.', blocked: true},
       ],
     },
     body: `
-      <div class="scope-read harness-frame">
-        <div class="sheet ask-sheet">
-          <h2 class="sheet__title">Ask for a book</h2>
-          <label class="ask-field"><span>Title and author</span><input type="text" placeholder="Dracula, Bram Stoker" /></label>
-          <div class="ask-field"><span>Language you’d read it in</span><div class="ask-field__chips"><button type="button" class="filter-chip active">English</button><button type="button" class="filter-chip">Ukrainian</button></div></div>
+      <div class="scope-rights-report harness-frame">
+        <div class="sheet">
+          <h2 class="sheet__title">Report a problem with this book’s rights</h2>
+          <fieldset class="field"><legend>Who are you?</legend>
+            <label class="radio"><input type="radio" name="harness-role" checked /><span>I hold or represent the rights</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>I’m a reader</span></label>
+            <label class="radio"><input type="radio" name="harness-role" /><span>Other</span></label>
+          </fieldset>
+          <label class="field"><span>Email</span><input type="email" placeholder="you@example.com" /></label>
+          <label class="field"><span>Which country is it about?</span><select><option>Everywhere</option></select></label>
+          <label class="field"><span>What is wrong?</span><textarea rows="3"></textarea></label>
           <div class="sheet__actions">
-            <button type="button" class="sheet__primary" data-blocked>Ask for Dracula</button>
+            <button type="button" class="sheet__primary" data-blocked>Send</button>
             <button type="button" class="sheet__quiet">Cancel</button>
           </div>
-          <p class="sheet__hint" data-note>Type the title to ask for it.</p>
+          <p class="sheet__hint" data-note>Say who you are.</p>
         </div>
       </div>`,
   },
@@ -265,6 +274,48 @@ const CARDS = [
               </span>
             </div>
           </div>
+        </div>
+      </div>`,
+  },
+  {
+    id: 'ops-demand-source',
+    title: '/ops · Demand — Start with this text before a text is picked',
+    source: 'ops-demand.component.html (Start, source picker)',
+    rule: 'A protected text is greyed and says until when; Start with this text waits for a free or unknown one, and the foot says so. Start without a text is always open.',
+    control: {label: 'chosenSource === null', type: 'checkbox', checked: true},
+    body: `
+      <div class="scope-ops harness-frame">
+        <!-- Less imports ops.component.less once, under the ops scope, so the demand sheet's own rules sit inside it. -->
+        <div class="scope-ops-demand ops-page" style="padding:0">
+        <div class="ops-queue ops-queue--demand-wanted">
+          <div class="ops-queue__job ops-demand__picker" style="margin:0">
+            <fieldset class="ops-demand__sources">
+              <legend>Text to prepare de from</legend>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Gutenberg · en · Dracula</strong><small>original · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--free">free</code>
+              </label>
+              <label class="ops-demand__source">
+                <input type="radio" name="harness-source" />
+                <span class="ops-queue__book"><strong>Wikisource · de · Dracula (Übersetzung)</strong><small>translator unknown · <a href="#">page</a></small></span>
+                <code class="ops-demand__status ops-demand__status--unknown">unknown</code>
+              </label>
+              <label class="ops-demand__source ops-demand__source--blocked">
+                <input type="radio" name="harness-source" disabled />
+                <span class="ops-queue__book"><strong>Gutenberg · de · Dracula. Ein Vampyr-Roman</strong><small>translation by Heinz Widtmann (d. 1985) · <a href="#">page</a></small><small class="ops-demand__reason">Under copyright where we make books until 1 January 2056.</small></span>
+                <code class="ops-demand__status ops-demand__status--protected">under copyright</code>
+              </label>
+            </fieldset>
+            <div class="ops-queue__job-foot">
+              <code class="ops-demand__hint" data-note>Pick a free or unknown text to start with it.</code>
+              <span class="ops-queue__actions">
+                <button class="ops-button ops-button--primary ops-button--tiny" type="button" data-blocked>Start with this text</button>
+                <button class="ops-button ops-button--quiet ops-button--tiny" type="button">Start without a text</button>
+              </span>
+            </div>
+          </div>
+        </div>
         </div>
       </div>`,
   },

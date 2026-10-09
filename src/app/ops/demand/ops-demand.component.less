@@ -1,0 +1,144 @@
+// Demand sits inside the ops page and speaks its grammar exactly: the cards, queues, chips and forms come from the
+// page's own sheet, and only what is new to demand is added here.
+@import '../ops.component.less';
+
+// The page's :host paints the whole console; this host is one card within it.
+:host { display: block; min-height: 0; background: none; }
+
+.ops-demand__choice {
+  background: transparent;
+  cursor: pointer;
+}
+
+.ops-demand__choice.ops-books__chip--ink {
+  background: var(--brand-ink);
+}
+
+.ops-queue--demand-wanted .ops-queue__head,
+.ops-queue--demand-wanted .ops-queue__row {
+  grid-template-columns: 1.7fr .4fr .5fr .8fr 13rem;
+}
+
+.ops-queue--demand-copyright .ops-queue__head,
+.ops-queue--demand-copyright .ops-queue__row {
+  grid-template-columns: 1.7fr .45fr .5fr .5fr 1.2fr;
+}
+
+.ops-queue--demand-nomatch .ops-queue__head,
+.ops-queue--demand-nomatch .ops-queue__row {
+  grid-template-columns: 2fr .5fr .5fr 8rem;
+}
+
+.ops-demand__publisher {
+  overflow: hidden;
+  color: var(--ops-muted);
+  font-size: .8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-demand__hits {
+  margin: .6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ops-demand__hits li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .5rem 0;
+  border-bottom: 1px solid var(--ops-border);
+}
+
+.ops-demand__hits li:last-child {
+  border-bottom: 0;
+}
+
+// Start's source picker: one radio row per text, free first, a status chip on the right. A protected text is greyed
+// and says why on its own line.
+.ops-demand__sources {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ops-demand__sources legend {
+  margin-bottom: .35rem;
+  padding: 0;
+  color: var(--ops-muted);
+  font: 500 .62rem/1.3 var(--font-family-mono);
+  letter-spacing: .05rem;
+  text-transform: uppercase;
+}
+
+.ops-demand__source {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  padding: .45rem 0;
+  border-bottom: 1px solid var(--ops-border);
+  cursor: pointer;
+  font-size: .8rem;
+}
+
+.ops-demand__source:last-of-type {
+  border-bottom: 0;
+}
+
+.ops-demand__source input {
+  accent-color: var(--brand-ink);
+}
+
+.ops-demand__source a {
+  color: var(--ops-accent);
+}
+
+.ops-demand__source--blocked {
+  cursor: not-allowed;
+}
+
+.ops-demand__source--blocked .ops-queue__book strong {
+  color: var(--ops-muted);
+}
+
+.ops-demand__reason {
+  color: var(--ops-danger) !important;
+}
+
+.ops-demand__status {
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  font: 500 .66rem/1.3 var(--font-family-mono);
+  white-space: nowrap;
+}
+
+.ops-demand__status--free {
+  background: color-mix(in srgb, var(--success-color) 16%, transparent);
+  color: var(--ops-ink);
+}
+
+.ops-demand__status--unknown {
+  background: var(--ops-soft);
+  box-shadow: inset 0 0 0 1px var(--ops-border);
+  color: var(--ops-muted);
+}
+
+.ops-demand__status--protected {
+  background: color-mix(in srgb, var(--ops-danger) 10%, transparent);
+  color: var(--ops-danger);
+}
+
+.ops-demand__hint {
+  color: var(--ops-muted);
+  font-size: .7rem;
+}
+
+.ops-demand__preparing a {
+  color: inherit;
+}

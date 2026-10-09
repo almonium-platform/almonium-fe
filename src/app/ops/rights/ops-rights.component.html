@@ -1,0 +1,298 @@
+<section class="ops-card ops-card--books" aria-labelledby="rights-reports-title">
+  <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+    <div>
+      <p class="ops-books__path">/ops / rights / reports</p>
+      <h2 id="rights-reports-title" class="ops-books__title">
+        @if (reports) { {{ openReports }} open {{ openReports === 1 ? 'report' : 'reports' }} } @else { Rights reports }
+      </h2>
+      <p>
+        What readers and rights holders sent from the report button on a book page. Each was mailed to the copyright
+        address the moment it arrived; a report hides nothing by itself. Take down opens a block prefilled with the
+        report's country, or everywhere when it named none; saving it settles the report and reaches every reader
+        within a minute. Dismiss settles it with no change.
+      </p>
+    </div>
+    <div class="ops-books__spend">
+      <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingReports" (click)="loadReports()">
+        {{ loadingReports ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (reportsError) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ reportsError }}</span>
+    </div>
+  } @else if (!reports) {
+    <p class="ops-maintenance__more">Loading…</p>
+  } @else if (reports.length) {
+    <div class="ops-queue ops-queue--rights-reports">
+      <div class="ops-queue__head"><span>Book</span><span>From</span><span>Country</span><span>Message</span><span></span></div>
+      @for (report of reports; track report.id) {
+        <div class="ops-queue__row" [class.ops-queue__row--live]="takedownFor === report.id">
+          <span class="ops-queue__book"><strong>{{ report.bookTitle }}</strong><small>{{ report.editionSlug }} · {{ report.createdAt | date:'MMM d, HH:mm' }}</small></span>
+          <span class="ops-queue__book"><strong>{{ roleLabel(report.role) }}</strong><small>{{ report.reporterName || '—' }}@if (report.reporterEmail) { · <a [href]="'mailto:' + report.reporterEmail">{{ report.reporterEmail }}</a> }</small></span>
+          <span class="ops-queue__book"><code>{{ report.country || 'everywhere' }}</code><small>from {{ report.detectedCountry || '??' }}</small></span>
+          <span class="ops-rights__message" [title]="report.message">{{ report.message }}</span>
+          <span class="ops-queue__actions">
+            @if (report.status === 'OPEN') {
+              <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="decidingReport === report.id" (click)="onOpenTakedown(report)">{{ takedownFor === report.id ? 'Close' : 'Take down…' }}</button>
+              <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingReport === report.id" (click)="onDismiss(report)">Dismiss</button>
+            } @else {
+              <code class="ops-queue__stamp" [class.ops-queue__stamp--done]="report.status === 'ACTIONED'">{{ report.status | lowercase }} {{ report.handledAt | date:'MMM d' }}</code>
+            }
+          </span>
+        </div>
+        @if (takedownFor === report.id) {
+          <form class="ops-queue__job ops-rights__override" [formGroup]="takedownForm" (ngSubmit)="onTakedown(report)">
+            <p class="ops-rights__full">{{ report.message }}</p>
+            <div class="ops-rights__override-grid">
+              <label class="ops-form__field">
+                <span>Country <em>* is everywhere</em></span>
+                <input type="text" formControlName="country" maxlength="2" autocomplete="off" />
+              </label>
+              <label class="ops-form__field">
+                <span>Effect</span>
+                <select formControlName="effect">@for (effect of effects; track effect) { <option [value]="effect">{{ effect }}</option> }</select>
+              </label>
+              <label class="ops-form__field ops-rights__reason">
+                <span>Reason <em>kept with the override</em></span>
+                <input type="text" formControlName="reason" maxlength="1000" />
+              </label>
+            </div>
+            <div class="ops-queue__job-foot">
+              <code>{{ report.workSlug }} · report {{ report.id }}</code>
+              <button class="ops-button ops-button--danger ops-button--tiny" type="submit" [disabled]="savingOverride">
+                {{ savingOverride ? 'Saving…' : (takedownForm.controls.effect.value === 'BLOCK' ? 'Block ' : 'Allow ') + (takedownForm.controls.country.value === '*' ? 'everywhere' : 'in ' + takedownForm.controls.country.value.toUpperCase()) }}
+              </button>
+            </div>
+            @if (takedownForm.invalid) { <p class="ops-rights__missing">{{ takedownForm.controls.country.invalid ? 'Country is * or a two-letter code.' : 'Give a reason for the record.' }}</p> }
+          </form>
+        }
+      }
+    </div>
+  } @else {
+    <p class="ops-maintenance__more">No rights reports yet.</p>
+  }
+</section>
+
+<section class="ops-card ops-card--books" aria-labelledby="rights-works-title">
+  <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+    <div>
+      <p class="ops-books__path">/ops / rights / works</p>
+      <h2 id="rights-works-title" class="ops-books__title">
+        @if (works) { {{ works.length }} shelf {{ works.length === 1 ? 'work' : 'works' }} } @else { Shelf works }
+      </h2>
+      <p>
+        Every work on the shelf and where it may be read. Production is the verdict where editions are made (Ukraine and
+        Germany): protected there hides the work everywhere unless an override allows it. Blocked everywhere and
+        unlinked works come first; an unlinked work is judged by its own edition's year and author alone, so link it
+        to the right catalogue work. Unknown never blocks: fix the facts, or decide with an override.
+      </p>
+    </div>
+    <div class="ops-books__spend">
+      @if (works) {
+        <div class="ops-books__chips">
+          <span class="ops-books__chip ops-books__chip--ink">Blocked everywhere {{ blockedEverywhereCount }}</span>
+          <span class="ops-books__chip">Unlinked {{ unlinkedCount }}</span>
+        </div>
+      }
+      <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loadingWorks" (click)="loadWorks()">
+        {{ loadingWorks ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (worksError) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ worksError }}</span>
+    </div>
+  } @else if (!works) {
+    <p class="ops-maintenance__more">Loading…</p>
+  } @else if (works.length) {
+    <div class="ops-queue ops-queue--rights-works">
+      <div class="ops-queue__head"><span>Work</span><span>Production</span><span>Blocked</span><span>Overrides</span><span>Catalogue</span><span></span></div>
+      @for (work of works; track work.workSlug) {
+        <div class="ops-queue__row" [class.ops-queue__row--live]="selected?.workSlug === work.workSlug">
+          <span class="ops-queue__book"><strong>{{ work.title }}</strong><small>{{ work.author }} · {{ work.workSlug }}</small></span>
+          <code class="ops-queue__flag" [class.ops-queue__flag--pd]="work.productionStatus === 'FREE'">{{ work.productionStatus | lowercase }}</code>
+          <code [class.ops-rights__alarm]="work.blockedEverywhere">{{ blockedLabel(work) }}</code>
+          <code>{{ work.overrides || '—' }}</code>
+          <code class="ops-queue__stamp" [class.ops-queue__stamp--done]="work.linked">{{ work.linked ? 'linked' : 'unlinked' }}</code>
+          <span class="ops-queue__actions">
+            <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="loadingWork === work.workSlug" (click)="onOpenWork(work.workSlug)">{{ selected?.workSlug === work.workSlug ? 'Close' : 'Open' }}</button>
+          </span>
+        </div>
+        @if (selected?.workSlug === work.workSlug && selected; as view) {
+          <div class="ops-queue__job ops-rights__detail">
+            <div class="ops-rights__facts">
+              <div>
+                <h3 class="ops-spend__subtitle">Facts</h3>
+                <p>
+                  Published <code>{{ view.publicationYear ?? 'unknown' }}</code>
+                  @if (view.wikidataId) { · <a [href]="'https://www.wikidata.org/wiki/' + view.wikidataId" target="_blank" rel="noopener">{{ view.wikidataId }}</a> }
+                  @if (!view.catalogWorkId) { · <span class="ops-rights__alarm">not linked to the catalogue</span> }
+                </p>
+                <ul class="ops-rights__list">
+                  @for (author of view.authors; track author.name) {
+                    <li><strong>{{ author.name }}</strong> <code>{{ authorLife(author) }}</code></li>
+                  } @empty {
+                    <li class="ops-queue__stamp">No catalogue authors; the edition's author name is all the engine has.</li>
+                  }
+                </ul>
+              </div>
+              <div>
+                <h3 class="ops-spend__subtitle">Where we make books</h3>
+                <p>
+                  <code class="ops-queue__flag" [class.ops-queue__flag--pd]="view.productionStatus === 'FREE'">{{ view.productionStatus | lowercase }}</code>
+                  @if (view.productionFreeFrom) { · free from <code>{{ view.productionFreeFrom }}</code> }
+                </p>
+              </div>
+            </div>
+
+            <div class="ops-rights__facts">
+              <div>
+                <h3 class="ops-spend__subtitle">Blocked in</h3>
+                <div class="ops-rights__chips">
+                  @for (row of blockedRows(view); track row.country) {
+                    <span class="ops-books__chip" [class.ops-books__chip--ink]="row.value === 'OVERRIDE'">{{ row.country }} · {{ row.value | lowercase }}</span>
+                  } @empty {
+                    <span class="ops-queue__stamp">Nowhere.</span>
+                  }
+                </div>
+              </div>
+              <div>
+                <h3 class="ops-spend__subtitle">Protected until</h3>
+                <div class="ops-rights__chips">
+                  @for (row of protectedRows(view); track row.country) {
+                    <span class="ops-books__chip">{{ row.country }} {{ row.value }}</span>
+                  } @empty {
+                    <span class="ops-queue__stamp">Free everywhere the engine knows.</span>
+                  }
+                </div>
+                @if (view.unknownCountries.length) {
+                  <p class="ops-queue__stamp">Too thin to say: {{ view.unknownCountries.join(', ') }}</p>
+                }
+              </div>
+            </div>
+
+            <div>
+              <h3 class="ops-spend__subtitle">Overrides</h3>
+              @if (view.overrides.length) {
+                <div class="ops-table-scroll">
+                  <table class="ops-table">
+                    <thead><tr><th scope="col">Country</th><th scope="col">Effect</th><th scope="col">Reason</th><th scope="col">Since</th><th scope="col"></th></tr></thead>
+                    <tbody>
+                      @for (override of view.overrides; track override.id) {
+                        <tr>
+                          <td><code>{{ override.country }}</code></td>
+                          <td>{{ override.effect | lowercase }}</td>
+                          <td>{{ override.reason }}@if (override.reportId) { <small> · from a report</small> }</td>
+                          <td>{{ override.createdAt | date:'MMM d, y' }}</td>
+                          <td><button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="removingOverride === override.id" (click)="onRemoveOverride(override)">Remove</button></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <p class="ops-queue__stamp">None; the engine decides everywhere.</p>
+              }
+
+              <form class="ops-rights__override" [formGroup]="workForm" (ngSubmit)="onAddOverride()">
+                <div class="ops-rights__override-grid">
+                  <label class="ops-form__field">
+                    <span>Country <em>* is everywhere</em></span>
+                    <input type="text" formControlName="country" maxlength="2" autocomplete="off" />
+                  </label>
+                  <label class="ops-form__field">
+                    <span>Effect</span>
+                    <select formControlName="effect">@for (effect of effects; track effect) { <option [value]="effect">{{ effect }}</option> }</select>
+                  </label>
+                  <label class="ops-form__field ops-rights__reason">
+                    <span>Reason</span>
+                    <input type="text" formControlName="reason" maxlength="1000" placeholder="Why, for the record" />
+                  </label>
+                </div>
+                <div class="ops-queue__job-foot">
+                  <code>{{ view.workSlug }}</code>
+                  <button class="ops-button ops-button--primary ops-button--tiny" type="submit" [disabled]="savingOverride">{{ savingOverride ? 'Saving…' : 'Add override' }}</button>
+                </div>
+                @if (workForm.invalid) { <p class="ops-rights__missing">{{ workForm.controls.country.invalid ? 'Country is * or a two-letter code.' : 'Give a reason for the record.' }}</p> }
+              </form>
+            </div>
+
+            <div>
+              <h3 class="ops-spend__subtitle">Link to catalogue work</h3>
+              <label class="ops-form__field">
+                <span>Search the catalogue</span>
+                <input type="search" [formControl]="catalogQuery" autocomplete="off" placeholder="Title or author" />
+              </label>
+              @if (catalogHits.length) {
+                <ul class="ops-rights__hits">
+                  @for (hit of catalogHits; track hit.id) {
+                    <li>
+                      <span class="ops-queue__book"><strong>{{ hit.title }}</strong><small>{{ catalogMeta(hit) }} · {{ hit.state | lowercase }}@if (hit.workSlug) { · linked to {{ hit.workSlug }} }</small></span>
+                      @if (hit.id === view.catalogWorkId) {
+                        <code class="ops-queue__stamp ops-queue__stamp--done">current</code>
+                      } @else {
+                        <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="linking === hit.id" (click)="onLink(hit)">Link</button>
+                      }
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  } @else {
+    <p class="ops-maintenance__more">The shelf is empty.</p>
+  }
+</section>
+
+<section class="ops-card ops-card--books" aria-labelledby="catalog-import-title">
+  <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+    <div>
+      <p class="ops-books__path">/ops / catalogue</p>
+      <h2 id="catalog-import-title" class="ops-books__title">Catalogue import</h2>
+      <p>
+        Every notable book, from Wikidata and Project Gutenberg, metadata only. It imports on the first start, on the
+        2nd of every month, and on demand here; each import recomputes every shelf work's blocks. Recompute does that
+        alone, for example after an edit to the facts.
+      </p>
+    </div>
+    <div class="ops-books__spend">
+      <button class="ops-button ops-button--quiet ops-button--inline" type="button" (click)="loadImport()">Refresh</button>
+    </div>
+  </div>
+
+  @if (importError) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ importError }}</span>
+    </div>
+  } @else if (!importRun) {
+    <p class="ops-maintenance__more">Loading…</p>
+  } @else {
+    <div class="ops-books__chips">
+      <span class="ops-books__chip ops-books__chip--ink">{{ importRun.state | lowercase }}</span>
+      <span class="ops-books__chip">Works {{ importRun.works }}</span>
+      <span class="ops-books__chip">Titles {{ importRun.titles }}</span>
+      <span class="ops-books__chip">Linked {{ importRun.linked }}</span>
+    </div>
+    @if (importRun.startedAt) {
+      <p class="ops-queue__stamp">Started {{ importRun.startedAt | date:'MMM d, HH:mm' }}@if (importRun.finishedAt) { · finished {{ importRun.finishedAt | date:'MMM d, HH:mm' }} }</p>
+    }
+    @if (importRun.error) { <p class="ops-queue__error">{{ importRun.error }}</p> }
+  }
+
+  <div class="ops-form__actions">
+    <button class="ops-button ops-button--primary" type="button" [disabled]="startingImport || importRun?.state === 'RUNNING'" (click)="onRunImport()">{{ startingImport ? 'Starting…' : 'Run import' }}</button>
+    <button class="ops-button ops-button--quiet" type="button" [disabled]="recomputing" (click)="onRecompute()">{{ recomputing ? 'Recomputing…' : 'Recompute' }}</button>
+  </div>
+  @if (importRun?.state === 'RUNNING') { <p class="ops-rights__missing">An import is running; Run import comes back when it finishes. Refresh to follow it.</p> }
+</section>

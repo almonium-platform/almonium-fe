@@ -1,0 +1,191 @@
+<section class="ops-card ops-card--books" aria-labelledby="demand-title">
+  <div class="ops-card__heading ops-card__heading--plain ops-books__heading">
+    <div>
+      <p class="ops-books__path">/ops / demand</p>
+      <h2 id="demand-title" class="ops-books__title">
+        @if (demand) { {{ demand.wanted.length }} wanted · last {{ demand.days }} days } @else { Demand }
+      </h2>
+      <p>
+        What readers want and what they looked for. Wanted rows are a work in a language, ranked by distinct readers;
+        Start lists the work's free texts: start with one and the book processor fetches and ingests it, showing its
+        four stages on the Wanted page, or start without a text to open the editorial catalogue prefilled in a new tab.
+        Either way the row moves to Being prepared; a failed preparation offers Try again with a text. Decline drops it without a mail. Publishing the edition settles every want and tells each reader.
+        Under copyright lists searches whose best hit is protected, with the publisher where Wikidata has one, as
+        research for a licensing conversation. No match lists searches that found nothing; Link to work teaches search
+        that the query means a catalogue work.
+      </p>
+    </div>
+    <div class="ops-books__spend">
+      <div class="ops-books__chips" role="group" aria-label="Window">
+        @for (window of windows; track window) {
+          <button type="button" class="ops-books__chip ops-demand__choice" [class.ops-books__chip--ink]="days === window" [attr.aria-pressed]="days === window" (click)="setDays(window)">{{ window }} days</button>
+        }
+      </div>
+      <button class="ops-button ops-button--quiet ops-button--inline" type="button" [disabled]="loading" (click)="load()">
+        {{ loading ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ error }}</span>
+    </div>
+  } @else if (!demand) {
+    <p class="ops-maintenance__more">Loading…</p>
+  } @else {
+    <div class="ops-books__chips" role="tablist" aria-label="Demand">
+      <button type="button" role="tab" class="ops-books__chip ops-demand__choice" [class.ops-books__chip--ink]="tab === 'wanted'" [attr.aria-selected]="tab === 'wanted'" (click)="setTab('wanted')">Wanted {{ demand.wanted.length }}</button>
+      <button type="button" role="tab" class="ops-books__chip ops-demand__choice" [class.ops-books__chip--ink]="tab === 'underCopyright'" [attr.aria-selected]="tab === 'underCopyright'" (click)="setTab('underCopyright')">Under copyright {{ demand.underCopyright.length }}</button>
+      <button type="button" role="tab" class="ops-books__chip ops-demand__choice" [class.ops-books__chip--ink]="tab === 'noMatch'" [attr.aria-selected]="tab === 'noMatch'" (click)="setTab('noMatch')">No match {{ demand.noMatch.length }}</button>
+    </div>
+
+    @switch (tab) {
+      @case ('wanted') {
+        @if (demand.wanted.length) {
+          <div class="ops-queue ops-queue--demand-wanted" role="tabpanel">
+            <div class="ops-queue__head"><span>Work</span><span>Lang</span><span>Readers</span><span>Status</span><span></span></div>
+            @for (row of demand.wanted; track wantedKey(row)) {
+              <div class="ops-queue__row" [class.ops-queue__row--live]="row.status === 'IN_PROGRESS' || pickingFor === wantedKey(row)">
+                <span class="ops-queue__book"><strong>{{ row.title }}</strong><small>{{ workMeta(row) }}@if (row.workSlug) { · have {{ row.workSlug }} }</small></span>
+                <code>{{ row.language | lowercase }}</code>
+                <code>{{ row.readers }}</code>
+                <code class="ops-queue__stamp" [class.ops-queue__stamp--done]="row.status === 'IN_PROGRESS'">{{ row.status === 'IN_PROGRESS' ? 'being prepared' : 'open' }}</code>
+                <span class="ops-queue__actions">
+                  @if (row.status === 'OPEN') {
+                    <button class="ops-button ops-button--primary ops-button--tiny" type="button" [attr.aria-expanded]="pickingFor === wantedKey(row)" [disabled]="deciding === wantedKey(row)" (click)="onStart(row)">{{ pickingFor === wantedKey(row) ? 'Close' : 'Start' }}</button>
+                  } @else {
+                    @if (row.preparing?.phase === 'failed') {
+                      <button class="ops-button ops-button--primary ops-button--tiny" type="button" [attr.aria-expanded]="pickingFor === wantedKey(row)" [disabled]="deciding === wantedKey(row)" (click)="onStart(row)">{{ pickingFor === wantedKey(row) ? 'Close' : 'Try again with a text' }}</button>
+                    }
+                    <a class="ops-button ops-button--quiet ops-button--tiny" [href]="row.editorialUrl" target="_blank" rel="noopener">Open catalogue</a>
+                  }
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="deciding === wantedKey(row)" (click)="onDecline(row)">Decline</button>
+                </span>
+              </div>
+              @if (pickingFor === wantedKey(row)) {
+                <!-- Start: the work's free texts, free first; a protected one cannot be chosen and says why. -->
+                <div class="ops-queue__job ops-demand__picker">
+                  @if (sources === null) {
+                    <p class="ops-queue__stamp">Looking for texts…</p>
+                  } @else {
+                    @if (sourcesError) { <p class="ops-queue__error" role="alert">{{ sourcesError }}</p> }
+                    @if (sources.length) {
+                      <fieldset class="ops-demand__sources">
+                        <legend>Text to prepare {{ row.language | lowercase }} from</legend>
+                        @for (source of sources; track source.id) {
+                          <label class="ops-demand__source" [class.ops-demand__source--blocked]="blockedReason(source)">
+                            <input type="radio" [name]="'source-' + wantedKey(row)" [value]="source.id" [checked]="chosenSource === source.id" [disabled]="!!blockedReason(source)" (change)="chooseSource(source)" />
+                            <span class="ops-queue__book">
+                              <strong>{{ sourceKind(source.kind) }} · {{ source.language }} · {{ source.label }}</strong>
+                              <small>{{ translationLine(source) }} · <a [href]="source.pageUrl" target="_blank" rel="noopener">page</a></small>
+                              @if (blockedReason(source); as reason) { <small class="ops-demand__reason">{{ reason }}</small> }
+                            </span>
+                            <code [class]="'ops-demand__status ops-demand__status--' + (source.status | lowercase)">{{ sourceStatus(source) }}</code>
+                          </label>
+                        }
+                      </fieldset>
+                    } @else if (!sourcesError) {
+                      <p class="ops-queue__stamp">No free text is known for this work.</p>
+                    }
+                    @if (startError) { <p class="ops-queue__error" role="alert">{{ startError }}</p> }
+                    <div class="ops-queue__job-foot">
+                      @if (sources.length && !chosenSource) { <code class="ops-demand__hint">Pick a free or unknown text to start with it.</code> } @else { <span></span> }
+                      <span class="ops-queue__actions">
+                        @if (sources.length) {
+                          <button class="ops-button ops-button--primary ops-button--tiny" type="button" [disabled]="!chosenSource || deciding === wantedKey(row)" (click)="onStartWithSource(row)">Start with this text</button>
+                        }
+                        <!-- A plain start only takes an open row; a failed preparation is retried with a text. -->
+                        @if (row.status === 'OPEN') {
+                          <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="deciding === wantedKey(row)" (click)="onStartWithoutSource(row)">Start without a text</button>
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              } @else if (row.preparing; as preparing) {
+                <!-- Being prepared from a free text: where it came from, the processor's phase, and the four stages. -->
+                <div class="ops-queue__job ops-demand__preparing">
+                  <div class="ops-queue__phases">
+                    @for (stage of preparationStages(preparing); track stage.label; let last = $last) {
+                      <span class="ops-queue__phase" [class.ops-queue__phase--on]="stage.state === 'current'" [class.ops-queue__phase--done]="stage.state === 'done'">{{ stage.label }}</span>
+                      @if (!last) { <span class="ops-queue__arrow" aria-hidden="true">→</span> }
+                    }
+                  </div>
+                  <div class="ops-queue__job-foot">
+                    <code>
+                      <a [href]="preparing.sourceUrl" target="_blank" rel="noopener">{{ sourceKind(preparing.sourceKind) }} · {{ preparing.sourceLanguage }}</a>
+                      · <span [class.ops-queue__stamp--failed]="preparationFailed(preparing)">{{ preparing.phase ?? 'waiting for the processor' }}</span>
+                      · {{ preparing.stagesDone }}/4
+                    </code>
+                  </div>
+                  @if (preparing.error) { <p class="ops-queue__error">{{ preparing.error }}</p> }
+                </div>
+              }
+            }
+          </div>
+        } @else {
+          <p class="ops-maintenance__more">Nobody wants a book right now.</p>
+        }
+      }
+      @case ('underCopyright') {
+        @if (demand.underCopyright.length) {
+          <div class="ops-queue ops-queue--demand-copyright" role="tabpanel">
+            <div class="ops-queue__head"><span>Work</span><span>Orig.</span><span>Searches</span><span>Readers</span><span>Publisher</span></div>
+            @for (row of demand.underCopyright; track row.catalogWorkId) {
+              <div class="ops-queue__row">
+                <span class="ops-queue__book"><strong>{{ row.title }}</strong><small>{{ workMeta(row) }}@if (row.freeFrom) { · free from {{ row.freeFrom }} }</small></span>
+                <code>{{ row.originalLanguage ? (row.originalLanguage | lowercase) : '—' }}</code>
+                <code>{{ row.searches }}</code>
+                <code>{{ row.readers }}</code>
+                <span class="ops-demand__publisher">{{ row.publisher || '—' }}</span>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="ops-maintenance__more">Nobody looked for a protected book in this window.</p>
+        }
+      }
+      @case ('noMatch') {
+        @if (demand.noMatch.length) {
+          <div class="ops-queue ops-queue--demand-nomatch" role="tabpanel">
+            <div class="ops-queue__head"><span>Query</span><span>Searches</span><span>Readers</span><span></span></div>
+            @for (row of demand.noMatch; track row.query) {
+              <div class="ops-queue__row" [class.ops-queue__row--live]="linkingQuery === row.query">
+                <span class="ops-queue__book"><strong>“{{ row.query }}”</strong></span>
+                <code>{{ row.searches }}</code>
+                <code>{{ row.readers }}</code>
+                <span class="ops-queue__actions">
+                  <button class="ops-button ops-button--quiet ops-button--tiny" type="button" (click)="onOpenPicker(row)">{{ linkingQuery === row.query ? 'Close' : 'Link to work' }}</button>
+                </span>
+              </div>
+              @if (linkingQuery === row.query) {
+                <div class="ops-queue__job">
+                  <label class="ops-form__field">
+                    <span>Search the catalogue</span>
+                    <input type="search" [formControl]="pickerQuery" autocomplete="off" placeholder="Title or author" />
+                  </label>
+                  @if (pickerHits.length) {
+                    <ul class="ops-demand__hits">
+                      @for (hit of pickerHits; track hit.id) {
+                        <li>
+                          <span class="ops-queue__book"><strong>{{ hit.title }}</strong><small>{{ catalogMeta(hit) }} · {{ hit.state | lowercase }}</small></span>
+                          <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="aliasing === hit.id" (click)="onAlias(row, hit)">Link</button>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="ops-queue__stamp">Type a title or author the query was after.</p>
+                  }
+                </div>
+              }
+            }
+          </div>
+        } @else {
+          <p class="ops-maintenance__more">Every search found something in this window.</p>
+        }
+      }
+    }
+  }
+</section>

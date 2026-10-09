@@ -1,0 +1,63 @@
+<!-- The toast after a want (W4): the place in line, and the way to the queue. Withdrawing is silent. -->
+<ng-template #wantedToast let-observer let-message="data">
+  <span class="wanted-toast">{{ message }}&ngsp;<a i18n class="wanted-toast__link" routerLink="/read/wanted" (click)="observer.complete()">See the queue</a></span>
+</ng-template>
+
+@if (hasResults) {
+  <section class="catalog" aria-labelledby="catalog-heading">
+    <div class="kicker-row"><h2 i18n id="catalog-heading" class="kicker">Not on the shelf yet</h2><span class="rule" aria-hidden="true"></span></div>
+
+    @if (plan.copyright; as hit) {
+      <!-- The best hit is under copyright (W2): said once, plainly, with the private import as the way to read it. -->
+      <article class="copyright-card">
+        <span class="outline-cover outline-cover--card" aria-hidden="true"></span>
+        <div class="copyright-card__copy">
+          <h3 class="catalog-title">{{ hit.title }}</h3>
+          @if (meta(hit); as line) { <p class="catalog-meta">{{ line }}</p> }
+          <span class="copyright-card__chips">
+            <span i18n class="copyright-chip">Under copyright</span>
+            <app-free-from-note [note]="countdown(hit)" />
+          </span>
+          <p i18n class="copyright-card__text">We can only publish books whose copyright has expired, so we can’t offer this one. If you own a copy, you can import it and read it here privately.</p>
+          <button i18n type="button" class="catalog-link" (click)="importRequested.emit()">Import your copy</button>
+        </div>
+      </article>
+    }
+
+    @if (plan.rows.length > 0) {
+      <ul class="catalog-rows">
+        @for (hit of visibleRows; track hit.id) {
+          <li class="catalog-row">
+            <span class="outline-cover" aria-hidden="true"></span>
+            <span class="catalog-row__copy">
+              <span class="catalog-title">{{ hit.title }}</span>
+              @if (meta(hit); as line) { <span class="catalog-meta">{{ line }}</span> }
+              @if (hit.state === 'WANTABLE' && freeSince(hit); as note) { <span class="catalog-row__note"><app-free-from-note [note]="note" /></span> }
+              @if (signInFor === hit.id) {
+                <span class="catalog-row__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in to want this book.</a></span>
+              }
+              @if (refusal?.id === hit.id) {
+                <span class="catalog-row__note" role="status">{{ refusal?.message }}</span>
+              }
+            </span>
+            <span class="catalog-row__action">
+              @if (hit.state === 'NOT_IN_YOUR_COUNTRY') {
+                <span i18n class="catalog-muted">Not available in your country</span>
+              } @else {
+                @if (readersLabel(hit); as readers) { <span class="catalog-readers">{{ readers }}</span> }
+                @if (wanted.has(hit.id)) {
+                  <button i18n type="button" class="want-button want-button--wanted" [attr.aria-pressed]="true" [disabled]="busy === hit.id" (click)="toggle(hit)">✓ Wanted</button>
+                } @else {
+                  <button i18n type="button" class="want-button" [attr.aria-pressed]="false" [disabled]="busy === hit.id" (click)="toggle(hit)">I want this</button>
+                }
+              }
+            </span>
+          </li>
+        }
+      </ul>
+      @if (hiddenCount > 0) {
+        <button i18n type="button" class="catalog-link catalog-more" (click)="expanded = true">Show {{ hiddenCount }} more</button>
+      }
+    }
+  </section>
+}

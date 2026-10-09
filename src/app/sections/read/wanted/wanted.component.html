@@ -1,0 +1,102 @@
+<div class="base-container wanted-container">
+  <header class="wanted-header">
+    <div class="wanted-header__title">
+      <a i18n class="wanted-header__crumb" routerLink="/read">Read</a>
+      <h1 i18n>Wanted</h1>
+    </div>
+    <div class="view-toggle" role="group" aria-label="Whose wants" i18n-aria-label>
+      <button i18n type="button" [class.active]="view === 'everyone'" [attr.aria-pressed]="view === 'everyone'" (click)="setView('everyone')">Everyone’s</button>
+      <button i18n type="button" [class.active]="view === 'mine'" [attr.aria-pressed]="view === 'mine'" (click)="setView('mine')">Yours · {{ mineCount }}</button>
+    </div>
+  </header>
+
+  @if (loadError) {
+    <p class="wanted-empty" role="alert"><ng-container i18n>Couldn’t load the queue.</ng-container>&ngsp;<button i18n type="button" class="wanted-link" (click)="reload()">Try again</button></p>
+  } @else if (!wanted) {
+    <p i18n class="wanted-empty" aria-busy="true">Loading the queue…</p>
+  } @else {
+    @if (wanted.beingPrepared.length > 0) {
+      <section class="wanted-section" aria-label="Being prepared" i18n-aria-label>
+        @for (row of wanted.beingPrepared; track key(row)) {
+          <article class="prepared-card">
+            <div class="prepared-card__copy">
+              <span i18n class="prepared-card__label">Being prepared</span>
+              <h2 class="wanted-title prepared-card__title">{{ row.title }}</h2>
+              <p class="wanted-meta">{{ rowMeta(row) }}</p>
+              @if (stages(row); as stages) {
+                <!-- Where the free text is (W3): done stages solid, the one under way light, the rest grey. -->
+                <ol class="stages" aria-label="Stages" i18n-aria-label>
+                  @for (stage of stages; track stage.label) {
+                    <li [class]="'stage stage--' + stage.state">
+                      <span class="stage__bar" aria-hidden="true"></span>
+                      <span class="stage__label">{{ stage.label }}@switch (stage.state) { @case ('done') { <span i18n class="visually-hidden">, done</span> } @case ('current') { <span i18n class="visually-hidden">, in progress</span> } }</span>
+                    </li>
+                  }
+                </ol>
+              }
+            </div>
+            @if (row.wantedByMe) { <span i18n class="prepared-card__mine">You want this</span> }
+          </article>
+        }
+      </section>
+    }
+
+    @if (wanted.queue.length > 0) {
+      <section class="wanted-section" aria-labelledby="queue-heading">
+        <div class="kicker-row"><h2 i18n id="queue-heading" class="kicker">In line</h2><span class="rule" aria-hidden="true"></span></div>
+        <ol class="wanted-rows">
+          @for (row of wanted.queue; track key(row)) {
+            <li class="wanted-row">
+              <span class="wanted-row__rank">{{ row.rank }}</span>
+              <span class="wanted-row__copy">
+                <span class="wanted-title">{{ row.title }}</span>
+                <span class="wanted-meta">{{ rowMeta(row) }}</span>
+                @if (refusal?.key === key(row)) { <span class="wanted-row__note" role="status">{{ refusal?.message }}</span> }
+              </span>
+              <span class="wanted-row__action">
+                @if (readersLabel(row); as readers) { <span class="wanted-readers">{{ readers }}</span> }
+                @if (row.wantedByMe) {
+                  <button i18n type="button" class="want-button want-button--wanted" [attr.aria-pressed]="true" [disabled]="busy === key(row)" (click)="toggle(row)">✓ Wanted</button>
+                } @else {
+                  <button i18n type="button" class="want-button" [attr.aria-pressed]="false" [disabled]="busy === key(row)" (click)="toggle(row)">I want this</button>
+                }
+              </span>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+    @if (isEmpty) {
+      @if (view === 'mine') {
+        <p i18n class="wanted-empty">Nothing yet. <a routerLink="/read" class="wanted-link">Search for a book</a> you’d like to read.</p>
+      } @else {
+        <p i18n class="wanted-empty">Nobody is waiting for a book yet. <a routerLink="/read" class="wanted-link">Search for one</a> you’d like to read.</p>
+      }
+    }
+
+    @if (view === 'everyone') { <app-coming-free class="wanted-coming-free" /> }
+
+    @if (wanted.recentlyArrived.length > 0) {
+      <section class="wanted-section" aria-labelledby="arrived-heading">
+        <div class="kicker-row"><h2 i18n id="arrived-heading" class="kicker">Recently arrived</h2><span class="rule" aria-hidden="true"></span></div>
+        <ul class="wanted-rows">
+          @for (row of wanted.recentlyArrived; track row.editionSlug) {
+            <li class="wanted-row">
+              <span class="arrived-cover" [style.background]="coverColor(row)" aria-hidden="true">
+                @if (row.coverUrl) { <img [src]="row.coverUrl" alt="" loading="lazy" /> }
+              </span>
+              <span class="wanted-row__copy">
+                <span class="wanted-title">{{ row.title }}</span>
+                <span class="wanted-meta">{{ arrivedMeta(row) }}</span>
+              </span>
+              <span class="wanted-row__action">
+                <a i18n class="want-button" [routerLink]="['/books', row.editionSlug]">Read</a>
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>

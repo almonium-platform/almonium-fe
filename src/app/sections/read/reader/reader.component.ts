@@ -4,7 +4,7 @@ import {ReadService} from '../read.service';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {EMPTY, finalize, Subject, Subscription} from 'rxjs';
-import {getErrorMessage} from '../../../shared/http-error';
+import {getErrorMessage, isUnavailableInCountry} from '../../../shared/http-error';
 import {catchError, debounceTime, distinctUntilChanged, takeUntil, throttleTime} from 'rxjs/operators';
 import {SharedLucideIconsModule} from "../../../shared/shared-lucide-icons.module";
 import {ButtonComponent} from "../../../shared/button/button.component";
@@ -42,6 +42,7 @@ import {ChapterVocabularyComponent} from './chapter-vocabulary.component';
 import {CertificateMomentComponent} from '../certificate/certificate-moment.component';
 import {ChapterPage, bookPercentage, placeForPercentage, splitBookChapters} from './chapter-split';
 import {PageSeoService} from '../../../shared/seo/page-seo.service';
+import {UnavailableInCountryComponent} from '../unavailable/unavailable-in-country.component';
 
 /** Below this width the contents list is a sheet over the text rather than a rail beside it. */
 const CONTENTS_RAIL_MIN_WIDTH = 1281;
@@ -93,6 +94,7 @@ interface WordCardRequest {
     WordCardComponent,
     ChapterVocabularyComponent,
     CertificateMomentComponent,
+    UnavailableInCountryComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -145,6 +147,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected isLoading = true;
   protected isLoadingParallel = false;
   protected errorMessage: string | null = null;
+  /** The book answered 451: still under copyright in the reader's country. A page state, not an error. */
+  protected unavailable = false;
   /** A companion that could not be loaded is said above the base text, which stays readable. */
   protected parallelError: string | null = null;
   protected missingChapter = false;
@@ -306,6 +310,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
     this.isLoading = true;
     this.missingChapter = false;
     this.errorMessage = null;
+    this.unavailable = false;
     this.parallelError = null;
     this.parallelVersions = [];
     this.primaryEdition = undefined;
@@ -368,7 +373,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         }
         this.openPendingWord();
       },
-      error: error => this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
+      error: error => isUnavailableInCountry(error)
+        ? this.showUnavailable()
+        : this.handleError(getErrorMessage(error, $localize`Could not load book details.`)),
     });
   }
 
@@ -916,7 +923,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.handleLoadError(isBase ? 'base' : 'parallel', $localize`Failed to load content. Status: ${response.status}:status:`);
         }
       },
-      error: (error) => this.handleLoadError(isBase ? 'base' : 'parallel', getErrorMessage(error, $localize`Unknown error loading content.`)),
+      error: (error) => {
+        if (isBase && isUnavailableInCountry(error)) {
+          this.showUnavailable();
+          return;
+        }
+        const message = isUnavailableInCountry(error)
+          ? $localize`It isn’t available in your country.`
+          : getErrorMessage(error, $localize`Unknown error loading content.`);
+        this.handleLoadError(isBase ? 'base' : 'parallel', message);
+      },
     });
     if (isBase) this.baseLoadSubscription = subscription;
   }
@@ -976,6 +992,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       },
       error: (error) => logger.error('Error fetching book details for parallel options:', error)
     });
+  }
+
+  private showUnavailable(): void {
+    this.unavailable = true;
+    this.isLoading = false;
+    this.currentScrollPercentage = 0;
+    this.cdRef.markForCheck();
+  }
+
+  /** Nothing to read: the book failed to load, or the reader's country may not open it. */
+  protected get blocked(): boolean {
+    return this.errorMessage !== null || this.unavailable;
   }
 
   private handleError(message: string): void {
@@ -1438,7 +1466,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
           this.cdRef.markForCheck();
         }),
         catchError(error => {
-          this.handleLoadError('parallel', getErrorMessage(error, $localize`Unknown error fetching parallel content.`));
+          this.handleLoadError('parallel', isUnavailableInCountry(error)
+            ? $localize`It isn’t available in your country.`
+            : getErrorMessage(error, $localize`Unknown error fetching parallel content.`));
           this.revertToBaseContent();
           return EMPTY;
         })
