@@ -71,7 +71,10 @@
     } @else {
       <section class="membership-shell paid-membership" aria-labelledby="membership-title">
         <div class="current-plan panel paid-summary">
-          <span i18n class="eyebrow">Membership</span>
+          @if (memberSinceLabel) {
+            <!-- Tenure flag: flush to the panel's left edge, pill-rounded on the right. Month and year only. -->
+            <span i18n class="tenure-flag">Member since {{ memberSinceLabel }}</span>
+          }
           <div class="member-title">
             <h1 id="membership-title">{{ membershipTitle }}</h1>
             <app-premium-star label="Premium membership" i18n-label />
@@ -80,7 +83,6 @@
           <dl class="membership-details">
             <div><dt i18n>Plan</dt><dd>{{ planLabel }}</dd></div>
             <div><dt i18n>Status</dt><dd>{{ renewalLabel }}</dd></div>
-            <div><dt i18n>Member since</dt><dd>{{ memberSinceLabel }}</dd></div>
             @if (scheduledChange; as change) {
               <!-- Exists only while a change is pending, and carries its own undo. Same row shape as the rest. -->
               <div class="scheduled-row">

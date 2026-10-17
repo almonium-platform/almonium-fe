@@ -108,7 +108,18 @@ progress::-moz-progress-bar { border-radius: 9999px; background: var(--dark-rasp
 .portal-action:disabled { cursor: wait; opacity: .65; }
 
 .paid-summary { display: grid; gap: .9rem; }
-.paid-summary > .eyebrow { margin-bottom: 0; }
+/* Pulled out through the panel's padding so it sits flush on the panel's left edge. */
+.tenure-flag {
+  justify-self: start;
+  margin-left: -1.5rem;
+  padding: .5rem 1.125rem .5rem 1.5rem;
+  border-radius: 0 9999px 9999px 0;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-premium));
+  color: var(--on-brand-color);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .1px;
+}
 .member-title { display: flex; align-items: center; gap: .65rem; }
 /* Beside the title the mark is set larger than beside a name, and the glyph does not scale with it. */
 .member-title app-premium-star { --premium-star-size: 1.35rem; --premium-star-glyph: .8rem; }
@@ -163,6 +174,7 @@ dd { margin: 0; color: var(--brand-ink); text-align: right; }
   .membership-page { padding: 1rem .5rem 2rem; }
   .membership-shell { padding: 1rem; border-radius: 22px; }
   .panel { padding: 1.15rem; }
+  .tenure-flag { margin-left: -1.15rem; padding-left: 1.15rem; }
   .plan-heading,
   .offer-row { align-items: stretch; flex-direction: column; }
   .billing-toggle { align-self: flex-start; }

@@ -34,6 +34,7 @@ describe('MembershipComponent', () => {
 
     expect(element.querySelector('h1')?.textContent).toContain('Premium member');
     expect(element.textContent).toContain('Renews 18 March 2027');
+    expect(element.querySelector('.tenure-flag')?.textContent?.trim()).toBe('Member since March 2026');
     expect(element.textContent).toContain('1428 · unlimited');
     expect(element.textContent).toContain('Manage card and invoices');
     expect(element.textContent).not.toContain('Become a member');

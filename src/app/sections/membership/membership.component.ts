@@ -160,10 +160,8 @@ export class MembershipComponent implements OnInit {
     return limit < 0 ? $localize`unlimited` : String(limit);
   }
 
-  protected get memberSinceLabel(): string {
-    return this.subscription?.startDate
-      ? this.formatDate(this.subscription.startDate)
-      : '—';
+  protected get memberSinceLabel(): string | null {
+    return this.subscription?.startDate?.toLocaleDateString('en-GB', {month: 'long', year: 'numeric'}) ?? null;
   }
 
   protected get activeLanguagesUsed(): number {
