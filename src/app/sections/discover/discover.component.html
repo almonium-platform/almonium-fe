@@ -54,7 +54,23 @@
         <div>
           <p class="eyebrow">{{ lookup.language }} · {{ selectedSense?.partOfSpeech || wordFallback }}</p>
           <h2 id="entry-title">{{ selectedSense?.headword || lookup.entry }}</h2>
-          @if (selectedSense?.transcription) { <p class="transcription">[{{ selectedSense?.transcription }}]</p> }
+          @if (pronunciations.length) {
+            <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
+              @for (pronunciation of pronunciations; track pronunciation.variety) {
+                <li>
+                  <span class="variety">{{ varietyLabel(pronunciation.variety) }}</span>
+                  @if (pronunciation.ipa) { <span class="transcription">[{{ pronunciation.ipa }}]</span> }
+                  @if (pronunciation.clipUrl) {
+                    <button i18n type="button" class="listen" (click)="listen(pronunciation)">Listen</button>
+                    @if (pronunciation.clipStatus === 'unverified') {
+                      <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+            @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
+          } @else if (selectedSense?.transcription) { <p class="transcription">[{{ selectedSense?.transcription }}]</p> }
         </div>
         @if (lookup.frequency) {
           <aside class="frequency" aria-label="Corpus frequency" i18n-aria-label>
@@ -75,7 +91,8 @@
               <span class="sense-number">{{ sense.index }}</span>
               <span class="sense-body">
                 <strong>{{ sense.translations.join(', ') || meaningFallback }}</strong>
-                <small>{{ sense.headword }}@if (sense.partOfSpeech) { · {{ sense.partOfSpeech }} }</small>
+                @if (sense.definition) { <span class="definition">{{ sense.definition }}</span> }
+                <small>{{ sense.headword }}@if (sense.partOfSpeech) { · {{ sense.partOfSpeech }} }@if (sense.cefr) { <span class="cefr">{{ sense.cefr }}</span> }</small>
               </span>
               <span i18n class="sense-choice">{selectedSenseIndex === i, select, true {Selected} other {Choose}}</span>
             </button>
@@ -87,6 +104,18 @@
           </div>
         }
       </section>
+
+      @let examples = selectedSense?.examples ?? [];
+      @if (examples.length) {
+        <section class="examples" aria-labelledby="examples-title">
+          <p i18n class="section-label" id="examples-title">Examples</p>
+          <ul>
+            @for (example of examples; track $index) {
+              <li><span class="example-text">{{ example.text }}</span>@if (example.translation) { <span class="example-translation">{{ example.translation }}</span> }</li>
+            }
+          </ul>
+        </section>
+      }
 
       @if (lookup.sourceContext) {
         <blockquote><span i18n class="section-label">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
@@ -127,7 +156,7 @@
         @if (saveError) { <p class="message error" role="alert">{{ saveError }}</p> }
       </section>
 
-      <footer class="entry-footer">@if (lookup.provider) { <ng-container i18n>Dictionary provider: {{ lookup.provider }} · </ng-container> }<ng-container i18n>Lexical roots, family links, examples and entry provenance are not available in this iteration.</ng-container></footer>
+      <footer class="entry-footer">@if (lookup.provider) { <ng-container i18n>Dictionary provider: {{ lookup.provider }} · </ng-container> }<ng-container i18n>Lexical roots, family links and entry provenance are not available in this iteration.</ng-container></footer>
     </article>
   }
 </main>

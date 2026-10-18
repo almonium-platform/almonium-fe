@@ -4,13 +4,15 @@ import {ActivatedRoute, RouterLink} from '@angular/router';
 import {EmblemComponent} from '../../shared/emblem/emblem.component';
 import {finalize} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
 import {LearningIntent} from '../../models/card.model';
 import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {getErrorMessage} from '../../shared/http-error';
-import {DiscoverLookup, DiscoverSense, DiscoverService} from './discover.service';
+import {varietyRow} from '../../shared/language-varieties';
+import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService} from './discover.service';
 
 @Component({
   selector: 'app-discover',
@@ -37,6 +39,8 @@ export class DiscoverComponent implements OnInit {
   protected saved = false;
   protected errorMessage = '';
   protected saveError = '';
+  protected audioError = '';
+  private audio: HTMLAudioElement | null = null;
   protected currentLanguage = LanguageCode.EN;
   private preferredLanguage = LanguageCode.EN;
   private sourceLanguage: LanguageCode | null = null;
@@ -52,6 +56,7 @@ export class DiscoverComponent implements OnInit {
     {value: 'DISAMBIGUATE', label: $localize`Tell it apart`, detail: $localize`Practise it against confusing words`},
   ];
   protected readonly wordFallback = $localize`word`;
+  protected readonly unverifiedClipTitle = $localize`The machine check did not confirm that this clip says the word.`;
   protected readonly meaningFallback = $localize`Meaning not supplied`;
   protected selectedIntents = new Set<LearningIntent>(['UNDERSTAND']);
 
@@ -66,6 +71,15 @@ export class DiscoverComponent implements OnInit {
 
   protected get selectedSense(): DiscoverSense | null {
     return this.lookup?.senses[this.selectedSenseIndex] ?? null;
+  }
+
+  /** The server's order, except that the variety this learner chose for the language comes first. */
+  protected get pronunciations(): DiscoverPronunciation[] {
+    const pronunciations = this.lookup?.pronunciations ?? [];
+    const preferred = this.preferredVariety()?.toLowerCase();
+    if (!preferred) return pronunciations;
+    const isPreferred = (pronunciation: DiscoverPronunciation) => pronunciation.variety.toLowerCase() === preferred;
+    return [...pronunciations].sort((a, b) => Number(isPreferred(b)) - Number(isPreferred(a)));
   }
 
   ngOnInit(): void {
@@ -139,6 +153,20 @@ export class DiscoverComponent implements OnInit {
     this.searchText += character;
   }
 
+  /** "British" for en-GB; the bare tag when this build does not know the variety. */
+  protected varietyLabel(tag: string): string {
+    const language = this.lookup?.language ?? this.currentLanguage;
+    return varietyRow(language)?.varieties.find(variety => variety.tag.toLowerCase() === tag.toLowerCase())?.label ?? tag;
+  }
+
+  protected listen(pronunciation: DiscoverPronunciation): void {
+    if (!pronunciation.clipUrl) return;
+    this.audio?.pause();
+    this.audioError = '';
+    this.audio = new Audio(`${AppConstants.API_URL}${pronunciation.clipUrl}`);
+    this.audio.play().catch(() => this.audioError = $localize`The clip could not be played. Please try again.`);
+  }
+
   protected keepWord(): void {
     if (!this.lookup || !this.meaning.trim() || !this.signedIn || this.saving) return;
     const sense = this.selectedSense;
@@ -161,6 +189,11 @@ export class DiscoverComponent implements OnInit {
       next: () => this.saved = true,
       error: error => this.saveError = getErrorMessage(error, $localize`The word could not be kept. Please try again.`),
     });
+  }
+
+  private preferredVariety(): string | null {
+    const language = this.lookup?.language;
+    return this.userInfoService.currentUserInfo?.learners.find(learner => learner.language === language)?.variety ?? null;
   }
 
   private translationLanguage(): LanguageCode {
