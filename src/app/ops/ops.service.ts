@@ -257,6 +257,15 @@ export class OpsService {
   }
 
   /**
+   * Deletes the account exactly as the user would from their profile: paid plan cancelled, Firebase
+   * identity removed, farewell mail sent. Irreversible.
+   */
+  deleteUser(userId: string): Observable<unknown> {
+    const url = `${AppConstants.OPS_URL}/users/${userId}`;
+    return this.http.delete(url, {withCredentials: true});
+  }
+
+  /**
    * Hands back the once-a-month active-language switch, whatever the calendar says.
    */
   resetActiveLanguageSwitch(userId: string): Observable<unknown> {

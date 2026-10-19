@@ -232,6 +232,29 @@
             Revoke access
           </button>
         </div>
+
+        @if (awaitingDeleteConfirmation) {
+          <div class="ops-confirm" role="alert">
+            <p>
+              Delete the account of <strong>{{ deleteTargetLabel }}</strong> for good? Same as them deleting it
+              themselves: their paid plan is cancelled, their data and sign-in are gone, and they get the farewell mail.
+            </p>
+            <div class="ops-form__actions">
+              <button class="ops-button ops-button--danger" type="button" [disabled]="deletingUser" (click)="onDeleteUser()">
+                Yes, delete
+              </button>
+              <button class="ops-button ops-button--quiet" type="button" (click)="onCancelDeleteUser()">
+                Cancel
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="ops-form__actions">
+            <button class="ops-button ops-button--danger" type="button" [disabled]="deletingUser" (click)="onDeleteUser()">
+              {{ deletingUser ? 'Deleting…' : 'Delete account' }}
+            </button>
+          </div>
+        }
       </form>
     </section>
   </div>

@@ -133,6 +133,9 @@ export class OpsComponent implements OnInit {
   protected lookingUp = false;
   protected submitting = false;
   protected clearingSwitchCooldown = false;
+  protected deletingUser = false;
+  /** Deleting an account cannot be undone, so it asks twice. */
+  protected awaitingDeleteConfirmation = false;
   protected publishing = false;
   /** A post is irreversible and lands in front of everyone in the room, so it asks twice. */
   protected awaitingPublishConfirmation = false;
@@ -208,6 +211,52 @@ export class OpsComponent implements OnInit {
           this.refreshLookup(userId);
         },
         error: (error) => this.notify(getErrorMessage(error, 'Failed to revoke access grant'), 'negative'),
+      });
+  }
+
+  protected onDeleteUser(): void {
+    const userId = this.form.controls.userId.value;
+    if (this.deletingUser || !userId) {
+      this.form.controls.userId.markAsTouched();
+      return;
+    }
+
+    if (!this.awaitingDeleteConfirmation) {
+      this.awaitingDeleteConfirmation = true;
+      return;
+    }
+
+    this.awaitingDeleteConfirmation = false;
+    this.recentAuthGuardService.guardAction(() => this.performDeleteUser(userId), false, 'Delete');
+  }
+
+  protected onCancelDeleteUser(): void {
+    this.awaitingDeleteConfirmation = false;
+  }
+
+  /** Names the account the button is about to delete, when the ID came from a lookup. */
+  protected get deleteTargetLabel(): string {
+    const userId = this.form.controls.userId.value;
+    return this.lookupResult?.id === userId ? this.lookupResult.email : userId;
+  }
+
+  private performDeleteUser(userId: string): void {
+    this.deletingUser = true;
+    const label = this.deleteTargetLabel;
+    this.opsService.deleteUser(userId)
+      .pipe(finalize(() => this.deletingUser = false))
+      .subscribe({
+        next: () => {
+          this.notify(`Deleted the account of ${label}.`, 'positive');
+          if (this.lookupResult?.id === userId) {
+            this.lookupResult = null;
+          }
+          this.form.controls.userId.setValue('');
+          if (this.limitsForm.controls.userId.value === userId) {
+            this.limitsForm.controls.userId.setValue('');
+          }
+        },
+        error: (error) => this.notify(getErrorMessage(error, 'Failed to delete the account'), 'negative'),
       });
   }
 
