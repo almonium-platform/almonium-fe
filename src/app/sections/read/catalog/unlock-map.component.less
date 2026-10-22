@@ -1,0 +1,56 @@
+// Where it's free (W7): a card with the world in it. Green is the one celebratory colour the shelf allows; plum
+// marks what comes next; copyright is quiet grey and an unchecked country is almost paper.
+:host { display: block; --unlock-free: var(--success-color); --unlock-next: var(--dark-raspberry); --unlock-protected: color-mix(in srgb, var(--control-border-color) 70%, var(--card-color)); --unlock-unchecked: color-mix(in srgb, var(--hairline-color) 40%, var(--card-color)); }
+
+.unlock-map { position: relative; display: flex; flex-direction: column; gap: .8rem; padding: 1rem 1.15rem; border: 1px solid var(--hairline-color); border-radius: .9rem; background: var(--card-color); }
+.unlock-map__head { display: flex; flex-direction: column; gap: .1rem; }
+.unlock-map__eyebrow { color: var(--metadata-color); font-size: .78rem; }
+.unlock-map__title { margin: 0; color: var(--text-color); font-family: var(--font-family-reading); font-size: 1.1rem; font-weight: 600; }
+.unlock-map__summary { min-height: 1.2rem; margin: 0; color: var(--subhead-color); font-size: .82rem; line-height: 1.5; }
+
+.unlock-map__svg { width: 100%; height: auto; }
+.country { stroke: var(--card-color); stroke-width: .5; transition: fill .35s ease; }
+.country:hover { stroke: var(--text-color); stroke-width: 1; }
+.home { pointer-events: none; }
+.home line { stroke: var(--text-color); stroke-width: 1; }
+.home circle { fill: var(--card-color); stroke: var(--text-color); stroke-width: 1.5; }
+.home text { fill: var(--text-color); text-anchor: end; font-family: var(--font-family-ui); font-size: 11px; font-weight: 600; }
+
+.unlock-map__legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; color: var(--subhead-color); font-size: .74rem; }
+.unlock-map__legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
+.swatch--free { background: var(--unlock-free); }
+.swatch--next { background: var(--unlock-next); }
+.swatch--protected { background: var(--unlock-protected); }
+.swatch--unchecked { background: var(--unlock-unchecked); outline: 1px solid var(--hairline-color); }
+
+.unlock-map__time { display: flex; align-items: center; gap: .85rem; }
+.play { width: 2.25rem; height: 2.25rem; flex: 0 0 2.25rem; border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); border-radius: 50%; background: var(--card-color); color: var(--dark-raspberry); cursor: pointer; font-size: .7rem; }
+.play:hover { background: var(--state-selected); }
+.yearlab { width: 4rem; color: var(--text-color); font-family: var(--font-family-reading); font-size: 1.35rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+.track { position: relative; flex: 1; height: 2.4rem; }
+.slider { position: absolute; top: 4px; left: 0; z-index: 2; width: 100%; height: 16px; margin: 0; appearance: none; background: transparent; }
+.slider::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: var(--hairline-color); }
+.slider::-moz-range-track { height: 3px; border-radius: 2px; background: var(--hairline-color); }
+.slider::-webkit-slider-thumb { width: 16px; height: 16px; margin-top: -6.5px; border: 2px solid var(--card-color); border-radius: 50%; appearance: none; background: var(--dark-raspberry); box-shadow: 0 1px 3px rgba(0, 0, 0, .3); cursor: grab; }
+.slider::-moz-range-thumb { width: 14px; height: 14px; border: 2px solid var(--card-color); border-radius: 50%; background: var(--dark-raspberry); cursor: grab; }
+.dot { position: absolute; top: 10px; z-index: 1; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--control-border-color); }
+.tick { position: absolute; top: 22px; padding: 0; border: 0; background: transparent; color: var(--metadata-color); cursor: pointer; font-family: var(--font-family-ui); font-size: .64rem; transform: translateX(-50%); white-space: nowrap; }
+.tick--today { top: -14px; color: var(--dark-raspberry); font-weight: 600; }
+
+.tip { position: absolute; z-index: 5; max-width: 240px; padding: .5rem .7rem; border-radius: .6rem; background: var(--text-color); color: var(--card-color); font-size: .76rem; line-height: 1.45; pointer-events: none; }
+.tip i { font-style: normal; opacity: .75; }
+
+.unlock-list { display: none; margin: 0; padding: 0; list-style: none; }
+.unlock-list__group { display: flex; flex-direction: column; gap: .15rem; padding: .5rem 0; border-bottom: 1px solid var(--hairline-color); }
+.unlock-list__group:last-child { border-bottom: 0; }
+.unlock-list__year { color: var(--text-color); font-size: .82rem; font-weight: 600; }
+.unlock-list__countries { color: var(--subhead-color); font-size: .78rem; line-height: 1.5; }
+.unlock-list__home { color: var(--dark-raspberry); font-weight: 600; }
+
+.unlock-map--failed .unlock-list { display: block; }
+
+@media (max-width: 600px) {
+  .unlock-map__svg, .unlock-map__legend, .unlock-map__time, .tip { display: none; }
+  .unlock-list { display: block; }
+}

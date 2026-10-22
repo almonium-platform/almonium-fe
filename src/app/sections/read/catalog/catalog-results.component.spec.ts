@@ -1,5 +1,5 @@
 import {HttpErrorResponse} from '@angular/common/http';
-import {TestBed, fakeAsync, tick} from '@angular/core/testing';
+import {TestBed, discardPeriodicTasks, fakeAsync, tick} from '@angular/core/testing';
 import {provideRouter} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Observable, Subject, of, throwError} from 'rxjs';
@@ -10,10 +10,11 @@ import {CATALOG_DEBOUNCE_MS, CatalogResultsComponent} from './catalog-results.co
 import {CatalogHit} from './catalog.model';
 import {CatalogService} from './catalog.service';
 import {daysUntilNewYear} from './public-domain-day';
+import {WorldAtlasService} from './world-atlas.service';
 
 describe('CatalogResultsComponent', () => {
   const hit = (title: string, state: CatalogHit['state'], extra: Partial<CatalogHit> = {}): CatalogHit => ({
-    id: title, title, originalTitle: null, originalLanguage: null, author: 'Jules Verne', year: 1870, state, workSlug: null, freeFrom: null, readers: null, wantedByMe: false, ...extra,
+    id: title, title, originalTitle: null, originalLanguage: null, author: 'Jules Verne', year: 1870, state, workSlug: null, freeFrom: null, readers: null, wantedByMe: false, readerCountry: null, readerFreeFrom: null, freeIn: [], ...extra,
   });
 
   function setup(answers: Record<string, Observable<CatalogHit[]>>, authenticated = true) {
@@ -25,7 +26,8 @@ describe('CatalogResultsComponent', () => {
       imports: [CatalogResultsComponent],
       providers: [
         provideRouter([]),
-        {provide: CatalogService, useValue: {search}},
+        {provide: CatalogService, useValue: {search, unlocks: () => of({id: 'x', title: 'X', author: null, year: null, readerCountry: 'DE', readerFreeFrom: null, countries: []})}},
+        {provide: WorldAtlasService, useValue: {countries: () => Promise.resolve([])}},
         {provide: WantedService, useValue: {want, withdraw}},
         {provide: TuiNotificationService, useValue: {open}},
       ],
@@ -42,6 +44,26 @@ describe('CatalogResultsComponent', () => {
     };
     return {fixture, host, search, want, withdraw, open, type};
   }
+
+  it('counts down on the copyright card when the day is in sight, and “Tell me on the day” is a want (W6)', fakeAsync(() => {
+    const pooh = hit('Winnie-the-Pooh', 'UNDER_COPYRIGHT', {author: 'A. A. Milne', year: 1926, freeFrom: 2027, readerCountry: 'DE', readerFreeFrom: new Date().getFullYear() + 1, freeIn: ['US', 'CA']});
+    const {fixture, host, want, type} = setup({pooh: of([pooh])});
+    type('pooh');
+    const card = host.querySelector('.copyright-card')!;
+    expect(card.querySelector('.copyright-chip')?.textContent).toBe('Under copyright in Germany');
+    expect(card.querySelectorAll('.unlock__tile').length).toBe(4);
+    expect(card.textContent).toContain('It’s already free in United States and Canada.');
+    expect(card.textContent).not.toContain('Import your copy');
+    card.querySelector<HTMLButtonElement>('.want-button')!.click();
+    fixture.detectChanges();
+    expect(want).toHaveBeenCalledOnceWith('Winnie-the-Pooh', LanguageCode.FR);
+    expect(card.querySelector('.want-button')?.textContent).toContain('We’ll tell you on 1 January');
+    expect(host.querySelector('app-unlock-map')).toBeNull();
+    card.querySelector<HTMLButtonElement>('.catalog-link')!.click();
+    fixture.detectChanges();
+    expect(host.querySelector('app-unlock-map')).not.toBeNull();
+    discardPeriodicTasks();
+  }));
 
   it('waits for the reader to stop typing and lists what the shelf lacks as rows, five at first', fakeAsync(() => {
     const rows = Array.from({length: 7}, (_, index) => hit(`Book ${index}`, 'WANTABLE'));

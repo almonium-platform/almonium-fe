@@ -1,5 +1,5 @@
 // Public Domain Day in the catalogue rows' grammar: a kicker with the countdown chip at its end, then plain rows
-// with a dashed outline where a cover would be. Nothing here is a button but "Show more".
+// with a dashed outline where a cover would be, and "Tell me" where a want can be placed (W8).
 :host { display: block; width: min(100%, 76rem); margin: 0 auto; }
 
 .kicker-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .35rem; }
@@ -24,3 +24,11 @@
   .coming-free__row { flex-wrap: wrap; }
   .coming-free__aside { margin-left: calc(30px + .85rem); }
 }
+
+.coming-free__note { color: var(--metadata-color); font-size: .74rem; }
+.coming-free__note a { color: var(--dark-raspberry); font-weight: 600; text-decoration: none; }
+.want-button { min-height: 2rem; padding: .3rem .9rem; border: 1px solid color-mix(in srgb, var(--dark-raspberry) 45%, var(--card-color)); border-radius: 999px; background: transparent; color: var(--dark-raspberry); cursor: pointer; font: inherit; font-size: .78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.want-button:hover { background: var(--state-selected); }
+.want-button:disabled { cursor: wait; opacity: .6; }
+.want-button--wanted { border-color: color-mix(in srgb, var(--success-color) 45%, var(--card-color)); color: var(--success-color); }
+.want-button--read { border-color: var(--dark-raspberry); background: var(--dark-raspberry); color: var(--card-color); }

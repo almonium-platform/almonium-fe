@@ -24,7 +24,7 @@ describe('OpsDemandComponent', () => {
   };
   const hit: CatalogHit = {
     id: 'c1', title: 'Dracula', originalTitle: null, originalLanguage: 'en', author: 'Bram Stoker', year: 1897, state: 'WANTABLE',
-    workSlug: 'dracula', freeFrom: null, readers: null, wantedByMe: false,
+    workSlug: 'dracula', freeFrom: null, readers: null, wantedByMe: false, readerCountry: null, readerFreeFrom: null, freeIn: [],
   };
 
   const source = (id: string, extra: Partial<TextSource> = {}): TextSource => ({

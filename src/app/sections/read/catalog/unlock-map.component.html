@@ -1,0 +1,67 @@
+<div class="unlock-map" [class.unlock-map--failed]="failed">
+  @if (data; as data) {
+    <div class="unlock-map__head">
+      <span class="unlock-map__eyebrow">{{ data.title }}@if (data.author) { · {{ data.author }}}</span>
+      <h3 i18n class="unlock-map__title">Where it’s free to read</h3>
+    </div>
+    <p class="unlock-map__summary" aria-live="polite">{{ summary }}</p>
+
+    @if (!failed) {
+      <svg class="unlock-map__svg" [attr.viewBox]="viewBox" role="img" i18n-aria-label aria-label="World map of where the book is free to read, by year" (mouseleave)="leave()">
+        <g>
+          @for (country of countries; track country.name) {
+            <path class="country" [attr.d]="country.d" [attr.fill]="fill(country)" [attr.data-country]="country.alpha2" (mousemove)="hover(country, $event)" />
+          }
+        </g>
+        @if (home; as home) {
+          <g class="home">
+            <line [attr.x1]="home.x" [attr.y1]="home.y" [attr.x2]="home.x - 26" [attr.y2]="home.y - 34" />
+            <circle [attr.cx]="home.x" [attr.cy]="home.y" r="3" />
+            <text [attr.x]="home.x - 30" [attr.y]="home.y - 38"><ng-container i18n>You · {{ homeName }}</ng-container></text>
+          </g>
+        }
+      </svg>
+      <div class="unlock-map__legend">
+        <span><i class="swatch swatch--free"></i><ng-container i18n>Free to read</ng-container></span>
+        <span><i class="swatch swatch--next"></i><ng-container i18n>Next to become free</ng-container></span>
+        <span><i class="swatch swatch--protected"></i><ng-container i18n>Under copyright</ng-container></span>
+        <span><i class="swatch swatch--unchecked"></i><ng-container i18n>Not checked yet</ng-container></span>
+      </div>
+      <div class="unlock-map__time">
+        <button type="button" class="play" [attr.aria-label]="playing ? 'Pause' : 'Play'" i18n-aria-label (click)="togglePlay()">{{ playing ? '❚❚' : '▶' }}</button>
+        <span class="yearlab">{{ year }}</span>
+        <div class="track">
+          <input type="range" class="slider" [min]="min" [max]="max" step="1" [value]="year" i18n-aria-label aria-label="Year" (input)="onSlide($event)" />
+          @for (tick of ticks; track tick.year) {
+            <i class="dot" [style.left]="position(tick.year)"></i>
+            @if (tick.label) {
+              <button type="button" class="tick" [class.tick--today]="tick.today" [style.left]="position(tick.year)" (click)="setYear(tick.year)">{{ tick.label }}</button>
+            }
+          }
+        </div>
+      </div>
+      @if (tip; as tip) {
+        <div class="tip" [style.left.px]="tip.x" [style.top.px]="tip.y" role="tooltip">
+          <b>{{ tip.name }}</b><br />{{ tip.line }}
+          @if (tip.rule) { <br /><i>{{ tip.rule }}</i> }
+        </div>
+      }
+    }
+
+    <!-- The same data as a list grouped by year: what a phone shows, and what stands in when the outlines fail. -->
+    <ul class="unlock-list">
+      @for (group of groups; track group.year) {
+        <li class="unlock-list__group">
+          <span class="unlock-list__year">{{ groupLabel(group) }}</span>
+          <span class="unlock-list__countries">
+            @for (unlock of group.countries; track unlock.country; let last = $last) {<span [class.unlock-list__home]="unlock.country === data.readerCountry">{{ name(unlock.country) }}</span>@if (!last) {, }}
+          </span>
+        </li>
+      }
+    </ul>
+  } @else if (failed) {
+    <p i18n class="unlock-map__summary">The map didn’t load. Try again in a moment.</p>
+  } @else {
+    <p i18n class="unlock-map__summary">Loading the map…</p>
+  }
+</div>

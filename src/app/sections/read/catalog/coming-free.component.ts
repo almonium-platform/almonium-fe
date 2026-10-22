@@ -1,25 +1,30 @@
 import {Component, Input, OnDestroy, OnInit, inject} from '@angular/core';
+import {RouterLink} from '@angular/router';
 import {BehaviorSubject, Subject, of} from 'rxjs';
-import {catchError, switchMap, takeUntil} from 'rxjs/operators';
+import {catchError, finalize, switchMap, takeUntil} from 'rxjs/operators';
 import {LanguageCode} from '../../../models/language.enum';
 import {logger} from '../../../shared/logger';
 import {readersLabel} from '../wanted/wanted.model';
+import {WantedService} from '../wanted/wanted.service';
 import {CatalogHit, catalogMeta} from './catalog.model';
 import {CatalogService} from './catalog.service';
 import {FreeFromNoteComponent} from './free-from-note.component';
-import {FreeFromNote, copyrightCountdown, nextPublicDomainYear} from './public-domain-day';
+import {FreeFromNote, copyrightCountdown, countryName, inArrivalSeason, inUnlockSeason, nextPublicDomainYear} from './public-domain-day';
 
 /** Works the Public Domain Day shelf asks for. */
 export const COMING_FREE_LIMIT = 12;
+/** On the shelf the rail waits for this many works lined up for the reader's country. */
+export const SHELF_MIN_ROWS = 3;
 
 /**
- * Public Domain Day: the best-known works that become free next 1 January, counted down to the day. They cannot be
- * wanted yet, so a row has no button, only the day it frees up. One compact section, absent when the list is empty
- * or the catalogue does not answer.
+ * Public Domain Day (W8): the best-known works that become free next 1 January where the reader is, counted down to
+ * the day, each with "Tell me", a want with a date attached. On the shelf the rail shows from October to December,
+ * once three works are lined up; through January it reads "New this year" and a work that arrived has a Read link.
+ * The Wanted page shows it all year. Absent when the list is empty or the catalogue does not answer.
  */
 @Component({
   selector: 'app-coming-free',
-  imports: [FreeFromNoteComponent],
+  imports: [FreeFromNoteComponent, RouterLink],
   templateUrl: './coming-free.component.html',
   styleUrl: './coming-free.component.less',
 })
@@ -34,10 +39,24 @@ export class ComingFreeComponent implements OnInit, OnDestroy {
   /** Rows shown before "Show N more"; null shows them all. */
   @Input() preview: number | null = null;
 
+  /** On the shelf: only in season (October to January), and only with three works lined up. */
+  @Input() seasonal = false;
+
+  /** A member can tap "Tell me"; a guest is sent to sign in. */
+  @Input() authenticated = false;
+
+  /** The clock; tests set it. */
+  now: () => Date = () => new Date();
+
   protected readonly year = nextPublicDomainYear(new Date());
   protected hits: CatalogHit[] = [];
   protected expanded = false;
+  /** Rows this reader wants in the shelf's language, by catalogue id. */
+  protected readonly wanted = new Set<string>();
+  protected busy: string | null = null;
+  protected signInFor: string | null = null;
 
+  private wantedService = inject(WantedService);
   private readonly language$ = new BehaviorSubject<LanguageCode | null>(null);
   private readonly destroy$ = new Subject<void>();
 
@@ -51,7 +70,51 @@ export class ComingFreeComponent implements OnInit, OnDestroy {
         }),
       )),
       takeUntil(this.destroy$),
-    ).subscribe(hits => this.hits = hits);
+    ).subscribe(hits => {
+      this.hits = hits;
+      this.wanted.clear();
+      hits.filter(hit => hit.wantedByMe).forEach(hit => this.wanted.add(hit.id));
+    });
+  }
+
+  /** Whether the rail stands at all: out of season or thin on the shelf, it stays away. */
+  protected get shown(): boolean {
+    if (this.hits.length === 0) return false;
+    if (!this.seasonal) return true;
+    const today = this.now();
+    return (inUnlockSeason(today) || inArrivalSeason(today)) && this.hits.length >= SHELF_MIN_ROWS;
+  }
+
+  /** Through January the works have arrived: the rail is this year's, not next year's. */
+  protected get arrived(): boolean {
+    return inArrivalSeason(this.now());
+  }
+
+  /** The reader's country as the server placed them, named in their language; null when it did not say. */
+  protected get country(): string | null {
+    const code = this.hits.find(hit => hit.readerCountry)?.readerCountry ?? null;
+    return code ? countryName(code) : null;
+  }
+
+  /** "Tell me" asks for the work on the day; tapped again it takes the want back. */
+  protected toggle(hit: CatalogHit): void {
+    if (!this.authenticated) {
+      this.signInFor = hit.id;
+      return;
+    }
+    const language = this.language$.value;
+    if (!language || this.busy) return;
+    this.busy = hit.id;
+    const had = this.wanted.has(hit.id);
+    const call = had ? this.wantedService.withdraw(hit.id, language) : this.wantedService.want(hit.id, language);
+    call.pipe(finalize(() => this.busy = null)).subscribe({
+      next: () => had ? this.wanted.delete(hit.id) : this.wanted.add(hit.id),
+      error: error => logger.warn('The want did not go through.', error),
+    });
+  }
+
+  protected get canWant(): boolean {
+    return this.language$.value !== null && !this.arrived;
   }
 
   ngOnDestroy(): void {

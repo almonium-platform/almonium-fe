@@ -11,7 +11,9 @@ import {WantedService} from '../wanted/wanted.service';
 import {CatalogHit, CatalogResultsPlan, catalogMeta, isCatalogQuery, planCatalogResults} from './catalog.model';
 import {CatalogService} from './catalog.service';
 import {FreeFromNoteComponent} from './free-from-note.component';
-import {FreeFromNote, copyrightCountdown, freeSinceNote} from './public-domain-day';
+import {FreeFromNote, ReaderFreeNote, copyrightCountdown, countryName, freeSinceNote, readerFreeNote} from './public-domain-day';
+import {UnlockCountdownComponent} from './unlock-countdown.component';
+import {UnlockMapComponent} from './unlock-map.component';
 
 /** Rows shown before "Show N more". */
 export const CATALOG_PREVIEW_ROWS = 5;
@@ -29,7 +31,7 @@ const EMPTY_PLAN: CatalogResultsPlan = {copyright: null, rows: []};
  */
 @Component({
   selector: 'app-catalog-results',
-  imports: [RouterLink, FreeFromNoteComponent],
+  imports: [RouterLink, FreeFromNoteComponent, UnlockCountdownComponent, UnlockMapComponent],
   templateUrl: './catalog-results.component.html',
   styleUrl: './catalog-results.component.less',
 })
@@ -61,6 +63,8 @@ export class CatalogResultsComponent implements OnDestroy {
 
   protected plan: CatalogResultsPlan = EMPTY_PLAN;
   protected expanded = false;
+  /** "Where it's free" on the countdown card (W6) opens the map (W7) under it. */
+  protected mapOpen = false;
   /** Hits this reader wants in the shelf's language, by catalogue id; seeded from the search, kept by the toggles. */
   protected readonly wanted = new Set<string>();
   /** Reader counts the answer to a want or a withdrawal brought, newer than the search's. */
@@ -92,11 +96,12 @@ export class CatalogResultsComponent implements OnDestroy {
       const plan = hits.length > 0 ? planCatalogResults(hits) : EMPTY_PLAN;
       this.plan = plan;
       this.expanded = false;
+      this.mapOpen = false;
       this.signInFor = null;
       this.refusal = null;
       this.readers.clear();
       this.wanted.clear();
-      plan.rows.filter(hit => hit.wantedByMe).forEach(hit => this.wanted.add(hit.id));
+      [...plan.rows, ...(plan.copyright ? [plan.copyright] : [])].filter(hit => hit.wantedByMe).forEach(hit => this.wanted.add(hit.id));
     });
   }
 
@@ -124,6 +129,19 @@ export class CatalogResultsComponent implements OnDestroy {
   /** When the protected best hit frees up, if the catalogue knows the exact year. */
   protected countdown(hit: CatalogHit): FreeFromNote | null {
     return copyrightCountdown(hit.freeFrom, new Date());
+  }
+
+  /**
+   * The day the reader can open the protected best hit (W6): the card counts down to it, or names it, and the work
+   * can be wanted ahead of the day. Null when the server could not pin the year, and the card stays plain (W2).
+   */
+  protected unlock(hit: CatalogHit): ReaderFreeNote | null {
+    return readerFreeNote(hit.readerFreeFrom, new Date());
+  }
+
+  /** "Under copyright in Germany" when the server placed the reader; "Under copyright" otherwise. */
+  protected copyrightChip(hit: CatalogHit): string {
+    return hit.readerCountry ? $localize`Under copyright in ${countryName(hit.readerCountry)}:country:` : $localize`Under copyright`;
   }
 
   /** "Free since 1 January" on a row that turned free this year. */

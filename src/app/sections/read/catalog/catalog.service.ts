@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {AppConstants} from '../../../app.constants';
 import {LanguageCode} from '../../../models/language.enum';
-import {CatalogHit, parseCatalogHits} from './catalog.model';
+import {CatalogHit, WorkUnlocks, parseCatalogHits, parseWorkUnlocks} from './catalog.model';
 
 /** Every notable book, metadata only: what search lands on when the shelf does not have it. */
 @Injectable({providedIn: 'root'})
@@ -33,5 +33,11 @@ export class CatalogService {
     if (language) params = params.set('language', language);
     return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/coming-free`, {params, withCredentials: true})
       .pipe(map(parseCatalogHits));
+  }
+
+  /** Where and when one work is free to read, country by country: the unlock map (W7). Open to guests. */
+  unlocks(catalogWorkId: string): Observable<WorkUnlocks> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/works/${catalogWorkId}/unlocks`, {withCredentials: true})
+      .pipe(map(parseWorkUnlocks));
   }
 }

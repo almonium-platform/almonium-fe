@@ -15,13 +15,28 @@
           <h3 class="catalog-title">{{ hit.title }}</h3>
           @if (meta(hit); as line) { <p class="catalog-meta">{{ line }}</p> }
           <span class="copyright-card__chips">
-            <span i18n class="copyright-chip">Under copyright</span>
-            <app-free-from-note [note]="countdown(hit)" />
+            <span class="copyright-chip">{{ copyrightChip(hit) }}</span>
+            @if (!unlock(hit)) { <app-free-from-note [note]="countdown(hit)" /> }
           </span>
-          <p i18n class="copyright-card__text">We can only publish books whose copyright has expired, so we can’t offer this one. If you own a copy, you can import it and read it here privately.</p>
-          <button i18n type="button" class="catalog-link" (click)="importRequested.emit()">Import your copy</button>
+          @if (unlock(hit)) {
+            <!-- The day is known and in sight (W6): a countdown, and "Tell me on the day" is a want with a date. -->
+            <app-unlock-countdown [hit]="hit" [wanted]="wanted.has(hit.id)" [busy]="busy === hit.id" [mapOpen]="mapOpen" (toggled)="toggle(hit)" (whereFree)="mapOpen = !mapOpen" />
+            @if (signInFor === hit.id) {
+              <span class="catalog-row__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in and we’ll tell you on the day.</a></span>
+            }
+            @if (refusal?.id === hit.id) {
+              <span class="catalog-row__note" role="status">{{ refusal?.message }}</span>
+            }
+          } @else {
+            <p i18n class="copyright-card__text">We can only publish books whose copyright has expired, so we can’t offer this one. If you own a copy, you can import it and read it here privately.</p>
+            <button i18n type="button" class="catalog-link" (click)="importRequested.emit()">Import your copy</button>
+          }
         </div>
       </article>
+      @if (mapOpen && unlock(hit)) {
+        <!-- Where it's free (W7), opened from the card: the world with a year slider. -->
+        <app-unlock-map class="copyright-map" [catalogWorkId]="hit.id" />
+      }
     }
 
     @if (plan.rows.length > 0) {

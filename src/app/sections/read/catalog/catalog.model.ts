@@ -35,6 +35,15 @@ export interface CatalogHit {
   readers: number | null;
   /** Whether the signed-in viewer wants it in that language; always false for a guest. */
   wantedByMe: boolean;
+  /** The reader's country as the server placed them, ISO 3166 alpha-2; null when it did not say. */
+  readerCountry: string | null;
+  /**
+   * The year the reader can open it, from 1 January: free where we make books and in their own country, when both
+   * are exact (W6). Null when unknown, and when it is already free.
+   */
+  readerFreeFrom: number | null;
+  /** Up to three countries where it is already free, best known first (W6); empty unless under copyright. */
+  freeIn: string[];
 }
 
 export function parseCatalogHit(value: unknown, path = 'hit'): CatalogHit {
@@ -51,6 +60,9 @@ export function parseCatalogHit(value: unknown, path = 'hit'): CatalogHit {
     freeFrom: expectNullableNumber(data['freeFrom'], `${path}.freeFrom`),
     readers: expectNullableNumber(data['readers'], `${path}.readers`),
     wantedByMe: data['wantedByMe'] === undefined ? false : expectBoolean(data['wantedByMe'], `${path}.wantedByMe`),
+    readerCountry: data['readerCountry'] === undefined ? null : expectNullableString(data['readerCountry'], `${path}.readerCountry`),
+    readerFreeFrom: data['readerFreeFrom'] === undefined ? null : expectNullableNumber(data['readerFreeFrom'], `${path}.readerFreeFrom`),
+    freeIn: data['freeIn'] === undefined ? [] : expectArray(data['freeIn'], `${path}.freeIn`).map((code, index) => expectString(code, `${path}.freeIn[${index}]`)),
   };
 }
 
@@ -87,4 +99,65 @@ export function catalogMeta(hit: Pick<CatalogHit, 'author' | 'year'>): string {
 /** The catalogue folds accents and punctuation and needs two characters of what is left. */
 export function isCatalogQuery(query: string): boolean {
   return query.normalize('NFKD').replace(/[^\p{L}\p{N}]/gu, '').length >= 2;
+}
+
+/** Whether a work is free in one country this year, the year it frees up when exact, and the rule behind it (W7). */
+export const RIGHTS_STATUSES = ['FREE', 'PROTECTED', 'UNKNOWN'] as const;
+export type RightsStatus = typeof RIGHTS_STATUSES[number];
+
+export interface CountryUnlock {
+  /** ISO 3166 alpha-2. */
+  country: string;
+  status: RightsStatus;
+  year: number | null;
+  rule: string;
+}
+
+/** The unlock map's data for one work: every country, plus the reader's own place and day. */
+export interface WorkUnlocks {
+  id: string;
+  title: string;
+  author: string | null;
+  year: number | null;
+  readerCountry: string;
+  readerFreeFrom: number | null;
+  countries: CountryUnlock[];
+}
+
+export function parseWorkUnlocks(value: unknown): WorkUnlocks {
+  const data = expectRecord(value, 'unlocks');
+  return {
+    id: expectString(data['id'], 'unlocks.id'),
+    title: expectString(data['title'], 'unlocks.title'),
+    author: expectNullableString(data['author'], 'unlocks.author'),
+    year: expectNullableNumber(data['year'], 'unlocks.year'),
+    readerCountry: expectString(data['readerCountry'], 'unlocks.readerCountry'),
+    readerFreeFrom: expectNullableNumber(data['readerFreeFrom'], 'unlocks.readerFreeFrom'),
+    countries: expectArray(data['countries'], 'unlocks.countries').map((item, index) => {
+      const row = expectRecord(item, `unlocks.countries[${index}]`);
+      return {
+        country: expectString(row['country'], `unlocks.countries[${index}].country`),
+        status: expectEnum(row['status'], RIGHTS_STATUSES, `unlocks.countries[${index}].status`),
+        year: expectNullableNumber(row['year'], `unlocks.countries[${index}].year`),
+        rule: expectString(row['rule'], `unlocks.countries[${index}].rule`),
+      };
+    }),
+  };
+}
+
+/** Countries grouped by the year they free the work, soonest first; the ones with no year last (W7's list form). */
+export interface UnlockYearGroup {
+  year: number | null;
+  countries: CountryUnlock[];
+}
+
+export function groupUnlocksByYear(unlocks: readonly CountryUnlock[]): UnlockYearGroup[] {
+  const byYear = new Map<number | null, CountryUnlock[]>();
+  for (const unlock of unlocks) {
+    const key = unlock.status === 'UNKNOWN' ? null : unlock.year;
+    byYear.set(key, [...(byYear.get(key) ?? []), unlock]);
+  }
+  return [...byYear.entries()]
+    .sort(([a], [b]) => (a === null ? 1 : b === null ? -1 : a - b))
+    .map(([year, countries]) => ({year, countries}));
 }

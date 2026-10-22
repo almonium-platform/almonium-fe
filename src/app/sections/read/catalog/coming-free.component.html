@@ -1,11 +1,21 @@
-@if (hits.length > 0) {
+@if (shown) {
   <section class="coming-free" aria-labelledby="coming-free-heading">
     <div class="kicker-row">
-      <h2 i18n id="coming-free-heading" class="kicker">Free on 1 January {{ year }}</h2>
+      @if (arrived) {
+        <h2 i18n id="coming-free-heading" class="kicker">New this year</h2>
+      } @else if (country; as country) {
+        <h2 i18n id="coming-free-heading" class="kicker">Free in {{ country }} from 1 January</h2>
+      } @else {
+        <h2 i18n id="coming-free-heading" class="kicker">Free on 1 January {{ year }}</h2>
+      }
       <span class="rule" aria-hidden="true"></span>
-      <app-free-from-note [note]="countdown" />
+      @if (!arrived) { <app-free-from-note [note]="countdown" /> }
     </div>
-    <p i18n class="coming-free__lede">On Public Domain Day their copyright runs out, and they can join the shelf.</p>
+    @if (arrived) {
+      <p i18n class="coming-free__lede">Their copyright ran out on Public Domain Day, and they are joining the shelf.</p>
+    } @else {
+      <p i18n class="coming-free__lede">On Public Domain Day their copyright runs out, and they can join the shelf.</p>
+    }
     <ul class="coming-free__rows">
       @for (hit of visibleHits; track hit.id) {
         <li class="coming-free__row">
@@ -13,10 +23,23 @@
           <span class="coming-free__copy">
             <span class="coming-free__title">{{ hit.title }}</span>
             @if (meta(hit); as line) { <span class="coming-free__meta">{{ line }}</span> }
+            @if (signInFor === hit.id) {
+              <span class="coming-free__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in and we’ll tell you on the day.</a></span>
+            }
           </span>
           <span class="coming-free__aside">
             @if (readersLabel(hit); as readers) { <span class="coming-free__readers">{{ readers }}</span> }
-            <app-free-from-note [note]="rowCountdown(hit)" [muted]="true" />
+            @if (arrived && hit.state === 'ON_SHELF' && hit.workSlug) {
+              <a i18n class="want-button want-button--read" [routerLink]="['/books', hit.workSlug]">Read</a>
+            } @else if (canWant) {
+              @if (wanted.has(hit.id)) {
+                <button i18n type="button" class="want-button want-button--wanted" [attr.aria-pressed]="true" [disabled]="busy === hit.id" (click)="toggle(hit)">✓ On the day</button>
+              } @else {
+                <button i18n type="button" class="want-button" [attr.aria-pressed]="false" [disabled]="busy === hit.id" (click)="toggle(hit)">Tell me</button>
+              }
+            } @else {
+              <app-free-from-note [note]="rowCountdown(hit)" [muted]="true" />
+            }
           </span>
         </li>
       }

@@ -1,4 +1,4 @@
-import {copyrightCountdown, daysUntilNewYear, freeSinceNote, nextPublicDomainYear} from './public-domain-day';
+import {copyrightCountdown, countryName, daysUntilNewYear, freeSinceNote, inArrivalSeason, inUnlockSeason, liveCountdown, nextPublicDomainYear, readerFreeNote} from './public-domain-day';
 
 describe('public domain day', () => {
   const day = (year: number, month: number, date: number, hour = 12) => new Date(year, month - 1, date, hour);
@@ -52,5 +52,38 @@ describe('public domain day', () => {
   it('counts the shelf down to next 1 January', () => {
     expect(nextPublicDomainYear(day(2026, 10, 9))).toBe(2027);
     expect(nextPublicDomainYear(day(2026, 12, 31, 23))).toBe(2027);
+  });
+});
+
+describe('the unlock countdown (W6, W8)', () => {
+  const at = (year: number, month: number, date: number, hour = 12, minute = 0, second = 0) => new Date(year, month - 1, date, hour, minute, second);
+
+  it('counts what is left to midnight on 1 January by the reader’s clock', () => {
+    expect(liveCountdown(2027, at(2026, 12, 31, 23, 59, 30))).toEqual({days: 0, hours: 0, minutes: 0, seconds: 30, lastDay: true});
+    expect(liveCountdown(2027, at(2026, 12, 30, 22, 0, 0))).toEqual({days: 1, hours: 2, minutes: 0, seconds: 0, lastDay: false});
+    expect(liveCountdown(2027, at(2027, 1, 1, 0, 0, 1))).toEqual({days: 0, hours: 0, minutes: 0, seconds: 0, lastDay: true});
+  });
+
+  it('counts down live within five years and names the date beyond', () => {
+    const today = at(2026, 10, 22);
+    expect(readerFreeNote(2027, today)).toEqual({kind: 'live', year: 2027});
+    expect(readerFreeNote(2031, today)).toEqual({kind: 'live', year: 2031});
+    expect(readerFreeNote(2032, today)).toEqual({kind: 'date', year: 2032});
+    expect(readerFreeNote(2026, today)).toBeNull();
+    expect(readerFreeNote(null, today)).toBeNull();
+  });
+
+  it('names the reader’s country in their language and falls back to the code', () => {
+    expect(countryName('DE', 'en')).toBe('Germany');
+    expect(countryName('de', 'de')).toBe('Deutschland');
+    expect(countryName('??', 'en')).toBe('??');
+  });
+
+  it('shows the rail from October and calls January’s first month the arrivals', () => {
+    expect(inUnlockSeason(at(2026, 9, 30))).toBeFalse();
+    expect(inUnlockSeason(at(2026, 10, 1))).toBeTrue();
+    expect(inUnlockSeason(at(2026, 12, 31))).toBeTrue();
+    expect(inArrivalSeason(at(2027, 1, 30))).toBeTrue();
+    expect(inArrivalSeason(at(2027, 1, 31))).toBeFalse();
   });
 });

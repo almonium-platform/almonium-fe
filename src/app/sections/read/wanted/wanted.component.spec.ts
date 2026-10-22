@@ -133,11 +133,11 @@ describe('WantedComponent', () => {
     try {
       const pooh: CatalogHit = {
         id: 'pooh', title: 'Winnie-the-Pooh', originalTitle: null, originalLanguage: 'en', author: 'A. A. Milne', year: 1926,
-        state: 'UNDER_COPYRIGHT', workSlug: null, freeFrom: 2027, readers: null, wantedByMe: false,
+        state: 'UNDER_COPYRIGHT', workSlug: null, freeFrom: 2027, readers: null, wantedByMe: false, readerCountry: 'DE', readerFreeFrom: 2027, freeIn: [],
       };
       const {host} = setup(undefined, [pooh]);
       const section = host.querySelector('.coming-free')!;
-      expect(section.querySelector('h2')?.textContent).toContain('Free on 1 January 2027');
+      expect(section.querySelector('h2')?.textContent).toContain('Free in Germany from 1 January');
       expect(section.querySelector('.free-note--chip')?.textContent).toContain('Free in 84 days');
       const shelfRow = section.querySelector('.coming-free__row')!;
       expect(shelfRow.textContent).toContain('Winnie-the-Pooh');
