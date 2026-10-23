@@ -12,7 +12,7 @@ import {CEFRLevel} from "../../models/userinfo.model";
 import {UserInfoService} from "../../services/user-info.service";
 import {SharedLucideIconsModule} from "../../shared/shared-lucide-icons.module";
 import {TuiNotificationService, TuiOption} from "@taiga-ui/core/components";
-import {TuiDropdownContext, TuiDropdownDirective, TuiHintDirective} from "@taiga-ui/core/portals";
+import {TuiDropdownContext, TuiDropdownDirective, TuiHint} from "@taiga-ui/core/portals";
 import {AsyncPipe, DatePipe, NgStyle} from "@angular/common";
 import {BookCoverComponent} from './book-cover/book-cover.component';
 import {BookImport, BookImportMetadataStatus, BookImportQuota, BookImportStatus} from './book-import.model';
@@ -45,7 +45,7 @@ type ShelfViewMode = 'covers' | 'spines';
     TuiSkeleton,
     TuiDropdownContext,
     TuiDropdownDirective,
-    TuiHintDirective,
+    TuiHint,
     TuiOption,
     BookCoverComponent,
     PaywallComponent,

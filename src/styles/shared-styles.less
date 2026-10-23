@@ -70,6 +70,13 @@ tui-hint {
   --tui-radius-m: .625rem;
 }
 
+// Book details use the same reading surface as the shelf's former inline labels.
+tui-hint[data-appearance='book'] {
+  background: var(--overlay-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: 0 8px 22px rgba(44, 37, 48, .18);
+}
+
 // The preview card brings its own surface — border, background, shadow, radius. A dropdown
 // that hosts one must not draw a second, and must not clip the one it hosts. The panel's own
 // overflow is only half the clip: Taiga wraps the content in a scroller, and a scroller is a

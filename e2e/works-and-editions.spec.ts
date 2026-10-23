@@ -48,9 +48,48 @@ test('the library shows a work once per language and a guest tile opens the orig
   await page.getByRole('group', {name: 'Library view'}).getByRole('button', {name: 'Spines'}).click();
   const spine = shelf.locator('.book-spine').filter({hasText: 'Франкенштейн'});
   await spine.hover();
-  await expect(spine.locator('.hover-label small')).toHaveText('Мері Шеллі · 255 pp · Translation B2');
+  await expect(page.locator('.hover-label small')).toHaveText('Мері Шеллі · 255 pp · Translation B2');
   await page.screenshot({path: testInfo.outputPath('library-spines.png'), animations: 'disabled'});
 });
+
+for (const width of [1280, 452, 360]) {
+  test(`spine hints stay fully visible outside the scrolling shelf at ${width}px`, async ({page}, testInfo) => {
+    await page.setViewportSize({width, height: 900});
+    await page.addInitScript(() => localStorage.setItem('read_library_view', JSON.stringify('spines')));
+    const longTitle = {...lisova, title: 'A very long book title that wraps across several lines and must remain completely readable above the shelf'};
+    await page.route('**/api/v1/**', async route => {
+      const path = new URL(route.request().url()).pathname;
+      if (path.endsWith('/public/books')) await route.fulfill({json: [original, adapted, ukrainian, longTitle]});
+      else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
+    });
+    await page.goto('/read');
+    const spines = page.locator('.book-spine');
+    await expect(spines).toHaveCount(3);
+    for (const index of [0, 2]) {
+      const spine = spines.nth(index);
+      await spine.hover();
+      const hint = page.locator('.hover-label');
+      await expect(hint).toBeVisible();
+      // An overlay can be visible to Playwright while still clipped by an ancestor.
+      // Hit-test the title's top and bottom corners to check actual painted content.
+      await expect.poll(() => hint.locator('strong').evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        return [rect.top + 1, rect.bottom - 1].every(y =>
+          [rect.left + 1, rect.right - 1].every(x =>
+            x >= 0 && x < innerWidth && y >= 0 && y < innerHeight &&
+            element.contains(document.elementFromPoint(x, y))));
+      })).toBe(true);
+      expect(await hint.evaluate(element => !!element.closest('.shelf'))).toBe(false);
+      await page.mouse.move(0, 0);
+      await expect(hint).toHaveCount(0);
+    }
+    await spines.first().focus();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.locator('.hover-label')).toBeVisible();
+    await page.screenshot({path: testInfo.outputPath('spine-hint-focus.png'), animations: 'disabled'});
+  });
+}
 
 test('the book page lists same-language editions in an Edition row and other languages as parallel text', async ({page}, testInfo) => {
   // A place kept on this device in the original: its chip carries a hairline.

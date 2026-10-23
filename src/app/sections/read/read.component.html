@@ -99,7 +99,7 @@
             @if (libraryView === 'covers') {
               <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ captionFor(tile) }}</small></span></a>
             } @else {
-              <a class="shelf-book book-spine" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(tile, true) }}</small></span></a>
+              <a class="shelf-book book-spine" [tuiHint]="spineHint" tuiHintDirection="top" tuiHintDescribe tuiHintAppearance="book" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<ng-template #spineHint><span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(tile, true) }}</small></span></ng-template></a>
             }
           </div>
         }
@@ -142,10 +142,10 @@
       @if (privateShelfBooks.length > 0) {
         <div class="shelf" [class.cover-shelf]="privateView === 'covers'">
           @for (book of privateShelfBooks; track book.id) {
-            <a class="shelf-book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [class.ink-spine]="isUnnamed(book)" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/my-books', book.id]" [attr.aria-label]="bookAriaLabel(book)">
+            <a class="shelf-book" [tuiHint]="privateView === 'spines' ? privateSpineHint : null" tuiHintDirection="top" tuiHintDescribe tuiHintAppearance="book" [class.book-spine]="privateView === 'spines'" [class.private-cover]="privateView === 'covers'" [class.ink-spine]="isUnnamed(book)" [ngStyle]="spineStyle(book.id, book.wordCount)" [routerLink]="['/my-books', book.id]" [attr.aria-label]="bookAriaLabel(book)">
               <span class="spine-title">{{ book.title }}</span>@if (privateView === 'covers' || showSpineAuthor(book.id)) { <span class="spine-author">{{ book.author }}</span> }
               @if (book.status !== importStatus.READY) { <span i18n class="spine-status">{book.status, select, FAILED {Needs attention} other {Preparing}}</span> }
-              @if (privateView === 'spines') { <span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span> }
+              <ng-template #privateSpineHint><span class="hover-label"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span></ng-template>
             </a>
           }
         </div>
