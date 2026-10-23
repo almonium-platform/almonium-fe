@@ -24,6 +24,7 @@ const SCOPES = {
   'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
   'rights-report': 'src/app/sections/read/rights/rights-report.component.less',
+  'landing-feedback': 'src/app/sections/landing/feedback/landing-feedback.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
   'discover': 'src/app/sections/discover/discover.component.less',
@@ -230,6 +231,33 @@ const CARDS = [
           </div>
           <p class="sheet__hint" data-note>Say who you are.</p>
         </div>
+      </div>`,
+  },
+  {
+    id: 'landing-feedback',
+    title: 'Landing — the founder question before it says enough to send',
+    source: 'landing-feedback.component.html: Send',
+    rule: 'An answer needs ten characters; the email is optional, but a typed one must look like an address. The line under Send names what is still missing.',
+    control: {
+      label: 'draft',
+      type: 'select',
+      options: [
+        {value: 'ready', label: 'an answer, no email', note: '', blocked: false},
+        {value: 'empty', label: 'nothing typed yet', note: 'Write a sentence or two to send.', blocked: true},
+        {value: 'short', label: 'answer "Flashcard"', note: '1 more characters to send.', blocked: true},
+        {value: 'bad-email', label: 'email "marta@"', note: 'Check the email address, or leave it empty.', blocked: true},
+      ],
+    },
+    body: `
+      <div class="scope-landing-feedback harness-frame" style="--ground:#f9f6f5;--ink:#2c2530;--copy:#5f5560;--muted:#a99aa8;--plum:#5a1a74;--berry:#872657;--line:#edebe8;background:#fff;padding:24px">
+        <form class="feedback-form">
+          <textarea placeholder="I always wanted a tool that…"></textarea>
+          <div class="send-row">
+            <input type="email" placeholder="Your email, if you’d like a reply">
+            <button type="button" class="button button-primary send" data-blocked>Send</button>
+          </div>
+          <p class="note" data-note>Write a sentence or two to send.</p>
+        </form>
       </div>`,
   },
   {

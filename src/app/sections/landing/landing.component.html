@@ -31,7 +31,7 @@
 
     <section class="try-band">
       <div class="container try-inner">
-        <div><h2 i18n>Paste a German sentence.</h2><p i18n>No sign-up, no email.</p></div>
+        <div><h2 i18n>Paste a German sentence</h2><p i18n>No sign-up, no email.</p></div>
         <div class="lookup">
           <div class="lookup-row"><span lang="de">{{ 'Er hatte das Zimmer nicht verlassen wollen.' }}</span><a i18n class="button button-primary button-compact" routerLink="/discover">Look up</a></div>
           <small i18n>The full word sheet opens here on the page. Saving is the only thing that needs an account.</small>
@@ -42,11 +42,11 @@
     <section class="section container" id="books">
       <div class="section-heading"><h2 i18n>Books, side by side</h2><p i18n>Every book is aligned paragraph by paragraph, so the translation never drifts out of step. Read the whole thing free, in your browser, without an account.</p></div>
       <div class="shelf">
-        <a class="book book-ink" routerLink="/read"><small i18n>Kafka</small><strong i18n>Die Verwand&shy;lung</strong><span>{{ 'DE / UA' }}</span></a>
-        <a class="book book-purple" routerLink="/read"><small i18n>Shelley</small><strong i18n>Franken&shy;stein</strong><span>{{ 'EN / UA' }}</span></a>
-        <a class="book book-berry" routerLink="/read"><small i18n>Doyle</small><strong i18n>Sherlock Holmes</strong><span>{{ 'EN / DE' }}</span></a>
-        <a class="book book-plum" routerLink="/read"><small i18n>Fontane</small><strong i18n>Effi Briest</strong><span>{{ 'DE / EN' }}</span></a>
-        <div class="shelf-action"><p i18n>Each cover opens the full public reader. Nothing is behind a wall.</p><a i18n class="button button-outline button-compact" routerLink="/read">Browse all books</a></div>
+        <a class="book book-ink" routerLink="/read"><small i18n>Kafka</small><strong i18n>Der Prozess</strong><span>{{ 'DE' }}</span></a>
+        <a class="book book-purple" routerLink="/read"><small i18n>Shelley</small><strong i18n>Frankenstein</strong><span>{{ 'EN' }}</span></a>
+        <a class="book book-berry" routerLink="/read"><small i18n>Stoker</small><strong i18n>Dracula</strong><span>{{ 'EN' }}</span></a>
+        <a class="book book-plum" routerLink="/read"><small i18n>Voltaire</small><strong i18n>Candide</strong><span>{{ 'FR' }}</span></a>
+        <div class="shelf-action"><p i18n>Each cover opens the full <a routerLink="/read">public reader</a>. Nothing is behind a wall.</p><a i18n class="button button-outline button-compact" routerLink="/read">Browse all books</a></div>
       </div>
     </section>
 
@@ -64,11 +64,12 @@
 
     <section class="section container" id="levels">
       <div class="section-heading"><h2 i18n>The same book, at the level you can read</h2><p i18n>Almonium rewrites real novels in simpler language. Same plot, same voice, shorter sentences. Start at the adapted edition, step up when it feels easy, and finish with the author’s own words.</p></div>
-      <div class="ladder-grid ladder-grid-two">
-        <article><div class="ladder-top"><span class="level">{{ 'B2' }}</span><small i18n>Adapted edition</small></div><p lang="en">{{ 'I exchanged my land-sledge for one made for the ' }}<mark>{{ 'uneven surface' }}</mark>{{ ' of the Frozen Ocean. ' }}<mark>{{ 'After buying' }}</mark>{{ ' a plentiful supply of provisions, I left the land.' }}</p></article>
-        <article><div class="ladder-top"><span i18n class="level level-original">Original</span><small i18n>Shelley, 1818</small></div><p lang="en">{{ 'I exchanged my land-sledge for one fashioned for the ' }}<mark>{{ 'inequalities' }}</mark>{{ ' of the Frozen Ocean; and ' }}<mark>{{ 'purchasing' }}</mark>{{ ' a plentiful stock of provisions, I departed from land.' }}</p></article>
+      <div class="ladder-grid">
+        <article><div class="ladder-top"><span class="level">{{ 'B1' }}</span><small i18n>Adapted edition</small></div><p lang="en">{{ 'It was already one in the morning. The rain ' }}<mark>{{ 'tapped sadly' }}</mark>{{ ' against the ' }}<mark>{{ 'windows' }}</mark>{{ ', and my candle ' }}<mark>{{ 'had almost burned out' }}</mark>{{ '. ' }}<mark>{{ 'In its weak, dying light' }}</mark>{{ ', I saw ' }}<mark>{{ 'the creature’s dull yellow eye' }}</mark>{{ ' open. It breathed ' }}<mark>{{ 'with difficulty' }}</mark>{{ ', and ' }}<mark>{{ 'its arms and legs shook violently' }}</mark>{{ '.' }}</p></article>
+        <article><div class="ladder-top"><span class="level">{{ 'B2' }}</span><small i18n>Adapted edition</small></div><p lang="en">{{ 'It was already one in the morning. The rain ' }}<mark>{{ 'pattered sadly' }}</mark>{{ ' against the ' }}<mark>{{ 'windowpanes' }}</mark>{{ ', and my candle ' }}<mark>{{ 'was nearly burnt out' }}</mark>{{ '. Then, ' }}<mark>{{ 'in the faint light that was almost extinguished' }}</mark>{{ ', I saw ' }}<mark>{{ 'the creature’s dull yellow eye' }}</mark>{{ ' open; it breathed ' }}<mark>{{ 'hard' }}</mark>{{ ', and ' }}<mark>{{ 'a convulsive movement shook its limbs' }}</mark>{{ '.' }}</p></article>
+        <article><div class="ladder-top"><span class="level level-original">{{ 'C1' }} &middot; <ng-container i18n>Original</ng-container></span><small i18n>Shelley, 1818</small></div><p lang="en">{{ 'It was already one in the morning; the rain ' }}<mark>{{ 'pattered dismally' }}</mark>{{ ' against the ' }}<mark>{{ 'panes' }}</mark>{{ ', and my candle ' }}<mark>{{ 'was nearly burnt out' }}</mark>{{ ', when, ' }}<mark>{{ 'by the glimmer of the half-extinguished light' }}</mark>{{ ', I saw ' }}<mark>{{ 'the dull yellow eye of the creature' }}</mark>{{ ' open; it breathed ' }}<mark>{{ 'hard' }}</mark>{{ ', and ' }}<mark>{{ 'a convulsive motion agitated its limbs' }}</mark>{{ '.' }}</p></article>
       </div>
-      <p i18n class="ladder-note">Frankenstein, Chapter XXIV. Marked: a word whose 1818 sense is gone, and a participle clause turned into a plain sentence. Each book goes as far down as it can without losing the story; the levels it reaches are listed on its library card. Adapted editions are machine-assisted, reviewed, and labelled in the reader. Preview any edition free; the full ladder comes with Premium.</p>
+      <p i18n class="ladder-note">The same moment. Every detail. One long sentence becomes three at B2 and four at B1. Frankenstein, Chapter V. Marked: the same phrase at each level. Each book goes as far down as it can without losing the story; the levels it reaches are listed on its library card. Adapted editions are machine-assisted, reviewed, and labelled in the reader. Preview any edition free; the full ladder comes with Premium.</p>
     </section>
 
     <section class="section review-section">
@@ -98,6 +99,30 @@
       <div class="difference-grid"><article i18n>Shows a word’s meaning in every language you already speak, not just one</article><article i18n>Knows the difference between understanding a word and being able to use it</article><article i18n>Notices which words you confuse with each other</article><article i18n>Gives you the same book at the level you can actually read</article><article i18n>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
     </section>
 
+    <section class="section container split split-top" id="languages">
+      <div class="section-heading">
+        <h2 i18n>Which languages? Almost certainly yours.</h2>
+        <p i18n>Save and review words in any of 328 languages: every language with about a million native speakers, from Cantonese to Kirundi.</p>
+        <a i18n class="text-link" routerLink="/languages">See exactly what works in yours &rarr;</a>
+      </div>
+      <div class="language-notes">
+        <article><strong i18n>Books in German and across Europe</strong><p i18n>A deep German shelf, English, and books in Polish, Finnish, Ukrainian, Russian, Swedish and the other major European languages.</p></article>
+        <article><strong i18n>Deeper, one language at a time</strong><p i18n>Voices, word forms and full dictionary entries are added language by language.</p></article>
+        <article class="language-note-tint"><strong i18n>You decide what comes next</strong><p i18n>Your lookups and book requests show which language to build next.</p></article>
+      </div>
+    </section>
+
+    <section class="section section-white" id="feedback">
+      <div class="container split split-top">
+        <div class="section-heading">
+          <h2 i18n>What did every language app get wrong for you?</h2>
+          <p i18n>Tell me what you always wished existed. It goes straight to my inbox. I read every one, and the ideas that fit get built.</p>
+          <div class="founder-byline"><span class="founder-photo founder-photo-small"><img src="assets/img/other/founder.webp" alt=""></span><span>{{ '@wanderbild' }}<ng-container i18n>, building Almonium</ng-container></span></div>
+        </div>
+        <app-landing-feedback></app-landing-feedback>
+      </div>
+    </section>
+
     <section class="section container" id="pricing">
       <app-paywall #paywall [layout]="'page'"></app-paywall>
       <ng-container *ngTemplateOutlet="paywall.content"></ng-container>
@@ -110,7 +135,11 @@
       </div>
     </section>
 
-    <section class="final-cta"><h2 i18n>Start with one page of a book.</h2><a i18n class="button button-primary" routerLink="/read">Start reading, no account needed</a></section>
+    <section class="final-cta">
+      <h2 i18n>Start with one page of a book</h2>
+      <a i18n class="button button-primary" routerLink="/read">Start reading, no account needed</a>
+      <div class="store-row"><span i18n>Or on your phone:</span><a i18n class="button button-outline button-small" [href]="appStoreUrl" target="_blank" rel="noopener">App Store</a><a i18n class="button button-outline button-small" [href]="playStoreUrl" target="_blank" rel="noopener">Google Play</a></div>
+    </section>
   </main>
 
   <app-public-footer></app-public-footer>

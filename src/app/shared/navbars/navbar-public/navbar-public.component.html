@@ -12,12 +12,6 @@
           routerLink="/read"
           class="nav-link section"
           [ngClass]="{'active-link': currentRoute.startsWith('/read') || currentRoute.startsWith('/books') || currentRoute.startsWith('/reader')}">
-          Read
-        </a>
-        <a i18n
-          routerLink="/"
-          [fragment]="'books'"
-          class="nav-link section">
           Books
         </a>
         <a i18n
@@ -42,8 +36,7 @@
 @if (isDiscoverMenuOpen) {
   <div class="popover-menu public-popover mobile-only" (clickOutside)="discoverOnClickOutside()">
     <nav class="menu-items" aria-label="Mobile navigation" i18n-aria-label>
-      <a i18n routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Read</a>
-      <a i18n routerLink="/" [fragment]="'books'" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
+      <a i18n routerLink="/read" class="menu-item" (click)="discoverOnClickOutside()">Books</a>
       <a i18n routerLink="/pricing" class="menu-item" (click)="discoverOnClickOutside()">Pricing</a>
     </nav>
   </div>

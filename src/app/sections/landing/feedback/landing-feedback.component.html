@@ -1,0 +1,34 @@
+@if (sentTo === null) {
+  <form class="feedback-form" (submit)="send($event)">
+    <label class="visually-hidden" for="landing-feedback-message" i18n>What you always wished existed</label>
+    <textarea id="landing-feedback-message" [formControl]="message" [maxlength]="messageMax"
+              placeholder="I always wanted a tool that…" i18n-placeholder></textarea>
+    @if (counter) {
+      <small class="counter">{{ counter }}</small>
+    }
+    <!-- The honeypot: off-screen and out of the tab order, so only a bot fills it in. -->
+    <input class="trap" type="text" name="website" [formControl]="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="send-row">
+      <label class="visually-hidden" for="landing-feedback-email" i18n>Your email</label>
+      <input id="landing-feedback-email" type="email" [formControl]="email" autocomplete="email"
+             placeholder="Your email, if you’d like a reply" i18n-placeholder>
+      <button i18n type="submit" class="button button-primary send" [disabled]="sending || missing !== null">Send</button>
+    </div>
+    @if (failed) {
+      <p i18n class="note error" role="alert">That didn’t send. Try again in a moment.</p>
+    } @else if (missing) {
+      <p class="note">{{ missing }}</p>
+    }
+  </form>
+} @else {
+  <div class="sent" role="status">
+    <h3 i18n>Thank you. It’s in my inbox.</h3>
+    @if (sentTo) {
+      <p i18n>I’ll write back to {{ sentTo }}.</p>
+    } @else {
+      <p i18n>You didn’t leave an email, so I can’t reply, but I’ll read it.</p>
+    }
+    <hr>
+    <div class="sent-next"><span i18n>While you’re here:</span><a i18n class="button button-outline button-compact" routerLink="/read">Start reading</a></div>
+  </div>
+}

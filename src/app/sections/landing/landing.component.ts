@@ -5,10 +5,11 @@ import {TuiNotificationService} from '@taiga-ui/core/components';
 import {LANDING_ACCOUNT_DELETED_PARAM} from '../../authentication/logout/logout-reason';
 import {PaywallComponent} from '../../shared/paywall/paywall.component';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
+import {LandingFeedbackComponent} from './feedback/landing-feedback.component';
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent],
+  imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent, LandingFeedbackComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.less'
 })
@@ -16,6 +17,10 @@ export class LandingComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly alerts = inject(TuiNotificationService);
+
+  /** The production app's store pages. The App Store id is not issued yet, so iOS opens a store search for now. */
+  protected readonly appStoreUrl = 'https://apps.apple.com/search?term=Almonium';
+  protected readonly playStoreUrl = 'https://play.google.com/store/apps/details?id=com.almonium.mobile';
 
   ngOnInit(): void {
     this.acknowledgeDeletedAccount();

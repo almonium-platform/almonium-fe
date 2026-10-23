@@ -211,6 +211,11 @@ tui-hint {
   --tui-radius-l: 0.75rem;
   --tui-radius-m: 0.625rem;
 }
+tui-hint[data-appearance='book'] {
+  background: var(--overlay-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: 0 8px 22px rgba(44, 37, 48, 0.18);
+}
 tui-dropdown:has(app-user-preview-card) {
   border: 0 !important;
   border-radius: var(--card-radius) !important;
@@ -1769,6 +1774,198 @@ tui-data-list button[tuiOption].context-button.negative {
   margin: 0;
   accent-color: var(--dark-raspberry);
 }
+.scope-landing-feedback {
+  /* Grows with the answer up to about eight lines, then scrolls. */
+}
+.scope-landing-feedback :host {
+  display: block;
+}
+.scope-landing-feedback * {
+  box-sizing: border-box;
+}
+.scope-landing-feedback a {
+  color: inherit;
+  text-decoration: none;
+}
+.scope-landing-feedback .button {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 15px 32px;
+  font: 600 16px/1.2 var(--font-family-ui);
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+.scope-landing-feedback .button:hover {
+  transform: translateY(-1px);
+}
+.scope-landing-feedback .button:focus-visible,
+.scope-landing-feedback button:focus-visible,
+.scope-landing-feedback a:focus-visible {
+  outline: 3px solid #c9a8c4;
+  outline-offset: 3px;
+}
+.scope-landing-feedback .button-primary {
+  background: var(--plum);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(72, 23, 125, 0.24);
+}
+.scope-landing-feedback .button-primary:hover {
+  background: #48177d;
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(72, 23, 125, 0.3);
+}
+.scope-landing-feedback .button-outline {
+  border: 1.5px solid var(--ink);
+  padding: 10px 23px;
+  background: transparent;
+}
+.scope-landing-feedback .button-outline:hover {
+  background: var(--ink);
+  color: #fff;
+}
+.scope-landing-feedback .button-small {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+.scope-landing-feedback .button-compact {
+  padding: 12px 25px;
+  font-size: 14.5px;
+}
+.scope-landing-feedback .button:disabled {
+  cursor: default;
+  opacity: 0.45;
+  transform: none;
+  box-shadow: none;
+}
+.scope-landing-feedback .feedback-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.scope-landing-feedback textarea,
+.scope-landing-feedback input {
+  width: 100%;
+  border: 1px solid #d8cfd6;
+  background: var(--ground);
+  color: var(--ink);
+  font: 15px/1.6 var(--font-family-ui);
+}
+.scope-landing-feedback textarea::placeholder,
+.scope-landing-feedback input::placeholder {
+  color: var(--muted);
+}
+.scope-landing-feedback textarea:focus-visible,
+.scope-landing-feedback input:focus-visible {
+  border-color: var(--plum);
+  outline: 3px solid #e4d3ea;
+  outline-offset: 0;
+}
+.scope-landing-feedback textarea {
+  min-height: 140px;
+  max-height: calc(8lh + 34px);
+  resize: none;
+  field-sizing: content;
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+.scope-landing-feedback .counter {
+  align-self: flex-end;
+  margin-top: -6px;
+  color: var(--muted);
+  font: 12px var(--font-family-mono);
+}
+.scope-landing-feedback .send-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.scope-landing-feedback .send-row input {
+  flex: 1;
+  min-width: 220px;
+  width: auto;
+  border-radius: 999px;
+  padding: 13px 20px;
+  font-size: 14.5px;
+}
+.scope-landing-feedback .send {
+  padding: 14px 30px;
+  font-size: 15px;
+}
+.scope-landing-feedback .note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.scope-landing-feedback .error {
+  color: var(--berry);
+}
+.scope-landing-feedback .trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.scope-landing-feedback .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.scope-landing-feedback .sent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 18px;
+  padding: 26px 28px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(44, 37, 48, 0.1);
+}
+.scope-landing-feedback .sent h3 {
+  margin: 0;
+  font: 600 22px/1.3 var(--font-family-reading);
+}
+.scope-landing-feedback .sent p {
+  margin: 0;
+  color: var(--copy);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.scope-landing-feedback .sent hr {
+  height: 1px;
+  margin: 4px 0;
+  border: 0;
+  background: var(--line);
+}
+.scope-landing-feedback .sent-next {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: #33292e;
+  font-size: 14.5px;
+}
+@media (max-width: 700px) {
+  .scope-landing-feedback .send-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .scope-landing-feedback .send-row input {
+    min-width: 0;
+    width: 100%;
+  }
+  .scope-landing-feedback .send {
+    width: 100%;
+  }
+}
 .scope-auth-settings .base-container {
   display: flex;
   flex-direction: column;
@@ -2792,6 +2989,45 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--subhead-color);
   font-family: var(--font-family-mono);
 }
+.scope-discover .pronunciations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.scope-discover .pronunciations li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.scope-discover .pronunciations .variety {
+  color: var(--metadata-color);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.scope-discover .listen {
+  min-height: 32px;
+  padding: 0.2rem 0.8rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 999px;
+  background: var(--nested-color);
+  color: var(--brand-margin);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.scope-discover .listen:hover {
+  border-color: var(--brand-primary);
+}
+.scope-discover .unverified {
+  color: var(--metadata-color);
+  font-size: 0.68rem;
+  cursor: help;
+  text-decoration: underline dotted;
+}
 .scope-discover .frequency {
   display: flex;
   flex-direction: column;
@@ -2857,6 +3093,43 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-discover .sense-body small,
 .scope-discover .sense-choice {
   color: var(--metadata-color);
+}
+.scope-discover .sense-body .definition {
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.scope-discover .cefr {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0 0.4rem;
+  border-radius: 6px;
+  background: var(--nested-color);
+  color: var(--brand-margin);
+  font: 600 0.68rem/1.5 var(--font-family-mono);
+  vertical-align: middle;
+}
+.scope-discover .examples {
+  padding: 0 2rem 2rem;
+}
+.scope-discover .examples ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scope-discover .examples li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--hairline-color);
+}
+.scope-discover .example-text {
+  font: 1rem/1.55 var(--font-family-reading);
+}
+.scope-discover .example-translation {
+  color: var(--subhead-color);
+  font-size: 0.88rem;
 }
 .scope-discover .sense-choice {
   font-size: 0.75rem;
@@ -3010,6 +3283,7 @@ tui-data-list button[tuiOption].context-button.negative {
   }
   .scope-discover .entry-header,
   .scope-discover .senses,
+  .scope-discover .examples,
   .scope-discover .keep-panel {
     padding: 1.25rem;
   }
@@ -4267,6 +4541,28 @@ tui-data-list button[tuiOption].context-button.negative {
         </div>
       </div>
   </section>
+  <section class="harness-card" id="landing-feedback">
+    <header>
+      <h2>Landing — the founder question before it says enough to send</h2>
+      <p class="harness-source">landing-feedback.component.html: Send</p>
+      <p class="harness-rule">An answer needs ten characters; the email is optional, but a typed one must look like an address. The line under Send names what is still missing.</p>
+      <label class="harness-toggle">
+      <code>draft</code>
+      <select data-card="landing-feedback"><option value="ready" selected>an answer, no email</option><option value="empty">nothing typed yet</option><option value="short">answer "Flashcard"</option><option value="bad-email">email "marta@"</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-landing-feedback harness-frame" style="--ground:#f9f6f5;--ink:#2c2530;--copy:#5f5560;--muted:#a99aa8;--plum:#5a1a74;--berry:#872657;--line:#edebe8;background:#fff;padding:24px">
+        <form class="feedback-form">
+          <textarea placeholder="I always wanted a tool that…"></textarea>
+          <div class="send-row">
+            <input type="email" placeholder="Your email, if you’d like a reply">
+            <button type="button" class="button button-primary send" data-blocked>Send</button>
+          </div>
+          <p class="note" data-note>Write a sentence or two to send.</p>
+        </form>
+      </div>
+  </section>
   <section class="harness-card" id="re-upload">
     <header>
       <h2>Read — Re-upload while the processor is still reading the file</h2>
@@ -4529,7 +4825,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"rights-report":{"ready":{"value":"ready","label":"role, message and email given","note":"","blocked":false},"role":{"value":"role","label":"nothing picked yet","note":"Say who you are.","blocked":true},"message":{"value":"message","label":"message \"Wrong\"","note":"Describe the problem: 5 more characters at least.","blocked":true},"email":{"value":"email","label":"guest, no email","note":"Leave your email so we can answer.","blocked":true},"bad-email":{"value":"bad-email","label":"guest, email \"holder@\"","note":"Check the email address.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"rights-report":{"ready":{"value":"ready","label":"role, message and email given","note":"","blocked":false},"role":{"value":"role","label":"nothing picked yet","note":"Say who you are.","blocked":true},"message":{"value":"message","label":"message \"Wrong\"","note":"Describe the problem: 5 more characters at least.","blocked":true},"email":{"value":"email","label":"guest, no email","note":"Leave your email so we can answer.","blocked":true},"bad-email":{"value":"bad-email","label":"guest, email \"holder@\"","note":"Check the email address.","blocked":true}},"landing-feedback":{"ready":{"value":"ready","label":"an answer, no email","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Write a sentence or two to send.","blocked":true},"short":{"value":"short","label":"answer \"Flashcard\"","note":"1 more characters to send.","blocked":true},"bad-email":{"value":"bad-email","label":"email \"marta@\"","note":"Check the email address, or leave it empty.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {
