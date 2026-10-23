@@ -1,4 +1,4 @@
-import {TestBed} from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {ActivatedRoute, convertToParamMap, provideRouter} from '@angular/router';
 import {of} from 'rxjs';
 import {AppConstants} from '../../app.constants';
@@ -30,7 +30,9 @@ describe('DiscoverComponent', () => {
     };
   }
 
-  async function render(lookup: DiscoverLookup, variety: string | null): Promise<HTMLElement> {
+  let fixture: ComponentFixture<DiscoverComponent>;
+
+  async function render(lookup: DiscoverLookup, variety: string | null, query: Record<string, string> = {text: 'colour'}): Promise<HTMLElement> {
     const discoverService = jasmine.createSpyObj<DiscoverService>('DiscoverService', ['lookup']);
     discoverService.lookup.and.returnValue(of(lookup));
     const learners = variety === null ? [] : [new Learner('learner-1', LanguageCode.EN, CEFRLevel.B1, true, variety)];
@@ -38,14 +40,14 @@ describe('DiscoverComponent', () => {
       imports: [DiscoverComponent],
       providers: [
         provideRouter([]),
-        {provide: ActivatedRoute, useValue: {queryParamMap: of(convertToParamMap({text: 'colour'}))}},
+        {provide: ActivatedRoute, useValue: {paramMap: of(convertToParamMap({})), queryParamMap: of(convertToParamMap(query))}},
         {provide: DiscoverService, useValue: discoverService},
         {provide: CardService, useValue: jasmine.createSpyObj<CardService>('CardService', ['createCard'])},
-        {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.EN)}},
-        {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK]} as unknown as UserInfo}},
+        {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.EN), setCurrentLanguage: () => undefined}},
+        {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.EN]} as unknown as UserInfo}},
       ],
     }).compileComponents();
-    const fixture = TestBed.createComponent(DiscoverComponent);
+    fixture = TestBed.createComponent(DiscoverComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -111,5 +113,89 @@ describe('DiscoverComponent', () => {
     expect(element.querySelector('.pronunciations')).toBeNull();
     expect(element.querySelector('.entry-header .transcription')?.textContent).toContain('[ˈkʌlə]');
     expect(element.querySelector('.examples')).toBeNull();
+  });
+
+  describe('the line', () => {
+    beforeEach(() => localStorage.clear());
+
+    function field(element: HTMLElement): HTMLTextAreaElement {
+      return element.querySelector<HTMLTextAreaElement>('textarea')!;
+    }
+
+    function type(element: HTMLElement, value: string): void {
+      const textarea = field(element);
+      textarea.value = value;
+      textarea.setSelectionRange(value.length, value.length);
+      textarea.dispatchEvent(new Event('input'));
+    }
+
+    function press(element: HTMLElement, key: string, init: KeyboardEventInit = {}): KeyboardEvent {
+      const event = new KeyboardEvent('keydown', {key, cancelable: true, ...init});
+      field(element).dispatchEvent(event);
+      return event;
+    }
+
+    async function renderEmpty(query: Record<string, string> = {}): Promise<{element: HTMLElement; detect: () => void}> {
+      const element = await render(lookupOf([]), null, query);
+      return {element, detect: () => fixture.detectChanges()};
+    }
+
+    it('rests as one line with no button until there is something to run', async () => {
+      const {element} = await renderEmpty({language: 'de'});
+      expect(element.querySelector('h1')).toBeNull();
+      expect(element.querySelector('.placeholder')?.textContent).toContain('Type a word, or paste a sentence');
+      expect(element.querySelector('button.run')).toBeNull();
+    });
+
+    it('names what Enter will do from the length and shape of the text', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Ausgabe');
+      detect();
+      expect(element.querySelector('button.run')?.textContent).toContain('Look up');
+      type(element, 'Die neueste Ausgabe lag ungelesen dort.');
+      detect();
+      expect(element.querySelector('button.run')?.textContent).toContain('Break down');
+      type(element, 'x'.repeat(401));
+      detect();
+      expect(element.querySelector('button.run')?.textContent).toContain('Sign in for longer text');
+      expect(element.querySelector('.count')?.textContent).toContain('401');
+    });
+
+    it('offers the letter ring after a letter and cycles it back to the plain letter with ↑', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Br');
+      type(element, 'Bru');
+      detect();
+      expect(element.querySelector('.chip')?.textContent).toContain('ü');
+      expect(press(element, 'ArrowUp').defaultPrevented).toBeTrue();
+      detect();
+      expect(field(element).value).toBe('Brü');
+      press(element, 'ArrowUp');
+      detect();
+      expect(field(element).value).toBe('Bru');
+      press(element, 'c');
+      detect();
+      expect(element.querySelector('.chip')).toBeNull();
+    });
+
+    it('clears on Escape and keeps Shift+Enter for a new line', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Ausgabe');
+      detect();
+      expect(press(element, 'Enter', {shiftKey: true}).defaultPrevented).toBeFalse();
+      press(element, 'Escape');
+      detect();
+      expect(field(element).value).toBe('');
+    });
+
+    it('gives a guest the language of the link, with its letters in the menu', async () => {
+      const {element, detect} = await renderEmpty({language: 'fr'});
+      const token = element.querySelector<HTMLButtonElement>('.token')!;
+      expect(token.textContent).toContain('French');
+      token.click();
+      detect();
+      const german = Array.from(element.querySelectorAll<HTMLElement>('.language-menu button')).find(row => row.textContent?.includes('German'));
+      expect(german?.querySelector('.letters')?.textContent).toBe('ä ö ü ß');
+    });
   });
 });

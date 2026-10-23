@@ -78,6 +78,8 @@ export const routes: Routes = [
   // sections of both auth and unauth
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},
   {path: 'discover', loadComponent: () => import('./sections/discover/discover.component').then(m => m.DiscoverComponent)},
+  // A shared or indexed link names the language the field listens in (/discover/de).
+  {path: 'discover/:language', loadComponent: () => import('./sections/discover/discover.component').then(m => m.DiscoverComponent)},
   {path: 'read', loadComponent: () => import('./sections/read/read.component').then(m => m.ReadComponent)},
   // The public certificate (K1): /read/@{username}/{editionSlug}, indexable, 404 while the reader keeps it off.
   {matcher: certificatePageMatcher, loadComponent: () => import('./sections/read/certificate/certificate-page.component').then(m => m.CertificatePageComponent)},

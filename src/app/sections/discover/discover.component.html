@@ -1,43 +1,123 @@
-<main class="discover-page">
+<main class="discover-page" [class.at-rest]="atRest">
   @if (sourceBook) {
     <aside class="sentence-card" aria-label="Book source" i18n-aria-label>
       <p i18n>From {{ sourceBookTitle }} · {{ sourceChapterTitle }}</p>
       <a [routerLink]="sourceChapter ? ['/books', sourceBook, sourceChapter] : ['/reader', sourceBook]" i18n>Back to book</a>
     </aside>
   }
-  <section class="discover-intro" aria-labelledby="discover-title">
-    <p i18n class="eyebrow">Discover · {{ currentLanguage }}</p>
-    <h1 i18n id="discover-title">Look up a word, or paste the sentence it was in</h1>
-    <p i18n>The sentence is worth pasting. It gives a kept word its context and lets review bring it back the way you met it.</p>
-  </section>
-
-  <form class="search-card" (ngSubmit)="submitSearch()">
-    <label i18n for="discover-search">Word or sentence</label>
-    <div class="search-row">
-      <textarea id="discover-search" name="search" [(ngModel)]="searchText" rows="2" maxlength="500"
-                placeholder="die Ausgabe — or paste the whole sentence" i18n-placeholder></textarea>
-      <button i18n class="primary-action" type="submit" [disabled]="loading || !searchText.trim()">
-        {loading, select, true {Opening…} other {Look up}}
-      </button>
-    </div>
-    <div class="diacritics" aria-label="Insert a character" i18n-aria-label>
-      <span i18n>Characters</span>
-      @for (character of diacritics; track character) {
-        <button type="button" (click)="insertDiacritic(character)">{{ character }}</button>
+  <div class="field" [class.guest]="!signedIn">
+    <div class="line" [class.focused]="focused">
+      @if (!signedIn) {
+        <div class="language-token">
+          <button type="button" class="token" aria-haspopup="listbox" [attr.aria-expanded]="menuOpen" (click)="toggleMenu()"
+                  aria-label="Language of the text" i18n-aria-label>
+            {{ languageName(guestLanguage) }}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          @if (menuOpen) {
+            <ul class="language-menu" role="listbox" aria-label="Language of the text" i18n-aria-label>
+              @for (language of guestLanguages; track language) {
+                <li role="option" [attr.aria-selected]="language === guestLanguage">
+                  <button type="button" [class.current]="language === guestLanguage" (click)="pickGuestLanguage(language)">
+                    <span class="name">{{ languageName(language) }}</span>
+                    <span class="native">{{ nativeName(language) }}</span>
+                    <span class="letters">{{ letters(language) }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+      <div class="text">
+        <div #mirror class="mirror" [class]="'size-' + textSize" aria-hidden="true">{{ chip ? searchText.slice(0, chip.position) : '' }}<span #mark>{{ chip ? searchText[chip.position] : '' }}</span></div>
+        @if (!searchText) {
+          <span i18n class="placeholder" aria-hidden="true">Type a word, or paste a sentence</span>
+        }
+        <textarea #field id="discover-search" [class]="'size-' + textSize" [class.scrolled]="scrolled" [value]="searchText" rows="1"
+                  spellcheck="false" autocomplete="off" enterkeyhint="search" aria-label="Look up a word or a sentence" i18n-aria-label
+                  (input)="onInput($event)" (keydown)="onKeydown($event)" (mousedown)="chip = null" (scroll)="onFieldScroll(field)"
+                  (focus)="focused = true" (blur)="focused = false; chip = null"></textarea>
+        @if (chip) {
+          <div class="chip" [style.left.px]="chipX" [style.top.px]="chipY">
+            @for (variant of chip.ring.slice(1); track $index; let i = $index) {
+              <button type="button" tabindex="-1" [class.applied]="chip.index === i + 1" (mousedown)="pickVariant($event, i + 1)">{{ variant }}</button>
+            }
+            <span class="arrow" aria-hidden="true">↑</span>
+          </div>
+        }
+      </div>
+      @if (searchText.trim()) {
+        <button type="button" class="run" [disabled]="loading || breakingDown || savingText" (click)="submitSearch()">
+          {{ actionLabel }}<kbd aria-hidden="true">↵</kbd>
+        </button>
       }
     </div>
-  </form>
+    <div class="under">
+      @if (showRecents) {
+        <div #recentRow class="recents" aria-label="Recent lookups" i18n-aria-label>
+          @for (entry of recents; track entry) {
+            <button type="button" (click)="openRecent(entry)" (keydown)="onRecentKeydown($event)">{{ entry }}</button>
+          }
+        </div>
+      }
+      @if (showCount) {
+        <span class="count" [class.over]="searchText.length > cap">{{ count }}</span>
+      }
+    </div>
+  </div>
 
-  @if (sentenceTokens.length > 1) {
+  @if (correctedFrom && breakdown) {
+    <p i18n class="correction" role="status">Read as {{ languageName(breakdown.language) }}: the text was plainly {{ languageName(breakdown.language) }}, not {{ languageName(correctedFrom) }}, so the field switched to match.</p>
+  }
+
+  @if (breakingDown || savingText) {
+    <section i18n class="loading-card" aria-live="polite"><app-emblem class="unfold-mark" [looped]="true"></app-emblem> Reading the text…</section>
+  }
+
+  @if (breakdown && !breakingDown) {
     <section class="sentence-card" aria-labelledby="sentence-title">
-      <p i18n class="section-label" id="sentence-title">Your sentence</p>
-      <p class="sentence-copy">
-        @for (token of sentenceTokens; track $index) {
-          <button type="button" [class.active]="lookup?.entry?.toLocaleLowerCase() === token.toLocaleLowerCase()"
-                  (click)="lookupWord(token)">{{ token }}</button>
+      <header class="card-head">
+        <p i18n class="section-label" id="sentence-title">{breakdown.sentences.length, plural, =1 {Your sentence} other {Your text, sentence by sentence}}</p>
+        @if (breakdownIsPreview) {
+          <span i18n class="preview-tag" title="Sample data until the breakdown service is built" i18n-title>Preview</span>
         }
-      </p>
-      <small i18n>Tap a word to open its sheet. The whole sentence will be kept as context.</small>
+      </header>
+      @for (sentence of breakdown.sentences; track $index) {
+        <div class="sentence">
+          <p class="sentence-copy">
+            @for (token of tokens(sentence.text); track $index) {
+              <button type="button" [class.active]="lookup?.entry?.toLocaleLowerCase() === token.toLocaleLowerCase() && context === sentence.text"
+                      (click)="openToken(token, sentence.text)">{{ token }}</button>
+            }
+          </p>
+          @if (sentence.translation) {
+            <p class="translation">{{ sentence.translation }}</p>
+          } @else if (breakdownIsPreview) {
+            <p i18n class="translation missing">No translation in this preview.</p>
+          }
+          @if (sentence.notes.length) {
+            <ul class="notes">
+              @for (note of sentence.notes; track $index) {
+                <li><span class="kind">{{ noteLabels[note.kind] }}</span><span class="span">{{ note.span }}</span><span class="detail">{{ note.detail }}</span></li>
+              }
+            </ul>
+          }
+        </div>
+      }
+      <small i18n>Tap a word to open its sheet. Its sentence is kept with it as context.</small>
+    </section>
+  }
+
+  @if (privateText && !savingText) {
+    <section class="sentence-card private-text" aria-labelledby="private-text-title">
+      <header class="card-head">
+        <p i18n class="section-label" id="private-text-title">Saved to your reader</p>
+        <span i18n class="preview-tag" title="Not stored yet: private texts arrive with the backend" i18n-title>Preview</span>
+      </header>
+      <h2>{{ privateText.title }}</h2>
+      <p i18n>A private text of {{ privateText.characters.toLocaleString() }} characters. Only you can see it, and every word in it opens its sheet.</p>
     </section>
   }
 
@@ -52,7 +132,7 @@
     <article class="word-sheet" aria-labelledby="entry-title">
       <header class="entry-header">
         <div>
-          <p class="eyebrow">{{ lookup.language }} · {{ selectedSense?.partOfSpeech || wordFallback }}</p>
+          <p class="eyebrow">{{ languageName(lookup.language) }} · {{ selectedSense?.partOfSpeech || wordFallback }}</p>
           <h2 id="entry-title">{{ selectedSense?.headword || lookup.entry }}</h2>
           @if (pronunciations.length) {
             <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
