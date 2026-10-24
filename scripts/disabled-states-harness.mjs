@@ -482,23 +482,32 @@ const CARDS = [
       </div>`,
   },
   {
-    id: 'discover-intent',
-    title: 'Discover — the Understand intent you cannot switch off',
-    source: 'discover.component.html:103',
-    rule: 'Permanently checked and permanently greyed, so the panel says why it is the baseline.',
-    control: {label: 'show the line', type: 'checkbox', checked: true},
+    id: 'discover-alternative-speaker',
+    title: 'Discover — the speaker of an alternative with no recording',
+    source: 'discover.component.html:180,198',
+    rule: 'Synthesis can only say the spelling, so past the first an alternative plays only from its own clip; until then it is greyed and the row says why.',
+    control: {label: 'second alternative has no clip', type: 'checkbox', checked: true},
     body: `
       <div class="scope-discover harness-frame">
-        <section class="keep-panel">
-          <p class="eyebrow">Keep it</p>
-          <h3>What do you want from this word?</h3>
-          <div class="intent-grid">
-            <label class="selected"><input type="checkbox" checked disabled><span><strong>Understand it</strong><small>Recognise it while reading</small></span></label>
-            <label><input type="checkbox"><span><strong>Say it too</strong><small>Recall the word from its meaning</small></span></label>
-            <label><input type="checkbox"><span><strong>Tell it apart</strong><small>Practise it against confusing words</small></span></label>
-          </div>
-          <p class="intent-note" data-note>Understanding is always kept. The other two are added on top of it.</p>
-        </section>
+        <ul class="pronunciations" aria-label="Pronunciations">
+          <li>
+            <span class="variety">British</span>
+            <span class="voices">
+              <span class="voice-line">
+                <span class="voice">
+                  <span class="transcription"><span>/ˈn</span><span class="differs">iːʃ</span><span>/</span></span>
+                  <button type="button" class="speaker" aria-label="Play the British pronunciation"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg></button>
+                </span>
+                <span class="or">or</span>
+                <span class="voice">
+                  <span class="transcription"><span>/ˈn</span><span class="differs">ɪtʃ</span><span>/</span></span>
+                  <button type="button" class="speaker" data-blocked aria-label="Play the British pronunciation"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg></button>
+                </span>
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p class="pending" data-note>The greyed one has no recording yet.</p>
       </div>`,
   },
 ];

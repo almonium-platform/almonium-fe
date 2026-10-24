@@ -91,29 +91,58 @@ describe('DiscoverComponent', () => {
     expect(rows[1].querySelector('button.speaker')).not.toBeNull();
   });
 
-  it('collapses transcriptions that say the same thing to one line with no label', async () => {
+  it('keeps a row and a speaker for every variety even when they transcribe the word alike', async () => {
     const alike = [{text: 'ˈkʌlə', differs: false}];
     const element = await render(lookupOf([{...british, segments: alike}, {...australian, ipa: 'ˈkʌlə', segments: alike}]), null);
     const rows = pronunciationRows(element);
-    expect(rows.length).toBe(1);
-    expect(rows[0].querySelector('.variety')).toBeNull();
-    expect(rows[0].querySelector('.differs')).toBeNull();
+    expect(rows.length).toBe(2);
+    expect(rows.map(row => row.querySelector('.variety')?.textContent?.trim())).toEqual(['British', 'Australian']);
+    expect(rows.map(row => row.querySelectorAll('button.speaker').length)).toEqual([1, 1]);
+    expect(element.querySelector('.differs')).toBeNull();
   });
 
-  it('gives a variety recording two alternatives one line and one speaker', async () => {
-    const plain = (ipa: string) => [{text: ipa, differs: false}];
+  describe('a variety recording alternatives (niche)', () => {
     const niche = (variety: string, ipa: string, clipUrl: string | null = null): DiscoverPronunciation =>
-      ({variety, ipa, clipUrl, clipStatus: clipUrl ? 'verified' : null, segments: plain(ipa)});
-    const play = spyOn(HTMLMediaElement.prototype, 'play').and.resolveTo();
-    const element = await render(lookupOf([niche('en-GB', '/ˈniːʃ/'), niche('en-GB', '/ˈnɪtʃ/', '/public/lexicon/clips/nitch'),
-      niche('en-US', '/ˈnɪtʃ/'), niche('en-US', '/ˈniːʃ/')]), null);
-    const rows = pronunciationRows(element);
-    expect(rows.length).toBe(1);
-    expect(Array.from(rows[0].querySelectorAll('.transcription')).map(span => span.textContent)).toEqual(['/ˈniːʃ/', '/ˈnɪtʃ/']);
-    expect(rows[0].querySelector('.or')?.textContent).toBe('or');
-    expect(rows[0].querySelectorAll('button.speaker').length).toBe(1);
-    rows[0].querySelector<HTMLButtonElement>('button.speaker')!.click();
-    expect((play.calls.mostRecent().object as HTMLAudioElement).src).toBe(`${AppConstants.API_URL}/public/lexicon/clips/nitch`);
+      ({variety, ipa, clipUrl, clipStatus: clipUrl ? 'verified' : null, segments: [{text: ipa, differs: true}]});
+
+    it('holds them on its row joined by "or", each with its own speaker', async () => {
+      const element = await render(lookupOf([niche('en-GB', '/ˈniːʃ/'), niche('en-GB', '/ˈnɪtʃ/'),
+        niche('en-US', '/ˈnɪtʃ/'), niche('en-US', '/ˈniːʃ/')]), null);
+      const rows = pronunciationRows(element);
+      expect(rows.length).toBe(2);
+      expect(Array.from(rows[0].querySelectorAll('.transcription')).map(span => span.textContent)).toEqual(['/ˈniːʃ/', '/ˈnɪtʃ/']);
+      expect(Array.from(rows[1].querySelectorAll('.transcription')).map(span => span.textContent)).toEqual(['/ˈnɪtʃ/', '/ˈniːʃ/']);
+      expect(rows[0].querySelectorAll('.or').length).toBe(1);
+      expect(element.querySelectorAll('.pronunciations button.speaker').length).toBe(4);
+    });
+
+    it('greys the speaker of an alternative with no clip past the first, and says why under the row', async () => {
+      const element = await render(lookupOf([niche('en-GB', '/ˈniːʃ/'), niche('en-GB', '/ˈnɪtʃ/')]), null);
+      const speakers = Array.from(element.querySelectorAll<HTMLButtonElement>('.pronunciations button.speaker'));
+      expect(speakers.map(speaker => speaker.disabled)).toEqual([false, true]);
+      expect(element.querySelector('.entry-header .pending')?.textContent).toContain('The greyed one has no recording yet.');
+    });
+
+    it('plays each alternative from its own clip', async () => {
+      const play = spyOn(HTMLMediaElement.prototype, 'play').and.resolveTo();
+      const element = await render(lookupOf([niche('en-GB', '/ˈniːʃ/', '/public/lexicon/clips/neesh'),
+        niche('en-GB', '/ˈnɪtʃ/', '/public/lexicon/clips/nitch')]), null);
+      const speakers = Array.from(element.querySelectorAll<HTMLButtonElement>('.pronunciations button.speaker'));
+      expect(speakers.map(speaker => speaker.disabled)).toEqual([false, false]);
+      expect(element.querySelector('.entry-header .pending')).toBeNull();
+      speakers[1].click();
+      fixture.detectChanges();
+      expect((play.calls.mostRecent().object as HTMLAudioElement).src).toBe(`${AppConstants.API_URL}/public/lexicon/clips/nitch`);
+      expect(speakers[1].classList).toContain('on');
+      expect(speakers[0].classList).not.toContain('on');
+    });
+
+    it('moves a third alternative to a line under the first two', async () => {
+      const element = await render(lookupOf([niche('en-GB', '/a/'), niche('en-GB', '/b/'), niche('en-GB', '/c/')]), null);
+      const lines = Array.from(element.querySelectorAll<HTMLElement>('.pronunciations .voice-line'));
+      expect(lines.map(line => line.querySelectorAll('.transcription').length)).toEqual([2, 1]);
+      expect(lines[1].querySelector('.or')).not.toBeNull();
+    });
   });
 
   it('keeps the server order when the learner has not chosen a variety', async () => {

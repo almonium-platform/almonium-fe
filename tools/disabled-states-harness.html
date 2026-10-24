@@ -2799,6 +2799,46 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-lang-settings .allowance-upgrade:hover {
   text-decoration: underline;
 }
+.scope-lang-settings .sense-lead-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  padding: 1.125rem 1.25rem;
+  border-radius: 20px;
+  background: var(--card-color);
+  box-shadow: var(--box-shadow);
+}
+.scope-lang-settings .sense-lead {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--nested-color);
+}
+.scope-lang-settings .sense-lead button {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5625rem 0.625rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.scope-lang-settings .sense-lead button.active {
+  background: var(--card-color);
+  box-shadow: 0 1px 3px var(--shadow-color);
+  color: var(--brand-primary);
+}
+.scope-lang-settings .sense-lead-note {
+  margin: 0;
+  color: var(--subhead-color);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
 .scope-discover :host {
   display: block;
   min-height: calc(100vh - var(--header-height));
@@ -2806,12 +2846,9 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--text-color);
 }
 .scope-discover .discover-page {
-  width: min(calc(100% - 2rem), 1040px);
+  width: min(calc(100% - 2rem), 800px);
   margin: 0 auto;
   padding: 3.6rem 0 6rem;
-}
-.scope-discover .discover-intro {
-  max-width: 760px;
 }
 .scope-discover h1,
 .scope-discover h2,
@@ -2819,106 +2856,426 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-discover p {
   margin-top: 0;
 }
-.scope-discover h1 {
-  max-width: 740px;
-  margin-bottom: 0.85rem;
-  font-size: clamp(2rem, 5vw, 3.1rem);
-  font-weight: 600;
-  line-height: 1.08;
+.scope-discover .discover-page.at-rest {
+  padding-top: 150px;
 }
-.scope-discover .discover-intro > p:last-child {
-  max-width: 650px;
+.scope-discover .field {
+  width: min(100%, 760px);
+  margin: 0 auto 2rem;
+}
+.scope-discover .field.guest {
+  width: min(100%, 800px);
+}
+.scope-discover .line {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  border-bottom: 1.5px solid var(--control-border-color);
+  transition: border-color 0.15s;
+}
+.scope-discover .line.focused {
+  border-bottom-color: var(--brand-primary);
+}
+.scope-discover .text {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.scope-discover .size-line {
+  font-size: 36px;
+  line-height: 45px;
+}
+.scope-discover .size-sentence {
+  font-size: 24px;
+  line-height: 35px;
+}
+.scope-discover .size-passage {
+  font-size: 19px;
+  line-height: 30px;
+}
+.scope-discover textarea,
+.scope-discover .mirror {
+  font-family: var(--font-family-reading);
+  font-weight: 500;
+}
+.scope-discover textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0 0 14px;
+  border: 0;
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+  background: transparent;
+  color: var(--text-color);
+  caret-color: var(--brand-primary);
+}
+.scope-discover textarea.size-sentence {
+  max-height: 224px;
+}
+.scope-discover textarea.size-line {
+  max-height: 284px;
+}
+.scope-discover textarea.size-passage {
+  max-height: 314px;
+}
+.scope-discover textarea.scrolled {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 60px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 60px);
+}
+.scope-discover .mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.scope-discover .placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  max-width: 100%;
+  padding-bottom: 14px;
+  color: var(--metadata-color);
+  pointer-events: none;
+  font: 400 36px/45px var(--font-family-reading);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.scope-discover .chip {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  transform: translate(-50%, calc(-100% - 6px));
+  border: 1px solid var(--disabled-fill-color);
+  border-radius: 10px;
+  background: var(--card-color);
+  box-shadow: 0 4px 14px rgba(44, 37, 48, 0.1);
+  white-space: nowrap;
+}
+.scope-discover .chip button {
+  min-height: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
   color: var(--subhead-color);
-  font-size: 1rem;
-  line-height: 1.65;
+  cursor: pointer;
+  font: 400 18px/1 var(--font-family-reading);
 }
-.scope-discover .search-card,
+.scope-discover .chip button.applied {
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+.scope-discover .chip .arrow {
+  padding: 0 6px 0 4px;
+  color: var(--metadata-color);
+  font: 500 10.5px/1 var(--font-family-mono);
+}
+.scope-discover .run {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 9px;
+  min-height: 0;
+  margin-bottom: 14px;
+  padding: 8px 10px 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brand-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scope-discover .run:hover,
+.scope-discover .run:active {
+  background: var(--chat-selected-color);
+}
+.scope-discover .run kbd {
+  padding: 2px 6px;
+  border: 1px solid var(--control-border-color);
+  border-radius: 6px;
+  color: var(--brand-margin);
+  font: 500 11px/1.2 var(--font-family-mono);
+}
+.scope-discover .under {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  min-height: 24px;
+  margin-top: 18px;
+}
+.scope-discover .recents {
+  display: flex;
+  gap: 24px;
+  min-width: 0;
+  overflow: hidden;
+}
+.scope-discover .recents button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--subhead-color);
+  cursor: pointer;
+  font: 17px/1.4 var(--font-family-reading);
+  white-space: nowrap;
+}
+.scope-discover .recents button:hover,
+.scope-discover .recents button:focus-visible {
+  color: var(--brand-primary);
+}
+.scope-discover .clear-recents {
+  flex: none;
+  min-height: 0;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--metadata-color);
+  cursor: pointer;
+  font: 11px var(--font-family-mono);
+}
+.scope-discover .clear-recents:hover,
+.scope-discover .clear-recents:focus-visible {
+  color: var(--brand-primary);
+}
+.scope-discover .suggestions {
+  flex: 1;
+  min-width: 0;
+  margin-top: -8px;
+}
+.scope-discover .suggestions ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.scope-discover .suggestions button {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  min-height: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.scope-discover .suggestions li.active button {
+  background: var(--chat-selected-color);
+}
+.scope-discover .suggestions .headword {
+  flex: 0 0 auto;
+  min-width: 190px;
+  font: 600 18px/1.3 var(--font-family-reading);
+  color: var(--text-color);
+}
+.scope-discover .suggestions li.active .headword {
+  color: var(--brand-primary);
+}
+.scope-discover .suggestions .gloss {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--subhead-color);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scope-discover .as-typed {
+  margin: 10px 12px 0;
+  color: var(--metadata-color);
+  font: 11px/1.5 var(--font-family-mono);
+}
+.scope-discover .count {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font: 11px var(--font-family-mono);
+}
+.scope-discover .count.over {
+  color: var(--brand-margin);
+}
+.scope-discover .language-token {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+.scope-discover .field .line:has(.size-sentence) .language-token {
+  margin-top: 0;
+}
+.scope-discover .field .line:has(.size-passage) .language-token {
+  margin-top: -2px;
+}
+.scope-discover .token {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  min-height: 0;
+  padding: 0 11px 0 14px;
+  border: 1px solid var(--control-border-color);
+  border-radius: 999px;
+  background: var(--card-color);
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.scope-discover .token svg {
+  color: var(--subhead-color);
+}
+.scope-discover .language-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  width: 300px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--hairline-color);
+  border-radius: 16px;
+  background: var(--overlay-color);
+  box-shadow: 0 12px 32px var(--shadow-color);
+}
+.scope-discover .language-menu button {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  min-height: 0;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: left;
+}
+.scope-discover .language-menu button:hover {
+  background: var(--nested-color);
+}
+.scope-discover .language-menu button.current {
+  background: var(--chat-selected-color);
+  color: var(--brand-primary);
+}
+.scope-discover .language-menu .name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.scope-discover .language-menu .native {
+  color: var(--subhead-color);
+  font-size: 12.5px;
+}
+.scope-discover .language-menu .letters {
+  margin-left: auto;
+  color: var(--metadata-color);
+  font: 15px var(--font-family-reading);
+  white-space: nowrap;
+}
+.scope-discover .correction {
+  margin: 0 0 1rem;
+  color: var(--subhead-color);
+  font-size: 0.9rem;
+}
+.scope-discover .card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.scope-discover .preview-tag {
+  padding: 2px 8px;
+  border: 1px dashed var(--control-border-color);
+  border-radius: 6px;
+  color: var(--metadata-color);
+  font: 500 0.68rem/1.5 var(--font-family-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: help;
+}
+.scope-discover .sentence + .sentence {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline-color);
+}
+.scope-discover .translation {
+  margin-bottom: 0.6rem;
+  color: var(--subhead-color);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.scope-discover .translation.missing {
+  color: var(--metadata-color);
+  font-style: italic;
+}
+.scope-discover .notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+.scope-discover .notes li {
+  display: grid;
+  grid-template-columns: 90px 170px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.scope-discover .notes .kind {
+  color: var(--brand-margin);
+  font: 600 0.68rem/1.5 var(--font-family-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.scope-discover .notes .span {
+  font-family: var(--font-family-reading);
+  font-weight: 600;
+}
+.scope-discover .notes .detail {
+  color: var(--subhead-color);
+}
+.scope-discover .private-text h2 {
+  margin-bottom: 0.4rem;
+  font: 600 1.5rem/1.3 var(--font-family-reading);
+}
+.scope-discover .private-text p {
+  margin-bottom: 0;
+  color: var(--subhead-color);
+}
 .scope-discover .sentence-card,
 .scope-discover .word-sheet {
   background: var(--card-color);
   box-shadow: var(--box-shadow);
 }
-.scope-discover .search-card {
-  margin-top: 2rem;
-  padding: 1.4rem;
-  border-radius: 20px;
-}
-.scope-discover .search-card > label,
-.scope-discover .meaning-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  color: var(--subhead-color);
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-.scope-discover .search-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: 0.8rem;
-}
-.scope-discover textarea,
-.scope-discover input {
-  box-sizing: border-box;
-  width: 100%;
-  border: 1px solid var(--control-border-color);
-  border-radius: 14px;
-  background: var(--nested-color);
-  color: var(--text-color);
-  font: inherit;
-}
-.scope-discover textarea {
-  min-height: 76px;
-  padding: 1rem 1.1rem;
-  resize: vertical;
-  font-family: var(--font-family-reading);
-  font-size: 1.2rem;
-  line-height: 1.45;
-}
-.scope-discover textarea:focus,
-.scope-discover input:focus {
-  outline: 3px solid rgba(90, 26, 116, 0.16);
-  border-color: var(--brand-primary);
-}
 .scope-discover button,
 .scope-discover a {
   min-height: 44px;
 }
-.scope-discover .primary-action,
-.scope-discover .keep-action,
-.scope-discover .signup-callout a {
-  border: 0;
-  border-radius: 999px;
-  background: var(--brand-primary);
-  color: var(--on-brand-color);
-  cursor: pointer;
-  font-weight: 600;
-}
-.scope-discover .primary-action {
-  align-self: center;
-  padding: 0.8rem 1.5rem;
-}
 .scope-discover button:disabled {
   cursor: not-allowed;
   opacity: 0.58;
-}
-.scope-discover .diacritics {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.75rem;
-  color: var(--metadata-color);
-  font-size: 0.72rem;
-}
-.scope-discover .diacritics button {
-  min-width: 34px;
-  min-height: 32px;
-  border: 1px solid var(--hairline-color);
-  border-radius: 8px;
-  background: var(--nested-color);
-  color: var(--brand-margin);
-  cursor: pointer;
 }
 .scope-discover .sentence-card {
   margin-top: 1rem;
@@ -2968,59 +3325,166 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--danger-text-color);
 }
 .scope-discover .word-sheet {
-  margin-top: 1.4rem;
-  overflow: hidden;
-  border-radius: 24px;
-}
-.scope-discover .entry-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 2rem;
-  align-items: start;
-  padding: 2rem;
-}
-.scope-discover .entry-header h2 {
-  margin-bottom: 0.2rem;
-  font-size: clamp(2.2rem, 6vw, 3.8rem);
-  font-weight: 600;
-  line-height: 1.1;
-}
-.scope-discover .transcription {
-  color: var(--subhead-color);
-  font-family: var(--font-family-mono);
-}
-.scope-discover .pronunciations {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin: 0.4rem 0 0;
+  gap: 22px;
+  margin-top: 34px;
+  padding: 34px 22px 22px;
+  border-radius: 28px;
+}
+.scope-discover .entry-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px;
+}
+.scope-discover .headline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+}
+.scope-discover .headline h2 {
+  margin: 0;
+  font: 600 56px/1 var(--font-family-reading);
+  overflow-wrap: anywhere;
+}
+.scope-discover .frequency {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  cursor: default;
+}
+.scope-discover .frequency .bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+}
+.scope-discover .frequency .bars span {
+  width: 4px;
+  border-radius: 1px;
+  background: var(--hairline-color);
+}
+.scope-discover .frequency .bars span:nth-child(1) {
+  height: 6px;
+}
+.scope-discover .frequency .bars span:nth-child(2) {
+  height: 9px;
+}
+.scope-discover .frequency .bars span:nth-child(3) {
+  height: 12px;
+}
+.scope-discover .frequency .bars span:nth-child(4),
+.scope-discover .frequency .bars span:nth-child(5) {
+  height: 16px;
+}
+.scope-discover .frequency .bars span.on {
+  background: var(--brand-primary);
+}
+.scope-discover .frequency .band {
+  color: var(--subhead-color);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.scope-discover .transcription {
+  margin: 0;
+  color: var(--subhead-color);
+  font: 15px var(--font-family-mono);
+}
+.scope-discover .pronunciations {
+  display: grid;
+  grid-template-columns: minmax(64px, max-content) auto;
+  justify-content: start;
+  gap: 6px 9px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 .scope-discover .pronunciations li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: start;
+}
+.scope-discover .pronunciations .voices {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+.scope-discover .pronunciations .voice-line {
+  display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 9px 14px;
+  white-space: nowrap;
+}
+.scope-discover .pronunciations .voice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.scope-discover .pending {
+  margin: -4px 0 0;
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .speaker:disabled {
+  border-color: var(--hairline-color);
+  background: transparent;
+  color: var(--disabled-label-color);
+  cursor: not-allowed;
+  opacity: 1;
 }
 .scope-discover .pronunciations .variety {
   color: var(--metadata-color);
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 30px;
 }
-.scope-discover .listen {
-  min-height: 32px;
-  padding: 0.2rem 0.8rem;
-  border: 1px solid var(--hairline-color);
-  border-radius: 999px;
-  background: var(--nested-color);
-  color: var(--brand-margin);
+.scope-discover .pronunciations .transcription {
+  white-space: nowrap;
+}
+.scope-discover .pronunciations .or {
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .differs {
+  padding: 0 1px;
+  border-radius: 3px;
+  background: var(--chat-selected-color);
+  color: var(--brand-primary);
+}
+.scope-discover .speaker {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--control-border-color);
+  border-radius: 50%;
+  background: var(--card-color);
+  color: var(--brand-primary);
   cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
-.scope-discover .listen:hover {
+.scope-discover .speaker.small {
+  width: 24px;
+  height: 24px;
+  border-color: var(--hairline-color);
+  color: var(--metadata-color);
+}
+.scope-discover .speaker:hover {
   border-color: var(--brand-primary);
+}
+.scope-discover .speaker.on {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+.scope-discover .slow {
+  color: var(--brand-primary);
+  font: 11px var(--font-family-mono);
 }
 .scope-discover .unverified {
   color: var(--metadata-color);
@@ -3028,284 +3492,241 @@ tui-data-list button[tuiOption].context-button.negative {
   cursor: help;
   text-decoration: underline dotted;
 }
-.scope-discover .frequency {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 1rem;
-  border-radius: 14px;
-  background: var(--nested-color);
-}
-.scope-discover .frequency strong {
-  color: var(--brand-margin);
-}
-.scope-discover .frequency span {
-  font-size: 0.82rem;
-}
-.scope-discover .frequency small {
-  color: var(--metadata-color);
-  font: 0.68rem/1.5 var(--font-family-mono);
-}
-.scope-discover .frequency.unavailable strong {
-  color: var(--subhead-color);
-}
 .scope-discover .senses {
-  padding: 0 2rem 2rem;
-}
-.scope-discover .sense-card {
-  display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
-  gap: 0.85rem;
-  align-items: center;
-  width: 100%;
-  margin-top: 0.6rem;
-  padding: 1rem;
-  border: 1px solid var(--hairline-color);
-  border-radius: 15px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-.scope-discover .sense-card:hover,
-.scope-discover .sense-card.selected {
-  border-color: var(--brand-primary);
-  background: var(--state-selected);
-}
-.scope-discover .sense-number {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--nested-color);
-  color: var(--brand-margin);
-  font-family: var(--font-family-mono);
-}
-.scope-discover .sense-body {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
 }
-.scope-discover .sense-body strong {
-  font: 600 1.02rem/1.35 var(--font-family-reading);
+.scope-discover .group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.scope-discover .sense-body small,
-.scope-discover .sense-choice {
+.scope-discover .part-of-speech {
+  margin: 0;
+  padding: 14px 16px 6px 60px;
+  color: var(--brand-margin);
+  font: italic 15px var(--font-family-reading);
+}
+.scope-discover .sense {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.scope-discover .sense:hover {
+  background: var(--nested-color);
+}
+.scope-discover .sense.selected {
+  background: var(--chat-selected-color);
+}
+.scope-discover .sense .number {
+  flex: 0 0 28px;
+  padding-top: 2px;
   color: var(--metadata-color);
+  font: 600 17px var(--font-family-reading);
+  text-align: right;
 }
-.scope-discover .sense-body .definition {
-  color: var(--subhead-color);
-  font-size: 0.9rem;
-  line-height: 1.45;
+.scope-discover .sense.selected .number {
+  color: var(--brand-primary);
+}
+.scope-discover .sense .body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.scope-discover .lead-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+.scope-discover .lead {
+  font: 500 18px/1.4 var(--font-family-reading);
+  text-wrap: pretty;
 }
 .scope-discover .cefr {
-  display: inline-block;
-  margin-left: 0.45rem;
-  padding: 0 0.4rem;
-  border-radius: 6px;
-  background: var(--nested-color);
-  color: var(--brand-margin);
-  font: 600 0.68rem/1.5 var(--font-family-mono);
-  vertical-align: middle;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--chat-selected-color);
+  color: var(--brand-primary);
+  font: 10.5px var(--font-family-mono);
 }
-.scope-discover .examples {
-  padding: 0 2rem 2rem;
+.scope-discover .sub {
+  color: var(--subhead-color);
+  font-size: 14.5px;
+  line-height: 1.5;
 }
-.scope-discover .examples ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.scope-discover .examples li {
+.scope-discover .example {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.7rem 0;
-  border-top: 1px solid var(--hairline-color);
+  align-items: center;
+  gap: 9px;
+  margin-top: 4px;
 }
 .scope-discover .example-text {
-  font: 1rem/1.55 var(--font-family-reading);
+  font: italic 15.5px/1.5 var(--font-family-reading);
 }
-.scope-discover .example-translation {
-  color: var(--subhead-color);
-  font-size: 0.88rem;
-}
-.scope-discover .sense-choice {
-  font-size: 0.75rem;
+.scope-discover .example-text .word {
+  color: var(--brand-primary);
   font-weight: 600;
+}
+.scope-discover .keep-slot {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  min-width: 84px;
+  padding-top: 1px;
+}
+.scope-discover .keep,
+.scope-discover .kept {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scope-discover .keep {
+  padding: 8px 18px;
+  border: 0;
+  background: var(--brand-primary);
+  color: var(--on-brand-color);
+}
+.scope-discover .kept {
+  padding: 7px 14px;
+  border: 1px solid var(--control-border-color);
+  background: var(--card-color);
+  color: var(--brand-primary);
+}
+.scope-discover .more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 16px 16px 4px 60px;
+  border-top: 1px solid var(--hairline-color);
+}
+.scope-discover .more button {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand-primary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scope-discover .more span {
+  color: var(--metadata-color);
+  font-size: 13px;
+}
+.scope-discover .word-sheet .message {
+  margin: 0 16px;
 }
 .scope-discover .empty-sense {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  margin: 0 16px;
   padding: 1rem;
   border-radius: 14px;
   background: var(--nested-color);
 }
-.scope-discover .empty-sense span {
-  color: var(--subhead-color);
-  font-size: 0.86rem;
-  line-height: 1.5;
-}
 .scope-discover blockquote {
-  margin: 0 2rem 2rem;
+  margin: 0 16px;
   padding: 1.1rem 1.25rem;
   border-left: 3px solid var(--brand-margin);
   background: var(--nested-color);
   font: 1rem/1.65 var(--font-family-reading);
 }
-.scope-discover .keep-panel {
-  padding: 2rem;
-  background: var(--brand-ink);
-  color: var(--page-ground);
-}
-.scope-discover .keep-panel .section-label {
-  color: #c9a8c4;
-}
-.scope-discover .keep-panel h3 {
-  font-size: 1.55rem;
-  font-weight: 500;
-}
-.scope-discover .intent-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.65rem;
-}
-.scope-discover .intent-grid label {
-  display: flex;
-  gap: 0.65rem;
-  min-height: 72px;
-  align-items: flex-start;
-  padding: 0.85rem;
-  border: 1px solid #5a505d;
-  border-radius: 13px;
-  cursor: pointer;
-}
-.scope-discover .intent-grid label.selected {
-  border-color: #c9a8c4;
-  background: rgba(255, 255, 255, 0.06);
-}
-.scope-discover .intent-grid input {
-  width: auto;
-  margin-top: 0.2rem;
-}
-.scope-discover .intent-grid span {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.scope-discover .intent-grid small {
-  color: #c9c0cc;
-  font-size: 0.72rem;
-  line-height: 1.35;
-}
-.scope-discover .intent-note {
-  margin: 0.65rem 0 0;
-  color: #c9c0cc;
-  font-size: 0.76rem;
-}
-.scope-discover .meaning-field {
-  margin-top: 1rem;
-  color: #c9c0cc;
-}
-.scope-discover .meaning-field input {
-  padding: 0.85rem 1rem;
-  background: #37303d;
-  border-color: #5a505d;
-  color: #fff;
-}
-.scope-discover .keep-action {
-  margin-top: 1rem;
-  min-width: 160px;
-  padding: 0.75rem 1.4rem;
-  background: var(--premium-gradient);
-}
-.scope-discover .keep-action.kept {
-  background: var(--success-color);
-}
-.scope-discover .fold-mark {
-  width: 1em;
-  height: 1em;
-  margin-right: 0.4rem;
-  vertical-align: -0.15em;
-}
-.scope-discover .save-note {
-  display: inline;
-  margin-left: 0.8rem;
-  color: #c9c0cc;
-  font-size: 0.76rem;
-}
-.scope-discover .signup-callout {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #5a505d;
-}
-.scope-discover .signup-callout div {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.scope-discover .signup-callout span {
-  color: #c9c0cc;
-  font-size: 0.8rem;
-}
-.scope-discover .signup-callout a {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  padding: 0 1.3rem;
-  background: #e0c4ee;
-  color: var(--brand-ink);
-}
-.scope-discover .entry-footer {
-  padding: 1rem 2rem;
-  color: var(--metadata-color);
-  font: 0.69rem/1.55 var(--font-family-mono);
-}
 @media (max-width: 720px) {
   .scope-discover .discover-page {
     padding-top: 2rem;
   }
-  .scope-discover .search-row,
-  .scope-discover .entry-header {
+  .scope-discover .discover-page.at-rest {
+    padding-top: 3rem;
+  }
+  .scope-discover .line {
+    gap: 10px;
+  }
+  .scope-discover .field.guest .line {
+    flex-wrap: wrap;
+  }
+  .scope-discover .field.guest .text {
+    flex-basis: 100%;
+  }
+  .scope-discover .size-line,
+  .scope-discover .placeholder {
+    font-size: 26px;
+    line-height: 34px;
+  }
+  .scope-discover .size-sentence {
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .scope-discover .size-passage {
+    font-size: 17px;
+    line-height: 27px;
+  }
+  .scope-discover textarea.size-line {
+    max-height: 218px;
+  }
+  .scope-discover textarea.size-sentence {
+    max-height: 194px;
+  }
+  .scope-discover textarea.size-passage {
+    max-height: 284px;
+  }
+  .scope-discover .chip button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .scope-discover .notes li {
     grid-template-columns: 1fr;
+    gap: 0.1rem;
   }
-  .scope-discover .primary-action {
-    width: 100%;
+  .scope-discover .suggestions .headword {
+    min-width: 0;
   }
-  .scope-discover .diacritics {
-    overflow-x: auto;
-  }
-  .scope-discover .entry-header,
-  .scope-discover .senses,
-  .scope-discover .examples,
-  .scope-discover .keep-panel {
-    padding: 1.25rem;
-  }
-  .scope-discover .frequency {
-    width: auto;
-  }
-  .scope-discover .intent-grid {
-    grid-template-columns: 1fr;
-  }
-  .scope-discover blockquote {
-    margin: 0 1.25rem 1.25rem;
-  }
-  .scope-discover .signup-callout {
-    align-items: stretch;
+  .scope-discover .suggestions button {
     flex-direction: column;
+    gap: 2px;
   }
-  .scope-discover .signup-callout a {
-    justify-content: center;
+  .scope-discover .word-sheet {
+    padding: 24px 8px 12px;
+    border-radius: 20px;
   }
-  .scope-discover .save-note {
-    display: block;
-    margin: 0.6rem 0 0;
+  .scope-discover .entry-header {
+    padding: 0 10px;
+  }
+  .scope-discover .headline h2 {
+    font-size: 40px;
+  }
+  .scope-discover .sense {
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  .scope-discover .sense .number {
+    flex-basis: 20px;
+  }
+  .scope-discover .keep-slot {
+    min-width: 0;
+  }
+  .scope-discover .part-of-speech,
+  .scope-discover .more {
+    padding-left: 40px;
+  }
+  .scope-discover .pronunciations .voice-line {
+    flex-wrap: wrap;
+    white-space: normal;
   }
 }
 .scope-ops {
@@ -4799,28 +5220,37 @@ tui-data-list button[tuiOption].context-button.negative {
         </div>
       </div>
   </section>
-  <section class="harness-card" id="discover-intent">
+  <section class="harness-card" id="discover-alternative-speaker">
     <header>
-      <h2>Discover — the Understand intent you cannot switch off</h2>
-      <p class="harness-source">discover.component.html:103</p>
-      <p class="harness-rule">Permanently checked and permanently greyed, so the panel says why it is the baseline.</p>
+      <h2>Discover — the speaker of an alternative with no recording</h2>
+      <p class="harness-source">discover.component.html:180,198</p>
+      <p class="harness-rule">Synthesis can only say the spelling, so past the first an alternative plays only from its own clip; until then it is greyed and the row says why.</p>
       <label class="harness-toggle">
-        <input type="checkbox" data-card="discover-intent" checked>
-        <code>show the line</code>
+        <input type="checkbox" data-card="discover-alternative-speaker" checked>
+        <code>second alternative has no clip</code>
       </label>
     </header>
     
       <div class="scope-discover harness-frame">
-        <section class="keep-panel">
-          <p class="eyebrow">Keep it</p>
-          <h3>What do you want from this word?</h3>
-          <div class="intent-grid">
-            <label class="selected"><input type="checkbox" checked disabled><span><strong>Understand it</strong><small>Recognise it while reading</small></span></label>
-            <label><input type="checkbox"><span><strong>Say it too</strong><small>Recall the word from its meaning</small></span></label>
-            <label><input type="checkbox"><span><strong>Tell it apart</strong><small>Practise it against confusing words</small></span></label>
-          </div>
-          <p class="intent-note" data-note>Understanding is always kept. The other two are added on top of it.</p>
-        </section>
+        <ul class="pronunciations" aria-label="Pronunciations">
+          <li>
+            <span class="variety">British</span>
+            <span class="voices">
+              <span class="voice-line">
+                <span class="voice">
+                  <span class="transcription"><span>/ˈn</span><span class="differs">iːʃ</span><span>/</span></span>
+                  <button type="button" class="speaker" aria-label="Play the British pronunciation"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg></button>
+                </span>
+                <span class="or">or</span>
+                <span class="voice">
+                  <span class="transcription"><span>/ˈn</span><span class="differs">ɪtʃ</span><span>/</span></span>
+                  <button type="button" class="speaker" data-blocked aria-label="Play the British pronunciation"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg></button>
+                </span>
+              </span>
+            </span>
+          </li>
+        </ul>
+        <p class="pending" data-note>The greyed one has no recording yet.</p>
       </div>
   </section>
 </div>

@@ -193,6 +193,7 @@
     "6627551976444260400": "or",
     "3801245379625272309": "slow",
     "7210001785068253245": "unverified",
+    "4921449717735759800": "{VAR_PLURAL, plural, =1 {The greyed one has no recording yet.} other {The greyed ones have no recording yet.}}",
     "4467915145670087772": "Senses",
     "4047593375191226482": "Play example",
     "5549273698624569676": "Kept",

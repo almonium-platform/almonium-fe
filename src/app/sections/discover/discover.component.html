@@ -161,33 +161,42 @@
           }
         </div>
         @if (pronunciationRows.length) {
-          <ul class="pronunciations" [class.alike]="pronunciationsAlike" aria-label="Pronunciations" i18n-aria-label>
-            @for (row of pronunciationsAlike ? pronunciationRows.slice(0, 1) : pronunciationRows; track row.variety) {
-              @let key = 'pronunciation:' + row.variety;
+          <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
+            @for (row of pronunciationRows; track row.variety) {
               <li>
-                @if (!pronunciationsAlike) { <span class="variety">{{ varietyLabel(row.variety) }}</span> }
-                <span class="voice">
-                  @for (pronunciation of row.alternatives; track pronunciation.ipa; let first = $first) {
-                    @if (!first) { <span i18n class="or">or</span> }
-                    @if (pronunciation.segments) {
-                      <span class="transcription">@for (segment of pronunciation.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}</span>
-                    } @else if (pronunciation.ipa) {
-                      <span class="transcription">{{ pronunciation.ipa }}</span>
-                    }
-                  }
-                  <button type="button" class="speaker" [class.on]="playing === key" (click)="listen(row.voice)"
-                          [attr.aria-label]="listenLabel(row.voice)">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                         stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
-                  </button>
-                  @if (playing === key && slow) { <span i18n class="slow">slow</span> }
-                  @if (row.voice.clipStatus === 'unverified') {
-                    <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                <span class="variety">{{ varietyLabel(row.variety) }}</span>
+                <span class="voices">
+                  @for (line of row.lines; track $index; let firstLine = $first) {
+                    <span class="voice-line">
+                      @for (voice of line; track voice.key; let first = $first) {
+                        @let pronunciation = voice.pronunciation;
+                        @if (!(first && firstLine)) { <span i18n class="or">or</span> }
+                        <span class="voice">
+                          @if (pronunciation.segments) {
+                            <span class="transcription">@for (segment of pronunciation.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}</span>
+                          } @else if (pronunciation.ipa) {
+                            <span class="transcription">{{ pronunciation.ipa }}</span>
+                          }
+                          <button type="button" class="speaker" [class.on]="playing === voice.key" [disabled]="!voice.playable"
+                                  (click)="listen(pronunciation)" [attr.aria-label]="listenLabel(pronunciation)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                          </button>
+                          @if (playing === voice.key && slow) { <span i18n class="slow">slow</span> }
+                          @if (pronunciation.clipStatus === 'unverified') {
+                            <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                          }
+                        </span>
+                      }
+                    </span>
                   }
                 </span>
               </li>
             }
           </ul>
+          @if (pendingVoices) {
+            <p i18n class="pending">{pendingVoices, plural, =1 {The greyed one has no recording yet.} other {The greyed ones have no recording yet.}}</p>
+          }
         } @else if (selectedSense?.transcription) { <p class="transcription">{{ selectedSense?.transcription }}</p> }
         @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
       </header>
