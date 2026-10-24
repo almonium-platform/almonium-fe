@@ -197,5 +197,18 @@ describe('DiscoverComponent', () => {
       const german = Array.from(element.querySelectorAll<HTMLElement>('.language-menu button')).find(row => row.textContent?.includes('German'));
       expect(german?.querySelector('.letters')?.textContent).toBe('ä ö ü ß');
     });
+
+    it('clears the recent lookups of the field language', async () => {
+      localStorage.setItem('discover.recents.DE', JSON.stringify(['der Anschlag', 'vorläufig']));
+      localStorage.setItem('discover.recents.FR', JSON.stringify(['la pluie']));
+      const {element, detect} = await renderEmpty({language: 'de'});
+      expect(Array.from(element.querySelectorAll('.recents button')).map(button => button.textContent?.trim())).toEqual(['der Anschlag', 'vorläufig']);
+      element.querySelector<HTMLButtonElement>('.clear-recents')!.click();
+      detect();
+      expect(element.querySelector('.recents')).toBeNull();
+      expect(element.querySelector('.clear-recents')).toBeNull();
+      expect(localStorage.getItem('discover.recents.DE')).toBe('[]');
+      expect(localStorage.getItem('discover.recents.FR')).toBe('["la pluie"]');
+    });
   });
 });

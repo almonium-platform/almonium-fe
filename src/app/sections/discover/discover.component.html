@@ -61,6 +61,7 @@
             <button type="button" (click)="openRecent(entry)" (keydown)="onRecentKeydown($event)">{{ entry }}</button>
           }
         </div>
+        <button i18n type="button" class="clear-recents" (click)="clearRecents()">Clear</button>
       }
       @if (showCount) {
         <span class="count" [class.over]="searchText.length > cap">{{ count }}</span>

@@ -77,6 +77,11 @@ export function addRecent(language: LanguageCode, entry: string): string[] {
   return recents;
 }
 
+export function forgetRecents(language: LanguageCode): string[] {
+  write(`${RECENTS_KEY}.${language}`, []);
+  return [];
+}
+
 function read<T>(key: string): T | null {
   try {
     const value = window.localStorage.getItem(key);

@@ -12,8 +12,8 @@ import {varietyRow} from '../../shared/language-varieties';
 import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService} from './discover.service';
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {
-  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, guessGuestLanguage, readRecents, rememberGuestLanguage,
-  sizeOf, tierOf,
+  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
+  rememberGuestLanguage, sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 
@@ -288,6 +288,12 @@ export class DiscoverComponent implements OnInit {
 
   protected letters(language: LanguageCode): string {
     return SIGNATURE_LETTERS[language] ?? '';
+  }
+
+  /** Forgets this language's recent lookups on this device, and hands the line back. */
+  protected clearRecents(): void {
+    this.recents = forgetRecents(this.fieldLanguage);
+    this.focusField();
   }
 
   protected openRecent(entry: string): void {
