@@ -28,6 +28,17 @@ interface LetterChip {
   index: number;
 }
 
+/**
+ * One variety's line: the alternatives it records (niche: ˈniːʃ or ˈnɪtʃ), best first, and the one its speaker plays,
+ * the best that has a clip. Without a clip the speaker synthesises the word, which cannot pick an alternative, so a
+ * variety gets one speaker however many it records.
+ */
+interface PronunciationRow {
+  variety: string;
+  alternatives: DiscoverPronunciation[];
+  voice: DiscoverPronunciation;
+}
+
 /** What to ask the lexicon for: a prefix in a language, glossed in another. Null asks for nothing. */
 type SuggestionQuery = {prefix: string; language: LanguageCode; glossLanguage: LanguageCode} | null;
 
@@ -83,7 +94,7 @@ export class DiscoverComponent implements OnInit {
   protected lookup: DiscoverLookup | null = null;
   /** The sheet's senses in display order; `selectedRow` indexes it. */
   protected senseRows: SenseRow[] = [];
-  protected pronunciationRows: DiscoverPronunciation[] = [];
+  protected pronunciationRows: PronunciationRow[] = [];
   /** Every variety transcribes the word alike: one line, no label. */
   protected pronunciationsAlike = false;
   protected senseGroups: SenseGroup[] = [];
@@ -669,7 +680,7 @@ export class DiscoverComponent implements OnInit {
   /** The server marks where the transcriptions part; none parting means they say the same, shown once. */
   private setPronunciationRows(): void {
     const pronunciations = this.pronunciations;
-    this.pronunciationRows = pronunciations;
+    this.pronunciationRows = pronunciationRows(pronunciations);
     this.pronunciationsAlike = pronunciations.length > 1
       && pronunciations.every(pronunciation => pronunciation.segments?.every(segment => !segment.differs));
   }
@@ -826,6 +837,16 @@ export class DiscoverComponent implements OnInit {
     if (fluent) return fluent;
     return language === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
   }
+}
+
+/** The pronunciations grouped by variety, in the order each variety first appears. */
+function pronunciationRows(pronunciations: DiscoverPronunciation[]): PronunciationRow[] {
+  const byVariety = new Map<string, DiscoverPronunciation[]>();
+  for (const pronunciation of pronunciations) {
+    byVariety.set(pronunciation.variety, [...byVariety.get(pronunciation.variety) ?? [], pronunciation]);
+  }
+  return Array.from(byVariety, ([variety, alternatives]) =>
+    ({variety, alternatives, voice: alternatives.find(alternative => alternative.clipUrl) ?? alternatives[0]}));
 }
 
 /** How a kept card names the sense it was kept for, and how the sheet finds it again. */
