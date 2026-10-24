@@ -226,6 +226,8 @@ describe('ReaderComponent', () => {
     document.body.appendChild(content);
     (content.firstElementChild!.firstElementChild as HTMLElement).click();
     range.selectNodeContents(content.querySelector('[data-alignment="11-2-1"]')!);
+    // Chrome keeps one range: a caret another spec left behind would make this addRange a no-op.
+    selection.removeAllRanges();
     selection.addRange(range);
     content.querySelector<HTMLElement>('[data-alignment="11-2-1"]')!.click();
     expect(content.querySelectorAll('.is-aligned-current').length).toBe(3);
