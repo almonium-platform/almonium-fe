@@ -5,6 +5,9 @@ import {Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, 
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
+import {CEFRLevel, SenseLead} from '../../models/userinfo.model';
+import {CardDto} from '../../models/card.model';
+import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {getErrorMessage} from '../../shared/http-error';
@@ -13,9 +16,10 @@ import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, D
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
-  rememberGuestLanguage, sizeOf, tierOf,
+  rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
+import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -30,6 +34,27 @@ type SuggestionQuery = {prefix: string; language: LanguageCode; glossLanguage: L
 /** The article a German noun is shown with in the suggestion rows. */
 const GERMAN_ARTICLES: Record<string, string> = {Masc: 'der', Fem: 'die', Neut: 'das'};
 
+/** A second click on a speaker while it plays replays at this rate (design 5a). */
+const SLOW_RATE = 0.6;
+
+/** Universal part-of-speech tags as the sheet heads its groups. */
+const PARTS_OF_SPEECH: Record<string, string> = {
+  ADJ: $localize`adjective`,
+  ADP: $localize`preposition`,
+  ADV: $localize`adverb`,
+  AUX: $localize`auxiliary verb`,
+  CCONJ: $localize`conjunction`,
+  DET: $localize`determiner`,
+  INTJ: $localize`interjection`,
+  NOUN: $localize`noun`,
+  NUM: $localize`numeral`,
+  PART: $localize`particle`,
+  PRON: $localize`pronoun`,
+  PROPN: $localize`proper noun`,
+  SCONJ: $localize`conjunction`,
+  VERB: $localize`verb`,
+};
+
 @Component({
   selector: 'app-discover',
   imports: [RouterLink, EmblemComponent],
@@ -39,6 +64,7 @@ const GERMAN_ARTICLES: Record<string, string> = {Masc: 'der', Fem: 'die', Neut: 
 export class DiscoverComponent implements OnInit {
   private readonly discoverService = inject(DiscoverService);
   private readonly breakdownService = inject(DiscoverBreakdownService);
+  private readonly cardService = inject(CardService);
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly userInfoService = inject(UserInfoService);
   private readonly route = inject(ActivatedRoute);
@@ -55,7 +81,19 @@ export class DiscoverComponent implements OnInit {
   /** The sentence a looked-up word came from; kept with the word when it is kept. */
   protected context = '';
   protected lookup: DiscoverLookup | null = null;
-  protected selectedSenseIndex = 0;
+  /** The sheet's senses in display order; `selectedRow` indexes it. */
+  protected senseRows: SenseRow[] = [];
+  protected senseGroups: SenseGroup[] = [];
+  protected selectedRow = 0;
+  protected expanded = false;
+  /** The card each kept sense became, by sense index, so that Kept can take it back. */
+  protected keptCards = new Map<number, string>();
+  protected keeping = new Set<number>();
+  protected keepError = '';
+  /** The speaker playing, and whether it is the slow replay. */
+  protected playing: string | null = null;
+  protected slow = false;
+  private playToken = 0;
   protected loading = false;
   protected errorMessage = '';
   protected audioError = '';
@@ -98,7 +136,6 @@ export class DiscoverComponent implements OnInit {
     idiom: $localize`Idiom`,
     order: $localize`Word order`,
   };
-  protected readonly wordFallback = $localize`word`;
   protected readonly unverifiedClipTitle = $localize`The machine check did not confirm that this clip says the word.`;
   protected readonly meaningFallback = $localize`Meaning not supplied`;
 
@@ -156,7 +193,50 @@ export class DiscoverComponent implements OnInit {
   }
 
   protected get selectedSense(): DiscoverSense | null {
-    return this.lookup?.senses[this.selectedSenseIndex] ?? null;
+    return this.senseRows[this.selectedRow]?.sense ?? null;
+  }
+
+  /** Settings → Learning, applied with the learner's level in the language looked up. */
+  protected get definitionLeads(): boolean {
+    const user = this.userInfoService.currentUserInfo;
+    const lead: SenseLead = user?.uiPreferences?.learning?.senseLead ?? 'level';
+    const level: CEFRLevel | null = user?.learners.find(learner => learner.language === this.lookup?.language)?.selfReportedLevel ?? null;
+    return leadsWithDefinition(lead, level);
+  }
+
+  protected get hiddenRows(): SenseRow[] {
+    return this.senseRows.slice(SENSES_SHOWN);
+  }
+
+  protected get moreLabel(): string {
+    return this.expanded ? $localize`Fewer senses` : $localize`Show ${this.hiddenRows.length}:count: more`;
+  }
+
+  /** "4 adjective · 1 adverb": what the hidden rows hold, beside "Show N more". */
+  protected get moreHint(): string {
+    if (this.expanded) return '';
+    return hiddenCounts(this.hiddenRows).map(({partOfSpeech, count}) => `${count} ${this.partOfSpeechLabel(partOfSpeech)}`).join(' · ');
+  }
+
+  protected get frequencyBarCount(): number {
+    return this.lookup?.frequency ? frequencyBars(this.lookup.frequency.score) : 0;
+  }
+
+  /** The band in a word, from the same thresholds the server names its bands by. */
+  protected get frequencyBand(): string {
+    const score = this.lookup?.frequency?.score ?? 0;
+    if (score >= 75) return $localize`very common`;
+    if (score >= 50) return $localize`common`;
+    if (score >= 25) return $localize`less common`;
+    return $localize`rare`;
+  }
+
+  /** The score, the corpus and the dictionary behind the sheet, which the mark keeps out of sight. */
+  protected get frequencyTitle(): string {
+    const frequency = this.lookup?.frequency;
+    const parts = frequency ? [$localize`Relative corpus score ${frequency.score}:score:`, frequency.provenance] : [];
+    if (this.lookup?.provider) parts.push($localize`Dictionary: ${this.lookup.provider}:provider:`);
+    return parts.join(' · ');
   }
 
   /** The server's order, except that the variety this learner chose for the language comes first. */
@@ -217,11 +297,12 @@ export class DiscoverComponent implements OnInit {
     });
   }
 
-  /** "/" or ⌘K brings the line back from anywhere on the page. */
+  /** "/" or ⌘K brings the line back from anywhere on the page; off the line, ↑↓, K and P work the sheet. */
   @HostListener('window:keydown', ['$event'])
   protected focusShortcut(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
     const editable = !!target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+    if (!editable && this.sheetShortcut(event)) return;
     const slash = event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey && !editable;
     const commandK = (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'k';
     if (!slash && !commandK) return;
@@ -398,16 +479,103 @@ export class DiscoverComponent implements OnInit {
       .pipe(finalize(() => this.loading = false), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: lookup => {
-          this.lookup = lookup;
-          this.selectedSenseIndex = 0;
+          this.showLookup(lookup);
           this.recents = addRecent(lookup.language, lookup.entry);
         },
         error: error => this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`),
       });
   }
 
-  protected selectSense(index: number): void {
-    this.selectedSenseIndex = index;
+  protected selectRow(index: number): void {
+    this.selectedRow = index;
+  }
+
+  protected toggleMore(): void {
+    this.expanded = !this.expanded;
+    if (!this.expanded && this.selectedRow >= SENSES_SHOWN) this.selectedRow = 0;
+    this.senseGroups = this.visibleGroups();
+  }
+
+  /** The sense line the reader's setting puts first; the other one, when there is one, goes under it. */
+  protected senseLead(sense: DiscoverSense): string {
+    const translation = sense.translations.join(', ');
+    const definition = sense.definition ?? '';
+    return (this.definitionLeads ? definition || translation : translation || definition) || this.meaningFallback;
+  }
+
+  protected senseSub(sense: DiscoverSense): string {
+    const translation = sense.translations.join(', ');
+    const definition = sense.definition ?? '';
+    if (!translation || !definition) return '';
+    return this.definitionLeads ? translation : definition;
+  }
+
+  protected partOfSpeechLabel(partOfSpeech: string | null): string {
+    if (!partOfSpeech) return '';
+    return PARTS_OF_SPEECH[partOfSpeech.toUpperCase()] ?? partOfSpeech.toLowerCase();
+  }
+
+  /** Keep on the selected row, Kept to take it back; a guest is sent to sign in. */
+  protected toggleKeep(row: SenseRow, event?: Event): void {
+    event?.stopPropagation();
+    const lookup = this.lookup;
+    if (!lookup) return;
+    if (!this.signedIn) {
+      void this.router.navigate(['/auth']);
+      return;
+    }
+    const sense = row.sense;
+    if (this.keeping.has(sense.index)) return;
+    this.keeping.add(sense.index);
+    this.keepError = '';
+    const release = () => this.keeping.delete(sense.index);
+    const cardId = this.keptCards.get(sense.index);
+    if (cardId) {
+      this.cardService.deleteCard(cardId).pipe(finalize(release), takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: () => this.keptCards.delete(sense.index),
+        error: error => this.keepError = getErrorMessage(error, $localize`The sense could not be taken back. Please try again.`),
+      });
+      return;
+    }
+    const meaning = sense.translations.length ? sense.translations : [sense.definition ?? lookup.entry];
+    const example = lookup.sourceContext ?? sense.examples[0]?.text;
+    this.cardService.createCard({
+      entry: lookup.entry,
+      language: lookup.language,
+      translations: meaning.map(translation => ({translation})),
+      partOfSpeech: sense.partOfSpeech ?? undefined,
+      selectedSense: senseKey(sense),
+      sourceContext: lookup.sourceContext ?? undefined,
+      learningIntents: ['UNDERSTAND'],
+      itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
+      examples: example ? [{example, translation: ''}] : [],
+      activeLearning: true,
+      learnt: false,
+      priority: 0,
+    }).pipe(finalize(release), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: card => {
+        if (card.id) this.keptCards.set(sense.index, card.id);
+        this.recents = removeRecent(lookup.language, lookup.entry);
+      },
+      error: error => this.keepError = getErrorMessage(error, $localize`The sense could not be kept. Please try again.`),
+    });
+  }
+
+  /** The headword in a pronunciation's variety: its recording first, synthesis without one. */
+  protected listen(pronunciation: DiscoverPronunciation, slow = false): void {
+    const word = this.selectedSense?.headword ?? this.lookup?.entry ?? '';
+    this.play(`pronunciation:${pronunciation.variety}`, word, pronunciation.variety, pronunciation.clipUrl, slow);
+  }
+
+  protected listenLabel(pronunciation: DiscoverPronunciation): string {
+    return $localize`Play the ${this.varietyLabel(pronunciation.variety)}:variety: pronunciation`;
+  }
+
+  protected listenExample(row: SenseRow, event: Event): void {
+    event.stopPropagation();
+    if (!row.example) return;
+    const variety = this.pronunciations[0]?.variety ?? this.lookup?.language.toLowerCase() ?? '';
+    this.play(`example:${row.sense.index}`, row.example.text, variety, null);
   }
 
   /** "British" for en-GB; the bare tag when this build does not know the variety. */
@@ -416,12 +584,105 @@ export class DiscoverComponent implements OnInit {
     return varietyRow(language)?.varieties.find(variety => variety.tag.toLowerCase() === tag.toLowerCase())?.label ?? tag;
   }
 
-  protected listen(pronunciation: DiscoverPronunciation): void {
-    if (!pronunciation.clipUrl) return;
-    this.audio?.pause();
+  /**
+   * Plays one speaker. A second click while it plays replays it at 0.6×; the clip is tried first and synthesis in
+   * the variety's voice takes over when there is no clip or it will not play.
+   */
+  private play(key: string, text: string, variety: string, clipUrl: string | null, forceSlow = false): void {
+    const slow = forceSlow || (this.playing === key && !this.slow);
+    this.stopPlaying();
+    const token = ++this.playToken;
+    this.playing = key;
+    this.slow = slow;
     this.audioError = '';
-    this.audio = new Audio(`${AppConstants.API_URL}${pronunciation.clipUrl}`);
-    this.audio.play().catch(() => this.audioError = $localize`The clip could not be played. Please try again.`);
+    const done = () => {
+      if (this.playToken !== token) return;
+      this.playing = null;
+      this.slow = false;
+    };
+    const synthesise = () => {
+      const synthesis = typeof window === 'undefined' ? undefined : window.speechSynthesis;
+      if (!synthesis || typeof SpeechSynthesisUtterance === 'undefined' || !text) {
+        this.audioError = $localize`The clip could not be played. Please try again.`;
+        done();
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = variety;
+      utterance.rate = slow ? SLOW_RATE : 1;
+      utterance.onend = done;
+      utterance.onerror = done;
+      synthesis.speak(utterance);
+    };
+    if (!clipUrl) {
+      synthesise();
+      return;
+    }
+    const audio = this.audio = new Audio(`${AppConstants.API_URL}${clipUrl}`);
+    audio.playbackRate = slow ? SLOW_RATE : 1;
+    audio.onended = done;
+    audio.play().catch(() => {
+      if (this.playToken === token) synthesise();
+    });
+  }
+
+  private stopPlaying(): void {
+    this.audio?.pause();
+    this.audio = null;
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {
+      // No synthesis in this browser: nothing is speaking.
+    }
+  }
+
+  private showLookup(lookup: DiscoverLookup): void {
+    this.stopPlaying();
+    this.playing = null;
+    this.lookup = lookup;
+    this.senseRows = groupSenses(lookup.senses);
+    this.selectedRow = 0;
+    this.expanded = false;
+    this.senseGroups = this.visibleGroups();
+    this.keptCards = new Map();
+    this.keepError = '';
+    if (this.signedIn) this.loadKept(lookup);
+  }
+
+  /** Marks the senses of this entry already kept, so Keep does not make a second card of one. */
+  private loadKept(lookup: DiscoverLookup): void {
+    this.cardService.getCardsInLanguage(lookup.language).pipe(catchError(() => of<CardDto[]>([])), takeUntilDestroyed(this.destroyRef))
+      .subscribe(cards => {
+        if (this.lookup !== lookup) return;
+        const entry = lookup.entry.toLocaleLowerCase();
+        for (const sense of lookup.senses) {
+          const card = cards.find(card => card.entry.toLocaleLowerCase() === entry && card.selectedSense === senseKey(sense));
+          if (card?.id) this.keptCards.set(sense.index, card.id);
+        }
+      });
+  }
+
+  private visibleGroups(): SenseGroup[] {
+    return toGroups(this.expanded ? this.senseRows : this.senseRows.slice(0, SENSES_SHOWN));
+  }
+
+  /** ↑↓ move the selection over the rows shown, K keeps the selected one, P plays the headword (⇧P slow). */
+  private sheetShortcut(event: KeyboardEvent): boolean {
+    if (!this.lookup || this.loading || event.ctrlKey || event.metaKey || event.altKey) return false;
+    const shown = this.expanded ? this.senseRows.length : Math.min(SENSES_SHOWN, this.senseRows.length);
+    const key = event.key.toLowerCase();
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && shown && !event.shiftKey) {
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      this.selectedRow = Math.min(Math.max(this.selectedRow + step, 0), shown - 1);
+    } else if (key === 'k' && !event.shiftKey && this.senseRows[this.selectedRow]) {
+      this.toggleKeep(this.senseRows[this.selectedRow]);
+    } else if (key === 'p' && this.pronunciations[0]) {
+      this.listen(this.pronunciations[0], event.shiftKey);
+    } else {
+      return false;
+    }
+    event.preventDefault();
+    return true;
   }
 
   private breakDown(text: string): void {
@@ -553,6 +814,11 @@ export class DiscoverComponent implements OnInit {
     if (fluent) return fluent;
     return language === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
   }
+}
+
+/** How a kept card names the sense it was kept for, and how the sheet finds it again. */
+function senseKey(sense: DiscoverSense): string {
+  return `${sense.index}: ${sense.translations.join(', ') || (sense.definition ?? sense.headword)}`;
 }
 
 /** A language's name in the given locale, capitalised as a menu label; the code only if the browser has no name for it. */

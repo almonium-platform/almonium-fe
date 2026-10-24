@@ -259,5 +259,15 @@
         }
       </div>
     </section>
+
+    <section class="sense-lead-card card">
+      <div i18n class="card-title">Lead each sense with</div>
+      <div class="sense-lead" role="group" aria-label="Lead each sense with" i18n-aria-label>
+        @for (lead of senseLeads; track lead) {
+          <button type="button" [class.active]="senseLead === lead" [attr.aria-pressed]="senseLead === lead" (click)="pickSenseLead(lead)" i18n>{lead, select, definition {Definition} translation {Translation} other {Match my level}}</button>
+        }
+      </div>
+      <p i18n class="sense-lead-note">Match my level shows the translation first at A1 and A2, and the definition first from B1.</p>
+    </section>
   </main>
 </div>

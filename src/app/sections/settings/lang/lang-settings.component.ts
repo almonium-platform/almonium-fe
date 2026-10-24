@@ -10,7 +10,8 @@ import {
 import {LanguageApiService} from "../../../services/language-api.service";
 import {Language} from "../../../models/language.model";
 import {UserInfoService} from "../../../services/user-info.service";
-import {CEFRLevel, Learner, UserInfo} from "../../../models/userinfo.model";
+import {CEFRLevel, Learner, SENSE_LEADS, SenseLead, UserInfo} from "../../../models/userinfo.model";
+import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {LanguageNameService} from "../../../services/language-name.service";
 import {TuiIcon, TuiLoader, TuiNotificationService} from "@taiga-ui/core/components";
 import {TuiHintDirective} from "@taiga-ui/core/portals";
@@ -70,6 +71,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   private recentAuthGuardService = inject(RecentAuthGuardService);
   private supportedLanguagesService = inject(SupportedLanguagesService);
   private utilsService = inject(UtilsService);
+  private profileSettingsService = inject(ProfileSettingsService);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -81,6 +83,7 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
   protected paywallBackLabel: string | null = null;
 
   protected userInfo: UserInfo | null = null;
+  protected readonly senseLeads = SENSE_LEADS;
   protected languages: Language[] = [];
 
   // fluent languages
@@ -505,6 +508,26 @@ export class LangSettingsComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.alertService.open(getErrorMessage(err, $localize`Failed to update active status`), {appearance: 'negative'}).subscribe();
         learner.active = !active;
+      },
+    });
+  }
+
+  /** Settings → Learning (design 5b): what each sense leads with, wherever a sense is shown. */
+  protected get senseLead(): SenseLead {
+    return this.userInfo?.uiPreferences.learning.senseLead ?? 'level';
+  }
+
+  protected pickSenseLead(lead: SenseLead): void {
+    const user = this.userInfo;
+    if (!user || lead === this.senseLead) return;
+    const previous = user.uiPreferences;
+    const uiPreferences = structuredClone(previous);
+    uiPreferences.learning.senseLead = lead;
+    this.userInfoService.updateUserInfo({uiPreferences});
+    this.profileSettingsService.saveUiPreferences(uiPreferences).subscribe({
+      error: (error: unknown) => {
+        this.userInfoService.updateUserInfo({uiPreferences: previous});
+        this.alertService.open(getErrorMessage(error, $localize`The setting could not be saved. Please try again.`), {appearance: 'negative'}).subscribe();
       },
     });
   }

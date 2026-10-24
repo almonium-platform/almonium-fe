@@ -23,4 +23,8 @@ export class CardService {
     return this.http.post<unknown>(AppConstants.CARDS_URL, dto, {withCredentials: true})
       .pipe(map(value => parseCards([value])[0]));
   }
+
+  deleteCard(id: string): Observable<unknown> {
+    return this.http.delete(`${AppConstants.CARDS_URL}/${id}`, {withCredentials: true});
+  }
 }

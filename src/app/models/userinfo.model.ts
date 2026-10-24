@@ -150,7 +150,15 @@ export interface UIPreferences {
   reader: {
     showPairs: boolean;
   };
+  /** Settings → Learning (design 5b): what each sense of a word leads with, wherever a sense is shown. */
+  learning: {
+    senseLead: SenseLead;
+  };
 }
+
+/** Match my level leads with the translation at A1 and A2 and with the definition from B1. */
+export type SenseLead = 'level' | 'definition' | 'translation';
+export const SENSE_LEADS: readonly SenseLead[] = ['definition', 'translation', 'level'];
 
 export const DEFAULT_UI_PREFERENCES: UIPreferences = {
   navbar: {
@@ -168,6 +176,9 @@ export const DEFAULT_UI_PREFERENCES: UIPreferences = {
   },
   reader: {
     showPairs: false,
+  },
+  learning: {
+    senseLead: 'level',
   },
 };
 
@@ -427,6 +438,9 @@ function parseUiPreferences(value: unknown): UIPreferences {
   const reader = preferences['reader'] === undefined
     ? {}
     : expectRecord(preferences['reader'], 'user.uiPreferences.reader');
+  const learning = preferences['learning'] === undefined
+    ? {}
+    : expectRecord(preferences['learning'], 'user.uiPreferences.learning');
 
   return {
     navbar: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.navbar, navbar, 'user.uiPreferences.navbar'),
@@ -436,6 +450,11 @@ function parseUiPreferences(value: unknown): UIPreferences {
       'user.uiPreferences.profileMenu',
     ),
     reader: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.reader, reader, 'user.uiPreferences.reader'),
+    learning: {
+      senseLead: learning['senseLead'] === undefined
+        ? DEFAULT_UI_PREFERENCES.learning.senseLead
+        : expectEnum(learning['senseLead'], SENSE_LEADS, 'user.uiPreferences.learning.senseLead'),
+    },
   };
 }
 

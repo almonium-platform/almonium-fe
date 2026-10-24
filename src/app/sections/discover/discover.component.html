@@ -149,76 +149,102 @@
   @if (lookup && !loading) {
     <article class="word-sheet" aria-labelledby="entry-title">
       <header class="entry-header">
-        <div>
-          <p class="eyebrow">{{ languageName(lookup.language) }} · {{ selectedSense?.partOfSpeech || wordFallback }}</p>
+        <div class="headline">
           <h2 id="entry-title">{{ selectedSense?.headword || lookup.entry }}</h2>
-          @if (pronunciations.length) {
-            <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
-              @for (pronunciation of pronunciations; track pronunciation.variety + pronunciation.ipa) {
-                <li>
-                  <span class="variety">{{ varietyLabel(pronunciation.variety) }}</span>
-                  @if (pronunciation.ipa) { <span class="transcription">[{{ pronunciation.ipa }}]</span> }
-                  @if (pronunciation.clipUrl) {
-                    <button i18n type="button" class="listen" (click)="listen(pronunciation)">Listen</button>
-                    @if (pronunciation.clipStatus === 'unverified') {
-                      <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
-                    }
-                  }
-                </li>
-              }
-            </ul>
-            @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
-          } @else if (selectedSense?.transcription) { <p class="transcription">[{{ selectedSense?.transcription }}]</p> }
-        </div>
-        @if (lookup.frequency) {
-          <aside class="frequency" aria-label="Corpus frequency" i18n-aria-label>
-            <strong>{{ lookup.frequency.band }}</strong>
-            <span i18n>Relative corpus score {{ lookup.frequency.score }}</span>
-            <small>{{ lookup.frequency.provenance }}</small>
-          </aside>
-        } @else {
-          <aside class="frequency unavailable"><strong i18n>Frequency unavailable</strong><span i18n>No corpus evidence was returned.</span></aside>
-        }
-      </header>
-
-      <section class="senses" aria-labelledby="senses-title">
-        <p i18n class="section-label" id="senses-title">Senses</p>
-        @if (lookup.senses.length) {
-          @for (sense of lookup.senses; track sense.index; let i = $index) {
-            <button type="button" class="sense-card" [class.selected]="selectedSenseIndex === i" (click)="selectSense(i)">
-              <span class="sense-number">{{ sense.index }}</span>
-              <span class="sense-body">
-                <strong>{{ sense.translations.join(', ') || meaningFallback }}</strong>
-                @if (sense.definition) { <span class="definition">{{ sense.definition }}</span> }
-                <small>{{ sense.headword }}@if (sense.partOfSpeech) { · {{ sense.partOfSpeech }} }@if (sense.cefr) { <span class="cefr">{{ sense.cefr }}</span> }</small>
+          @if (lookup.frequency) {
+            <span class="frequency" [title]="frequencyTitle">
+              <span class="bars" aria-hidden="true">
+                @for (bar of [1, 2, 3, 4, 5]; track bar) { <span [class.on]="bar <= frequencyBarCount"></span> }
               </span>
-              <span i18n class="sense-choice">{selectedSenseIndex === i, select, true {Selected} other {Choose}}</span>
-            </button>
+              <span class="band">{{ frequencyBand }}</span>
+            </span>
           }
-        } @else {
-          <div class="empty-sense">
-            <strong i18n>No structured dictionary sense is available yet.</strong>
-          </div>
-        }
-      </section>
-
-      @let examples = selectedSense?.examples ?? [];
-      @if (examples.length) {
-        <section class="examples" aria-labelledby="examples-title">
-          <p i18n class="section-label" id="examples-title">Examples</p>
-          <ul>
-            @for (example of examples; track $index) {
-              <li><span class="example-text">{{ example.text }}</span>@if (example.translation) { <span class="example-translation">{{ example.translation }}</span> }</li>
+        </div>
+        @if (pronunciations.length) {
+          <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
+            @for (pronunciation of pronunciations; track pronunciation.variety + pronunciation.ipa) {
+              @let key = 'pronunciation:' + pronunciation.variety;
+              <li>
+                <span class="variety">{{ varietyLabel(pronunciation.variety) }}</span>
+                @if (pronunciation.ipa) { <span class="transcription">{{ pronunciation.ipa }}</span> }
+                <button type="button" class="speaker" [class.on]="playing === key" (click)="listen(pronunciation)"
+                        [attr.aria-label]="listenLabel(pronunciation)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                       stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                </button>
+                @if (playing === key && slow) { <span i18n class="slow">slow</span> }
+                @if (pronunciation.clipStatus === 'unverified') {
+                  <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                }
+              </li>
             }
           </ul>
-        </section>
+        } @else if (selectedSense?.transcription) { <p class="transcription">{{ selectedSense?.transcription }}</p> }
+        @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
+      </header>
+
+      @if (senseRows.length) {
+        <div class="senses" aria-label="Senses" i18n-aria-label>
+          @for (group of senseGroups; track $index) {
+            <div class="group">
+              @if (group.partOfSpeech) { <p class="part-of-speech">{{ partOfSpeechLabel(group.partOfSpeech) }}</p> }
+              @for (row of group.rows; track row.sense.index) {
+                @let selected = selectedRow === row.number - 1;
+                @let kept = keptCards.has(row.sense.index);
+                <!-- ↑↓ select from the keyboard anywhere off the line, so the row itself takes no focus. -->
+                <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                <div class="sense" [class.selected]="selected" [attr.aria-current]="selected || null" (click)="selectRow(row.number - 1)">
+                  <span class="number">{{ row.number }}</span>
+                  <div class="body">
+                    <div class="lead-line">
+                      <span class="lead">{{ senseLead(row.sense) }}</span>
+                      @if (row.sense.cefr) { <span class="cefr">{{ row.sense.cefr }}</span> }
+                    </div>
+                    @if (senseSub(row.sense); as sub) { <span class="sub">{{ sub }}</span> }
+                    @if (row.example; as example) {
+                      @let key = 'example:' + row.sense.index;
+                      <div class="example">
+                        <button type="button" class="speaker small" [class.on]="playing === key" (click)="listenExample(row, $event)"
+                                aria-label="Play example" i18n-aria-label>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                               stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+                        </button>
+                        <span class="example-text">{{ example.before }}<span class="word">{{ example.word }}</span>{{ example.after }}</span>
+                        @if (playing === key && slow) { <span i18n class="slow">slow</span> }
+                      </div>
+                    }
+                  </div>
+                  <div class="keep-slot">
+                    @if (kept) {
+                      <button type="button" class="kept" [disabled]="keeping.has(row.sense.index)" (click)="toggleKeep(row, $event)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                             stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><ng-container i18n>Kept</ng-container>
+                      </button>
+                    } @else if (selected) {
+                      <button i18n type="button" class="keep" [disabled]="keeping.has(row.sense.index)" (click)="toggleKeep(row, $event)">Keep</button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        @if (keepError) { <p class="message error" role="alert">{{ keepError }}</p> }
+        @if (hiddenRows.length) {
+          <div class="more">
+            <button type="button" (click)="toggleMore()">{{ moreLabel }}</button>
+            @if (moreHint) { <span>{{ moreHint }}</span> }
+          </div>
+        }
+      } @else {
+        <div class="empty-sense">
+          <strong i18n>No structured dictionary sense is available yet.</strong>
+        </div>
       }
 
       @if (lookup.sourceContext) {
         <blockquote><span i18n class="section-label">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
       }
-
-      <footer class="entry-footer">@if (lookup.provider) { <ng-container i18n>Dictionary provider: {{ lookup.provider }} · </ng-container> }<ng-container i18n>Lexical roots, family links and entry provenance are not available in this iteration.</ng-container></footer>
     </article>
   }
 </main>

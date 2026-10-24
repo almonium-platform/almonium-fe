@@ -3,7 +3,7 @@ import {ActivatedRoute, convertToParamMap, provideRouter} from '@angular/router'
 import {of} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
-import {CEFRLevel, Learner, UserInfo} from '../../models/userinfo.model';
+import {CEFRLevel, DEFAULT_UI_PREFERENCES, Learner, UserInfo} from '../../models/userinfo.model';
 import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
@@ -50,9 +50,9 @@ describe('DiscoverComponent', () => {
         provideRouter([]),
         {provide: ActivatedRoute, useValue: {paramMap: of(convertToParamMap({})), queryParamMap: of(convertToParamMap(query))}},
         {provide: DiscoverService, useValue: discoverService},
-        {provide: CardService, useValue: jasmine.createSpyObj<CardService>('CardService', ['createCard'])},
+        {provide: CardService, useValue: {createCard: jasmine.createSpy('createCard'), deleteCard: jasmine.createSpy('deleteCard'), getCardsInLanguage: () => of([])}},
         {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.EN), setCurrentLanguage: () => undefined}},
-        {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.EN]} as unknown as UserInfo}},
+        {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.EN], uiPreferences: DEFAULT_UI_PREFERENCES} as unknown as UserInfo}},
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(DiscoverComponent);
@@ -66,17 +66,16 @@ describe('DiscoverComponent', () => {
     return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations li'));
   }
 
-  it('shows each variety with its IPA and a Listen button only where a clip exists', async () => {
+  it('shows each variety with its IPA and a speaker for every one', async () => {
     const element = await render(lookupOf([british, american]), null);
     const rows = pronunciationRows(element);
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('British');
-    expect(rows[0].textContent).toContain('[ˈkʌlə]');
-    expect(rows[0].querySelector('button.listen')).not.toBeNull();
+    expect(rows[0].textContent).toContain('ˈkʌlə');
+    expect(rows[0].querySelector('button.speaker')?.getAttribute('aria-label')).toBe('Play the British pronunciation');
     expect(rows[0].querySelector('.unverified')).toBeNull();
     expect(rows[1].textContent).toContain('American');
-    expect(rows[1].textContent).toContain('[ˈkʌlɚ]');
-    expect(rows[1].querySelector('button.listen')).toBeNull();
+    expect(rows[1].querySelector('button.speaker')).not.toBeNull();
   });
 
   it('keeps the server order when the learner has not chosen a variety', async () => {
@@ -89,38 +88,90 @@ describe('DiscoverComponent', () => {
     expect(pronunciationRows(element).map(row => row.querySelector('.variety')?.textContent?.trim())).toEqual(['Australian', 'British', 'American']);
   });
 
-  it('marks an unverified clip and still plays it from the API base', async () => {
+  it('marks an unverified clip, plays it from the API base, and replays it slow on a second click', async () => {
     const play = spyOn(HTMLMediaElement.prototype, 'play').and.resolveTo();
     const element = await render(lookupOf([australian]), null);
     const row = pronunciationRows(element)[0];
     const mark = row.querySelector<HTMLElement>('.unverified');
     expect(mark?.textContent).toContain('unverified');
     expect(mark?.title).toContain('did not confirm');
-    row.querySelector<HTMLButtonElement>('button.listen')!.click();
+    const speaker = row.querySelector<HTMLButtonElement>('button.speaker')!;
+    speaker.click();
     expect(play).toHaveBeenCalledTimes(1);
     const audio = play.calls.mostRecent().object as HTMLAudioElement;
     expect(audio.src).toBe(`${AppConstants.API_URL}/public/lexicon/clips/clip-au`);
+    expect(audio.playbackRate).toBe(1);
+    fixture.detectChanges();
+    expect(speaker.classList).toContain('on');
+    speaker.click();
+    fixture.detectChanges();
+    expect((play.calls.mostRecent().object as HTMLAudioElement).playbackRate).toBe(0.6);
+    expect(row.querySelector('.slow')?.textContent).toContain('slow');
   });
 
-  it('shows the definition, the level and the examples of the selected sense', async () => {
+  it('groups the senses by part of speech, each with its level and one example, the word set apart', async () => {
     const element = await render(lookupOf([british]), null);
-    const senses = Array.from(element.querySelectorAll<HTMLElement>('.sense-card'));
-    expect(senses[0].querySelector('.definition')?.textContent).toContain('The property of an object');
+    const groups = Array.from(element.querySelectorAll<HTMLElement>('.group'));
+    expect(groups.map(group => group.querySelector('.part-of-speech')?.textContent?.trim())).toEqual(['noun', 'verb']);
+    const senses = Array.from(element.querySelectorAll<HTMLElement>('.sense'));
+    expect(senses.map(sense => sense.querySelector('.number')?.textContent?.trim())).toEqual(['1', '2']);
     expect(senses[0].querySelector('.cefr')?.textContent?.trim()).toBe('A1');
-    expect(senses[1].querySelector('.definition')).toBeNull();
+    expect(senses[0].querySelector('.example-text .word')?.textContent).toBe('colour');
     expect(senses[1].querySelector('.cefr')).toBeNull();
-    const examples = element.querySelector<HTMLElement>('.examples');
-    expect(examples?.textContent).toContain('What colour is it?');
-    expect(examples?.textContent).toContain('Якого воно кольору?');
+    expect(senses[1].querySelector('.example')).toBeNull();
+    expect(element.querySelector('.examples')).toBeNull();
   });
 
-  it('renders a lookup from a backend without lexicon fields the way it did before', async () => {
+  it('leads with the translation for a guest and with the definition for a learner from B1', async () => {
+    let element = await render(lookupOf([]), null);
+    let first = element.querySelector<HTMLElement>('.sense')!;
+    expect(first.querySelector('.lead')?.textContent).toBe('колір');
+    expect(first.querySelector('.sub')?.textContent).toContain('The property of an object');
+    TestBed.resetTestingModule();
+    element = await render(lookupOf([]), 'en-GB');
+    first = element.querySelector<HTMLElement>('.sense')!;
+    expect(first.querySelector('.lead')?.textContent).toContain('The property of an object');
+    expect(first.querySelector('.sub')?.textContent).toBe('колір');
+  });
+
+  it('shows three senses, then the rest on request with the hidden count per part of speech', async () => {
+    const lookup = lookupOf([]);
+    lookup.senses = [
+      ...[1, 2, 3, 4].map(index => ({index, headword: 'colour', partOfSpeech: 'NOUN', transcription: null, translations: [`n${index}`], definition: null, cefr: null, examples: []})),
+      {index: 5, headword: 'colour', partOfSpeech: 'VERB', transcription: null, translations: ['v'], definition: null, cefr: null, examples: []},
+    ];
+    const element = await render(lookup, null);
+    expect(element.querySelectorAll('.sense').length).toBe(3);
+    const more = element.querySelector<HTMLElement>('.more')!;
+    expect(more.querySelector('button')?.textContent).toContain('Show 2 more');
+    expect(more.querySelector('span')?.textContent).toBe('1 noun · 1 verb');
+    more.querySelector('button')!.click();
+    fixture.detectChanges();
+    expect(element.querySelectorAll('.sense').length).toBe(5);
+    expect(element.querySelector('.more button')?.textContent).toContain('Fewer senses');
+  });
+
+  it('puts Keep on the selected row only, and moves it with a click', async () => {
+    const element = await render(lookupOf([]), null);
+    let senses = Array.from(element.querySelectorAll<HTMLElement>('.sense'));
+    expect(senses[0].querySelector('.keep')).not.toBeNull();
+    expect(senses[1].querySelector('.keep')).toBeNull();
+    senses[1].click();
+    fixture.detectChanges();
+    senses = Array.from(element.querySelectorAll<HTMLElement>('.sense'));
+    expect(senses[0].querySelector('.keep')).toBeNull();
+    expect(senses[1].classList).toContain('selected');
+    expect(senses[1].querySelector('.keep')).not.toBeNull();
+  });
+
+  it('renders a lookup from a backend without lexicon fields', async () => {
     const lookup = lookupOf([]);
     lookup.senses = [{index: 1, headword: 'colour', partOfSpeech: 'noun', transcription: 'ˈkʌlə', translations: ['колір'], definition: null, cefr: null, examples: []}];
     const element = await render(lookup, 'en-GB');
     expect(element.querySelector('.pronunciations')).toBeNull();
-    expect(element.querySelector('.entry-header .transcription')?.textContent).toContain('[ˈkʌlə]');
-    expect(element.querySelector('.examples')).toBeNull();
+    expect(element.querySelector('.entry-header .transcription')?.textContent).toContain('ˈkʌlə');
+    expect(element.querySelector('.sense .lead')?.textContent).toBe('колір');
+    expect(element.querySelector('.sense .sub')).toBeNull();
   });
 
   describe('the line', () => {
