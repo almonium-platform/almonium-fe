@@ -40,6 +40,16 @@ textarea.scrolled { -webkit-mask-image: linear-gradient(to bottom, transparent 0
 .clear-recents { flex: none; min-height: 0; margin-left: auto; padding: 0; border: 0; background: transparent; color: var(--metadata-color);
   cursor: pointer; font: 11px var(--font-family-mono); }
 .clear-recents:hover, .clear-recents:focus-visible { color: var(--brand-primary); }
+// While a word is typed (design 1a): rows from the lexicon, most frequent first, then a line on what ↵ does.
+.suggestions { flex: 1; min-width: 0; margin-top: -8px; }
+.suggestions ul { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.suggestions button { display: flex; align-items: baseline; gap: 14px; width: 100%; min-height: 0; padding: 10px 12px; border: 0; border-radius: 12px;
+  background: transparent; color: inherit; cursor: pointer; text-align: left; font: inherit; }
+.suggestions li.active button { background: var(--chat-selected-color); }
+.suggestions .headword { flex: 0 0 auto; min-width: 190px; font: 600 18px/1.3 var(--font-family-reading); color: var(--text-color); }
+.suggestions li.active .headword { color: var(--brand-primary); }
+.suggestions .gloss { min-width: 0; overflow: hidden; color: var(--subhead-color); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.as-typed { margin: 10px 12px 0; color: var(--metadata-color); font: 11px/1.5 var(--font-family-mono); }
 .count { margin-left: auto; color: var(--metadata-color); font: 11px var(--font-family-mono); }
 .count.over { color: var(--brand-margin); }
 
@@ -135,6 +145,8 @@ blockquote { margin: 0 2rem 2rem; padding: 1.1rem 1.25rem; border-left: 3px soli
   textarea.size-passage { max-height: 10 * 27px + 14px; }
   .chip button { min-width: 44px; min-height: 44px; }
   .notes li { grid-template-columns: 1fr; gap: .1rem; }
+  .suggestions .headword { min-width: 0; }
+  .suggestions button { flex-direction: column; gap: 2px; }
   .entry-header, .senses, .examples { padding: 1.25rem; }
   .frequency { width: auto; }
   blockquote { margin: 0 1.25rem 1.25rem; }

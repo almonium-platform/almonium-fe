@@ -37,6 +37,8 @@
         }
         <textarea #field id="discover-search" [class]="'size-' + textSize" [class.scrolled]="scrolled" [value]="searchText" rows="1"
                   spellcheck="false" autocomplete="off" enterkeyhint="search" aria-label="Look up a word or a sentence" i18n-aria-label
+                  [attr.aria-autocomplete]="'list'" aria-controls="discover-suggestions" [attr.aria-expanded]="showSuggestions"
+                  [attr.aria-activedescendant]="activeSuggestion >= 0 ? 'discover-suggestion-' + activeSuggestion : null"
                   (input)="onInput($event)" (keydown)="onKeydown($event)" (mousedown)="chip = null" (scroll)="onFieldScroll(field)"
                   (focus)="focused = true" (blur)="focused = false; chip = null"></textarea>
         @if (chip) {
@@ -55,6 +57,21 @@
       }
     </div>
     <div class="under">
+      @if (showSuggestions) {
+        <div class="suggestions">
+          <ul id="discover-suggestions" role="listbox" aria-label="Suggestions" i18n-aria-label>
+            @for (suggestion of suggestions; track suggestion.headword; let i = $index) {
+              <li [id]="'discover-suggestion-' + i" role="option" [attr.aria-selected]="i === activeSuggestion" [class.active]="i === activeSuggestion">
+                <button type="button" tabindex="-1" (mousedown)="$event.preventDefault()" (click)="openSuggestion(suggestion)" (mouseenter)="activeSuggestion = i">
+                  <span class="headword">{{ suggestionLabel(suggestion) }}</span>
+                  @if (suggestion.gloss) { <span class="gloss">{{ suggestion.gloss }}</span> }
+                </button>
+              </li>
+            }
+          </ul>
+          <p i18n class="as-typed">Or press ↵ to look up “{{ searchText.trim() }}” as written · ↑↓ to choose</p>
+        </div>
+      }
       @if (showRecents) {
         <div #recentRow class="recents" aria-label="Recent lookups" i18n-aria-label>
           @for (entry of recents; track entry) {

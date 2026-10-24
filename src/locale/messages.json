@@ -174,6 +174,8 @@
     "1754031883191844001": "Language of the text",
     "4060598215762957284": "Type a word, or paste a sentence",
     "3358543794934763792": "Look up a word or a sentence",
+    "2170214905466301783": "Suggestions",
+    "1885099582811091212": "Or press ↵ to look up “{$INTERPOLATION}” as written · ↑↓ to choose",
     "7069872554690573037": "Recent lookups",
     "8700121026680200191": "Clear",
     "4406789673229595653": "Read as {$INTERPOLATION}: the text was plainly {$INTERPOLATION}, not {$INTERPOLATION_1}, so the field switched to match.",

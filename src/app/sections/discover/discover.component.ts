@@ -1,7 +1,7 @@
 import {Component, DestroyRef, ElementRef, HostListener, LOCALE_ID, OnInit, ViewChild, afterNextRender, inject} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EmblemComponent} from '../../shared/emblem/emblem.component';
-import {combineLatest, finalize} from 'rxjs';
+import {Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, switchMap} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
@@ -9,7 +9,7 @@ import {TargetLanguageDropdownService} from '../../services/target-language-drop
 import {UserInfoService} from '../../services/user-info.service';
 import {getErrorMessage} from '../../shared/http-error';
 import {varietyRow} from '../../shared/language-varieties';
-import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService} from './discover.service';
+import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, DiscoverSuggestion} from './discover.service';
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
@@ -23,6 +23,12 @@ interface LetterChip {
   ring: string[];
   index: number;
 }
+
+/** What to ask the lexicon for: a prefix in a language, glossed in another. Null asks for nothing. */
+type SuggestionQuery = {prefix: string; language: LanguageCode; glossLanguage: LanguageCode} | null;
+
+/** The article a German noun is shown with in the suggestion rows. */
+const GERMAN_ARTICLES: Record<string, string> = {Masc: 'der', Fem: 'die', Neut: 'das'};
 
 @Component({
   selector: 'app-discover',
@@ -80,6 +86,10 @@ export class DiscoverComponent implements OnInit {
   protected privateText: PrivateText | null = null;
   protected savingText = false;
   private layoutFrame = 0;
+  protected suggestions: DiscoverSuggestion[] = [];
+  /** The row ↑↓ is on; -1 while the text as typed is what ↵ will look up. */
+  protected activeSuggestion = -1;
+  private readonly suggestionQueries = new Subject<SuggestionQuery>();
 
   protected readonly guestLanguages = GUEST_LANGUAGES;
   protected readonly noteLabels: Record<BreakdownNoteKind, string> = {
@@ -136,6 +146,10 @@ export class DiscoverComponent implements OnInit {
     return !this.searchText && this.recents.length > 0;
   }
 
+  protected get showSuggestions(): boolean {
+    return this.suggestions.length > 0 && this.tier === 'word';
+  }
+
   /** Nothing below the line yet: the line sits lower on the page, as the page's only object. */
   protected get atRest(): boolean {
     return !this.lookup && !this.breakdown && !this.privateText && !this.loading && !this.breakingDown && !this.errorMessage;
@@ -155,11 +169,23 @@ export class DiscoverComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.suggestionQueries.pipe(
+      debounceTime(120),
+      distinctUntilChanged((a, b) => a?.prefix === b?.prefix && a?.language === b?.language && a?.glossLanguage === b?.glossLanguage),
+      switchMap(query => query
+        ? this.discoverService.suggest(query.prefix, query.language, query.glossLanguage).pipe(catchError(() => of([])))
+        : of([])),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(suggestions => {
+      this.suggestions = suggestions;
+      this.activeSuggestion = -1;
+    });
     this.languageService.currentLanguage$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(language => {
       this.preferredLanguage = language || LanguageCode.EN;
       this.currentLanguage = this.sourceLanguage ?? this.preferredLanguage;
       this.recents = readRecents(this.fieldLanguage);
       this.chip = null;
+      this.requestSuggestions();
     });
     combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(([path, params]) => {
       this.searchText = params.get('text') ?? '';
@@ -217,6 +243,7 @@ export class DiscoverComponent implements OnInit {
     }
     this.searchText = value;
     this.context = '';
+    this.requestSuggestions();
     this.scheduleLayout();
   }
 
@@ -231,9 +258,16 @@ export class DiscoverComponent implements OnInit {
     }
     // Any other key keeps what is there; a typed letter offers its own ring from the input that follows.
     if (!['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(event.key)) this.chip = null;
-    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    if (this.showSuggestions && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+      // ↓ walks down the rows; ↑ walks back up and, past the first, returns to the text as typed.
       event.preventDefault();
-      this.submitSearch();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      this.activeSuggestion = Math.min(Math.max(this.activeSuggestion + step, -1), this.suggestions.length - 1);
+    } else if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      const active = this.showSuggestions ? this.suggestions[this.activeSuggestion] : undefined;
+      if (active) this.openSuggestion(active);
+      else this.submitSearch();
     } else if (event.key === 'Escape') {
       event.preventDefault();
       if (this.menuOpen) this.menuOpen = false;
@@ -296,6 +330,24 @@ export class DiscoverComponent implements OnInit {
     this.focusField();
   }
 
+  /** "die Ausgabe" for a German noun; the bare headword everywhere else. */
+  protected suggestionLabel(suggestion: DiscoverSuggestion): string {
+    const article = this.fieldLanguage === LanguageCode.DE && suggestion.partOfSpeech === 'NOUN'
+      ? GERMAN_ARTICLES[suggestion.gender ?? ''] : undefined;
+    return article ? `${article} ${suggestion.headword}` : suggestion.headword;
+  }
+
+  /** Puts the headword in the line and looks it up, as ↵ on its row does. */
+  protected openSuggestion(suggestion: DiscoverSuggestion): void {
+    if (this.field) this.field.nativeElement.value = suggestion.headword;
+    this.searchText = suggestion.headword;
+    this.context = '';
+    this.chip = null;
+    this.submitSearch();
+    this.focusField();
+    this.scheduleLayout();
+  }
+
   protected openRecent(entry: string): void {
     this.searchText = entry;
     this.context = '';
@@ -309,6 +361,7 @@ export class DiscoverComponent implements OnInit {
     if (!input) return;
     this.chip = null;
     this.menuOpen = false;
+    this.closeSuggestions();
     switch (tierOf(input, this.cap)) {
       case 'word':
         if (!this.context) this.breakdown = null;
@@ -420,6 +473,23 @@ export class DiscoverComponent implements OnInit {
     this.chip = null;
     this.recents = readRecents(language);
     rememberGuestLanguage(language);
+    this.requestSuggestions();
+  }
+
+  /** Asks for rows while the line holds a word or short expression; anything longer asks for none. */
+  private requestSuggestions(): void {
+    const prefix = this.searchText.trim().replace(/\s+/g, ' ');
+    const wanted = prefix.length >= 2 && prefix.length <= 64 && !this.searchText.includes('\n') && this.tier === 'word';
+    if (!wanted) this.suggestions = [];
+    this.suggestionQueries.next(wanted
+      ? {prefix, language: this.fieldLanguage, glossLanguage: this.translationLanguage(this.fieldLanguage)}
+      : null);
+  }
+
+  private closeSuggestions(): void {
+    this.suggestions = [];
+    this.activeSuggestion = -1;
+    this.suggestionQueries.next(null);
   }
 
   private applyChip(index: number): void {
@@ -432,6 +502,7 @@ export class DiscoverComponent implements OnInit {
     field.value = text;
     field.focus({preventScroll: true});
     field.setSelectionRange(chip.position + 1, chip.position + 1);
+    this.requestSuggestions();
     this.scheduleLayout();
   }
 
@@ -440,6 +511,7 @@ export class DiscoverComponent implements OnInit {
     this.searchText = '';
     this.context = '';
     this.chip = null;
+    this.closeSuggestions();
     this.scheduleLayout();
   }
 

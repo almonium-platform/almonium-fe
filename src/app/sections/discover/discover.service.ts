@@ -53,6 +53,16 @@ export interface DiscoverLookup {
   senses: DiscoverSense[];
 }
 
+/** A headword offered while a word is being typed, with what the field shows beside it. */
+export interface DiscoverSuggestion {
+  headword: string;
+  partOfSpeech: string | null;
+  /** Fem, Masc or Neut where the language marks gender; null otherwise. */
+  gender: string | null;
+  /** The first gloss of the first sense, in the reader's language; null when the entry has none in it. */
+  gloss: string | null;
+}
+
 const CLIP_STATUSES: readonly DiscoverClipStatus[] = ['verified', 'unverified'];
 
 @Injectable({providedIn: 'root'})
@@ -67,6 +77,25 @@ export class DiscoverService {
       {params},
     ).pipe(map(parseDiscoverLookup));
   }
+
+  /** Headwords beginning with what was typed, most frequent first; the lexicon's word for "autocomplete". */
+  suggest(prefix: string, language: LanguageCode, glossLanguage: LanguageCode): Observable<DiscoverSuggestion[]> {
+    const params = new HttpParams().set('prefix', prefix).set('fluent', glossLanguage.toLowerCase()).set('limit', 6);
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/lexicon/${language.toLowerCase()}/suggestions`, {params})
+      .pipe(map(parseDiscoverSuggestions));
+  }
+}
+
+export function parseDiscoverSuggestions(value: unknown): DiscoverSuggestion[] {
+  return expectArray(value, 'suggestions').map((item, index) => {
+    const row = expectRecord(item, `suggestions[${index}]`);
+    return {
+      headword: expectString(row['headword'], `suggestions[${index}].headword`),
+      partOfSpeech: expectNullableString(row['pos'], `suggestions[${index}].pos`),
+      gender: expectNullableString(row['gender'], `suggestions[${index}].gender`),
+      gloss: expectNullableString(row['gloss'], `suggestions[${index}].gloss`),
+    };
+  });
 }
 
 export function parseDiscoverLookup(value: unknown): DiscoverLookup {

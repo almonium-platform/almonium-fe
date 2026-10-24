@@ -8,7 +8,7 @@ import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {DiscoverComponent} from './discover.component';
-import {DiscoverLookup, DiscoverPronunciation, DiscoverService} from './discover.service';
+import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggestion} from './discover.service';
 
 describe('DiscoverComponent', () => {
   const british: DiscoverPronunciation = {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/clip-gb', clipStatus: 'verified'};
@@ -31,10 +31,18 @@ describe('DiscoverComponent', () => {
   }
 
   let fixture: ComponentFixture<DiscoverComponent>;
+  let lookupSpy: jasmine.Spy;
+  let suggestSpy: jasmine.Spy;
+  const SUGGESTIONS: DiscoverSuggestion[] = [
+    {headword: 'Ausgabe', partOfSpeech: 'NOUN', gender: 'Fem', gloss: 'edition'},
+    {headword: 'ausgehen', partOfSpeech: 'VERB', gender: null, gloss: 'go out'},
+    {headword: 'Ausgang', partOfSpeech: 'NOUN', gender: 'Masc', gloss: null},
+  ];
 
   async function render(lookup: DiscoverLookup, variety: string | null, query: Record<string, string> = {text: 'colour'}): Promise<HTMLElement> {
-    const discoverService = jasmine.createSpyObj<DiscoverService>('DiscoverService', ['lookup']);
-    discoverService.lookup.and.returnValue(of(lookup));
+    lookupSpy = jasmine.createSpy('lookup').and.returnValue(of(lookup));
+    suggestSpy = jasmine.createSpy('suggest').and.returnValue(of(SUGGESTIONS));
+    const discoverService = {lookup: lookupSpy, suggest: suggestSpy};
     const learners = variety === null ? [] : [new Learner('learner-1', LanguageCode.EN, CEFRLevel.B1, true, variety)];
     await TestBed.configureTestingModule({
       imports: [DiscoverComponent],
@@ -209,6 +217,49 @@ describe('DiscoverComponent', () => {
       expect(element.querySelector('.clear-recents')).toBeNull();
       expect(localStorage.getItem('discover.recents.DE')).toBe('[]');
       expect(localStorage.getItem('discover.recents.FR')).toBe('["la pluie"]');
+    });
+
+    function settle(): Promise<void> {
+      return new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    it('offers headwords from the lexicon while a word is typed, with the German article', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Ausg');
+      await settle();
+      detect();
+      expect(suggestSpy).toHaveBeenCalledOnceWith('Ausg', LanguageCode.DE, LanguageCode.EN);
+      const rows = Array.from(element.querySelectorAll<HTMLElement>('.suggestions li'));
+      expect(rows.map(row => row.querySelector('.headword')?.textContent?.trim())).toEqual(['die Ausgabe', 'ausgehen', 'der Ausgang']);
+      expect(rows[0].querySelector('.gloss')?.textContent).toContain('edition');
+      expect(rows[2].querySelector('.gloss')).toBeNull();
+      expect(element.querySelector('.as-typed')?.textContent).toContain('“Ausg”');
+    });
+
+    it('walks the rows with ↓ and opens the chosen one with Enter', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Ausg');
+      await settle();
+      detect();
+      press(element, 'ArrowDown');
+      press(element, 'ArrowDown');
+      detect();
+      expect(element.querySelector('.suggestions li.active .headword')?.textContent).toContain('ausgehen');
+      press(element, 'ArrowUp');
+      press(element, 'Enter');
+      detect();
+      expect(lookupSpy).toHaveBeenCalledWith('Ausgabe', LanguageCode.DE, LanguageCode.EN, undefined);
+      expect(field(element).value).toBe('Ausgabe');
+      expect(element.querySelector('.suggestions')).toBeNull();
+    });
+
+    it('asks for nothing once the line holds a sentence', async () => {
+      const {element, detect} = await renderEmpty({language: 'de'});
+      type(element, 'Die Ausgabe lag dort.');
+      await settle();
+      detect();
+      expect(suggestSpy).not.toHaveBeenCalled();
+      expect(element.querySelector('.suggestions')).toBeNull();
     });
   });
 });
