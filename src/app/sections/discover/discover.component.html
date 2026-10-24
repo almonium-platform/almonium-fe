@@ -180,7 +180,6 @@
         } @else {
           <div class="empty-sense">
             <strong i18n>No structured dictionary sense is available yet.</strong>
-            <span i18n>You can still name the meaning and keep the word; the missing lexical enrichment is tracked separately.</span>
           </div>
         }
       </section>
@@ -200,41 +199,6 @@
       @if (lookup.sourceContext) {
         <blockquote><span i18n class="section-label">Where you met it</span>{{ lookup.sourceContext }}</blockquote>
       }
-
-      <section class="keep-panel" aria-labelledby="keep-title">
-        <div>
-          <p i18n class="section-label" id="keep-title">Keep it</p>
-          <h3 i18n>What do you want from this word?</h3>
-        </div>
-        <div class="intent-grid">
-          @for (option of intentOptions; track option.value) {
-            <label [class.selected]="selectedIntents.has(option.value)">
-              <input type="checkbox" [checked]="selectedIntents.has(option.value)" [disabled]="option.value === 'UNDERSTAND'"
-                     (change)="toggleIntent(option.value)" />
-              <span><strong>{{ option.label }}</strong><small>{{ option.detail }}</small></span>
-            </label>
-          }
-        </div>
-        <p i18n class="intent-note">Understanding is always kept. The other two are added on top of it.</p>
-        <label class="meaning-field" for="discover-meaning">
-          <span i18n>Meaning for review</span>
-          <input id="discover-meaning" [(ngModel)]="meaning" [ngModelOptions]="{standalone: true}"
-                 placeholder="Add the meaning you want to remember" i18n-placeholder />
-        </label>
-        @if (signedIn) {
-          <button type="button" class="keep-action" [class.kept]="saved" [disabled]="saving || saved || !meaning.trim()" (click)="keepWord()">
-            @if (saved) { <app-emblem class="fold-mark" [motion]="'fold'" [mono]="true"></app-emblem> }
-            {{ keepActionLabel }}
-          </button>
-          <p i18n class="save-note">It stays on this sheet and enters Review immediately.</p>
-        } @else {
-          <div class="signup-callout">
-            <div><strong i18n>Keep this word and it comes back until you know it</strong><span i18n>Looking words up stays public. An account is only needed to remember them.</span></div>
-            <a i18n routerLink="/auth">Keep it — free</a>
-          </div>
-        }
-        @if (saveError) { <p class="message error" role="alert">{{ saveError }}</p> }
-      </section>
 
       <footer class="entry-footer">@if (lookup.provider) { <ng-container i18n>Dictionary provider: {{ lookup.provider }} · </ng-container> }<ng-container i18n>Lexical roots, family links and entry provenance are not available in this iteration.</ng-container></footer>
     </article>

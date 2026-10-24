@@ -1,8 +1,6 @@
 :host { display: block; min-height: calc(100vh - var(--header-height)); background: var(--page-ground); color: var(--text-color); }
 .discover-page { width: min(calc(100% - 2rem), 800px); margin: 0 auto; padding: 3.6rem 0 6rem; }
 h1, h2, h3, p { margin-top: 0; }
-input { box-sizing: border-box; width: 100%; border: 1px solid var(--control-border-color); border-radius: 14px; background: var(--nested-color); color: var(--text-color); font: inherit; }
-input:focus { outline: 3px solid rgba(90, 26, 116, .16); border-color: var(--brand-primary); }
 
 // The line (design 4a, 4b): no card, no label, one underline that turns plum while it listens.
 .discover-page.at-rest { padding-top: 150px; }
@@ -76,7 +74,6 @@ textarea.scrolled { -webkit-mask-image: linear-gradient(to bottom, transparent 0
 .private-text p { margin-bottom: 0; color: var(--subhead-color); }
 .sentence-card, .word-sheet { background: var(--card-color); box-shadow: var(--box-shadow); }
 button, a { min-height: 44px; }
-.keep-action, .signup-callout a { border: 0; border-radius: 999px; background: var(--brand-primary); color: var(--on-brand-color); cursor: pointer; font-weight: 600; }
 button:disabled { cursor: not-allowed; opacity: .58; }
 .sentence-card { margin-top: 1rem; padding: 1.4rem; border-radius: 20px; }
 .sentence-copy { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .6rem; }
@@ -119,26 +116,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .empty-sense { display: flex; flex-direction: column; gap: .3rem; padding: 1rem; border-radius: 14px; background: var(--nested-color); }
 .empty-sense span { color: var(--subhead-color); font-size: .86rem; line-height: 1.5; }
 blockquote { margin: 0 2rem 2rem; padding: 1.1rem 1.25rem; border-left: 3px solid var(--brand-margin); background: var(--nested-color); font: 1rem/1.65 var(--font-family-reading); }
-.keep-panel { padding: 2rem; background: var(--brand-ink); color: var(--page-ground); }
-.keep-panel .section-label { color: #c9a8c4; }
-.keep-panel h3 { font-size: 1.55rem; font-weight: 500; }
-.intent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
-.intent-grid label { display: flex; gap: .65rem; min-height: 72px; align-items: flex-start; padding: .85rem; border: 1px solid #5a505d; border-radius: 13px; cursor: pointer; }
-.intent-grid label.selected { border-color: #c9a8c4; background: rgba(255,255,255,.06); }
-.intent-grid input { width: auto; margin-top: .2rem; }
-.intent-grid span { display: flex; flex-direction: column; gap: .25rem; }
-.intent-grid small { color: #c9c0cc; font-size: .72rem; line-height: 1.35; }
-.intent-note { margin: .65rem 0 0; color: #c9c0cc; font-size: .76rem; }
-.meaning-field { margin-top: 1rem; color: #c9c0cc; }
-.meaning-field input { padding: .85rem 1rem; background: #37303d; border-color: #5a505d; color: #fff; }
-.keep-action { margin-top: 1rem; min-width: 160px; padding: .75rem 1.4rem; background: var(--premium-gradient); }
-.keep-action.kept { background: var(--success-color); }
-.fold-mark { width: 1em; height: 1em; margin-right: .4rem; vertical-align: -.15em; }
-.save-note { display: inline; margin-left: .8rem; color: #c9c0cc; font-size: .76rem; }
-.signup-callout { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #5a505d; }
-.signup-callout div { display: flex; flex-direction: column; gap: .25rem; }
-.signup-callout span { color: #c9c0cc; font-size: .8rem; }
-.signup-callout a { display: inline-flex; flex: 0 0 auto; align-items: center; padding: 0 1.3rem; background: #e0c4ee; color: var(--brand-ink); }
 .entry-footer { padding: 1rem 2rem; color: var(--metadata-color); font: .69rem/1.55 var(--font-family-mono); }
 @media (max-width: 720px) {
   .discover-page { padding-top: 2rem; }
@@ -155,11 +132,7 @@ blockquote { margin: 0 2rem 2rem; padding: 1.1rem 1.25rem; border-left: 3px soli
   textarea.size-passage { max-height: 10 * 27px + 14px; }
   .chip button { min-width: 44px; min-height: 44px; }
   .notes li { grid-template-columns: 1fr; gap: .1rem; }
-  .entry-header, .senses, .examples, .keep-panel { padding: 1.25rem; }
+  .entry-header, .senses, .examples { padding: 1.25rem; }
   .frequency { width: auto; }
-  .intent-grid { grid-template-columns: 1fr; }
   blockquote { margin: 0 1.25rem 1.25rem; }
-  .signup-callout { align-items: stretch; flex-direction: column; }
-  .signup-callout a { justify-content: center; }
-  .save-note { display: block; margin: .6rem 0 0; }
 }

@@ -1,13 +1,10 @@
 import {Component, DestroyRef, ElementRef, HostListener, LOCALE_ID, OnInit, ViewChild, afterNextRender, inject} from '@angular/core';
-import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EmblemComponent} from '../../shared/emblem/emblem.component';
 import {combineLatest, finalize} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
-import {LearningIntent} from '../../models/card.model';
-import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {getErrorMessage} from '../../shared/http-error';
@@ -16,7 +13,7 @@ import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService} f
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, guessGuestLanguage, readRecents, rememberGuestLanguage,
-  removeRecent, sizeOf, tierOf,
+  sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 
@@ -29,14 +26,13 @@ interface LetterChip {
 
 @Component({
   selector: 'app-discover',
-  imports: [FormsModule, RouterLink, EmblemComponent],
+  imports: [RouterLink, EmblemComponent],
   templateUrl: './discover.component.html',
   styleUrls: ['./discover.component.less'],
 })
 export class DiscoverComponent implements OnInit {
   private readonly discoverService = inject(DiscoverService);
   private readonly breakdownService = inject(DiscoverBreakdownService);
-  private readonly cardService = inject(CardService);
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly userInfoService = inject(UserInfoService);
   private readonly route = inject(ActivatedRoute);
@@ -54,12 +50,8 @@ export class DiscoverComponent implements OnInit {
   protected context = '';
   protected lookup: DiscoverLookup | null = null;
   protected selectedSenseIndex = 0;
-  protected meaning = '';
   protected loading = false;
-  protected saving = false;
-  protected saved = false;
   protected errorMessage = '';
-  protected saveError = '';
   protected audioError = '';
   private audio: HTMLAudioElement | null = null;
   protected currentLanguage = LanguageCode.EN;
@@ -90,11 +82,6 @@ export class DiscoverComponent implements OnInit {
   private layoutFrame = 0;
 
   protected readonly guestLanguages = GUEST_LANGUAGES;
-  protected readonly intentOptions: {value: LearningIntent; label: string; detail: string}[] = [
-    {value: 'UNDERSTAND', label: $localize`Understand it`, detail: $localize`Recognise it while reading`},
-    {value: 'PRODUCE', label: $localize`Say it too`, detail: $localize`Recall the word from its meaning`},
-    {value: 'DISAMBIGUATE', label: $localize`Tell it apart`, detail: $localize`Practise it against confusing words`},
-  ];
   protected readonly noteLabels: Record<BreakdownNoteKind, string> = {
     tense: $localize`Tense`,
     case: $localize`Case`,
@@ -104,12 +91,6 @@ export class DiscoverComponent implements OnInit {
   protected readonly wordFallback = $localize`word`;
   protected readonly unverifiedClipTitle = $localize`The machine check did not confirm that this clip says the word.`;
   protected readonly meaningFallback = $localize`Meaning not supplied`;
-  protected selectedIntents = new Set<LearningIntent>(['UNDERSTAND']);
-
-  protected get keepActionLabel(): string {
-    if (this.saved) return $localize`Kept`;
-    return this.saving ? $localize`Keeping…` : $localize`Keep the word`;
-  }
 
   protected get signedIn(): boolean {
     return this.userInfoService.currentUserInfo !== null;
@@ -339,7 +320,7 @@ export class DiscoverComponent implements OnInit {
     }
   }
 
-  /** Opens a word of the breakdown, with its sentence attached as the context Keep saves. */
+  /** Opens a word of the breakdown, with its sentence attached as context. */
   protected openToken(token: string, sentence: string): void {
     this.lookupWord(token, sentence, this.breakdown?.language ?? this.fieldLanguage);
   }
@@ -353,16 +334,13 @@ export class DiscoverComponent implements OnInit {
     if (!entry) return;
     this.context = context;
     this.loading = true;
-    this.saved = false;
     this.errorMessage = '';
-    this.saveError = '';
     this.discoverService.lookup(entry, language, this.translationLanguage(language), context || undefined)
       .pipe(finalize(() => this.loading = false), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: lookup => {
           this.lookup = lookup;
           this.selectedSenseIndex = 0;
-          this.meaning = lookup.senses[0]?.translations.join(', ') ?? '';
           this.recents = addRecent(lookup.language, lookup.entry);
         },
         error: error => this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`),
@@ -371,14 +349,6 @@ export class DiscoverComponent implements OnInit {
 
   protected selectSense(index: number): void {
     this.selectedSenseIndex = index;
-    this.meaning = this.lookup?.senses[index]?.translations.join(', ') ?? '';
-    this.saved = false;
-  }
-
-  protected toggleIntent(intent: LearningIntent): void {
-    if (intent === 'UNDERSTAND') return;
-    if (this.selectedIntents.has(intent)) this.selectedIntents.delete(intent);
-    else this.selectedIntents.add(intent);
   }
 
   /** "British" for en-GB; the bare tag when this build does not know the variety. */
@@ -393,34 +363,6 @@ export class DiscoverComponent implements OnInit {
     this.audioError = '';
     this.audio = new Audio(`${AppConstants.API_URL}${pronunciation.clipUrl}`);
     this.audio.play().catch(() => this.audioError = $localize`The clip could not be played. Please try again.`);
-  }
-
-  protected keepWord(): void {
-    if (!this.lookup || !this.meaning.trim() || !this.signedIn || this.saving) return;
-    const lookup = this.lookup;
-    const sense = this.selectedSense;
-    this.saving = true;
-    this.saveError = '';
-    this.cardService.createCard({
-      entry: lookup.entry,
-      language: lookup.language,
-      translations: this.meaning.split(',').map(value => value.trim()).filter(Boolean).map(translation => ({translation})),
-      partOfSpeech: sense?.partOfSpeech ?? undefined,
-      selectedSense: sense ? `${sense.index}: ${sense.translations.join(', ') || this.meaning.trim()}` : this.meaning.trim(),
-      sourceContext: lookup.sourceContext ?? undefined,
-      learningIntents: [...this.selectedIntents],
-      itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
-      examples: lookup.sourceContext ? [{example: lookup.sourceContext, translation: ''}] : [],
-      activeLearning: true,
-      learnt: false,
-      priority: 0,
-    }).pipe(finalize(() => this.saving = false), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.saved = true;
-        this.recents = removeRecent(lookup.language, lookup.entry);
-      },
-      error: error => this.saveError = getErrorMessage(error, $localize`The word could not be kept. Please try again.`),
-    });
   }
 
   private breakDown(text: string): void {

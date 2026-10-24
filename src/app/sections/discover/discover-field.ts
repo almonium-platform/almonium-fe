@@ -64,7 +64,7 @@ export function rememberGuestLanguage(language: LanguageCode): void {
   write(GUEST_LANGUAGE_KEY, language);
 }
 
-/** Recent lookups not yet kept, newest first, on this device. */
+/** Recent lookups, newest first, on this device. */
 export function readRecents(language: LanguageCode): string[] {
   const recents = read<string[]>(`${RECENTS_KEY}.${language}`);
   return Array.isArray(recents) ? recents.filter(value => typeof value === 'string') : [];
@@ -73,12 +73,6 @@ export function readRecents(language: LanguageCode): string[] {
 export function addRecent(language: LanguageCode, entry: string): string[] {
   const recents = [entry, ...readRecents(language).filter(value => value.toLocaleLowerCase() !== entry.toLocaleLowerCase())]
     .slice(0, RECENTS_LIMIT);
-  write(`${RECENTS_KEY}.${language}`, recents);
-  return recents;
-}
-
-export function removeRecent(language: LanguageCode, entry: string): string[] {
-  const recents = readRecents(language).filter(value => value.toLocaleLowerCase() !== entry.toLocaleLowerCase());
   write(`${RECENTS_KEY}.${language}`, recents);
   return recents;
 }
