@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
-import {expectArray, expectEnum, expectNullableString, expectNumber, expectRecord, expectString} from '../../shared/runtime-validation';
+import {expectArray, expectBoolean, expectEnum, expectNullableString, expectNumber, expectRecord, expectString} from '../../shared/runtime-validation';
 
 export interface DiscoverFrequency {
   score: number;
@@ -39,6 +39,14 @@ export interface DiscoverPronunciation {
   /** API-relative path of the audio clip, such as `/public/lexicon/clips/<uuid>`; null when there is none. */
   clipUrl: string | null;
   clipStatus: DiscoverClipStatus | null;
+  /** `ipa` cut where it parts from the other varieties' transcriptions; null without a transcription. */
+  segments: DiscoverIpaSegment[] | null;
+}
+
+/** A run of a transcription, and whether another variety says it differently there (design 5a). */
+export interface DiscoverIpaSegment {
+  text: string;
+  differs: boolean;
 }
 
 export interface DiscoverLookup {
@@ -141,6 +149,15 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
         clipStatus: pronunciation['clipStatus'] == null
           ? null
           : expectEnum(pronunciation['clipStatus'], CLIP_STATUSES, `discoverLookup.pronunciations[${index}].clipStatus`),
+        segments: pronunciation['segments'] == null
+          ? null
+          : expectArray(pronunciation['segments'], `discoverLookup.pronunciations[${index}].segments`).map((value, segmentIndex) => {
+            const segment = expectRecord(value, `discoverLookup.pronunciations[${index}].segments[${segmentIndex}]`);
+            return {
+              text: expectString(segment['text'], `discoverLookup.pronunciations[${index}].segments[${segmentIndex}].text`),
+              differs: expectBoolean(segment['differs'], `discoverLookup.pronunciations[${index}].segments[${segmentIndex}].differs`),
+            };
+          }),
       };
     }),
   };

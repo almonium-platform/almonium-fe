@@ -11,9 +11,11 @@ import {DiscoverComponent} from './discover.component';
 import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggestion} from './discover.service';
 
 describe('DiscoverComponent', () => {
-  const british: DiscoverPronunciation = {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/clip-gb', clipStatus: 'verified'};
-  const american: DiscoverPronunciation = {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null};
-  const australian: DiscoverPronunciation = {variety: 'en-AU', ipa: 'ˈkalə', clipUrl: '/public/lexicon/clips/clip-au', clipStatus: 'unverified'};
+  const british: DiscoverPronunciation = {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/clip-gb', clipStatus: 'verified',
+    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]};
+  const american: DiscoverPronunciation = {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null,
+    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ɚ', differs: true}]};
+  const australian: DiscoverPronunciation = {variety: 'en-AU', ipa: 'ˈkalə', clipUrl: '/public/lexicon/clips/clip-au', clipStatus: 'unverified', segments: null};
 
   function lookupOf(pronunciations: DiscoverPronunciation[]): DiscoverLookup {
     return {
@@ -66,6 +68,15 @@ describe('DiscoverComponent', () => {
     return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations li'));
   }
 
+  it('tints the runs the server marks as differing, and shows a transcription without segments as it is', async () => {
+    const element = await render(lookupOf([british, australian]), null);
+    const rows = pronunciationRows(element);
+    expect(rows[0].querySelector('.transcription')?.textContent).toBe('ˈkʌlə');
+    expect(Array.from(rows[0].querySelectorAll('.differs')).map(span => span.textContent)).toEqual(['ə']);
+    expect(rows[1].querySelector('.transcription')?.textContent).toBe('ˈkalə');
+    expect(rows[1].querySelector('.differs')).toBeNull();
+  });
+
   it('shows each variety with its IPA and a speaker for every one', async () => {
     const element = await render(lookupOf([british, american]), null);
     const rows = pronunciationRows(element);
@@ -81,7 +92,8 @@ describe('DiscoverComponent', () => {
   });
 
   it('collapses transcriptions that say the same thing to one line with no label', async () => {
-    const element = await render(lookupOf([british, {...australian, ipa: 'ˈkʌlə'}]), null);
+    const alike = [{text: 'ˈkʌlə', differs: false}];
+    const element = await render(lookupOf([{...british, segments: alike}, {...australian, ipa: 'ˈkʌlə', segments: alike}]), null);
     const rows = pronunciationRows(element);
     expect(rows.length).toBe(1);
     expect(rows[0].querySelector('.variety')).toBeNull();

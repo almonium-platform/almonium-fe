@@ -41,7 +41,8 @@ describe('DiscoverService', () => {
     const lookup = parseDiscoverLookup({
       entry: 'colour', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: 'lexicon', frequency: null,
       pronunciations: [
-        {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified'},
+        {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified',
+          segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]},
         {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null},
       ],
       senses: [{
@@ -51,8 +52,9 @@ describe('DiscoverService', () => {
       }],
     });
     expect(lookup.pronunciations).toEqual([
-      {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified'},
-      {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null},
+      {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified',
+        segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]},
+      {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null, segments: null},
     ]);
     expect(lookup.senses[0].definition).toBe('The property of an object that depends on the light it reflects.');
     expect(lookup.senses[0].cefr).toBe('A1');
