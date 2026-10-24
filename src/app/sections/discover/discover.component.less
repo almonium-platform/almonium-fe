@@ -20,7 +20,8 @@ textarea.size-line { max-height: 6 * 45px + 14px; }
 textarea.size-passage { max-height: 10 * 30px + 14px; }
 textarea.scrolled { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 60px); mask-image: linear-gradient(to bottom, transparent 0, #000 60px); }
 .mirror { position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; white-space: pre-wrap; overflow-wrap: break-word; }
-.placeholder { position: absolute; top: 0; left: 0; overflow: hidden; max-width: 100%; color: var(--metadata-color); pointer-events: none;
+// The bottom padding matches the textarea's, so overflow: hidden (needed for the ellipsis) leaves room for descenders.
+.placeholder { position: absolute; top: 0; left: 0; overflow: hidden; max-width: 100%; padding-bottom: 14px; color: var(--metadata-color); pointer-events: none;
   font: 400 36px/45px var(--font-family-reading); white-space: nowrap; text-overflow: ellipsis; }
 .chip { position: absolute; z-index: 2; display: flex; align-items: center; gap: 2px; padding: 3px; transform: translate(-50%, calc(-100% - 6px));
   border: 1px solid var(--disabled-fill-color); border-radius: 10px; background: var(--card-color); box-shadow: 0 4px 14px rgba(44, 37, 48, .1); white-space: nowrap; }
