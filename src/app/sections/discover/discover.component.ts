@@ -18,8 +18,15 @@ import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
+import {IpaLine, diffTranscriptions, sameTranscriptions} from './ipa-diff';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
+
+/** A pronunciation as the sheet stacks it: its transcription split where it parts from the other varieties'. */
+interface PronunciationRow {
+  pronunciation: DiscoverPronunciation;
+  line: IpaLine | null;
+}
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -83,6 +90,9 @@ export class DiscoverComponent implements OnInit {
   protected lookup: DiscoverLookup | null = null;
   /** The sheet's senses in display order; `selectedRow` indexes it. */
   protected senseRows: SenseRow[] = [];
+  protected pronunciationRows: PronunciationRow[] = [];
+  /** Every variety transcribes the word alike: one line, no label. */
+  protected pronunciationsAlike = false;
   protected senseGroups: SenseGroup[] = [];
   protected selectedRow = 0;
   protected expanded = false;
@@ -641,6 +651,7 @@ export class DiscoverComponent implements OnInit {
     this.playing = null;
     this.lookup = lookup;
     this.senseRows = groupSenses(lookup.senses);
+    this.setPronunciationRows();
     this.selectedRow = 0;
     this.expanded = false;
     this.senseGroups = this.visibleGroups();
@@ -660,6 +671,15 @@ export class DiscoverComponent implements OnInit {
           if (card?.id) this.keptCards.set(sense.index, card.id);
         }
       });
+  }
+
+  private setPronunciationRows(): void {
+    const pronunciations = this.pronunciations;
+    const transcribed = pronunciations.filter(pronunciation => pronunciation.ipa).map(pronunciation => pronunciation.ipa!);
+    const lines = diffTranscriptions(transcribed);
+    let next = 0;
+    this.pronunciationRows = pronunciations.map(pronunciation => ({pronunciation, line: pronunciation.ipa ? lines[next++] : null}));
+    this.pronunciationsAlike = pronunciations.length > 1 && transcribed.length === pronunciations.length && sameTranscriptions(transcribed);
   }
 
   private visibleGroups(): SenseGroup[] {

@@ -112,9 +112,14 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .frequency .bars span.on { background: var(--brand-primary); }
 .frequency .band { color: var(--subhead-color); font-size: 13px; white-space: nowrap; }
 .transcription { margin: 0; color: var(--subhead-color); font: 15px var(--font-family-mono); }
-.pronunciations { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 26px; margin: 0; padding: 0; list-style: none; }
-.pronunciations li { display: flex; align-items: center; gap: 9px; }
+// Stacked, the labels in one column so every transcription starts at the same x; the sounds that differ tinted.
+.pronunciations { display: grid; grid-template-columns: minmax(64px, max-content) auto; justify-content: start; gap: 6px 9px; margin: 0; padding: 0; list-style: none; }
+.pronunciations.alike { grid-template-columns: auto; }
+.pronunciations li { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; }
+.pronunciations .voice { display: flex; align-items: center; gap: 9px; }
 .pronunciations .variety { color: var(--metadata-color); font-size: 12.5px; }
+.pronunciations .transcription { white-space: nowrap; }
+.differs { padding: 0 1px; border-radius: 3px; background: var(--chat-selected-color); color: var(--brand-primary); }
 .speaker { display: flex; flex: none; align-items: center; justify-content: center; width: 30px; height: 30px; min-height: 0; padding: 0;
   border: 1px solid var(--control-border-color); border-radius: 50%; background: var(--card-color); color: var(--brand-primary); cursor: pointer; }
 .speaker.small { width: 24px; height: 24px; border-color: var(--hairline-color); color: var(--metadata-color); }

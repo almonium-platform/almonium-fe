@@ -72,10 +72,20 @@ describe('DiscoverComponent', () => {
     expect(rows.length).toBe(2);
     expect(rows[0].textContent).toContain('British');
     expect(rows[0].textContent).toContain('ˈkʌlə');
+    expect(rows[0].querySelector('.differs')?.textContent).toBe('ə');
+    expect(rows[1].querySelector('.differs')?.textContent).toBe('ɚ');
     expect(rows[0].querySelector('button.speaker')?.getAttribute('aria-label')).toBe('Play the British pronunciation');
     expect(rows[0].querySelector('.unverified')).toBeNull();
     expect(rows[1].textContent).toContain('American');
     expect(rows[1].querySelector('button.speaker')).not.toBeNull();
+  });
+
+  it('collapses transcriptions that say the same thing to one line with no label', async () => {
+    const element = await render(lookupOf([british, {...australian, ipa: 'ˈkʌlə'}]), null);
+    const rows = pronunciationRows(element);
+    expect(rows.length).toBe(1);
+    expect(rows[0].querySelector('.variety')).toBeNull();
+    expect(rows[0].querySelector('.differs')).toBeNull();
   });
 
   it('keeps the server order when the learner has not chosen a variety', async () => {

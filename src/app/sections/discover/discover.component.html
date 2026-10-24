@@ -160,22 +160,27 @@
             </span>
           }
         </div>
-        @if (pronunciations.length) {
-          <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
-            @for (pronunciation of pronunciations; track pronunciation.variety + pronunciation.ipa) {
+        @if (pronunciationRows.length) {
+          <ul class="pronunciations" [class.alike]="pronunciationsAlike" aria-label="Pronunciations" i18n-aria-label>
+            @for (row of pronunciationsAlike ? pronunciationRows.slice(0, 1) : pronunciationRows; track row.pronunciation.variety + row.pronunciation.ipa) {
+              @let pronunciation = row.pronunciation;
               @let key = 'pronunciation:' + pronunciation.variety;
               <li>
-                <span class="variety">{{ varietyLabel(pronunciation.variety) }}</span>
-                @if (pronunciation.ipa) { <span class="transcription">{{ pronunciation.ipa }}</span> }
-                <button type="button" class="speaker" [class.on]="playing === key" (click)="listen(pronunciation)"
-                        [attr.aria-label]="listenLabel(pronunciation)">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                       stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
-                </button>
-                @if (playing === key && slow) { <span i18n class="slow">slow</span> }
-                @if (pronunciation.clipStatus === 'unverified') {
-                  <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
-                }
+                @if (!pronunciationsAlike) { <span class="variety">{{ varietyLabel(pronunciation.variety) }}</span> }
+                <span class="voice">
+                  @if (row.line; as line) {
+                    <span class="transcription">{{ line.open }}@for (segment of line.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}{{ line.close }}</span>
+                  }
+                  <button type="button" class="speaker" [class.on]="playing === key" (click)="listen(pronunciation)"
+                          [attr.aria-label]="listenLabel(pronunciation)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                  </button>
+                  @if (playing === key && slow) { <span i18n class="slow">slow</span> }
+                  @if (pronunciation.clipStatus === 'unverified') {
+                    <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                  }
+                </span>
               </li>
             }
           </ul>
