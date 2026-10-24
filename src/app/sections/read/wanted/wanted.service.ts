@@ -14,9 +14,13 @@ import {WantReceipt, WantedQueue, parseWantReceipt, parseWantedQueue} from './wa
 export class WantedService {
   private http = inject(HttpClient);
 
-  /** Idempotent. 409 when the work is under copyright or already on the shelf in that language. */
-  want(catalogWorkId: string, language: LanguageCode): Observable<WantReceipt> {
-    return this.http.post<unknown>(`${AppConstants.BOOKS_URL}/wants`, {catalogWorkId, language}, {withCredentials: true})
+  /**
+   * Idempotent. 409 when the work is under copyright or already on the shelf in that language. With a source
+   * address, the reader chose which library's text the book is made from instead of the catalogue's default.
+   */
+  want(catalogWorkId: string, language: LanguageCode, sourceDownloadUrl: string | null = null): Observable<WantReceipt> {
+    const body = sourceDownloadUrl ? {catalogWorkId, language, sourceDownloadUrl} : {catalogWorkId, language};
+    return this.http.post<unknown>(`${AppConstants.BOOKS_URL}/wants`, body, {withCredentials: true})
       .pipe(map(parseWantReceipt));
   }
 

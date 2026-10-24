@@ -48,6 +48,29 @@
               <span class="catalog-title">{{ hit.title }}</span>
               @if (meta(hit); as line) { <span class="catalog-meta">{{ line }}</span> }
               @if (hit.state === 'WANTABLE' && freeSince(hit); as note) { <span class="catalog-row__note"><app-free-from-note [note]="note" /></span> }
+              @if (hit.state === 'WANTABLE' && defaultSource(hit); as source) {
+                <span class="catalog-row__source">
+                  <ng-container i18n>From <a [href]="source.pageUrl" target="_blank" rel="noopener">{{ libraryName(source.kind) }}</a></ng-container>
+                  @if (source.shape === 'ok') { <span class="catalog-row__checked" i18n-title title="The book processor checked this file: its chapters read cleanly" i18n>· checked</span> }
+                  @if (otherSources(hit).length > 0) {
+                    <button type="button" class="catalog-link catalog-row__editions" [attr.aria-expanded]="editionsOpen === hit.id" (click)="editionsOpen = editionsOpen === hit.id ? null : hit.id">
+                      @if (editionsOpen === hit.id) { <ng-container i18n>Hide editions</ng-container> } @else { <ng-container i18n>Other editions</ng-container> }
+                    </button>
+                  }
+                </span>
+                @if (editionsOpen === hit.id) {
+                  <ul class="catalog-editions">
+                    @for (option of otherSources(hit); track option.downloadUrl) {
+                      <li class="catalog-editions__row">
+                        <a [href]="option.pageUrl" target="_blank" rel="noopener">{{ libraryName(option.kind) }}</a>
+                        @if (sourceNote(hit, option); as note) { <span class="catalog-muted">{{ note }}</span> }
+                        @if (option.shape === 'ok') { <span class="catalog-row__checked" i18n>· checked</span> }
+                        <button i18n type="button" class="catalog-link" [disabled]="busy === hit.id" (click)="choose(hit, option)">Use this one</button>
+                      </li>
+                    }
+                  </ul>
+                }
+              }
               @if (signInFor === hit.id) {
                 <span class="catalog-row__note"><a i18n routerLink="/auth" [queryParams]="{returnUrl: '/read'}">Sign in to want this book.</a></span>
               }

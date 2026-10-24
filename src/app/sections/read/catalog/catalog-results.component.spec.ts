@@ -7,7 +7,7 @@ import {LanguageCode} from '../../../models/language.enum';
 import {AppHttpError} from '../../../shared/app-http-error';
 import {WantedService} from '../wanted/wanted.service';
 import {CATALOG_DEBOUNCE_MS, CatalogResultsComponent} from './catalog-results.component';
-import {CatalogHit} from './catalog.model';
+import {CatalogHit, SourceOption} from './catalog.model';
 import {CatalogService} from './catalog.service';
 import {daysUntilNewYear} from './public-domain-day';
 import {WorldAtlasService} from './world-atlas.service';
@@ -17,7 +17,11 @@ describe('CatalogResultsComponent', () => {
     id: title, title, originalTitle: null, originalLanguage: null, author: 'Jules Verne', year: 1870, state, workSlug: null, freeFrom: null, readers: null, wantedByMe: false, readerCountry: null, readerFreeFrom: null, freeIn: [], ...extra,
   });
 
-  function setup(answers: Record<string, Observable<CatalogHit[]>>, authenticated = true) {
+  const source = (kind: string, downloadUrl: string, extra: Partial<SourceOption> = {}): SourceOption => ({
+    kind, language: 'fr', label: null, translation: false, pageUrl: downloadUrl.replace(/\.epub.*$/, ''), downloadUrl, status: 'FREE', shape: null, preferred: false, ...extra,
+  });
+
+  function setup(answers: Record<string, Observable<CatalogHit[]>>, authenticated = true, sources: SourceOption[] = []) {
     const search = jasmine.createSpy('search').and.callFake((query: string) => answers[query] ?? of([]));
     const want = jasmine.createSpy('want').and.returnValue(of({catalogWorkId: 'x', language: LanguageCode.FR, rank: 2, readers: null}));
     const withdraw = jasmine.createSpy('withdraw').and.returnValue(of(null));
@@ -26,7 +30,7 @@ describe('CatalogResultsComponent', () => {
       imports: [CatalogResultsComponent],
       providers: [
         provideRouter([]),
-        {provide: CatalogService, useValue: {search, unlocks: () => of({id: 'x', title: 'X', author: null, year: null, readerCountry: 'DE', readerFreeFrom: null, countries: []})}},
+        {provide: CatalogService, useValue: {search, sources: () => of(sources), unlocks: () => of({id: 'x', title: 'X', author: null, year: null, readerCountry: 'DE', readerFreeFrom: null, countries: []})}},
         {provide: WorldAtlasService, useValue: {countries: () => Promise.resolve([])}},
         {provide: WantedService, useValue: {want, withdraw}},
         {provide: TuiNotificationService, useValue: {open}},
@@ -216,4 +220,29 @@ describe('CatalogResultsComponent', () => {
       expect(rows[2].querySelector('.free-note')).toBeNull();
     }));
   });
+
+  it('says which library the book would come from, and lets the reader want it from another (W1)', fakeAsync(() => {
+    const standard = source('STANDARD_EBOOKS', 'https://standardebooks.org/ebooks/jules-verne/twenty-thousand-leagues.epub?source=download', {preferred: true, shape: 'ok', language: 'en'});
+    const gutenberg = source('GUTENBERG', 'https://www.gutenberg.org/ebooks/5097.epub3.images', {language: 'fr'});
+    const protectedOne = source('WIKISOURCE', 'https://ws-export.wmcloud.org/?x', {status: 'PROTECTED'});
+    const {fixture, host, want, type} = setup({verne: of([hit('Twenty Thousand Leagues', 'WANTABLE', {id: 'w1'})])}, true, [standard, gutenberg, protectedOne]);
+    type('verne');
+
+    const line = host.querySelector('.catalog-row__source')!;
+    expect(line.textContent).toContain('From Standard Ebooks');
+    expect(line.textContent).toContain('checked');
+    expect(line.querySelector('a')?.getAttribute('href')).toBe('https://standardebooks.org/ebooks/jules-verne/twenty-thousand-leagues');
+
+    host.querySelector<HTMLButtonElement>('.catalog-row__editions')!.click();
+    fixture.detectChanges();
+    const rows = [...host.querySelectorAll('.catalog-editions__row')];
+    // the protected text is not offered; the free one is, with its language
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain('Project Gutenberg');
+    expect(rows[0].textContent).toContain('in French');
+    rows[0].querySelector<HTMLButtonElement>('button')!.click();
+    fixture.detectChanges();
+    expect(want).toHaveBeenCalledOnceWith('w1', LanguageCode.FR, 'https://www.gutenberg.org/ebooks/5097.epub3.images');
+    expect(host.querySelector('.catalog-editions')).toBeNull();
+  }));
 });

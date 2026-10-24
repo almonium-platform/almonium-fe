@@ -50,3 +50,14 @@
   .catalog-row { flex-wrap: wrap; }
   .catalog-row__action { margin-left: calc(30px + .85rem); }
 }
+
+// Where the text would come from (W1): a quiet line under the title, and the other libraries folded away.
+.catalog-row__source { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; color: var(--metadata-color); font-size: .74rem; }
+.catalog-row__source a { color: var(--dark-raspberry); font-weight: 600; text-decoration: none; }
+.catalog-row__source a:hover { text-decoration: underline; }
+.catalog-row__checked { color: var(--success-color); }
+.catalog-row__editions { font-size: .74rem; }
+.catalog-editions { display: flex; flex-direction: column; gap: .25rem; margin: .2rem 0 0; padding: 0; list-style: none; }
+.catalog-editions__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; font-size: .76rem; }
+.catalog-editions__row a { color: var(--text-color); text-decoration: none; }
+.catalog-editions__row a:hover { text-decoration: underline; }

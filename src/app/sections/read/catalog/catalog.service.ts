@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {AppConstants} from '../../../app.constants';
 import {LanguageCode} from '../../../models/language.enum';
-import {CatalogHit, WorkUnlocks, parseCatalogHits, parseWorkUnlocks} from './catalog.model';
+import {CatalogHit, SourceOption, WorkUnlocks, parseCatalogHits, parseSourceOptions, parseWorkUnlocks} from './catalog.model';
 
 /** Every notable book, metadata only: what search lands on when the shelf does not have it. */
 @Injectable({providedIn: 'root'})
@@ -36,6 +36,12 @@ export class CatalogService {
   }
 
   /** Where and when one work is free to read, country by country: the unlock map (W7). Open to guests. */
+  /** The libraries a work's text can come from, best first, the default a want is made from marked. */
+  sources(catalogWorkId: string): Observable<SourceOption[]> {
+    return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/works/${catalogWorkId}/sources`, {withCredentials: true})
+      .pipe(map(parseSourceOptions));
+  }
+
   unlocks(catalogWorkId: string): Observable<WorkUnlocks> {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_URL}/catalog/works/${catalogWorkId}/unlocks`, {withCredentials: true})
       .pipe(map(parseWorkUnlocks));

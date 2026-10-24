@@ -161,3 +161,54 @@ export function groupUnlocksByYear(unlocks: readonly CountryUnlock[]): UnlockYea
     .sort(([a], [b]) => (a === null ? 1 : b === null ? -1 : a - b))
     .map(([year, countries]) => ({year, countries}));
 }
+
+/**
+ * One library's text a wanted book can be made from (W1): where it comes from, in which language, whether the book
+ * processor has checked its shape, and whether it is the default the want is made from. The download address is the
+ * key a want names its choice by.
+ */
+export interface SourceOption {
+  kind: string;
+  language: string | null;
+  label: string | null;
+  translation: boolean;
+  pageUrl: string;
+  downloadUrl: string;
+  status: RightsStatus;
+  /** "ok", "suspect" or "unreadable" as the processor measured the file; null when never measured. */
+  shape: string | null;
+  preferred: boolean;
+}
+
+export function parseSourceOption(value: unknown, path = 'source'): SourceOption {
+  const data = expectRecord(value, path);
+  return {
+    kind: expectString(data['kind'], `${path}.kind`),
+    language: expectNullableString(data['language'], `${path}.language`),
+    label: expectNullableString(data['label'], `${path}.label`),
+    translation: expectBoolean(data['translation'], `${path}.translation`),
+    pageUrl: expectString(data['pageUrl'], `${path}.pageUrl`),
+    downloadUrl: expectString(data['downloadUrl'], `${path}.downloadUrl`),
+    status: expectEnum(data['status'], RIGHTS_STATUSES, `${path}.status`),
+    shape: data['shape'] === undefined ? null : expectNullableString(data['shape'], `${path}.shape`),
+    preferred: expectBoolean(data['preferred'], `${path}.preferred`),
+  };
+}
+
+export function parseSourceOptions(value: unknown): SourceOption[] {
+  return expectArray(value, 'sources').map((source, index) => parseSourceOption(source, `sources[${index}]`));
+}
+
+/** The library's name as a reader knows it. */
+export function sourceLibraryName(kind: string): string {
+  switch (kind) {
+    case 'GUTENBERG': return 'Project Gutenberg';
+    case 'WIKISOURCE': return 'Wikisource';
+    case 'STANDARD_EBOOKS': return 'Standard Ebooks';
+    case 'WOLNE_LEKTURY': return 'Wolne Lektury';
+    case 'ELTEC': return 'ELTeC';
+    case 'BEQ': return 'Bibliothèque électronique du Québec';
+    case 'ELG': return 'Ebooks libres et gratuits';
+    default: return kind;
+  }
+}

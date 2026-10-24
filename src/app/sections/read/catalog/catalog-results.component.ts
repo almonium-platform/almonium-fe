@@ -8,7 +8,7 @@ import {getErrorMessage, httpStatus} from '../../../shared/http-error';
 import {logger} from '../../../shared/logger';
 import {readersLabel, wantedToastMessage} from '../wanted/wanted.model';
 import {WantedService} from '../wanted/wanted.service';
-import {CatalogHit, CatalogResultsPlan, catalogMeta, isCatalogQuery, planCatalogResults} from './catalog.model';
+import {CatalogHit, CatalogResultsPlan, SourceOption, catalogMeta, isCatalogQuery, planCatalogResults, sourceLibraryName} from './catalog.model';
 import {CatalogService} from './catalog.service';
 import {FreeFromNoteComponent} from './free-from-note.component';
 import {FreeFromNote, ReaderFreeNote, copyrightCountdown, countryName, freeSinceNote, readerFreeNote} from './public-domain-day';
@@ -29,6 +29,15 @@ const EMPTY_PLAN: CatalogResultsPlan = {copyright: null, rows: []};
  * rather than tiles, each with the one thing the reader can do about it. Nothing here is a cover; nothing is a
  * lock. A book under copyright is said plainly once, with the private import as the way to read it anyway.
  */
+/** "French" for "fr", in the page's language; the code itself when the browser does not know it. */
+function languageLabel(code: string): string {
+  try {
+    return new Intl.DisplayNames([document.documentElement.lang || 'en'], {type: 'language'}).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 @Component({
   selector: 'app-catalog-results',
   imports: [RouterLink, FreeFromNoteComponent, UnlockCountdownComponent, UnlockMapComponent],
@@ -74,6 +83,10 @@ export class CatalogResultsComponent implements OnDestroy {
   protected signInFor: string | null = null;
   /** The server's reason a want was refused (409), under the row it belongs to. */
   protected refusal: {id: string; message: string} | null = null;
+  /** Each row's libraries, best first, once the catalogue has answered for it (W1). */
+  protected readonly sources = new Map<string, SourceOption[]>();
+  /** The row whose other editions are unfolded. */
+  protected editionsOpen: string | null = null;
 
   private readonly query$ = new BehaviorSubject<string>('');
   private readonly language$ = new BehaviorSubject<LanguageCode | null>(null);
@@ -101,8 +114,58 @@ export class CatalogResultsComponent implements OnDestroy {
       this.refusal = null;
       this.readers.clear();
       this.wanted.clear();
+      this.sources.clear();
+      this.editionsOpen = null;
       [...plan.rows, ...(plan.copyright ? [plan.copyright] : [])].filter(hit => hit.wantedByMe).forEach(hit => this.wanted.add(hit.id));
+      plan.rows.forEach(hit => this.loadSources(hit));
     });
+  }
+
+  /** Which library's text the book would be made from, so the reader can see it and pick another. */
+  private loadSources(hit: CatalogHit): void {
+    this.catalogService.sources(hit.id).pipe(
+      catchError(error => {
+        logger.warn('The catalogue did not say where a book would come from.', error);
+        return of([] as SourceOption[]);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(options => {
+      if (this.plan.rows.some(row => row.id === hit.id)) this.sources.set(hit.id, options);
+    });
+  }
+
+  /** The library the catalogue would take the text from. */
+  protected defaultSource(hit: CatalogHit): SourceOption | null {
+    return this.sources.get(hit.id)?.find(option => option.preferred) ?? null;
+  }
+
+  /** The other free texts a reader may choose instead; protected ones are not offered. */
+  protected otherSources(hit: CatalogHit): SourceOption[] {
+    return (this.sources.get(hit.id) ?? []).filter(option => !option.preferred && option.status === 'FREE');
+  }
+
+  protected libraryName(kind: string): string {
+    return sourceLibraryName(kind);
+  }
+
+  /** "in French", or "translated into French" for a text that is not in the work's language. */
+  protected sourceNote(hit: CatalogHit, option: SourceOption): string {
+    const language = option.language ? languageLabel(option.language) : '';
+    if (!language) return '';
+    return option.translation ? $localize`translated into ${language}:language:` : $localize`in ${language}:language:`;
+  }
+
+  /** Choosing a text is wanting the book from it. */
+  protected choose(hit: CatalogHit, option: SourceOption): void {
+    if (!this.authenticated) {
+      this.signInFor = hit.id;
+      return;
+    }
+    const language = this.language;
+    if (!language || this.busy) return;
+    this.editionsOpen = null;
+    this.refusal = null;
+    this.want(hit, language, option.downloadUrl);
   }
 
   ngOnDestroy(): void {
@@ -174,9 +237,10 @@ export class CatalogResultsComponent implements OnDestroy {
     }
   }
 
-  private want(hit: CatalogHit, language: LanguageCode): void {
+  private want(hit: CatalogHit, language: LanguageCode, sourceDownloadUrl: string | null = null): void {
     this.busy = hit.id;
-    this.wantedService.want(hit.id, language).pipe(finalize(() => this.busy = null)).subscribe({
+    const request = sourceDownloadUrl ? this.wantedService.want(hit.id, language, sourceDownloadUrl) : this.wantedService.want(hit.id, language);
+    request.pipe(finalize(() => this.busy = null)).subscribe({
       next: receipt => {
         this.wanted.add(hit.id);
         this.readers.set(hit.id, receipt.readers);
