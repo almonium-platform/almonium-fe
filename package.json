@@ -72,7 +72,7 @@
   "devDependencies": {
     "@angular/build": "^21.2.24",
     "@angular/cli": "^21.2.24",
-    "@angular/compiler-cli": "^21.2.24",
+    "@angular/compiler-cli": "^22.2.3",
     "@angular/localize": "21.2.25",
     "@playwright/test": "^1.57.0",
     "@types/d3-geo": "^3.1.1",
