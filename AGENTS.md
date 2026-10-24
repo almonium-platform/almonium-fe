@@ -48,6 +48,12 @@ repositories:
   ad-hoc production changes.
 - For an end-to-end feature, validate the browser behavior against the matching
   backend environment, including cookies and CSRF behavior where applicable.
+- The owner checks every change immediately in the local app. When a task
+  changes `../almonium-be/src/main`, rebuild and restart the local backend
+  container before handing off (see the backend's `AGENTS.md` for the two
+  commands), and confirm the endpoint answers with the new behaviour. Frontend
+  changes reach the owner's `ng serve` by live reload; do not leave either side
+  running stale code.
 
 - Finish every implementation iteration with a Git commit after the requested work has been verified.
 - Before committing, review the diff, preserve unrelated user changes, and run the checks appropriate to the change.
