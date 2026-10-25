@@ -19,7 +19,7 @@ import {
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
-import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
+import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, readingLabels, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -28,22 +28,28 @@ interface LetterChip {
   index: number;
 }
 
-/** A transcription with its own speaker; `playable` is false when it has no clip and synthesis would say another. */
+/**
+ * A transcription with its own speaker; `playable` is false when it has no clip and synthesis would say another.
+ * `label` says which senses it is for when the row's readings follow the meaning (live: adjective, verb).
+ */
 interface PronunciationVoice {
   pronunciation: DiscoverPronunciation;
   key: string;
   playable: boolean;
+  label: string | null;
 }
 
 /**
  * One variety's row (design 5c): every transcription it records (niche: ˈniːʃ or ˈnɪtʃ), most common first, two to a
  * line. Synthesis can only say the spelling, which comes out as the most common reading, so past the first an
- * alternative plays only from its own clip; until it has one its speaker is greyed and `pending` says so.
+ * alternative plays only from its own clip; until it has one its speaker is greyed and `pending` says so. `bySense`
+ * is true when the readings belong to different senses, which are labelled rather than joined by "or".
  */
 interface PronunciationRow {
   variety: string;
   lines: PronunciationVoice[][];
   pending: number;
+  bySense: boolean;
 }
 
 /** Variants a row holds side by side before the rest move to a line under them. */
@@ -689,7 +695,7 @@ export class DiscoverComponent implements OnInit {
 
   /** Every variety keeps its row even when it transcribes the word like another: the recordings still differ. */
   private setPronunciationRows(): void {
-    this.pronunciationRows = pronunciationRows(this.pronunciations);
+    this.pronunciationRows = pronunciationRows(this.pronunciations, this.senseRows, partOfSpeech => this.partOfSpeechLabel(partOfSpeech));
     this.pendingVoices = this.pronunciationRows.reduce((total, row) => total + row.pending, 0);
   }
 
@@ -848,17 +854,20 @@ export class DiscoverComponent implements OnInit {
 }
 
 /** The pronunciations grouped by variety, in the order each variety first appears, alternatives in the source's order. */
-function pronunciationRows(pronunciations: DiscoverPronunciation[]): PronunciationRow[] {
+function pronunciationRows(pronunciations: DiscoverPronunciation[], senseRows: SenseRow[],
+                           partOfSpeechLabel: (partOfSpeech: string | null) => string): PronunciationRow[] {
   const byVariety = new Map<string, DiscoverPronunciation[]>();
   for (const pronunciation of pronunciations) {
     byVariety.set(pronunciation.variety, [...byVariety.get(pronunciation.variety) ?? [], pronunciation]);
   }
   return Array.from(byVariety, ([variety, alternatives]) => {
-    const voices = alternatives.map((pronunciation, index) =>
-      ({pronunciation, key: speakerKey(pronunciation), playable: index === 0 || !!pronunciation.clipUrl}));
+    const labels = readingLabels(alternatives.map(pronunciation => pronunciation.senses), senseRows, partOfSpeechLabel);
+    const voices = alternatives.map((pronunciation, index) => ({
+      pronunciation, key: speakerKey(pronunciation), playable: index === 0 || !!pronunciation.clipUrl, label: labels?.[index] ?? null,
+    }));
     const lines: PronunciationVoice[][] = [];
     for (let start = 0; start < voices.length; start += VARIANTS_PER_LINE) lines.push(voices.slice(start, start + VARIANTS_PER_LINE));
-    return {variety, lines, pending: voices.filter(voice => !voice.playable).length};
+    return {variety, lines, pending: voices.filter(voice => !voice.playable).length, bySense: !!labels};
   });
 }
 

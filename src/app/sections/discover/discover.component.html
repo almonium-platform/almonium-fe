@@ -170,8 +170,9 @@
                     <span class="voice-line">
                       @for (voice of line; track voice.key; let first = $first) {
                         @let pronunciation = voice.pronunciation;
-                        @if (!(first && firstLine)) { <span i18n class="or">or</span> }
+                        @if (!(first && firstLine) && !row.bySense) { <span i18n class="or">or</span> }
                         <span class="voice">
+                          @if (voice.label) { <span class="reading">{{ voice.label }}</span> }
                           @if (pronunciation.segments) {
                             <span class="transcription">@for (segment of pronunciation.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}</span>
                           } @else if (pronunciation.ipa) {

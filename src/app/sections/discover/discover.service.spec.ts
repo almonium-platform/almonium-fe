@@ -42,8 +42,8 @@ describe('DiscoverService', () => {
       entry: 'colour', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: 'lexicon', frequency: null,
       pronunciations: [
         {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified',
-          segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]},
-        {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null},
+          segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}], senses: [1]},
+        {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null, senses: [1]},
       ],
       senses: [{
         index: 1, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
@@ -53,8 +53,8 @@ describe('DiscoverService', () => {
     });
     expect(lookup.pronunciations).toEqual([
       {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/0b7c1b6e-9d8d-4c2a-9f1e-3a2d6c5b4a10', clipStatus: 'verified',
-        segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]},
-      {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null, segments: null},
+        segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}], senses: [1]},
+      {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null, segments: null, senses: [1]},
     ]);
     expect(lookup.senses[0].definition).toBe('The property of an object that depends on the light it reflects.');
     expect(lookup.senses[0].cefr).toBe('A1');
@@ -78,7 +78,7 @@ describe('DiscoverService', () => {
   it('rejects a clip status outside the contract', () => {
     expect(() => parseDiscoverLookup({
       entry: 'colour', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: 'lexicon', frequency: null, senses: [],
-      pronunciations: [{variety: 'en-GB', ipa: null, clipUrl: null, clipStatus: 'pending'}],
+      pronunciations: [{variety: 'en-GB', ipa: null, clipUrl: null, clipStatus: 'pending', senses: []}],
     })).toThrowError(/discoverLookup.pronunciations\[0\].clipStatus/);
   });
 

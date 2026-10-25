@@ -12,10 +12,10 @@ import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggesti
 
 describe('DiscoverComponent', () => {
   const british: DiscoverPronunciation = {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/clip-gb', clipStatus: 'verified',
-    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}]};
+    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ə', differs: true}], senses: [1, 2]};
   const american: DiscoverPronunciation = {variety: 'en-US', ipa: 'ˈkʌlɚ', clipUrl: null, clipStatus: null,
-    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ɚ', differs: true}]};
-  const australian: DiscoverPronunciation = {variety: 'en-AU', ipa: 'ˈkalə', clipUrl: '/public/lexicon/clips/clip-au', clipStatus: 'unverified', segments: null};
+    segments: [{text: 'ˈkʌl', differs: false}, {text: 'ɚ', differs: true}], senses: [1, 2]};
+  const australian: DiscoverPronunciation = {variety: 'en-AU', ipa: 'ˈkalə', clipUrl: '/public/lexicon/clips/clip-au', clipStatus: 'unverified', segments: null, senses: [1, 2]};
 
   function lookupOf(pronunciations: DiscoverPronunciation[]): DiscoverLookup {
     return {
@@ -102,8 +102,8 @@ describe('DiscoverComponent', () => {
   });
 
   describe('a variety recording alternatives (niche)', () => {
-    const niche = (variety: string, ipa: string, clipUrl: string | null = null): DiscoverPronunciation =>
-      ({variety, ipa, clipUrl, clipStatus: clipUrl ? 'verified' : null, segments: [{text: ipa, differs: true}]});
+    const niche = (variety: string, ipa: string, clipUrl: string | null = null, senses = [1, 2]): DiscoverPronunciation =>
+      ({variety, ipa, clipUrl, clipStatus: clipUrl ? 'verified' : null, segments: [{text: ipa, differs: true}], senses});
 
     it('holds them on its row joined by "or", each with its own speaker', async () => {
       const element = await render(lookupOf([niche('en-GB', '/ˈniːʃ/'), niche('en-GB', '/ˈnɪtʃ/'),
@@ -142,6 +142,13 @@ describe('DiscoverComponent', () => {
       const lines = Array.from(element.querySelectorAll<HTMLElement>('.pronunciations .voice-line'));
       expect(lines.map(line => line.querySelectorAll('.transcription').length)).toEqual([2, 1]);
       expect(lines[1].querySelector('.or')).not.toBeNull();
+    });
+
+    it('labels readings that follow the meaning by part of speech instead of joining them by "or"', async () => {
+      const element = await render(lookupOf([niche('en-GB', '/ˈkʌlə/', null, [1]), niche('en-GB', '/ˈkʌlɜː/', null, [2])]), null);
+      const row = pronunciationRows(element)[0];
+      expect(Array.from(row.querySelectorAll('.reading')).map(span => span.textContent)).toEqual(['noun', 'verb']);
+      expect(row.querySelector('.or')).toBeNull();
     });
   });
 

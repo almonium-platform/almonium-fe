@@ -41,6 +41,11 @@ export interface DiscoverPronunciation {
   clipStatus: DiscoverClipStatus | null;
   /** `ipa` cut where it parts from the other varieties' transcriptions; null without a transcription. */
   segments: DiscoverIpaSegment[] | null;
+  /**
+   * `DiscoverSense.index` of every sense said this way. A variety's readings with the same senses are free
+   * alternatives (niche); different senses mean the reading follows the meaning (live, bow).
+   */
+  senses: number[];
 }
 
 /** A run of a transcription, and whether another variety says it differently there (design 5a). */
@@ -158,6 +163,8 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
               differs: expectBoolean(segment['differs'], `discoverLookup.pronunciations[${index}].segments[${segmentIndex}].differs`),
             };
           }),
+        senses: expectArray(pronunciation['senses'], `discoverLookup.pronunciations[${index}].senses`)
+          .map((value, senseIndex) => expectNumber(value, `discoverLookup.pronunciations[${index}].senses[${senseIndex}]`)),
       };
     }),
   };
