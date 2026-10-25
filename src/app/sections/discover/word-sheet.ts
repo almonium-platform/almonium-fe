@@ -88,21 +88,3 @@ export function exampleParts(text: string | null, headword: string): ExamplePart
   }
   return {text, before: text, word: '', after: ''};
 }
-
-/**
- * What tells one variety's readings of the word apart, a label each, or null when nothing does: readings said for
- * the same senses are free alternatives (niche). Otherwise each is named by the parts of speech of its senses (live:
- * adjective, verb), and where that leaves two alike (bow: noun, noun) by the numbers of those senses as well.
- */
-export function readingLabels(senseSets: number[][], rows: SenseRow[], partOfSpeechLabel: (partOfSpeech: string | null) => string): string[] | null {
-  const sameSenses = (a: number[], b: number[]) => a.length === b.length && a.every(index => b.includes(index));
-  if (senseSets.every(senses => sameSenses(senses, senseSets[0]))) return null;
-  const byIndex = new Map(rows.map(row => [row.sense.index, row]));
-  const said = senseSets.map(senses => senses.flatMap(index => byIndex.get(index) ?? []).sort((a, b) => a.number - b.number));
-  const parts = said.map(rows => [...new Set(rows.map(row => partOfSpeechLabel(row.sense.partOfSpeech)).filter(Boolean))].join(', '));
-  return parts.map((part, index) => {
-    if (parts.indexOf(part) === parts.lastIndexOf(part)) return part;
-    const numbers = said[index].map(row => row.number).join(', ');
-    return part ? $localize`${part}:partOfSpeech: (${numbers}:senses:)` : numbers;
-  });
-}

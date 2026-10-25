@@ -19,7 +19,8 @@ import {
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
-import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, readingLabels, toGroups} from './word-sheet';
+import {PronunciationCell, PronunciationTable, pronunciationTable, speakerKey} from './pronunciation-table';
+import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -27,33 +28,6 @@ interface LetterChip {
   ring: string[];
   index: number;
 }
-
-/**
- * A transcription with its own speaker; `playable` is false when it has no clip and synthesis would say another.
- * `label` says which senses it is for when the row's readings follow the meaning (live: adjective, verb).
- */
-interface PronunciationVoice {
-  pronunciation: DiscoverPronunciation;
-  key: string;
-  playable: boolean;
-  label: string | null;
-}
-
-/**
- * One variety's row (design 5c): every transcription it records (niche: ˈniːʃ or ˈnɪtʃ), most common first, two to a
- * line. Synthesis can only say the spelling, which comes out as the most common reading, so past the first an
- * alternative plays only from its own clip; until it has one its speaker is greyed and `pending` says so. `bySense`
- * is true when the readings belong to different senses, which are labelled rather than joined by "or".
- */
-interface PronunciationRow {
-  variety: string;
-  lines: PronunciationVoice[][];
-  pending: number;
-  bySense: boolean;
-}
-
-/** Variants a row holds side by side before the rest move to a line under them. */
-const VARIANTS_PER_LINE = 2;
 
 /** What to ask the lexicon for: a prefix in a language, glossed in another. Null asks for nothing. */
 type SuggestionQuery = {prefix: string; language: LanguageCode; glossLanguage: LanguageCode} | null;
@@ -110,9 +84,13 @@ export class DiscoverComponent implements OnInit {
   protected lookup: DiscoverLookup | null = null;
   /** The sheet's senses in display order; `selectedRow` indexes it. */
   protected senseRows: SenseRow[] = [];
-  protected pronunciationRows: PronunciationRow[] = [];
-  /** Speakers greyed for want of a clip, which the one line under the pronunciations accounts for. */
-  protected pendingVoices = 0;
+  protected pronunciationTable: PronunciationTable = {columns: [], rows: [], pending: 0};
+  /** The sense under the pointer, which lights its column as selecting it does (design 7a). */
+  protected hoveredSense: number | null = null;
+  /** The reading under the pointer or focus, which lights the senses that take it (design 7b). */
+  protected hoveredReading: DiscoverPronunciation | null = null;
+  /** On a phone only the learner's accent is open; the others fold into one line until it is tapped (design 7c). */
+  protected otherAccentsOpen = false;
   protected senseGroups: SenseGroup[] = [];
   protected selectedRow = 0;
   protected expanded = false;
@@ -166,6 +144,7 @@ export class DiscoverComponent implements OnInit {
     idiom: $localize`Idiom`,
     order: $localize`Word order`,
   };
+  protected readonly noRecordingTitle = $localize`No recording yet`;
   protected readonly unverifiedClipTitle = $localize`The machine check did not confirm that this clip says the word.`;
   protected readonly meaningFallback = $localize`Meaning not supplied`;
 
@@ -591,6 +570,39 @@ export class DiscoverComponent implements OnInit {
     });
   }
 
+  /** The column a sense's readings stand in, which lights from header to last row; -1 for a one-column word. */
+  protected get litColumn(): number {
+    return this.litColumnOf(this.hoveredSense ?? this.selectedSense?.index);
+  }
+
+  /** The senses taking the reading under the pointer, or the one playing (touch has no hover), lit in the list. */
+  protected get litSenses(): number[] {
+    if (!this.pronunciationTable.columns.length) return [];
+    const playing = this.pronunciations.find(pronunciation => speakerKey(pronunciation) === this.playing);
+    return (this.hoveredReading ?? playing)?.senses ?? [];
+  }
+
+  protected cellLit(cell: PronunciationCell): boolean {
+    return this.litColumn >= cell.column && this.litColumn < cell.column + cell.span;
+  }
+
+  /** "American, Australian": the accents folded under the learner's on a phone. */
+  protected get otherAccents(): string {
+    return this.pronunciationTable.rows.slice(1).map(row => this.varietyLabel(row.variety)).join(', ');
+  }
+
+  /** What P plays: the selected sense's column in the learner's accent, its first reading. */
+  private get selectedReading(): DiscoverPronunciation | null {
+    const learner = this.pronunciationTable.rows[0];
+    const column = Math.max(this.litColumnOf(this.selectedSense?.index), 0);
+    const cell = learner?.cells.find(each => column >= each.column && column < each.column + each.span);
+    return cell?.lines[0]?.[0]?.pronunciation ?? null;
+  }
+
+  private litColumnOf(sense: number | undefined): number {
+    return this.pronunciationTable.columns.findIndex(column => sense !== undefined && column.senses.includes(sense));
+  }
+
   /** The headword in a pronunciation's variety: its recording first, synthesis without one. */
   protected listen(pronunciation: DiscoverPronunciation, slow = false): void {
     const word = this.selectedSense?.headword ?? this.lookup?.entry ?? '';
@@ -695,8 +707,10 @@ export class DiscoverComponent implements OnInit {
 
   /** Every variety keeps its row even when it transcribes the word like another: the recordings still differ. */
   private setPronunciationRows(): void {
-    this.pronunciationRows = pronunciationRows(this.pronunciations, this.senseRows, partOfSpeech => this.partOfSpeechLabel(partOfSpeech));
-    this.pendingVoices = this.pronunciationRows.reduce((total, row) => total + row.pending, 0);
+    this.pronunciationTable = pronunciationTable(this.pronunciations, this.senseRows, partOfSpeech => this.partOfSpeechLabel(partOfSpeech));
+    this.hoveredSense = null;
+    this.hoveredReading = null;
+    this.otherAccentsOpen = false;
   }
 
   private visibleGroups(): SenseGroup[] {
@@ -713,8 +727,8 @@ export class DiscoverComponent implements OnInit {
       this.selectedRow = Math.min(Math.max(this.selectedRow + step, 0), shown - 1);
     } else if (key === 'k' && !event.shiftKey && this.senseRows[this.selectedRow]) {
       this.toggleKeep(this.senseRows[this.selectedRow]);
-    } else if (key === 'p' && this.pronunciations[0]) {
-      this.listen(this.pronunciations[0], event.shiftKey);
+    } else if (key === 'p' && this.selectedReading) {
+      this.listen(this.selectedReading, event.shiftKey);
     } else {
       return false;
     }
@@ -851,28 +865,6 @@ export class DiscoverComponent implements OnInit {
     if (fluent) return fluent;
     return language === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
   }
-}
-
-/** The pronunciations grouped by variety, in the order each variety first appears, alternatives in the source's order. */
-function pronunciationRows(pronunciations: DiscoverPronunciation[], senseRows: SenseRow[],
-                           partOfSpeechLabel: (partOfSpeech: string | null) => string): PronunciationRow[] {
-  const byVariety = new Map<string, DiscoverPronunciation[]>();
-  for (const pronunciation of pronunciations) {
-    byVariety.set(pronunciation.variety, [...byVariety.get(pronunciation.variety) ?? [], pronunciation]);
-  }
-  return Array.from(byVariety, ([variety, alternatives]) => {
-    const labels = readingLabels(alternatives.map(pronunciation => pronunciation.senses), senseRows, partOfSpeechLabel);
-    const voices = alternatives.map((pronunciation, index) => ({
-      pronunciation, key: speakerKey(pronunciation), playable: index === 0 || !!pronunciation.clipUrl, label: labels?.[index] ?? null,
-    }));
-    const lines: PronunciationVoice[][] = [];
-    for (let start = 0; start < voices.length; start += VARIANTS_PER_LINE) lines.push(voices.slice(start, start + VARIANTS_PER_LINE));
-    return {variety, lines, pending: voices.filter(voice => !voice.playable).length, bySense: !!labels};
-  });
-}
-
-function speakerKey(pronunciation: DiscoverPronunciation): string {
-  return `pronunciation:${pronunciation.variety}:${pronunciation.ipa ?? ''}`;
 }
 
 /** How a kept card names the sense it was kept for, and how the sheet finds it again. */

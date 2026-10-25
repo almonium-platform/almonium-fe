@@ -65,7 +65,7 @@ describe('DiscoverComponent', () => {
   }
 
   function pronunciationRows(element: HTMLElement): HTMLElement[] {
-    return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations li'));
+    return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations .accent'));
   }
 
   it('tints the runs the server marks as differing, and shows a transcription without segments as it is', async () => {
@@ -144,11 +144,24 @@ describe('DiscoverComponent', () => {
       expect(lines[1].querySelector('.or')).not.toBeNull();
     });
 
-    it('labels readings that follow the meaning by part of speech instead of joining them by "or"', async () => {
+    it('sets readings that follow the meaning in columns headed by part of speech, and lights the selected sense\'s', async () => {
       const element = await render(lookupOf([niche('en-GB', '/ˈkʌlə/', null, [1]), niche('en-GB', '/ˈkʌlɜː/', null, [2])]), null);
+      const heads = Array.from(element.querySelectorAll<HTMLElement>('.head .column-head')).map(head => head.textContent?.replace(/\s+/g, ' ').trim());
+      expect(heads).toEqual(['noun 1', 'verb 2']);
       const row = pronunciationRows(element)[0];
-      expect(Array.from(row.querySelectorAll('.reading')).map(span => span.textContent)).toEqual(['noun', 'verb']);
+      expect(row.querySelectorAll('.cell').length).toBe(2);
       expect(row.querySelector('.or')).toBeNull();
+      expect(element.querySelector('.band')?.getAttribute('style')).toContain('grid-area: 1 / 2 / 3 / 3');
+      (element.querySelectorAll<HTMLElement>('.sense')[1]).dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      expect(element.querySelector('.band')?.getAttribute('style')).toContain('grid-area: 1 / 3 / 3 / 4');
+    });
+
+    it('lights the senses taking the reading under the pointer', async () => {
+      const element = await render(lookupOf([niche('en-GB', '/ˈkʌlə/', null, [1]), niche('en-GB', '/ˈkʌlɜː/', null, [2])]), null);
+      element.querySelectorAll<HTMLElement>('.pronunciations .voice')[1].dispatchEvent(new MouseEvent('mouseenter'));
+      fixture.detectChanges();
+      expect(Array.from(element.querySelectorAll('.sense')).map(sense => sense.classList.contains('lit'))).toEqual([false, true]);
     });
   });
 

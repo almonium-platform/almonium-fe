@@ -160,43 +160,79 @@
             </span>
           }
         </div>
-        @if (pronunciationRows.length) {
-          <ul class="pronunciations" aria-label="Pronunciations" i18n-aria-label>
-            @for (row of pronunciationRows; track row.variety) {
-              <li>
-                <span class="variety">{{ varietyLabel(row.variety) }}</span>
-                <span class="voices">
-                  @for (line of row.lines; track $index; let firstLine = $first) {
-                    <span class="voice-line">
-                      @for (voice of line; track voice.key; let first = $first) {
-                        @let pronunciation = voice.pronunciation;
-                        @if (!(first && firstLine) && !row.bySense) { <span i18n class="or">or</span> }
-                        <span class="voice">
-                          @if (voice.label) { <span class="reading">{{ voice.label }}</span> }
-                          @if (pronunciation.segments) {
-                            <span class="transcription">@for (segment of pronunciation.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}</span>
-                          } @else if (pronunciation.ipa) {
-                            <span class="transcription">{{ pronunciation.ipa }}</span>
-                          }
-                          <button type="button" class="speaker" [class.on]="playing === voice.key" [disabled]="!voice.playable"
-                                  (click)="listen(pronunciation)" [attr.aria-label]="listenLabel(pronunciation)">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                 stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
-                          </button>
-                          @if (playing === voice.key && slow) { <span i18n class="slow">slow</span> }
-                          @if (pronunciation.clipStatus === 'unverified') {
-                            <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
-                          }
-                        </span>
-                      }
-                    </span>
-                  }
-                </span>
-              </li>
+        @if (pronunciationTable.rows.length) {
+          @let table = pronunciationTable;
+          @let columns = table.columns.length;
+          @let firstRow = columns ? 2 : 1;
+          <!-- Accents are rows, meanings are columns (design 7a); a one-column word has no header row (5c). -->
+          <div class="pronunciations" [class.by-meaning]="columns" role="table" aria-label="Pronunciations" i18n-aria-label
+               [style.grid-template-columns]="'minmax(64px, max-content) repeat(' + (columns || 1) + ', max-content)'">
+            @if (columns) {
+              @if (litColumn >= 0) {
+                <span class="band" aria-hidden="true" [style.grid-area]="'1 / ' + (litColumn + 2) + ' / ' + (table.rows.length + 2) + ' / ' + (litColumn + 3)"></span>
+              }
+              <div class="head" role="row">
+                @for (column of table.columns; track $index) {
+                  <span class="column-head" role="columnheader" [style.grid-area]="'1 / ' + ($index + 2)">
+                    {{ column.partsOfSpeech }} <span class="numbers">{{ column.numbers }}</span>
+                  </span>
+                }
+              </div>
             }
-          </ul>
-          @if (pendingVoices) {
-            <p i18n class="pending">{pendingVoices, plural, =1 {The greyed one has no recording yet.} other {The greyed ones have no recording yet.}}</p>
+            @for (row of table.rows; track row.variety; let rowIndex = $index) {
+              <div class="accent" role="row" [class.folded]="rowIndex > 0 && !otherAccentsOpen">
+                <span class="variety" role="rowheader" [style.grid-area]="(rowIndex + firstRow) + ' / 1'">{{ varietyLabel(row.variety) }}</span>
+                @for (cell of row.cells; track cell.column) {
+                  <div class="cell" role="cell" [class.lit]="cellLit(cell)"
+                       [style.grid-area]="(rowIndex + firstRow) + ' / ' + (cell.column + 2) + ' / auto / span ' + cell.span">
+                    @if (columns && cell.span === 1) {
+                      <span class="column-head in-cell">{{ table.columns[cell.column].partsOfSpeech }} <span class="numbers">{{ table.columns[cell.column].numbers }}</span></span>
+                    }
+                    @for (line of cell.lines; track $index; let firstLine = $first) {
+                      <span class="voice-line">
+                        @for (voice of line; track voice.key; let first = $first) {
+                          @let pronunciation = voice.pronunciation;
+                          <!-- "or" travels with the reading after it, so a wrapped line starts with it (design 7c). -->
+                          <span class="alternative">
+                          @if (!(first && firstLine)) { <span i18n class="or">or</span> }
+                          <!-- Pointing at a reading lights the senses that take it; the speaker inside is the control. -->
+                          <span class="voice" [class.hovered]="columns && hoveredReading === pronunciation"
+                                (mouseenter)="hoveredReading = pronunciation" (mouseleave)="hoveredReading = null"
+                                (focusin)="hoveredReading = pronunciation" (focusout)="hoveredReading = null">
+                            @if (pronunciation.segments) {
+                              <span class="transcription">@for (segment of pronunciation.segments; track $index) {<span [class.differs]="segment.differs">{{ segment.text }}</span>}</span>
+                            } @else if (pronunciation.ipa) {
+                              <span class="transcription">{{ pronunciation.ipa }}</span>
+                            }
+                            <button type="button" class="speaker" [class.on]="playing === voice.key" [disabled]="!voice.playable"
+                                    [attr.title]="voice.playable ? null : noRecordingTitle"
+                                    (click)="listen(pronunciation)" [attr.aria-label]="listenLabel(pronunciation)">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                   stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                            </button>
+                            @if (playing === voice.key && slow) { <span i18n class="slow">slow</span> }
+                            @if (pronunciation.clipStatus === 'unverified') {
+                              <small i18n class="unverified" [title]="unverifiedClipTitle">unverified</small>
+                            }
+                          </span>
+                          </span>
+                        }
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          @if (table.rows.length > 1 && !otherAccentsOpen) {
+            <button type="button" class="other-accents" (click)="otherAccentsOpen = true">
+              {{ otherAccents }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+            </button>
+          }
+          @if (table.pending) {
+            <p i18n class="pending">{table.pending, plural, =1 {The greyed one has no recording yet.} other {The greyed ones have no recording yet.}}</p>
           }
         } @else if (selectedSense?.transcription) { <p class="transcription">{{ selectedSense?.transcription }}</p> }
         @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
@@ -210,9 +246,11 @@
               @for (row of group.rows; track row.sense.index) {
                 @let selected = selectedRow === row.number - 1;
                 @let kept = keptCards.has(row.sense.index);
-                <!-- ↑↓ select from the keyboard anywhere off the line, so the row itself takes no focus. -->
+                <!-- ↑↓ select from the keyboard anywhere off the line, so the row itself takes no focus; pointing at it lights its
+                     pronunciation column as selecting it does. -->
                 <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
-                <div class="sense" [class.selected]="selected" [attr.aria-current]="selected || null" (click)="selectRow(row.number - 1)">
+                <div class="sense" [class.selected]="selected" [class.lit]="litSenses.includes(row.sense.index)" [attr.aria-current]="selected || null"
+                     (click)="selectRow(row.number - 1)" (mouseenter)="hoveredSense = row.sense.index" (mouseleave)="hoveredSense = null">
                   <span class="number">{{ row.number }}</span>
                   <div class="body">
                     <div class="lead-line">

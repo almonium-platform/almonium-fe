@@ -1,6 +1,6 @@
 import {CEFRLevel} from '../../models/userinfo.model';
 import {DiscoverSense} from './discover.service';
-import {exampleParts, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, readingLabels, toGroups} from './word-sheet';
+import {exampleParts, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 describe('word sheet', () => {
   const sense = (index: number, partOfSpeech: string): DiscoverSense =>
@@ -31,24 +31,4 @@ describe('word sheet', () => {
     expect(exampleParts(null, 'clear')).toBeNull();
   });
 
-  describe('reading labels', () => {
-    const label = (partOfSpeech: string | null) => partOfSpeech?.toLowerCase() ?? '';
-
-    it('names none when every reading is said for the same senses (niche)', () => {
-      const rows = groupSenses([sense(1, 'NOUN'), sense(2, 'ADJ')]);
-      expect(readingLabels([[1, 2], [2, 1]], rows, label)).toBeNull();
-      expect(readingLabels([[1, 2]], rows, label)).toBeNull();
-    });
-
-    it('names each reading by the parts of speech of its senses (live, research)', () => {
-      const rows = groupSenses([sense(1, 'ADJ'), sense(2, 'ADV'), sense(3, 'VERB')]);
-      expect(readingLabels([[1, 2], [3]], rows, label)).toEqual(['adj, adv', 'verb']);
-      expect(readingLabels([[1, 3], [1]], groupSenses([sense(1, 'NOUN'), sense(2, 'X'), sense(3, 'VERB')]), label)).toEqual(['noun, verb', 'noun']);
-    });
-
-    it('adds the sense numbers where the parts of speech leave two readings alike (bow)', () => {
-      const rows = groupSenses([sense(1, 'NOUN'), sense(2, 'VERB'), sense(3, 'NOUN')]);
-      expect(readingLabels([[1], [2], [3]], rows, label)).toEqual(['noun (1)', 'verb', 'noun (2)']);
-    });
-  });
 });
