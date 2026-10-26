@@ -7,6 +7,7 @@ import {getErrorMessage} from '../shared/http-error';
 import {RecentAuthGuardService} from '../authentication/auth/recent-auth-guard.service';
 import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-guard.component';
 import {OpsDemandComponent} from './demand/ops-demand.component';
+import {OpsLanguagesComponent} from './languages/ops-languages.component';
 import {OpsRightsComponent} from './rights/ops-rights.component';
 import {
   AccessGrantRequest,
@@ -55,7 +56,7 @@ export interface SpendLineItemTotal {
 
 @Component({
   selector: 'app-ops',
-  imports: [ReactiveFormsModule, RecentAuthGuardComponent, OpsDemandComponent, OpsRightsComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
+  imports: [ReactiveFormsModule, RecentAuthGuardComponent, OpsDemandComponent, OpsLanguagesComponent, OpsRightsComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
   templateUrl: './ops.component.html',
   styleUrl: './ops.component.less',
 })

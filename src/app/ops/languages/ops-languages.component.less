@@ -1,0 +1,60 @@
+// Languages sits inside the ops page and speaks its grammar: the card, chips and table come from the page's own
+// sheet, and only what is new to the languages card is added here.
+@import '../ops.component.less';
+
+// The page's :host paints the whole console; this host is one card within it.
+:host { display: block; min-height: 0; background: none; }
+
+.ops-languages__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.ops-languages__choice {
+  background: transparent;
+  cursor: pointer;
+}
+
+.ops-languages__choice.ops-books__chip--ink {
+  background: var(--brand-ink);
+}
+
+.ops-languages__table {
+  margin-top: 1rem;
+}
+
+.ops-languages__toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: .2em;
+  cursor: pointer;
+}
+
+.ops-languages__misses td {
+  background: var(--ops-soft);
+  white-space: normal;
+}
+
+.ops-languages__misses-title {
+  margin: 0 0 .4rem;
+  color: var(--ops-muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.ops-languages__misses ol {
+  margin: 0;
+  padding-left: 1.4rem;
+  columns: 2 14rem;
+}
+
+.ops-languages__misses li {
+  padding: .15rem 0;
+}

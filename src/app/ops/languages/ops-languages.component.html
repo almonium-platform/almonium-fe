@@ -1,0 +1,86 @@
+<section class="ops-card ops-card--pulse" aria-labelledby="languages-title">
+  <div class="ops-card__heading ops-card__heading--plain">
+    <div>
+      <h2 id="languages-title">Languages</h2>
+      <p>
+        Which lexicon to warm up next. Lookups are Discover word sheets opened, by anyone, signed in or not; lookers are
+        the distinct people behind them. Lexicon is the share the lexicon answered itself instead of the old
+        translation provider. Learners hold the language as an active one; seen means they used the app in the window,
+        in any language. Open a row for the words its lexicon lacked most, by lookers: write those first.
+      </p>
+    </div>
+    <div class="ops-languages__controls">
+      <div class="ops-books__chips" role="group" aria-label="Window">
+        @for (window of windows; track window) {
+          <button type="button" class="ops-books__chip ops-languages__choice" [class.ops-books__chip--ink]="days === window" [attr.aria-pressed]="days === window" (click)="setDays(window)">{{ windowLabel(window) }}</button>
+        }
+      </div>
+      <button class="ops-button ops-button--quiet" type="button" [disabled]="loading" (click)="load()">
+        {{ loading ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  @if (error) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ error }}</span>
+    </div>
+  } @else if (!pulse) {
+    <p class="ops-maintenance__more">Loading…</p>
+  } @else if (!pulse.languages.length) {
+    <p class="ops-maintenance__more">Nobody learns a language or has looked a word up yet.</p>
+  } @else {
+    <div class="ops-table-scroll">
+      <table class="ops-table ops-languages__table">
+        <thead>
+          <tr>
+            <th scope="col">Language</th>
+            <th scope="col" class="ops-table__number">Lookups</th>
+            <th scope="col" class="ops-table__number">Lookers</th>
+            <th scope="col" class="ops-table__number">Lexicon</th>
+            <th scope="col" class="ops-table__number">Learners</th>
+            <th scope="col" class="ops-table__number">Seen</th>
+            <th scope="col" class="ops-table__number">Lemmas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of pulse.languages; track line.language) {
+            <tr>
+              <td>
+                @if (line.topMisses.length) {
+                  <button type="button" class="ops-languages__toggle" [attr.aria-expanded]="open === line.language" (click)="toggle(line)">
+                    {{ name(line.language) }} <small>{{ line.language }}</small>
+                  </button>
+                } @else {
+                  {{ name(line.language) }} <small>{{ line.language }}</small>
+                }
+              </td>
+              <td class="ops-table__number">{{ line.lookups | number }} <small>{{ line.lookupsToday | number }} today</small></td>
+              <td class="ops-table__number">{{ line.searchers | number }}</td>
+              <td class="ops-table__number">
+                @if (share(line) === null) { — } @else { {{ share(line) }}% }
+              </td>
+              <td class="ops-table__number">{{ line.learners | number }}</td>
+              <td class="ops-table__number">{{ line.learnersSeen | number }} <small>{{ line.learnersSeenToday | number }} today</small></td>
+              <td class="ops-table__number">{{ line.lemmas | number }}</td>
+            </tr>
+            @if (open === line.language) {
+              <tr class="ops-languages__misses">
+                <td colspan="7">
+                  <p class="ops-languages__misses-title">Most looked up without a lexicon answer</p>
+                  <ol>
+                    @for (miss of line.topMisses; track miss.query) {
+                      <li><strong>{{ miss.query }}</strong> <small>{{ miss.searchers | number }} {{ miss.searchers === 1 ? 'looker' : 'lookers' }} · {{ miss.lookups | number }} {{ miss.lookups === 1 ? 'lookup' : 'lookups' }}</small></li>
+                    }
+                  </ol>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="ops-pulse__stamp">Last {{ windowLabel(pulse.days) }}, as of {{ pulse.generatedAt | date:'MMM d, HH:mm' }}</p>
+  }
+</section>
