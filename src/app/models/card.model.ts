@@ -38,6 +38,8 @@ export interface CardDto {
   itemType?: LearningItemType;
   partOfSpeech?: string;
   selectedSense?: string;
+  /** The lexicon sense the card was saved from, by its key, which survives rewrites of the entry. */
+  senseKey?: string;
   sourceContext?: string;
   learningIntents?: LearningIntent[];
 }
@@ -51,6 +53,7 @@ export interface CardCreationDto {
   translations: {translation: string}[];
   partOfSpeech?: string;
   selectedSense?: string;
+  senseKey?: string;
   sourceContext?: string;
   /** The library edition the word was met in, when it was saved from the reader; what a certificate counts. */
   sourceBookId?: string;
@@ -76,7 +79,7 @@ export function parseCards(value: unknown): CardDto[] {
         };
       }),
     };
-    const optionalStrings = ['id', 'publicId', 'userId', 'notes', 'createdAt', 'updatedAt', 'normalizedForm', 'lemma', 'partOfSpeech', 'selectedSense', 'sourceContext'] as const;
+    const optionalStrings = ['id', 'publicId', 'userId', 'notes', 'createdAt', 'updatedAt', 'normalizedForm', 'lemma', 'partOfSpeech', 'selectedSense', 'senseKey', 'sourceContext'] as const;
     optionalStrings.forEach(key => {
       if (card[key] !== undefined && card[key] !== null) {
         parsed[key] = expectString(card[key], `cards[${index}].${key}`);

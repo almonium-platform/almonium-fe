@@ -4,6 +4,7 @@ import {of} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
 import {CEFRLevel, DEFAULT_UI_PREFERENCES, Learner, UserInfo} from '../../models/userinfo.model';
+import {CardDto} from '../../models/card.model';
 import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
@@ -23,11 +24,11 @@ describe('DiscoverComponent', () => {
       frequency: null, pronunciations,
       senses: [
         {
-          index: 1, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
+          index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
           definition: 'The property of an object that depends on the light it reflects.', cefr: 'A1',
           examples: [{text: 'What colour is it?', translation: 'Якого воно кольору?'}],
         },
-        {index: 2, headword: 'colour', partOfSpeech: 'verb', transcription: null, translations: ['фарбувати'], definition: null, cefr: null, examples: []},
+        {index: 2, key: null, headword: 'colour', partOfSpeech: 'verb', transcription: null, translations: ['фарбувати'], definition: null, cefr: null, examples: []},
       ],
     };
   }
@@ -35,6 +36,8 @@ describe('DiscoverComponent', () => {
   let fixture: ComponentFixture<DiscoverComponent>;
   let lookupSpy: jasmine.Spy;
   let suggestSpy: jasmine.Spy;
+  let createCardSpy: jasmine.Spy;
+  let savedCards: CardDto[] = [];
   const SUGGESTIONS: DiscoverSuggestion[] = [
     {headword: 'Ausgabe', partOfSpeech: 'NOUN', gender: 'Fem', gloss: 'edition'},
     {headword: 'ausgehen', partOfSpeech: 'VERB', gender: null, gloss: 'go out'},
@@ -44,6 +47,7 @@ describe('DiscoverComponent', () => {
   async function render(lookup: DiscoverLookup, variety: string | null, query: Record<string, string> = {text: 'colour'}): Promise<HTMLElement> {
     lookupSpy = jasmine.createSpy('lookup').and.returnValue(of(lookup));
     suggestSpy = jasmine.createSpy('suggest').and.returnValue(of(SUGGESTIONS));
+    createCardSpy = jasmine.createSpy('createCard').and.returnValue(of({id: 'card-new'}));
     const discoverService = {lookup: lookupSpy, suggest: suggestSpy};
     const learners = variety === null ? [] : [new Learner('learner-1', LanguageCode.EN, CEFRLevel.B1, true, variety)];
     await TestBed.configureTestingModule({
@@ -52,7 +56,7 @@ describe('DiscoverComponent', () => {
         provideRouter([]),
         {provide: ActivatedRoute, useValue: {paramMap: of(convertToParamMap({})), queryParamMap: of(convertToParamMap(query))}},
         {provide: DiscoverService, useValue: discoverService},
-        {provide: CardService, useValue: {createCard: jasmine.createSpy('createCard'), deleteCard: jasmine.createSpy('deleteCard'), getCardsInLanguage: () => of([])}},
+        {provide: CardService, useValue: {createCard: createCardSpy, deleteCard: jasmine.createSpy('deleteCard'), getCardsInLanguage: () => of(savedCards)}},
         {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.EN), setCurrentLanguage: () => undefined}},
         {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.EN], uiPreferences: DEFAULT_UI_PREFERENCES} as unknown as UserInfo}},
       ],
@@ -67,6 +71,22 @@ describe('DiscoverComponent', () => {
   function pronunciationRows(element: HTMLElement): HTMLElement[] {
     return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations .accent'));
   }
+
+  describe('a sense kept by its key', () => {
+    afterEach(() => savedCards = []);
+
+    it('stays kept after its entry is rewritten, and a new keep stores the key', async () => {
+      const lookup = lookupOf([british]);
+      lookup.senses = lookup.senses.map(sense => ({...sense, key: `key-${sense.index}`}));
+      savedCards = [{id: 'card-1', entry: 'colour', language: 'EN', translations: [], selectedSense: '1: wording before the rewrite', senseKey: 'key-1'}];
+      const element = await render(lookup, 'en-GB');
+      expect(element.querySelectorAll('button.kept').length).toBe(1);
+      element.querySelectorAll<HTMLElement>('.sense')[1].click();
+      fixture.detectChanges();
+      element.querySelector<HTMLButtonElement>('button.keep')?.click();
+      expect(createCardSpy).toHaveBeenCalledWith(jasmine.objectContaining({senseKey: 'key-2'}));
+    });
+  });
 
   it('tints the runs the server marks as differing, and shows a transcription without segments as it is', async () => {
     const element = await render(lookupOf([british, australian]), null);
@@ -224,8 +244,8 @@ describe('DiscoverComponent', () => {
   it('shows three senses, then the rest on request with the hidden count per part of speech', async () => {
     const lookup = lookupOf([]);
     lookup.senses = [
-      ...[1, 2, 3, 4].map(index => ({index, headword: 'colour', partOfSpeech: 'NOUN', transcription: null, translations: [`n${index}`], definition: null, cefr: null, examples: []})),
-      {index: 5, headword: 'colour', partOfSpeech: 'VERB', transcription: null, translations: ['v'], definition: null, cefr: null, examples: []},
+      ...[1, 2, 3, 4].map(index => ({index, key: null, headword: 'colour', partOfSpeech: 'NOUN', transcription: null, translations: [`n${index}`], definition: null, cefr: null, examples: []})),
+      {index: 5, key: null, headword: 'colour', partOfSpeech: 'VERB', transcription: null, translations: ['v'], definition: null, cefr: null, examples: []},
     ];
     const element = await render(lookup, null);
     expect(element.querySelectorAll('.sense').length).toBe(3);
@@ -253,7 +273,7 @@ describe('DiscoverComponent', () => {
 
   it('renders a lookup from a backend without lexicon fields', async () => {
     const lookup = lookupOf([]);
-    lookup.senses = [{index: 1, headword: 'colour', partOfSpeech: 'noun', transcription: 'ˈkʌlə', translations: ['колір'], definition: null, cefr: null, examples: []}];
+    lookup.senses = [{index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: 'ˈkʌlə', translations: ['колір'], definition: null, cefr: null, examples: []}];
     const element = await render(lookup, 'en-GB');
     expect(element.querySelector('.pronunciations')).toBeNull();
     expect(element.querySelector('.entry-header .transcription')?.textContent).toContain('ˈkʌlə');

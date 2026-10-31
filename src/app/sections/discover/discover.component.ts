@@ -554,6 +554,7 @@ export class DiscoverComponent implements OnInit {
       translations: meaning.map(translation => ({translation})),
       partOfSpeech: sense.partOfSpeech ?? undefined,
       selectedSense: senseKey(sense),
+      senseKey: sense.key ?? undefined,
       sourceContext: lookup.sourceContext ?? undefined,
       learningIntents: ['UNDERSTAND'],
       itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
@@ -699,7 +700,9 @@ export class DiscoverComponent implements OnInit {
         if (this.lookup !== lookup) return;
         const entry = lookup.entry.toLocaleLowerCase();
         for (const sense of lookup.senses) {
-          const card = cards.find(card => card.entry.toLocaleLowerCase() === entry && card.selectedSense === senseKey(sense));
+          const card = cards.find(card => sense.key
+            ? card.senseKey === sense.key
+            : card.entry.toLocaleLowerCase() === entry && card.selectedSense === senseKey(sense));
           if (card?.id) this.keptCards.set(sense.index, card.id);
         }
       });

@@ -223,6 +223,7 @@ export class WordCardComponent implements OnChanges {
       translations: meaning.split(',').map(value => value.trim()).filter(Boolean).map(translation => ({translation})),
       partOfSpeech: sense?.partOfSpeech ?? undefined,
       selectedSense: sense ? `${sense.index}: ${meaning}` : meaning,
+      senseKey: sense?.key ?? undefined,
       sourceContext: context ?? undefined,
       sourceBookId: this.sourceBookId ?? undefined,
       learningIntents: ['UNDERSTAND'],

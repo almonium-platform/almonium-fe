@@ -19,6 +19,8 @@ export interface DiscoverExample {
 
 export interface DiscoverSense {
   index: number;
+  /** The lexicon sense's identity across rewrites of its entry, kept on a card saved from it; null from other providers. */
+  key: string | null;
   headword: string;
   partOfSpeech: string | null;
   transcription: string | null;
@@ -129,6 +131,7 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
       const sense = expectRecord(value, `discoverLookup.senses[${index}]`);
       return {
         index: expectNumber(sense['index'], `discoverLookup.senses[${index}].index`),
+        key: sense['key'] === undefined ? null : expectNullableString(sense['key'], `discoverLookup.senses[${index}].key`),
         headword: expectString(sense['headword'], `discoverLookup.senses[${index}].headword`),
         partOfSpeech: sense['partOfSpeech'] == null ? null : expectString(sense['partOfSpeech'], `discoverLookup.senses[${index}].partOfSpeech`),
         transcription: sense['transcription'] == null ? null : expectString(sense['transcription'], `discoverLookup.senses[${index}].transcription`),

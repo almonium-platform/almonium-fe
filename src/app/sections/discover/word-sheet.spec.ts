@@ -4,7 +4,7 @@ import {exampleParts, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinit
 
 describe('word sheet', () => {
   const sense = (index: number, partOfSpeech: string): DiscoverSense =>
-    ({index, headword: 'clear', partOfSpeech, transcription: null, translations: [], definition: null, cefr: null, examples: []});
+    ({index, key: null, headword: 'clear', partOfSpeech, transcription: null, translations: [], definition: null, cefr: null, examples: []});
 
   it('gathers each part of speech where its first sense stands and numbers across the groups', () => {
     const rows = groupSenses([sense(1, 'ADJ'), sense(2, 'VERB'), sense(3, 'ADJ')]);
