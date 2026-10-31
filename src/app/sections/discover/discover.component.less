@@ -132,6 +132,10 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .pronunciations .voice.hovered { outline: 1.5px solid var(--brand-primary); outline-offset: 4px; }
 .other-accents { display: none; }
 .pending { margin: -4px 0 0; color: var(--metadata-color); font-size: 12.5px; }
+.homophones { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 2px 0 0; font-size: 13px; }
+.homophones .label, .homophones .note { color: var(--metadata-color); font-size: 12.5px; }
+.homophones a { color: var(--brand-primary); text-decoration: none; }
+.homophones a:hover, .homophones a:focus-visible { text-decoration: underline; }
 .speaker:disabled { border-color: var(--hairline-color); background: var(--nested-color); color: var(--idle-speaker-color); cursor: not-allowed; opacity: 1; }
 .pronunciations .variety { color: var(--metadata-color); font-size: 12.5px; line-height: 30px; }
 .pronunciations .transcription { white-space: nowrap; }

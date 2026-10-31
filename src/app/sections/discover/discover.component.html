@@ -235,6 +235,16 @@
             <p i18n class="pending">{table.pending, plural, =1 {The greyed one has no recording yet.} other {The greyed ones have no recording yet.}}</p>
           }
         } @else if (selectedSense?.transcription) { <p class="transcription">{{ selectedSense?.transcription }}</p> }
+        @if (lookup.homophones.length) {
+          <!-- Words said exactly alike, found by comparing transcriptions; each opens its own sheet. -->
+          <p class="homophones">
+            <span i18n class="label">Sounds like</span>
+            @for (homophone of lookup.homophones; track homophone.word) {
+              <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: homophone.word}">{{ homophone.word }}</a>
+              @if (homophoneNote(homophone); as note) { <span class="note">({{ note }})</span> }
+            }
+          </p>
+        }
         @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
       </header>
 

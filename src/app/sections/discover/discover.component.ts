@@ -12,14 +12,14 @@ import {TargetLanguageDropdownService} from '../../services/target-language-drop
 import {UserInfoService} from '../../services/user-info.service';
 import {getErrorMessage} from '../../shared/http-error';
 import {varietyRow} from '../../shared/language-varieties';
-import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, DiscoverSuggestion} from './discover.service';
+import {DiscoverHomophone, DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, DiscoverSuggestion} from './discover.service';
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
-import {PronunciationCell, PronunciationTable, pronunciationTable, speakerKey} from './pronunciation-table';
+import {PronunciationCell, PronunciationTable, numberRanges, pronunciationTable, speakerKey} from './pronunciation-table';
 import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
@@ -585,6 +585,25 @@ export class DiscoverComponent implements OnInit {
 
   protected cellLit(cell: PronunciationCell): boolean {
     return this.litColumn >= cell.column && this.litColumn < cell.column + cell.span;
+  }
+
+  /**
+   * Where a word said like this one is said alike, when not everywhere and for every meaning: "American",
+   * "meanings 1–2", "British, meaning 3"; empty when it holds for all the sheet shows.
+   */
+  protected homophoneNote(homophone: DiscoverHomophone): string {
+    const parts: string[] = [];
+    const varieties = [...new Set(this.pronunciations.map(pronunciation => pronunciation.variety))];
+    if (varieties.some(variety => !homophone.varieties.includes(variety))) {
+      parts.push(homophone.varieties.filter(variety => varieties.includes(variety)).map(variety => this.varietyLabel(variety)).join(', '));
+    }
+    if (this.senseRows.some(row => !homophone.senses.includes(row.sense.index))) {
+      const numbers = this.senseRows.filter(row => homophone.senses.includes(row.sense.index)).map(row => row.number).sort((a, b) => a - b);
+      parts.push(numbers.length === 1
+        ? $localize`meaning ${numbers[0]}:number:`
+        : $localize`meanings ${numberRanges(numbers)}:numbers:`);
+    }
+    return parts.filter(Boolean).join(', ');
   }
 
   /** "American, Australian": the accents folded under the learner's on a phone. */

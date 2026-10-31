@@ -21,7 +21,7 @@ describe('DiscoverComponent', () => {
   function lookupOf(pronunciations: DiscoverPronunciation[]): DiscoverLookup {
     return {
       entry: 'colour', sourceContext: null, language: LanguageCode.EN, translationLanguage: LanguageCode.UK, provider: 'lexicon',
-      frequency: null, pronunciations,
+      frequency: null, pronunciations, homophones: [],
       senses: [
         {
           index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
@@ -71,6 +71,25 @@ describe('DiscoverComponent', () => {
   function pronunciationRows(element: HTMLElement): HTMLElement[] {
     return Array.from(element.querySelectorAll<HTMLElement>('.pronunciations .accent'));
   }
+
+  describe('words said alike', () => {
+    it('link to their own sheets, saying where and for which meanings they hold when not everywhere', async () => {
+      const lookup = lookupOf([british, american]);
+      lookup.homophones = [{word: 'culler', varieties: ['en-GB', 'en-US'], senses: [1, 2]}, {word: 'cullah', varieties: ['en-GB'], senses: [1]}];
+      const element = await render(lookup, null);
+      const line = element.querySelector<HTMLElement>('.homophones')!;
+      expect(line.querySelector('.label')?.textContent).toBe('Sounds like');
+      const links = Array.from(line.querySelectorAll('a'));
+      expect(links.map(link => link.textContent)).toEqual(['culler', 'cullah']);
+      expect(links[0].getAttribute('href')).toBe('/discover/en?text=culler');
+      expect(Array.from(line.querySelectorAll('.note')).map(note => note.textContent)).toEqual(['(British, meaning 1)']);
+    });
+
+    it('show nothing when there are none', async () => {
+      const element = await render(lookupOf([british]), null);
+      expect(element.querySelector('.homophones')).toBeNull();
+    });
+  });
 
   describe('a sense kept by its key', () => {
     afterEach(() => savedCards = []);

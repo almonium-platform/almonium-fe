@@ -31,6 +31,17 @@ describe('DiscoverService', () => {
     expect((await result).senses[0].translations).toEqual(['edition']);
   });
 
+  it('reads the words said alike, and none when the backend sends no list', () => {
+    const lookup = parseDiscoverLookup({
+      entry: 'site', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: 'lexicon', frequency: null, senses: [],
+      homophones: [{word: 'sight', varieties: ['en-GB', 'en-US'], senses: [1, 2]}],
+    });
+    expect(lookup.homophones).toEqual([{word: 'sight', varieties: ['en-GB', 'en-US'], senses: [1, 2]}]);
+    expect(parseDiscoverLookup({
+      entry: 'site', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: null, frequency: null, senses: [],
+    }).homophones).toEqual([]);
+  });
+
   it('accepts an honest degraded lookup without provider data', () => {
     expect(parseDiscoverLookup({
       entry: 'Ausgabe', sourceContext: null, language: 'DE', translationLanguage: 'EN', provider: null, frequency: null, senses: [],

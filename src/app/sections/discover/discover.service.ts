@@ -56,6 +56,13 @@ export interface DiscoverIpaSegment {
   differs: boolean;
 }
 
+/** A word said exactly like the sheet's, in `varieties`, for the senses (`DiscoverSense.index`) of the lexemes it sounds like. */
+export interface DiscoverHomophone {
+  word: string;
+  varieties: string[];
+  senses: number[];
+}
+
 export interface DiscoverLookup {
   entry: string;
   sourceContext: string | null;
@@ -66,6 +73,8 @@ export interface DiscoverLookup {
   /** Empty when the backend sends none; the lexicon provider fills it. */
   pronunciations: DiscoverPronunciation[];
   senses: DiscoverSense[];
+  /** Empty when the backend sends none; only the lexicon provider fills it. */
+  homophones: DiscoverHomophone[];
 }
 
 /** A headword offered while a word is being typed, with what the field shows beside it. */
@@ -127,6 +136,16 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
       band: expectString(frequencyData['band'], 'discoverLookup.frequency.band'),
       provenance: expectString(frequencyData['provenance'], 'discoverLookup.frequency.provenance'),
     },
+    homophones: parseOptionalArray(data['homophones'], 'discoverLookup.homophones').map((value, index) => {
+      const homophone = expectRecord(value, `discoverLookup.homophones[${index}]`);
+      return {
+        word: expectString(homophone['word'], `discoverLookup.homophones[${index}].word`),
+        varieties: expectArray(homophone['varieties'], `discoverLookup.homophones[${index}].varieties`)
+          .map((variety, at) => expectString(variety, `discoverLookup.homophones[${index}].varieties[${at}]`)),
+        senses: expectArray(homophone['senses'], `discoverLookup.homophones[${index}].senses`)
+          .map((sense, at) => expectNumber(sense, `discoverLookup.homophones[${index}].senses[${at}]`)),
+      };
+    }),
     senses: expectArray(data['senses'], 'discoverLookup.senses').map((value, index) => {
       const sense = expectRecord(value, `discoverLookup.senses[${index}]`);
       return {
