@@ -61,6 +61,7 @@
   --avatar-ground-ink: #3d3348;
   --disabled-fill-color: #e8e2e6;
   --disabled-label-color: #8b8290;
+  --idle-speaker-color: #c4b8c2;
   --on-brand-color: #fff;
   --shadow-color: rgba(44, 37, 48, 0.16);
   --overlay-shadow: 0 16px 40px var(--shadow-color);
@@ -1774,6 +1775,123 @@ tui-data-list button[tuiOption].context-button.negative {
   margin: 0;
   accent-color: var(--dark-raspberry);
 }
+.scope-entry-report :host {
+  display: block;
+}
+.scope-entry-report .report {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 1rem;
+  background: var(--card-color);
+  color: var(--text-color);
+  font-family: var(--font-family-ui);
+  cursor: default;
+}
+.scope-entry-report fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.scope-entry-report .report__title {
+  margin-bottom: 0.55rem;
+  padding: 0;
+  color: var(--subhead-color);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.scope-entry-report .report__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.scope-entry-report .report__reason {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.75rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 999px;
+  color: var(--text-color);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.scope-entry-report .report__reason:hover {
+  background: var(--state-hover);
+}
+.scope-entry-report .report__reason.on {
+  border-color: var(--dark-raspberry);
+  background: color-mix(in srgb, var(--dark-raspberry) 10%, var(--card-color));
+  color: var(--dark-raspberry);
+}
+.scope-entry-report .report__reason input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.scope-entry-report .report__reason:has(input:focus-visible) {
+  outline: 2px solid var(--dark-raspberry);
+  outline-offset: 2px;
+}
+.scope-entry-report .report__comment {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--hairline-color);
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--text-color);
+  font: 0.85rem/1.4 var(--font-family-ui);
+  resize: vertical;
+}
+.scope-entry-report .report__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.scope-entry-report .report__send,
+.scope-entry-report .report__cancel {
+  padding: 0.45rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  font: 500 0.8rem var(--font-family-ui);
+  cursor: pointer;
+}
+.scope-entry-report .report__send {
+  background: var(--dark-raspberry);
+  color: #fff;
+}
+.scope-entry-report .report__send:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.scope-entry-report .report__cancel {
+  background: transparent;
+  color: var(--metadata-color);
+}
+.scope-entry-report .report__cancel:hover {
+  background: var(--state-hover);
+  color: var(--text-color);
+}
+.scope-entry-report .report__hint {
+  margin: 0;
+  color: var(--metadata-color);
+  font-size: 0.75rem;
+  text-align: right;
+}
+.scope-entry-report .report__error {
+  margin: 0;
+  color: var(--danger-text-color);
+  font-size: 0.8rem;
+}
+.scope-entry-report .report__thanks {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
 .scope-landing-feedback {
   /* Grows with the answer up to about eight lines, then scrolls. */
 }
@@ -3394,23 +3512,47 @@ tui-data-list button[tuiOption].context-button.negative {
 }
 .scope-discover .pronunciations {
   display: grid;
-  grid-template-columns: minmax(64px, max-content) auto;
   justify-content: start;
+  align-items: center;
   gap: 6px 9px;
   margin: 0;
-  padding: 0;
-  list-style: none;
 }
-.scope-discover .pronunciations li {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-  align-items: start;
+.scope-discover .pronunciations.by-meaning {
+  gap: 0;
 }
-.scope-discover .pronunciations .voices {
+.scope-discover .pronunciations .head,
+.scope-discover .pronunciations .accent {
+  display: contents;
+}
+.scope-discover .pronunciations .band {
+  align-self: stretch;
+  border-radius: 12px;
+  background: var(--chat-selected-color);
+}
+.scope-discover .pronunciations .column-head {
+  padding: 6px 14px 4px;
+  color: var(--brand-margin);
+  font: italic 600 15px var(--font-family-reading);
+}
+.scope-discover .pronunciations .column-head.in-cell {
+  display: none;
+  padding: 0 0 4px;
+}
+.scope-discover .pronunciations .numbers {
+  margin-left: 3px;
+  color: var(--metadata-color);
+  font: normal 400 11px var(--font-family-mono);
+}
+.scope-discover .pronunciations .cell {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.scope-discover .pronunciations.by-meaning .cell {
+  padding: 6px 14px;
+}
+.scope-discover .pronunciations.by-meaning .variety {
+  padding-right: 9px;
 }
 .scope-discover .pronunciations .voice-line {
   display: flex;
@@ -3418,20 +3560,54 @@ tui-data-list button[tuiOption].context-button.negative {
   gap: 9px 14px;
   white-space: nowrap;
 }
+.scope-discover .pronunciations .alternative {
+  display: flex;
+  align-items: center;
+  gap: 9px 14px;
+}
 .scope-discover .pronunciations .voice {
   display: flex;
   align-items: center;
   gap: 9px;
+  border-radius: 10px;
+}
+.scope-discover .pronunciations .voice.hovered {
+  outline: 1.5px solid var(--brand-primary);
+  outline-offset: 4px;
+}
+.scope-discover .other-accents {
+  display: none;
 }
 .scope-discover .pending {
   margin: -4px 0 0;
   color: var(--metadata-color);
   font-size: 12.5px;
 }
+.scope-discover .homophones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+.scope-discover .homophones .label,
+.scope-discover .homophones .note {
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .homophones a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+.scope-discover .homophones a:hover,
+.scope-discover .homophones a:focus-visible {
+  text-decoration: underline;
+}
 .scope-discover .speaker:disabled {
   border-color: var(--hairline-color);
-  background: transparent;
-  color: var(--disabled-label-color);
+  background: var(--nested-color);
+  color: var(--idle-speaker-color);
   cursor: not-allowed;
   opacity: 1;
 }
@@ -3519,7 +3695,8 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-discover .sense:hover {
   background: var(--nested-color);
 }
-.scope-discover .sense.selected {
+.scope-discover .sense.selected,
+.scope-discover .sense.lit {
   background: var(--chat-selected-color);
 }
 .scope-discover .sense .number {
@@ -3577,9 +3754,34 @@ tui-data-list button[tuiOption].context-button.negative {
 .scope-discover .keep-slot {
   display: flex;
   flex: none;
+  align-items: center;
   justify-content: flex-end;
+  gap: 6px;
   min-width: 84px;
   padding-top: 1px;
+}
+.scope-discover .flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--metadata-color);
+  cursor: pointer;
+}
+.scope-discover .flag:hover,
+.scope-discover .flag.on {
+  background: var(--state-hover);
+  color: var(--brand-primary);
+}
+.scope-discover .word-flag {
+  align-self: center;
+  margin-left: auto;
 }
 .scope-discover .keep,
 .scope-discover .kept {
@@ -3727,6 +3929,56 @@ tui-data-list button[tuiOption].context-button.negative {
   .scope-discover .pronunciations .voice-line {
     flex-wrap: wrap;
     white-space: normal;
+  }
+}
+@media (max-width: 599px) {
+  .scope-discover .pronunciations,
+  .scope-discover .pronunciations.by-meaning {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .scope-discover .pronunciations .band,
+  .scope-discover .pronunciations .head {
+    display: none;
+  }
+  .scope-discover .pronunciations .accent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .scope-discover .pronunciations .accent.folded {
+    display: none;
+  }
+  .scope-discover .pronunciations .variety,
+  .scope-discover .pronunciations.by-meaning .variety {
+    padding: 0;
+    line-height: 1.4;
+  }
+  .scope-discover .pronunciations.by-meaning .cell {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+  .scope-discover .pronunciations .cell.lit {
+    background: var(--chat-selected-color);
+  }
+  .scope-discover .pronunciations .column-head.in-cell {
+    display: block;
+  }
+  .scope-discover .other-accents {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 0;
+    padding: 14px 0 0;
+    border: 0;
+    border-top: 1px solid var(--hairline-color);
+    border-radius: 0;
+    background: none;
+    color: var(--brand-primary);
+    font: 600 14px inherit;
+    cursor: pointer;
   }
 }
 .scope-ops {
@@ -4962,6 +5214,38 @@ tui-data-list button[tuiOption].context-button.negative {
         </div>
       </div>
   </section>
+  <section class="harness-card" id="entry-report">
+    <header>
+      <h2>Discover and reader — a dictionary report before a reason is picked</h2>
+      <p class="harness-source">entry-report.component.html: Send report</p>
+      <p class="harness-rule">A report needs one of the reasons; the note is optional. Until a reason is picked, the line under Send report says to pick one.</p>
+      <label class="harness-toggle">
+      <code>draft</code>
+      <select data-card="entry-report"><option value="ready" selected>a reason picked</option><option value="none">no reason yet</option></select>
+    </label>
+    </header>
+    
+      <div class="scope-entry-report harness-frame" style="max-width:520px">
+        <form class="report">
+          <fieldset>
+            <legend class="report__title">What is wrong with sense 2 of “bank”?</legend>
+            <div class="report__reasons">
+              <label class="report__reason"><input type="radio" name="harness-reason" />Doesn’t fit this sentence</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong definition</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong form or grammar</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong sound</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Bad example</label>
+            </div>
+          </fieldset>
+          <textarea class="report__comment" rows="2" placeholder="Add a note (optional)"></textarea>
+          <div class="report__actions">
+            <button type="button" class="report__cancel">Cancel</button>
+            <button type="button" class="report__send" data-blocked>Send report</button>
+          </div>
+          <p class="report__hint" data-note>Pick what is wrong to send it.</p>
+        </form>
+      </div>
+  </section>
   <section class="harness-card" id="landing-feedback">
     <header>
       <h2>Landing — the founder question before it says enough to send</h2>
@@ -5255,7 +5539,7 @@ tui-data-list button[tuiOption].context-button.negative {
   </section>
 </div>
 <script>
-  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"rights-report":{"ready":{"value":"ready","label":"role, message and email given","note":"","blocked":false},"role":{"value":"role","label":"nothing picked yet","note":"Say who you are.","blocked":true},"message":{"value":"message","label":"message \"Wrong\"","note":"Describe the problem: 5 more characters at least.","blocked":true},"email":{"value":"email","label":"guest, no email","note":"Leave your email so we can answer.","blocked":true},"bad-email":{"value":"bad-email","label":"guest, email \"holder@\"","note":"Check the email address.","blocked":true}},"landing-feedback":{"ready":{"value":"ready","label":"an answer, no email","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Write a sentence or two to send.","blocked":true},"short":{"value":"short","label":"answer \"Flashcard\"","note":"1 more characters to send.","blocked":true},"bad-email":{"value":"bad-email","label":"email \"marta@\"","note":"Check the email address, or leave it empty.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
+  const NOTES = {"book-import":{"left":{"value":"left","label":"2 of 10 places on the shelf","note":"","blocked":false},"none":{"value":"none","label":"shelf full","note":"Your shelf is full. Delete a book to make room for this one.","blocked":true},"premium":{"value":"premium","label":"Premium-only (limit 0)","note":"Importing books is a Premium feature.","blocked":true}},"suggest-library":{"ready":{"value":"ready","label":"READY, details confirmed","note":"","blocked":false},"processing":{"value":"processing","label":"still PROCESSING","note":"Available once the book is ready.","blocked":true},"unconfirmed":{"value":"unconfirmed","label":"READY, details not confirmed","note":"Confirm the title, author and language first.","blocked":true}},"rights-report":{"ready":{"value":"ready","label":"role, message and email given","note":"","blocked":false},"role":{"value":"role","label":"nothing picked yet","note":"Say who you are.","blocked":true},"message":{"value":"message","label":"message \"Wrong\"","note":"Describe the problem: 5 more characters at least.","blocked":true},"email":{"value":"email","label":"guest, no email","note":"Leave your email so we can answer.","blocked":true},"bad-email":{"value":"bad-email","label":"guest, email \"holder@\"","note":"Check the email address.","blocked":true}},"entry-report":{"ready":{"value":"ready","label":"a reason picked","note":"","blocked":false},"none":{"value":"none","label":"no reason yet","note":"Pick what is wrong to send it.","blocked":true}},"landing-feedback":{"ready":{"value":"ready","label":"an answer, no email","note":"","blocked":false},"empty":{"value":"empty","label":"nothing typed yet","note":"Write a sentence or two to send.","blocked":true},"short":{"value":"short","label":"answer \"Flashcard\"","note":"1 more characters to send.","blocked":true},"bad-email":{"value":"bad-email","label":"email \"marta@\"","note":"Check the email address, or leave it empty.","blocked":true}},"learner-lock":{"only-active":{"value":"only-active","label":"the only active language","note":"This is your only active language. Make another one active to turn it off.","blocked":true},"cooldown":{"value":"cooldown","label":"set aside, switch on cooldown","note":"Read-only. 214 words kept. Next switch 4 October.","blocked":true},"record":{"value":"record","label":"set aside, switch available","note":"Read-only. 214 words kept. Make it active from its record.","blocked":true},"free":{"value":"free","label":"nothing blocked","note":"","blocked":false}}};
 
   /** note === null leaves the line's own text alone; '' means this state has nothing to say. */
   function paint(card, blocked, note) {

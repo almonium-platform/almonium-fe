@@ -34,3 +34,13 @@
 .plate__fold { display: grid; width: 2.85rem; height: 2.85rem; flex: 0 0 auto; place-items: center; padding: .55rem; border: 1px solid var(--text-color); border-radius: 50%; background: transparent; color: var(--text-color); cursor: pointer; }
 .plate__fold:hover { background: var(--state-hover); }
 .plate__fold app-emblem { width: 1.15rem; height: 1.15rem; }
+// The flag: on each sense it shows when the sense is pointed at or focused, and stays on a touch screen.
+.plate__senses li { flex-wrap: wrap; align-items: flex-start; }
+.plate__sense { flex: 1; min-width: 0; }
+.plate__report { flex-basis: 100%; }
+.plate__flag { display: grid; width: 1.9rem; height: 1.9rem; flex: 0 0 auto; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--metadata-color); cursor: pointer; }
+.plate__flag:hover, .plate__flag.on { background: var(--state-hover); color: var(--dark-raspberry); }
+.plate__senses .plate__flag { opacity: 0; }
+.plate__senses li:hover .plate__flag, .plate__senses li:focus-within .plate__flag, .plate__senses .plate__flag.on { opacity: 1; }
+@media (hover: none) { .plate__senses .plate__flag { opacity: .7; } }
+.plate__flag--word { width: 2.85rem; height: 2.85rem; }

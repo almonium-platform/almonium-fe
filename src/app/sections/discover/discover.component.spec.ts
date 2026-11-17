@@ -10,6 +10,7 @@ import {TargetLanguageDropdownService} from '../../services/target-language-drop
 import {UserInfoService} from '../../services/user-info.service';
 import {DiscoverComponent} from './discover.component';
 import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggestion} from './discover.service';
+import {EntryReportService} from './report/entry-report.service';
 
 describe('DiscoverComponent', () => {
   const british: DiscoverPronunciation = {variety: 'en-GB', ipa: 'ˈkʌlə', clipUrl: '/public/lexicon/clips/clip-gb', clipStatus: 'verified',
@@ -37,6 +38,7 @@ describe('DiscoverComponent', () => {
   let lookupSpy: jasmine.Spy;
   let suggestSpy: jasmine.Spy;
   let createCardSpy: jasmine.Spy;
+  let reportSpy: jasmine.Spy;
   let savedCards: CardDto[] = [];
   const SUGGESTIONS: DiscoverSuggestion[] = [
     {headword: 'Ausgabe', partOfSpeech: 'NOUN', gender: 'Fem', gloss: 'edition'},
@@ -48,6 +50,7 @@ describe('DiscoverComponent', () => {
     lookupSpy = jasmine.createSpy('lookup').and.returnValue(of(lookup));
     suggestSpy = jasmine.createSpy('suggest').and.returnValue(of(SUGGESTIONS));
     createCardSpy = jasmine.createSpy('createCard').and.returnValue(of({id: 'card-new'}));
+    reportSpy = jasmine.createSpy('report').and.returnValue(of({id: 'report-1'}));
     const discoverService = {lookup: lookupSpy, suggest: suggestSpy};
     const learners = variety === null ? [] : [new Learner('learner-1', LanguageCode.EN, CEFRLevel.B1, true, variety)];
     await TestBed.configureTestingModule({
@@ -56,6 +59,7 @@ describe('DiscoverComponent', () => {
         provideRouter([]),
         {provide: ActivatedRoute, useValue: {paramMap: of(convertToParamMap({})), queryParamMap: of(convertToParamMap(query))}},
         {provide: DiscoverService, useValue: discoverService},
+        {provide: EntryReportService, useValue: {report: reportSpy}},
         {provide: CardService, useValue: {createCard: createCardSpy, deleteCard: jasmine.createSpy('deleteCard'), getCardsInLanguage: () => of(savedCards)}},
         {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.EN), setCurrentLanguage: () => undefined}},
         {provide: UserInfoService, useValue: {currentUserInfo: variety === null ? null : {learners, fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.EN], uiPreferences: DEFAULT_UI_PREFERENCES} as unknown as UserInfo}},
@@ -88,6 +92,60 @@ describe('DiscoverComponent', () => {
     it('show nothing when there are none', async () => {
       const element = await render(lookupOf([british]), null);
       expect(element.querySelector('.homophones')).toBeNull();
+    });
+  });
+
+  describe('a report', () => {
+    function keyed(): DiscoverLookup {
+      const lookup = lookupOf([british]);
+      lookup.sourceContext = 'What colour is the sky?';
+      lookup.senses = lookup.senses.map(sense => ({...sense, key: `key-${sense.index}`}));
+      return lookup;
+    }
+
+    it('flags the selected sense with its key, the sentence and the book', async () => {
+      const element = await render(keyed(), 'en-GB', {text: 'colour', book: 'little-prince-en'});
+      element.querySelectorAll<HTMLElement>('.sense')[1].click();
+      fixture.detectChanges();
+      const flags = element.querySelectorAll<HTMLButtonElement>('.sense button.flag');
+      expect(flags.length).toBe(1);
+      flags[0].click();
+      fixture.detectChanges();
+      const panel = element.querySelector<HTMLElement>('.sense app-entry-report')!;
+      expect(panel.querySelector('legend')?.textContent).toContain('sense 2 of “colour”');
+      const reasons = Array.from(panel.querySelectorAll<HTMLInputElement>('input[type=radio]'));
+      expect(reasons.length).toBe(5);
+      reasons[3].click();
+      fixture.detectChanges();
+      panel.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
+      expect(reportSpy).toHaveBeenCalledWith({
+        language: LanguageCode.EN, headword: 'colour', senseKey: 'key-2', reason: 'WRONG_SOUND', comment: null,
+        context: 'What colour is the sky?', book: 'little-prince-en',
+      });
+      fixture.detectChanges();
+      expect(panel.textContent).toContain('Thanks');
+    });
+
+    it('flags the whole word from the header, without “doesn’t fit” when there is no sentence', async () => {
+      const lookup = keyed();
+      lookup.sourceContext = null;
+      const element = await render(lookup, 'en-GB');
+      element.querySelector<HTMLButtonElement>('.entry-header button.word-flag')!.click();
+      fixture.detectChanges();
+      const panel = element.querySelector<HTMLElement>('.entry-header app-entry-report')!;
+      expect(panel.querySelectorAll('input[type=radio]').length).toBe(4);
+      expect(panel.querySelector<HTMLButtonElement>('button[type=submit]')!.disabled).toBeTrue();
+      expect(panel.querySelector('.report__hint')?.textContent).toContain('Pick what is wrong');
+    });
+
+    it('is not offered to a guest, nor on an entry the lexicon did not write', async () => {
+      let element = await render(keyed(), null);
+      expect(element.querySelector('button.flag')).toBeNull();
+      TestBed.resetTestingModule();
+      const old = keyed();
+      old.provider = 'yandex';
+      element = await render(old, 'en-GB');
+      expect(element.querySelector('button.flag')).toBeNull();
     });
   });
 

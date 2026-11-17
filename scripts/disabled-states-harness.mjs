@@ -24,6 +24,7 @@ const SCOPES = {
   'interests-setup': 'src/app/onboarding/interests-setup/interests-setup.component.less',
   'book-import': 'src/app/sections/read/book-import/book-import.component.less',
   'rights-report': 'src/app/sections/read/rights/rights-report.component.less',
+  'entry-report': 'src/app/sections/discover/report/entry-report.component.less',
   'landing-feedback': 'src/app/sections/landing/feedback/landing-feedback.component.less',
   'auth-settings': 'src/app/sections/settings/auth/auth-settings.component.less',
   'lang-settings': 'src/app/sections/settings/lang/lang-settings.component.less',
@@ -231,6 +232,41 @@ const CARDS = [
           </div>
           <p class="sheet__hint" data-note>Say who you are.</p>
         </div>
+      </div>`,
+  },
+  {
+    id: 'entry-report',
+    title: 'Discover and reader — a dictionary report before a reason is picked',
+    source: 'entry-report.component.html: Send report',
+    rule: 'A report needs one of the reasons; the note is optional. Until a reason is picked, the line under Send report says to pick one.',
+    control: {
+      label: 'draft',
+      type: 'select',
+      options: [
+        {value: 'ready', label: 'a reason picked', note: '', blocked: false},
+        {value: 'none', label: 'no reason yet', note: 'Pick what is wrong to send it.', blocked: true},
+      ],
+    },
+    body: `
+      <div class="scope-entry-report harness-frame" style="max-width:520px">
+        <form class="report">
+          <fieldset>
+            <legend class="report__title">What is wrong with sense 2 of “bank”?</legend>
+            <div class="report__reasons">
+              <label class="report__reason"><input type="radio" name="harness-reason" />Doesn’t fit this sentence</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong definition</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong form or grammar</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Wrong sound</label>
+              <label class="report__reason"><input type="radio" name="harness-reason" />Bad example</label>
+            </div>
+          </fieldset>
+          <textarea class="report__comment" rows="2" placeholder="Add a note (optional)"></textarea>
+          <div class="report__actions">
+            <button type="button" class="report__cancel">Cancel</button>
+            <button type="button" class="report__send" data-blocked>Send report</button>
+          </div>
+          <p class="report__hint" data-note>Pick what is wrong to send it.</p>
+        </form>
       </div>`,
   },
   {

@@ -9,6 +9,7 @@ import {RecentAuthGuardComponent} from '../shared/recent-auth-guard/recent-auth-
 import {OpsDemandComponent} from './demand/ops-demand.component';
 import {OpsLanguagesComponent} from './languages/ops-languages.component';
 import {OpsRightsComponent} from './rights/ops-rights.component';
+import {OpsEntryReportsComponent} from './reports/ops-entry-reports.component';
 import {
   AccessGrantRequest,
   FirebaseAccountSummary,
@@ -56,7 +57,7 @@ export interface SpendLineItemTotal {
 
 @Component({
   selector: 'app-ops',
-  imports: [ReactiveFormsModule, RecentAuthGuardComponent, OpsDemandComponent, OpsLanguagesComponent, OpsRightsComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
+  imports: [ReactiveFormsModule, RecentAuthGuardComponent, OpsDemandComponent, OpsLanguagesComponent, OpsRightsComponent, OpsEntryReportsComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
   templateUrl: './ops.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ops.component.less',

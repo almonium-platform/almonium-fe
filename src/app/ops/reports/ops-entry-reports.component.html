@@ -1,0 +1,99 @@
+<section class="ops-card ops-card--pulse" aria-labelledby="entry-reports-title">
+  <div class="ops-card__heading ops-card__heading--plain">
+    <div>
+      <h2 id="entry-reports-title">Reports</h2>
+      <p>
+        What readers flagged in the dictionary, one row per sense and reason (or per word, for a flag on the whole
+        word), the most common word first. Each report carries the entry version it was shown and the sentence it was
+        met in. Fix the entry, then resolve the row; resolve it too when the reports are wrong. Nothing here edits an
+        entry.
+      </p>
+    </div>
+    <button class="ops-button ops-button--quiet" type="button" [disabled]="loading" (click)="load()">
+      {{ loading ? 'Refreshing…' : 'Refresh' }}
+    </button>
+  </div>
+
+  @if (error) {
+    <div class="ops-maintenance__result" role="alert">
+      <span class="ops-summary__status-dot" aria-hidden="true"></span>
+      <span>{{ error }}</span>
+    </div>
+  }
+  @if (!groups) {
+    @if (!error) { <p class="ops-maintenance__more">Loading…</p> }
+  } @else if (!groups.length) {
+    <p class="ops-maintenance__more">No open reports.</p>
+  } @else {
+    <div class="ops-table-scroll">
+      <table class="ops-table ops-reports__table">
+        <thead>
+          <tr>
+            <th scope="col">Word</th>
+            <th scope="col">Sense</th>
+            <th scope="col">Reason</th>
+            <th scope="col" class="ops-table__number">Reports</th>
+            <th scope="col" class="ops-table__number">Zipf</th>
+            <th scope="col">Last</th>
+            <th scope="col"><span class="ops-reports__hidden">Action</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of groups; track id(group)) {
+            @let groupKey = id(group);
+            <tr>
+              <td>
+                <a [routerLink]="['/discover', group.language.toLowerCase()]" [queryParams]="{text: group.headword}">{{ group.headword }}</a>
+                <small>{{ name(group.language) }}</small>
+              </td>
+              <td class="ops-reports__sense">
+                @if (!group.senseKey) {
+                  <em>the whole word</em>
+                } @else if (group.definition) {
+                  {{ group.definition }}
+                } @else {
+                  <em>dropped by a rewrite</em>
+                }
+              </td>
+              <td>
+                <button type="button" class="ops-reports__toggle" [attr.aria-expanded]="open === groupKey" (click)="toggle(group)">{{ reason(group) }}</button>
+              </td>
+              <td class="ops-table__number">
+                {{ group.reports | number }}
+                @if (group.reporters !== group.reports) { <small>{{ group.reporters | number }} people</small> }
+              </td>
+              <td class="ops-table__number">{{ group.zipf === null ? '—' : (group.zipf | number:'1.1-1') }}</td>
+              <td>
+                {{ group.lastAt | date:'d MMM, HH:mm' }}
+                @if (group.currentVersion > group.entryVersion) { <small>rewritten since (v{{ group.entryVersion }} → v{{ group.currentVersion }})</small> }
+              </td>
+              <td>
+                <button class="ops-button ops-button--quiet" type="button" [disabled]="resolving !== null" (click)="resolve(group)">
+                  {{ resolving === groupKey ? 'Resolving…' : 'Resolve' }}
+                </button>
+              </td>
+            </tr>
+            @if (open === groupKey) {
+              <tr class="ops-reports__items">
+                <td colspan="7">
+                  <ul>
+                    @for (item of group.items; track $index) {
+                      <li>
+                        <span class="ops-reports__meta">{{ item.createdAt | date:'d MMM, HH:mm' }} · v{{ item.entryVersion }}@if (item.book) { · {{ item.book }}}</span>
+                        @if (item.context) { <q>{{ item.context }}</q> }
+                        @if (item.comment) { <span class="ops-reports__comment">{{ item.comment }}</span> }
+                        @if (!item.context && !item.comment) { <em>No sentence and no note.</em> }
+                      </li>
+                    }
+                  </ul>
+                  @if (group.reports > group.items.length) { <p class="ops-maintenance__more">The newest {{ group.items.length }} of {{ group.reports }}.</p> }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (resolving) { <p class="ops-maintenance__more">Resolving one row; the others wait until it is done.</p> }
+  }
+</section>

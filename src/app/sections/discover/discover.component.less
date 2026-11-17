@@ -164,7 +164,10 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .example { display: flex; align-items: center; gap: 9px; margin-top: 4px; }
 .example-text { font: italic 15.5px/1.5 var(--font-family-reading); }
 .example-text .word { color: var(--brand-primary); font-weight: 600; }
-.keep-slot { display: flex; flex: none; justify-content: flex-end; min-width: 84px; padding-top: 1px; }
+.keep-slot { display: flex; flex: none; align-items: center; justify-content: flex-end; gap: 6px; min-width: 84px; padding-top: 1px; }
+.flag { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--metadata-color); cursor: pointer; }
+.flag:hover, .flag.on { background: var(--state-hover); color: var(--brand-primary); }
+.word-flag { align-self: center; margin-left: auto; }
 .keep, .kept { display: flex; align-items: center; gap: 6px; min-height: 0; border-radius: 9999px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; }
 .keep { padding: 8px 18px; border: 0; background: var(--brand-primary); color: var(--on-brand-color); }
 .kept { padding: 7px 14px; border: 1px solid var(--control-border-color); background: var(--card-color); color: var(--brand-primary); }

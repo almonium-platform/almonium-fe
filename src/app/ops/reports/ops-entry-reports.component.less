@@ -1,0 +1,16 @@
+// Reports sits inside the ops page and speaks its grammar: the card and table come from the page's own sheet, and
+// only what is new to the reports card is added here.
+@import '../ops.component.less';
+
+:host { display: block; min-height: 0; background: none; }
+
+.ops-reports__table { margin-top: 1rem; }
+.ops-reports__table small { display: block; color: var(--metadata-color); font-size: .75rem; }
+.ops-reports__sense { max-width: 22rem; }
+.ops-reports__hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.ops-reports__toggle { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline dotted; text-underline-offset: .2em; cursor: pointer; }
+.ops-reports__items ul { display: flex; flex-direction: column; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.ops-reports__items li { display: flex; flex-direction: column; gap: .2rem; }
+.ops-reports__meta { color: var(--metadata-color); font-size: .75rem; }
+.ops-reports__items q { font-style: italic; }
+.ops-reports__comment { font-weight: 500; }

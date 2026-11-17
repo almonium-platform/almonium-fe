@@ -1,0 +1,23 @@
+// The report panel opens in place under what was flagged: in a Discover sense row, under the word header, or on the
+// reader's word card. It takes the colours of whichever card holds it.
+:host { display: block; }
+
+.report { display: flex; flex-direction: column; gap: .6rem; margin-top: .7rem; padding: .9rem 1rem; border: 1px solid var(--hairline-color); border-radius: 1rem; background: var(--card-color); color: var(--text-color); font-family: var(--font-family-ui); cursor: default; }
+fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.report__title { margin-bottom: .55rem; padding: 0; color: var(--subhead-color); font-size: .82rem; font-weight: 600; }
+.report__reasons { display: flex; flex-wrap: wrap; gap: .4rem; }
+.report__reason { display: inline-flex; align-items: center; padding: .38rem .75rem; border: 1px solid var(--hairline-color); border-radius: 999px; color: var(--text-color); font-size: .8rem; cursor: pointer; }
+.report__reason:hover { background: var(--state-hover); }
+.report__reason.on { border-color: var(--dark-raspberry); background: color-mix(in srgb, var(--dark-raspberry) 10%, var(--card-color)); color: var(--dark-raspberry); }
+.report__reason input { position: absolute; opacity: 0; pointer-events: none; }
+.report__reason:has(input:focus-visible) { outline: 2px solid var(--dark-raspberry); outline-offset: 2px; }
+.report__comment { width: 100%; box-sizing: border-box; padding: .55rem .7rem; border: 1px solid var(--hairline-color); border-radius: .7rem; background: transparent; color: var(--text-color); font: .85rem/1.4 var(--font-family-ui); resize: vertical; }
+.report__actions { display: flex; justify-content: flex-end; gap: .5rem; }
+.report__send, .report__cancel { padding: .45rem .95rem; border: 0; border-radius: 999px; font: 500 .8rem var(--font-family-ui); cursor: pointer; }
+.report__send { background: var(--dark-raspberry); color: #fff; }
+.report__send:disabled { opacity: .45; cursor: not-allowed; }
+.report__cancel { background: transparent; color: var(--metadata-color); }
+.report__cancel:hover { background: var(--state-hover); color: var(--text-color); }
+.report__hint { margin: 0; color: var(--metadata-color); font-size: .75rem; text-align: right; }
+.report__error { margin: 0; color: var(--danger-text-color); font-size: .8rem; }
+.report__thanks { margin: 0; font-size: .85rem; line-height: 1.5; }

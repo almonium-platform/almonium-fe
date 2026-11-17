@@ -159,6 +159,10 @@
               <span class="band">{{ frequencyBand }}</span>
             </span>
           }
+          @if (canReport) {
+            <button type="button" class="flag word-flag" [class.on]="reporting === 'word'" [attr.aria-expanded]="reporting === 'word'"
+                    [attr.aria-label]="reportLabel" [title]="reportLabel" (click)="openReport(null, $event)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path></svg></button>
+          }
         </div>
         @if (pronunciationTable.rows.length) {
           @let table = pronunciationTable;
@@ -246,6 +250,9 @@
           </p>
         }
         @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
+        @if (reporting === 'word' && reportTarget) {
+          <app-entry-report [target]="reportTarget" [subject]="reportSubject" (closed)="closeReport()"></app-entry-report>
+        }
       </header>
 
       @if (senseRows.length) {
@@ -280,8 +287,15 @@
                         @if (playing === key && slow) { <span i18n class="slow">slow</span> }
                       </div>
                     }
+                    @if (reporting === row.sense.index && reportTarget) {
+                      <app-entry-report [target]="reportTarget" [subject]="reportSubject" (closed)="closeReport()"></app-entry-report>
+                    }
                   </div>
                   <div class="keep-slot">
+                    @if (canReport && row.sense.key && (selected || reporting === row.sense.index)) {
+                      <button type="button" class="flag" [class.on]="reporting === row.sense.index" [attr.aria-expanded]="reporting === row.sense.index"
+                              [attr.aria-label]="reportLabel" [title]="reportLabel" (click)="openReport(row, $event)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path></svg></button>
+                    }
                     @if (kept) {
                       <button type="button" class="kept" [disabled]="keeping.has(row.sense.index)" (click)="toggleKeep(row, $event)">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"

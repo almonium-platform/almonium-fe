@@ -19,7 +19,16 @@
   @if (hasSense) {
     <ol class="plate__senses">
       @for (sense of senses; track sense.index) {
-        <li><span class="plate__index">{{ sense.index }}</span><span class="plate__sense"><span class="plate__meaning">{{ sense.meaning }}</span>@if (sense.gloss) { <span class="plate__gloss">{{ sense.gloss }}</span> }</span></li>
+        <li [class.plate__reporting]="reporting === sense.index">
+          <span class="plate__index">{{ sense.index }}</span><span class="plate__sense"><span class="plate__meaning">{{ sense.meaning }}</span>@if (sense.gloss) { <span class="plate__gloss">{{ sense.gloss }}</span> }</span>
+          @if (canReport && sense.key) {
+            <button type="button" class="plate__flag" [class.on]="reporting === sense.index" [attr.aria-expanded]="reporting === sense.index"
+                    [attr.aria-label]="reportLabel" [title]="reportLabel" (click)="openReport(sense)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path></svg></button>
+          }
+          @if (reporting === sense.index && reportTarget) {
+            <app-entry-report class="plate__report" [target]="reportTarget" [subject]="reportSubject" (closed)="closeReport()"></app-entry-report>
+          }
+        </li>
       }
     </ol>
   } @else if (!loading && !error) {
@@ -43,6 +52,10 @@
       } @else {
         <button type="button" class="plate__save" (click)="writeMeaning()">{{ writeLabel }}</button>
       }
+      @if (canReport) {
+        <button type="button" class="plate__flag plate__flag--word" [class.on]="reporting === 'word'" [attr.aria-expanded]="reporting === 'word'"
+                [attr.aria-label]="reportLabel" [title]="reportLabel" (click)="openReport(null)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path></svg></button>
+      }
       @if (signedIn) {
         <button type="button" class="plate__fold" aria-label="Open the full word sheet" i18n-aria-label title="Open in Discover" i18n-title (click)="openInDiscover()">
           <app-emblem [motion]="'fold'" [mono]="true" [playOnLoad]="false" [label]="''"></app-emblem>
@@ -52,6 +65,9 @@
     @if (!signedIn) {
       <p i18n class="plate__hint">Keep 100 words, no card required. <button type="button" class="plate__link" (click)="askForAccount('sign-in')">Sign in</button></p>
     }
+  }
+  @if (reporting === 'word' && reportTarget) {
+    <app-entry-report [target]="reportTarget" [subject]="reportSubject" (closed)="closeReport()"></app-entry-report>
   }
   @if (saveError) { <p class="plate__error" role="alert">{{ saveError }}</p> }
 </article>

@@ -10,6 +10,8 @@ import {ReturnPathService} from '../../../services/return-path.service';
 import {getErrorMessage} from '../../../shared/http-error';
 import {EmblemComponent} from '../../../shared/emblem/emblem.component';
 import {DiscoverLookup, DiscoverSense, DiscoverService} from '../../discover/discover.service';
+import {EntryReportComponent} from '../../discover/report/entry-report.component';
+import {EntryReport} from '../../discover/report/entry-report.service';
 
 /** The articles that carry gender in the languages the dictionary returns them for. */
 const ARTICLE_GENDERS: Record<string, string> = {
@@ -22,6 +24,8 @@ const ARTICLE_GENDERS: Record<string, string> = {
 
 export interface WordCardSense {
   index: number;
+  /** The lexicon sense's key, which a report names it by; null from the old providers. */
+  key: string | null;
   meaning: string;
   gloss: string | null;
 }
@@ -37,7 +41,7 @@ export interface WordCardSense {
  */
 @Component({
   selector: 'app-word-card',
-  imports: [EmblemComponent],
+  imports: [EmblemComponent, EntryReportComponent],
   templateUrl: './word-card.component.html',
   styleUrl: './word-card.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +55,8 @@ export class WordCardComponent implements OnChanges {
   @Input() source = '';
   /** The library edition the word is being read in, so a saved word remembers where it was met. */
   @Input() sourceBookId: string | null = null;
+  /** The edition's slug, which a report on the word names the book by. */
+  @Input() bookSlug: string | null = null;
   /** The book's level, shown beside the language in the kicker. */
   @Input() level: string | null = null;
   /** The form met in the text, when it differs from the entry; it is what the sentence marks. */
@@ -76,6 +82,11 @@ export class WordCardComponent implements OnChanges {
   protected saving = false;
   protected saved = false;
   protected saveError = '';
+  /** The report panel that is open: for the word, or for the sense with this index. */
+  protected reporting: 'word' | number | null = null;
+  protected reportTarget: Omit<EntryReport, 'reason' | 'comment'> | null = null;
+  protected reportSubject = '';
+  protected readonly reportLabel = $localize`Report a problem`;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['entry'] || changes['language'] || changes['translationLanguage'] || changes['context']) {
@@ -134,6 +145,7 @@ export class WordCardComponent implements OnChanges {
       .filter(sense => sense.translations.length > 0)
       .map(sense => ({
         index: sense.index,
+        key: sense.key,
         meaning: sense.translations.join(', '),
         gloss: sense.headword && sense.headword !== this.firstSense?.headword ? sense.headword : null,
       }));
@@ -181,6 +193,7 @@ export class WordCardComponent implements OnChanges {
     this.saved = false;
     this.saveError = '';
     this.lookup = null;
+    this.closeReport();
     this.cdr.markForCheck();
     this.discoverService.lookup(entry, this.language, this.translationLanguage, this.context || undefined)
       .pipe(finalize(() => {
@@ -244,9 +257,42 @@ export class WordCardComponent implements OnChanges {
     });
   }
 
+  /** Only a member can flag, and only a lexicon entry: the old providers' senses have nowhere to be fixed. */
+  protected get canReport(): boolean {
+    return this.signedIn && this.lookup?.provider === 'lexicon';
+  }
+
+  /** Opens the report panel for the word, or for one sense; a second tap on the same flag closes it. */
+  protected openReport(sense: WordCardSense | null): void {
+    const lookup = this.lookup;
+    const at = sense?.key ? sense.index : 'word';
+    if (!lookup || this.reporting === at) {
+      this.closeReport();
+      return;
+    }
+    const headword = lookup.senses.find(item => item.index === sense?.index)?.headword ?? this.firstSense?.headword ?? lookup.entry;
+    this.reporting = at;
+    this.reportSubject = at === 'word' ? `“${headword}”` : $localize`sense ${sense!.index}:number: of “${headword}:headword:”`;
+    const context = this.nonBlank(lookup.sourceContext) ?? this.nonBlank(this.context);
+    this.reportTarget = {
+      language: lookup.language,
+      headword,
+      senseKey: at === 'word' ? null : sense!.key,
+      context: context ? context.slice(0, 1000) : null,
+      book: this.bookSlug,
+    };
+  }
+
+  protected closeReport(): void {
+    this.reporting = null;
+    this.reportTarget = null;
+  }
+
   /** The fold: many becoming one. It opens the full sheet, where the reader chooses senses and intents. */
   protected openInDiscover(): void {
-    void this.router.navigate(['/discover'], {queryParams: {text: this.entry, context: this.context || undefined}});
+    void this.router.navigate(['/discover'], {
+      queryParams: {text: this.entry, context: this.context || undefined, book: this.bookSlug ?? undefined, bookTitle: this.source || undefined},
+    });
   }
 
   /** With no sense to save, the full sheet is where a meaning gets written; it needs an account too. */

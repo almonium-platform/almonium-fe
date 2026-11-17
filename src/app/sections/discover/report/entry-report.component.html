@@ -1,0 +1,28 @@
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events -->
+<form class="report" (ngSubmit)="send()" (click)="$event.stopPropagation()">
+  @if (sent) {
+    <p i18n class="report__thanks" role="status">Thanks. We read every report, and the entry will be checked.</p>
+    <div class="report__actions">
+      <button i18n type="button" class="report__send" (click)="closed.emit()">Done</button>
+    </div>
+  } @else {
+    <fieldset>
+      <legend i18n class="report__title">What is wrong with {{ subject }}?</legend>
+      <div class="report__reasons">
+        @for (option of reasons; track option) {
+          <label class="report__reason" [class.on]="reason === option">
+            <input type="radio" name="reason" [value]="option" [checked]="reason === option" (change)="reason = option">{{ label(option) }}
+          </label>
+        }
+      </div>
+    </fieldset>
+    <textarea class="report__comment" name="comment" rows="2" maxlength="1000" [(ngModel)]="comment"
+              placeholder="Add a note (optional)" i18n-placeholder aria-label="Note" i18n-aria-label></textarea>
+    @if (error) { <p class="report__error" role="alert">{{ error }}</p> }
+    <div class="report__actions">
+      <button i18n type="button" class="report__cancel" (click)="closed.emit()">Cancel</button>
+      <button type="submit" class="report__send" [disabled]="!reason || sending">{{ sending ? sendingLabel : sendLabel }}</button>
+    </div>
+    @if (!reason) { <p i18n class="report__hint">Pick what is wrong to send it.</p> }
+  }
+</form>

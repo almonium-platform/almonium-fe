@@ -20,6 +20,8 @@ import {
 } from './discover-field';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 import {PronunciationCell, PronunciationTable, numberRanges, pronunciationTable, speakerKey} from './pronunciation-table';
+import {EntryReportComponent} from './report/entry-report.component';
+import {EntryReport} from './report/entry-report.service';
 import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
@@ -58,7 +60,7 @@ const PARTS_OF_SPEECH: Record<string, string> = {
 
 @Component({
   selector: 'app-discover',
-  imports: [RouterLink, EmblemComponent],
+  imports: [RouterLink, EmblemComponent, EntryReportComponent],
   templateUrl: './discover.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./discover.component.less'],
@@ -99,6 +101,12 @@ export class DiscoverComponent implements OnInit {
   protected keptCards = new Map<number, string>();
   protected keeping = new Set<number>();
   protected keepError = '';
+  /** The report panel that is open: under the word (`word`) or under the sense with this index. */
+  protected reporting: 'word' | number | null = null;
+  /** The panel's target, made once when it opens so the panel keeps one object. */
+  protected reportTarget: Omit<EntryReport, 'reason' | 'comment'> | null = null;
+  protected reportSubject = '';
+  protected readonly reportLabel = $localize`Report a problem`;
   /** The speaker playing, and whether it is the slow replay. */
   protected playing: string | null = null;
   protected slow = false;
@@ -496,6 +504,39 @@ export class DiscoverComponent implements OnInit {
       });
   }
 
+  /** Only a member can flag, and only a lexicon entry: the old providers' senses have nowhere to be fixed. */
+  protected get canReport(): boolean {
+    return this.signedIn && this.lookup?.provider === 'lexicon';
+  }
+
+  /** Opens the report panel for the word, or for one sense; a second tap on the same flag closes it. */
+  protected openReport(row: SenseRow | null, event?: Event): void {
+    event?.stopPropagation();
+    const lookup = this.lookup;
+    const at = row?.sense.key ? row.sense.index : 'word';
+    if (!lookup || this.reporting === at) {
+      this.closeReport();
+      return;
+    }
+    const sense = at === 'word' ? null : row!.sense;
+    const headword = sense?.headword ?? lookup.senses[0]?.headword ?? lookup.entry;
+    this.reporting = at;
+    this.reportSubject = sense ? $localize`sense ${row!.number}:number: of “${headword}:headword:”` : `“${headword}”`;
+    const context = [lookup.sourceContext, this.context].find(value => value?.trim());
+    this.reportTarget = {
+      language: lookup.language,
+      headword,
+      senseKey: sense?.key ?? null,
+      context: context ? context.slice(0, 1000) : null,
+      book: this.sourceBook || null,
+    };
+  }
+
+  protected closeReport(): void {
+    this.reporting = null;
+    this.reportTarget = null;
+  }
+
   protected selectRow(index: number): void {
     this.selectedRow = index;
   }
@@ -710,6 +751,7 @@ export class DiscoverComponent implements OnInit {
     this.senseGroups = this.visibleGroups();
     this.keptCards = new Map();
     this.keepError = '';
+    this.closeReport();
     if (this.signedIn) this.loadKept(lookup);
   }
 
