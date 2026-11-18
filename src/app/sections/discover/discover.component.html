@@ -259,10 +259,55 @@
         <div class="senses" aria-label="Senses" i18n-aria-label>
           @for (group of senseGroups; track $index) {
             <div class="group">
-              @if (group.partOfSpeech) { <p class="part-of-speech">{{ partOfSpeechLabel(group.partOfSpeech) }}</p> }
+              @let word = group.lexeme === null ? undefined : lexemeFacts.get(group.lexeme);
+              @if (group.partOfSpeech) {
+                <p class="part-of-speech">
+                  @if (groupLemma(group); as lemma) { <span class="lemma">{{ lemma }}</span> }
+                  {{ partOfSpeechLabel(group.partOfSpeech) }}
+                  @for (mark of word?.grammar ?? []; track $index) { <span class="grammar">{{ mark }}</span> }
+                </p>
+              }
+              @if (word && (word.note || word.spellings.length || word.forms.length || word.relations.length)) {
+                <!-- What holds for the whole word: how else it is written, the forms a learner could not guess, where it comes from. -->
+                <dl class="word-facts">
+                  @if (word.note) { <div><dd class="note">{{ word.note }}</dd></div> }
+                  @if (word.spellings.length) {
+                    <div>
+                      <dt i18n>Spelled</dt>
+                      <dd>
+                        @for (spelling of word.spellings; track $index) {
+                          <span class="fact"><span class="form">{{ spelling.text }}</span>@if (spelling.where) { <span class="of">{{ spelling.where }}</span> }</span>
+                        }
+                      </dd>
+                    </div>
+                  }
+                  @if (word.forms.length) {
+                    <div>
+                      <dt i18n>Forms</dt>
+                      <dd>
+                        @for (form of word.forms; track $index) {
+                          <span class="fact"><span class="form">{{ form.reading || form.form }}</span>@if (form.label) { <span class="of">{{ form.label }}</span> }@if (senseNumbers(form.senses); as only) { <span class="of">{{ only }}</span> }</span>
+                        }
+                      </dd>
+                    </div>
+                  }
+                  @if (word.relations.length) {
+                    <div>
+                      <dt i18n>Related</dt>
+                      <dd>
+                        @for (relation of word.relations; track $index) {
+                          <span class="fact"><span class="of">{{ relation.label }}</span>
+                            <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: relation.lemma}">{{ relation.lemma }}</a>@if (relation.partOfSpeech) { <span class="of">{{ partOfSpeechLabel(relation.partOfSpeech) }}</span> }@if (senseNumbers(relation.senses); as only) { <span class="of">{{ only }}</span> }</span>
+                        }
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              }
               @for (row of group.rows; track row.sense.index) {
                 @let selected = selectedRow === row.number - 1;
                 @let kept = keptCards.has(row.sense.index);
+                @let facts = senseFacts.get(row.sense.index);
                 <!-- ↑↓ select from the keyboard anywhere off the line, so the row itself takes no focus; pointing at it lights its
                      pronunciation column as selecting it does. -->
                 <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
@@ -274,7 +319,15 @@
                       <span class="lead">{{ senseLead(row.sense) }}</span>
                       @if (row.sense.cefr) { <span class="cefr">{{ row.sense.cefr }}</span> }
                     </div>
+                    @if (facts && (facts.marks.length || facts.grammar.length)) {
+                      <!-- Where and how the sense is used, then its grammar where that differs from the word's. -->
+                      <p class="marks">
+                        @for (mark of facts.marks; track $index) { <span class="mark">{{ mark }}</span> }
+                        @for (mark of facts.grammar; track $index) { <span class="grammar">{{ mark }}</span> }
+                      </p>
+                    }
                     @if (senseSub(row.sense); as sub) { <span class="sub">{{ sub }}</span> }
+                    @if (facts?.note; as note) { <span class="sub note">{{ note }}</span> }
                     @if (row.example; as example) {
                       @let key = 'example:' + row.sense.index;
                       <div class="example">
@@ -286,6 +339,34 @@
                         <span class="example-text">{{ example.before }}<span class="word">{{ example.word }}</span>{{ example.after }}</span>
                         @if (playing === key && slow) { <span i18n class="slow">slow</span> }
                       </div>
+                    }
+                    @if (row.sense.frames.length) {
+                      <p class="said-with">
+                        <span i18n class="label">Pattern</span>
+                        @for (frame of row.sense.frames; track $index) { <span class="frame">{{ frame }}</span> }
+                      </p>
+                    }
+                    @if (row.sense.collocations.length) {
+                      @let shown = selected ? row.sense.collocations : row.sense.collocations.slice(0, collocationsShown);
+                      <p class="said-with">
+                        <span i18n class="label">Often</span>
+                        @for (collocation of shown; track $index) { <span class="collocation">{{ collocation }}</span> }
+                        @if (shown.length < row.sense.collocations.length) { <span class="rest">+{{ row.sense.collocations.length - shown.length }}</span> }
+                      </p>
+                    }
+                    @if (row.sense.antonyms.length || row.sense.standardAlternative) {
+                      <p class="said-with">
+                        @if (row.sense.antonyms.length) {
+                          <span i18n class="label">Opposite</span>
+                          @for (antonym of row.sense.antonyms; track $index) {
+                            <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: antonym}" (click)="$event.stopPropagation()">{{ antonym }}</a>
+                          }
+                        }
+                        @if (row.sense.standardAlternative; as standard) {
+                          <span i18n class="label">Standard word</span>
+                          <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: standard}" (click)="$event.stopPropagation()">{{ standard }}</a>
+                        }
+                      </p>
                     }
                     @if (reporting === row.sense.index && reportTarget) {
                       <app-entry-report [target]="reportTarget" [subject]="reportSubject" (closed)="closeReport()"></app-entry-report>

@@ -30,6 +30,95 @@ export interface DiscoverSense {
   definition: string | null;
   cefr: string | null;
   examples: DiscoverExample[];
+  /** `DiscoverLexeme.index` of the word the sense belongs to; null from other providers. */
+  lexeme: number | null;
+  labels: DiscoverLabels;
+  /** Where the sense is used, when not everywhere the language is spoken. */
+  regions: DiscoverRegion[];
+  /** What differs from the word's own grammar in this sense, by the lexicon's keys (countability, valency, note). */
+  grammar: DiscoverGrammar;
+  /** How the word is built into a sentence, every open place marked: "decide on sth". */
+  frames: string[];
+  /** The words the sense is commonly said with, the less guessable first. */
+  collocations: string[];
+  antonyms: string[];
+  /** The standard word for a nonstandard one. */
+  standardAlternative: string | null;
+}
+
+/** What kind of word a sense is, each axis by itself; the lexicon's own keys, absent ones null, empty or false. */
+export interface DiscoverLabels {
+  formality: string | null;
+  attitude: string[];
+  time: string | null;
+  style: string[];
+  normativity: string | null;
+  domain: string | null;
+  politeness: string | null;
+  figurative: boolean;
+  rare: boolean;
+}
+
+/** What a sense has of the lexicon's fields when no lexicon entry stands behind it: nothing. */
+export const NO_ENTRY: Pick<DiscoverSense, 'lexeme' | 'labels' | 'regions' | 'grammar' | 'frames' | 'collocations' | 'antonyms' | 'standardAlternative'> = {
+  lexeme: null,
+  labels: {formality: null, attitude: [], time: null, style: [], normativity: null, domain: null, politeness: null, figurative: false, rare: false},
+  regions: [],
+  grammar: {},
+  frames: [],
+  collocations: [],
+  antonyms: [],
+  standardAlternative: null,
+};
+
+/** The language with a country (en-GB) or a UN area (es-419), and whether the sense is used only or mainly there. */
+export interface DiscoverRegion {
+  variety: string;
+  extent: string;
+}
+
+/** Grammar as the lexicon writes it: gender "Fem", countability "Mass", irregular true, mainly ["position"]. */
+export type DiscoverGrammar = Record<string, unknown>;
+
+export interface DiscoverSpelling {
+  text: string;
+  /** The varieties that write it so; empty for all of them. */
+  varieties: string[];
+  preReform: boolean;
+}
+
+export interface DiscoverForm {
+  form: string;
+  /** Universal Dependencies features: {Number: "Plur"}, {Tense: "Past", VerbForm: "Part"}. */
+  features: Record<string, string>;
+  varieties: string[];
+  /** `DiscoverSense.index` of the senses the form belongs to; empty for all. */
+  senses: number[];
+  reading: string | null;
+  note: string | null;
+}
+
+export interface DiscoverRelation {
+  /** derived_from, diminutive_of, confusable and the lexicon's other kinds. */
+  type: string;
+  lemma: string;
+  partOfSpeech: string | null;
+  senses: number[];
+}
+
+/** One word behind the sheet's senses: a lemma in one part of speech, with what holds for all its senses. */
+export interface DiscoverLexeme {
+  index: number;
+  lemma: string;
+  partOfSpeech: string;
+  /** word, multiword or contraction. */
+  kind: string;
+  grammar: DiscoverGrammar;
+  /** Every way the word is written, when there is more than one. */
+  spellings: DiscoverSpelling[];
+  /** The forms a learner could not guess. */
+  forms: DiscoverForm[];
+  relations: DiscoverRelation[];
 }
 
 /** Whether a machine check confirmed the clip says the word; null when the clip was never checked. */
@@ -76,6 +165,8 @@ export interface DiscoverLookup {
   senses: DiscoverSense[];
   /** Empty when the backend sends none; only the lexicon provider fills it. */
   homophones: DiscoverHomophone[];
+  /** The words the senses belong to; empty unless the lexicon answered. */
+  lexemes: DiscoverLexeme[];
 }
 
 /** A headword offered while a word is being typed, with what the field shows beside it. */
@@ -170,6 +261,65 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
             translation: expectNullableString(example['translation'], `discoverLookup.senses[${index}].examples[${exampleIndex}].translation`),
           };
         }),
+        lexeme: sense['lexeme'] == null ? null : expectNumber(sense['lexeme'], `discoverLookup.senses[${index}].lexeme`),
+        labels: parseLabels(sense['labels'], `discoverLookup.senses[${index}].labels`),
+        regions: parseOptionalArray(sense['regions'], `discoverLookup.senses[${index}].regions`).map((value, at) => {
+          const region = expectRecord(value, `discoverLookup.senses[${index}].regions[${at}]`);
+          return {
+            variety: expectString(region['variety'], `discoverLookup.senses[${index}].regions[${at}].variety`),
+            extent: expectString(region['extent'], `discoverLookup.senses[${index}].regions[${at}].extent`),
+          };
+        }),
+        grammar: sense['grammar'] == null ? {} : expectRecord(sense['grammar'], `discoverLookup.senses[${index}].grammar`),
+        frames: parseStrings(sense['frames'], `discoverLookup.senses[${index}].frames`),
+        collocations: parseStrings(sense['collocations'], `discoverLookup.senses[${index}].collocations`),
+        antonyms: parseStrings(sense['antonyms'], `discoverLookup.senses[${index}].antonyms`),
+        standardAlternative: sense['standardAlternative'] == null
+          ? null
+          : expectString(sense['standardAlternative'], `discoverLookup.senses[${index}].standardAlternative`),
+      };
+    }),
+    lexemes: parseOptionalArray(data['lexemes'], 'discoverLookup.lexemes').map((value, index) => {
+      const path = `discoverLookup.lexemes[${index}]`;
+      const lexeme = expectRecord(value, path);
+      return {
+        index: expectNumber(lexeme['index'], `${path}.index`),
+        lemma: expectString(lexeme['lemma'], `${path}.lemma`),
+        partOfSpeech: expectString(lexeme['partOfSpeech'], `${path}.partOfSpeech`),
+        kind: expectString(lexeme['kind'], `${path}.kind`),
+        grammar: lexeme['grammar'] == null ? {} : expectRecord(lexeme['grammar'], `${path}.grammar`),
+        spellings: parseOptionalArray(lexeme['spellings'], `${path}.spellings`).map((value, at) => {
+          const spelling = expectRecord(value, `${path}.spellings[${at}]`);
+          return {
+            text: expectString(spelling['text'], `${path}.spellings[${at}].text`),
+            varieties: parseStrings(spelling['varieties'], `${path}.spellings[${at}].varieties`),
+            preReform: spelling['pre_reform'] === true,
+          };
+        }),
+        forms: parseOptionalArray(lexeme['forms'], `${path}.forms`).map((value, at) => {
+          const form = expectRecord(value, `${path}.forms[${at}]`);
+          const features = form['features'] == null ? {} : expectRecord(form['features'], `${path}.forms[${at}].features`);
+          return {
+            form: expectString(form['form'], `${path}.forms[${at}].form`),
+            // A person may come as a number (3); every feature is read as its text.
+            features: Object.fromEntries(Object.entries(features).map(([name, feature]) => [name, String(feature)])),
+            varieties: parseStrings(form['varieties'], `${path}.forms[${at}].varieties`),
+            senses: parseOptionalArray(form['senses'], `${path}.forms[${at}].senses`)
+              .map((sense, senseAt) => expectNumber(sense, `${path}.forms[${at}].senses[${senseAt}]`)),
+            reading: form['reading'] == null ? null : expectString(form['reading'], `${path}.forms[${at}].reading`),
+            note: form['note'] == null ? null : expectString(form['note'], `${path}.forms[${at}].note`),
+          };
+        }),
+        relations: parseOptionalArray(lexeme['relations'], `${path}.relations`).map((value, at) => {
+          const relation = expectRecord(value, `${path}.relations[${at}]`);
+          return {
+            type: expectString(relation['type'], `${path}.relations[${at}].type`),
+            lemma: expectString(relation['lemma'], `${path}.relations[${at}].lemma`),
+            partOfSpeech: relation['partOfSpeech'] == null ? null : expectString(relation['partOfSpeech'], `${path}.relations[${at}].partOfSpeech`),
+            senses: parseOptionalArray(relation['senses'], `${path}.relations[${at}].senses`)
+              .map((sense, senseAt) => expectNumber(sense, `${path}.relations[${at}].senses[${senseAt}]`)),
+          };
+        }),
       };
     }),
     pronunciations: parseOptionalArray(data['pronunciations'], 'discoverLookup.pronunciations').map((value, index) => {
@@ -194,6 +344,27 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
           .map((value, senseIndex) => expectNumber(value, `discoverLookup.pronunciations[${index}].senses[${senseIndex}]`)),
       };
     }),
+  };
+}
+
+function parseStrings(value: unknown, path: string): string[] {
+  return parseOptionalArray(value, path).map((item, index) => expectString(item, `${path}[${index}]`));
+}
+
+/** The lexicon leaves out a label that does not apply, so each axis reads as null, empty or false when absent. */
+function parseLabels(value: unknown, path: string): DiscoverLabels {
+  const labels = value == null ? {} : expectRecord(value, path);
+  const one = (key: string): string | null => labels[key] == null ? null : expectString(labels[key], `${path}.${key}`);
+  return {
+    formality: one('formality'),
+    attitude: parseStrings(labels['attitude'], `${path}.attitude`),
+    time: one('time'),
+    style: parseStrings(labels['style'], `${path}.style`),
+    normativity: one('normativity'),
+    domain: one('domain'),
+    politeness: one('politeness'),
+    figurative: labels['figurative'] === true,
+    rare: labels['rare'] === true,
   };
 }
 

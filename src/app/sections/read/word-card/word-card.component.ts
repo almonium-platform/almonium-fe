@@ -141,12 +141,13 @@ export class WordCardComponent implements OnChanges {
   }
 
   protected get senses(): WordCardSense[] {
+    // A lexicon sense may have no translation yet: its definition, in the word's own language, is its meaning then.
     return (this.lookup?.senses ?? [])
-      .filter(sense => sense.translations.length > 0)
+      .filter(sense => sense.translations.length > 0 || !!sense.definition)
       .map(sense => ({
         index: sense.index,
         key: sense.key,
-        meaning: sense.translations.join(', '),
+        meaning: sense.translations.join(', ') || (sense.definition ?? ''),
         gloss: sense.headword && sense.headword !== this.firstSense?.headword ? sense.headword : null,
       }));
   }
@@ -233,7 +234,8 @@ export class WordCardComponent implements OnChanges {
     this.cardService.createCard({
       entry: lookup.entry,
       language: lookup.language,
-      translations: meaning.split(',').map(value => value.trim()).filter(Boolean).map(translation => ({translation})),
+      // A definition is one meaning, commas and all; only the translations are a list.
+      translations: (sense?.translations.length ? sense.translations : [meaning]).map(translation => ({translation})),
       partOfSpeech: sense?.partOfSpeech ?? undefined,
       selectedSense: sense ? `${sense.index}: ${meaning}` : meaning,
       senseKey: sense?.key ?? undefined,

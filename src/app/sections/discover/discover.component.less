@@ -151,6 +151,20 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .senses { display: flex; flex-direction: column; gap: 4px; }
 .group { display: flex; flex-direction: column; gap: 2px; }
 .part-of-speech { margin: 0; padding: 14px 16px 6px 60px; color: var(--brand-margin); font: italic 15px var(--font-family-reading); }
+.part-of-speech .lemma { margin-right: 6px; color: var(--text-color); font-style: normal; font-weight: 600; }
+.part-of-speech .grammar { margin-left: 8px; color: var(--metadata-color); font: normal 12.5px var(--font-family); }
+.part-of-speech .grammar::before { content: "·"; margin-right: 8px; }
+// What holds for the whole word, under its part of speech: a label and its facts on a line, wrapping.
+.word-facts { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0 16px 8px 60px; font-size: 13.5px; line-height: 1.5; }
+.word-facts div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.word-facts dt { color: var(--metadata-color); font-size: 12.5px; }
+.word-facts dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin: 0; }
+.word-facts .note { color: var(--subhead-color); }
+.word-facts .fact { display: inline-flex; align-items: baseline; gap: 5px; }
+.word-facts .form { font: 600 14.5px var(--font-family-reading); }
+.word-facts .of { color: var(--metadata-color); font-size: 12.5px; }
+.word-facts a, .said-with a { min-height: 0; color: var(--brand-primary); font: 14.5px var(--font-family-reading); text-decoration: none; }
+.word-facts a:hover, .word-facts a:focus-visible, .said-with a:hover, .said-with a:focus-visible { text-decoration: underline; }
 .sense { display: flex; align-items: flex-start; gap: 16px; padding: 14px 16px; border-radius: 16px; cursor: pointer; }
 .sense:hover { background: var(--nested-color); }
 .sense.selected, .sense.lit { background: var(--chat-selected-color); }
@@ -161,6 +175,19 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .lead { font: 500 18px/1.4 var(--font-family-reading); text-wrap: pretty; }
 .cefr { padding: 2px 6px; border-radius: 5px; background: var(--chat-selected-color); color: var(--brand-primary); font: 10.5px var(--font-family-mono); }
 .sub { color: var(--subhead-color); font-size: 14.5px; line-height: 1.5; }
+.sub.note { font-size: 13.5px; }
+.marks { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0; font-size: 12.5px; }
+.marks .mark { color: var(--brand-margin); font-style: italic; }
+.marks .grammar { color: var(--metadata-color); }
+.marks span + span::before { content: "·"; margin-right: 8px; color: var(--metadata-color); font-style: normal; }
+// The constructions and the company of a sense: a quiet label, then each on the reading face.
+.said-with { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; font-size: 14px; line-height: 1.5; }
+.said-with .label { color: var(--metadata-color); font-size: 12.5px; }
+.said-with .frame { padding: 1px 7px; border-radius: 6px; background: var(--nested-color); font: 13px var(--font-family-mono); }
+.sense.selected .said-with .frame, .sense.lit .said-with .frame, .sense:hover .said-with .frame { background: var(--card-color); }
+.said-with .collocation { font: 14.5px var(--font-family-reading); }
+.said-with .collocation + .collocation::before { content: "·"; margin-right: 10px; color: var(--metadata-color); }
+.said-with .rest { color: var(--metadata-color); font-size: 12.5px; }
 .example { display: flex; align-items: center; gap: 9px; margin-top: 4px; }
 .example-text { font: italic 15.5px/1.5 var(--font-family-reading); }
 .example-text .word { color: var(--brand-primary); font-weight: 600; }
@@ -199,7 +226,7 @@ blockquote { margin: 0 16px; padding: 1.1rem 1.25rem; border-left: 3px solid var
   .sense { gap: 10px; padding: 12px 10px; }
   .sense .number { flex-basis: 20px; }
   .keep-slot { min-width: 0; }
-  .part-of-speech, .more { padding-left: 40px; }
+  .part-of-speech, .more, .word-facts { padding-left: 40px; }
   // Two alternatives and their speakers outgrow a phone; there the line wraps rather than run off the card.
   .pronunciations .voice-line { flex-wrap: wrap; white-space: normal; }
 }

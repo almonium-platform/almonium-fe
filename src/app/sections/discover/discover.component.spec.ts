@@ -9,7 +9,7 @@ import {CardService} from '../../services/card.service';
 import {TargetLanguageDropdownService} from '../../services/target-language-dropdown.service';
 import {UserInfoService} from '../../services/user-info.service';
 import {DiscoverComponent} from './discover.component';
-import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggestion} from './discover.service';
+import {DiscoverLookup, DiscoverPronunciation, DiscoverService, DiscoverSuggestion, NO_ENTRY} from './discover.service';
 import {EntryReportService} from './report/entry-report.service';
 
 describe('DiscoverComponent', () => {
@@ -22,14 +22,14 @@ describe('DiscoverComponent', () => {
   function lookupOf(pronunciations: DiscoverPronunciation[]): DiscoverLookup {
     return {
       entry: 'colour', sourceContext: null, language: LanguageCode.EN, translationLanguage: LanguageCode.UK, provider: 'lexicon',
-      frequency: null, pronunciations, homophones: [],
+      frequency: null, pronunciations, homophones: [], lexemes: [],
       senses: [
         {
           index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
           definition: 'The property of an object that depends on the light it reflects.', cefr: 'A1',
-          examples: [{text: 'What colour is it?', translation: 'Якого воно кольору?'}],
+          examples: [{text: 'What colour is it?', translation: 'Якого воно кольору?'}], ...NO_ENTRY,
         },
-        {index: 2, key: null, headword: 'colour', partOfSpeech: 'verb', transcription: null, translations: ['фарбувати'], definition: null, cefr: null, examples: []},
+        {index: 2, key: null, headword: 'colour', partOfSpeech: 'verb', transcription: null, translations: ['фарбувати'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
       ],
     };
   }
@@ -321,8 +321,8 @@ describe('DiscoverComponent', () => {
   it('shows three senses, then the rest on request with the hidden count per part of speech', async () => {
     const lookup = lookupOf([]);
     lookup.senses = [
-      ...[1, 2, 3, 4].map(index => ({index, key: null, headword: 'colour', partOfSpeech: 'NOUN', transcription: null, translations: [`n${index}`], definition: null, cefr: null, examples: []})),
-      {index: 5, key: null, headword: 'colour', partOfSpeech: 'VERB', transcription: null, translations: ['v'], definition: null, cefr: null, examples: []},
+      ...[1, 2, 3, 4].map(index => ({index, key: null, headword: 'colour', partOfSpeech: 'NOUN', transcription: null, translations: [`n${index}`], definition: null, cefr: null, examples: [], ...NO_ENTRY})),
+      {index: 5, key: null, headword: 'colour', partOfSpeech: 'VERB', transcription: null, translations: ['v'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
     ];
     const element = await render(lookup, null);
     expect(element.querySelectorAll('.sense').length).toBe(3);
@@ -350,7 +350,7 @@ describe('DiscoverComponent', () => {
 
   it('renders a lookup from a backend without lexicon fields', async () => {
     const lookup = lookupOf([]);
-    lookup.senses = [{index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: 'ˈkʌlə', translations: ['колір'], definition: null, cefr: null, examples: []}];
+    lookup.senses = [{index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: 'ˈkʌlə', translations: ['колір'], definition: null, cefr: null, examples: [], ...NO_ENTRY}];
     const element = await render(lookup, 'en-GB');
     expect(element.querySelector('.pronunciations')).toBeNull();
     expect(element.querySelector('.entry-header .transcription')?.textContent).toContain('ˈkʌlə');

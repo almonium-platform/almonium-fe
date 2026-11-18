@@ -14,6 +14,8 @@ export interface SenseRow {
 
 export interface SenseGroup {
   partOfSpeech: string | null;
+  /** `DiscoverLexeme.index` of the word the rows belong to; null when no lexicon entry stands behind them. */
+  lexeme: number | null;
   rows: SenseRow[];
 }
 
@@ -26,14 +28,15 @@ export interface ExampleParts {
 }
 
 /**
- * Senses in groups by part of speech. The server sends them most frequent first; a group sits where its first
- * sense does, keeps its senses in the server's order, and numbering runs across groups.
+ * Senses in groups: by the word they belong to when the lexicon answered, so two nouns of one spelling (das Band,
+ * die Band) stand apart, and by part of speech otherwise. A group sits where its first sense does, keeps its senses
+ * in the server's order, and numbering runs across groups.
  */
 export function groupSenses(senses: DiscoverSense[]): SenseRow[] {
-  const order: (string | null)[] = [];
-  const byPart = new Map<string | null, DiscoverSense[]>();
+  const order: (string | number | null)[] = [];
+  const byPart = new Map<string | number | null, DiscoverSense[]>();
   for (const sense of senses) {
-    const part = sense.partOfSpeech;
+    const part = sense.lexeme ?? sense.partOfSpeech;
     if (!byPart.has(part)) {
       byPart.set(part, []);
       order.push(part);
@@ -45,20 +48,26 @@ export function groupSenses(senses: DiscoverSense[]): SenseRow[] {
   }));
 }
 
-/** Consecutive rows of one part of speech, as the sheet heads them. */
+/** Consecutive rows of one word, or of one part of speech, as the sheet heads them. */
 export function toGroups(rows: SenseRow[]): SenseGroup[] {
   const groups: SenseGroup[] = [];
   for (const row of rows) {
     const last = groups[groups.length - 1];
-    if (last?.partOfSpeech === row.sense.partOfSpeech) last.rows.push(row);
-    else groups.push({partOfSpeech: row.sense.partOfSpeech, rows: [row]});
+    if (last?.partOfSpeech === row.sense.partOfSpeech && last.lexeme === row.sense.lexeme) last.rows.push(row);
+    else groups.push({partOfSpeech: row.sense.partOfSpeech, lexeme: row.sense.lexeme, rows: [row]});
   }
   return groups;
 }
 
 /** How many of the hidden rows each part of speech holds, in the order they would appear. */
 export function hiddenCounts(rows: SenseRow[]): {partOfSpeech: string | null; count: number}[] {
-  return toGroups(rows).map(group => ({partOfSpeech: group.partOfSpeech, count: group.rows.length}));
+  const counts: {partOfSpeech: string | null; count: number}[] = [];
+  for (const group of toGroups(rows)) {
+    const last = counts[counts.length - 1];
+    if (last?.partOfSpeech === group.partOfSpeech) last.count += group.rows.length;
+    else counts.push({partOfSpeech: group.partOfSpeech, count: group.rows.length});
+  }
+  return counts;
 }
 
 /**

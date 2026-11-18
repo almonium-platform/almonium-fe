@@ -6,17 +6,17 @@ import {UserInfo} from '../../../models/userinfo.model';
 import {CardService} from '../../../services/card.service';
 import {LanguageNameService} from '../../../services/language-name.service';
 import {UserInfoService} from '../../../services/user-info.service';
-import {DiscoverLookup, DiscoverService} from '../../discover/discover.service';
+import {DiscoverLookup, DiscoverService, NO_ENTRY} from '../../discover/discover.service';
 import {EntryReportService} from '../../discover/report/entry-report.service';
 import {WordCardComponent} from './word-card.component';
 
 describe('WordCardComponent', () => {
   const lookup: DiscoverLookup = {
     entry: 'Bank', sourceContext: null, language: LanguageCode.DE, translationLanguage: LanguageCode.EN, provider: 'lexicon',
-    frequency: null, pronunciations: [], homophones: [],
+    frequency: null, pronunciations: [], homophones: [], lexemes: [],
     senses: [
-      {index: 1, key: 'key-1', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bench'], definition: null, cefr: null, examples: []},
-      {index: 2, key: 'key-2', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bank'], definition: null, cefr: null, examples: []},
+      {index: 1, key: 'key-1', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bench'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
+      {index: 2, key: 'key-2', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bank'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
     ],
   };
 

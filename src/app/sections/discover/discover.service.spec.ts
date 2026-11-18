@@ -4,7 +4,7 @@ import {TestBed} from '@angular/core/testing';
 import {firstValueFrom} from 'rxjs';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
-import {DiscoverService, parseDiscoverLookup} from './discover.service';
+import {DiscoverService, parseDiscoverLookup, NO_ENTRY} from './discover.service';
 
 describe('DiscoverService', () => {
   let service: DiscoverService;
@@ -46,6 +46,43 @@ describe('DiscoverService', () => {
     expect(parseDiscoverLookup({
       entry: 'Ausgabe', sourceContext: null, language: 'DE', translationLanguage: 'EN', provider: null, frequency: null, senses: [],
     }).senses).toEqual([]);
+  });
+
+  it('reads the words behind the senses and what a sense is said with, and nothing of either from another provider', () => {
+    const lookup = parseDiscoverLookup({
+      entry: 'Kraft', sourceContext: null, language: 'DE', translationLanguage: 'UK', provider: 'lexicon', frequency: null,
+      senses: [{
+        index: 1, headword: 'Kraft', partOfSpeech: 'NOUN', transcription: null, translations: [], definition: 'körperliche Stärke', cefr: 'A2',
+        examples: [], lexeme: 1, labels: {formality: 'formal', style: ['official'], figurative: true},
+        regions: [{variety: 'de-AT', extent: 'mainly'}], grammar: {countability: 'Mass'}, frames: ['Kraft für etw. haben'],
+        collocations: ['mit aller Kraft'], antonyms: ['Schwäche'], standardAlternative: null,
+      }],
+      lexemes: [{
+        index: 1, lemma: 'Kraft', partOfSpeech: 'NOUN', kind: 'word', grammar: {gender: 'Fem', plural_class: '-¨e'},
+        spellings: [{text: 'Kraft', varieties: ['de-DE'], pre_reform: true}],
+        forms: [{form: 'Kräfte', features: {Case: 'Nom', Number: 'Plur', Person: 3}, varieties: [], senses: [1], reading: null, note: null}],
+        relations: [{type: 'derived_from', lemma: 'kräftig', partOfSpeech: 'ADJ', senses: []}],
+        components: [], separable: null,
+      }],
+    });
+    expect(lookup.senses[0]).toEqual(jasmine.objectContaining({
+      lexeme: 1,
+      labels: {formality: 'formal', attitude: [], time: null, style: ['official'], normativity: null, domain: null, politeness: null, figurative: true, rare: false},
+      regions: [{variety: 'de-AT', extent: 'mainly'}], grammar: {countability: 'Mass'}, frames: ['Kraft für etw. haben'],
+      collocations: ['mit aller Kraft'], antonyms: ['Schwäche'], standardAlternative: null,
+    }));
+    expect(lookup.lexemes).toEqual([{
+      index: 1, lemma: 'Kraft', partOfSpeech: 'NOUN', kind: 'word', grammar: {gender: 'Fem', plural_class: '-¨e'},
+      spellings: [{text: 'Kraft', varieties: ['de-DE'], preReform: true}],
+      forms: [{form: 'Kräfte', features: {Case: 'Nom', Number: 'Plur', Person: '3'}, varieties: [], senses: [1], reading: null, note: null}],
+      relations: [{type: 'derived_from', lemma: 'kräftig', partOfSpeech: 'ADJ', senses: []}],
+    }]);
+    const plain = parseDiscoverLookup({
+      entry: 'Ausgabe', sourceContext: null, language: 'DE', translationLanguage: 'EN', provider: 'dictionary', frequency: null,
+      senses: [{index: 1, headword: 'die Ausgabe', partOfSpeech: 'noun', transcription: null, translations: ['edition']}],
+    });
+    expect(plain.lexemes).toEqual([]);
+    expect(plain.senses[0]).toEqual(jasmine.objectContaining(NO_ENTRY));
   });
 
   it('reads the lexicon fields: pronunciations, definition, level and examples', () => {

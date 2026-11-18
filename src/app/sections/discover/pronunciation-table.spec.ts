@@ -1,10 +1,10 @@
-import {DiscoverPronunciation, DiscoverSense} from './discover.service';
+import {DiscoverPronunciation, DiscoverSense, NO_ENTRY} from './discover.service';
 import {numberRanges, pronunciationTable} from './pronunciation-table';
 import {groupSenses} from './word-sheet';
 
 describe('pronunciation table', () => {
   const sense = (index: number, partOfSpeech: string): DiscoverSense =>
-    ({index, key: null, headword: 'word', partOfSpeech, transcription: null, translations: [], definition: null, cefr: null, examples: []});
+    ({index, key: null, headword: 'word', partOfSpeech, transcription: null, translations: [], definition: null, cefr: null, examples: [], ...NO_ENTRY});
   const said = (variety: string, ipa: string, senses: number[], clipUrl: string | null = null): DiscoverPronunciation =>
     ({variety, ipa, clipUrl, clipStatus: clipUrl ? 'verified' : null, segments: null, senses});
   const label = (partOfSpeech: string | null) => partOfSpeech?.toLowerCase() ?? '';

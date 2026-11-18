@@ -18,6 +18,7 @@ import {
   DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
+import {LexemeFacts, SenseFacts, lexemeFacts, senseFacts} from './entry-shape';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 import {PronunciationCell, PronunciationTable, numberRanges, pronunciationTable, speakerKey} from './pronunciation-table';
 import {EntryReportComponent} from './report/entry-report.component';
@@ -95,6 +96,11 @@ export class DiscoverComponent implements OnInit {
   /** On a phone only the learner's accent is open; the others fold into one line until it is tapped (design 7c). */
   protected otherAccentsOpen = false;
   protected senseGroups: SenseGroup[] = [];
+  /** What each sense says besides its meaning, by `DiscoverSense.index`, and each word, by `DiscoverLexeme.index`. */
+  protected senseFacts = new Map<number, SenseFacts>();
+  protected lexemeFacts = new Map<number, LexemeFacts>();
+  /** A sense's collocations are cut to this many until it is the selected one. */
+  protected readonly collocationsShown = 3;
   protected selectedRow = 0;
   protected expanded = false;
   /** The card each kept sense became, by sense index, so that Kept can take it back. */
@@ -561,6 +567,19 @@ export class DiscoverComponent implements OnInit {
     return this.definitionLeads ? translation : definition;
   }
 
+  /** The sheet number of a sense by its index: a form or a relation that belongs to some senses names them by it. */
+  protected senseNumbers(indexes: number[]): string {
+    const numbers = this.senseRows.filter(row => indexes.includes(row.sense.index)).map(row => row.number).sort((a, b) => a - b);
+    if (!numbers.length) return '';
+    return numbers.length === 1 ? $localize`meaning ${numbers[0]}:number:` : $localize`meanings ${numberRanges(numbers)}:numbers:`;
+  }
+
+  /** The lemma over a group when it is not the sheet's own headline: "kraft" under Kraft. */
+  protected groupLemma(group: SenseGroup): string {
+    const lemma = this.lookup?.lexemes.find(lexeme => lexeme.index === group.lexeme)?.lemma ?? '';
+    return lemma && lemma !== (this.selectedSense?.headword ?? this.lookup?.entry) ? lemma : '';
+  }
+
   protected partOfSpeechLabel(partOfSpeech: string | null): string {
     if (!partOfSpeech) return '';
     return PARTS_OF_SPEECH[partOfSpeech.toUpperCase()] ?? partOfSpeech.toLowerCase();
@@ -745,6 +764,9 @@ export class DiscoverComponent implements OnInit {
     this.playing = null;
     this.lookup = lookup;
     this.senseRows = groupSenses(lookup.senses);
+    const varietyName = (tag: string) => this.varietyLabel(tag);
+    this.senseFacts = new Map(lookup.senses.map(sense => [sense.index, senseFacts(sense, lookup.language, varietyName, this.locale)]));
+    this.lexemeFacts = new Map(lookup.lexemes.map(lexeme => [lexeme.index, lexemeFacts(lexeme, lookup.language, varietyName)]));
     this.setPronunciationRows();
     this.selectedRow = 0;
     this.expanded = false;
