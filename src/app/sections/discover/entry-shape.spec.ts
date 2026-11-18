@@ -14,6 +14,11 @@ describe('entry shape', () => {
       .toEqual(['British', 'mainly Ireland', 'Latin America', 'informal', 'humorous', 'figurative', 'computing']);
   });
 
+  it('names a UN area in the words the mobile app uses, whatever the browser calls it', () => {
+    const regions = ['en-021', 'en-029', 'es-419', 'en-NZ'].map(variety => ({variety, extent: 'only'}));
+    expect(senseMarks(NO_ENTRY.labels, regions, varietyName, 'en')).toEqual(['North America', 'the Caribbean', 'Latin America', 'New Zealand']);
+  });
+
   it('shows a label this build does not know as it came', () => {
     expect(senseMarks({...NO_ENTRY.labels, style: ['very_new'], domain: 'beekeeping'}, [], varietyName, 'en')).toEqual(['very new', 'beekeeping']);
   });

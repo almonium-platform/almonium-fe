@@ -106,6 +106,16 @@ const RELATIONS: Record<string, string> = {
   confusable: $localize`not to be confused with`,
 };
 
+/**
+ * The UN M.49 areas a region may name besides a country, in the words the mobile app uses for them (its
+ * `entry-shape.ts` has the same list): the browser's own names differ for two ("Northern America", "Caribbean").
+ * The backend's EntrySchema.UN_REGIONS lists the same nine.
+ */
+const UN_AREAS: Record<string, string> = {
+  '419': $localize`Latin America`, '029': $localize`the Caribbean`, '005': $localize`South America`, '013': $localize`Central America`,
+  '021': $localize`North America`, '150': $localize`Europe`, '002': $localize`Africa`, '142': $localize`Asia`, '009': $localize`Oceania`,
+};
+
 function named(table: Record<string, string>, key: string): string {
   return table[key] ?? key.replace(/_/g, ' ');
 }
@@ -114,10 +124,14 @@ function text(value: unknown): string | null {
   return typeof value === 'string' && value ? value : null;
 }
 
-/** "Ireland", "Latin America": the country or UN area of a tag the product has no variety for. */
+/**
+ * "Ireland", "Latin America": the country or UN area of a tag the product has no variety for. The browser names the
+ * country; for all 249 its English name is the one in the mobile app's own list.
+ */
 function areaName(tag: string, locale: string): string {
   const area = tag.split('-')[1];
   if (!area) return tag;
+  if (UN_AREAS[area]) return UN_AREAS[area];
   try {
     return new Intl.DisplayNames([locale], {type: 'region'}).of(area) ?? tag;
   } catch {
