@@ -28,13 +28,13 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
             </button>
             @if (secondaryActionText) {
               <button (click)="onConfirmTwo()"
-                      class="bg-white border-[var(--brand-ink)] text-[var(--brand-ink)] px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
+                      class="bg-white border-(--brand-ink) text-(--brand-ink) px-4 py-2 font-bold rounded-3xl hover:bg-gray-100">
                 {{ secondaryActionText }}
               </button>
             }
             @if (primaryActionText) {
               <button (click)="onConfirmOne()"
-                      class="bg-[var(--brand-ink)] text-white px-4 py-2 font-bold rounded-3xl hover:bg-[var(--brand-pressed)]">
+                      class="bg-(--brand-ink) text-white px-4 py-2 font-bold rounded-3xl hover:bg-(--brand-pressed)">
                 {{ primaryActionText }}
               </button>
             }

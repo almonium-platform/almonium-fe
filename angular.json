@@ -59,6 +59,7 @@
               "node_modules/@taiga-ui/styles/taiga-ui-fonts.less",
               // TODO: Vendor the remaining Taiga legacy utility styles before Taiga UI 6.
               "node_modules/@taiga-ui/legacy/styles/taiga-ui-global.less",
+              "src/tailwind.css",
               "src/styles.less",
               "src/styles.scss"
             ],
@@ -168,6 +169,7 @@
               "src/assets"
             ],
             "styles": [
+              "src/tailwind.css",
               "src/styles.less",
               "src/styles.scss"
             ],
