@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {LanguageCode} from "../models/language.enum";
 import {AppConstants} from "../app.constants";
 import {CardCreationDto, CardDto, parseCards} from "../models/card.model";
+import {AnalyticsService} from './analytics/analytics.service';
 
 
 @Injectable({
@@ -12,6 +13,7 @@ import {CardCreationDto, CardDto, parseCards} from "../models/card.model";
 })
 export class CardService {
   private http = inject(HttpClient);
+  private analytics = inject(AnalyticsService);
 
 
   getCardsInLanguage(language: LanguageCode): Observable<CardDto[]> {
@@ -21,7 +23,10 @@ export class CardService {
 
   createCard(dto: CardCreationDto): Observable<CardDto> {
     return this.http.post<unknown>(AppConstants.CARDS_URL, dto, {withCredentials: true})
-      .pipe(map(value => parseCards([value])[0]));
+      .pipe(
+        map(value => parseCards([value])[0]),
+        tap(() => this.analytics.trackFirst('first_save', {language: dto.language})),
+      );
   }
 
   deleteCard(id: string): Observable<unknown> {

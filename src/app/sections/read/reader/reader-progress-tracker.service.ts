@@ -6,6 +6,7 @@ import {logger} from '../../../shared/logger';
 import {ReaderPosition} from './reader-position.model';
 import {ReaderPositionStorage} from './reader-position-storage.service';
 import {ReadingPlace} from '../book.model';
+import {AnalyticsService} from '../../../services/analytics/analytics.service';
 
 interface ProgressUpdate {
   percentage: number;
@@ -26,6 +27,7 @@ export class ReaderProgressTracker {
   private readonly readService = inject(ReadService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly positionStorage = inject(ReaderPositionStorage);
+  private readonly analytics = inject(AnalyticsService);
   private readonly updates$ = new Subject<ProgressUpdate>();
   private readonly positionUpdates$ = new Subject<{bookKey: string; position: ReaderPosition}>();
   private readonly book$ = new BehaviorSubject<string | null>(null);
@@ -72,6 +74,7 @@ export class ReaderProgressTracker {
     this.lastSaved = null;
     this.currentPosition = null;
     this.book$.next(serverBookId);
+    this.analytics.track('book_opened', {book_id: bookKey, signed_in: serverBookId !== null});
     return this.positionStorage.get(bookKey);
   }
 
@@ -79,6 +82,7 @@ export class ReaderProgressTracker {
     this.currentPercentage = percentage;
     this.currentPlace = place;
     this.currentPosition = position;
+    if (this.bookKey !== null) this.analytics.trackBookProgress(this.bookKey, percentage);
     if (this.bookId !== null) this.updates$.next({percentage, place});
     if (this.bookKey !== null) this.positionUpdates$.next({bookKey: this.bookKey, position});
   }

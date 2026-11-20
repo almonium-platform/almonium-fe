@@ -5,6 +5,11 @@ export const environment = {
   googleClientId: '33380019461-l4hq3eto00vvvgprtadahm5o2tqj65ti.apps.googleusercontent.com',
   streamChatApiKey: "zjh3fpuaexy2",
   googleAnalyticsId: 'G-726SZFQZWB',
+  // PostHog product analytics. The project key is public; it ships in the bundle.
+  posthog: {
+    key: 'phc_pLUMAC6rgmC2NMSSuP8LYRBYkrTi2B6ij2rk4zmagNa3',
+    host: 'https://eu.i.posthog.com',
+  },
   firebaseConfig: {
     apiKey: "AIzaSyCQbbBZzwOcG5p91bldcsL4hQCPbK9ywUo",
     authDomain: "almonium-dev.firebaseapp.com",

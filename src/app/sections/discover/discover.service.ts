@@ -1,10 +1,11 @@
 import {Injectable, inject} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
 import {expectArray, expectBoolean, expectEnum, expectNullableString, expectNumber, expectRecord, expectString} from '../../shared/runtime-validation';
+import {AnalyticsService} from '../../services/analytics/analytics.service';
 
 export interface DiscoverFrequency {
   score: number;
@@ -92,6 +93,7 @@ const CLIP_STATUSES: readonly DiscoverClipStatus[] = ['verified', 'unverified'];
 @Injectable({providedIn: 'root'})
 export class DiscoverService {
   private readonly http = inject(HttpClient);
+  private readonly analytics = inject(AnalyticsService);
 
   lookup(entry: string, language: LanguageCode, translationLanguage: LanguageCode, context?: string): Observable<DiscoverLookup> {
     let params = new HttpParams().set('entry', entry);
@@ -99,7 +101,10 @@ export class DiscoverService {
     return this.http.get<unknown>(
       `${AppConstants.PUBLIC_URL}/discover/lookup/${language}/${translationLanguage}`,
       {params},
-    ).pipe(map(parseDiscoverLookup));
+    ).pipe(
+      map(parseDiscoverLookup),
+      tap(() => this.analytics.trackFirst('first_lookup', {language})),
+    );
   }
 
   /** Headwords beginning with what was typed, most frequent first; the lexicon's word for "autocomplete". */

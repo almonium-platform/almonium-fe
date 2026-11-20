@@ -13,6 +13,7 @@ import {
   checkActionCode,
   confirmPasswordReset,
   createUserWithEmailAndPassword,
+  getAdditionalUserInfo,
   EmailAuthProvider,
   getIdToken,
   GoogleAuthProvider,
@@ -29,6 +30,7 @@ import {
   User,
   verifyBeforeUpdateEmail,
 } from 'firebase/auth';
+import {AnalyticsService} from '../../services/analytics/analytics.service';
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
@@ -37,6 +39,7 @@ export class AuthService {
   private userInfoService = inject(UserInfoService);
   private localStorageService = inject(LocalStorageService);
   private popupTemplateStateService = inject(PopupTemplateStateService);
+  private analytics = inject(AnalyticsService);
 
   private readonly ready: Promise<void>;
 
@@ -88,9 +91,13 @@ export class AuthService {
         if (mode === 'reauth' && user) return from(reauthenticateWithPopup(user, provider));
         return from(signInWithPopup(this.firebaseAuth, provider));
       }),
-      switchMap(credential => mode === 'reauth'
-        ? this.exchangeSession(credential.user, 'reauth')
-        : this.exchangeSession(credential.user)),
+      switchMap(credential => {
+        if (mode === 'reauth') return this.exchangeSession(credential.user, 'reauth');
+        const isNewUser = mode === 'sign-in' && getAdditionalUserInfo(credential)?.isNewUser === true;
+        return this.exchangeSession(credential.user).pipe(tap(() => {
+          if (isNewUser) this.analytics.track('signup', {method: provider.providerId});
+        }));
+      }),
     );
   }
 
@@ -98,6 +105,7 @@ export class AuthService {
     return from(this.ready).pipe(
       switchMap(() => from(createUserWithEmailAndPassword(this.firebaseAuth, email, password))),
       switchMap(credential => this.requestEmailVerification(credential.user)),
+      tap(() => this.analytics.track('signup', {method: 'password'})),
       switchMap(() => from(signOut(this.firebaseAuth))),
       switchMap(() => of({message: $localize`Next step, verify your email!`})),
     );

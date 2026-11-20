@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {AppConstants} from "../app.constants";
 import {parsePlans, parseSessionUrlResponse, PlanDto, SessionUrlResponse} from "../models/plan.model";
 import {
@@ -10,12 +10,14 @@ import {
   parseCadenceChangePreview,
 } from "../models/cadence-change.model";
 import {PlanType} from "../models/userinfo.model";
+import {AnalyticsService} from './analytics/analytics.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlanService {
   private http = inject(HttpClient);
+  private analytics = inject(AnalyticsService);
 
 
   getPlans(): Observable<PlanDto[]> {
@@ -28,7 +30,10 @@ export class PlanService {
       {},
       {withCredentials: true, params: {founder}},
     )
-      .pipe(map(parseSessionUrlResponse));
+      .pipe(
+        map(parseSessionUrlResponse),
+        tap(() => this.analytics.track('subscribe_started', {plan_id: planId, founder})),
+      );
   }
 
   accessCustomerPortal(): Observable<SessionUrlResponse> {

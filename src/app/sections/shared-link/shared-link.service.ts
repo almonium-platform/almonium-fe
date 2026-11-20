@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {AppConstants} from '../../app.constants';
 import {environment} from '../../../environments/environment';
 import {
@@ -16,21 +16,29 @@ import {
   SharedDeckView,
   SharedLinkViewerStatus,
 } from './shared-link.model';
+import {AnalyticsService} from '../../services/analytics/analytics.service';
 
 /** The two routes a link can open, and what a signed-in viewer may do there. */
 @Injectable({providedIn: 'root'})
 export class SharedLinkService {
   private http = inject(HttpClient);
+  private analytics = inject(AnalyticsService);
 
   /** The public read: the same answer for everyone, signed in or not. */
   getCard(publicId: string): Observable<SharedCardView> {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_SHARES_URL}/cards/${publicId}`)
-      .pipe(map(parseSharedCardView));
+      .pipe(
+        map(parseSharedCardView),
+        tap(() => this.analytics.track('share_link_opened', {kind: 'card'})),
+      );
   }
 
   getDeck(shareId: string): Observable<SharedDeckView> {
     return this.http.get<unknown>(`${AppConstants.PUBLIC_SHARES_URL}/decks/${shareId}`)
-      .pipe(map(parseSharedDeckView));
+      .pipe(
+        map(parseSharedDeckView),
+        tap(() => this.analytics.track('share_link_opened', {kind: 'deck'})),
+      );
   }
 
   cardViewer(publicId: string): Observable<SharedLinkViewerStatus> {
@@ -61,7 +69,12 @@ export class SharedLinkService {
 
   setShareEnabled(deckId: string, shareEnabled: boolean): Observable<Deck> {
     return this.http.patch<unknown>(`${AppConstants.DECKS_URL}/${deckId}`, {shareEnabled}, {withCredentials: true})
-      .pipe(map(parseDeck));
+      .pipe(
+        map(parseDeck),
+        tap(deck => {
+          if (shareEnabled && deck.shareEnabled) this.analytics.track('share_link_created', {kind: 'deck'});
+        }),
+      );
   }
 
   deckLink(shareId: string): string {
