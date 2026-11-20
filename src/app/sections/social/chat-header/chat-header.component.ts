@@ -1,5 +1,5 @@
 import {logger} from "../../../shared/logger";
-import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, Input, OnDestroy, TemplateRef, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, DestroyRef, Input, OnDestroy, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {Channel, Event as StreamEvent, StreamChat, UserResponse} from 'stream-chat';
 import {
   ChannelActionsContext,
@@ -120,6 +120,7 @@ function topicOf(name: string): string {
       width: .375rem;
     }
   `],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [DatePipe]
 })
 export class ChatHeaderComponent implements OnDestroy, AfterViewInit {

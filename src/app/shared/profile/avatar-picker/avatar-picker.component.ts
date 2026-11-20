@@ -1,5 +1,5 @@
 import {DOCUMENT} from '@angular/common';
-import {Component, Input, inject} from '@angular/core';
+import {Component, Input, inject, ChangeDetectionStrategy} from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {UserInfo} from '../../../models/userinfo.model';
 import {UserInfoService} from '../../../services/user-info.service';
@@ -25,6 +25,7 @@ interface AvatarChoice {
   selector: 'app-avatar-picker',
   templateUrl: './avatar-picker.component.html',
   styleUrl: './avatar-picker.component.less',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PremiumStarComponent],
 })
 export class AvatarPickerComponent {

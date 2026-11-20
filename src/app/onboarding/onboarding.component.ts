@@ -1,5 +1,5 @@
 import {logger} from "../shared/logger";
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ParticlesComponent} from "../shared/particles/particles.component";
 import {UserInfoService} from "../services/user-info.service";
 import {NgTemplateOutlet} from "@angular/common";
@@ -27,6 +27,7 @@ import {ReturnPathService} from '../services/return-path.service';
     GreetingComponent,
   ],
   templateUrl: './onboarding.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './onboarding.component.less'
 })
 export class OnboardingComponent implements OnInit, OnDestroy {

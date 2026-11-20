@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject } from "@angular/core";
+import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import {UserInfoService} from "../../services/user-info.service";
 import {isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
@@ -15,6 +15,7 @@ import {ButtonComponent} from "../../shared/button/button.component";
     ButtonComponent
   ],
   templateUrl: './welcome.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './welcome.component.less'
 })
 export class WelcomeComponent implements OnInit, OnDestroy {

@@ -1,5 +1,5 @@
 import {logger} from "../../shared/logger";
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {AuthService} from "../auth/auth.service";
 import {forkJoin, timer} from "rxjs";
@@ -13,6 +13,7 @@ import {LANDING_ACCOUNT_DELETED_PARAM, LOGOUT_REASON_ACCOUNT_DELETED} from "./lo
     LoadingIndicatorComponent
   ],
   templateUrl: './logout.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './logout.component.less'
 })
 export class LogoutComponent implements OnInit {

@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject } from "@angular/core";
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import {TuiNotificationService} from "@taiga-ui/core/components";
 
 import {PlanService} from "../../services/plan.service";
@@ -28,6 +28,7 @@ const CLAIMED_COUNT_VISIBLE = false;
 @Component({
   selector: 'app-paywall',
   templateUrl: './paywall.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./paywall.component.less'],
 })
 export class PaywallComponent implements OnInit, OnDestroy {

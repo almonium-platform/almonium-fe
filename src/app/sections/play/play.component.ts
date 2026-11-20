@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {combineLatest, of, Subject} from 'rxjs';
 import {catchError, switchMap, takeUntil} from 'rxjs/operators';
@@ -13,6 +13,7 @@ import {UserInfoService} from '../../services/user-info.service';
   selector: 'app-play',
   templateUrl: './play.component.html',
   imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./play.component.less'],
 })
 export class PlayComponent implements OnInit, OnDestroy {

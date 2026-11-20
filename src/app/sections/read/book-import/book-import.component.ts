@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EMPTY, Subject, Subscription, finalize, interval, startWith, switchMap, takeUntil} from 'rxjs';
@@ -29,6 +29,7 @@ const PUBLIC_DOMAIN_YEARS = 95;
   selector: 'app-book-import',
   imports: [CommonModule, ReactiveFormsModule, RouterLink, PaywallComponent, BookCoverComponent, ConfirmModalComponent],
   templateUrl: './book-import.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './book-import.component.less',
 })
 export class BookImportComponent implements OnInit, OnDestroy {

@@ -1,5 +1,5 @@
 import {logger} from "../logger";
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ButtonComponent} from "../button/button.component";
 import {Router} from "@angular/router";
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
@@ -12,6 +12,7 @@ import {UserInfoService} from "../../services/user-info.service";
     ButtonComponent
   ],
   templateUrl: './upgrade.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './upgrade.component.less',
 })
 export class UpgradeComponent implements OnInit {

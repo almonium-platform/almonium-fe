@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild, inject} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {initializePaddle, Environments} from '@paddle/paddle-js';
 import {catchError, EMPTY, map} from 'rxjs';
@@ -43,6 +43,7 @@ interface CheckoutSummary {
 @Component({
   selector: 'app-payment-checkout',
   templateUrl: './payment-checkout.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './payment-checkout.component.less',
 })
 export class PaymentCheckoutComponent implements AfterViewInit {

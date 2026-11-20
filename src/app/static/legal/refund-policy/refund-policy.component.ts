@@ -1,9 +1,10 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {LegalPageComponent} from '../legal-page/legal-page.component';
 
 @Component({
   selector: 'app-refund-policy',
   imports: [LegalPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './refund-policy.component.html',
 })
 export class RefundPolicyComponent {

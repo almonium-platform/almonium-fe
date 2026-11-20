@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {interval, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {ButtonComponent} from "../../../button/button.component";
@@ -14,6 +14,7 @@ import {NgClass} from "@angular/common";
     LucideAngularModule,
     NgClass
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./timer.component.less']
 })
 export class TimerComponent implements OnInit, OnDestroy {

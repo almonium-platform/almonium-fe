@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 
 /**
@@ -15,6 +15,7 @@ import {RouterLink} from '@angular/router';
       <a i18n class="unavailable__back" routerLink="/read">Back to the shelf</a>
     </section>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: flex; flex: 1; align-items: center; justify-content: center; width: 100%; min-height: 60vh; padding: 3rem 1.25rem; box-sizing: border-box; }
     .unavailable { display: flex; max-width: 30rem; flex-direction: column; align-items: center; gap: .75rem; text-align: center; }

@@ -1,5 +1,5 @@
 import {logger} from "../../shared/logger";
-import { Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ReadService} from "./read.service";
 import {Book} from "./book.model";
 import {Router, RouterLink} from "@angular/router";
@@ -54,6 +54,7 @@ type ShelfViewMode = 'covers' | 'spines';
     ComingFreeComponent,
   ],
   templateUrl: './read.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './read.component.less'
 })
 export class ReadComponent implements OnInit, OnDestroy {

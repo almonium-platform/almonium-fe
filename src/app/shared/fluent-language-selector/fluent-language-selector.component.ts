@@ -10,6 +10,7 @@ import {
   SimpleChanges,
   ViewChild,
   inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Observable, of, Subject} from 'rxjs';
@@ -48,6 +49,7 @@ const DEFAULT_MAX_LANGUAGES = 3;
     TuiItem,
     TuiInputChipComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
 })
 export class FluentLanguageSelectorComponent implements OnInit, OnChanges {

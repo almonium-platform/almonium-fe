@@ -1,9 +1,10 @@
-import {ChangeDetectorRef, Component, Input, OnChanges, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, OnChanges, inject, ChangeDetectionStrategy} from '@angular/core';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue} from '../book-hue';
 
 @Component({
   selector: 'app-book-cover',
   templateUrl: './book-cover.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './book-cover.component.less',
 })
 export class BookCoverComponent implements OnChanges {

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {forkJoin, of, Subject} from 'rxjs';
 import {catchError, switchMap, takeUntil} from 'rxjs/operators';
@@ -21,6 +21,7 @@ const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorite
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, BookCoverComponent, HarnessComponent],
 })
 export class HomeComponent implements OnInit, OnDestroy {

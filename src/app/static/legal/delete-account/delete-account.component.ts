@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {LegalPageComponent} from '../legal-page/legal-page.component';
 
@@ -6,6 +6,7 @@ import {LegalPageComponent} from '../legal-page/legal-page.component';
   selector: 'app-delete-account',
   imports: [LegalPageComponent, RouterLink],
   templateUrl: './delete-account.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './delete-account.component.less',
 })
 export class DeleteAccountComponent {

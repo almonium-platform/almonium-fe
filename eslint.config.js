@@ -36,6 +36,9 @@ module.exports = tseslint.config(
       // Static methods such as Angular's Validators cannot capture an instance `this`.
       '@typescript-eslint/unbound-method': ['error', {ignoreStatic: true}],
       'no-console': 'error',
+      // Angular 22 made OnPush the default; the v22 migration pinned every existing component to
+      // ChangeDetectionStrategy.Eager so it behaves as before. Turn this back on as components move to OnPush.
+      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
     },
   },
   {

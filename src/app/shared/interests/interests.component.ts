@@ -1,5 +1,5 @@
 import {logger} from "../logger";
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {Interest} from './interest.model';
 
@@ -16,6 +16,7 @@ import {StaticInfoService} from '../../services/static-info.service';
     TuiSkeleton,
   ],
   templateUrl: './interests.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './interests.component.less',
 })
 export class InterestsComponent implements OnInit {

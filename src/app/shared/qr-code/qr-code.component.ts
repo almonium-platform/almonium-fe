@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {UtilsService} from '../../services/utils.service';
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {NgStyle} from "@angular/common";
@@ -11,6 +11,7 @@ import {PopupTemplateStateService} from "../modals/popup-template/popup-template
   selector: 'app-qr-code',
   templateUrl: './qr-code.component.html',
   styleUrls: ['./qr-code.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TuiSkeleton,
     NgStyle

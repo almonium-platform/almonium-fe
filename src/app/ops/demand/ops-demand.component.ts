@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {LowerCasePipe} from '@angular/common';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -36,6 +36,7 @@ const SOURCE_STATUS_LABELS: Record<string, string> = {FREE: 'free', UNKNOWN: 'un
   selector: 'app-ops-demand',
   imports: [ReactiveFormsModule, LowerCasePipe],
   templateUrl: './ops-demand.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ops-demand.component.less',
 })
 export class OpsDemandComponent implements OnInit, OnDestroy {

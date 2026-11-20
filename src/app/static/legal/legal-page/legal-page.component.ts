@@ -1,4 +1,4 @@
-import {afterNextRender, Component, ElementRef, inject, input, signal} from '@angular/core';
+import {afterNextRender, Component, ElementRef, inject, input, signal, ChangeDetectionStrategy} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {PublicFooterComponent} from '../../../shared/public-footer/public-footer.component';
@@ -15,6 +15,7 @@ export type LegalPage = 'privacy' | 'terms' | 'refunds' | 'delete';
   selector: 'app-legal-page',
   imports: [DatePipe, RouterLink, PublicFooterComponent],
   templateUrl: './legal-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './legal-page.component.less',
 })
 export class LegalPageComponent {

@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {NgClass} from "@angular/common";
 import {TuiButtonX} from "@taiga-ui/core/directives";
 
@@ -42,6 +42,7 @@ import {TuiButtonX} from "@taiga-ui/core/directives";
     NgClass,
     TuiButtonX
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dismiss-button.component.less']
 })
 export class DismissButtonComponent {

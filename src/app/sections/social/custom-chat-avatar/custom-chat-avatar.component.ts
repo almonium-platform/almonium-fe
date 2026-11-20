@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
 import {Subscription, combineLatest} from 'rxjs';
 import {Channel, User} from 'stream-chat';
 import {AvatarLocation, AvatarType, ChatClientService, ThemeService,} from 'stream-chat-angular';
@@ -16,6 +16,7 @@ import {TargetLanguageDropdownService} from '../../../services/target-language-d
 @Component({
   selector: 'app-custom-chat-avatar',
   templateUrl: './custom-chat-avatar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './custom-chat-avatar.component.less',
 })
 export class CustomChatAvatarComponent

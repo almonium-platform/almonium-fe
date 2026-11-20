@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {geoNaturalEarth1, geoPath} from 'd3-geo';
 import type {FeatureCollection} from 'geojson';
 import {Subject, of} from 'rxjs';
@@ -32,6 +32,7 @@ interface DrawnCountry {
 @Component({
   selector: 'app-unlock-map',
   templateUrl: './unlock-map.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './unlock-map.component.less',
 })
 export class UnlockMapComponent implements OnInit, OnDestroy {

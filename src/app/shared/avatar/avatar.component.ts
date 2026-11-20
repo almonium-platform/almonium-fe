@@ -1,4 +1,4 @@
-import {Component, HostBinding, Input} from '@angular/core';
+import {Component, HostBinding, Input, ChangeDetectionStrategy} from '@angular/core';
 import {TuiAvatar} from "@taiga-ui/kit/components";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {PremiumStarComponent} from '../premium-star/premium-star.component';
@@ -44,6 +44,7 @@ const SIZE_REM = {xs: 1.5, s: 2, m: 2.5, l: 3, xl: 4, xxl: 5} as const;
     TuiSkeleton,
     PremiumStarComponent
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     /* The mark is the first letter of the username in Literata 600, per the type scale --
        the disc otherwise inherits the UI sans and the letter reads as a label, not a mark. */

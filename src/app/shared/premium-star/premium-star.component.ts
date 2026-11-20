@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 
 /**
  * The premium mark. One glyph, one meaning: a bevelled plum disc carrying the star, the same
@@ -24,6 +24,7 @@ import {Component, Input} from '@angular/core';
     role: 'img',
     '[attr.aria-label]': 'label',
   },
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host {
       --premium-star-size: 1rem;

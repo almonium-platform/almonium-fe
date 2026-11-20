@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {TuiHintDirective} from "@taiga-ui/core/portals";
 import {TuiSkeleton} from "@taiga-ui/kit/directives";
 import {SharedLucideIconsModule} from '../../../shared/shared-lucide-icons.module';
@@ -15,6 +15,7 @@ import {SharedLucideIconsModule} from '../../../shared/shared-lucide-icons.modul
     TuiSkeleton,
     SharedLucideIconsModule,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./parallel-translation.component.less']
 })
 export class ParallelTranslationComponent {

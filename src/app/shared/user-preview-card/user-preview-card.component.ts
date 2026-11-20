@@ -1,6 +1,6 @@
 import {logger} from "../logger";
 import {getErrorMessage} from '../http-error';
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, ChangeDetectionStrategy} from '@angular/core';
 import {ProfileService} from "./profile.service";
 import {RelationshipStatus, UserProfileInfo} from "./user-profile.model";
 import {AvatarComponent} from "../avatar/avatar.component";
@@ -42,6 +42,7 @@ import {AsyncPipe} from '@angular/common';
     AsyncPipe,
   ],
   templateUrl: './user-preview-card.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './user-preview-card.component.less'
 })
 export class UserPreviewCardComponent implements OnInit, OnDestroy {

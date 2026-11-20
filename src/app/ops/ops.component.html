@@ -489,7 +489,7 @@
                     <button class="ops-button ops-button--quiet ops-button--tiny" type="button" [disabled]="decidingSuggestion === row.id" (click)="onDeclineSuggestion(row)">Decline</button>
                   }
                   @case ('INGESTING') {
-                    <code class="ops-queue__stamp">accepted {{ row.job?.decidedAt | date:'HH:mm' }}</code>
+                    <code class="ops-queue__stamp">accepted {{ $safeNavigationMigration(row.job?.decidedAt) | date:'HH:mm' }}</code>
                   }
                   @case ('PUBLISHED') {
                     <code class="ops-queue__stamp ops-queue__stamp--done">in the library</code>

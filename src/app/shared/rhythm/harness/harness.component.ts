@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {AsyncPipe} from '@angular/common';
 import {Observable, combineLatest, map} from 'rxjs';
 import {LanguageCode} from '../../../models/language.enum';
@@ -50,6 +50,7 @@ interface RecordView {
   selector: 'app-harness',
   templateUrl: './harness.component.html',
   styleUrls: ['./harness.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AsyncPipe],
 })
 export class HarnessComponent implements OnInit {

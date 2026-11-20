@@ -1,5 +1,5 @@
 import {getErrorMessage} from '../http-error';
-import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {RecentAuthGuardStateService} from "./recent-auth-guard-state.service";
 import {finalize, filter, Subject, takeUntil} from "rxjs";
 import {PopupTemplateStateService} from "../modals/popup-template/popup-template-state.service";
@@ -17,6 +17,7 @@ import {AppConstants} from '../../app.constants';
   selector: 'app-recent-auth-guard',
   templateUrl: './recent-auth-guard.component.html',
   styleUrl: './recent-auth-guard.component.less',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, TuiIcon, TuiInput, TuiPassword, TuiTextfieldComponent],
 })
 export class RecentAuthGuardComponent implements OnInit, OnDestroy {

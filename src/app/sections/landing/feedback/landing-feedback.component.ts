@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {finalize} from 'rxjs/operators';
@@ -18,6 +18,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   selector: 'app-landing-feedback',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './landing-feedback.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './landing-feedback.component.less',
 })
 export class LandingFeedbackComponent {

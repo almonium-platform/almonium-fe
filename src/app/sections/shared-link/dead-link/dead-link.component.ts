@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {SharedLinkStatus} from '../shared-link.model';
 
@@ -28,6 +28,7 @@ import {SharedLinkStatus} from '../shared-link.model';
       }
     </section>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: block; }
 

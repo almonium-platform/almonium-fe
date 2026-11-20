@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {NavbarComponent} from "../navbar/navbar.component";
 import {NavbarPublicComponent} from "../navbar-public/navbar-public.component";
 
@@ -14,6 +14,7 @@ import {UserInfoService} from "../../../services/user-info.service";
     NavbarPublicComponent
   ],
   templateUrl: './navbar-wrapper.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './navbar-wrapper.component.less'
 })
 export class NavbarWrapperComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {Subject, takeUntil} from 'rxjs';
@@ -17,6 +17,7 @@ type ReviewStage = 'overview' | 'session' | 'complete';
   selector: 'app-review',
   templateUrl: './review.component.html',
   styleUrls: ['./review.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, RouterLink],
 })
 export class ReviewComponent implements OnInit, OnDestroy {

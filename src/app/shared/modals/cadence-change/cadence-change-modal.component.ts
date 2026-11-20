@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {DismissButtonComponent} from '../elements/dismiss-button/dismiss-button.component';
 import {
   CadenceChangeKind,
@@ -28,6 +28,7 @@ interface Figure {
   selector: 'app-cadence-change-modal',
   imports: [DismissButtonComponent],
   styleUrls: ['./cadence-change-modal.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './cadence-change-modal.component.html',
 })
 export class CadenceChangeModalComponent {

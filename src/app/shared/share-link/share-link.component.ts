@@ -1,5 +1,5 @@
 import {logger} from "../logger";
-import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {Component, Input, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {QRCodeComponent} from '../qr-code/qr-code.component';
 import {TuiIcon} from '@taiga-ui/core/components';
 
@@ -7,6 +7,7 @@ import {TuiIcon} from '@taiga-ui/core/components';
   selector: 'app-share-link',
   templateUrl: './share-link.component.html',
   imports: [QRCodeComponent, TuiIcon],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./share-link.component.less'],
 })
 export class ShareLinkComponent implements OnInit {

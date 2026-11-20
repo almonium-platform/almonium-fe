@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output, inject} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, Output, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {BehaviorSubject, Subject, finalize, takeUntil} from 'rxjs';
 import {CEFRLevel, Learner, SetupStep, UserInfo} from '../../models/userinfo.model';
@@ -17,6 +17,7 @@ import {LanguageVariety, LanguageVarietyRow, varietyOf, varietyRow} from '../../
   selector: 'app-level-setup',
   imports: [ReactiveFormsModule, ButtonComponent],
   templateUrl: './level-setup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './level-setup.component.less',
 })
 export class LevelSetupComponent implements OnInit, OnDestroy {

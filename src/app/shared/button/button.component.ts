@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import {Observable, Subject, takeUntil} from 'rxjs';
 import {AsyncPipe, NgStyle} from "@angular/common";
 import {Router} from "@angular/router";
@@ -51,6 +51,7 @@ import {TuiSkeleton} from "@taiga-ui/kit/directives";
       </span>
     </button>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AsyncPipe,
     NgStyle,

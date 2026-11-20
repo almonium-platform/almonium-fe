@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, computed, inject, signal} from '@angular/core';
+import {Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy} from '@angular/core';
 import {DatePipe} from '@angular/common';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
 import {PageSeoService} from '../../shared/seo/page-seo.service';
@@ -28,6 +28,7 @@ interface LanguageRow extends LanguageCapability {
   selector: 'app-languages',
   imports: [DatePipe, PublicFooterComponent],
   templateUrl: './languages.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './languages.component.less',
 })
 export class LanguagesComponent implements OnInit, OnDestroy {
