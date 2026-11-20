@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {NgTemplateOutlet} from '@angular/common';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -11,6 +11,7 @@ import {LandingFeedbackComponent} from './feedback/landing-feedback.component';
   selector: 'app-landing',
   imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent, LandingFeedbackComponent],
   templateUrl: './landing.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './landing.component.less'
 })
 export class LandingComponent implements OnInit {

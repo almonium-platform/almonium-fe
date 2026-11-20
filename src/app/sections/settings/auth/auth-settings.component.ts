@@ -1,6 +1,6 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {AsyncPipe} from "@angular/common";
 import {ConfirmModalComponent} from "../../../shared/modals/confirm-modal/confirm-modal.component";
 import {AuthSettingsService} from "./auth-settings.service";
@@ -53,6 +53,7 @@ import {LOGOUT_REASON_ACCOUNT_DELETED} from "../../../authentication/logout/logo
       },
     },
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./auth-settings.component.less']
 })
 export class AuthSettingsComponent implements OnInit, OnDestroy {

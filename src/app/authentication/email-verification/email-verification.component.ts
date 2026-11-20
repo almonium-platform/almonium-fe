@@ -1,7 +1,7 @@
 import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from '../auth/auth.service';
 import {combineLatest, of, timer} from 'rxjs';
@@ -16,6 +16,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
   selector: 'app-email-verification',
   templateUrl: './email-verification.component.html',
   styleUrls: ['./email-verification.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgxParticlesModule,
     NgClass,

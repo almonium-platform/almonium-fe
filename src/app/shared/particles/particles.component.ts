@@ -1,5 +1,5 @@
 import {ParticlesService} from "../../services/particles.service";
-import { Component, inject } from "@angular/core";
+import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import {AsyncPipe} from "@angular/common";
 import {NgxParticlesModule} from "@tsparticles/angular";
 import {IOptions, RecursivePartial} from "@tsparticles/engine";
@@ -16,6 +16,7 @@ import {Observable} from "rxjs";
       ></ngx-particles>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AsyncPipe,
     NgxParticlesModule

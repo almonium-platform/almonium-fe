@@ -1,6 +1,6 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage, isUnavailableInCountry} from '../../../shared/http-error';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from "@angular/core";
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import {filter, finalize, forkJoin, of, Subject, takeUntil} from "rxjs";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {TuiNotificationService} from "@taiga-ui/core/components";
@@ -72,6 +72,7 @@ interface EditionChip {
     RightsReportComponent,
   ],
   templateUrl: './book.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './book.component.less'
 })
 export class BookComponent implements OnInit, OnDestroy {

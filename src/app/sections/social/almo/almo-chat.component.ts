@@ -6,6 +6,7 @@ import {
   TemplateRef,
   ViewChild,
   inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {combineLatest} from 'rxjs';
@@ -52,6 +53,7 @@ import {AlmoSegment, segmentAlmoText} from './almo-text-segments';
       }
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './almo-chat.component.less',
 })
 export class AlmoChatComponent implements AfterViewInit, OnDestroy {

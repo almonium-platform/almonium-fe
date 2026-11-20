@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {NgClass} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
@@ -8,6 +8,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     DismissButtonComponent,
     NgClass
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     @if (isVisible) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(44,37,48,0.50)]" (pointerdown)="onBackdropPointerDown($event)">

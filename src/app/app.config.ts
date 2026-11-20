@@ -10,7 +10,7 @@ import {
   provideZoneChangeDetection
 } from '@angular/core';
 import {provideRouter, withInMemoryScrolling} from '@angular/router';
-import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr} from '@angular/common/http';
 import {routes} from './app.routes';
 import {initializeApp, provideFirebaseApp} from '@angular/fire/app';
 import {provideAuth} from '@angular/fire/auth';
@@ -55,7 +55,7 @@ export const appConfig: ApplicationConfig = {
     provideMessaging(() => getMessaging()),
 
     // HTTP interceptors
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withXhr(), withInterceptorsFromDi()),
     {provide: HTTP_INTERCEPTORS, useClass: XsrfInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: SwBypassInterceptor, multi: true},
     {provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true},

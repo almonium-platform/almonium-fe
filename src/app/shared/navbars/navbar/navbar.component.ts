@@ -1,5 +1,5 @@
 import {getErrorMessage} from '../../http-error';
-import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, inject, ChangeDetectionStrategy } from '@angular/core';
 import {FormsModule} from "@angular/forms";
 import {NgClass, NgStyle} from "@angular/common";
 import {Router, RouterLink} from "@angular/router";
@@ -45,6 +45,7 @@ const REQUEST_ANSWER_FAILED = $localize`Could not answer the friend request`;
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     BookCoverComponent,
     FormsModule,

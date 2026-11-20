@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {CurrencyPipe, DatePipe, DecimalPipe, LowerCasePipe} from '@angular/common';
 import {FormBuilder, FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -58,6 +58,7 @@ export interface SpendLineItemTotal {
   selector: 'app-ops',
   imports: [ReactiveFormsModule, RecentAuthGuardComponent, OpsDemandComponent, OpsLanguagesComponent, OpsRightsComponent, DatePipe, DecimalPipe, CurrencyPipe, LowerCasePipe],
   templateUrl: './ops.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ops.component.less',
 })
 export class OpsComponent implements OnInit {

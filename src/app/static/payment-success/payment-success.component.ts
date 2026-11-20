@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {NgTemplateOutlet} from "@angular/common";
 import {UpgradeComponent} from "../../shared/upgrade/upgrade.component";
 import {UserInfoService} from "../../services/user-info.service";
@@ -11,6 +11,7 @@ import {LocalStorageService} from "../../services/local-storage.service";
     UpgradeComponent
   ],
   templateUrl: './payment-success.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './payment-success.component.less'
 })
 export class PaymentSuccessComponent implements OnInit {

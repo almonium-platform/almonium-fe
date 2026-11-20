@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {Subject, takeUntil} from 'rxjs';
 import {UserInfo} from '../../../../../models/userinfo.model';
 import {UserInfoService} from '../../../../../services/user-info.service';
@@ -8,6 +8,7 @@ import {AvatarPickerComponent} from '../../../../../shared/profile/avatar-picker
   selector: 'app-manage-avatar',
   templateUrl: './manage-avatar.component.html',
   styleUrl: './manage-avatar.component.less',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AvatarPickerComponent],
 })
 export class ManageAvatarComponent implements OnInit, OnDestroy {

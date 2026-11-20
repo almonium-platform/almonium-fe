@@ -1,7 +1,7 @@
 import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
 import {HttpClient} from '@angular/common/http';
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiPassword} from '@taiga-ui/kit/directives';
 import {TuiError, TuiIcon, TuiInput, TuiLink, TuiNotificationService, TuiTextfieldComponent, TuiTextfieldOptionsDirective} from '@taiga-ui/core/components';
@@ -43,6 +43,7 @@ const GREETING_FADE_MS = 180; // matches the .greeting opacity transition
   ],
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: TUI_VALIDATION_ERRORS,

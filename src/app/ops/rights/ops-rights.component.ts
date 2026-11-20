@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {DatePipe, LowerCasePipe} from '@angular/common';
 import {FormBuilder, FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -41,6 +41,7 @@ const COUNTRY_PATTERN = /^\*$|^[A-Za-z]{2}$/;
   selector: 'app-ops-rights',
   imports: [ReactiveFormsModule, DatePipe, LowerCasePipe],
   templateUrl: './ops-rights.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ops-rights.component.less',
 })
 export class OpsRightsComponent implements OnInit, OnDestroy {

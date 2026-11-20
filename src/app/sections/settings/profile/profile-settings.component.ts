@@ -1,5 +1,5 @@
 import {logger} from "../../../shared/logger";
-import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
 import {UserInfoService} from "../../../services/user-info.service";
 import {PlanType, UserInfo} from "../../../models/userinfo.model";
@@ -51,6 +51,7 @@ import {catchError, switchMap} from 'rxjs/operators';
     DecimalPipe,
   ],
   templateUrl: './profile-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-settings.component.less'
 })
 export class ProfileSettingsComponent implements OnInit, OnDestroy {

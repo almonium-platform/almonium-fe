@@ -1,6 +1,6 @@
 import {logger} from '../../../shared/logger';
 import {getErrorMessage} from '../../../shared/http-error';
-import {ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {Meta, Title} from '@angular/platform-browser';
 import {AsyncPipe} from '@angular/common';
@@ -32,6 +32,7 @@ type CardPanel = 'none' | 'sign-up' | 'add' | 'added' | 'held' | 'owner' | 'wron
   selector: 'app-shared-card',
   templateUrl: './shared-card.component.html',
   styleUrls: ['./shared-card.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, AsyncPipe, AvatarComponent, PremiumStarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent],
 })
 export class SharedCardComponent implements OnInit, OnDestroy {

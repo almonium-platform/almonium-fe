@@ -1,4 +1,4 @@
-import {Component, DestroyRef, inject, OnInit} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {HttpClient} from '@angular/common/http';
 import {ActivatedRoute} from '@angular/router';
@@ -35,6 +35,7 @@ import {UrlService} from '../../services/url.service';
   selector: 'app-membership',
   imports: [CadenceChangeModalComponent, ConfirmModalComponent, PremiumStarComponent],
   templateUrl: './membership.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './membership.component.less',
 })
 export class MembershipComponent implements OnInit {

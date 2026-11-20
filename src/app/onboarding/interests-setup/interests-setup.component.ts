@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, EventEmitter, Input, OnInit, Output, inject} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, inject, ChangeDetectionStrategy} from '@angular/core';
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
 import {SetupStep} from "../../models/userinfo.model";
@@ -19,6 +19,7 @@ import {OnboardingDraftService} from "../onboarding-draft.service";
     ButtonComponent
   ],
   templateUrl: './interests-setup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './interests-setup.component.less'
 })
 export class InterestsSetupComponent implements OnInit {

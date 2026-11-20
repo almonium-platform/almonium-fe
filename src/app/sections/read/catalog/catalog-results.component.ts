@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnDestroy, Output, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, Output, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {BehaviorSubject, Subject, combineLatest, of} from 'rxjs';
@@ -42,6 +42,7 @@ function languageLabel(code: string): string {
   selector: 'app-catalog-results',
   imports: [RouterLink, FreeFromNoteComponent, UnlockCountdownComponent, UnlockMapComponent],
   templateUrl: './catalog-results.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './catalog-results.component.less',
 })
 export class CatalogResultsComponent implements OnDestroy {

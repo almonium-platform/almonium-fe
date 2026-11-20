@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {AuthComponent} from "../auth/auth.component";
 import {ParticlesComponent} from "../../shared/particles/particles.component";
 import {NgTemplateOutlet} from "@angular/common";
@@ -10,6 +10,7 @@ import {NgTemplateOutlet} from "@angular/common";
     ParticlesComponent,
     NgTemplateOutlet
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './login.component.html',
 })
 export class LoginComponent {

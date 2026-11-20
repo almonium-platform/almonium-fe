@@ -1,6 +1,6 @@
 import {logger} from '../../../shared/logger';
 import {getErrorMessage} from '../../../shared/http-error';
-import {Component, DestroyRef, EventEmitter, inject, Input, Output, TemplateRef, ViewChild} from '@angular/core';
+import {Component, DestroyRef, EventEmitter, inject, Input, Output, TemplateRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {QRCodeComponent} from '../../../shared/qr-code/qr-code.component';
@@ -18,6 +18,7 @@ import {Deck} from '../shared-link.model';
   selector: 'app-deck-share-sheet',
   templateUrl: './deck-share-sheet.component.html',
   styleUrls: ['./deck-share-sheet.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [QRCodeComponent, SharedLucideIconsModule],
 })
 export class DeckShareSheetComponent {

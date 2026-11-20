@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
@@ -36,6 +36,7 @@ import {NgClass, NgStyle} from '@angular/common';
       <span class="provider-label">{{ getProviderLabel() }}</span>
     </button>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .disabled-button:hover {
       opacity: 0.5 !important;

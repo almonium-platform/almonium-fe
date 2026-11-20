@@ -1,6 +1,6 @@
 import {logger} from "../../../shared/logger";
 import {getErrorMessage} from '../../../shared/http-error';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {FormControl, FormsModule} from "@angular/forms";
 import {RouterLink} from '@angular/router';
 import {SettingsTabsComponent} from "../tabs/settings-tabs.component";
@@ -55,6 +55,7 @@ import {NgClickOutsideDirective} from "ng-click-outside2";
     NgClickOutsideDirective,
   ],
   templateUrl: './lang-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './lang-settings.component.less'
 })
 export class LangSettingsComponent implements OnInit, OnDestroy {

@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {getNextStep, isStepAfter, SetupStep, UserInfo} from "../../models/userinfo.model";
 import {OnboardingService} from "../onboarding.service";
 import {UserInfoService} from "../../services/user-info.service";
@@ -18,6 +18,7 @@ import {AvatarPickerComponent} from '../../shared/profile/avatar-picker/avatar-p
     AvatarPickerComponent,
   ],
   templateUrl: './profile-setup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-setup.component.less'
 })
 export class ProfileSetupComponent implements OnInit, OnDestroy {

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {Subject, of} from 'rxjs';
@@ -33,6 +33,7 @@ const DEFAULT_CREST = '#7A6BB8';
   selector: 'app-language-record',
   templateUrl: './language-record.component.html',
   styleUrls: ['./language-record.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, DecimalPipe, RhythmBandComponent],
 })
 export class LanguageRecordComponent implements OnInit, OnDestroy {

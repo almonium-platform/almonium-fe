@@ -1,7 +1,7 @@
 import {logger} from "./shared/logger";
 import {NgDompurifySanitizer, SANITIZE_STYLE} from "@taiga-ui/dompurify";
 import {TuiNotificationService, TuiRoot} from "@taiga-ui/core/components";
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 import {PopupTemplateComponent} from "./shared/modals/popup-template/popup-template.component";
 import {DowngradePickComponent} from './shared/downgrade-pick/downgrade-pick.component';
@@ -26,6 +26,7 @@ declare const gtag: (command: 'config', measurementId: string, config: {page_pat
   imports: [RouterOutlet, TuiRoot, PopupTemplateComponent, NavbarWrapperComponent, DowngradePickComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.less',
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [{provide: SANITIZE_STYLE, useClass: NgDompurifySanitizer}]
 })
 export class AppComponent implements OnInit {

@@ -117,7 +117,7 @@
 
         <section class="parallel" aria-labelledby="parallel-heading">
           <h2 i18n id="parallel-heading" class="section-label">Parallel text</h2>
-          @switch (book.librarySuggestion?.status) {
+          @switch ($safeNavigationMigration(book.librarySuggestion?.status)) {
             @case (suggestionStatus.SUGGESTED) {
               <div class="settled-row">
                 <span i18n>Suggested for the library · we're checking it</span>

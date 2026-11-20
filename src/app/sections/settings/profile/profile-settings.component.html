@@ -73,7 +73,7 @@
           @if (hasRecord && activeRhythm; as loadedRhythm) {
             <div class="record-numbers">
               <div class="record-number">
-                <span class="figure">{{ stats?.wordsKept | number }}</span>
+                <span class="figure">{{ $safeNavigationMigration(stats?.wordsKept) | number }}</span>
                 <span i18n class="caption">Words you can read</span>
               </div>
               <div class="record-number">

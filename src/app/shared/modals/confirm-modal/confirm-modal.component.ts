@@ -1,4 +1,4 @@
-import {Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, HostListener, Input, OnChanges, OnDestroy, Output, SimpleChanges, ChangeDetectionStrategy} from '@angular/core';
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
 
 @Component({
@@ -7,6 +7,7 @@ import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.
     DismissButtonComponent
   ],
   styleUrls: ['./confirm-modal.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     @if (isVisible) {
       <div

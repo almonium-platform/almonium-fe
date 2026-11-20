@@ -1,6 +1,6 @@
 import {logger} from "../../shared/logger";
 import {getErrorMessage} from '../../shared/http-error';
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, OnDestroy, OnInit, signal, TemplateRef, ViewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import {SocialService} from "./social.service";
 import {FormControl, ReactiveFormsModule} from "@angular/forms";
 import {BehaviorSubject, combineLatest, filter, finalize, firstValueFrom, of, Subject, takeUntil} from "rxjs";
@@ -116,6 +116,7 @@ interface MessageHit {
     AlmoChatComponent,
     AlmoComposerDirective,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [SocialChannelFacade, SocialConfirmationService, DateParserService, AlmoChatCoordinator],
 })
 export class SocialComponent implements OnInit, OnDestroy, AfterViewInit {

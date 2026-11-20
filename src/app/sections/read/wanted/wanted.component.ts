@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {EMPTY, Subject} from 'rxjs';
@@ -20,6 +20,7 @@ export type WantedView = 'everyone' | 'mine';
   selector: 'app-wanted',
   imports: [RouterLink, ComingFreeComponent],
   templateUrl: './wanted.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './wanted.component.less',
 })
 export class WantedComponent implements OnInit, OnDestroy {

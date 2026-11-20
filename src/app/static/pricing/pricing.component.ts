@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import {PaywallComponent} from "../../shared/paywall/paywall.component";
 import {NgTemplateOutlet} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
@@ -13,6 +13,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
     PaywallComponent
   ],
   templateUrl: './pricing.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pricing.component.less'
 })
 export class PricingComponent implements OnInit {

@@ -1,5 +1,5 @@
 import {TuiNotificationService} from "@taiga-ui/core/components";
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {ParticlesComponent} from "../particles/particles.component";
 import {ProfileService} from "../user-preview-card/profile.service";
 import {getErrorMessage} from '../http-error';
@@ -21,6 +21,7 @@ import {UserProfileInfo} from "../user-preview-card/user-profile.model";
     .headless-container { background-color: var(--main-bg-color); }
   `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ParticlesComponent,
     UserPreviewCardComponent

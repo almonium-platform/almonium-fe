@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink, RouterLinkActive} from "@angular/router";
 
 @Component({
@@ -8,6 +8,7 @@ import {RouterLink, RouterLinkActive} from "@angular/router";
     RouterLinkActive,
   ],
   templateUrl: './settings-tabs.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './settings-tabs.component.less'
 })
 export class SettingsTabsComponent {}

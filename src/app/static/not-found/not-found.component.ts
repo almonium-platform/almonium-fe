@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {LocalStorageService} from '../../services/local-storage.service';
 import {RouterLink} from "@angular/router";
 
@@ -6,6 +6,7 @@ import {RouterLink} from "@angular/router";
   selector: 'app-not-found',
   templateUrl: './not-found.component.html',
   styleUrls: ['./not-found.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RouterLink
   ]

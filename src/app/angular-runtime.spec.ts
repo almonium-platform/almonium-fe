@@ -1,7 +1,8 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<p>{{message}}</p>',
 })
 class AngularRuntimeTestComponent {

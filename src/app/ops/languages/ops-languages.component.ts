@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {Component, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {finalize} from 'rxjs/operators';
 import {getErrorMessage} from '../../shared/http-error';
@@ -15,6 +15,7 @@ export const LANGUAGE_WINDOWS = [1, 7, 30] as const;
   selector: 'app-ops-languages',
   imports: [DatePipe, DecimalPipe],
   templateUrl: './ops-languages.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './ops-languages.component.less',
 })
 export class OpsLanguagesComponent implements OnInit {

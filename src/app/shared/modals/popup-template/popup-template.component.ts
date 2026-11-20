@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {DrawerState, PopupTemplateStateService} from './popup-template-state.service';
 import {NgClass, NgTemplateOutlet} from "@angular/common";
 import {DismissButtonComponent} from "../elements/dismiss-button/dismiss-button.component";
@@ -120,6 +120,7 @@ import {Subject, takeUntil} from "rxjs";
       }
     `,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgTemplateOutlet,
     NgClass,

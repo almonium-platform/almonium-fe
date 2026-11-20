@@ -1,10 +1,11 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {LanguageRhythm, RhythmWeek, bandWeeks, weekLevel, weekMinutes} from '../rhythm.model';
 
 /** The twelve weeks, read-only, in the same ramp they wear on home. */
 @Component({
   selector: 'app-rhythm-band',
   templateUrl: './rhythm-band.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./rhythm-band.component.less'],
 })
 export class RhythmBandComponent {

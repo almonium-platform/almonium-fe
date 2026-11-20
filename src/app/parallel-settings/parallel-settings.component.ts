@@ -1,5 +1,5 @@
 import {logger} from "../shared/logger";
-import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject, ChangeDetectionStrategy} from '@angular/core';
 import {DEFAULT_PARALLEL_MODE, ParallelMode, parallelModeLabel} from '../sections/read/parallel-mode.type';
 import {Subject, takeUntil} from "rxjs";
 import {ParallelModeService} from "../sections/read/parallel-mode.service";
@@ -32,6 +32,7 @@ export interface CompanionRow {
 @Component({
   selector: 'app-parallel-settings',
   templateUrl: './parallel-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './parallel-settings.component.less',
 })
 export class ParallelSettingsComponent implements OnInit, OnDestroy {

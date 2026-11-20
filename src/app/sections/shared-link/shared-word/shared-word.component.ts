@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {SharedExample, SharedWord} from '../shared-link.model';
 
 /**
@@ -58,6 +58,7 @@ import {SharedExample, SharedWord} from '../shared-link.model';
       </div>
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     :host { display: block; min-width: 0; }
 

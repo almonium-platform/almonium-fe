@@ -1,10 +1,11 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {LegalPageComponent} from '../legal-page/legal-page.component';
 
 @Component({
   selector: 'app-terms-of-use',
   imports: [LegalPageComponent, RouterLink],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './terms-of-use.component.html',
 })
 export class TermsOfUseComponent {

@@ -12,6 +12,7 @@ import {
   QueryList,
   ViewChild,
   ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {Meta, Title} from '@angular/platform-browser';
@@ -59,6 +60,7 @@ type DeckPanel =
   selector: 'app-shared-deck',
   templateUrl: './shared-deck.component.html',
   styleUrls: ['./shared-deck.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, AsyncPipe, AvatarComponent, PremiumStarComponent, SharedWordComponent, SharedFooterComponent, DeadLinkComponent, DeckShareSheetComponent],
 })
 export class SharedDeckComponent implements OnInit, AfterViewInit, OnDestroy {

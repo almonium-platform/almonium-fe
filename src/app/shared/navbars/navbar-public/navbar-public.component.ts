@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import {NgClass} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {NgClickOutsideDirective} from 'ng-click-outside2';
@@ -8,6 +8,7 @@ import {LucideAngularModule} from "lucide-angular";
   selector: 'app-public-navbar',
   templateUrl: './navbar-public.component.html',
   styleUrls: ['./navbar-public.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NgClass,
     NgClickOutsideDirective,

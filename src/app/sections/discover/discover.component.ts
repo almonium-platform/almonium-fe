@@ -1,4 +1,4 @@
-import {Component, DestroyRef, ElementRef, HostListener, LOCALE_ID, OnInit, ViewChild, afterNextRender, inject} from '@angular/core';
+import {Component, DestroyRef, ElementRef, HostListener, LOCALE_ID, OnInit, ViewChild, afterNextRender, inject, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EmblemComponent} from '../../shared/emblem/emblem.component';
 import {Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, switchMap} from 'rxjs';
@@ -60,6 +60,7 @@ const PARTS_OF_SPEECH: Record<string, string> = {
   selector: 'app-discover',
   imports: [RouterLink, EmblemComponent],
   templateUrl: './discover.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./discover.component.less'],
 })
 export class DiscoverComponent implements OnInit {

@@ -1,5 +1,5 @@
 import {logger} from "../../../shared/logger";
-import { Component, OnDestroy, OnInit, inject } from "@angular/core";
+import { Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import {ProfileSettingsService} from "../profile/profile-settings.service";
 import {UserInfoService} from "../../../services/user-info.service";
 import {BehaviorSubject, finalize, forkJoin, of, Subject, take, takeUntil} from "rxjs";
@@ -27,6 +27,7 @@ import {UI_LOCALE_AUTO, UiLocalePreference} from '../../../services/ui-locale';
   selector: 'app-app-settings',
   templateUrl: './app-settings.component.html',
   styleUrls: ['./app-settings.component.less'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     SettingsTabsComponent,
     TuiSwitch,

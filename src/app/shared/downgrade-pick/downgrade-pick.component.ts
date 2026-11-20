@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {Router} from '@angular/router';
 import {Subject, takeUntil} from 'rxjs';
@@ -26,6 +26,7 @@ const DEFAULT_CREST = '#7A6BB8';
   selector: 'app-downgrade-pick',
   templateUrl: './downgrade-pick.component.html',
   styleUrl: './downgrade-pick.component.less',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DatePipe, DecimalPipe],
 })
 export class DowngradePickComponent implements OnInit, OnDestroy {

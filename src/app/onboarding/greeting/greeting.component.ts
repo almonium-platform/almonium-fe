@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {BehaviorSubject, Subject, finalize, takeUntil} from 'rxjs';
 import {Router} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -15,6 +15,7 @@ import {OnboardingDraftService} from '../onboarding-draft.service';
   selector: 'app-onboarding-greeting',
   imports: [ButtonComponent],
   templateUrl: './greeting.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './greeting.component.less',
 })
 export class GreetingComponent implements OnInit, OnDestroy {

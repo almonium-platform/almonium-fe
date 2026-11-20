@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy, OnInit, inject} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit, inject, ChangeDetectionStrategy} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {BehaviorSubject, Subject, of} from 'rxjs';
 import {catchError, finalize, switchMap, takeUntil} from 'rxjs/operators';
@@ -26,6 +26,7 @@ export const SHELF_MIN_ROWS = 3;
   selector: 'app-coming-free',
   imports: [FreeFromNoteComponent, RouterLink],
   templateUrl: './coming-free.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './coming-free.component.less',
 })
 export class ComingFreeComponent implements OnInit, OnDestroy {

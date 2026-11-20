@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, LOCALE_ID, Output, inject} from '@angular/core';
+import {Component, EventEmitter, Input, LOCALE_ID, Output, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {finalize} from 'rxjs/operators';
 import {getErrorMessage, httpStatus} from '../../../shared/http-error';
@@ -23,6 +23,7 @@ const COPYRIGHT_ADDRESS = 'copyright@almonium.com';
   selector: 'app-rights-report',
   imports: [ReactiveFormsModule],
   templateUrl: './rights-report.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './rights-report.component.less',
 })
 export class RightsReportComponent {
