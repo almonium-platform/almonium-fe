@@ -44,6 +44,34 @@ Adding a language: translate `messages.json` into `src/assets/i18n/<code>.json`
 fixed widths on containers that hold copy, ellipsis only on user-generated
 strings such as names and titles.
 
+## Product analytics (PostHog)
+
+All tracking goes through `AnalyticsService` (`src/app/services/analytics/`); nothing else imports
+`posthog-js`. The key and host live in `posthog` in each `src/environments/environment*.ts`. With an
+empty key (the committed value, so local dev and tests) PostHog is never loaded and every call is a
+no-op.
+
+CI fills the key just before `ng build` with `scripts/inject-posthog-env.mjs`, from GitHub
+**repository variables** (Settings → Secrets and variables → Actions → Variables; the project key is
+public, it ships in the bundle):
+
+| Variable | Used for | Default |
+| --- | --- | --- |
+| `POSTHOG_KEY_PROD` | production build (`environment.prod.ts`) | unset: analytics off |
+| `POSTHOG_KEY_STAGING` | staging build (`environment.staging.ts`) | unset: analytics off |
+| `POSTHOG_HOST` | ingestion host for both | `https://eu.i.posthog.com` |
+
+To try it locally, run `POSTHOG_KEY=phc_... node scripts/inject-posthog-env.mjs src/environments/environment.ts`
+and do not commit the result.
+
+What is sent: the user is identified by the internal user id only (no email or name) and reset on
+logout; every event carries `platform: web`. Pageviews come from PostHog's history-change capture.
+Events: `signup`, `first_lookup`, `first_save` (once per user or guest on a device),
+`review_session_completed`, `book_opened`, `book_progress` (`milestone` 25/50/75/100, once per book
+on a device), `share_link_created`, `share_link_opened`, `subscribe_started`. D1/D7/D30 return is a
+PostHog retention insight, not an event. Autocapture is off and session replay is off, with inputs
+masked should it ever be enabled.
+
 ## Greyed-controls harness
 
 Every control that greys out on a condition rather than on a request in flight

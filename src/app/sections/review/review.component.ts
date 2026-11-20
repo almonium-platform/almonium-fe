@@ -9,6 +9,7 @@ import {TargetLanguageDropdownService} from '../../services/target-language-drop
 import {getErrorMessage} from '../../shared/http-error';
 import {LearningIntent, ReviewAnswer, ReviewItem, ReviewSession, ReviewSessionResult, ReviewSummary} from './review.model';
 import {ReviewService} from './review.service';
+import {AnalyticsService} from '../../services/analytics/analytics.service';
 
 type ReviewStage = 'overview' | 'session' | 'complete';
 
@@ -23,6 +24,7 @@ export class ReviewComponent implements OnInit, OnDestroy {
   private readonly languageService = inject(TargetLanguageDropdownService);
   private readonly languageNameService = inject(LanguageNameService);
   private readonly learningActivity = inject(LearningActivityService);
+  private readonly analytics = inject(AnalyticsService);
   private readonly destroy$ = new Subject<void>();
 
   protected selectedLanguage = LanguageCode.EN;
@@ -236,6 +238,12 @@ export class ReviewComponent implements OnInit, OnDestroy {
         this.stage = 'complete';
         this.submitting = false;
         this.learningActivity.stop(true);
+        this.analytics.track('review_session_completed', {
+          total: result.total,
+          straight_through: result.straightThrough,
+          after_hint: result.afterHint,
+          confused: result.confused,
+        });
       },
       error: error => {
         this.submitting = false;

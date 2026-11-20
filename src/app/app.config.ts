@@ -4,6 +4,7 @@ import {
   ApplicationConfig,
   importProvidersFrom,
   isDevMode,
+  inject,
   LOCALE_ID,
   provideAppInitializer,
   provideZoneChangeDetection
@@ -26,6 +27,7 @@ import {initializeUser} from "./initializers/user-app-initializer";
 import {SwBypassInterceptor} from "./authentication/auth/sw-bypass-interceptor";
 import {HttpErrorInterceptor} from './shared/http-error.interceptor';
 import {currentUiLocale} from './services/ui-locale';
+import {AnalyticsService} from './services/analytics/analytics.service';
 
 const MY_CUSTOM_ERRORS = {
   required: $localize`Value is required`,
@@ -61,6 +63,8 @@ export const appConfig: ApplicationConfig = {
     // App initializers (new API)
     provideAppInitializer(csrfInitializer),
     provideAppInitializer(initializeUser),
+    // Off without a PostHog key; never blocks start-up.
+    provideAppInitializer(() => inject(AnalyticsService).init()),
 
     provideTaiga(),
     {
