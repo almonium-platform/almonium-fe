@@ -82,20 +82,6 @@ jobs:
         if: inputs.verify
         run: npm audit --omit=dev --audit-level=high
 
-      # The PostHog project key is public (it ships in the bundle), so it is a repository variable.
-      # Unset, the step leaves the key empty and analytics stays off for that environment.
-      - name: Fill PostHog analytics config
-        env:
-          POSTHOG_KEY_PROD: ${{ vars.POSTHOG_KEY_PROD }}
-          POSTHOG_KEY_STAGING: ${{ vars.POSTHOG_KEY_STAGING }}
-          POSTHOG_HOST: ${{ vars.POSTHOG_HOST }}
-        run: |
-          if [ "$BUILD_CONFIGURATION" = production ]; then
-            POSTHOG_KEY="$POSTHOG_KEY_PROD" node scripts/inject-posthog-env.mjs src/environments/environment.prod.ts
-          else
-            POSTHOG_KEY="$POSTHOG_KEY_STAGING" node scripts/inject-posthog-env.mjs src/environments/environment.staging.ts
-          fi
-
       - name: Build application
         run: npm run build -- --configuration "$BUILD_CONFIGURATION"
 

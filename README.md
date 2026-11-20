@@ -47,22 +47,10 @@ strings such as names and titles.
 ## Product analytics (PostHog)
 
 All tracking goes through `AnalyticsService` (`src/app/services/analytics/`); nothing else imports
-`posthog-js`. The key and host live in `posthog` in each `src/environments/environment*.ts`. With an
-empty key (the committed value, so local dev and tests) PostHog is never loaded and every call is a
-no-op.
-
-CI fills the key just before `ng build` with `scripts/inject-posthog-env.mjs`, from GitHub
-**repository variables** (Settings → Secrets and variables → Actions → Variables; the project key is
-public, it ships in the bundle):
-
-| Variable | Used for | Default |
-| --- | --- | --- |
-| `POSTHOG_KEY_PROD` | production build (`environment.prod.ts`) | unset: analytics off |
-| `POSTHOG_KEY_STAGING` | staging build (`environment.staging.ts`) | unset: analytics off |
-| `POSTHOG_HOST` | ingestion host for both | `https://eu.i.posthog.com` |
-
-To try it locally, run `POSTHOG_KEY=phc_... node scripts/inject-posthog-env.mjs src/environments/environment.ts`
-and do not commit the result.
+`posthog-js`. The key and host live in `posthog` in each `src/environments/environment*.ts`. The
+public project key is committed in `environment.prod.ts` and `environment.staging.ts` (it ships in
+the bundle anyway); `environment.ts` keeps it empty, so local dev and tests never load PostHog and
+every call is a no-op. No CI variables are needed. Host: `https://eu.i.posthog.com`.
 
 What is sent: the user is identified by the internal user id only (no email or name) and reset on
 logout; every event carries `platform: web`. Pageviews come from PostHog's history-change capture.

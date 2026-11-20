@@ -5,7 +5,7 @@ export const environment = {
   googleClientId: '33380019461-l4hq3eto00vvvgprtadahm5o2tqj65ti.apps.googleusercontent.com',
   streamChatApiKey: "zjh3fpuaexy2",
   googleAnalyticsId: 'G-726SZFQZWB',
-  // PostHog product analytics. An empty key keeps analytics off; CI fills it from POSTHOG_KEY_* (see README).
+  // PostHog product analytics. Empty: local dev sends nothing.
   posthog: {
     key: '',
     host: 'https://eu.i.posthog.com',
