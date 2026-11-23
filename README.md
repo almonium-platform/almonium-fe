@@ -9,6 +9,27 @@ Angular browser client for Almonium. The coordinated workspace also contains:
   the server-hosted FE and BE services. Mobile releases use Expo/EAS rather
   than this server deployment path.
 
+## Local development
+
+Start the dev server in Docker (registers the `almonium-fe` stack in Portainer
+alongside `almonium-be` and `almonium-book-processor`):
+
+```bash
+docker compose -f docker-compose.local.yaml up -d --build
+```
+
+The app serves at <http://localhost:9999> with live reload from the bind-mounted
+checkout, while `node_modules` and `.angular` stay isolated in named volumes. On
+start, the container checks `package-lock.json` and runs `npm ci` automatically
+whenever dependencies have changed, so restarting `almonium-fe` from Portainer
+after pulling new dependencies is enough.
+
+To run natively on the host instead:
+
+```bash
+npm start
+```
+
 ## Interface languages
 
 The interface is written in English and marked for translation with Angular's

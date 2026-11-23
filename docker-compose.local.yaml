@@ -1,0 +1,35 @@
+services:
+  almonium-fe:
+    container_name: almonium-fe
+    image: almonium-fe-dev
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${FE_PORT:-9999}:9999"
+    environment:
+      PORT: "9999"
+      NG_CLI_ANALYTICS: "false"
+    volumes:
+      - .:/app
+      - node-modules:/app/node_modules
+      - angular-cache:/app/.angular
+      - npm-cache:/home/node/.npm
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:9999/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 90s
+
+volumes:
+  node-modules:
+  angular-cache:
+  npm-cache:

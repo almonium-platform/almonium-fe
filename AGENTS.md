@@ -52,8 +52,10 @@ repositories:
   changes `../almonium-be/src/main`, rebuild and restart the local backend
   container before handing off (see the backend's `AGENTS.md` for the two
   commands), and confirm the endpoint answers with the new behaviour. Frontend
-  changes reach the owner's `ng serve` by live reload; do not leave either side
-  running stale code.
+  changes reach the owner's `ng serve` (typically running in the local
+  `almonium-fe` container from `docker-compose.local.yaml`) by live reload; if
+  `package-lock.json` changes, restart `almonium-fe` so its startup check runs
+  `npm ci`. Do not leave either side running stale code.
 
 - Finish every implementation iteration with a Git commit after the requested work has been verified.
 - Before committing, review the diff, preserve unrelated user changes, and run the checks appropriate to the change.

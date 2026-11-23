@@ -1,0 +1,27 @@
+# Local development container (ng serve with bind-mounted live reload).
+# Production and staging images continue to use ./Dockerfile (nginx).
+FROM node:20.19.0-bookworm-slim
+
+WORKDIR /app
+
+# Pre-create mount targets as node (1000:1000) so Docker initializes the named
+# volumes with matching host user ownership instead of root.
+RUN mkdir -p /app/node_modules /app/.angular /home/node/.npm && \
+    chown -R node:node /app /home/node/.npm
+
+USER node
+
+ENV NG_CLI_ANALYTICS=false
+
+EXPOSE 9999
+
+CMD ["sh", "-ec", "\
+  lock_hash=$(sha256sum package-lock.json); \
+  lock_hash=${lock_hash%% *}; \
+  stamp=node_modules/.package-lock.sha256; \
+  if [ ! -f \"$stamp\" ] || [ \"$(cat \"$stamp\")\" != \"$lock_hash\" ]; then \
+    echo 'Syncing node_modules with package-lock.json...'; \
+    npm ci; \
+    printf '%s' \"$lock_hash\" > \"$stamp\"; \
+  fi; \
+  exec ./node_modules/.bin/ng serve --host 0.0.0.0 --port \"${PORT:-9999}\""]
