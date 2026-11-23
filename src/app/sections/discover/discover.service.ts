@@ -167,6 +167,12 @@ export interface DiscoverLookup {
   homophones: DiscoverHomophone[];
   /** The words the senses belong to; empty unless the lexicon answered. */
   lexemes: DiscoverLexeme[];
+  /** When a standalone miss was answered in another language, the language originally asked for. */
+  requestedLanguage: LanguageCode | null;
+  /** Other lexicon languages that also hold the word. */
+  availableLanguages: LanguageCode[];
+  /** True when the word is written in an alphabet the requested language does not use. */
+  scriptMismatch: boolean;
 }
 
 /** A headword offered while a word is being typed, with what the field shows beside it. */
@@ -344,6 +350,12 @@ export function parseDiscoverLookup(value: unknown): DiscoverLookup {
           .map((value, senseIndex) => expectNumber(value, `discoverLookup.pronunciations[${index}].senses[${senseIndex}]`)),
       };
     }),
+    requestedLanguage: data['requestedLanguage'] == null
+      ? null
+      : expectString(data['requestedLanguage'], 'discoverLookup.requestedLanguage') as LanguageCode,
+    availableLanguages: parseOptionalArray(data['availableLanguages'], 'discoverLookup.availableLanguages')
+      .map((language, index) => expectString(language, `discoverLookup.availableLanguages[${index}]`) as LanguageCode),
+    scriptMismatch: data['scriptMismatch'] === true,
   };
 }
 

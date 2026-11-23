@@ -504,10 +504,34 @@ export class DiscoverComponent implements OnInit {
       .subscribe({
         next: lookup => {
           this.showLookup(lookup);
-          this.recents = addRecent(lookup.language, lookup.entry);
+          addRecent(lookup.language, lookup.entry);
+          this.recents = readRecents(this.fieldLanguage);
         },
         error: error => this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`),
       });
+  }
+
+  /** Whether the reader can switch the field's active language to `language` with one click. */
+  protected canSwitchFieldTo(language: LanguageCode): boolean {
+    if (this.fieldLanguage === language) return false;
+    if (!this.signedIn) return GUEST_LANGUAGES.includes(language);
+    return this.userInfoService.currentUserInfo?.activeTargetLangs.includes(language) ?? false;
+  }
+
+  protected switchFieldLanguage(language: LanguageCode): void {
+    this.sourceLanguage = null;
+    this.followLanguage(language);
+    this.recents = readRecents(this.fieldLanguage);
+    this.closeSuggestions();
+  }
+
+  protected lookupInLanguage(language: LanguageCode): void {
+    if (!this.lookup) return;
+    this.lookupWord(this.lookup.entry, '', language);
+  }
+
+  protected isFluentLanguage(language: LanguageCode): boolean {
+    return this.userInfoService.currentUserInfo?.fluentLangs.includes(language) ?? false;
   }
 
   /** Only a member can flag, and only a lexicon entry: the old providers' senses have nowhere to be fixed. */
@@ -863,6 +887,8 @@ export class DiscoverComponent implements OnInit {
     if (!this.signedIn) {
       this.setGuestLanguage(language);
     } else if (this.userInfoService.currentUserInfo?.activeTargetLangs.includes(language)) {
+      this.preferredLanguage = language;
+      this.currentLanguage = this.sourceLanguage ?? language;
       this.languageService.setCurrentLanguage(language);
     }
   }

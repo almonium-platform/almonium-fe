@@ -118,9 +118,22 @@ describe('DiscoverService', () => {
       senses: [{index: 1, headword: 'die Ausgabe', partOfSpeech: 'noun', transcription: 'aʊsɡaːbə', translations: ['edition']}],
     });
     expect(lookup.pronunciations).toEqual([]);
+    expect(lookup.requestedLanguage).toBeNull();
+    expect(lookup.availableLanguages).toEqual([]);
+    expect(lookup.scriptMismatch).toBeFalse();
     expect(lookup.senses[0].definition).toBeNull();
     expect(lookup.senses[0].cefr).toBeNull();
     expect(lookup.senses[0].examples).toEqual([]);
+  });
+
+  it('reads cross-language redirect and script-mismatch fields when sent', () => {
+    const lookup = parseDiscoverLookup({
+      entry: 'word', sourceContext: null, language: 'EN', translationLanguage: 'UK', provider: 'lexicon', frequency: null,
+      senses: [], requestedLanguage: 'FR', availableLanguages: ['DE'], scriptMismatch: true,
+    });
+    expect(lookup.requestedLanguage).toBe(LanguageCode.FR);
+    expect(lookup.availableLanguages).toEqual([LanguageCode.DE]);
+    expect(lookup.scriptMismatch).toBeTrue();
   });
 
   it('rejects a clip status outside the contract', () => {

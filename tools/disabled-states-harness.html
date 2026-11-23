@@ -3310,9 +3310,26 @@ tui-data-list button[tuiOption].context-button.negative {
   white-space: nowrap;
 }
 .scope-discover .correction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
   margin: 0 0 1rem;
   color: var(--subhead-color);
   font-size: 0.9rem;
+}
+.scope-discover .correction-action {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand-primary);
+  cursor: pointer;
+  font: 600 0.9rem/1.4 inherit;
+}
+.scope-discover .correction-action:hover,
+.scope-discover .correction-action:focus-visible {
+  text-decoration: underline;
 }
 .scope-discover .card-head {
   display: flex;
@@ -3684,6 +3701,75 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--brand-margin);
   font: italic 15px var(--font-family-reading);
 }
+.scope-discover .part-of-speech .lemma {
+  margin-right: 6px;
+  color: var(--text-color);
+  font-style: normal;
+  font-weight: 600;
+}
+.scope-discover .part-of-speech .grammar {
+  margin-left: 8px;
+  color: var(--metadata-color);
+  font: normal 12.5px var(--font-family);
+}
+.scope-discover .part-of-speech .grammar::before {
+  content: "·";
+  margin-right: 8px;
+}
+.scope-discover .word-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0 16px 8px 60px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.scope-discover .word-facts div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.scope-discover .word-facts dt {
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .word-facts dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 14px;
+  margin: 0;
+}
+.scope-discover .word-facts .note {
+  color: var(--subhead-color);
+}
+.scope-discover .word-facts .fact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.scope-discover .word-facts .form {
+  font: 600 14.5px var(--font-family-reading);
+}
+.scope-discover .word-facts .of {
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .word-facts a,
+.scope-discover .said-with a {
+  min-height: 0;
+  color: var(--brand-primary);
+  font: 14.5px var(--font-family-reading);
+  text-decoration: none;
+}
+.scope-discover .word-facts a:hover,
+.scope-discover .word-facts a:focus-visible,
+.scope-discover .said-with a:hover,
+.scope-discover .said-with a:focus-visible {
+  text-decoration: underline;
+}
 .scope-discover .sense {
   display: flex;
   align-items: flex-start;
@@ -3737,6 +3823,66 @@ tui-data-list button[tuiOption].context-button.negative {
   color: var(--subhead-color);
   font-size: 14.5px;
   line-height: 1.5;
+}
+.scope-discover .sub.note {
+  font-size: 13.5px;
+}
+.scope-discover .marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 12.5px;
+}
+.scope-discover .marks .mark {
+  color: var(--brand-margin);
+  font-style: italic;
+}
+.scope-discover .marks .grammar {
+  color: var(--metadata-color);
+}
+.scope-discover .marks span + span::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--metadata-color);
+  font-style: normal;
+}
+.scope-discover .said-with {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.scope-discover .said-with .label {
+  color: var(--metadata-color);
+  font-size: 12.5px;
+}
+.scope-discover .said-with .frame {
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--nested-color);
+  font: 13px var(--font-family-mono);
+}
+.scope-discover .sense.selected .said-with .frame,
+.scope-discover .sense.lit .said-with .frame,
+.scope-discover .sense:hover .said-with .frame {
+  background: var(--card-color);
+}
+.scope-discover .said-with .collocation {
+  font: 14.5px var(--font-family-reading);
+}
+.scope-discover .said-with .collocation + .collocation::before {
+  content: "·";
+  margin-right: 10px;
+  color: var(--metadata-color);
+}
+.scope-discover .said-with .rest {
+  color: var(--metadata-color);
+  font-size: 12.5px;
 }
 .scope-discover .example {
   display: flex;
@@ -3842,6 +3988,11 @@ tui-data-list button[tuiOption].context-button.negative {
   border-radius: 14px;
   background: var(--nested-color);
 }
+.scope-discover .empty-sense span {
+  color: var(--subhead-color);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
 .scope-discover blockquote {
   margin: 0 16px;
   padding: 1.1rem 1.25rem;
@@ -3923,7 +4074,8 @@ tui-data-list button[tuiOption].context-button.negative {
     min-width: 0;
   }
   .scope-discover .part-of-speech,
-  .scope-discover .more {
+  .scope-discover .more,
+  .scope-discover .word-facts {
     padding-left: 40px;
   }
   .scope-discover .pronunciations .voice-line {

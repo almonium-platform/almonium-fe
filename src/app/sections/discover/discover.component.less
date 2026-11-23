@@ -72,7 +72,9 @@ textarea.scrolled { -webkit-mask-image: linear-gradient(to bottom, transparent 0
 .language-menu .letters { margin-left: auto; color: var(--metadata-color); font: 15px var(--font-family-reading); white-space: nowrap; }
 
 // What comes back (mocked until the backend serves breakdowns and private texts).
-.correction { margin: 0 0 1rem; color: var(--subhead-color); font-size: .9rem; }
+.correction { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .85rem; margin: 0 0 1rem; color: var(--subhead-color); font-size: .9rem; }
+.correction-action { min-height: 0; padding: 0; border: 0; background: transparent; color: var(--brand-primary); cursor: pointer; font: 600 .9rem/1.4 inherit; }
+.correction-action:hover, .correction-action:focus-visible { text-decoration: underline; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .preview-tag { padding: 2px 8px; border: 1px dashed var(--control-border-color); border-radius: 6px; color: var(--metadata-color);
   font: 500 .68rem/1.5 var(--font-family-mono); text-transform: uppercase; letter-spacing: .06em; cursor: help; }
@@ -203,6 +205,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .more span { color: var(--metadata-color); font-size: 13px; }
 .word-sheet .message { margin: 0 16px; }
 .empty-sense { display: flex; flex-direction: column; gap: .3rem; margin: 0 16px; padding: 1rem; border-radius: 14px; background: var(--nested-color); }
+.empty-sense span { color: var(--subhead-color); font-size: .92rem; line-height: 1.5; }
 blockquote { margin: 0 16px; padding: 1.1rem 1.25rem; border-left: 3px solid var(--brand-margin); background: var(--nested-color); font: 1rem/1.65 var(--font-family-reading); }
 @media (max-width: 720px) {
   .discover-page { padding-top: 2rem; }

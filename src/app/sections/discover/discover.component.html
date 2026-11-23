@@ -146,6 +146,18 @@
     <section class="message error" role="alert">{{ errorMessage }}</section>
   }
 
+  @if (lookup && !loading && lookup.requestedLanguage) {
+    <p class="correction" role="status">
+      <span i18n>Not in {{ languageName(lookup.requestedLanguage) }} — showing {{ languageName(lookup.language) }} instead.</span>
+      @if (canSwitchFieldTo(lookup.language)) {
+        <button i18n type="button" class="correction-action" (click)="switchFieldLanguage(lookup.language)">Switch to {{ languageName(lookup.language) }}</button>
+      }
+      @for (other of lookup.availableLanguages; track other) {
+        <button i18n type="button" class="correction-action" (click)="lookupInLanguage(other)">Read as {{ languageName(other) }}</button>
+      }
+    </p>
+  }
+
   @if (lookup && !loading) {
     <article class="word-sheet" aria-labelledby="entry-title">
       <header class="entry-header">
@@ -400,7 +412,21 @@
         }
       } @else {
         <div class="empty-sense">
-          <strong i18n>No structured dictionary sense is available yet.</strong>
+          @if (lookup.availableLanguages.length) {
+            @let other = lookup.availableLanguages[0];
+            @if (isFluentLanguage(other)) {
+              <strong i18n>“{{ lookup.entry }}” is in {{ languageName(other) }}, not {{ languageName(lookup.language) }}.</strong>
+              <span i18n>Discover looks up words in the language you’re learning, not {{ languageName(other) }}.</span>
+            } @else {
+              <strong i18n>No {{ languageName(lookup.language) }} entry for “{{ lookup.entry }}”.</strong>
+              <span i18n>It exists in the {{ languageName(other) }} dictionary — add or activate {{ languageName(other) }} in your languages to study it.</span>
+            }
+          } @else if (lookup.scriptMismatch) {
+            <strong i18n>“{{ lookup.entry }}” isn’t written in {{ languageName(lookup.language) }}.</strong>
+            <span i18n>Check your keyboard layout or active language and try again.</span>
+          } @else {
+            <strong i18n>No structured dictionary sense is available yet.</strong>
+          }
         </div>
       }
 

@@ -23,6 +23,7 @@ describe('DiscoverComponent', () => {
     return {
       entry: 'colour', sourceContext: null, language: LanguageCode.EN, translationLanguage: LanguageCode.UK, provider: 'lexicon',
       frequency: null, pronunciations, homophones: [], lexemes: [],
+      requestedLanguage: null, availableLanguages: [], scriptMismatch: false,
       senses: [
         {
           index: 1, key: null, headword: 'colour', partOfSpeech: 'noun', transcription: null, translations: ['колір'],
@@ -495,6 +496,63 @@ describe('DiscoverComponent', () => {
       detect();
       expect(suggestSpy).not.toHaveBeenCalled();
       expect(element.querySelector('.suggestions')).toBeNull();
+    });
+  });
+
+  describe('wrong language profile', () => {
+    it('shows the redirected sheet with a notice and switches the active language on click', async () => {
+      const redirected = lookupOf([british]);
+      redirected.entry = 'word';
+      redirected.requestedLanguage = LanguageCode.FR;
+      redirected.availableLanguages = [LanguageCode.DE];
+      const setCurrentLanguage = jasmine.createSpy('setCurrentLanguage');
+      TestBed.configureTestingModule({
+        imports: [DiscoverComponent],
+        providers: [
+          provideRouter([]),
+          {provide: ActivatedRoute, useValue: {paramMap: of(convertToParamMap({})), queryParamMap: of(convertToParamMap({text: 'word'}))}},
+          {provide: DiscoverService, useValue: {lookup: jasmine.createSpy('lookup').and.returnValue(of(redirected)), suggest: () => of([])}},
+          {provide: EntryReportService, useValue: {report: () => of({id: 'r1'})}},
+          {provide: CardService, useValue: {createCard: () => of({id: 'c1'}), deleteCard: () => of(void 0), getCardsInLanguage: () => of([])}},
+          {provide: TargetLanguageDropdownService, useValue: {currentLanguage$: of(LanguageCode.FR), setCurrentLanguage}},
+          {provide: UserInfoService, useValue: {currentUserInfo: {
+            learners: [new Learner('l1', LanguageCode.FR, CEFRLevel.A2, true, null), new Learner('l2', LanguageCode.EN, CEFRLevel.B2, true, 'en-GB')],
+            fluentLangs: [LanguageCode.UK], activeTargetLangs: [LanguageCode.FR, LanguageCode.EN, LanguageCode.DE], uiPreferences: DEFAULT_UI_PREFERENCES,
+          } as unknown as UserInfo}},
+        ],
+      });
+      const localFixture = TestBed.createComponent(DiscoverComponent);
+      localFixture.detectChanges();
+      await localFixture.whenStable();
+      localFixture.detectChanges();
+      const element = localFixture.nativeElement as HTMLElement;
+
+      const notice = element.querySelector<HTMLElement>('.correction')!;
+      expect(notice.textContent).toContain('Not in French — showing English instead.');
+      const buttons = Array.from(notice.querySelectorAll<HTMLButtonElement>('button.correction-action'));
+      expect(buttons.map(button => button.textContent?.trim())).toEqual(['Switch to English', 'Read as German']);
+      buttons[0].click();
+      localFixture.detectChanges();
+      expect(setCurrentLanguage).toHaveBeenCalledWith(LanguageCode.EN);
+    });
+
+    it('explains when a missed word belongs to the reader’s fluent language or another script', async () => {
+      const fluentMiss = lookupOf([]);
+      fluentMiss.entry = 'word';
+      fluentMiss.language = LanguageCode.FR;
+      fluentMiss.senses = [];
+      fluentMiss.availableLanguages = [LanguageCode.EN];
+      let element = await render(fluentMiss, 'en-GB', {text: 'word'});
+      expect(element.querySelector('.empty-sense')?.textContent).toContain('exists in the English dictionary');
+
+      TestBed.resetTestingModule();
+      const scriptMiss = lookupOf([]);
+      scriptMiss.entry = 'їжак';
+      scriptMiss.language = LanguageCode.FR;
+      scriptMiss.senses = [];
+      scriptMiss.scriptMismatch = true;
+      element = await render(scriptMiss, 'en-GB', {text: 'їжак'});
+      expect(element.querySelector('.empty-sense')?.textContent).toContain('isn’t written in French');
     });
   });
 });

@@ -14,6 +14,7 @@ describe('WordCardComponent', () => {
   const lookup: DiscoverLookup = {
     entry: 'Bank', sourceContext: null, language: LanguageCode.DE, translationLanguage: LanguageCode.EN, provider: 'lexicon',
     frequency: null, pronunciations: [], homophones: [], lexemes: [],
+    requestedLanguage: null, availableLanguages: [], scriptMismatch: false,
     senses: [
       {index: 1, key: 'key-1', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bench'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
       {index: 2, key: 'key-2', headword: 'Bank', partOfSpeech: 'noun', transcription: null, translations: ['bank'], definition: null, cefr: null, examples: [], ...NO_ENTRY},
