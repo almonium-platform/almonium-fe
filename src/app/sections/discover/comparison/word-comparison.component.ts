@@ -1,8 +1,11 @@
-import {ChangeDetectionStrategy, Component, LOCALE_ID, computed, inject, input, linkedSignal, output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, DestroyRef, LOCALE_ID, computed, inject, input, linkedSignal, output, signal} from '@angular/core';
+import {takeUntilDestroyed, toObservable} from '@angular/core/rxjs-interop';
+import {catchError, distinctUntilChanged, finalize, of, switchMap} from 'rxjs';
 import {RouterLink} from '@angular/router';
 import {UserInfoService} from '../../../services/user-info.service';
 import {varietyRow} from '../../../shared/language-varieties';
-import {DiscoverLookup, DiscoverPronunciation, DiscoverSense} from '../discover.service';
+import {getErrorMessage} from '../../../shared/http-error';
+import {DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, SenseComparison} from '../discover.service';
 import {languageName, partOfSpeechLabel} from '../entry-shape';
 import {speakerKey} from '../pronunciation-table';
 import {ComparedSide, ComparisonRow, ComparisonRowKind, bestPair, comparisonLinks, comparisonRows, soundOf} from '../word-comparison';
@@ -44,8 +47,9 @@ interface WordColumn {
 
 /**
  * Two word sheets as one table ("affect vs effect"): each word's meanings to pick from, then what the lexicon says
- * of the two picked, row against row. Nothing is written for the pair; what the two share is set in grey so the
- * eye lands on where they part.
+ * of the two picked, row against row, with what the two share set in grey so the eye lands on where they part. The
+ * table is the lexicon's own facts. A signed-in reader can also ask for the difference in a few sentences, which a
+ * model writes from those facts once per pair of meanings and everyone after reads for nothing.
  */
 @Component({
   selector: 'app-word-comparison',
@@ -62,6 +66,8 @@ export class WordComparisonComponent {
   readonly listen = output<ComparedSound>();
 
   private readonly userInfoService = inject(UserInfoService);
+  private readonly discoverService = inject(DiscoverService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly locale = inject(LOCALE_ID);
 
   protected readonly rowLabels: Record<ComparisonRowKind, string> = {
@@ -162,6 +168,58 @@ export class WordComparisonComponent {
     const [a, b] = this.columns().map(column => column.sound?.pronunciation.ipa ?? null);
     return !!a && a === b;
   });
+
+  /** The two sense keys an explanation is asked for by; null when either word is not a lexicon entry. */
+  private readonly pairKey = computed(() => {
+    if (this.missing().length) return null;
+    const [first, second] = this.sides();
+    return first.sense.key && second.sense.key ? `${first.sense.key} ${second.sense.key} ${first.lookup.translationLanguage}` : null;
+  });
+  /** The explanation for the meanings picked; null until the server has said whether one is written. */
+  protected readonly explanation = signal<SenseComparison | null>(null);
+  protected readonly explaining = signal(false);
+  protected readonly explainError = signal('');
+  /** Whether an explanation can be asked for at all: both words are lexicon entries. */
+  protected readonly canExplain = computed(() => this.pairKey() !== null);
+
+  protected get signedIn(): boolean {
+    return this.userInfoService.currentUserInfo !== null;
+  }
+
+  constructor() {
+    // A new pair of meanings first asks only for an explanation already written, which costs nothing.
+    toObservable(this.pairKey).pipe(
+      distinctUntilChanged(),
+      switchMap(key => {
+        this.explanation.set(null);
+        this.explainError.set('');
+        this.explaining.set(false);
+        return key && this.signedIn ? this.ask(false).pipe(catchError(() => of(null))) : of(null);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(explanation => this.explanation.set(explanation));
+  }
+
+  /** Has the difference written. The pair is read again when it answers, in case another meaning was picked meanwhile. */
+  protected explain(): void {
+    const asked = this.pairKey();
+    if (!asked || this.explaining()) return;
+    this.explaining.set(true);
+    this.explainError.set('');
+    this.ask(true).pipe(finalize(() => this.explaining.set(false)), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: explanation => {
+        if (this.pairKey() === asked) this.explanation.set(explanation);
+      },
+      error: error => {
+        if (this.pairKey() === asked) this.explainError.set(getErrorMessage(error, $localize`The explanation could not be written. Please try again.`));
+      },
+    });
+  }
+
+  private ask(generate: boolean) {
+    const [first, second] = this.sides();
+    return this.discoverService.explainDifference(first.sense.key!, second.sense.key!, first.lookup.translationLanguage, generate);
+  }
 
   protected pick(side: number, at: number): void {
     const selection = [...this.selection()] as [number, number];

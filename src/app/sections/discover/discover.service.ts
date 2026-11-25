@@ -185,6 +185,13 @@ export interface DiscoverSuggestion {
   gloss: string | null;
 }
 
+/** How two senses differ, in a few sentences; `summary` is null when none is written yet, or when `capped`. */
+export interface SenseComparison {
+  summary: string | null;
+  /** The member has had today's share of new explanations. */
+  capped: boolean;
+}
+
 const CLIP_STATUSES: readonly DiscoverClipStatus[] = ['verified', 'unverified'];
 
 @Injectable({providedIn: 'root'})
@@ -202,6 +209,18 @@ export class DiscoverService {
       map(parseDiscoverLookup),
       tap(() => this.analytics.trackFirst('first_lookup', {language})),
     );
+  }
+
+  /**
+   * How two lexicon senses differ, for a signed-in reader. With `generate` false only an explanation already written
+   * comes back, which costs nothing; true has one written when there is none.
+   */
+  explainDifference(firstSenseKey: string, secondSenseKey: string, explanationLanguage: LanguageCode, generate: boolean): Observable<SenseComparison> {
+    return this.http.post<unknown>(`${AppConstants.API_URL}/lexicon/comparisons`,
+      {firstSenseKey, secondSenseKey, explanationLanguage, generate}, {withCredentials: true}).pipe(map(value => {
+      const data = expectRecord(value, 'senseComparison');
+      return {summary: expectNullableString(data['summary'], 'senseComparison.summary'), capped: data['capped'] === true};
+    }));
   }
 
   /** Headwords beginning with what was typed, most frequent first; the lexicon's word for "autocomplete". */

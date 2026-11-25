@@ -38,6 +38,7 @@ describe('DiscoverComponent', () => {
   let fixture: ComponentFixture<DiscoverComponent>;
   let lookupSpy: jasmine.Spy;
   let suggestSpy: jasmine.Spy;
+  let explainSpy: jasmine.Spy;
   let createCardSpy: jasmine.Spy;
   let reportSpy: jasmine.Spy;
   let savedCards: CardDto[] = [];
@@ -52,7 +53,9 @@ describe('DiscoverComponent', () => {
     suggestSpy = jasmine.createSpy('suggest').and.returnValue(of(SUGGESTIONS));
     createCardSpy = jasmine.createSpy('createCard').and.returnValue(of({id: 'card-new'}));
     reportSpy = jasmine.createSpy('report').and.returnValue(of({id: 'report-1'}));
-    const discoverService = {lookup: lookupSpy, suggest: suggestSpy};
+    explainSpy = jasmine.createSpy('explainDifference').and.callFake((_first: string, _second: string, _language: LanguageCode, generate: boolean) =>
+      of({summary: generate ? 'Colour is the noun; paint is what you put on a wall.' : null, capped: false}));
+    const discoverService = {lookup: lookupSpy, suggest: suggestSpy, explainDifference: explainSpy};
     const learners = variety === null ? [] : [new Learner('learner-1', LanguageCode.EN, CEFRLevel.B1, true, variety)];
     await TestBed.configureTestingModule({
       imports: [DiscoverComponent],
@@ -509,6 +512,29 @@ describe('DiscoverComponent', () => {
       expect(element.querySelector('.run')?.textContent).toContain('Compare');
       expect(Array.from(element.querySelectorAll('app-word-comparison .label')).map(label => label.textContent?.trim()))
         .toEqual(['', 'Meaning', 'Example', 'Level', 'Sound']);
+    });
+
+    it('asks a signed-in reader before writing the difference, and looks for one already written without being asked', async () => {
+      const lookup = lookupOf([british]);
+      lookup.senses = lookup.senses.map((sense, at) => ({...sense, key: `key-${at}`}));
+      const element = await render(lookup, 'en-GB', {text: 'colour vs paint'});
+      expect(explainSpy.calls.allArgs()).toEqual([['key-0', 'key-0', LanguageCode.UK, false]]);
+      expect(element.querySelector('.explanation .summary')).toBeNull();
+      element.querySelector<HTMLButtonElement>('.explanation .explain')!.click();
+      fixture.detectChanges();
+      expect(explainSpy.calls.mostRecent().args[3]).toBeTrue();
+      expect(element.querySelector('.explanation .summary')?.textContent).toContain('Colour is the noun');
+    });
+
+    it('offers a guest the sign-in instead, and nothing for words no lexicon entry stands behind', async () => {
+      const lookup = lookupOf([british]);
+      lookup.senses = lookup.senses.map((sense, at) => ({...sense, key: `key-${at}`}));
+      let element = await render(lookup, null, {text: 'colour vs paint'});
+      expect(explainSpy).not.toHaveBeenCalled();
+      expect(element.querySelector('.explanation a')?.getAttribute('href')).toBe('/auth');
+      TestBed.resetTestingModule();
+      element = await render(lookupOf([british]), null, {text: 'colour vs paint'});
+      expect(element.querySelector('.explanation')).toBeNull();
     });
 
     it('says which word has no entry instead of drawing half a table', async () => {

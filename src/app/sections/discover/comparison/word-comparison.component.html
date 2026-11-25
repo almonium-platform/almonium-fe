@@ -113,6 +113,25 @@
         </div>
       }
     </div>
+    @if (canExplain()) {
+      <div class="explanation">
+        @if (explanation()?.summary; as summary) {
+          <p i18n class="section-label">The difference</p>
+          <p class="summary">{{ summary }}</p>
+          <p i18n class="source">Written by AI from the two entries above, for the meanings picked.</p>
+        } @else if (!signedIn) {
+          <a i18n routerLink="/auth">Sign in to have the difference explained in a few sentences</a>
+        } @else if (explanation()?.capped) {
+          <p i18n class="source">That was today’s last new explanation. The ones already written still open.</p>
+        } @else {
+          <button type="button" class="explain" [disabled]="explaining()" (click)="explain()">
+            @if (explaining()) { <ng-container i18n>Writing…</ng-container> } @else { <ng-container i18n>Explain the difference</ng-container> }
+            <span i18n class="ai">AI</span>
+          </button>
+          @if (explainError()) { <p class="error" role="alert">{{ explainError() }}</p> }
+        }
+      </div>
+    }
     @if (canPick() || anyShared()) {
       <p class="legend">
         @if (canPick()) { <span i18n>Pick a meaning on either side to compare the two words by it.</span> }
