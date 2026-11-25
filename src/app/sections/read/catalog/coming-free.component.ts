@@ -129,7 +129,7 @@ export class ComingFreeComponent implements OnInit, OnDestroy {
   }
 
   protected rowCountdown(hit: CatalogHit): FreeFromNote | null {
-    return copyrightCountdown(hit.freeFrom ?? this.year, new Date());
+    return copyrightCountdown(hit.readerFreeFrom ?? hit.freeFrom ?? this.year, new Date());
   }
 
   protected get visibleHits(): CatalogHit[] {

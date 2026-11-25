@@ -99,6 +99,12 @@ describe('ComingFreeComponent', () => {
     expect(host.querySelector('.coming-free__more')).toBeNull();
   });
 
+  it('counts down each row to readerFreeFrom when the work was already free where books are made', () => {
+    const {host} = setup(of([hit('The War of the Worlds', {author: 'H. G. Wells', year: 1897, freeFrom: 2017, readerCountry: 'ES', readerFreeFrom: nextYear})]));
+    expect(host.querySelector('h2')?.textContent).toContain('Free in Spain from 1 January');
+    expect(host.querySelector('.coming-free__row .free-note')?.textContent).toMatch(/Free (in \d+ days|tomorrow)/);
+  });
+
   it('stays away when nothing frees up or the catalogue does not answer', () => {
     expect(setup(of([])).host.querySelector('.coming-free')).toBeNull();
     TestBed.resetTestingModule();
