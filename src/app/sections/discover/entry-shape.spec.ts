@@ -64,7 +64,7 @@ describe('entry shape', () => {
       note: 'also written program in computing',
       spellings: [{text: 'program', where: 'American'}, {text: 'programme', where: 'British'}],
       forms: [{form: 'programmed', reading: null, label: 'past and past participle', senses: []}],
-      relations: [{label: 'from', lemma: 'program', partOfSpeech: 'NOUN', senses: [2]}],
+      relations: [{label: 'from', lemma: 'program', partOfSpeech: 'NOUN', senses: [2], compare: false}],
     });
   });
 });

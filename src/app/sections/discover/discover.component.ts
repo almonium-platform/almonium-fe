@@ -1,7 +1,7 @@
 import {Component, DestroyRef, ElementRef, HostListener, LOCALE_ID, OnInit, ViewChild, afterNextRender, inject, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {EmblemComponent} from '../../shared/emblem/emblem.component';
-import {Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, of, switchMap} from 'rxjs';
+import {Subject, catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, forkJoin, of, switchMap} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AppConstants} from '../../app.constants';
 import {LanguageCode} from '../../models/language.enum';
@@ -14,16 +14,17 @@ import {getErrorMessage} from '../../shared/http-error';
 import {varietyRow} from '../../shared/language-varieties';
 import {DiscoverHomophone, DiscoverLookup, DiscoverPronunciation, DiscoverSense, DiscoverService, DiscoverSuggestion} from './discover.service';
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
+import {ComparedSound, WordComparisonComponent} from './comparison/word-comparison.component';
 import {
-  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, forgetRecents, guessGuestLanguage, readRecents,
+  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, comparisonOf, forgetRecents, guessGuestLanguage, readRecents,
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
-import {LexemeFacts, SenseFacts, lexemeFacts, senseFacts} from './entry-shape';
+import {LexemeFacts, SenseFacts, languageName, lexemeFacts, partOfSpeechLabel, senseFacts} from './entry-shape';
 import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 import {PronunciationCell, PronunciationTable, numberRanges, pronunciationTable, speakerKey} from './pronunciation-table';
 import {EntryReportComponent} from './report/entry-report.component';
 import {EntryReport} from './report/entry-report.service';
-import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
+import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBand, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -41,27 +42,9 @@ const GERMAN_ARTICLES: Record<string, string> = {Masc: 'der', Fem: 'die', Neut: 
 /** A second click on a speaker while it plays replays at this rate (design 5a). */
 const SLOW_RATE = 0.6;
 
-/** Universal part-of-speech tags as the sheet heads its groups. */
-const PARTS_OF_SPEECH: Record<string, string> = {
-  ADJ: $localize`adjective`,
-  ADP: $localize`preposition`,
-  ADV: $localize`adverb`,
-  AUX: $localize`auxiliary verb`,
-  CCONJ: $localize`conjunction`,
-  DET: $localize`determiner`,
-  INTJ: $localize`interjection`,
-  NOUN: $localize`noun`,
-  NUM: $localize`numeral`,
-  PART: $localize`particle`,
-  PRON: $localize`pronoun`,
-  PROPN: $localize`proper noun`,
-  SCONJ: $localize`conjunction`,
-  VERB: $localize`verb`,
-};
-
 @Component({
   selector: 'app-discover',
-  imports: [RouterLink, EmblemComponent, EntryReportComponent],
+  imports: [RouterLink, EmblemComponent, EntryReportComponent, WordComparisonComponent],
   templateUrl: './discover.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./discover.component.less'],
@@ -86,6 +69,10 @@ export class DiscoverComponent implements OnInit {
   /** The sentence a looked-up word came from; kept with the word when it is kept. */
   protected context = '';
   protected lookup: DiscoverLookup | null = null;
+  /** The two sheets of "affect vs effect", shown as one table in place of a sheet. */
+  protected comparison: [DiscoverLookup, DiscoverLookup] | null = null;
+  /** True while the two entries of a comparison are being fetched, which the loading line says. */
+  protected comparing = false;
   /** The sheet's senses in display order; `selectedRow` indexes it. */
   protected senseRows: SenseRow[] = [];
   protected pronunciationTable: PronunciationTable = {columns: [], rows: [], pending: 0};
@@ -184,6 +171,7 @@ export class DiscoverComponent implements OnInit {
   protected get actionLabel(): string {
     switch (this.tier) {
       case 'word': return $localize`Look up`;
+      case 'compare': return $localize`Compare`;
       case 'sentence':
       case 'passage': return $localize`Break down`;
       case 'over': return this.signedIn ? $localize`Open in the reader` : $localize`Sign in for longer text`;
@@ -213,7 +201,7 @@ export class DiscoverComponent implements OnInit {
 
   /** Nothing below the line yet: the line sits lower on the page, as the page's only object. */
   protected get atRest(): boolean {
-    return !this.lookup && !this.breakdown && !this.privateText && !this.loading && !this.breakingDown && !this.errorMessage;
+    return !this.lookup && !this.comparison && !this.breakdown && !this.privateText && !this.loading && !this.breakingDown && !this.errorMessage;
   }
 
   protected get selectedSense(): DiscoverSense | null {
@@ -248,11 +236,7 @@ export class DiscoverComponent implements OnInit {
 
   /** The band in a word, from the same thresholds the server names its bands by. */
   protected get frequencyBand(): string {
-    const score = this.lookup?.frequency?.score ?? 0;
-    if (score >= 75) return $localize`very common`;
-    if (score >= 50) return $localize`common`;
-    if (score >= 25) return $localize`less common`;
-    return $localize`rare`;
+    return frequencyBand(this.lookup?.frequency?.score ?? 0);
   }
 
   /** The score, the corpus and the dictionary behind the sheet, which the mark keeps out of sight. */
@@ -418,11 +402,11 @@ export class DiscoverComponent implements OnInit {
   }
 
   protected languageName(language: LanguageCode): string {
-    return displayName(language, this.locale);
+    return languageName(language, this.locale);
   }
 
   protected nativeName(language: LanguageCode): string {
-    return displayName(language, language.toLowerCase());
+    return languageName(language, language.toLowerCase());
   }
 
   protected letters(language: LanguageCode): string {
@@ -473,6 +457,9 @@ export class DiscoverComponent implements OnInit {
         this.privateText = null;
         this.lookupWord(input.replace(/\s+/g, ' '), this.context, this.fieldLanguage);
         return;
+      case 'compare':
+        this.compareWords(comparisonOf(input)!);
+        return;
       case 'sentence':
       case 'passage':
         this.breakDown(input);
@@ -509,6 +496,45 @@ export class DiscoverComponent implements OnInit {
         },
         error: error => this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`),
       });
+  }
+
+  /** Opens the two words side by side: two lookups of the lexicon, and nothing asked of a model. */
+  private compareWords(words: [string, string]): void {
+    const language = this.fieldLanguage;
+    const translation = this.translationLanguage(language);
+    this.context = '';
+    this.breakdown = null;
+    this.privateText = null;
+    this.loading = true;
+    this.comparing = true;
+    this.errorMessage = '';
+    forkJoin([this.discoverService.lookup(words[0], language, translation), this.discoverService.lookup(words[1], language, translation)])
+      .pipe(finalize(() => this.loading = this.comparing = false), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: pair => {
+          this.stopPlaying();
+          this.playing = null;
+          this.lookup = null;
+          this.closeReport();
+          this.comparison = pair;
+          if (pair.every(lookup => lookup.senses.length)) {
+            addRecent(pair[0].language, `${pair[0].entry} vs ${pair[1].entry}`);
+            this.recents = readRecents(this.fieldLanguage);
+          }
+        },
+        error: error => this.errorMessage = getErrorMessage(error, $localize`These two entries could not be loaded. Please try again.`),
+      });
+  }
+
+  /** What the line holds to set the sheet's word beside another: "affect vs effect". */
+  protected versus(other: string, lexeme: number | null = null): string {
+    const lemma = this.lookup?.lexemes.find(each => each.index === lexeme)?.lemma ?? this.selectedSense?.headword ?? this.lookup?.entry ?? '';
+    return `${lemma} vs ${other}`;
+  }
+
+  /** A speaker of the comparison table plays through the page's one player. */
+  protected listenCompared(sound: ComparedSound): void {
+    this.play(sound.key, sound.text, sound.variety, sound.clipUrl);
   }
 
   /** Whether the reader can switch the field's active language to `language` with one click. */
@@ -605,8 +631,7 @@ export class DiscoverComponent implements OnInit {
   }
 
   protected partOfSpeechLabel(partOfSpeech: string | null): string {
-    if (!partOfSpeech) return '';
-    return PARTS_OF_SPEECH[partOfSpeech.toUpperCase()] ?? partOfSpeech.toLowerCase();
+    return partOfSpeechLabel(partOfSpeech);
   }
 
   /** Keep on the selected row, Kept to take it back; a guest is sent to sign in. */
@@ -786,6 +811,7 @@ export class DiscoverComponent implements OnInit {
   private showLookup(lookup: DiscoverLookup): void {
     this.stopPlaying();
     this.playing = null;
+    this.comparison = null;
     this.lookup = lookup;
     this.senseRows = groupSenses(lookup.senses);
     const varietyName = (tag: string) => this.varietyLabel(tag);
@@ -850,6 +876,7 @@ export class DiscoverComponent implements OnInit {
   private breakDown(text: string): void {
     const asked = this.fieldLanguage;
     this.lookup = null;
+    this.comparison = null;
     this.privateText = null;
     this.errorMessage = '';
     this.correctedFrom = null;
@@ -871,6 +898,7 @@ export class DiscoverComponent implements OnInit {
 
   private saveToReader(text: string): void {
     this.lookup = null;
+    this.comparison = null;
     this.breakdown = null;
     this.errorMessage = '';
     this.savingText = true;
@@ -983,14 +1011,4 @@ export class DiscoverComponent implements OnInit {
 /** How a kept card names the sense it was kept for, and how the sheet finds it again. */
 function senseKey(sense: DiscoverSense): string {
   return `${sense.index}: ${sense.translations.join(', ') || (sense.definition ?? sense.headword)}`;
-}
-
-/** A language's name in the given locale, capitalised as a menu label; the code only if the browser has no name for it. */
-function displayName(language: LanguageCode, locale: string): string {
-  try {
-    const name = new Intl.DisplayNames([locale, 'en'], {type: 'language'}).of(language.toLowerCase()) ?? language;
-    return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
-  } catch {
-    return language;
-  }
 }

@@ -1,0 +1,123 @@
+@if (missing().length) {
+  <section class="comparison missing" role="status">
+    @if (found(); as other) {
+      <strong i18n>No entry for “{{ missing()[0] }}”, so there is nothing to set beside “{{ other.entry }}”.</strong>
+      <a [routerLink]="['/discover', other.language.toLowerCase()]" [queryParams]="{text: other.entry}" i18n>Open “{{ other.entry }}”</a>
+    } @else {
+      <strong i18n>No entry for “{{ missing()[0] }}” or “{{ missing()[1] }}”.</strong>
+    }
+  </section>
+} @else {
+  <article class="comparison" [attr.aria-label]="title()">
+    @if (links().length) {
+      <p class="links">
+        @for (link of links(); track $index) { <span>{{ link }}</span> }
+      </p>
+    }
+    <div class="table" role="table" [attr.aria-label]="title()">
+      <div class="row head" role="row">
+        <span class="label" role="columnheader"></span>
+        @for (column of columns(); track $index) {
+          <div class="cell word" role="columnheader">
+            <a class="headword" [routerLink]="['/discover', column.lookup.language.toLowerCase()]" [queryParams]="{text: column.headword}"
+               [title]="openTitle">{{ column.headword }}</a>
+            <span class="part">{{ column.partOfSpeech }}@if (column.language) { <span class="language">{{ column.language }}</span> }</span>
+          </div>
+        }
+      </div>
+
+      <div class="row" role="row">
+        <span i18n class="label" role="rowheader">Meaning</span>
+        @for (column of columns(); track $index; let side = $index) {
+          <div class="cell meanings" [class.choice]="column.meanings.length > 1 || column.hidden" role="cell">
+            @if (column.meanings.length === 1 && !column.hidden) {
+              <p class="meaning only"><span class="lead">{{ column.meanings[0].lead }}</span></p>
+            } @else {
+              @for (meaning of column.meanings; track meaning.at) {
+                <button type="button" class="meaning" [class.selected]="meaning.at === column.selected" [attr.aria-pressed]="meaning.at === column.selected"
+                        (click)="pick(side, meaning.at)">
+                  <span class="number">{{ meaning.number }}</span>
+                  <span class="lead">{{ meaning.lead }}@if (meaning.partOfSpeech && meaning.partOfSpeech !== column.partOfSpeech) { <span class="other-part">{{ meaning.partOfSpeech }}</span> }</span>
+                </button>
+              }
+              @if (column.hidden) {
+                <button i18n type="button" class="more" (click)="showAll()">Show {{ column.hidden }} more</button>
+              }
+            }
+            @if (column.sub) { <p class="sub">{{ column.sub }}</p> }
+          </div>
+        }
+      </div>
+
+      @if (anyExample()) {
+        <div class="row" role="row">
+          <span i18n class="label" role="rowheader">Example</span>
+          @for (column of columns(); track $index) {
+            <div class="cell example" role="cell">
+              @if (column.example; as example) {
+                <span class="example-text">{{ example.before }}<span class="word">{{ example.word }}</span>{{ example.after }}</span>
+              } @else { <span class="none" aria-hidden="true">—</span> }
+            </div>
+          }
+        </div>
+      }
+
+      @if (anyFrequency()) {
+        <div class="row" role="row">
+          <span i18n class="label" role="rowheader">Frequency</span>
+          @for (column of columns(); track $index) {
+            <div class="cell" role="cell">
+              @if (column.frequency; as frequency) {
+                <span class="frequency" [title]="frequency.title">
+                  <span class="bars" aria-hidden="true">
+                    @for (bar of bars; track bar) { <span [class.on]="bar <= frequency.bars"></span> }
+                  </span>
+                  <span class="band">{{ frequency.band }}</span>
+                </span>
+              } @else { <span class="none" aria-hidden="true">—</span> }
+            </div>
+          }
+        </div>
+      }
+
+      @for (row of rows(); track row.kind) {
+        <div class="row" role="row" [class.same]="row.same">
+          <span class="label" role="rowheader">{{ rowLabels[row.kind] }}</span>
+          @for (cell of row.cells; track $index) {
+            <div class="cell" [class]="row.kind" role="cell">
+              @for (item of cell; track $index) {
+                <span class="item" [class.shared]="item.shared">{{ item.text }}@if (item.note) { <span class="of">{{ item.note }}</span> }</span>
+              } @empty { <span class="none" aria-hidden="true">—</span> }
+            </div>
+          }
+        </div>
+      }
+
+      @if (anySound()) {
+        <div class="row" role="row" [class.same]="sameSound()">
+          <span i18n class="label" role="rowheader">Sound</span>
+          @for (column of columns(); track $index) {
+            <div class="cell sound" role="cell">
+              @if (column.sound; as sound) {
+                @if (sound.pronunciation.ipa) { <span class="transcription">{{ sound.pronunciation.ipa }}</span> }
+                <button type="button" class="speaker" [class.on]="playing() === sound.play.key" [disabled]="!sound.playable"
+                        [attr.title]="sound.playable ? null : noRecordingTitle" [attr.aria-label]="listenLabel(column)"
+                        (click)="listen.emit(sound.play)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                       stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                </button>
+                <span class="variety">{{ sound.variety }}</span>
+              } @else { <span class="none" aria-hidden="true">—</span> }
+            </div>
+          }
+        </div>
+      }
+    </div>
+    @if (canPick() || anyShared()) {
+      <p class="legend">
+        @if (canPick()) { <span i18n>Pick a meaning on either side to compare the two words by it.</span> }
+        @if (anyShared()) { <span i18n>Grey is what the two share.</span> }
+      </p>
+    }
+  </article>
+}

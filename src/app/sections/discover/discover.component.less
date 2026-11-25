@@ -138,6 +138,9 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .homophones .label, .homophones .note { color: var(--metadata-color); font-size: 12.5px; }
 .homophones a { color: var(--brand-primary); text-decoration: none; }
 .homophones a:hover, .homophones a:focus-visible { text-decoration: underline; }
+// "compare" after a word the sheet's word is mixed up with or said like: it sets the two side by side.
+.word-facts a.compare, .homophones a.compare { color: var(--metadata-color); font: 12.5px var(--font-family); text-decoration: underline dotted; text-underline-offset: 3px; }
+.word-facts a.compare:hover, .word-facts a.compare:focus-visible, .homophones a.compare:hover, .homophones a.compare:focus-visible { color: var(--brand-primary); }
 .speaker:disabled { border-color: var(--hairline-color); background: var(--nested-color); color: var(--idle-speaker-color); cursor: not-allowed; opacity: 1; }
 .pronunciations .variety { color: var(--metadata-color); font-size: 12.5px; line-height: 30px; }
 .pronunciations .transcription { white-space: nowrap; }

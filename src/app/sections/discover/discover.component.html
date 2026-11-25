@@ -140,10 +140,16 @@
   }
 
   @if (loading) {
-    <section i18n class="loading-card" aria-live="polite"><app-emblem class="unfold-mark" [looped]="true"></app-emblem> Opening the entry…</section>
+    <section class="loading-card" aria-live="polite"><app-emblem class="unfold-mark" [looped]="true"></app-emblem>
+      @if (comparing) { <ng-container i18n>Opening both entries…</ng-container> } @else { <ng-container i18n>Opening the entry…</ng-container> }</section>
   }
   @if (errorMessage) {
     <section class="message error" role="alert">{{ errorMessage }}</section>
+  }
+
+  @if (comparison && !loading) {
+    <app-word-comparison [first]="comparison[0]" [second]="comparison[1]" [playing]="playing" (listen)="listenCompared($event)"></app-word-comparison>
+    @if (audioError) { <p class="message error" role="alert">{{ audioError }}</p> }
   }
 
   @if (lookup && !loading && lookup.requestedLanguage) {
@@ -258,6 +264,7 @@
             @for (homophone of lookup.homophones; track homophone.word) {
               <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: homophone.word}">{{ homophone.word }}</a>
               @if (homophoneNote(homophone); as note) { <span class="note">({{ note }})</span> }
+              <a i18n class="compare" [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: versus(homophone.word)}">compare</a>
             }
           </p>
         }
@@ -309,7 +316,7 @@
                       <dd>
                         @for (relation of word.relations; track $index) {
                           <span class="fact"><span class="of">{{ relation.label }}</span>
-                            <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: relation.lemma}">{{ relation.lemma }}</a>@if (relation.partOfSpeech) { <span class="of">{{ partOfSpeechLabel(relation.partOfSpeech) }}</span> }@if (senseNumbers(relation.senses); as only) { <span class="of">{{ only }}</span> }</span>
+                            <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: relation.lemma}">{{ relation.lemma }}</a>@if (relation.partOfSpeech) { <span class="of">{{ partOfSpeechLabel(relation.partOfSpeech) }}</span> }@if (senseNumbers(relation.senses); as only) { <span class="of">{{ only }}</span> }@if (relation.compare) { <a i18n class="compare" [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: versus(relation.lemma, group.lexeme)}">compare</a> }</span>
                         }
                       </dd>
                     </div>

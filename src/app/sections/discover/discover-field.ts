@@ -4,7 +4,7 @@ import {LanguageCode} from '../../models/language.enum';
  * What the one Discover field does with its text (design 4e). Length and shape decide what ↵ does, and the
  * button says it before you press.
  */
-export type DiscoverTier = 'empty' | 'word' | 'sentence' | 'passage' | 'over';
+export type DiscoverTier = 'empty' | 'word' | 'compare' | 'sentence' | 'passage' | 'over';
 
 /** Members break down up to this many characters; past it the text goes to the reader instead. */
 export const MEMBER_CAP = 2000;
@@ -22,11 +22,28 @@ export const GUEST_LANGUAGES: readonly LanguageCode[] = [
  * A word or expression is up to three words and 60 characters with no closing punctuation. Phrases the
  * dictionary holds up to six words belong here too, once the lexicon can be asked whether it holds one.
  */
+function isExpression(text: string): boolean {
+  return text.split(/\s+/).length <= 3 && text.length <= WORD_LIMIT && !/[.!?…]$/.test(text);
+}
+
+/** Two expressions with "vs", "vs." or "versus" between them ask for the two side by side. */
+const VERSUS = /^(.+?)\s+(?:vs\.?|versus)\s+(.+)$/iu;
+
+/** The two expressions of "affect vs effect"; null when the text is not two different ones set against each other. */
+export function comparisonOf(text: string): [string, string] | null {
+  const match = VERSUS.exec(text.trim().replace(/\s+/g, ' '));
+  if (!match) return null;
+  const [first, second] = [match[1], match[2]];
+  if (!isExpression(first) || !isExpression(second) || first.toLocaleLowerCase() === second.toLocaleLowerCase()) return null;
+  return [first, second];
+}
+
 export function tierOf(text: string, cap: number): DiscoverTier {
   const trimmed = text.trim();
   if (!trimmed) return 'empty';
   if (trimmed.length > cap) return 'over';
-  if (trimmed.split(/\s+/).length <= 3 && trimmed.length <= WORD_LIMIT && !/[.!?…]$/.test(trimmed)) return 'word';
+  if (comparisonOf(trimmed)) return 'compare';
+  if (isExpression(trimmed)) return 'word';
   return trimmed.length <= SENTENCE_LIMIT ? 'sentence' : 'passage';
 }
 

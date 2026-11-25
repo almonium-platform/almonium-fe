@@ -116,6 +116,40 @@ const UN_AREAS: Record<string, string> = {
   '021': $localize`North America`, '150': $localize`Europe`, '002': $localize`Africa`, '142': $localize`Asia`, '009': $localize`Oceania`,
 };
 
+/** Universal part-of-speech tags as the sheet heads its groups. */
+const PARTS_OF_SPEECH: Record<string, string> = {
+  ADJ: $localize`adjective`,
+  ADP: $localize`preposition`,
+  ADV: $localize`adverb`,
+  AUX: $localize`auxiliary verb`,
+  CCONJ: $localize`conjunction`,
+  DET: $localize`determiner`,
+  INTJ: $localize`interjection`,
+  NOUN: $localize`noun`,
+  NUM: $localize`numeral`,
+  PART: $localize`particle`,
+  PRON: $localize`pronoun`,
+  PROPN: $localize`proper noun`,
+  SCONJ: $localize`conjunction`,
+  VERB: $localize`verb`,
+};
+
+/** "adjective" for ADJ; a tag this build does not know in lower case; nothing for none. */
+export function partOfSpeechLabel(partOfSpeech: string | null): string {
+  if (!partOfSpeech) return '';
+  return PARTS_OF_SPEECH[partOfSpeech.toUpperCase()] ?? partOfSpeech.toLowerCase();
+}
+
+/** A language's name in the given locale, capitalised as a menu label; the code only if the browser has no name for it. */
+export function languageName(language: string, locale: string): string {
+  try {
+    const name = new Intl.DisplayNames([locale, 'en'], {type: 'language'}).of(language.toLowerCase()) ?? language;
+    return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
+  } catch {
+    return language;
+  }
+}
+
 function named(table: Record<string, string>, key: string): string {
   return table[key] ?? key.replace(/_/g, ' ');
 }
@@ -235,7 +269,8 @@ export interface LexemeFacts {
   /** Each spelling with who writes it so: "colour" (British, Australian). */
   spellings: {text: string; where: string}[];
   forms: {form: string; reading: string | null; label: string; senses: number[]}[];
-  relations: {label: string; lemma: string; partOfSpeech: string | null; senses: number[]}[];
+  /** `compare` marks the first mention of a word this one is mixed up with: the sheet offers the two side by side there. */
+  relations: {label: string; lemma: string; partOfSpeech: string | null; senses: number[]; compare: boolean}[];
 }
 
 export function lexemeFacts(lexeme: DiscoverLexeme, language: string, varietyName: VarietyNamer): LexemeFacts {
@@ -247,8 +282,10 @@ export function lexemeFacts(lexeme: DiscoverLexeme, language: string, varietyNam
       where: [...spelling.varieties.map(varietyName), ...(spelling.preReform ? [$localize`before the spelling reform`] : [])].join(', '),
     })),
     forms: lexeme.forms.map(form => ({form: form.form, reading: form.reading, label: formLabel(form, varietyName), senses: form.senses})),
-    relations: lexeme.relations.map(relation => ({
+    relations: lexeme.relations.map((relation, at) => ({
       label: relationLabel(relation), lemma: relation.lemma, partOfSpeech: relation.partOfSpeech, senses: relation.senses,
+      compare: relation.type === 'confusable'
+        && lexeme.relations.findIndex(each => each.type === 'confusable' && each.lemma === relation.lemma) === at,
     })),
   };
 }

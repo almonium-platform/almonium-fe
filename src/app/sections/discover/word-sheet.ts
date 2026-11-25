@@ -84,6 +84,14 @@ export function frequencyBars(score: number): number {
   return Math.min(5, Math.max(1, Math.ceil(score / 20)));
 }
 
+/** The band in a word, from the same thresholds the server names its bands by. */
+export function frequencyBand(score: number): string {
+  if (score >= 75) return $localize`very common`;
+  if (score >= 50) return $localize`common`;
+  if (score >= 25) return $localize`less common`;
+  return $localize`rare`;
+}
+
 /** Finds the headword in its example, as typed or inflected (it begins the matched word), to set it apart. */
 export function exampleParts(text: string | null, headword: string): ExampleParts | null {
   if (!text) return null;

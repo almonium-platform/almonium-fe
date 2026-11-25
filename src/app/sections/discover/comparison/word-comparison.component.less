@@ -1,0 +1,98 @@
+// Two sheets as one table: a quiet label column, then a column a word. Rows are placed by the grid, so a label and
+// its two cells share one hairline; on a phone the label moves over its cells and the two columns take the width.
+:host { display: block; margin-top: 34px; }
+p { margin: 0; }
+.comparison { display: flex; flex-direction: column; gap: 20px; padding: 32px 38px 24px; border-radius: 28px; background: var(--card-color);
+  box-shadow: var(--box-shadow); }
+.comparison.missing { gap: 6px; padding: 22px 26px; border-radius: 20px; }
+.comparison.missing a { align-self: flex-start; color: var(--brand-primary); font-weight: 600; text-decoration: none; }
+.comparison.missing a:hover, .comparison.missing a:focus-visible { text-decoration: underline; }
+.links { display: flex; flex-wrap: wrap; gap: 2px 8px; color: var(--brand-margin); font: italic 15px/1.5 var(--font-family-reading); }
+.links span + span::before { content: "·"; margin-right: 8px; color: var(--metadata-color); font-style: normal; }
+
+.table { display: grid; grid-template-columns: 84px minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; }
+.row { display: contents; }
+.row > * { padding: 13px 0; border-top: 1px solid var(--hairline-color); }
+.row.head > * { padding-top: 0; border-top: 0; }
+.label { color: var(--metadata-color); font-size: 12.5px; line-height: 22px; }
+.cell { display: flex; flex-wrap: wrap; align-content: flex-start; align-items: baseline; gap: 4px 14px; min-width: 0; font-size: 14.5px; line-height: 22px; }
+.none { color: var(--metadata-color); }
+
+.word { flex-direction: column; flex-wrap: nowrap; gap: 4px; }
+.headword { color: var(--text-color); font: 600 38px/1.1 var(--font-family-reading); overflow-wrap: anywhere; text-decoration: none; }
+.headword:hover, .headword:focus-visible { color: var(--brand-primary); }
+.part { color: var(--brand-margin); font: italic 15px/1.4 var(--font-family-reading); }
+.language { margin-left: 8px; color: var(--metadata-color); font: normal 12.5px var(--font-family); }
+.language::before { content: "·"; margin-right: 8px; }
+
+// A word's meanings are a list to pick one from; the picked one is the one the rows under it describe.
+.meanings { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px; }
+// The first choice's own padding is taken back, so its text starts on the label's line as a lone meaning does.
+.meanings.choice { margin-top: -7px; }
+.meaning { display: flex; align-items: baseline; gap: 10px; margin: 0 -10px; padding: 7px 10px; border: 0; border-radius: 12px; background: transparent;
+  color: var(--subhead-color); cursor: pointer; text-align: left; font: inherit; }
+.meaning:hover { background: var(--nested-color); }
+.meaning.selected { background: var(--chat-selected-color); color: var(--text-color); }
+.meaning.only { margin: 0; padding: 0; color: var(--text-color); cursor: default; }
+.meaning.only:hover { background: transparent; }
+.meaning .number { flex: 0 0 14px; color: var(--metadata-color); font: 600 14px/22px var(--font-family-reading); text-align: right; }
+.meaning.selected .number { color: var(--brand-primary); }
+.meaning .lead { font: 500 16px/1.4 var(--font-family-reading); text-wrap: pretty; }
+.other-part { margin-left: 4px; color: var(--brand-margin); font: italic 13px var(--font-family-reading); white-space: nowrap; }
+.more { align-self: flex-start; margin-top: 4px; padding: 4px 0; border: 0; background: transparent; color: var(--brand-primary); cursor: pointer;
+  font-size: 13px; font-weight: 600; }
+.sub { margin-top: 4px; color: var(--subhead-color); font-size: 13.5px; line-height: 1.5; }
+
+.example-text { font: italic 15.5px/1.5 var(--font-family-reading); }
+.example-text .word { color: var(--brand-primary); font-weight: 600; }
+
+.item { display: inline-flex; align-items: baseline; gap: 5px; }
+.item.shared, .row.same .item, .row.same .transcription { color: var(--metadata-color); }
+.of { color: var(--metadata-color); font-size: 12.5px; }
+.level .item { padding: 0 6px; border-radius: 5px; background: var(--chat-selected-color); color: var(--brand-primary); font: 11px/20px var(--font-family-mono); }
+.level .item.shared, .row.same .level .item { background: var(--nested-color); color: var(--metadata-color); }
+.use .item { color: var(--brand-margin); font-style: italic; }
+.use .item.shared { color: var(--metadata-color); }
+.pattern .item { padding: 0 7px; border-radius: 6px; background: var(--nested-color); font: 13px/22px var(--font-family-mono); }
+.often .item, .opposite .item, .forms .item, .spelled .item { font-family: var(--font-family-reading); }
+.forms .item, .spelled .item { font-weight: 600; }
+.forms .of, .spelled .of { font-family: var(--font-family); font-weight: 400; }
+// Grammar reads as one run of marks with a dot between, as under a part of speech on the sheet.
+.grammar { column-gap: 0; }
+.grammar .item + .item::before { content: "·"; margin: 0 8px; color: var(--metadata-color); }
+
+.frequency { display: flex; align-items: flex-end; gap: 8px; cursor: default; }
+.frequency .bars { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+.frequency .bars span { width: 4px; border-radius: 1px; background: var(--hairline-color); }
+.frequency .bars span:nth-child(1) { height: 6px; }
+.frequency .bars span:nth-child(2) { height: 9px; }
+.frequency .bars span:nth-child(3) { height: 12px; }
+.frequency .bars span:nth-child(4), .frequency .bars span:nth-child(5) { height: 16px; }
+.frequency .bars span.on { background: var(--brand-primary); }
+.frequency .band { color: var(--subhead-color); font-size: 13px; line-height: 16px; white-space: nowrap; }
+
+.sound { align-items: center; gap: 6px 10px; }
+.transcription { color: var(--subhead-color); font: 15px var(--font-family-mono); }
+.variety { color: var(--metadata-color); font-size: 12.5px; }
+.speaker { display: flex; flex: none; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0;
+  border: 1px solid var(--control-border-color); border-radius: 50%; background: var(--card-color); color: var(--brand-primary); cursor: pointer; }
+.speaker:hover { border-color: var(--brand-primary); }
+.speaker.on { border-color: var(--brand-primary); background: var(--brand-primary); color: var(--on-brand-color); }
+.speaker:disabled { border-color: var(--hairline-color); background: var(--nested-color); color: var(--idle-speaker-color); cursor: not-allowed; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 2px 14px; color: var(--metadata-color); font-size: 12.5px; line-height: 1.5; }
+
+@media (max-width: 720px) {
+  .comparison { padding: 24px 18px 18px; border-radius: 20px; }
+  .table { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 18px; }
+  .label { grid-column: 1 / -1; padding-bottom: 0; }
+  .row .cell { padding-top: 4px; border-top: 0; }
+  .row.head .label { display: none; }
+  .row.head .cell { padding-top: 0; }
+  .headword { font-size: 27px; }
+  .meanings.choice { margin-top: 0; }
+  .meaning.only { padding: 7px 0; }
+  .meaning { min-height: 44px; }
+  .meaning .lead { font-size: 15px; }
+  .speaker { width: 36px; height: 36px; }
+}

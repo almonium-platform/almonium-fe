@@ -84,8 +84,9 @@ describe('DiscoverComponent', () => {
       const element = await render(lookup, null);
       const line = element.querySelector<HTMLElement>('.homophones')!;
       expect(line.querySelector('.label')?.textContent).toBe('Sounds like');
-      const links = Array.from(line.querySelectorAll('a'));
+      const links = Array.from(line.querySelectorAll('a:not(.compare)'));
       expect(links.map(link => link.textContent)).toEqual(['culler', 'cullah']);
+      expect(line.querySelector('a.compare')?.getAttribute('href')).toBe('/discover/en?text=colour%20vs%20culler');
       expect(links[0].getAttribute('href')).toBe('/discover/en?text=culler');
       expect(Array.from(line.querySelectorAll('.note')).map(note => note.textContent)).toEqual(['(British, meaning 1)']);
     });
@@ -496,6 +497,36 @@ describe('DiscoverComponent', () => {
       detect();
       expect(suggestSpy).not.toHaveBeenCalled();
       expect(element.querySelector('.suggestions')).toBeNull();
+    });
+  });
+
+  describe('two words set against each other', () => {
+    it('looks both up and shows them as one table in place of a sheet', async () => {
+      const element = await render(lookupOf([british]), null, {text: 'colour vs paint'});
+      expect(lookupSpy.calls.allArgs().map(args => args[0] as string)).toEqual(['colour', 'paint']);
+      expect(element.querySelector('app-word-comparison .table')).not.toBeNull();
+      expect(element.querySelector('.word-sheet')).toBeNull();
+      expect(element.querySelector('.run')?.textContent).toContain('Compare');
+      expect(Array.from(element.querySelectorAll('app-word-comparison .label')).map(label => label.textContent?.trim()))
+        .toEqual(['', 'Meaning', 'Example', 'Level', 'Sound']);
+    });
+
+    it('says which word has no entry instead of drawing half a table', async () => {
+      const element = await render({...lookupOf([]), senses: []}, null, {text: 'colour vs paint'});
+      expect(element.querySelector('app-word-comparison .table')).toBeNull();
+      expect(element.querySelector('app-word-comparison .missing')?.textContent).toContain('No entry for');
+    });
+
+    it('offers the comparison beside a word the sheet says is mixed up with this one', async () => {
+      const lookup = lookupOf([british]);
+      const relation = {type: 'confusable', lemma: 'collar', partOfSpeech: 'NOUN', senses: []};
+      lookup.lexemes = [{index: 1, lemma: 'colour', partOfSpeech: 'NOUN', kind: 'word', grammar: {}, spellings: [], forms: [],
+        relations: [relation, {...relation, partOfSpeech: 'VERB'}]}];
+      lookup.senses = [{...lookup.senses[0], lexeme: 1}];
+      const element = await render(lookup, null);
+      const links = Array.from(element.querySelectorAll<HTMLAnchorElement>('.word-facts a.compare'));
+      expect(links.length).toBe(1);
+      expect(links[0].getAttribute('href')).toContain('text=colour%20vs%20collar');
     });
   });
 
