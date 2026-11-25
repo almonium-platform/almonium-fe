@@ -133,7 +133,7 @@ function rankedLike(readings: DiscoverPronunciation[], reference: DiscoverPronun
 }
 
 /** Edit distance between two transcriptions, by code point, slashes and syllable dots aside. */
-function distance(a: string | null, b: string | null): number {
+export function distance(a: string | null, b: string | null): number {
   const first = Array.from((a ?? '').replace(/[/.]/g, ''));
   const second = Array.from((b ?? '').replace(/[/.]/g, ''));
   let previous = Array.from({length: second.length + 1}, (_, index) => index);

@@ -1,28 +1,35 @@
 import {DiscoverLookup, DiscoverPronunciation, DiscoverSense} from './discover.service';
-import {VarietyNamer, lexemeFacts, relationLabel, senseFacts} from './entry-shape';
+import {VarietyNamer, lexemeFacts, partOfSpeechLabel, senseFacts} from './entry-shape';
+import {distance} from './pronunciation-table';
 
 /**
- * Two entries side by side ("affect vs effect"), from what each sheet already holds: nothing here is written for the
- * pair, so a row says only what the lexicon says of each word. Words are compared one meaning against one meaning,
- * since "bank" the river's edge and "bank" the lender have little in common but their spelling.
+ * Two entries side by side ("big vs large", design Compare 1a), from what each sheet already holds: a row says only
+ * what the lexicon says of each word. Words are compared one meaning against one meaning, since "bank" the river's
+ * edge and "bank" the lender have little in common but their spelling. Rows are shown only where the two differ;
+ * what they have in common folds into one line.
  */
 
-/** The rows built from the lexicon's lists, in the order the table prints them. */
-export type ComparisonRowKind = 'level' | 'use' | 'grammar' | 'pattern' | 'often' | 'opposite' | 'forms' | 'spelled';
+/** The rows built from the lexicon's lists, in the sheet's own order. */
+export type ComparisonRowKind = 'use' | 'grammar' | 'forms' | 'spelled' | 'pattern' | 'often' | 'opposite';
 
 export interface ComparedItem {
   text: string;
   /** What the item is, where it needs saying: "past participle" beside a form, "British" beside a spelling. */
   note: string;
-  /** The other word has it too. */
-  shared: boolean;
 }
 
+/** A row the two words differ in; a side with nothing is an empty cell, which the table prints as a dash. */
 export interface ComparisonRow {
   kind: ComparisonRowKind;
   cells: [ComparedItem[], ComparedItem[]];
-  /** Both words say exactly the same here. */
-  same: boolean;
+}
+
+export interface Comparison {
+  rows: ComparisonRow[];
+  /** What both words are commonly said with, without the word itself: "house" for big house and large house. */
+  either: string[];
+  /** What holds for both, as the one line under the rows: "adjective", "before a noun or after be". */
+  same: string[];
 }
 
 /** One word of the pair with the meaning it is compared by. */
@@ -32,51 +39,83 @@ export interface ComparedSide {
   varietyName: VarietyNamer;
 }
 
-const ROW_ORDER: ComparisonRowKind[] = ['level', 'use', 'grammar', 'pattern', 'often', 'opposite', 'forms', 'spelled'];
+/** A run of a headword, and whether it is where the two spellings part. */
+export interface SpellingPart {
+  text: string;
+  differs: boolean;
+}
 
-type Fact = Pick<ComparedItem, 'text' | 'note'>;
+const ROW_ORDER: ComparisonRowKind[] = ['use', 'grammar', 'forms', 'spelled', 'pattern', 'often', 'opposite'];
 
-function facts(side: ComparedSide, locale: string): Record<ComparisonRowKind, Fact[]> {
+function facts(side: ComparedSide, locale: string): Record<ComparisonRowKind, ComparedItem[]> {
   const {lookup, sense, varietyName} = side;
   const lexeme = lookup.lexemes.find(each => each.index === sense.lexeme);
   const word = lexeme ? lexemeFacts(lexeme, lookup.language, varietyName) : null;
   const meaning = senseFacts(sense, lookup.language, varietyName, locale);
-  const plain = (texts: (string | null | undefined)[]): Fact[] =>
+  const plain = (texts: (string | null | undefined)[]): ComparedItem[] =>
     [...new Set(texts.filter((text): text is string => !!text))].map(text => ({text, note: ''}));
-  // A verb whose every form follows the rule has nothing a learner could not guess; the sheet still lists them.
-  const regular = lexeme?.grammar['irregular'] === false;
+  // Forms are set against each other only for a word the lexicon marks irregular: the sheet lists a regular word's
+  // forms too (affects, affected; principles), and two such lists say nothing of how the words differ.
+  const regular = lexeme?.grammar['irregular'] !== true;
   return {
-    level: plain([sense.cefr]),
     use: plain(meaning.marks),
     grammar: plain([...(word?.grammar ?? []), ...meaning.grammar, word?.note, meaning.note]),
-    pattern: plain(sense.frames),
-    often: plain(sense.collocations),
-    opposite: plain(sense.antonyms),
     forms: regular ? [] : (word?.forms ?? [])
       .filter(form => !form.senses.length || form.senses.includes(sense.index))
       .map(form => ({text: form.reading ?? form.form, note: form.label})),
     spelled: (word?.spellings ?? []).map(spelling => ({text: spelling.text, note: spelling.where})),
+    pattern: plain(sense.frames),
+    often: plain(sense.collocations),
+    opposite: plain(sense.antonyms),
   };
 }
 
-function key(fact: Fact): string {
-  return `${fact.text.toLocaleLowerCase()}\n${fact.note.toLocaleLowerCase()}`;
+function key(item: ComparedItem): string {
+  return `${item.text.toLocaleLowerCase()}\n${item.note.toLocaleLowerCase()}`;
 }
 
-/** The rows either word has something for; one neither has anything for is left out. */
-export function comparisonRows(first: ComparedSide, second: ComparedSide, locale: string): ComparisonRow[] {
+function wordsOf(text: string | null): string[] {
+  return (text ?? '').toLocaleLowerCase().match(/[\p{L}\p{M}]+(?:['’-][\p{L}\p{M}]+)*/gu) ?? [];
+}
+
+/**
+ * A collocation without the word it is a collocation of: "house" for "big house", "a matter of" for "a matter of
+ * principle". Null when the word is not in it as written or inflected, so nothing can be said of what is left.
+ */
+function company(collocation: string, headword: string): string | null {
+  const stem = headword.toLocaleLowerCase();
+  const words = wordsOf(collocation);
+  const at = words.includes(stem) ? words.indexOf(stem) : words.findIndex(word => word.startsWith(stem));
+  if (at < 0 || words.length < 2) return null;
+  // A leading article is not company: "a large house" keeps the company "big house" does.
+  return words.filter((_, index) => index !== at).join(' ').replace(/^(?:a|an|the) (?=.)/, '');
+}
+
+/** The rows the two words differ in, what both are said with, and what holds for both. */
+export function compare(first: ComparedSide, second: ComparedSide, locale: string): Comparison {
   const [a, b] = [facts(first, locale), facts(second, locale)];
-  return ROW_ORDER.filter(kind => a[kind].length || b[kind].length).map(kind => {
+  const headwords = [first, second].map(side => side.sense.headword || side.lookup.entry);
+
+  // A collocation both words have with the same company ("big house", "large house") is said once, of either.
+  const kept = [a.often, b.often].map((items, at) => items.map(item => ({item, with: company(item.text, headwords[at])})));
+  const shared = kept[0].map(each => each.with).filter((each): each is string => !!each && kept[1].some(other => other.with === each));
+  const either = [...new Set(shared)];
+  a.often = kept[0].filter(each => !each.with || !either.includes(each.with)).map(each => each.item);
+  b.often = kept[1].filter(each => !each.with || !either.includes(each.with)).map(each => each.item);
+
+  const rows: ComparisonRow[] = [];
+  const same: string[] = [];
+  const [firstPart, secondPart] = [first.sense.partOfSpeech, second.sense.partOfSpeech];
+  if (firstPart && firstPart === secondPart) same.push(partOfSpeechLabel(firstPart));
+  for (const kind of ROW_ORDER) {
     const [left, right] = [new Set(a[kind].map(key)), new Set(b[kind].map(key))];
-    return {
-      kind,
-      cells: [
-        a[kind].map(fact => ({...fact, shared: right.has(key(fact))})),
-        b[kind].map(fact => ({...fact, shared: left.has(key(fact))})),
-      ],
-      same: left.size > 0 && left.size === right.size && [...left].every(each => right.has(each)),
-    };
-  });
+    if (!left.size && !right.size) continue;
+    const alike = left.size === right.size && [...left].every(each => right.has(each));
+    // Collocations in common are the "either word" row; the rest fold like any other fact.
+    if (alike) same.push(...a[kind].map(item => item.note ? `${item.text} (${item.note})` : item.text));
+    else rows.push({kind, cells: [a[kind], b[kind]]});
+  }
+  return {rows, either, same};
 }
 
 /** Every way a sheet names its word, in lower case: what was looked up, its lemmas, its senses' headwords. */
@@ -85,25 +124,20 @@ function names(lookup: DiscoverLookup): Set<string> {
     .map(name => name.toLocaleLowerCase()));
 }
 
-function wordsOf(text: string | null): Set<string> {
-  return new Set((text ?? '').toLocaleLowerCase().match(/[\p{L}\p{M}]+/gu) ?? []);
-}
-
 function sharedCount(a: string[], b: string[]): number {
   const other = new Set(b.map(each => each.toLocaleLowerCase()));
   return a.filter(each => other.has(each.toLocaleLowerCase())).length;
 }
 
 /**
- * The meanings the two words are first compared by, as positions in the given lists: the pair that most plainly
- * belongs together. Two senses are near when they share a translation, when one is defined with the other word ("big:
- * large in size") or names it as its opposite, when they share an opposite and when they are the same part of speech.
- * Every step down either list costs a little, so a shared part of speech alone does not pull a rare sense up: affect
- * and effect are compared as the verb and the noun their sheets lead with, not as the two verbs.
+ * The pair that most plainly belongs together when the lexicon does not say which: two senses are near when they
+ * share a translation, when one is defined with the other word ("big: large in size") or names it as its opposite,
+ * when they share an opposite and when they are the same part of speech. Every step down either list costs a
+ * little, so a shared part of speech alone does not pull a rare sense up.
  */
 export function bestPair(first: DiscoverLookup, firstSenses: DiscoverSense[], second: DiscoverLookup, secondSenses: DiscoverSense[]): [number, number] {
   const [firstNames, secondNames] = [names(first), names(second)];
-  const mentions = (sense: DiscoverSense, others: Set<string>) => [...wordsOf(sense.definition)].some(word => others.has(word))
+  const mentions = (sense: DiscoverSense, others: Set<string>) => wordsOf(sense.definition).some(word => others.has(word))
     || sense.antonyms.some(antonym => others.has(antonym.toLocaleLowerCase()));
   let best: [number, number] = [0, 0];
   let bestScore = -Infinity;
@@ -122,6 +156,28 @@ export function bestPair(first: DiscoverLookup, firstSenses: DiscoverSense[], se
 }
 
 /**
+ * The meanings the two words are first compared by, as positions in the given lists. Where the lexicon says one
+ * word is mixed up with the other, it is that relation's own sense against the other word in the part of speech the
+ * relation names (affect the verb against effect the noun); otherwise the pair `bestPair` finds.
+ */
+export function startingPair(first: DiscoverLookup, firstSenses: DiscoverSense[], second: DiscoverLookup, secondSenses: DiscoverSense[]): [number, number] {
+  const orders: [DiscoverLookup, DiscoverSense[], DiscoverLookup, DiscoverSense[], boolean][] =
+    [[first, firstSenses, second, secondSenses, false], [second, secondSenses, first, firstSenses, true]];
+  for (const [from, fromSenses, to, toSenses, flipped] of orders) {
+    const toNames = names(to);
+    for (const lexeme of from.lexemes) {
+      for (const relation of lexeme.relations) {
+        if (relation.type !== 'confusable' || !toNames.has(relation.lemma.toLocaleLowerCase())) continue;
+        const own = fromSenses.findIndex(sense => relation.senses.length ? relation.senses.includes(sense.index) : sense.lexeme === lexeme.index);
+        const other = toSenses.findIndex(sense => !relation.partOfSpeech || sense.partOfSpeech?.toUpperCase() === relation.partOfSpeech.toUpperCase());
+        if (own >= 0 && other >= 0) return flipped ? [other, own] : [own, other];
+      }
+    }
+  }
+  return bestPair(first, firstSenses, second, secondSenses);
+}
+
+/**
  * How a word is said in the meaning compared: the reading that meaning takes, in the wanted variety when the entry
  * has it and in the entry's first otherwise. Null when the entry transcribes nothing.
  */
@@ -132,35 +188,78 @@ export function soundOf(lookup: DiscoverLookup, sense: DiscoverSense, variety: s
   return readings.find(pronunciation => pronunciation.variety.toLowerCase() === wanted) ?? readings[0] ?? null;
 }
 
+/** Two spellings, or two transcriptions, are close when few of their letters differ for their length. */
+function close(a: string | null, b: string | null): boolean {
+  if (!a || !b) return false;
+  const longer = Math.max(Array.from(a).length, Array.from(b).length);
+  return distance(a.toLocaleLowerCase(), b.toLocaleLowerCase()) <= Math.min(3, Math.floor(longer / 3));
+}
+
 /**
- * What the lexicon says of the two words together, as short lines over the table: that they are mixed up, belong to
- * one family, are opposites, are said alike, or are translated by the same word. Empty when it links them nowhere.
+ * Whether the two words have nothing to be compared by (design Compare 1d): the lexicon relates them nowhere, no
+ * meaning of one is the part of speech of a meaning of the other, and they are neither written nor said nearly alike.
  */
-export function comparisonLinks(first: ComparedSide, second: ComparedSide): string[] {
-  const lines: string[] = [];
-  const sides = [first, second];
-  const named = sides.map(side => names(side.lookup));
-  const relations = sides.flatMap((side, at) => side.lookup.lexemes.flatMap(lexeme => lexeme.relations
-    .filter(relation => named[1 - at].has(relation.lemma.toLocaleLowerCase()))
-    .map(relation => ({lexeme, relation}))));
-  const types = new Set(relations.map(({relation}) => relation.type));
-  if (types.has('confusable')) lines.push($localize`Often confused with each other`);
-  if (types.has('family')) lines.push($localize`From the same word family`);
-  const other = relations.find(({relation}) => relation.type !== 'confusable' && relation.type !== 'family');
-  if (other) lines.push(`${other.lexeme.lemma}: ${relationLabel(other.relation)} ${other.relation.lemma}`);
-  const opposite = sides.some((side, at) => side.lookup.senses.some(sense => sense.antonyms.some(antonym => named[1 - at].has(antonym.toLocaleLowerCase()))));
-  if (opposite) lines.push($localize`Opposites`);
-  const alike = sides.flatMap((side, at) => side.lookup.homophones
-    .filter(homophone => named[1 - at].has(homophone.word.toLocaleLowerCase()))
-    .map(homophone => ({side, homophone})))[0];
-  if (alike) {
-    const said = new Set(alike.side.lookup.pronunciations.map(pronunciation => pronunciation.variety));
-    const everywhere = [...said].every(variety => alike.homophone.varieties.includes(variety));
-    const where = alike.homophone.varieties.filter(variety => said.has(variety)).map(alike.side.varietyName).join(', ');
-    lines.push(everywhere || !where ? $localize`Said exactly alike` : $localize`Said exactly alike in ${where}:varieties:`);
+export function nothingToCompare(first: DiscoverLookup, second: DiscoverLookup): boolean {
+  const lookups = [first, second];
+  const named = lookups.map(names);
+  const linked = lookups.some((lookup, at) =>
+    lookup.lexemes.some(lexeme => lexeme.relations.some(relation => named[1 - at].has(relation.lemma.toLocaleLowerCase())))
+    || lookup.senses.some(sense => sense.antonyms.some(antonym => named[1 - at].has(antonym.toLocaleLowerCase())))
+    || lookup.homophones.some(homophone => named[1 - at].has(homophone.word.toLocaleLowerCase())));
+  if (linked) return false;
+  const parts = new Set(first.senses.map(sense => sense.partOfSpeech?.toUpperCase()).filter(Boolean));
+  if (second.senses.some(sense => parts.has(sense.partOfSpeech?.toUpperCase()))) return false;
+  return !close(first.entry, second.entry) && !close(first.pronunciations[0]?.ipa ?? null, second.pronunciations[0]?.ipa ?? null);
+}
+
+/**
+ * The two headwords cut where their spellings part, when that is three letters or fewer of each (principal,
+ * principle): what they share before and after, and the letters between. Null when they differ by more, or share
+ * nothing to stand the difference against.
+ */
+export function spellingParts(first: string, second: string): [SpellingPart[], SpellingPart[]] | null {
+  const [a, b] = [Array.from(first), Array.from(second)];
+  const fold = (letter: string) => letter.toLocaleLowerCase();
+  let head = 0;
+  while (head < a.length && head < b.length && fold(a[head]) === fold(b[head])) head++;
+  let tail = 0;
+  while (tail < a.length - head && tail < b.length - head && fold(a[a.length - 1 - tail]) === fold(b[b.length - 1 - tail])) tail++;
+  const [middleA, middleB] = [a.slice(head, a.length - tail), b.slice(head, b.length - tail)];
+  if (!(middleA.length || middleB.length) || middleA.length > 3 || middleB.length > 3 || head + tail < 2) return null;
+  const parts = (letters: string[], middle: string[]): SpellingPart[] => [
+    {text: letters.slice(0, head).join(''), differs: false},
+    {text: middle.join(''), differs: true},
+    {text: letters.slice(letters.length - tail).join(''), differs: false},
+  ].filter(part => part.text);
+  return [parts(a, middleA), parts(b, middleB)];
+}
+
+/** A frame cut into what is the word, what is an open place (sth, sb) and the rest: "big on sth". */
+export function frameParts(frame: string, headword: string): {text: string; kind: 'word' | 'slot' | 'plain'}[] {
+  const stem = headword.toLocaleLowerCase();
+  return frame.split(/(\s+)/).map(text => {
+    const bare = text.toLocaleLowerCase().replace(/[^\p{L}\p{M}'’]/gu, '');
+    if (/^(sth|sb|sb's|sb’s|swh|sw|adj|adv|inf|to-inf|doing|etw|jdn|jdm|jds|qc|qn|qqch|qqn|algo|alguien)$/.test(bare)) return {text, kind: 'slot' as const};
+    return {text, kind: bare && (bare === stem || bare.startsWith(stem)) ? 'word' as const : 'plain' as const};
+  });
+}
+
+/** A written summary cut around the first mention of each headword, which the sheet sets apart in it. */
+export function summaryParts(summary: string, headwords: string[]): {text: string; word: boolean}[] {
+  const escaped = headwords.filter(Boolean).map(word => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!escaped.length) return [{text: summary, word: false}];
+  const pattern = new RegExp(`(?<![\\p{L}\\p{M}])(${escaped.join('|')})(?![\\p{L}\\p{M}])`, 'giu');
+  const parts: {text: string; word: boolean}[] = [];
+  let from = 0;
+  const seen = new Set<string>();
+  for (const match of summary.matchAll(pattern)) {
+    const word = match[0].toLocaleLowerCase();
+    if (seen.has(word)) continue;
+    seen.add(word);
+    if (match.index > from) parts.push({text: summary.slice(from, match.index), word: false});
+    parts.push({text: match[0], word: true});
+    from = match.index + match[0].length;
   }
-  const translations = first.sense.translations.filter(translation =>
-    second.sense.translations.some(each => each.toLocaleLowerCase() === translation.toLocaleLowerCase()));
-  if (translations.length) lines.push($localize`Both translate as ${translations.join(', ')}:translations:`);
-  return lines;
+  if (from < summary.length) parts.push({text: summary.slice(from), word: false});
+  return parts;
 }

@@ -16,7 +16,7 @@ import {DiscoverHomophone, DiscoverLookup, DiscoverPronunciation, DiscoverSense,
 import {BreakdownNoteKind, DiscoverBreakdown, DiscoverBreakdownService, PrivateText} from './discover-breakdown.service';
 import {ComparedSound, WordComparisonComponent} from './comparison/word-comparison.component';
 import {
-  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, comparisonOf, forgetRecents, guessGuestLanguage, readRecents,
+  DiscoverTier, GUEST_CAP, GUEST_LANGUAGES, MEMBER_CAP, addRecent, alternativesOf, comparisonOf, forgetRecents, guessGuestLanguage, readRecents,
   rememberGuestLanguage, removeRecent, sizeOf, tierOf,
 } from './discover-field';
 import {LexemeFacts, SenseFacts, languageName, lexemeFacts, partOfSpeechLabel, senseFacts} from './entry-shape';
@@ -24,7 +24,7 @@ import {SIGNATURE_LETTERS, ringFor} from './letter-ring';
 import {PronunciationCell, PronunciationTable, numberRanges, pronunciationTable, speakerKey} from './pronunciation-table';
 import {EntryReportComponent} from './report/entry-report.component';
 import {EntryReport} from './report/entry-report.service';
-import {SENSES_SHOWN, SenseGroup, SenseRow, frequencyBand, frequencyBars, groupSenses, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
+import {SENSES_SHOWN, SenseGroup, SenseRow, cardFor, frequencyBand, frequencyBars, groupSenses, keptCard, hiddenCounts, leadsWithDefinition, toGroups} from './word-sheet';
 
 /** The letter ring on offer: the position of the letter just typed, its ring, and which of it is in the text. */
 interface LetterChip {
@@ -71,6 +71,8 @@ export class DiscoverComponent implements OnInit {
   protected lookup: DiscoverLookup | null = null;
   /** The two sheets of "affect vs effect", shown as one table in place of a sheet. */
   protected comparison: [DiscoverLookup, DiscoverLookup] | null = null;
+  /** `DiscoverSense.index` of the first word's meaning a comparison starts from, when a sense's own link opened it. */
+  protected comparisonSense: number | null = null;
   /** True while the two entries of a comparison are being fetched, which the loading line says. */
   protected comparing = false;
   /** The sheet's senses in display order; `selectedRow` indexes it. */
@@ -278,6 +280,7 @@ export class DiscoverComponent implements OnInit {
     combineLatest([this.route.paramMap, this.route.queryParamMap]).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(([path, params]) => {
       this.searchText = params.get('text') ?? '';
       this.context = params.get('context') ?? '';
+      this.comparisonSense = /^\d{1,4}$/.test(params.get('sense') ?? '') ? Number(params.get('sense')) : null;
       const language = (path.get('language') ?? params.get('language'))?.toUpperCase();
       this.sourceLanguage = Object.values(LanguageCode).includes(language as LanguageCode) ? language as LanguageCode : null;
       this.currentLanguage = this.sourceLanguage ?? this.preferredLanguage;
@@ -332,6 +335,7 @@ export class DiscoverComponent implements OnInit {
     }
     this.searchText = value;
     this.context = '';
+    this.comparisonSense = null;
     this.requestSuggestions();
     this.scheduleLayout();
   }
@@ -455,7 +459,8 @@ export class DiscoverComponent implements OnInit {
       case 'word':
         if (!this.context) this.breakdown = null;
         this.privateText = null;
-        this.lookupWord(input.replace(/\s+/g, ' '), this.context, this.fieldLanguage);
+        if (!this.context && alternativesOf(input)) this.lookUpOrCompare(input.replace(/\s+/g, ' '), alternativesOf(input)!);
+        else this.lookupWord(input.replace(/\s+/g, ' '), this.context, this.fieldLanguage);
         return;
       case 'compare':
         this.compareWords(comparisonOf(input)!);
@@ -498,6 +503,41 @@ export class DiscoverComponent implements OnInit {
       });
   }
 
+  /**
+   * "big or large" is the two words compared, unless the lexicon holds the text as an expression of its own ("more
+   * or less") or does not hold both words; then it is looked up as written.
+   */
+  private lookUpOrCompare(text: string, words: [string, string]): void {
+    const language = this.fieldLanguage;
+    const translation = this.translationLanguage(language);
+    this.loading = true;
+    this.errorMessage = '';
+    const failed = (error: unknown) => {
+      this.loading = false;
+      this.errorMessage = getErrorMessage(error, $localize`This word sheet could not be loaded. Please try again.`);
+    };
+    this.discoverService.lookup(text, language, translation).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: whole => {
+        const show = () => {
+          this.loading = false;
+          this.showLookup(whole);
+        };
+        if (whole.senses.length && whole.provider === 'lexicon') return show();
+        forkJoin([this.discoverService.lookup(words[0], language, translation), this.discoverService.lookup(words[1], language, translation)])
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: pair => {
+              if (!pair.every(lookup => lookup.senses.length && lookup.provider === 'lexicon')) return show();
+              this.loading = false;
+              this.showComparison(pair);
+            },
+            error: show,
+          });
+      },
+      error: failed,
+    });
+  }
+
   /** Opens the two words side by side: two lookups of the lexicon, and nothing asked of a model. */
   private compareWords(words: [string, string]): void {
     const language = this.fieldLanguage;
@@ -511,19 +551,29 @@ export class DiscoverComponent implements OnInit {
     forkJoin([this.discoverService.lookup(words[0], language, translation), this.discoverService.lookup(words[1], language, translation)])
       .pipe(finalize(() => this.loading = this.comparing = false), takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: pair => {
-          this.stopPlaying();
-          this.playing = null;
-          this.lookup = null;
-          this.closeReport();
-          this.comparison = pair;
-          if (pair.every(lookup => lookup.senses.length)) {
-            addRecent(pair[0].language, `${pair[0].entry} vs ${pair[1].entry}`);
-            this.recents = readRecents(this.fieldLanguage);
-          }
-        },
+        next: pair => this.showComparison(pair),
         error: error => this.errorMessage = getErrorMessage(error, $localize`These two entries could not be loaded. Please try again.`),
       });
+  }
+
+  private showComparison(pair: [DiscoverLookup, DiscoverLookup]): void {
+    this.stopPlaying();
+    this.playing = null;
+    this.lookup = null;
+    this.breakdown = null;
+    this.privateText = null;
+    this.closeReport();
+    this.comparison = pair;
+    if (pair.every(lookup => lookup.senses.length)) {
+      addRecent(pair[0].language, `${pair[0].entry} vs ${pair[1].entry}`);
+      this.recents = readRecents(this.fieldLanguage);
+    }
+  }
+
+  /** The words a sense is mixed up with, each of which the sheet offers to set beside it (design Compare 1e). */
+  protected confusedWith(group: SenseGroup, row: SenseRow): string[] {
+    const word = group.lexeme === null ? undefined : this.lexemeFacts.get(group.lexeme);
+    return (word?.relations ?? []).filter(relation => relation.compare && relation.senses.includes(row.sense.index)).map(relation => relation.lemma);
   }
 
   /** What the line holds to set the sheet's word beside another: "affect vs effect". */
@@ -656,23 +706,7 @@ export class DiscoverComponent implements OnInit {
       });
       return;
     }
-    const meaning = sense.translations.length ? sense.translations : [sense.definition ?? lookup.entry];
-    const example = lookup.sourceContext ?? sense.examples[0]?.text;
-    this.cardService.createCard({
-      entry: lookup.entry,
-      language: lookup.language,
-      translations: meaning.map(translation => ({translation})),
-      partOfSpeech: sense.partOfSpeech ?? undefined,
-      selectedSense: senseKey(sense),
-      senseKey: sense.key ?? undefined,
-      sourceContext: lookup.sourceContext ?? undefined,
-      learningIntents: ['UNDERSTAND'],
-      itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
-      examples: example ? [{example, translation: ''}] : [],
-      activeLearning: true,
-      learnt: false,
-      priority: 0,
-    }).pipe(finalize(release), takeUntilDestroyed(this.destroyRef)).subscribe({
+    this.cardService.createCard(cardFor(lookup, sense)).pipe(finalize(release), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: card => {
         if (card.id) this.keptCards.set(sense.index, card.id);
         this.recents = removeRecent(lookup.language, lookup.entry);
@@ -832,11 +866,8 @@ export class DiscoverComponent implements OnInit {
     this.cardService.getCardsInLanguage(lookup.language).pipe(catchError(() => of<CardDto[]>([])), takeUntilDestroyed(this.destroyRef))
       .subscribe(cards => {
         if (this.lookup !== lookup) return;
-        const entry = lookup.entry.toLocaleLowerCase();
         for (const sense of lookup.senses) {
-          const card = cards.find(card => sense.key
-            ? card.senseKey === sense.key
-            : card.entry.toLocaleLowerCase() === entry && card.selectedSense === senseKey(sense));
+          const card = keptCard(cards, lookup, sense);
           if (card?.id) this.keptCards.set(sense.index, card.id);
         }
       });
@@ -1006,9 +1037,4 @@ export class DiscoverComponent implements OnInit {
     if (fluent) return fluent;
     return language === LanguageCode.EN ? LanguageCode.UK : LanguageCode.EN;
   }
-}
-
-/** How a kept card names the sense it was kept for, and how the sheet finds it again. */
-function senseKey(sense: DiscoverSense): string {
-  return `${sense.index}: ${sense.translations.join(', ') || (sense.definition ?? sense.headword)}`;
 }

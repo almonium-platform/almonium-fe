@@ -38,6 +38,16 @@ export function comparisonOf(text: string): [string, string] | null {
   return [first, second];
 }
 
+/**
+ * The two words of "big or large", which may be a question about the two or an expression of its own ("more or
+ * less"): the page asks the lexicon which before it compares. Null for anything but one word on each side.
+ */
+export function alternativesOf(text: string): [string, string] | null {
+  const match = /^(\S+)\s+or\s+(\S+)$/iu.exec(text.trim().replace(/\s+/g, ' '));
+  if (!match || !isExpression(match[1]) || !isExpression(match[2]) || match[1].toLocaleLowerCase() === match[2].toLocaleLowerCase()) return null;
+  return [match[1], match[2]];
+}
+
 export function tierOf(text: string, cap: number): DiscoverTier {
   const trimmed = text.trim();
   if (!trimmed) return 'empty';

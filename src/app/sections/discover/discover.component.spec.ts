@@ -504,48 +504,92 @@ describe('DiscoverComponent', () => {
   });
 
   describe('two words set against each other', () => {
-    it('looks both up and shows them as one table in place of a sheet', async () => {
+    const keyed = (): DiscoverLookup => {
+      const lookup = lookupOf([british]);
+      lookup.senses = lookup.senses.map((sense, at) => ({...sense, key: `key-${at}`}));
+      return lookup;
+    };
+
+    it('looks both up and shows them as one sheet, with only the rows they differ in', async () => {
       const element = await render(lookupOf([british]), null, {text: 'colour vs paint'});
       expect(lookupSpy.calls.allArgs().map(args => args[0] as string)).toEqual(['colour', 'paint']);
-      expect(element.querySelector('app-word-comparison .table')).not.toBeNull();
       expect(element.querySelector('.word-sheet')).toBeNull();
       expect(element.querySelector('.run')?.textContent).toContain('Compare');
-      expect(Array.from(element.querySelectorAll('app-word-comparison .label')).map(label => label.textContent?.trim()))
-        .toEqual(['', 'Meaning', 'Example', 'Level', 'Sound']);
+      const sheet = element.querySelector<HTMLElement>('app-word-comparison')!;
+      expect(Array.from(sheet.querySelectorAll('.headword')).map(word => word.textContent)).toEqual(['colour', 'colour']);
+      expect(sheet.querySelector('.sound.merged')?.textContent).toContain('Said the same');
+      expect(Array.from(sheet.querySelectorAll('.row .label')).map(label => label.textContent?.trim())).toEqual(['Example']);
+      expect(sheet.querySelector('.same')?.textContent).toContain('noun');
+      expect(sheet.querySelector('.sense-of')?.textContent).toContain('Sense 1 of 2');
+    });
+
+    it('opens a word’s sense list in place and compares by the meaning picked', async () => {
+      const element = await render(lookupOf([british]), null, {text: 'colour vs paint'});
+      element.querySelector<HTMLButtonElement>('.sense-of')!.click();
+      fixture.detectChanges();
+      const choices = Array.from(element.querySelectorAll<HTMLButtonElement>('.sense-list button'));
+      expect(choices.length).toBe(2);
+      choices[1].click();
+      fixture.detectChanges();
+      expect(element.querySelector('.sense-of')?.textContent).toContain('Sense 2 of 2');
+      expect(element.querySelector('.sense-list')).toBeNull();
+      expect(Array.from(element.querySelectorAll('.meaning .part')).map(part => part.textContent?.trim())).toEqual(['verb', 'noun']);
+    });
+
+    it('keeps the meaning compared, as a sense on the sheet is kept', async () => {
+      const element = await render(keyed(), 'en-GB', {text: 'colour vs paint'});
+      element.querySelector<HTMLButtonElement>('app-word-comparison .keep')!.click();
+      fixture.detectChanges();
+      expect(createCardSpy.calls.mostRecent().args[0]).toEqual(jasmine.objectContaining({entry: 'colour', senseKey: 'key-0', partOfSpeech: 'noun'}));
+      expect(element.querySelector('app-word-comparison .kept')).not.toBeNull();
+    });
+
+    it('starts from the sense whose own link opened the comparison', async () => {
+      const element = await render(lookupOf([british]), null, {text: 'colour vs paint', sense: '2'});
+      expect(element.querySelector('.sense-of')?.textContent).toContain('Sense 2 of 2');
     });
 
     it('asks a signed-in reader before writing the difference, and looks for one already written without being asked', async () => {
-      const lookup = lookupOf([british]);
-      lookup.senses = lookup.senses.map((sense, at) => ({...sense, key: `key-${at}`}));
-      const element = await render(lookup, 'en-GB', {text: 'colour vs paint'});
+      const element = await render(keyed(), 'en-GB', {text: 'colour vs paint'});
       expect(explainSpy.calls.allArgs()).toEqual([['key-0', 'key-0', LanguageCode.UK, false]]);
-      expect(element.querySelector('.explanation .summary')).toBeNull();
-      element.querySelector<HTMLButtonElement>('.explanation .explain')!.click();
+      expect(element.querySelector('.summary')).toBeNull();
+      element.querySelector<HTMLButtonElement>('.explain')!.click();
       fixture.detectChanges();
       expect(explainSpy.calls.mostRecent().args[3]).toBeTrue();
-      expect(element.querySelector('.explanation .summary')?.textContent).toContain('Colour is the noun');
+      expect(element.querySelector('.summary')?.textContent).toContain('Colour is the noun');
+      expect(element.querySelector('.summary .word')?.textContent).toBe('Colour');
+      expect(element.querySelector('.explain')).toBeNull();
     });
 
     it('offers a guest the sign-in instead, and nothing for words no lexicon entry stands behind', async () => {
-      const lookup = lookupOf([british]);
-      lookup.senses = lookup.senses.map((sense, at) => ({...sense, key: `key-${at}`}));
-      let element = await render(lookup, null, {text: 'colour vs paint'});
+      let element = await render(keyed(), null, {text: 'colour vs paint'});
       expect(explainSpy).not.toHaveBeenCalled();
-      expect(element.querySelector('.explanation a')?.getAttribute('href')).toBe('/auth');
+      expect(element.querySelector('.ask a')?.getAttribute('href')).toBe('/auth');
       TestBed.resetTestingModule();
       element = await render(lookupOf([british]), null, {text: 'colour vs paint'});
-      expect(element.querySelector('.explanation')).toBeNull();
+      expect(element.querySelector('.ask')).toBeNull();
     });
 
-    it('says which word has no entry instead of drawing half a table', async () => {
+    it('says which word has no entry instead of drawing half a sheet', async () => {
       const element = await render({...lookupOf([]), senses: []}, null, {text: 'colour vs paint'});
-      expect(element.querySelector('app-word-comparison .table')).toBeNull();
+      expect(element.querySelector('app-word-comparison .words')).toBeNull();
       expect(element.querySelector('app-word-comparison .missing')?.textContent).toContain('No entry for');
     });
 
-    it('offers the comparison beside a word the sheet says is mixed up with this one', async () => {
+    it('compares "colour or paint" when the lexicon holds both words and not the three as one expression', async () => {
+      const element = await render({...lookupOf([british]), senses: []}, null, {text: 'colour or paint'});
+      expect(lookupSpy.calls.allArgs().map(args => args[0] as string)).toEqual(['colour or paint', 'colour', 'paint']);
+      // Neither word resolved here, so the text is shown as it was looked up.
+      expect(element.querySelector('app-word-comparison')).toBeNull();
+      TestBed.resetTestingModule();
+      const sheet = await render(lookupOf([british]), null, {text: 'colour or paint'});
+      expect(lookupSpy.calls.allArgs().map(args => args[0] as string)).toEqual(['colour or paint']);
+      expect(sheet.querySelector('.word-sheet')).not.toBeNull();
+    });
+
+    it('offers the comparison beside a word the sheet says is mixed up with this one, on the word and on its sense', async () => {
       const lookup = lookupOf([british]);
-      const relation = {type: 'confusable', lemma: 'collar', partOfSpeech: 'NOUN', senses: []};
+      const relation = {type: 'confusable', lemma: 'collar', partOfSpeech: 'NOUN', senses: [1]};
       lookup.lexemes = [{index: 1, lemma: 'colour', partOfSpeech: 'NOUN', kind: 'word', grammar: {}, spellings: [], forms: [],
         relations: [relation, {...relation, partOfSpeech: 'VERB'}]}];
       lookup.senses = [{...lookup.senses[0], lexeme: 1}];
@@ -553,6 +597,9 @@ describe('DiscoverComponent', () => {
       const links = Array.from(element.querySelectorAll<HTMLAnchorElement>('.word-facts a.compare'));
       expect(links.length).toBe(1);
       expect(links[0].getAttribute('href')).toContain('text=colour%20vs%20collar');
+      const onSense = element.querySelector<HTMLAnchorElement>('.sense a.compare')!;
+      expect(onSense.getAttribute('href')).toContain('text=colour%20vs%20collar');
+      expect(onSense.getAttribute('href')).toContain('sense=1');
     });
   });
 

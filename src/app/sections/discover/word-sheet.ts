@@ -1,5 +1,6 @@
 import {CEFRLevel, SenseLead} from '../../models/userinfo.model';
-import {DiscoverSense} from './discover.service';
+import {CardCreationDto, CardDto} from '../../models/card.model';
+import {DiscoverLookup, DiscoverSense} from './discover.service';
 
 /** A bare lookup shows this many senses; "Show N more" opens the rest in place (design 5a). */
 export const SENSES_SHOWN = 3;
@@ -104,4 +105,38 @@ export function exampleParts(text: string | null, headword: string): ExamplePart
     }
   }
   return {text, before: text, word: '', after: ''};
+}
+
+/** How a kept card names the sense it was kept for, and how the sheet finds it again. */
+export function senseCardKey(sense: DiscoverSense): string {
+  return `${sense.index}: ${sense.translations.join(', ') || (sense.definition ?? sense.headword)}`;
+}
+
+/** The card a sense becomes when it is kept. */
+export function cardFor(lookup: DiscoverLookup, sense: DiscoverSense): CardCreationDto {
+  const meaning = sense.translations.length ? sense.translations : [sense.definition ?? lookup.entry];
+  const example = lookup.sourceContext ?? sense.examples[0]?.text;
+  return {
+    entry: lookup.entry,
+    language: lookup.language,
+    translations: meaning.map(translation => ({translation})),
+    partOfSpeech: sense.partOfSpeech ?? undefined,
+    selectedSense: senseCardKey(sense),
+    senseKey: sense.key ?? undefined,
+    sourceContext: lookup.sourceContext ?? undefined,
+    learningIntents: ['UNDERSTAND'],
+    itemType: lookup.entry.includes(' ') ? 'PHRASE' : 'WORD',
+    examples: example ? [{example, translation: ''}] : [],
+    activeLearning: true,
+    learnt: false,
+    priority: 0,
+  };
+}
+
+/** The card already kept for a sense, by its key when the lexicon gave one and by its text otherwise. */
+export function keptCard(cards: CardDto[], lookup: DiscoverLookup, sense: DiscoverSense): CardDto | undefined {
+  const entry = lookup.entry.toLocaleLowerCase();
+  return cards.find(card => sense.key
+    ? card.senseKey === sense.key
+    : card.entry.toLocaleLowerCase() === entry && card.selectedSense === senseCardKey(sense));
 }

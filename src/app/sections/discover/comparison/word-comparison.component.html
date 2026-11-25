@@ -1,3 +1,4 @@
+@let speakerIcon = 'M11 5 6 9H3v6h3l5 4z';
 @if (missing().length) {
   <section class="comparison missing" role="status">
     @if (found(); as other) {
@@ -7,122 +8,118 @@
       <strong i18n>No entry for “{{ missing()[0] }}” or “{{ missing()[1] }}”.</strong>
     }
   </section>
+} @else if (unrelated()) {
+  <section class="comparison apart" [attr.aria-label]="title()">
+    <div class="apart-head">
+      <h2 i18n>These two aren’t usually confused</h2>
+      <p i18n>They share no meaning, sound or spelling. Here is each on its own.</p>
+    </div>
+    <div class="apart-rows">
+      @for (word of apart(); track $index) {
+        <a class="apart-row" [routerLink]="['/discover', word.lookup.language.toLowerCase()]" [queryParams]="{text: word.headword}">
+          <span class="headword">{{ word.headword }}</span>
+          <span class="lead">{{ word.lead }}</span>
+          @if (word.cefr) { <span class="cefr">{{ word.cefr }}</span> }
+        </a>
+      }
+    </div>
+  </section>
 } @else {
   <article class="comparison" [attr.aria-label]="title()">
-    @if (links().length) {
-      <p class="links">
-        @for (link of links(); track $index) { <span>{{ link }}</span> }
-      </p>
-    }
-    <div class="table" role="table" [attr.aria-label]="title()">
-      <div class="row head" role="row">
-        <span class="label" role="columnheader"></span>
-        @for (column of columns(); track $index) {
-          <div class="cell word" role="columnheader">
-            <a class="headword" [routerLink]="['/discover', column.lookup.language.toLowerCase()]" [queryParams]="{text: column.headword}"
-               [title]="openTitle">{{ column.headword }}</a>
-            <span class="part">{{ column.partOfSpeech }}@if (column.language) { <span class="language">{{ column.language }}</span> }</span>
-          </div>
-        }
-      </div>
-
-      <div class="row" role="row">
-        <span i18n class="label" role="rowheader">Meaning</span>
-        @for (column of columns(); track $index; let side = $index) {
-          <div class="cell meanings" [class.choice]="column.meanings.length > 1 || column.hidden" role="cell">
-            @if (column.meanings.length === 1 && !column.hidden) {
-              <p class="meaning only"><span class="lead">{{ column.meanings[0].lead }}</span></p>
-            } @else {
-              @for (meaning of column.meanings; track meaning.at) {
-                <button type="button" class="meaning" [class.selected]="meaning.at === column.selected" [attr.aria-pressed]="meaning.at === column.selected"
-                        (click)="pick(side, meaning.at)">
-                  <span class="number">{{ meaning.number }}</span>
-                  <span class="lead">{{ meaning.lead }}@if (meaning.partOfSpeech && meaning.partOfSpeech !== column.partOfSpeech) { <span class="other-part">{{ meaning.partOfSpeech }}</span> }</span>
-                </button>
-              }
-              @if (column.hidden) {
-                <button i18n type="button" class="more" (click)="showAll()">Show {{ column.hidden }} more</button>
-              }
-            }
-            @if (column.sub) { <p class="sub">{{ column.sub }}</p> }
-          </div>
-        }
-      </div>
-
-      @if (anyExample()) {
-        <div class="row" role="row">
-          <span i18n class="label" role="rowheader">Example</span>
-          @for (column of columns(); track $index) {
-            <div class="cell example" role="cell">
-              @if (column.example; as example) {
-                <span class="example-text">{{ example.before }}<span class="word">{{ example.word }}</span>{{ example.after }}</span>
-              } @else { <span class="none" aria-hidden="true">—</span> }
-            </div>
+    <div class="words" [class.said-alike]="saidTheSame()">
+      @for (column of columns(); track $index; let side = $index) {
+        <div class="headline" [style.grid-column]="side + 1">
+          <a class="headword" [routerLink]="['/discover', column.lookup.language.toLowerCase()]" [queryParams]="{text: column.headword}">@for (part of column.spelling; track $index) {<span [class.differs]="part.differs">{{ part.text }}</span>}</a>
+          @if (column.frequency; as frequency) {
+            <span class="frequency" [title]="frequency.title">
+              <span class="bars" aria-hidden="true">
+                @for (bar of bars; track bar) { <span [class.on]="bar <= frequency.bars"></span> }
+              </span>
+              <span class="band">{{ frequency.band }}</span>
+            </span>
           }
         </div>
       }
-
-      @if (anyFrequency()) {
-        <div class="row" role="row">
-          <span i18n class="label" role="rowheader">Frequency</span>
-          @for (column of columns(); track $index) {
-            <div class="cell" role="cell">
-              @if (column.frequency; as frequency) {
-                <span class="frequency" [title]="frequency.title">
-                  <span class="bars" aria-hidden="true">
-                    @for (bar of bars; track bar) { <span [class.on]="bar <= frequency.bars"></span> }
-                  </span>
-                  <span class="band">{{ frequency.band }}</span>
-                </span>
-              } @else { <span class="none" aria-hidden="true">—</span> }
-            </div>
-          }
-        </div>
-      }
-
-      @for (row of rows(); track row.kind) {
-        <div class="row" role="row" [class.same]="row.same">
-          <span class="label" role="rowheader">{{ rowLabels[row.kind] }}</span>
-          @for (cell of row.cells; track $index) {
-            <div class="cell" [class]="row.kind" role="cell">
-              @for (item of cell; track $index) {
-                <span class="item" [class.shared]="item.shared">{{ item.text }}@if (item.note) { <span class="of">{{ item.note }}</span> }</span>
-              } @empty { <span class="none" aria-hidden="true">—</span> }
-            </div>
-          }
-        </div>
-      }
-
       @if (anySound()) {
-        <div class="row" role="row" [class.same]="sameSound()">
-          <span i18n class="label" role="rowheader">Sound</span>
-          @for (column of columns(); track $index) {
-            <div class="cell sound" role="cell">
+        @if (saidTheSame()) {
+          @let sound = columns()[0].sound!;
+          <div class="sound merged">
+            <span i18n class="said-same">Said the same</span>
+            <span class="transcription">{{ sound.pronunciation.ipa }}</span>
+            <button type="button" class="speaker" [class.on]="playing() === sound.play.key" [disabled]="!sound.playable"
+                    [attr.title]="sound.playable ? null : noRecordingTitle" [attr.aria-label]="listenLabel(columns()[0])"
+                    (click)="listen.emit(sound.play)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                   stroke-linejoin="round" aria-hidden="true"><path [attr.d]="speakerIcon"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+            </button>
+          </div>
+        } @else {
+          @for (column of columns(); track $index; let side = $index) {
+            <div class="sound" [style.grid-column]="side + 1">
               @if (column.sound; as sound) {
                 @if (sound.pronunciation.ipa) { <span class="transcription">{{ sound.pronunciation.ipa }}</span> }
                 <button type="button" class="speaker" [class.on]="playing() === sound.play.key" [disabled]="!sound.playable"
                         [attr.title]="sound.playable ? null : noRecordingTitle" [attr.aria-label]="listenLabel(column)"
                         (click)="listen.emit(sound.play)">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                       stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                       stroke-linejoin="round" aria-hidden="true"><path [attr.d]="speakerIcon"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
                 </button>
-                <span class="variety">{{ sound.variety }}</span>
-              } @else { <span class="none" aria-hidden="true">—</span> }
+              }
+            </div>
+          }
+        }
+      }
+      @for (column of columns(); track $index; let side = $index) {
+        <div class="meaning" [style.grid-column]="side + 1">
+          @if (partsDiffer() || column.language) {
+            <span class="part">{{ column.partOfSpeech }}@if (column.language) { <span class="language">{{ column.language }}</span> }</span>
+          }
+          <div class="lead-line">
+            <span class="lead">{{ column.lead }}</span>
+            @if (column.sense.cefr) { <span class="cefr">{{ column.sense.cefr }}</span> }
+          </div>
+          @if (column.sub) { <span class="sub">{{ column.sub }}</span> }
+          <div class="actions">
+            @if (isKept(side, column)) {
+              <button type="button" class="kept" [disabled]="isKeeping(side, column)" (click)="toggleKeep(side, column)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><ng-container i18n>Kept</ng-container>
+              </button>
+            } @else {
+              <button i18n type="button" class="keep" [disabled]="isKeeping(side, column)" (click)="toggleKeep(side, column)">Keep</button>
+            }
+            @if (column.senseLabel) {
+              <button type="button" class="sense-of" [attr.aria-expanded]="openList() === side" (click)="toggleList(side)">
+                {{ column.senseLabel }}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"
+                     stroke-linejoin="round" aria-hidden="true" [class.up]="openList() === side"><path d="m6 9 6 6 6-6"></path></svg>
+              </button>
+            }
+          </div>
+          @if (openList() === side) {
+            <div class="sense-list">
+              @for (meaning of column.meanings; track meaning.at) {
+                <button type="button" [class.selected]="meaning.at === column.selected" [attr.aria-pressed]="meaning.at === column.selected"
+                        (click)="pick(side, meaning.at)">
+                  <span class="number">{{ meaning.number }}</span>
+                  <span class="text">{{ meaning.lead }}@if (meaning.partOfSpeech) { <span class="of">{{ meaning.partOfSpeech }}</span> }</span>
+                </button>
+              }
             </div>
           }
         </div>
       }
     </div>
-    @if (canExplain()) {
-      <div class="explanation">
-        @if (explanation()?.summary; as summary) {
-          <p i18n class="section-label">The difference</p>
-          <p class="summary">{{ summary }}</p>
-          <p i18n class="source">Written by AI from the two entries above, for the meanings picked.</p>
-        } @else if (!signedIn) {
+    @if (keepError()) { <p class="error" role="alert">{{ keepError() }}</p> }
+
+    @if (summary(); as parts) {
+      <p class="summary">@for (part of parts; track $index) {<span [class.word]="part.word">{{ part.text }}</span>}</p>
+    } @else if (canExplain()) {
+      <div class="ask">
+        @if (!signedIn) {
           <a i18n routerLink="/auth">Sign in to have the difference explained in a few sentences</a>
         } @else if (explanation()?.capped) {
-          <p i18n class="source">That was today’s last new explanation. The ones already written still open.</p>
+          <p i18n class="quiet">That was today’s last new explanation. The ones already written still open.</p>
         } @else {
           <button type="button" class="explain" [disabled]="explaining()" (click)="explain()">
             @if (explaining()) { <ng-container i18n>Writing…</ng-container> } @else { <ng-container i18n>Explain the difference</ng-container> }
@@ -132,11 +129,59 @@
         }
       </div>
     }
-    @if (canPick() || anyShared()) {
-      <p class="legend">
-        @if (canPick()) { <span i18n>Pick a meaning on either side to compare the two words by it.</span> }
-        @if (anyShared()) { <span i18n>Grey is what the two share.</span> }
-      </p>
+
+    @let facts = comparison();
+    @if (facts.rows.length || facts.either.length || anyExample()) {
+      <div class="rows" role="table" [attr.aria-label]="title()">
+        @for (row of facts.rows; track row.kind) {
+          <div class="row" role="row">
+            <span class="label" role="rowheader">{{ rowLabels[row.kind] }}</span>
+            @for (cell of row.cells; track $index; let side = $index) {
+              <div class="cell" [class]="row.kind" role="cell">
+                @for (item of cell; track $index) {
+                  @if (row.kind === 'pattern') {
+                    <span class="item">@for (part of frame(item.text, columns()[side]); track $index) {<span [class]="part.kind">{{ part.text }}</span>}</span>
+                  } @else if (row.kind === 'opposite') {
+                    <a class="item" [routerLink]="['/discover', columns()[side].lookup.language.toLowerCase()]" [queryParams]="{text: item.text}">{{ item.text }}</a>
+                  } @else {
+                    <span class="item">{{ item.text }}@if (item.note) { <span class="of">{{ item.note }}</span> }</span>
+                  }
+                } @empty { <span class="none" aria-hidden="true">—</span> }
+              </div>
+            }
+          </div>
+          @if (row.kind === 'often' && facts.either.length) {
+            <ng-container [ngTemplateOutlet]="either"></ng-container>
+          }
+        }
+        @if (facts.either.length && !hasOften()) {
+          <ng-container [ngTemplateOutlet]="either"></ng-container>
+        }
+        @if (anyExample()) {
+          <div class="row" role="row">
+            <span i18n class="label" role="rowheader">Example</span>
+            @for (column of columns(); track $index) {
+              <div class="cell example" role="cell">
+                @if (column.example; as example) {
+                  <span class="example-text">{{ example.before }}<span class="word">{{ example.word }}</span>{{ example.after }}</span>
+                } @else { <span class="none" aria-hidden="true">—</span> }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+    <ng-template #either>
+      <div class="row" role="row">
+        <span i18n class="label" role="rowheader">Either word</span>
+        <div class="cell either" role="cell">
+          @for (word of facts.either; track word) { <span class="item">{{ word }}</span> }
+        </div>
+      </div>
+    </ng-template>
+
+    @if (facts.same.length) {
+      <p class="same"><span i18n>The same for both</span><span class="facts">{{ facts.same.join(' · ') }}</span></p>
     }
   </article>
 }
