@@ -155,7 +155,7 @@ describe('freeTierFeatures', () => {
 });
 
 describe('paidTierFeatures', () => {
-  it('quotes the allowances the server enforces', () => {
+  it('quotes the language allowance the server enforces', () => {
     const offer = new PlanOffer(
       [{
         id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8,
@@ -165,25 +165,26 @@ describe('paidTierFeatures', () => {
     );
 
     expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
-    expect(paidTierFeatures(offer)).toContain('Import your own books, up to 12 on your shelf');
   });
 
   it('prints the drawn numbers until the plans land, rather than an empty promise', () => {
     expect(paidTierFeatures(null)).toContain('Unlimited saved words, and 3 languages at once');
-    expect(paidTierFeatures(null)).toContain('Import your own books, up to 10 on your shelf');
   });
 
-  it('falls back per key when the server sends limits it does not model yet', () => {
+  it('states the import allowance as the pricing card draws it', () => {
+    expect(paidTierFeatures(null)).toContain('Import 2 of your own books a month, private to you');
+  });
+
+  it('falls back to the drawn number when the server sends no language allowance', () => {
     const offer = new PlanOffer(
       [{
         id: 1, name: 'Monthly', type: 'MONTHLY', description: '', price: 12, founderPrice: 8,
-        limits: {MAX_ACTIVE_LANGS: 8},
+        limits: {MAX_BOOK_IMPORTS_ON_SHELF: 12},
       }],
       null,
     );
 
-    expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 8 languages at once');
-    expect(paidTierFeatures(offer)).toContain('Import your own books, up to 10 on your shelf');
+    expect(paidTierFeatures(offer)).toContain('Unlimited saved words, and 3 languages at once');
   });
 });
 

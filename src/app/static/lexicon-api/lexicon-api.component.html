@@ -1,0 +1,98 @@
+<div class="api-page">
+  <header class="container hero">
+    <span i18n class="soft-pill">Early access</span>
+    <h1 i18n>The Almonium Lexicon, by API</h1>
+    <p i18n>A learner’s dictionary for European languages, served as JSON. Every entry in every language has the same shape, Schema 4. We wrote the entries ourselves and own them, so the licence is a plain commercial one, with no CC BY-SA and no share-alike terms on your product.</p>
+    <div class="hero-actions">
+      <a class="button button-primary" [href]="contactHref">{{ contact }}</a>
+      <a i18n class="text-link" routerLink="/lexicon-api" fragment="schema">See a response</a>
+    </div>
+  </header>
+
+  <section class="band" id="schema">
+    <div class="container split">
+      <div class="shape">
+        <h2 i18n>One schema, every language</h2>
+        <p i18n class="lede">A Spanish verb, a German noun and a Russian pronoun come back in the same structure, so one parser covers them all.</p>
+        <dl>
+          <div><dt i18n>Lexemes and senses</dt><dd i18n>Grammar, forms and pronunciation sit on the lexeme. Each sense has a stable id and a CEFR level.</dd></div>
+          <div><dt i18n>Regions and labels</dt><dd i18n>BCP 47 and UN M.49 codes say where a sense is used, only or mainly. Formality, attitude, time and normativity are separate fields.</dd></div>
+          <div><dt i18n>Patterns and collocations</dt><dd i18n>Each pattern is given as written and as parts: head, fixed words, open slots with case, form or mood.</dd></div>
+          <div><dt i18n>Sounds</dt><dd i18n>IPA for each variety, with weak forms and the context each one is said in.</dd></div>
+        </dl>
+      </div>
+      <figure class="response">
+        <figcaption><b>{{ 'GET' }}</b> {{ request }}</figcaption>
+        <pre>@for (segment of sample; track $index) {<span [class.key]="segment.key">{{ segment.text }}</span>}</pre>
+      </figure>
+    </div>
+  </section>
+
+  <section class="container compare" id="compare">
+    <h2 i18n>How it compares</h2>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="How the Almonium Lexicon compares" i18n-aria-label>
+      <table>
+        <thead>
+          <tr>
+            <td></td>
+            <th i18n scope="col" class="ours">Almonium Lexicon</th>
+            @for (rival of rivals; track rival.name) {
+              <th scope="col">{{ rival.name }}<small>{{ rival.examples }}</small></th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of comparison; track row.label) {
+            <tr>
+              <th scope="row">{{ row.label }}</th>
+              @for (cell of row.cells; track $index) {
+                <td [class.ours]="$index === 0">{{ cell }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="container split coverage">
+    <div class="shape">
+      <h2 i18n>Coverage today</h2>
+      <p i18n class="lede">Entries published per language. Ukrainian, Russian and Japanese are in early coverage.</p>
+    </div>
+    <div class="bars">
+      @for (row of coverage; track row.language) {
+        <div class="bar-row"><span>{{ row.language }}</span><div class="bar"><i [style.width.%]="row.share"></i></div><span class="count">{{ row.entries }}</span></div>
+      }
+      <div class="early"><small i18n>Early</small><span i18n>Ukrainian</span><span i18n>Russian</span><span i18n>Japanese</span></div>
+    </div>
+  </section>
+
+  <section class="band" id="pricing">
+    <div class="container pricing">
+      <h2 i18n>Pricing</h2>
+      <div class="tiers">
+        @for (tier of tiers; track tier.name) {
+          <article>
+            <span class="tier-name">{{ tier.name }}</span>
+            <span class="tier-price">{{ tier.price }}@if (tier.period) {<small i18n> / month</small>}</span>
+            @if (tier.volume) { <span class="tier-volume">{{ tier.volume }}</span> }
+          </article>
+        }
+      </div>
+      <ul class="terms">
+        <li i18n>Live lookup only.</li>
+        <li i18n>No persistent caching, and no use for AI or ML training.</li>
+        <li i18n>Audio clips are a separate, metered add-on.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="container access">
+    <h2 i18n>Get access</h2>
+    <p i18n class="lede">Tell us your languages and monthly lookup volume — manual onboarding while in early access.</p>
+    <a class="button button-primary" [href]="contactHref">{{ contact }}</a>
+  </section>
+
+  <app-public-footer></app-public-footer>
+</div>

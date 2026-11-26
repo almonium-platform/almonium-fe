@@ -4,12 +4,15 @@ import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
 import {LANDING_ACCOUNT_DELETED_PARAM} from '../../authentication/logout/logout-reason';
 import {PaywallComponent} from '../../shared/paywall/paywall.component';
+import {APP_STORE_URL, PLAY_STORE_URL} from '../../shared/store-links';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
+import {LandingBooksComponent} from './books/landing-books.component';
 import {LandingFeedbackComponent} from './feedback/landing-feedback.component';
+import {LandingLexiconComponent} from './lexicon/landing-lexicon.component';
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent, LandingFeedbackComponent],
+  imports: [RouterLink, NgTemplateOutlet, PaywallComponent, PublicFooterComponent, LandingFeedbackComponent, LandingBooksComponent, LandingLexiconComponent],
   templateUrl: './landing.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './landing.component.less'
@@ -19,9 +22,27 @@ export class LandingComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly alerts = inject(TuiNotificationService);
 
-  /** The production app's store pages. The App Store id is not issued yet, so iOS opens a store search for now. */
-  protected readonly appStoreUrl = 'https://apps.apple.com/search?term=Almonium';
-  protected readonly playStoreUrl = 'https://play.google.com/store/apps/details?id=com.almonium.mobile';
+  protected readonly appStoreUrl = APP_STORE_URL;
+  protected readonly playStoreUrl = PLAY_STORE_URL;
+
+  /** The crossword card's drawing: ATTENDRE across, with four words hanging from it. */
+  protected readonly crosswordCells = [
+    {row: 1, column: 7, letter: 'O'},
+    ...[...'ATTENDRE'].map((letter, index) => ({row: 2, column: index + 1, letter})),
+    {row: 3, column: 2, letter: 'I'}, {row: 3, column: 4, letter: 'P'}, {row: 3, column: 7, letter: 'A'},
+    {row: 4, column: 2, letter: 'E'}, {row: 4, column: 4, letter: 'A'}, {row: 4, column: 7, letter: 'G'},
+    {row: 5, column: 2, letter: 'D'}, {row: 5, column: 4, letter: 'U'}, {row: 5, column: 7, letter: 'E'},
+  ];
+
+  /** The Deep end card's drawing: three rungs held, the one being tried, two not reached. */
+  protected readonly ladderRungs = [
+    {label: $localize`200th`, state: 'held'},
+    {label: $localize`500th`, state: 'held'},
+    {label: $localize`1,000th`, state: 'held'},
+    {label: $localize`2,000th`, state: 'current'},
+    {label: $localize`3,000th`, state: 'ahead'},
+    {label: $localize`5,000th`, state: 'ahead'},
+  ];
 
   ngOnInit(): void {
     this.acknowledgeDeletedAccount();

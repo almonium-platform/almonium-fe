@@ -156,6 +156,7 @@ export class ReadComponent implements OnInit, OnDestroy {
       this.currentLanguage = language;
       this.currentLanguageName = this.languageNameService.getLanguageName(language);
     });
+    this.searchFromLink();
     this.listenToBookSearch();
     this.listenToSortChanges();
     this.listenToCefrLevelChanges();
@@ -193,6 +194,12 @@ export class ReadComponent implements OnInit, OnDestroy {
 
     // Apply the filtered books to the component
     this.filteredBooks = books;
+  }
+
+  /** `/read?q=…` opens the library already searched: the landing's own search and its covers hand over this way. */
+  private searchFromLink(): void {
+    const query = this.router.parseUrl(this.router.url).queryParamMap.get('q')?.trim();
+    if (query) this.titleFormControl.setValue(query);
   }
 
   private get searchTerm(): string {

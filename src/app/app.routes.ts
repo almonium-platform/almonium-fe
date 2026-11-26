@@ -74,6 +74,8 @@ export const routes: Routes = [
   {path: 'pricing', loadComponent: () => import('./static/pricing/pricing.component').then(m => m.PricingComponent)},
   // What works in which language, with the speech engines named. Public and indexable.
   {path: 'languages', loadComponent: () => import('./static/languages/languages.component').then(m => m.LanguagesComponent)},
+  // The dictionary as a product for other builders: one response, the comparison, coverage and prices. Public and indexable.
+  {path: 'lexicon-api', loadComponent: () => import('./static/lexicon-api/lexicon-api.component').then(m => m.LexiconApiComponent)},
 
   // sections of both auth and unauth
   {path: 'play', loadComponent: () => import('./sections/play/play.component').then(m => m.PlayComponent)},

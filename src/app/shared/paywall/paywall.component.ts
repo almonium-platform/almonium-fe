@@ -16,6 +16,7 @@ import {
   BillingPeriod,
   freeTierFeatures,
   paidTierFeatures,
+  paidTierNotes,
   parseFoundingMemberStatus,
   periodLabel,
   PlanOffer,
@@ -156,6 +157,8 @@ export class PaywallComponent implements OnInit, OnDestroy {
   protected get founderClaimed(): number {
     return this.offer?.claimed ?? 0;
   }
+
+  protected readonly paidNotes = paidTierNotes();
 
   protected get founderLimitNote(): string {
     return this.offer?.founderLimitNote ?? '';

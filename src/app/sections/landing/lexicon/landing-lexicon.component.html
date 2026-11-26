@@ -1,0 +1,145 @@
+<div class="lexicon-head">
+  <div class="lexicon-intro">
+    <h2 i18n>In the beginning was the word. Then someone had to define it.</h2>
+    <p i18n>We looked for a dictionary good enough to build on and did not find one, so we wrote our own. Pick a language you are learning, or one you know well enough to judge, and look at a word both ways.</p>
+    <p i18n>When you tap a word in a book, Almonium shows the meaning that fits the sentence. Speak more than one language? See the meaning in all of them. Sometimes Ukrainian catches a nuance that English flattens.</p>
+  </div>
+  <div class="language-picker" role="group" aria-label="Language of the example" i18n-aria-label>
+    @for (language of languages; track language.code; let i = $index) {
+      <button type="button" [class.current]="i === languageIndex()" [attr.aria-pressed]="i === languageIndex()" (click)="pickLanguage(i)">{{ language.name }}</button>
+    }
+  </div>
+</div>
+
+<div class="lexicon-body">
+  <div class="stage">
+    <div class="stage-bar">
+      <div class="word-picker" role="group" aria-label="Example word" i18n-aria-label>
+        @for (option of words(); track option.headword; let i = $index) {
+          <button type="button" [attr.lang]="languages[languageIndex()].code" [class.current]="i === wordIndex()" [attr.aria-pressed]="i === wordIndex()" (click)="pickWord(i)">{{ option.headword }}</button>
+        }
+      </div>
+      <div class="mode-toggle" role="group" aria-label="How the word is shown" i18n-aria-label>
+        <button i18n type="button" [class.current]="mode() === 'translator'" [attr.aria-pressed]="mode() === 'translator'" (click)="mode.set('translator')">A translator</button>
+        <button i18n type="button" [class.current]="mode() === 'almonium'" [attr.aria-pressed]="mode() === 'almonium'" (click)="mode.set('almonium')">Almonium</button>
+      </div>
+    </div>
+
+    @if (mode() === 'translator') {
+      <div class="entry translator">
+        <span class="headword" [attr.lang]="languages[languageIndex()].code">{{ word().headword }}</span>
+        <span class="plain-translation">{{ word().translation }}</span>
+      </div>
+    } @else {
+      <div class="entry">
+        <div class="entry-top">
+          <span class="headword" [attr.lang]="languages[languageIndex()].code">{{ word().headword }}</span>
+          @if (word().variant; as variant) {
+            <div class="variant"><span>{{ variant.label }}</span><span class="variant-word">{{ variant.word }}</span></div>
+          }
+          <div class="pronunciations" [class.no-labels]="!hasLabels()" [class.wide-labels]="wideLabels()">
+            @for (row of word().pronunciations; track $index) {
+              <div class="pronunciation">
+                <span class="pronunciation-label">{{ row.label }}</span>
+                <span class="ipa">{{ row.ipa }}</span>
+                <span class="speaker" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg></span>
+              </div>
+            }
+          </div>
+        </div>
+
+        @for (group of groups(); track $index) {
+          <div class="group">
+            <div class="group-head">
+              <div class="group-line">
+                @if (group.spelling) { <span class="group-spelling">{{ group.spelling }}</span> }
+                <span class="pos">{{ group.pos }}</span>
+                <span class="facts">{{ group.facts }}</span>
+              </div>
+              @if (group.note) { <span class="group-note">{{ group.note }}</span> }
+            </div>
+            @for (sense of group.senses; track sense.index) {
+              <button type="button" class="sense" [class.open]="sense.open" [attr.aria-expanded]="sense.open" (click)="pickSense(sense.index)">
+                <span class="sense-number">{{ sense.index + 1 }}</span>
+                <span class="sense-body">
+                  <span class="sense-line">
+                    <span class="lead">{{ sense.lead }}</span>
+                    <span class="tag level">{{ sense.levelTag }}</span>
+                    @for (label of sense.labels; track label.text) {
+                      <span class="tag" [class.warning]="label.warning">{{ label.text }}</span>
+                    }
+                  </span>
+                  <span class="definition">{{ sense.definition }}</span>
+                  @if (sense.open && sense.example; as example) {
+                    <span class="example">{{ example[0] }}<b>{{ example[1] }}</b>{{ example[2] }}</span>
+                  }
+                  @if (sense.open && sense.hasRows) {
+                    <span class="rows">
+                      @if (sense.grammar) {
+                        <span class="row"><span i18n class="row-label">Grammar</span><span class="row-text">{{ sense.grammar }}</span></span>
+                      }
+                      @if (sense.patternParts.length) {
+                        <span class="row"><span i18n class="row-label">Patterns</span><span class="row-items">
+                          @for (pattern of sense.patternParts; track $index) {
+                            <span class="pattern">@for (part of pattern; track $index) {<span [class]="part.kind">{{ part.text }}</span>}</span>
+                          }
+                        </span></span>
+                      }
+                      @if (sense.collocations?.length) {
+                        <span class="row"><span i18n class="row-label">Goes with</span><span class="row-items">
+                          @for (collocation of sense.collocations; track collocation) { <span>{{ collocation }}</span> }
+                        </span></span>
+                      }
+                      @if (sense.opposite) {
+                        <span class="row"><span i18n class="row-label">Opposite</span><span class="linked-word">{{ sense.opposite }}</span></span>
+                      }
+                    </span>
+                  }
+                </span>
+              </button>
+            }
+          </div>
+        }
+
+        @if (word().foot; as foot) {
+          <div class="entry-foot">
+            @for (line of foot; track line.word) {
+              <div><span>{{ line.label }}</span><span class="linked-word">{{ line.word }}</span><span>{{ line.gloss }}</span></div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="aside">
+    <div class="notes">
+      @for (note of word().notes; track note.title) {
+        <div class="note"><strong>{{ note.title }}</strong><span>{{ note.text }}</span></div>
+      }
+    </div>
+    <div class="making">
+      <span i18n class="making-label">How an entry is made</span>
+      <span i18n><b>Written</b> by a frontier model, to one fixed shape.</span>
+      <span i18n><b>Checked</b> against open dictionaries for gender, plurals, stress and sounds.</span>
+      <span i18n><b>Adjudicated</b> by independent models where the two disagree.</span>
+      <a i18n class="text-link" routerLink="/lexicon-api" fragment="compare">How it compares with translators and open dictionaries &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<div class="standards">
+  <span i18n class="standards-label">Built on</span>
+  <span i18n>Universal Dependencies</span><span i18n>OntoLex lexeme and sense</span><span>{{ 'BCP 47' }}</span><span>{{ 'UN M.49' }}</span><span>{{ 'ISO 15924' }}</span><span i18n>IPA per variety</span><span i18n>CEFR per sense</span>
+</div>
+
+<form class="try" (submit)="lookUp($event)">
+  <h3 i18n>Try it on your own word</h3>
+  <div class="try-row">
+    <input type="text" name="text" autocomplete="off" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Type a word, or paste a sentence" i18n-placeholder aria-label="Type a word, or paste a sentence" i18n-aria-label>
+    <button i18n type="submit" class="button button-primary button-compact">Look up</button>
+  </div>
+  <small i18n>The full word sheet opens here on the page. No sign-up, no email. Saving is the only thing that needs an account.</small>
+</form>
+
+<p i18n class="api-line">Building a language app or reader? The Almonium Lexicon is <a routerLink="/lexicon-api">available by API</a>: 50,000+ entries across European languages, one unified schema.</p>

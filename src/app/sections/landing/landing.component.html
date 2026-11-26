@@ -3,14 +3,15 @@
     <section class="hero container">
       <div class="hero-copy">
         <h1 i18n>Read anything.<br>Keep every word.</h1>
-        <p i18n>Almonium turns the books you read into the vocabulary you actually use. Read in your target language with the translation beside it, tap any word to understand it, and let Almonium remember it until you can use it yourself.</p>
+        <p i18n>Pick any public-domain book, or bring your own. Almonium adapts it to your level, usually within a day, and sets the translation beside every paragraph. Tap any word to understand it, and Almonium remembers it until you can use it yourself.</p>
         <div class="cta-row">
           <a i18n class="button button-primary" routerLink="/read">Start reading, no account needed</a>
-          <span i18n>Free forever for reading.<br>Nine books, four language pairs.</span>
+          <span i18n>Free forever for reading.</span>
         </div>
+        <div class="phone-row"><span i18n>Also on your phone:</span><a i18n class="store-chip" [href]="appStoreUrl" target="_blank" rel="noopener">App Store</a><a i18n class="store-chip" [href]="playStoreUrl" target="_blank" rel="noopener">Google Play</a></div>
       </div>
       <div class="reader-demo" aria-label="Preview of the parallel reader" i18n-aria-label>
-        <div class="demo-bar"><i></i><i></i><i></i><span i18n>Die Verwandlung</span><small>{{ 'DE' }} &nbsp;/&nbsp; {{ 'EN' }}</small></div>
+        <div class="demo-bar"><i></i><i></i><i></i><span i18n>Die Verwandlung</span><small i18n>German / English</small></div>
         <div class="reader-columns">
           <article lang="de">
             <span i18n class="eyebrow">Deutsch</span>
@@ -29,39 +30,6 @@
       </div>
     </section>
 
-    <section class="try-band">
-      <div class="container try-inner">
-        <div><h2 i18n>Paste a German sentence</h2><p i18n>No sign-up, no email.</p></div>
-        <div class="lookup">
-          <div class="lookup-row"><span lang="de">{{ 'Er hatte das Zimmer nicht verlassen wollen.' }}</span><a i18n class="button button-primary button-compact" routerLink="/discover">Look up</a></div>
-          <small i18n>The full word sheet opens here on the page. Saving is the only thing that needs an account.</small>
-        </div>
-      </div>
-    </section>
-
-    <section class="section container" id="books">
-      <div class="section-heading"><h2 i18n>Books, side by side</h2><p i18n>Every book is aligned paragraph by paragraph, so the translation never drifts out of step. Read the whole thing free, in your browser, without an account.</p></div>
-      <div class="shelf">
-        <a class="book book-ink" routerLink="/read"><small i18n>Kafka</small><strong i18n>Der Prozess</strong><span>{{ 'DE' }}</span></a>
-        <a class="book book-purple" routerLink="/read"><small i18n>Shelley</small><strong i18n>Frankenstein</strong><span>{{ 'EN' }}</span></a>
-        <a class="book book-berry" routerLink="/read"><small i18n>Stoker</small><strong i18n>Dracula</strong><span>{{ 'EN' }}</span></a>
-        <a class="book book-plum" routerLink="/read"><small i18n>Voltaire</small><strong i18n>Candide</strong><span>{{ 'FR' }}</span></a>
-        <div class="shelf-action"><p i18n>Each cover opens the full <a routerLink="/read">public reader</a>. Nothing is behind a wall.</p><a i18n class="button button-outline button-compact" routerLink="/read">Browse all books</a></div>
-      </div>
-    </section>
-
-    <section class="section section-white">
-      <div class="container split">
-        <div class="section-heading"><h2 i18n>Tap a word. Understand it properly.</h2><p i18n>Not a dictionary dump. Almonium shows the sense that fits this sentence, how common the word is, how it sounds, and which words it usually travels with.</p><p i18n>Speak more than one language? See the meaning in all of them. Sometimes Ukrainian catches a nuance that English flattens.</p></div>
-        <div class="word-sheet" aria-label="Preview of a word definition" i18n-aria-label>
-          <div class="word-sheet-top"><span i18n class="section-label">From Die Verwandlung</span><span>×</span></div>
-          <h3>{{ 'verlassen' }} <small>{{ '/fɛɐ̯ˈlasn̩/' }}</small></h3><p i18n class="translation">to leave · залишати</p>
-          <div class="meaning"><span>1</span><p><strong i18n>to leave a place or person</strong><br>{{ 'Er hatte das Zimmer nicht ' }}<mark>{{ 'verlassen' }}</mark>.</p></div>
-          <div class="word-meta"><span i18n>Common word</span><span i18n>verb · irregular</span></div><a i18n class="save-word" routerLink="/auth">Save this word</a>
-        </div>
-      </div>
-    </section>
-
     <section class="section container" id="levels">
       <div class="section-heading"><h2 i18n>The same book, at the level you can read</h2><p i18n>Almonium rewrites real novels in simpler language. Same plot, same voice, shorter sentences. Start at the adapted edition, step up when it feels easy, and finish with the author’s own words.</p></div>
       <div class="ladder-grid">
@@ -70,51 +38,152 @@
         <article><div class="ladder-top"><span class="level level-original">{{ 'C1' }} &middot; <ng-container i18n>Original</ng-container></span><small i18n>Shelley, 1818</small></div><p lang="en">{{ 'It was already one in the morning; the rain ' }}<mark>{{ 'pattered dismally' }}</mark>{{ ' against the ' }}<mark>{{ 'panes' }}</mark>{{ ', and my candle ' }}<mark>{{ 'was nearly burnt out' }}</mark>{{ ', when, ' }}<mark>{{ 'by the glimmer of the half-extinguished light' }}</mark>{{ ', I saw ' }}<mark>{{ 'the dull yellow eye of the creature' }}</mark>{{ ' open; it breathed ' }}<mark>{{ 'hard' }}</mark>{{ ', and ' }}<mark>{{ 'a convulsive motion agitated its limbs' }}</mark>{{ '.' }}</p></article>
       </div>
       <p i18n class="ladder-note">The same moment. Every detail. One long sentence becomes three at B2 and four at B1. Frankenstein, Chapter V. Marked: the same phrase at each level. Each book goes as far down as it can without losing the story; the levels it reaches are listed on its library card. Adapted editions are machine-assisted, reviewed, and labelled in the reader. Preview any edition free; the full ladder comes with Premium.</p>
+      <p class="ladder-ask"><ng-container i18n>Missing a book, a level or a translation? <a routerLink="/read">Ask for it</a>. Asking is free, and what gets made is added for everyone. Editions on the shelf can also be ordered as a paperback.</ng-container></p>
     </section>
 
-    <section class="section review-section">
-      <div class="container">
-        <div class="section-heading review-heading"><h2 i18n>Most apps say “wrong.” Almonium says which word you were thinking of.</h2><p i18n>If you answer with the meaning of a different word you are learning, Almonium recognises it, shows you both, and schedules the two together until you stop mixing them up.</p><p i18n>It also rewords the answer every time, so you learn the word instead of memorising the shape of the card.</p></div>
-        <div class="review-grid">
-          <div class="review-card"><span i18n class="eyebrow">Active recall</span><p i18n>What does <strong>{{ 'verlassen' }}</strong> mean here?</p><div i18n class="answer">to hand over <span>↵</span></div><small i18n>Answer in English or Ukrainian</small></div>
-          <div class="confusion-card"><span i18n class="section-label">What it looks like</span><h3>{{ 'verlassen' }}</h3><div i18n class="answer">to hand over</div><div class="feedback"><ng-container i18n><strong>{{ 'verlassen' }}</strong> means to leave. You were thinking of <strong>{{ 'überlassen' }}</strong>, to hand over.</ng-container><hr><div><span i18n><b>{{ 'verlassen' }}</b><br>to leave a place</span><span i18n><b>{{ 'überlassen' }}</b><br>to leave something to someone</span></div></div><small i18n>Both are now scheduled together.</small></div>
+    <section class="books-section" id="books">
+      <app-landing-books></app-landing-books>
+    </section>
+
+    <section class="section-flush container" id="for">
+      <h2 i18n class="section-title">Wherever you are in the language</h2>
+      <div class="stages">
+        <article>
+          <span class="level">{{ 'A1–A2' }}</span>
+          <h3 i18n>Starting out</h3>
+          <p i18n>Read with the translation beside every paragraph, and tap any word you don’t know. Or start from a ready-made deck of the most common words.</p>
+          <div><a i18n routerLink="/" fragment="books">Pick a book &rarr;</a></div>
+        </article>
+        <article>
+          <span class="level">{{ 'B1–B2' }}</span>
+          <h3 i18n>Reading on your own</h3>
+          <p i18n>Read real novels in adapted editions, keep the words you meet, and review them until you stop mixing them up.</p>
+          <div><a i18n routerLink="/" fragment="levels">Adapted editions &rarr;</a><a i18n routerLink="/" fragment="review">Review &rarr;</a></div>
+        </article>
+        <article>
+          <span class="level">{{ 'C1–C2' }}</span>
+          <h3 i18n>Sounding native</h3>
+          <p i18n>Read the originals. Every sense comes with its register, where it is used, how it is said in each variety and the words it goes with.</p>
+          <div><a i18n routerLink="/" fragment="dictionary">The dictionary &rarr;</a></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section dictionary-section" id="dictionary">
+      <div class="container"><app-landing-lexicon></app-landing-lexicon></div>
+    </section>
+
+    <section class="section review-section" id="review">
+      <div class="container review-layout">
+        <div class="review-top">
+          <div class="review-heading">
+            <h2 i18n>Most apps say “wrong.” Almonium says which word you were thinking of.</h2>
+            <p i18n>If you answer with the meaning of a different word you are learning, Almonium recognises it, shows you both, and schedules the two together until you stop mixing them up.</p>
+          </div>
+          <div class="confusion-card" aria-label="Preview of the feedback after a confused answer" i18n-aria-label>
+            <h3 lang="de">{{ 'verlassen' }}</h3>
+            <div i18n class="answer">to hand over</div>
+            <div class="feedback"><p i18n><strong>{{ 'verlassen' }}</strong> means to leave. You were thinking of <strong>{{ 'überlassen' }}</strong>, to hand over.</p><hr><div><span i18n><b>{{ 'verlassen' }}</b><br>to leave a place</span><span i18n><b>{{ 'überlassen' }}</b><br>to leave something to someone</span></div></div>
+            <small i18n>Both are now scheduled together.</small>
+          </div>
+        </div>
+        <div class="review-points">
+          <article><h3 i18n>New wording every time</h3><p i18n>It rewords the answer every time, so you learn the word instead of memorising the shape of the card.</p></article>
+          <article><h3 i18n>Understanding and using</h3><p i18n>Almonium knows the difference between understanding a word and being able to use it, and reviews the two separately.</p></article>
+          <article><h3 i18n>The whole history of a word</h3><p i18n>Where you met it, how often, what tripped you up.</p></article>
+          <article><h3 i18n>A story from what you missed</h3><p i18n>Every review session ends with a short piece of writing that quietly uses the words you just got wrong, in new sentences, at your level.</p></article>
         </div>
       </div>
     </section>
 
-    <section class="section container split split-reverse">
-      <div class="story-card" aria-label="End of session story preview" i18n-aria-label><span i18n class="eyebrow">Your five-minute story</span><h3 i18n>Ein unerwarteter Abschied</h3><p>{{ 'Clara wollte das Haus nicht ' }}<mark>{{ 'verlassen' }}</mark>{{ '. Der Schlüssel lag noch auf dem Tisch, neben dem Brief, den ihr Bruder ihr ' }}<mark>{{ 'überlassen' }}</mark>{{ ' hatte.' }}</p><div><span i18n>3 words revisited</span><span i18n>2 min read</span></div></div>
-      <div class="section-heading"><h2 i18n>Finish with a story built from what you missed</h2><p i18n>Every review session ends with a short piece of writing that quietly uses the words you just got wrong, in new sentences, at your level.</p></div>
-    </section>
-
-    <section class="section section-white">
-      <div class="container split packs-split">
-        <div class="section-heading"><h2 i18n>Words are better shared</h2><p i18n>Send a word, a phrase, or a whole list from a chapter you just read. Your friend can open it, read the context you saved, and keep the ones they want. They do not need an account to look.</p></div>
-        <div class="pack-card"><span i18n class="section-label">Yevhenii shared a pack</span><h3 i18n>Chapter one · 8 words</h3><div><span>{{ 'verlassen' }}</span><span>{{ 'ungeheuer' }}</span><span>{{ 'allmählich' }}</span></div><a i18n class="button button-primary button-compact" routerLink="/discover">Preview pack</a></div>
+    <section class="section-minor section-white" id="together">
+      <div class="container together-layout">
+        <div class="pair">
+          <div class="minor-heading">
+            <h2 i18n>Learn with a friend</h2>
+            <p i18n>Play with someone who is learning the same language, or on your own. The games are built from the words in your decks, and every answer counts as review.</p>
+            <p i18n>In Sentence for a friend you write a sentence that makes a word guessable without using it. Your friend sees it with a blank and gets one guess.</p>
+            <a i18n class="text-link" routerLink="/play">Sentence for a friend &rarr;</a>
+          </div>
+          <div class="friend-stage" aria-label="Preview of a finished round of Sentence for a friend" i18n-aria-label>
+            <div class="friend-card">
+              <div class="friend-top"><span i18n class="friend-game">Sentence for a friend</span><span i18n class="friend-result">Tomas got it</span></div>
+              <p class="friend-sentence" lang="fr">{{ 'Elle mit un ' }}<b>{{ 'soupçon' }}</b>{{ ' de sel dans la soupe, puis un ' }}<b>{{ 'soupçon' }}</b>{{ ' de doute dans mon esprit.' }}</p>
+              <p i18n class="friend-outcome">He guessed it in 40 seconds. <em>Soupçon</em> moves out to 12 days for you, 6 for him. Your sentence is now the second encounter on his card.</p>
+              <div class="friend-next"><span i18n class="friend-again">Write another</span><span i18n>Tomas is writing one for you</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="games">
+          <a class="game" routerLink="/play/duel">
+            <span class="game-art"><span class="duel-art">
+              <strong i18n>You took it, 16 to 8</strong>
+              <span><i lang="fr">{{ 'linceul' }}</i><em i18n>shroud</em><b>{{ '+2' }}</b></span>
+              <span><i lang="fr">{{ 'soupçon' }}</i><em i18n>suspicion</em><b>{{ '+6' }}</b></span>
+              <span class="lost"><i lang="fr">{{ 's’acharner' }}</i><em i18n>to hound</em><b>{{ '−1' }}</b></span>
+            </span></span>
+            <span class="game-text"><span class="game-name"><strong i18n>Duel</strong><small i18n>Two players</small></span><span i18n>Your deck against a friend’s. You answer from theirs, they answer from yours, and every word either of you misses lands in both decks afterwards.</span></span>
+          </a>
+          <a class="game" routerLink="/play/crossword">
+            <span class="game-art"><span class="grid-art" aria-hidden="true">
+              @for (cell of crosswordCells; track $index) { <i [style.grid-area]="cell.row + ' / ' + cell.column">{{ cell.letter }}</i> }
+            </span></span>
+            <span class="game-text"><span class="game-name"><strong i18n>Crossword</strong><small i18n>Solo</small></span><span i18n>A grid built from the words due today.</span></span>
+          </a>
+          <a class="game" routerLink="/play/ladder">
+            <span class="game-art"><span class="rungs-art" aria-hidden="true">
+              @for (rung of ladderRungs; track rung.label) { <span [class]="rung.state"><i></i>{{ rung.label }}</span> }
+            </span></span>
+            <span class="game-text"><span class="game-name"><strong i18n>Deep end</strong><small i18n>Solo</small></span><span i18n>Words of falling frequency until you stop recognising them. The rung where you fall off is an estimate of your reading range.</span></span>
+          </a>
+        </div>
+        <p i18n class="packs-line"><b>Shared packs.</b> Send a word, a phrase, or a whole list from a chapter you just read. Your friend can open it, read the context you saved, and keep the ones they want. They do not need an account to look.</p>
       </div>
     </section>
 
-    <section class="section container">
-      <div class="section-heading"><h2 i18n>What Almonium does that other tools do not</h2></div>
-      <div class="difference-grid"><article i18n>Shows a word’s meaning in every language you already speak, not just one</article><article i18n>Knows the difference between understanding a word and being able to use it</article><article i18n>Notices which words you confuse with each other</article><article i18n>Gives you the same book at the level you can actually read</article><article i18n>Keeps the whole history of a word: where you met it, how often, what tripped you up</article></div>
-    </section>
-
-    <section class="section container split split-top" id="languages">
-      <div class="section-heading">
-        <h2 i18n>Which languages? Almost certainly yours.</h2>
+    <section class="section-minor container pair pair-top" id="languages">
+      <div class="minor-heading">
+        <h2 i18n>Words in 328 languages. Books in the major European ones.</h2>
         <p i18n>Save and review words in any of 328 languages: every language with about a million native speakers, from Cantonese to Kirundi.</p>
         <a i18n class="text-link" routerLink="/languages">See exactly what works in yours &rarr;</a>
       </div>
       <div class="language-notes">
-        <article><strong i18n>Books in German and across Europe</strong><p i18n>A deep German shelf, English, and books in Polish, Finnish, Ukrainian, Russian, Swedish and the other major European languages.</p></article>
-        <article><strong i18n>Deeper, one language at a time</strong><p i18n>Voices, word forms and full dictionary entries are added language by language.</p></article>
-        <article class="language-note-tint"><strong i18n>You decide what comes next</strong><p i18n>Your lookups and book requests show which language to build next.</p></article>
+        <article><strong i18n>Books in English, German, Spanish, French and more</strong><p i18n>Also Polish, Finnish, Ukrainian, Russian, Swedish and the other major European languages.</p></article>
+        <article><strong i18n>The full dictionary in six languages, free</strong><p i18n>English, German, Spanish, French, Italian and Portuguese have full entries, word forms and voices, with unlimited lookups. More languages join this list as demand shows.</p></article>
+        <article><strong i18n>Every other language, written on demand</strong><p i18n>An entry is written the first time someone looks a word up, and is free for everyone after that. Your first 20 new entries are free; more come with Premium. These entries are labelled as unreviewed. Saving a word with your own translation is always free.</p></article>
+        <article class="language-note-tint"><strong i18n>You decide what comes next</strong><p i18n>Your lookups and book requests show which language to build next. Or <a routerLink="/" fragment="feedback">write to me</a>. I read every message myself.</p></article>
       </div>
     </section>
 
-    <section class="section section-white" id="feedback">
-      <div class="container split split-top">
-        <div class="section-heading">
+    <section class="section-minor section-flush-top container pair" id="roadmap">
+      <div class="minor-heading">
+        <span i18n class="soft-pill">On the roadmap</span>
+        <h2 i18n>See what would sound off to a native speaker</h2>
+        <p i18n>Type a phrase and the fluency trainer marks what a native speaker would notice: a missing article, a word that is close but not the one people use, a structure that is correct but unnatural.</p>
+        <p i18n>It also offers a more casual and a more formal version and says what changed, and tells you which variety your sentence reads as, with the phrase that gave it away.</p>
+      </div>
+      <div class="trainer" lang="en" aria-label="Preview of the fluency trainer" i18n-aria-label>
+        <p class="trainer-input"><span class="variety-mark">{{ 'At the weekend' }}</span>{{ ' I ' }}<mark>{{ 'made a photo' }}</mark>{{ ' of the ' }}<mark>{{ 'high building' }}</mark>{{ ' ' }}<mark>{{ 'near station' }}</mark>.</p>
+        <div class="trainer-fixes">
+          <div class="trainer-row"><span i18n class="row-label">Collocation</span><div><span class="fix"><s>{{ 'made a photo' }}</s> <b>{{ 'took a photo' }}</b></span><span i18n class="why">In English you take a photo.</span></div></div>
+          <div class="trainer-row"><span i18n class="row-label">Word choice</span><div><span class="fix"><s>{{ 'high building' }}</s> <b>{{ 'tall building' }}</b></span><span i18n class="why">tall for buildings and people; high for mountains and prices.</span></div></div>
+          <div class="trainer-row"><span i18n class="row-label">Article</span><div><span class="fix"><s>{{ 'near station' }}</s> <b>{{ 'near the station' }}</b></span><span i18n class="why">A singular countable noun needs an article.</span></div></div>
+        </div>
+        <div class="trainer-row ruled"><span i18n class="row-label">Natural</span><span class="natural">{{ 'At the weekend I took a photo of the tall building near the station.' }}</span></div>
+        <div class="trainer-row ruled"><span i18n class="row-label">Tone</span><div class="tones">
+          <div><span i18n class="tone-name">More casual</span><span class="fix">{{ 'I ' }}<b>{{ 'got' }}</b>{{ ' a photo of ' }}<b>{{ 'that' }}</b>{{ ' tall building ' }}<b>{{ 'by' }}</b>{{ ' the station at the weekend.' }}</span><span i18n class="why">got, that and by are the everyday choices. Putting the time last sounds like speech.</span></div>
+          <div><span i18n class="tone-name">More formal</span><span class="fix">{{ 'At the weekend I ' }}<b>{{ 'photographed' }}</b>{{ ' the tall building near the station.' }}</span><span i18n class="why">One precise verb in place of took a photo of. A single verb reads more formal than a verb plus a noun.</span></div>
+        </div></div>
+        <div class="trainer-row ruled"><span i18n class="row-label">Variety</span><div class="variety">
+          <span i18n class="why">This reads British: <a class="linked-word" routerLink="/" fragment="dictionary">at the weekend</a>. American English says <span class="said">on the weekend</span>.</span>
+          <span i18n class="outline-chip">Change to American</span>
+        </div></div>
+      </div>
+    </section>
+
+    <section class="section-minor section-white" id="feedback">
+      <div class="container pair pair-top">
+        <div class="minor-heading">
           <h2 i18n>What did every language app get wrong for you?</h2>
           <p i18n>Tell me what you always wished existed. It goes straight to my inbox. I read every one, and the ideas that fit get built.</p>
           <div class="founder-byline"><span class="founder-photo founder-photo-small"><img src="assets/img/other/founder.webp" alt=""></span><span>{{ '@wanderbild' }}<ng-container i18n>, building Almonium</ng-container></span></div>

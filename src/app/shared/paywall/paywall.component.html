@@ -94,16 +94,20 @@
           {{ paidButtonText }}
         </button>
 
-        @if (founderOfferAvailable) {
-          <div class="founder-notes">
+        <div class="founder-notes">
+          <span class="lead-note">{{ paidNotes.lead }}</span>
+          @if (founderOfferAvailable) {
             <span>{{ founderLimitNote }}</span>
             @if (claimedCountVisible) {
               <span i18n>{{ founderClaimed }} of {{ founderCapacity }} claimed</span>
             }
             <span i18n>Keep this price while your subscription stays active.</span>
             <span i18n>Monthly and annual memberships use the same {{ founderCapacity }}-member limit.</span>
-          </div>
-        }
+          }
+          @for (note of paidNotes.rest; track note) {
+            <span>{{ note }}</span>
+          }
+        </div>
       </article>
     </div>
 

@@ -44,7 +44,7 @@ test('serves the account deletion page to a signed-out visitor', async ({page}) 
   await expect(page.getByText(/merchant of record/)).toBeVisible();
   await page.screenshot({path: 'test-results/legal-delete-account.png', fullPage: true, animations: 'disabled'});
 
-  await expect(page.getByRole('navigation', {name: 'Footer navigation'}).getByRole('link', {name: 'Delete account'})).toBeVisible();
+  await expect(page.getByRole('contentinfo').getByRole('link', {name: 'Delete account'})).toBeVisible();
 
   await page.setViewportSize({width: 390, height: 844});
   await page.screenshot({path: 'test-results/legal-delete-account-mobile.png', fullPage: true, animations: 'disabled'});

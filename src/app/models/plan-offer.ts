@@ -189,30 +189,45 @@ export const FREE_SAVED_ITEMS_LIMIT = 100;
 export function freeTierFeatures(savedItems: number | null): string[] {
   return [
     $localize`Every book in the library, unlimited reading`,
-    $localize`Unlimited word lookups`,
+    $localize`Request or vote for any public-domain book`,
+    $localize`Unlimited word lookups in English, German, Spanish, French, Italian and Portuguese`,
+    $localize`In any other language: every entry already made, plus 20 new ones`,
+    $localize`Audio in the main varieties of each language`,
     savedItemsFeature(savedItems),
     $localize`One target language, unlimited review`,
     $localize`Confusion feedback`,
   ];
 }
 
-// The numbers the card was drawn with, and what it prints until the offer lands.
+// The number the card was drawn with, and what it prints until the offer lands.
 const PAID_ACTIVE_LANGS_FALLBACK = 3;
-const PAID_BOOK_IMPORTS_FALLBACK = 10;
 
 export function paidTierFeatures(offer: PlanOffer | null): string[] {
   const languages = offer?.limitFor(PlanLimitKeys.MAX_ACTIVE_LANGS, PAID_ACTIVE_LANGS_FALLBACK)
     ?? PAID_ACTIVE_LANGS_FALLBACK;
-  const imports = offer?.limitFor(PlanLimitKeys.MAX_BOOK_IMPORTS_ON_SHELF, PAID_BOOK_IMPORTS_FALLBACK)
-    ?? PAID_BOOK_IMPORTS_FALLBACK;
   return [
     $localize`Unlimited saved words, and ${languages}:languages: languages at once`,
-    $localize`Every book at the levels it honestly reaches — adapted editions and the original`,
+    $localize`Unlimited new entries in all 328 languages`,
+    $localize`Audio in every variety, from Canadian to Indian English`,
+    $localize`Every book at your level — B1, B2 and C1 editions*`,
     $localize`Chat with Almo, who uses the words you’re learning`,
     $localize`Narrated audiobooks`,
-    $localize`Import your own books, up to ${imports}:imports: on your shelf`,
+    $localize`Your book requests go first, ready within a day`,
+    $localize`Import 2 of your own books a month, private to you`,
     $localize`Share word packs with friends`,
+    $localize`10% off printed editions`,
   ];
+}
+
+/** The small print under the paid card that holds whether or not a founder place is left. */
+export function paidTierNotes(): {lead: string; rest: string[]} {
+  return {
+    lead: $localize`Almonium is co-created by its members. The first time anyone looks up a word or requests a book, it’s added for everyone.`,
+    rest: [
+      $localize`Extra imports are available as credits. An imported book takes up to a day: the first chapter is ready first, and you get an email when the rest is done.`,
+      $localize`* Not every book reaches every level. Each goes as far down as it can without losing the story.`,
+    ],
+  };
 }
 
 // The saved entry counts only for a reader who is signed in and has saved something. A new

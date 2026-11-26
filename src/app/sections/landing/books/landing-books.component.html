@@ -1,0 +1,41 @@
+<div class="container books-head">
+  <div class="section-heading">
+    <h2 i18n>Any public-domain book, or your own</h2>
+    <p i18n>These are some of the books made so far. Search for a title. If it is not on the shelf, request it: Almonium adapts it, aligns it paragraph by paragraph with the translation, and adds it for everyone. Requests are free and join the queue. Premium requests go first and are ready within a day, first chapter first.</p>
+    <p i18n>Premium members can also bring their own books. An imported book stays private to you and never joins the shared shelf.</p>
+  </div>
+  <div class="book-search">
+    <input type="search" autocomplete="off" [value]="query()" (input)="query.set($any($event.target).value)" placeholder="Search for a book or an author" i18n-placeholder aria-label="Search for a book or an author" i18n-aria-label>
+    @if (term()) {
+      <div class="hits" aria-live="polite">
+        @for (book of hits(); track book.title) {
+          <a class="hit" routerLink="/read" [queryParams]="{q: book.title}"><strong>{{ book.title }}</strong><span>{{ book.author }}</span><em i18n>Read</em></a>
+        } @empty {
+          <p i18n class="miss">Not on the shelf yet. <a routerLink="/read" [queryParams]="{q: term()}">Request it</a>. Public-domain books are adapted and added for everyone.</p>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+<div class="roll" aria-hidden="true">
+  <div class="roll-track">
+    @for (pass of [0, 1]; track pass) {
+      @for (book of shelf; track book.title) {
+        <a class="cover" routerLink="/read" [queryParams]="{q: book.title}" tabindex="-1" [style.--book-ink]="book.ink">
+          @if (coverUrl(book); as url) {
+            <span class="plate photo"><i [style.background-image]="url" [style.background-position]="book.cover?.position" [style.filter]="book.cover?.filter"></i><b></b></span>
+          } @else {
+            <span class="plate">{{ book.initial }}</span>
+          }
+          <span class="cover-text"><strong>{{ book.title }}</strong><small>{{ book.author }}</small></span>
+        </a>
+      }
+    }
+  </div>
+</div>
+
+<div class="container books-foot">
+  <span i18n>Each cover opens the full <a routerLink="/read">public reader</a>. Nothing is behind a wall.</span>
+  <a i18n class="button button-outline button-compact" routerLink="/read">Browse all books</a>
+</div>

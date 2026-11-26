@@ -1,0 +1,51 @@
+:host { display: flex; flex-direction: column; gap: 30px; }
+* { box-sizing: border-box; }
+@import '../landing-buttons';
+a { color: inherit; text-decoration: none; }
+p { margin: 0; }
+
+.container { width: min(calc(100% - 64px), 1056px); margin-inline: auto; }
+.books-head { display: flex; flex-direction: column; gap: 22px; }
+.section-heading { display: flex; max-width: 62ch; flex-direction: column; gap: 9px; }
+h2 { margin: 0; font: 600 clamp(31px, 4vw, 38px)/1.15 var(--font-family-reading); }
+.section-heading p { color: var(--copy); font-size: 16px; line-height: 1.65; text-wrap: pretty; }
+
+.book-search { display: flex; max-width: 620px; flex-direction: column; gap: 10px; }
+.book-search input { width: 100%; border: 1px solid #d8cfd6; border-radius: 999px; padding: 16px 22px; background: #fff; color: var(--ink); font: 16px var(--font-family-reading); }
+.book-search input:focus-visible { outline: 3px solid #c9a8c4; outline-offset: 2px; }
+.hits { display: flex; flex-direction: column; border-radius: 18px; padding: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1); }
+.hit { display: flex; align-items: baseline; gap: 12px; border-radius: 12px; padding: 11px 14px; color: var(--ink); }
+.hit:hover { background: #f4eef6; }
+.hit strong { font: 600 16px var(--font-family-reading); }
+.hit span { color: var(--copy); font-size: 13.5px; }
+.hit em { margin-left: auto; color: var(--plum); font-size: 13.5px; font-style: normal; font-weight: 600; }
+.miss { padding: 12px 14px; color: var(--copy); font-size: 14.5px; line-height: 1.55; }
+.miss a { color: var(--berry); font-weight: 600; }
+.miss a:hover { color: var(--plum); }
+
+/* The shelf is drawn twice end to end and slid by half its width, so the loop has no seam. */
+.roll { overflow: hidden; padding: 4px 0 6px; }
+.roll-track { display: flex; width: max-content; animation: roll 80s linear infinite; }
+.roll:hover .roll-track { animation-play-state: paused; }
+@keyframes roll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.cover { display: flex; flex: none; width: 132px; height: 198px; flex-direction: column; margin-right: 24px; overflow: hidden; border-radius: 2px; background: #f4eee6; box-shadow: 0 1px 3px rgba(0, 0, 0, .15); }
+.plate { display: flex; flex: none; height: 132px; align-items: center; justify-content: center; background: var(--book-ink); color: #f4eee6; font: italic 500 78px/1 var(--font-family-reading); }
+.plate.photo { position: relative; isolation: isolate; overflow: hidden; background: #f4eee6; }
+.plate.photo i, .plate.photo b { position: absolute; inset: 0; }
+.plate.photo i { background-size: cover; mix-blend-mode: multiply; }
+.plate.photo b { background: var(--book-ink); mix-blend-mode: screen; }
+.cover-text { display: flex; flex: 1; min-height: 0; flex-direction: column; justify-content: space-between; border-top: 1.5px solid var(--book-ink); padding: 8px 10px 9px; }
+.cover-text strong { color: var(--book-ink); font: 600 11px/1.18 var(--font-family-reading); }
+.cover-text small { color: var(--copy); font-size: 9px; font-weight: 500; letter-spacing: .5px; line-height: 1.2; text-transform: uppercase; }
+
+.books-foot { display: flex; align-items: center; gap: 14px 28px; flex-wrap: wrap; color: var(--copy); font-size: 14px; line-height: 1.55; }
+.books-foot span a { color: var(--plum); }
+.books-foot span a:hover { color: var(--berry); }
+
+@media (max-width: 700px) {
+  .container { width: min(calc(100% - 36px), 1056px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .roll { overflow-x: auto; }
+  .roll-track { animation: none; }
+}
