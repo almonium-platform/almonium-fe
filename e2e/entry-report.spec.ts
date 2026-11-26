@@ -30,7 +30,7 @@ const queue = [
 
 async function routeSignedIn(page: Page, admin: boolean, reports: unknown[]) {
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('DE')));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     const method = route.request().method();
     if (path.endsWith('/users/me')) await route.fulfill({json: user(admin)});

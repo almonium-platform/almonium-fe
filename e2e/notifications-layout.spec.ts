@@ -67,7 +67,7 @@ test('notifications popover renders many book rows without squishing or clipping
     localStorage.setItem('read_library_view', JSON.stringify('covers'));
   });
 
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/users/me')) await route.fulfill({json: user});
     else if (path.endsWith('/public/csrf/token')) await route.fulfill({body: 'token'});
