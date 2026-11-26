@@ -67,7 +67,7 @@ describe('HarnessComponent', () => {
 
     expect(element.querySelectorAll('.week').length).toBe(12);
     expect(element.querySelector('.record-summary')?.textContent)
-      .toContain('Eleven of the last Twelve weeks met your target of two sessions');
+      .toContain('Eleven of the last twelve weeks met your target of two sessions');
     expect(element.querySelector('.record-summary')?.textContent).toContain('Tint shows time learning, not a score');
     expect(element.querySelector('.record-foot')?.textContent).toContain('Twice a week');
   });

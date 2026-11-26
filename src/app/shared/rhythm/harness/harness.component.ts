@@ -129,7 +129,7 @@ export class HarnessComponent implements OnInit {
     }
     // "No of the last twelve weeks" is not a sentence; the attributive "No weeks" only works before the noun.
     const kept = met === 0 ? $localize`None` : numberWord(met);
-    const total = numberWord(counted);
+    const total = numberWord(counted).toLocaleLowerCase();
     const target = rhythm.target;
     const sessions = SESSION_WORD[target] ?? $localize`${target}:count: sessions`;
     return $localize`${kept}:kept: of the last ${total}:counted: weeks met your target of ${sessions}:sessions:. Tint shows time learning, not a score.`;
