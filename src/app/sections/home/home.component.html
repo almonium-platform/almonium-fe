@@ -70,14 +70,19 @@
     <div class="dashboard-grid">
       <div class="main-column">
         <section class="home-card kept-card" aria-labelledby="kept-title">
-          <header class="card-heading"><div><p i18n class="section-label">Kept while reading</p><h2 i18n id="kept-title">{cards.length, plural, =1 {1 saved word} other {{{cards.length}} saved words}}</h2></div><a i18n routerLink="/review">All saved words</a></header>
+          <header class="card-heading"><div><p i18n class="section-label">Kept while reading</p><h2 id="kept-title">{{ keptHeading }}</h2></div><a routerLink="/review">{{ allWordsLabel }}</a></header>
           @if (recentCards.length > 0) {
             <div class="word-list">
               @for (card of recentCards; track card.id ?? card.entry) {
                 <article class="word-row">
                   <div class="word-name"><strong>{{ card.entry }}</strong><small>{{ cardMeta(card) }}</small></div>
-                  <div class="word-detail"><span>{{ translation(card) }}</span>@if (example(card); as sentence) { <q>{{ sentence }}</q> }</div>
-                  @if (card.falseFriend) { <span i18n class="word-note"><i></i>false friend</span> }
+                  <div class="word-detail">
+                    <span>{{ translation(card) }}</span>
+                    @if (sentence(card); as met) { <q>{{ met.before }}<mark>{{ met.word }}</mark>{{ met.after }}</q> }
+                    @if (keptOn(card); as kept) { <small>{{ kept }}</small> }
+                  </div>
+                  @if (card.falseFriend) { <span i18n class="word-note warns"><i></i>false friend</span> }
+                  @else { <span class="word-note">{{ intentNote(card) }}</span> }
                 </article>
               }
             </div>
@@ -85,20 +90,20 @@
         </section>
 
         <section class="home-card shelf-card" aria-labelledby="shelf-title">
-          <header class="card-heading"><div><p i18n class="section-label">Your shelf</p><h2 i18n id="shelf-title">{shelfBooks.length, plural, =1 {1 book open} other {{{shelfBooks.length}} books open}}</h2></div><a i18n routerLink="/read">Browse the library</a></header>
+          <header class="card-heading"><div><p i18n class="section-label">Your shelf</p><h2 id="shelf-title">{{ shelfHeading }}</h2></div><a i18n routerLink="/read">Browse the library</a></header>
           @if (shelfBooks.length > 0) {
             <div class="book-row">
               @for (book of shelfBooks; track book.id; let index = $index) { <a class="book-spine spine-{{ index + 1 }}" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span>{{ book.title }}</span></a> }
-              <p i18n>Your open books keep their place either way.</p>
+              <p><ng-container i18n>Your open books keep their place either way.</ng-container><a i18n class="text-action" routerLink="/read">Import a book of your own</a></p>
             </div>
           } @else { <p i18n class="card-empty">No book is open right now. Your saved vocabulary will stay here.</p> }
         </section>
       </div>
 
       <aside class="side-column" aria-label="Learning overview" i18n-aria-label>
-        <section class="home-card review-card"><p i18n class="section-label">Ready to review</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ languageName }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
+        <section class="home-card review-card"><p i18n class="section-label">Due today</p><div class="review-count"><strong>{{ reviewCount }}</strong><span i18n>{reviewCount, plural, =1 {word ready to come back} other {words ready to come back}}</span></div><p i18n>Review the vocabulary you chose to learn in {{ languageName }}.</p><a i18n class="secondary-action" routerLink="/review">Start review</a></section>
         <app-harness></app-harness>
-        <section class="home-card plan-card"><p i18n class="section-label">Your plan</p><p i18n>{cards.length, plural, =1 {You’re on {{planName}} with 1 saved word in {{languageName}}.} other {You’re on {{planName}} with {{cards.length}} saved words in {{languageName}}.}}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
+        <section class="home-card plan-card"><p i18n class="section-label">Your plan</p><p>{{ planLine }}</p>@if (!userInfo?.premium) { <a i18n routerLink="/pricing">See what Premium adds</a> }</section>
       </aside>
     </div>
   }

@@ -9,8 +9,13 @@ const user = {
   learners: [{id: '01989f47-4c2a-7a10-9e5b-751983624a31', language: 'EN', selfReportedLevel: 'B1', active: true}],
   uiPreferences: {navbar: {discover: true, review: true, play: true, read: true, write: true, notifications: true, social: true}},
 };
+// Two kept inside the last week and two long before it, so the heading counts the week and the link the lot.
+const daysAgo = (days: number) => new Date(Date.now() - days * 864e5).toISOString();
 const cards = ['to abandon', 'wretched', 'to sit up', 'monstrous'].map((entry, index) => ({
-  id: `01989f47-4c2a-7a10-9e5b-75198362500${index}`, entry, language: 'EN', createdAt: `2026-11-2${index}T10:00:00Z`,
+  id: `01989f47-4c2a-7a10-9e5b-75198362500${index}`, entry, language: 'EN', createdAt: daysAgo([1, 3, 40, 60][index]),
+  partOfSpeech: index === 1 ? 'ADJECTIVE' : undefined, itemType: index === 2 ? 'CHUNK' : 'WORD',
+  sourceContext: index === 1 ? 'I, the miserable and the abandoned, am a wretched thing.' : undefined,
+  learningIntents: index === 0 ? ['UNDERSTAND', 'PRODUCE'] : ['UNDERSTAND'], iteration: index === 3 ? 6 : 0,
   translations: [{id: `t${index}`, translation: ['покидати', 'нещасний', 'підвестися', 'жахливий'][index]}],
   examples: [{id: `e${index}`, example: `He did not want ${entry} in that room.`, translation: ''}],
   tags: [{text: 'verb'}],
@@ -49,6 +54,17 @@ for (const width of [1360, 390]) {
 
     await expect(page.getByRole('heading', {level: 1})).toHaveText(book.title);
     await expect(page.locator('.word-row')).toHaveCount(4);
+    // The words speak for the week, name the sentence they were met in and say what each is being learned for.
+    await expect(page.locator('#kept-title')).toHaveText('Two words this week');
+    await expect(page.locator('.kept-card .card-heading a')).toHaveText('All 4 words');
+    const wretched = page.locator('.word-row').filter({hasText: 'wretched'}).first();
+    await expect(wretched.locator('.word-name small')).toHaveText('adjective');
+    await expect(wretched.locator('q')).toHaveText('I, the miserable and the abandoned, am a wretched thing.');
+    await expect(wretched.locator('q mark')).toHaveText('wretched');
+    await expect(wretched.locator('.word-detail small')).toHaveText(/^Kept \p{L}+day$/u);
+    await expect(page.locator('.word-note')).toHaveText(['say it too', 'understand only', 'understand only', 'seen 6 times']);
+    await expect(page.locator('.review-card .section-label')).toHaveText('Due today');
+    await expect(page.locator('.plan-card p').nth(1)).toHaveText('Free covers one language and 100 saved words. You have kept 4, all in English.');
     await expect(page.locator('.review-count strong')).toHaveText('23');
     await expect(page.locator('app-harness .week')).toHaveCount(12);
 

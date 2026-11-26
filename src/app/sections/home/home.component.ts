@@ -14,8 +14,19 @@ import {Book, BookshelfView} from '../read/book.model';
 import {ReadService} from '../read/read.service';
 import {ReviewService} from '../review/review.service';
 import {HarnessComponent} from '../../shared/rhythm/harness/harness.component';
+import {numberWord} from '../../shared/rhythm/rhythm.model';
+import {FREE_SAVED_ITEMS_LIMIT} from '../../models/plan-offer';
+import {partOfSpeechLabel} from '../discover/entry-shape';
 
 const EMPTY_SHELF: BookshelfView = {continueReading: [], available: [], favorites: []};
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** The sentence a word was met in, cut around the word so the template can set it apart. */
+export interface KeptSentence {
+  before: string;
+  word: string;
+  after: string;
+}
 
 @Component({
   selector: 'app-home',
@@ -149,15 +160,83 @@ export class HomeComponent implements OnInit, OnDestroy {
     return card.translations[0]?.translation ?? $localize`Translation not added yet`;
   }
 
+  /** The mono line under a word: what kind of thing was kept, never how often it was drilled. */
   protected cardMeta(card: CardDto): string {
     const details: string[] = [];
-    if (card.tags?.[0]?.text) details.push(card.tags[0].text);
-    if (card.iteration) details.push(card.iteration === 1 ? $localize`reviewed 1 time` : $localize`reviewed ${card.iteration}:count: times`);
+    if (card.itemType === 'CHUNK') details.push($localize`chunk`);
+    else if (card.itemType === 'PHRASE') details.push($localize`phrase`);
+    else if (card.itemType === 'TEMPLATE') details.push($localize`pattern`);
+    if (card.partOfSpeech) details.push(partOfSpeechLabel(card.partOfSpeech).toLocaleLowerCase());
+    else if (card.tags?.[0]?.text) details.push(card.tags[0].text);
     return details.join(' · ') || $localize`saved vocabulary`;
   }
 
-  protected example(card: CardDto): string | null {
-    return card.examples?.[0]?.example ?? null;
+  /** The sentence the word was met in when it was saved from one, otherwise the card's own example. */
+  protected sentence(card: CardDto): KeptSentence | null {
+    const text = [card.sourceContext?.trim(), card.examples?.[0]?.example].find(Boolean);
+    if (!text) return null;
+    const lower = text.toLocaleLowerCase();
+    for (const form of [card.entry, card.lemma, card.normalizedForm]) {
+      const at = form ? lower.indexOf(form.toLocaleLowerCase()) : -1;
+      if (form && at >= 0) return {before: text.slice(0, at), word: text.slice(at, at + form.length), after: text.slice(at + form.length)};
+    }
+    return {before: text, word: '', after: ''};
+  }
+
+  /** When it was kept: the weekday inside the last week, the date before that. */
+  protected keptOn(card: CardDto): string | null {
+    if (!card.createdAt) return null;
+    const kept = new Date(card.createdAt);
+    const recent = Date.now() - kept.getTime() < WEEK_MS;
+    const day = new Intl.DateTimeFormat($localize.locale, recent ? {weekday: 'long'} : {day: 'numeric', month: 'long'}).format(kept);
+    return $localize`Kept ${day}:day:`;
+  }
+
+  /** What the word is being learned for, in the reader's terms. */
+  protected intentNote(card: CardDto): string {
+    if (card.learningIntents?.includes('PRODUCE')) return $localize`say it too`;
+    const seen = card.iteration ?? 0;
+    if (seen > 1) return $localize`seen ${seen}:count: times`;
+    return $localize`understand only`;
+  }
+
+  protected get keptThisWeek(): number {
+    const since = Date.now() - WEEK_MS;
+    return this.cards.filter(card => card.createdAt && new Date(card.createdAt).getTime() >= since).length;
+  }
+
+  /** "Nine words this week" while the week has any, the whole count when it has none. */
+  protected get keptHeading(): string {
+    const week = this.keptThisWeek;
+    if (week === 1) return $localize`One word this week`;
+    if (week > 1) return $localize`${numberWord(week)}:count: words this week`;
+    return this.cards.length === 1 ? $localize`1 saved word` : $localize`${this.cards.length}:count: saved words`;
+  }
+
+  /** "Four books open": a count of a person's books, said in a word. */
+  protected get shelfHeading(): string {
+    const open = this.shelfBooks.length;
+    return open === 1 ? $localize`One book open` : $localize`${numberWord(open)}:count: books open`;
+  }
+
+  protected get allWordsLabel(): string {
+    return this.cards.length > 1 ? $localize`All ${this.cards.length}:count: words` : $localize`All saved words`;
+  }
+
+  /** The plan in one sentence: what Free covers and how much of it is used, or the member's plan by name. */
+  protected get planLine(): string {
+    const kept = this.cards.length;
+    if (this.userInfo?.premium) {
+      return kept === 1
+        ? $localize`You’re on ${this.planName}:plan: with 1 saved word in ${this.languageName}:language:.`
+        : $localize`You’re on ${this.planName}:plan: with ${kept}:count: saved words in ${this.languageName}:language:.`;
+    }
+    const covers = $localize`Free covers one language and ${FREE_SAVED_ITEMS_LIMIT}:limit: saved words.`;
+    if (kept === 0) return covers;
+    const used = kept === 1
+      ? $localize`You have kept one, in ${this.languageName}:language:.`
+      : $localize`You have kept ${kept}:count:, all in ${this.languageName}:language:.`;
+    return `${covers} ${used}`;
   }
 
   protected progressLabel(book: Book): string {
