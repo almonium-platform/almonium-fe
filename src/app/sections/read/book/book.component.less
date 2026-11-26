@@ -30,8 +30,11 @@
 .chip-row__empty { margin: 0; color: var(--metadata-color); font-size: .82rem; }
 .lang-chip { position: relative; display: inline-flex; align-items: center; gap: .4rem; min-height: 2.1rem; padding: .4rem .95rem; border: 1px solid transparent; border-radius: 999px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 500; text-decoration: none; }
 // A started edition's chip carries its own hairline of progress (G15), never a percentage.
-.lang-chip__hairline { position: absolute; bottom: 4px; left: .95rem; display: block; max-width: calc(100% - 1.9rem); height: 2px; border-radius: 1px; background: currentColor; opacity: .55; }
-.lang-chip--solid .lang-chip__hairline { opacity: .8; }
+// The faint full track behind the fill makes it read as a meter, not as an underline of the label.
+.lang-chip__track { position: absolute; right: .95rem; bottom: 5px; left: .95rem; display: block; height: 2px; overflow: hidden; border-radius: 1px; background: color-mix(in srgb, currentColor 18%, transparent); }
+.lang-chip__hairline { display: block; height: 100%; max-width: 100%; border-radius: inherit; background: currentColor; opacity: .7; }
+.lang-chip--solid .lang-chip__track { background: color-mix(in srgb, currentColor 30%, transparent); }
+.lang-chip--solid .lang-chip__hairline { opacity: 1; }
 .lang-chip--solid { background: var(--dark-raspberry); color: #fff; font-weight: 600; }
 .lang-chip--outline { border-color: var(--hairline-color); background: transparent; color: var(--subhead-color); }
 .lang-chip--outline:hover { border-color: var(--control-border-color); color: var(--text-color); }
