@@ -1,0 +1,19 @@
+:host { display: block; background: var(--page-ground); color: var(--text-color); }
+.about-page { display: flex; min-height: calc(100vh - var(--header-height)); flex-direction: column; }
+// Not a second landing: one 620px column in the reading face, and nothing to click but the links in the prose.
+.column { display: flex; width: min(100% - 3rem, 620px); flex: 1; flex-direction: column; gap: 34px; margin: 0 auto; padding: 56px 0 64px; }
+.plate { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-bottom: 34px; border-bottom: 1px solid var(--ground-hairline-color); text-align: center; }
+.plate-emblem { display: block; width: 56px; height: 56px; }
+h1 { margin: 0; }
+.plate-wordmark { width: auto; height: 60px; max-width: 100%; }
+// The global theme rules show whichever wordmark suits the ground.
+.wordmark-dark { display: none; }
+.etymology { margin: 0; color: var(--subhead-color); font: italic 16px/1.5 var(--font-family-reading); }
+.etymology span { font-style: normal; }
+section { display: flex; flex-direction: column; gap: 16px; }
+h2 { margin: 0; color: var(--dark-raspberry); font: 600 11px/1.3 var(--font-family-ui); letter-spacing: 1.5px; text-transform: uppercase; }
+p { margin: 0; font: 18px/1.7 var(--font-family-reading); text-wrap: pretty; }
+.byline { color: var(--subhead-color); font: 15px/1.5 var(--font-family-ui); }
+a { border-bottom: 1px solid color-mix(in srgb, var(--dark-raspberry) 40%, transparent); color: var(--dark-raspberry); text-decoration: none; }
+a:hover { border-bottom-color: currentColor; }
+@media (max-width: 600px) { .column { padding-top: 40px; } .plate-wordmark { height: 44px; } p { font-size: 17px; } }

@@ -49,3 +49,22 @@ test('serves the account deletion page to a signed-out visitor', async ({page}) 
   await page.setViewportSize({width: 390, height: 844});
   await page.screenshot({path: 'test-results/legal-delete-account-mobile.png', fullPage: true, animations: 'disabled'});
 });
+
+// /about (C3): one column and no sell; the bar and the footer both lead to it.
+test('serves the about page to a signed-out visitor, from the bar and the footer', async ({page}, testInfo) => {
+  await page.goto('/pricing');
+  await page.getByRole('navigation').getByRole('link', {name: 'About'}).first().click();
+  await expect(page).toHaveURL(/\/about$/);
+
+  await expect(page.getByRole('heading', {level: 1}).getByAltText('Almonium').first()).toBeVisible();
+  await expect(page.getByRole('heading', {level: 2})).toHaveText(['What it is', 'Who built it', 'What it costs', 'Getting in touch']);
+  await expect(page.getByRole('main').getByRole('link', {name: 'pricing page'})).toHaveAttribute('href', '/pricing');
+  await expect(page.getByRole('main').getByRole('link', {name: 'hello@almonium.com'})).toHaveAttribute('href', 'mailto:hello@almonium.com');
+  await expect(page.getByRole('main').getByRole('button')).toHaveCount(0);
+  await expect(page.getByRole('contentinfo').getByRole('link', {name: 'About'})).toHaveAttribute('href', '/about');
+  await page.screenshot({path: testInfo.outputPath('about.png'), fullPage: true, animations: 'disabled'});
+
+  await page.setViewportSize({width: 390, height: 844});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({path: testInfo.outputPath('about-mobile.png'), fullPage: true, animations: 'disabled'});
+});

@@ -27,7 +27,7 @@ import {APP_STORE_URL, PLAY_STORE_URL} from '../store-links';
             <a i18n routerLink="/pricing">Pricing</a>
             <a i18n routerLink="/languages">Languages</a>
             <a i18n routerLink="/lexicon-api">Lexicon API</a>
-            <a i18n routerLink="/" fragment="founder">About</a>
+            <a i18n routerLink="/about">About</a>
             <a i18n [href]="appStoreUrl" target="_blank" rel="noopener">iOS</a>
             <a i18n [href]="playStoreUrl" target="_blank" rel="noopener">Android</a>
             <a i18n routerLink="/terms-of-use">Terms</a>
