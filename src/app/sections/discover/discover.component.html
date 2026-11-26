@@ -361,14 +361,14 @@
                     }
                     @if (row.sense.frames.length) {
                       <p class="said-with">
-                        <span i18n class="label">Pattern</span>
+                        <span i18n class="label">Patterns</span>
                         @for (frame of row.sense.frames; track $index) { <span class="frame">{{ frame }}</span> }
                       </p>
                     }
                     @if (row.sense.collocations.length) {
                       @let shown = selected ? row.sense.collocations : row.sense.collocations.slice(0, collocationsShown);
                       <p class="said-with">
-                        <span i18n class="label">Often</span>
+                        <span i18n class="label">Goes with</span>
                         @for (collocation of shown; track $index) { <span class="collocation">{{ collocation }}</span> }
                         @if (shown.length < row.sense.collocations.length) { <span class="rest">+{{ row.sense.collocations.length - shown.length }}</span> }
                       </p>
@@ -382,7 +382,7 @@
                           }
                         }
                         @if (row.sense.standardAlternative; as standard) {
-                          <span i18n class="label">Standard word</span>
+                          <span i18n class="label">Standard</span>
                           <a [routerLink]="['/discover', lookup.language.toLowerCase()]" [queryParams]="{text: standard}" (click)="$event.stopPropagation()">{{ standard }}</a>
                         }
                       </p>
