@@ -1,3 +1,4 @@
+@import (reference) '../../../../styles/variables.less';
 // --- Variables ---
 :host {
   --font-family: var(--font-family-reading);
@@ -12,6 +13,14 @@
   --slider-track-bg: var(--control-border-color);
   --slider-thumb-bg: var(--metadata-color);
   --rail-width: 27rem;
+  // The appearance (G25). The component sets these four on the host; the values here are what a page reads
+  // before it has, and what the defaults are.
+  --reader-size: 19px;
+  --reader-leading: 1.65;
+  --reader-measure: 680px;
+  --reader-face: var(--font-family-reading);
+  // The text column is the measure plus its own side padding.
+  --reader-column: calc(var(--reader-measure) + 3rem);
 
   display: flex;
   flex-direction: column;
@@ -21,6 +30,50 @@
   box-sizing: border-box;
   background-color: var(--main-bg-color);
   overflow: hidden; // Host should not scroll
+}
+
+// A ladder mixin resets the names the reader aliases at the top of this file, so each theme states them again.
+.reader-aliases() {
+  --text-color: var(--reader-text-color);
+  --background-color: var(--page-ground);
+  --main-bg-color: var(--page-ground);
+  --float-color: var(--card-color);
+  --button-bg: var(--nested-color);
+  --button-hover-bg: var(--state-hover);
+}
+
+// --- The page themes (G27). Auto sets no attribute and the reader wears the app's theme. Each of the others
+// lays a whole ladder over the reader and everything inside it (rail, word card, panels), then pins the page. ---
+:host([data-reader-theme='paper']) {
+  .light-theme-tokens();
+  --page-ground: #FBF9F7;
+  --reader-text-color: #2c2530;
+  --metadata-color: #7e7380;
+  .reader-aliases();
+}
+
+:host([data-reader-theme='sepia']) {
+  .light-theme-tokens();
+  --page-ground: #F3EAD8;
+  --card-color: #FAF4E8;
+  --nested-color: #EDE2CC;
+  --reader-text-color: #3a2e24;
+  --brand-ink: #3a2e24;
+  --subhead-color: #6e5f4a;
+  --metadata-color: #76664f;
+  --companion-ink: #76664f;
+  --hairline-color: #e2d5bd;
+  --hairline-on-ground: #e2d5bd;
+  --control-border-color: #d3c3a4;
+  --state-hover: rgba(58, 46, 36, .06);
+  .reader-aliases();
+}
+
+:host([data-reader-theme='night']) {
+  .dark-theme-tokens();
+  --reader-text-color: #DDD5E0;
+  --metadata-color: #9a90a3;
+  .reader-aliases();
 }
 
 // --- Reader Container ---
@@ -157,7 +210,7 @@
 // The text column (J2): 568px of Literata, the header above it, the chapter end below.
 .reader-column {
   position: relative;
-  width: min(100%, 38.5rem);
+  width: min(100%, var(--reader-column));
   margin: 0 auto;
   padding: 0 1.5rem;
   box-sizing: border-box;
@@ -169,8 +222,8 @@
 
   &.has-contents {
     display: grid;
-    grid-template-columns: 13rem minmax(0, 38.5rem);
-    width: min(calc(100% - 2rem), 56rem);
+    grid-template-columns: 13rem minmax(0, var(--reader-column));
+    width: min(calc(100% - 2rem), calc(var(--reader-column) + 15.5rem));
     gap: 2.5rem;
   }
 }
@@ -385,8 +438,9 @@
 .content-map--sheet .content-map__row.is-current { background: var(--state-selected); box-shadow: none; }
 
 .reader-content {
-  font-size: 19px;
-  line-height: 1.6;
+  font-family: var(--reader-face);
+  font-size: var(--reader-size);
+  line-height: var(--reader-leading);
   width: 100%;
   margin: 0;
   box-sizing: border-box;
@@ -414,7 +468,8 @@
     }
 
     p {
-      margin-bottom: 0.8em;
+      // The paragraph gap follows the size (G25).
+      margin-bottom: 0.85em;
       text-indent: 1.5em;
 
       &:first-child {
@@ -515,7 +570,7 @@
         padding-left: 1.125rem;
         border-left: 2px solid var(--hairline-on-ground);
         color: var(--subhead-color);
-        font-size: 16px;
+        font-size: calc(var(--reader-size) - 3px);
         line-height: 1.6;
       }
     }
@@ -524,11 +579,11 @@
   // Inline (L4): each sentence group is followed by its companion, three steps down in size and two
   // in ink, in the same flow; the line opens a touch to hold the mixed sizes.
   &.mode-inline {
-    line-height: 1.75;
+    line-height: calc(var(--reader-leading) + .1);
 
     ::ng-deep {
-      .companion-run { color: var(--companion-ink); font-size: 16px; }
-      .companion-paragraph { color: var(--companion-ink); font-size: 16px; text-indent: 0; }
+      .companion-run { color: var(--companion-ink); font-size: calc(var(--reader-size) - 3px); }
+      .companion-paragraph { color: var(--companion-ink); font-size: calc(var(--reader-size) - 3px); text-indent: 0; }
       // The pair is already adjacent, so the selection needs no rule here.
       .is-aligned-current { border-bottom: 0; }
     }
@@ -537,8 +592,8 @@
   // Side by side (L2): one grid per chapter, a row per paragraph pair, the taller cell setting the
   // row. No column backgrounds, no borders, no height sync.
   &.mode-side {
-    font-size: 18px;
-    line-height: 1.7;
+    font-size: calc(var(--reader-size) - 1px);
+    line-height: calc(var(--reader-leading) + .05);
 
     ::ng-deep {
       .sbs-grid {
@@ -560,7 +615,7 @@
     // same ink on both halves; the line opens to make room under the descenders. Underline, not
     // background: it does not hug the glyphs or stair-step at line ends, and hover stays the only fill.
     &.show-pairs {
-      line-height: 1.85;
+      line-height: calc(var(--reader-leading) + .2);
 
       ::ng-deep {
         [data-ink] {
@@ -636,9 +691,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: min(calc(100% - 2rem), 40rem);
+  // Fitted to its contents (G25): a pill in the middle of the page, not a plank across it.
+  position: relative;
+  width: fit-content;
+  max-width: calc(100% - 2rem);
   margin: .5rem auto .75rem;
-  padding: .3rem .6rem;
+  padding: .3rem .4rem .3rem .6rem;
   border-radius: 999px;
   background-color: var(--float-color);
   box-shadow: var(--box-shadow);
@@ -654,8 +712,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  min-width: 250px;
+  gap: .75rem;
+  min-width: 0;
 }
 
 .slider-chapter-area {
@@ -668,9 +726,9 @@
 }
 
 .page-slider {
-  flex-grow: 1;
-  max-width: 300px;
-  min-width: 100px;
+  flex: 0 1 9rem;
+  width: 9rem;
+  min-width: 4rem;
   cursor: pointer;
 }
 
@@ -715,3 +773,29 @@
   .pagination-center-area { gap: .5rem; }
 }
 
+
+// Aa (G25): the last item in the bar, a disc that fills while its panel is open.
+.bar-aa {
+  flex: 0 0 auto;
+  width: 2.375rem;
+  height: 2.375rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  font: 600 15px/1 var(--font-family-reading);
+
+  &:hover { background: var(--state-hover); }
+  &:focus-visible { outline: 2px solid var(--brand-margin); outline-offset: 2px; }
+  &.is-on { background: var(--state-selected); color: var(--dark-raspberry); }
+}
+
+.appearance-popover { position: absolute; right: 0; bottom: calc(100% + .625rem); z-index: 9; }
+.appearance-sheet { position: fixed; right: 0; bottom: 0; left: 0; z-index: 9; }
+
+// A phone runs 2px under the same step (G26), so one saved size reads right on both; the screen is the measure.
+@media (max-width: 599px) {
+  .reader-content { font-size: calc(var(--reader-size) - 2px); }
+}

@@ -216,7 +216,7 @@
     }
   }
 
-  <!-- The bottom bar: two toggles at the left, the arrows and slider, the companion picker. -->
+  <!-- The bottom bar: two toggles at the left, the arrows and slider, the companion picker, then Aa. It is as wide as its contents. -->
   @if (!isLoading && !blocked) {
     <div #paginationControls class="pagination-controls">
       <div class="pagination-center-area">
@@ -330,7 +330,16 @@
             </ng-template>
           </div>
         }
+        <button #appearanceToggle type="button" class="bar-aa" [class.is-on]="appearanceOpen" [attr.aria-expanded]="appearanceOpen" aria-label="Appearance" i18n-aria-label (click)="toggleAppearance()">{{ 'Aa' }}</button>
       </div>
+      <!-- The appearance panel (G25): anchored above Aa, undimmed, so the page behind it is the preview. -->
+      @if (appearanceOpen && !isPhone) {
+        <app-reader-appearance #appearancePanel class="appearance-popover"></app-reader-appearance>
+      }
     </div>
+  }
+  <!-- On a phone the same panel is a sheet (G26); the page stays visible above it. -->
+  @if (appearanceOpen && isPhone && !isLoading && !blocked) {
+    <app-reader-appearance #appearancePanel class="appearance-sheet" [sheet]="true"></app-reader-appearance>
   }
 </div>

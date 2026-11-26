@@ -1,3 +1,4 @@
+import {DEFAULT_READER_APPEARANCE} from '../../sections/read/reader/appearance/reader-appearance';
 import {HttpClient} from '@angular/common/http';
 import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute} from '@angular/router';
@@ -312,7 +313,7 @@ function userInfo(premium: boolean, subscription: Partial<SubscriptionDto> = {})
         timer: true,
       },
       profileMenu: {billing: true},
-      reader: {showPairs: false},
+      reader: {showPairs: false, appearance: {...DEFAULT_READER_APPEARANCE}},
     },
   });
 }

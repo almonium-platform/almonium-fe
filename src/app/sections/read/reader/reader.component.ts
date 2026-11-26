@@ -1,5 +1,7 @@
+import {ReaderAppearanceComponent} from './appearance/reader-appearance.component';
+import {ReaderAppearanceService} from './appearance/reader-appearance.service';
 import {logger} from "../../../shared/logger";
-import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DOCUMENT, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
+import {AfterViewChecked, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, DOCUMENT, effect, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {ReadService} from '../read.service';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
@@ -95,6 +97,7 @@ interface WordCardRequest {
     ChapterVocabularyComponent,
     CertificateMomentComponent,
     UnavailableInCountryComponent,
+    ReaderAppearanceComponent,
   ],
   templateUrl: './reader.component.html',
   styleUrls: ['./reader.component.less'],
@@ -118,6 +121,25 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private returnPath = inject(ReturnPathService);
   private seo = inject(PageSeoService);
   private document = inject(DOCUMENT);
+  protected readonly appearance = inject(ReaderAppearanceService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  constructor() {
+    // The appearance (G25) reaches the page as an attribute and four custom properties on the host; the styles
+    // do the rest. An effect writes them, not host bindings: those belong to the parent view, which a tap inside
+    // this OnPush component does not refresh, so the page would lag a beat behind the panel.
+    effect(() => {
+      const element = this.host.nativeElement;
+      const theme = this.appearance.appearance().theme;
+      // Auto leaves the reader in the app's theme, so it sets nothing; the others repaint the reader only (G27).
+      if (theme === 'auto') element.removeAttribute('data-reader-theme');
+      else element.setAttribute('data-reader-theme', theme);
+      element.style.setProperty('--reader-size', `${this.appearance.sizePx()}px`);
+      element.style.setProperty('--reader-leading', String(this.appearance.lineHeight()));
+      element.style.setProperty('--reader-measure', `${this.appearance.widthPx()}px`);
+      element.style.setProperty('--reader-face', this.appearance.fontFamily());
+    });
+  }
 
   // --- Element References ---
   @ViewChild('readerContentWrapper') readerContentWrapperRef!: ElementRef<HTMLDivElement>;
@@ -127,6 +149,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   @ViewChild('contentsSheet', {read: ElementRef}) private contentsSheet?: ElementRef<HTMLElement>;
   @ViewChild('contentsToggle', {read: ElementRef}) private contentsToggle?: ElementRef<HTMLElement>;
   @ViewChild('glossNote') private glossNoteRef?: ElementRef<HTMLElement>;
+  @ViewChild('appearancePanel', {read: ElementRef}) private appearancePanel?: ElementRef<HTMLElement>;
+  @ViewChild('appearanceToggle', {read: ElementRef}) private appearanceToggle?: ElementRef<HTMLElement>;
 
   // --- The book and its chapters ---
   /** The base edition split into chapter pages, in reading order. */
@@ -220,6 +244,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   private vocabularyStatusSubscription: Subscription | null = null;
   /** The mode picker (L5) floats above the bottom bar, where its effect is visible behind it. */
   protected parallelSettingsOpen = false;
+  /** The Aa panel (G25): a popover above its button, a sheet on a phone. It never dims the page it restyles. */
+  protected appearanceOpen = false;
   protected selectedLookupText = '';
   private selectedLookupContext = '';
   /** A word named in the URL (the auth sheet returning to it) opens its card once the book is known. */
@@ -246,6 +272,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   ngOnInit(): void {
     this.signedIn = this.userInfoService.currentUserInfo !== null;
     this.showPairs = this.userInfoService.currentUserInfo?.uiPreferences.reader.showPairs ?? false;
+    this.appearance.adoptAccountChoice();
     this.contentsOpen = !this.isNarrow;
     this.setupResizeListener();
     this.setupSliderListener();
@@ -589,7 +616,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
 
   protected toggleContents(): void {
     this.contentsOpen = !this.contentsOpen;
-    if (this.contentsOpen && this.isNarrow) this.railView = 'none';
+    if (this.contentsOpen && this.isNarrow) {
+      this.railView = 'none';
+      this.appearanceOpen = false;
+    }
     this.closeReaderMenus();
     this.cdRef.markForCheck();
   }
@@ -1243,6 +1273,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
         if (this.activeGloss) {
           this.closeGloss(true);
           handled = true;
+        } else if (this.appearanceOpen) {
+          this.closeAppearance();
+          handled = true;
         } else if (this.parallelSettingsOpen) {
           this.closeParallelSettings();
           handled = true;
@@ -1299,6 +1332,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
       && !this.settingsPanel?.nativeElement.contains(target)
       && !(target instanceof Element && target.closest('.chapter-head__mode, app-parallel-translation, tui-data-list'))) {
       this.closeParallelSettings();
+    }
+    // The appearance panel closes on a click outside it; a second click on Aa is the toggle's own business.
+    if (this.appearanceOpen
+      && !this.appearancePanel?.nativeElement.contains(target)
+      && !this.appearanceToggle?.nativeElement.contains(target)) {
+      this.closeAppearance();
     }
     // A click away from the text clears the selected sentence group (L).
     if (target instanceof Element && !target.closest('.reader-content, .parallel-settings-panel, tui-data-list, .pagination-controls')) {
@@ -1526,6 +1565,23 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy, AfterV
   protected toggleParallelSettings(): void {
     this.parallelSettingsOpen = !this.parallelSettingsOpen;
     if (this.parallelSettingsOpen && this.isNarrow) this.contentsOpen = false;
+    if (this.parallelSettingsOpen) this.appearanceOpen = false;
+    this.cdRef.markForCheck();
+  }
+
+  protected toggleAppearance(): void {
+    this.appearanceOpen = !this.appearanceOpen;
+    if (this.appearanceOpen) {
+      // One panel at a time: on a phone the picker and the contents are sheets in the same place.
+      this.parallelSettingsOpen = false;
+      if (this.isNarrow) this.contentsOpen = false;
+    }
+    this.cdRef.markForCheck();
+  }
+
+  protected closeAppearance(): void {
+    if (!this.appearanceOpen) return;
+    this.appearanceOpen = false;
     this.cdRef.markForCheck();
   }
 

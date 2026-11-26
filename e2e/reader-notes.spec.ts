@@ -64,9 +64,10 @@ test('near the bottom of the view the note opens above its phrase instead', asyn
   const phraseBox = (await phrase.boundingBox())!;
   const noteBox = (await note.boundingBox())!;
   expect(noteBox.y + noteBox.height).toBeLessThanOrEqual(phraseBox.y);
-  // The phrase wraps here; the note still starts where its last line does, over the column.
-  const columnBox = (await page.locator('.reader-content').boundingBox())!;
-  expect(noteBox.x + noteBox.width).toBeLessThanOrEqual(columnBox.x + columnBox.width);
+  // The note starts where the phrase's last line does and never leaves the reader's view. (At the default
+  // 680px measure this phrase no longer wraps, so the note may run past the text column's edge.)
+  const viewBox = (await page.locator('.reader-content-wrapper').boundingBox())!;
+  expect(noteBox.x + noteBox.width).toBeLessThanOrEqual(viewBox.x + viewBox.width);
   await page.screenshot({path: testInfo.outputPath('note-desktop-above.png'), animations: 'disabled'});
 });
 

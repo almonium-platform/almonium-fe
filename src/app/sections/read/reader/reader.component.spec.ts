@@ -251,12 +251,12 @@ describe('ReaderComponent', () => {
     userInfo.updateUserInfo = jasmine.createSpy('updateUserInfo');
     component.toggleShowPairs();
     expect(component.showPairs).toBeFalse();
-    expect(userInfo.updateUserInfo).toHaveBeenCalledWith({uiPreferences: jasmine.objectContaining({reader: {showPairs: false}})});
-    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: {showPairs: false}, navbar: preferences.navbar}));
+    expect(userInfo.updateUserInfo).toHaveBeenCalledWith({uiPreferences: jasmine.objectContaining({reader: jasmine.objectContaining({showPairs: false})})});
+    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: jasmine.objectContaining({showPairs: false}), navbar: preferences.navbar}));
     // The stored preferences are not mutated in place: the copy carries the change.
     expect(preferences.reader.showPairs).toBeFalse();
     component.toggleShowPairs();
-    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: {showPairs: true}}));
+    expect(save).toHaveBeenCalledWith(jasmine.objectContaining({reader: jasmine.objectContaining({showPairs: true})}));
   });
 
   it('opens one companion block under the paragraph in on-demand mode and closes it with the selection', () => {

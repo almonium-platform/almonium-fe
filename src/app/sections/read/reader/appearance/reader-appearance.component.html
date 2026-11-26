@@ -1,0 +1,65 @@
+<div class="appearance" [class.appearance--sheet]="sheet" role="dialog" aria-label="Reader appearance" i18n-aria-label>
+  @if (sheet) { <span class="handle" aria-hidden="true"></span> }
+
+  <div class="themes" role="radiogroup" aria-label="Page theme" i18n-aria-label>
+    @for (theme of themes; track theme.key) {
+      <button type="button" class="theme" role="radio" [class.is-on]="appearance().theme === theme.key" [attr.aria-checked]="appearance().theme === theme.key" (click)="pickTheme(theme.key)">
+        <span class="swatch" [attr.data-swatch]="theme.key" aria-hidden="true">@if (theme.key !== 'auto') {{{ 'Aa' }}}</span>
+        <span class="theme-label">{{ theme.label }}</span>
+      </button>
+    }
+  </div>
+
+  @if (!sheet) { <hr> }
+
+  <div class="fonts" role="radiogroup" aria-label="Typeface" i18n-aria-label>
+    @for (font of fonts; track font.key) {
+      <button type="button" class="font" role="radio" [class.is-on]="appearance().font === font.key" [attr.aria-checked]="appearance().font === font.key" (click)="pickFont(font.key)">
+        <span class="font-sample" [style.font-family]="font.family" aria-hidden="true">{{ 'Aa' }}</span>
+        <span class="font-label">{{ font.label }}</span>
+      </button>
+    }
+  </div>
+
+  <div class="size" role="group" aria-label="Text size" i18n-aria-label>
+    <button type="button" class="size-button size-button--small" aria-label="Smaller text" i18n-aria-label [disabled]="appearance().size === 0" (click)="smaller()">{{ 'A' }}</button>
+    <div class="size-dots" aria-hidden="true">
+      @for (step of sizeSteps; track step) {
+        <span [class.reached]="step <= appearance().size" [class.current]="step === appearance().size"></span>
+      }
+    </div>
+    <button type="button" class="size-button size-button--large" aria-label="Larger text" i18n-aria-label [disabled]="appearance().size === lastSize" (click)="larger()">{{ 'A' }}</button>
+  </div>
+
+  <div class="measures">
+    <div class="measure">
+      <span i18n class="measure-label">Line spacing</span>
+      <div class="segments" role="radiogroup" aria-label="Line spacing" i18n-aria-label>
+        @for (option of lineSpacings; track option.index) {
+          <button type="button" class="segment segment--lines" role="radio" [class.is-on]="appearance().lineSpacing === option.index" [attr.aria-checked]="appearance().lineSpacing === option.index" [attr.aria-label]="option.label" [style.gap.px]="option.gap" (click)="pickLineSpacing(option.index)">
+            <i></i><i></i><i></i>
+          </button>
+        }
+      </div>
+    </div>
+    @if (!sheet) {
+      <div class="measure">
+        <span i18n class="measure-label">Width</span>
+        <div class="segments" role="radiogroup" aria-label="Width" i18n-aria-label>
+          @for (option of widths; track option.index) {
+            <button type="button" class="segment" role="radio" [class.is-on]="appearance().width === option.index" [attr.aria-checked]="appearance().width === option.index" [attr.aria-label]="option.label" (click)="pickWidth(option.index)">
+              <span class="column-glyph"><i [style.width.px]="option.bar"></i><i [style.width.px]="option.bar"></i></span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!sheet) {
+    <div class="foot">
+      <span i18n>Same for every book</span>
+      <button i18n type="button" class="reset" [disabled]="isDefault()" (click)="reset()">Reset</button>
+    </div>
+  }
+</div>

@@ -1,4 +1,5 @@
 import {LanguageCode} from "./language.enum";
+import {DEFAULT_READER_APPEARANCE, ReaderAppearance, parseReaderAppearance} from '../sections/read/reader/appearance/reader-appearance';
 import {Interest} from "../shared/interests/interest.model";
 import {
   expectArray,
@@ -149,6 +150,8 @@ export interface UIPreferences {
   /** The reader (design L8): faint underlines that pair the sentences in Side by side. Off by default. */
   reader: {
     showPairs: boolean;
+    /** The reader's appearance panel (design G25): theme, typeface, size, line spacing and width, one for every book. */
+    appearance: ReaderAppearance;
   };
   /** Settings → Learning (design 5b): what each sense of a word leads with, wherever a sense is shown. */
   learning: {
@@ -176,6 +179,7 @@ export const DEFAULT_UI_PREFERENCES: UIPreferences = {
   },
   reader: {
     showPairs: false,
+    appearance: {...DEFAULT_READER_APPEARANCE},
   },
   learning: {
     senseLead: 'level',
@@ -449,7 +453,12 @@ function parseUiPreferences(value: unknown): UIPreferences {
       profileMenu,
       'user.uiPreferences.profileMenu',
     ),
-    reader: parseBooleanPreferences(DEFAULT_UI_PREFERENCES.reader, reader, 'user.uiPreferences.reader'),
+    reader: {
+      showPairs: reader['showPairs'] === undefined
+        ? DEFAULT_UI_PREFERENCES.reader.showPairs
+        : expectBoolean(reader['showPairs'], 'user.uiPreferences.reader.showPairs'),
+      appearance: parseReaderAppearance(reader['appearance']),
+    },
     learning: {
       senseLead: learning['senseLead'] === undefined
         ? DEFAULT_UI_PREFERENCES.learning.senseLead

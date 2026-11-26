@@ -1,3 +1,4 @@
+import {DEFAULT_READER_APPEARANCE} from '../../../sections/read/reader/appearance/reader-appearance';
 import {TestBed} from '@angular/core/testing';
 import {ActivatedRoute, convertToParamMap, provideRouter} from '@angular/router';
 import {TuiNotificationService} from '@taiga-ui/core/components';
@@ -213,7 +214,7 @@ function userInfo(premium: boolean, language: LanguageCode = LanguageCode.DE): U
     uiPreferences: {
       navbar: {discover: true, review: true, play: true, read: true, write: true, notifications: true, social: true, timer: true},
       profileMenu: {billing: false},
-      reader: {showPairs: false},
+      reader: {showPairs: false, appearance: {...DEFAULT_READER_APPEARANCE}},
     },
   });
 }
