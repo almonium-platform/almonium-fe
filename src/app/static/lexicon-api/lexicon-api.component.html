@@ -20,6 +20,9 @@
           <div><dt i18n>Patterns and collocations</dt><dd i18n>Each pattern is given as written and as parts: head, fixed words, open slots with case, form or mood.</dd></div>
           <div><dt i18n>Sounds</dt><dd i18n>IPA for each variety, with weak forms and the context each one is said in.</dd></div>
         </dl>
+        <!-- A plain file from public/, a copy of the backend's lexicon/entry.schema.json. It is not under /lexicon-api/:
+             a directory of that name would answer the page's own URL in nginx (try_files $uri/) with a 403. -->
+        <a i18n class="text-link" href="/lexicon-entry.schema.json" download>Download the JSON Schema &rarr;</a>
       </div>
       <figure class="response">
         <figcaption><b>{{ 'GET' }}</b> {{ request }}</figcaption>
