@@ -24,7 +24,7 @@ import {LanguageNameService} from '../../services/language-name.service';
 import {LanguageCode} from '../../models/language.enum';
 import {BookHue, bookColor, dominantBookHue, hashedBookHue, hashedSpineWidth} from './book-hue';
 import {getErrorMessage} from '../../shared/http-error';
-import {TilePreferences, WorkTile, groupIntoWorks, originalsFirst, tileEditionsLabel} from './work-tile';
+import {TilePreferences, WorkTile, byTitle, groupIntoWorks, originalsFirst, recommendedOrder, tileEditionsLabel} from './work-tile';
 import {ReaderPositionStorage} from './reader/reader-position-storage.service';
 import {CertificateMomentComponent} from './certificate/certificate-moment.component';
 import {CatalogResultsComponent} from './catalog/catalog-results.component';
@@ -35,6 +35,8 @@ type ShelfViewMode = 'covers' | 'spines';
 type LibraryView = 'covers' | 'list';
 /** How many tiles the library draws before the reader scrolls to its foot, and how many each arrival adds. */
 const LIBRARY_PAGE = 42;
+/** The sort the library opens on: by the reader's level when there is one, by title when there is not. */
+const DEFAULT_SORT = 'Recommended';
 
 @Component({
   selector: 'app-read',
@@ -130,14 +132,13 @@ export class ReadComponent implements OnInit, OnDestroy {
   private sampledHues = new Map<string, BookHue>();
 
   titleFormControl = new FormControl<string>('');
-  sortParameters: string[] = ['Best rated first', 'Newest first', 'Oldest first', 'Shortest first', 'Longest first', 'Level: low to high', 'Level: high to low'];
-  sortControl = new FormControl<string>('Best rated first');
+  sortParameters: string[] = [DEFAULT_SORT, 'Newest first', 'Oldest first', 'Shortest first', 'Longest first', 'Level: low to high', 'Level: high to low'];
+  sortControl = new FormControl<string>(DEFAULT_SORT);
 
   cefrLevels: (CEFRLevel | 'Any level')[] = ['Any level', ...Object.values(CEFRLevel)];
   cefrLevelControl = new FormControl<CEFRLevel | 'Any level'>('Any level');
   /** The sort keys stay English in the control; only the option text is translated. */
-  protected readonly sortLabels: Record<string, string> = {
-    'Best rated first': $localize`Best rated first`,
+  private readonly sortLabels: Record<string, string> = {
     'Newest first': $localize`Newest first`,
     'Oldest first': $localize`Oldest first`,
     'Shortest first': $localize`Shortest first`,
@@ -460,9 +461,28 @@ export class ReadComponent implements OnInit, OnDestroy {
     books.sort((a, b) => this.compareBooks(a, b));
   }
 
+  /**
+   * The default option is named for what it does: "Recommended" once there is a level to sort by, and
+   * "Title: A to Z" for a guest or a language the reader has no level in.
+   */
+  protected sortLabel(sort: string): string {
+    if (sort !== DEFAULT_SORT) return this.sortLabels[sort];
+    return this.selfLevel ? $localize`Recommended` : $localize`Title: A to Z`;
+  }
+
+  /** The reader's self-reported level in the shelf's language; null for a guest. */
+  private get selfLevel(): CEFRLevel | null {
+    const learner = this.userInfoService.currentUserInfo?.learners.find(item => item.language === this.currentLanguage);
+    return learner?.selfReportedLevel ?? null;
+  }
+
   /** The chosen order; when its keys tie, originals come before translations (G17). */
   private compareBooks(a: Book, b: Book): number {
     const sortBy = this.sortControl.value;
+    if (sortBy === DEFAULT_SORT) {
+      const level = this.selfLevel;
+      return level ? recommendedOrder(level, this.currentLanguage)(a, b) : byTitle(a, b) || originalsFirst(a, b);
+    }
     let order = 0;
     if (sortBy === 'Newest first') order = b.publicationYear - a.publicationYear;
     if (sortBy === 'Oldest first') order = a.publicationYear - b.publicationYear;
@@ -567,11 +587,10 @@ export class ReadComponent implements OnInit, OnDestroy {
         lastOpenedRank.set(book.editionSlug, lastOpenedRank.size);
       }
     }
-    const learner = this.userInfoService.currentUserInfo?.learners.find(item => item.language === this.currentLanguage);
     return {
       levelFilter: level && level !== 'Any level' ? level : null,
       lastOpenedRank,
-      selfLevel: learner?.selfReportedLevel ?? null,
+      selfLevel: this.selfLevel,
       guest: !this.isAuthenticated,
     };
   }

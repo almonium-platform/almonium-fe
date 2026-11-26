@@ -26,6 +26,10 @@ test('the library shows a work once per language and a guest tile opens the orig
   const tiles = shelf.locator('.cover-book');
   await expect(tiles).toHaveCount(3);
 
+  // A guest has no level to sort by, so the default order is the alphabet and the select says so.
+  await expect(page.locator('.sort-select option').first()).toHaveText('Title: A to Z');
+  await expect(tiles.locator('.cover-book__text strong')).toHaveText([original.title, lisova.title, ukrainian.title]);
+
   // Four editions, three tiles: the English tile is one, and it opens the original for a guest.
   const english = tiles.filter({hasText: 'Mary Shelley'});
   await expect(english).toHaveCount(1);

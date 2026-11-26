@@ -83,3 +83,13 @@ test('a shelf language with no books yet shows Almo searching and one ask line, 
   await expect(page.getByRole('button', {name: 'Clear filters'})).toHaveCount(0);
   await page.screenshot({path: testInfo.outputPath('g21-empty-catalogue.png'), animations: 'disabled'});
 });
+
+test('a reader with a level gets the Recommended order: their level, one up, one down, shortest first', async ({page}) => {
+  const at = (title: string, cefrLevel: string, wordCount: number) => ({...book, id: `01989f47-4c2a-7a10-9e5b-${String(wordCount).padStart(12, '0')}`, editionSlug: title.toLowerCase(), workSlug: title.toLowerCase(), title, cefrLevel, wordCount, progressPercentage: null, currentChapter: null});
+  await routeSignedIn(page, {continueReading: [], available: [at('Austen', 'C2', 1000), at('Bronte', 'A2', 2000), at('Carroll', 'B2', 3000), at('Dickens', 'B1', 9000), at('Eliot', 'B1', 4000)]});
+  await page.goto('/read');
+
+  const library = page.locator('.book-shelf--library');
+  await expect(page.locator('.sort-select option').first()).toHaveText('Recommended');
+  await expect(library.locator('.cover-book__text strong')).toHaveText(['Eliot', 'Dickens', 'Carroll', 'Bronte', 'Austen']);
+});

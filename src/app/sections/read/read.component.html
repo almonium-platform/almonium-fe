@@ -33,7 +33,7 @@
     <div class="filter-bar" role="search" aria-label="Book filters" i18n-aria-label>
       <label class="search-field"><lucide-icon name="search" size="15" aria-hidden="true"></lucide-icon><input [formControl]="titleFormControl" type="search" placeholder="Title or author" i18n-placeholder aria-label="Title or author" i18n-aria-label /></label>
       <label class="native-select"><span i18n class="sr-only">Level</span><select [formControl]="cefrLevelControl">@for (level of cefrLevels; track level) { <option [value]="level">{{ levelLabel(level) }}</option> }</select></label>
-      <label class="native-select sort-select"><span i18n class="sr-only">Sort order</span><select [formControl]="sortControl">@for (sort of sortParameters; track sort) { <option [value]="sort">{{ sortLabels[sort] }}</option> }</select></label>
+      <label class="native-select sort-select"><span i18n class="sr-only">Sort order</span><select [formControl]="sortControl">@for (sort of sortParameters; track sort) { <option [value]="sort">{{ sortLabel(sort) }}</option> }</select></label>
       @if (isAuthenticated) { <button i18n type="button" class="filter-chip" [class.active]="includeTranslationsToggle" [attr.aria-pressed]="includeTranslationsToggle" (click)="onIncludeTranslationsChange(!includeTranslationsToggle)" [tuiHint]="translationsHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">Translations</button> }
       <button i18n type="button" class="filter-chip" [class.active]="parallelTranslationToggle" [attr.aria-pressed]="parallelTranslationToggle" (click)="onParallelTranslationChange(!parallelTranslationToggle)" [tuiHint]="parallelHint" tuiHintDirection="bottom" [tuiHintAppearance]="'dark'">Parallel text</button>
     </div>

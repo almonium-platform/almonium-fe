@@ -1,7 +1,7 @@
 import {CEFRLevel} from '../../models/userinfo.model';
 import {LanguageCode} from '../../models/language.enum';
 import {Book} from './book.model';
-import {TilePreferences, groupIntoWorks, originalsFirst, pickTileEdition, tileEditionsLabel} from './work-tile';
+import {TilePreferences, byTitle, groupIntoWorks, originalsFirst, pickTileEdition, recommendedOrder, tileEditionsLabel} from './work-tile';
 
 function edition(overrides: Partial<Book>): Book {
   return {
@@ -99,5 +99,36 @@ describe('multiple adaptation levels', () => {
     for (const level of levels) {
       expect(pickTileEdition(variants, {...member, levelFilter: level}).editionSlug).toBe(`book-${level}`);
     }
+  });
+});
+
+describe('the recommended order', () => {
+  const book = (title: string, cefrLevel: CEFRLevel, wordCount: number, overrides: Partial<Book> = {}) =>
+    edition({editionSlug: title, workSlug: title, title, cefrLevel, wordCount, ...overrides});
+  const titles = (books: Book[]) => books.map(item => item.title);
+
+  it('puts the reader\'s level first, then one up, one down, and the rest from the nearest level outward', () => {
+    const shelf = [book('c2', CEFRLevel.C2, 1), book('a1', CEFRLevel.A1, 1), book('a2', CEFRLevel.A2, 1), book('b2', CEFRLevel.B2, 1), book('c1', CEFRLevel.C1, 1), book('b1', CEFRLevel.B1, 1)];
+    expect(titles(shelf.sort(recommendedOrder(CEFRLevel.B1, LanguageCode.EN)))).toEqual(['b1', 'b2', 'a2', 'a1', 'c1', 'c2']);
+  });
+
+  it('breaks a tie inside a band by length, then originals, then title', () => {
+    const shelf = [
+      book('Zadig', CEFRLevel.B1, 500, {isTranslation: true}),
+      book('Walden', CEFRLevel.B1, 500),
+      book('Emma', CEFRLevel.B1, 900),
+      book('Candide', CEFRLevel.B1, 500),
+      book('Aesop', CEFRLevel.B2, 100),
+    ];
+    expect(titles(shelf.sort(recommendedOrder(CEFRLevel.B1, LanguageCode.EN)))).toEqual(['Candide', 'Walden', 'Zadig', 'Emma', 'Aesop']);
+  });
+
+  it('keeps another language after every band of the shelf\'s own', () => {
+    const shelf = [book('other', CEFRLevel.B1, 1, {language: LanguageCode.UK}), book('far', CEFRLevel.C2, 9000), book('near', CEFRLevel.B1, 9000)];
+    expect(titles(shelf.sort(recommendedOrder(CEFRLevel.B1, LanguageCode.EN)))).toEqual(['near', 'far', 'other']);
+  });
+
+  it('falls back to the alphabet for a reader without a level', () => {
+    expect(titles([book('Walden', CEFRLevel.B1, 1), book('Emma', CEFRLevel.C2, 9)].sort(byTitle))).toEqual(['Emma', 'Walden']);
   });
 });

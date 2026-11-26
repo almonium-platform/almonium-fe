@@ -1,4 +1,5 @@
 import {CEFRLevel} from '../../models/userinfo.model';
+import {LanguageCode} from '../../models/language.enum';
 import {Book} from './book.model';
 import {editionKind, editionKindLabel} from './edition-kind';
 
@@ -101,4 +102,27 @@ function kindOrder(edition: Pick<Book, 'editionType' | 'isTranslation'>): number
 /** When sort keys tie, originals come before translations (G17). */
 export function originalsFirst(a: Pick<Book, 'isTranslation'>, b: Pick<Book, 'isTranslation'>): number {
   return Number(a.isTranslation) - Number(b.isTranslation);
+}
+
+/**
+ * The library's default order when the reader has a level in the shelf's language: books at that level, then one
+ * level up, then one down, then the rest from the nearest level outward, and books in any other language after all
+ * of those. Inside a band the shortest comes first, because a finished book is the point; then originals, then title.
+ */
+export function recommendedOrder(selfLevel: CEFRLevel, language: LanguageCode | null): (a: Book, b: Book) => number {
+  const self = levelRank(selfLevel);
+  const band = (book: Book): number => {
+    if (language && book.language !== language) return 100;
+    const distance = levelRank(book.cefrLevel) - self;
+    if (distance === 0) return 0;
+    if (distance === 1) return 1;
+    if (distance === -1) return 2;
+    return 2 + Math.abs(distance);
+  };
+  return (a, b) => band(a) - band(b) || a.wordCount - b.wordCount || originalsFirst(a, b) || byTitle(a, b);
+}
+
+/** A reader without a level gets the alphabet, and the select says so. */
+export function byTitle(a: Pick<Book, 'title'>, b: Pick<Book, 'title'>): number {
+  return a.title.localeCompare(b.title);
 }
