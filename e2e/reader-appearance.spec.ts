@@ -113,4 +113,20 @@ test('on a phone the panel is a sheet without Width, and text runs 2px under the
   await expect.poll(() => style(page, 'font-size')).toBe('19px');
   await page.screenshot({path: testInfo.outputPath('appearance-phone.png'), animations: 'disabled'});
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
+
+  // A short pull settles back; a long one down dismisses the sheet (G26).
+  const handle = (await sheet.locator('.handle').boundingBox())!;
+  const x = handle.x + handle.width / 2;
+  const y = handle.y + handle.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 40, {steps: 4});
+  await page.mouse.up();
+  await expect(sheet).toBeVisible();
+  await expect.poll(async () => (await sheet.locator('.handle').boundingBox())!.y).toBe(handle.y);
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 140, {steps: 6});
+  await page.mouse.up();
+  await expect(sheet).toHaveCount(0);
 });

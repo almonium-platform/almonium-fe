@@ -1,5 +1,5 @@
-<div class="appearance" [class.appearance--sheet]="sheet" role="dialog" aria-label="Reader appearance" i18n-aria-label>
-  @if (sheet) { <span class="handle" aria-hidden="true"></span> }
+<div class="appearance" [class.appearance--sheet]="sheet" [class.is-dragged]="drag() !== null" [style.transform]="drag() ? 'translateY(' + drag() + 'px)' : null" role="dialog" aria-label="Reader appearance" i18n-aria-label>
+  @if (sheet) { <span class="handle" aria-hidden="true" (pointerdown)="startDrag($event)" (pointermove)="moveDrag($event)" (pointerup)="endDrag()" (pointercancel)="endDrag()"></span> }
 
   <div class="themes" role="radiogroup" aria-label="Page theme" i18n-aria-label>
     @for (theme of themes; track theme.key) {

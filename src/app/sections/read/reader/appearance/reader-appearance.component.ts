@@ -1,4 +1,4 @@
-import {Component, Input, inject} from '@angular/core';
+import {Component, EventEmitter, Input, Output, inject, signal} from '@angular/core';
 import {
   READER_FONT_FAMILIES,
   READER_LINE_SPACINGS,
@@ -8,6 +8,8 @@ import {
   ReaderTheme,
 } from './reader-appearance';
 import {ReaderAppearanceService} from './reader-appearance.service';
+
+const DISMISS_DISTANCE = 80;
 
 /**
  * The appearance panel (G25, G26): theme, typeface, size, line spacing and, where there is room, width. It has
@@ -23,6 +25,12 @@ export class ReaderAppearanceComponent {
 
   /** A phone shows the panel as a bottom sheet, with larger targets and no Width row. */
   @Input() sheet = false;
+  /** The sheet was dragged down far enough to dismiss (G26). */
+  @Output() readonly dismissed = new EventEmitter<void>();
+
+  /** How far the sheet is being dragged down, in pixels; null when it is at rest. */
+  protected readonly drag = signal<number | null>(null);
+  private dragStart = 0;
 
   protected readonly appearance = this.service.appearance;
   protected readonly isDefault = this.service.isDefault;
@@ -55,6 +63,23 @@ export class ReaderAppearanceComponent {
     {index: 1, bar: 13, label: $localize`Medium column`},
     {index: 2, bar: 18, label: $localize`Wide column`},
   ].slice(0, READER_WIDTHS.length);
+
+  protected startDrag(event: PointerEvent): void {
+    this.dragStart = event.clientY;
+    this.drag.set(0);
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  protected moveDrag(event: PointerEvent): void {
+    if (this.drag() !== null) this.drag.set(Math.max(0, event.clientY - this.dragStart));
+  }
+
+  /** Past 80px the sheet goes; short of it, it settles back. */
+  protected endDrag(): void {
+    const distance = this.drag();
+    this.drag.set(null);
+    if (distance !== null && distance > DISMISS_DISTANCE) this.dismissed.emit();
+  }
 
   protected pickTheme(theme: ReaderTheme): void { this.service.change({theme}); }
   protected pickFont(font: ReaderFont): void { this.service.change({font}); }

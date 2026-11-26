@@ -340,6 +340,6 @@
   }
   <!-- On a phone the same panel is a sheet (G26); the page stays visible above it. -->
   @if (appearanceOpen && isPhone && !isLoading && !blocked) {
-    <app-reader-appearance #appearancePanel class="appearance-sheet" [sheet]="true"></app-reader-appearance>
+    <app-reader-appearance #appearancePanel class="appearance-sheet" [sheet]="true" (dismissed)="closeAppearance()"></app-reader-appearance>
   }
 </div>
