@@ -84,26 +84,47 @@
   }
 
   <section class="book-shelf book-shelf--library" aria-labelledby="library-heading">
+    @let tiles = shelfTiles;
     <div class="kicker-row">
-      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container>@if (shelfTiles.length > 0) {&ngsp;<span class="kicker__count">· {{ shelfTiles.length }}</span> }</h2>
+      <h2 id="library-heading" class="kicker"><ng-container i18n>Library</ng-container>@if (tiles.length > 0) {&ngsp;<span class="kicker__count">· {{ tiles.length }}</span> }</h2>
       <span class="rule" aria-hidden="true"></span>
-      <div class="view-toggle" role="group" aria-label="Library view" i18n-aria-label><button i18n type="button" [class.active]="libraryView === 'spines'" [attr.aria-pressed]="libraryView === 'spines'" (click)="setShelfView('library', 'spines')">Spines</button><button i18n type="button" [class.active]="libraryView === 'covers'" [attr.aria-pressed]="libraryView === 'covers'" (click)="setShelfView('library', 'covers')">Covers</button></div>
+      <div class="view-toggle" role="group" aria-label="Library view" i18n-aria-label><button i18n type="button" [class.active]="libraryView === 'covers'" [attr.aria-pressed]="libraryView === 'covers'" (click)="setLibraryView('covers')">Covers</button><button i18n type="button" [class.active]="libraryView === 'list'" [attr.aria-pressed]="libraryView === 'list'" (click)="setLibraryView('list')">List</button></div>
     </div>
     @if (loading$ | async) { <div i18n class="loading-row" [tuiSkeleton]="true">Loading library</div> }
-    @else if (shelfTiles.length > 0) {
+    @else if (tiles.length > 0) {
       <!-- One tile per work (G14): the title, level and progress are the edition the tile opens. -->
-      <div class="shelf" [class.cover-shelf]="libraryView === 'covers'">
-        @for (tile of shelfTiles; track tile.key) {
-          @let book = tile.edition;
-          <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
-            @if (libraryView === 'covers') {
-              <a class="cover-book" [routerLink]="['/books', book.editionSlug]"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover><span><strong>{{ book.title }}</strong><small>{{ captionFor(tile) }}</small></span></a>
-            } @else {
-              <a class="shelf-book book-spine" [tuiHint]="spineHint" tuiHintDirection="top" tuiHintDescribe tuiHintAppearance="book" [ngStyle]="spineStyle(book.workSlug, book.wordCount, book.coverUrl)" [routerLink]="['/books', book.editionSlug]" [attr.aria-label]="bookAriaLabel(book)"><span class="spine-title">{{ book.title }}</span>@if (showSpineAuthor(book.workSlug)) { <span class="spine-author">{{ book.author }}</span> }<ng-template #spineHint><span class="hover-label"><strong>{{ book.title }}</strong><small>{{ captionFor(tile, true) }}</small></span></ng-template></a>
-            }
-          </div>
-        }
-      </div>
+      @if (libraryView === 'list') {
+        <!-- The list (G24): the same order and filters, one row a book, and the whole row is the link. -->
+        <div class="book-list">
+          <div class="book-list__head" aria-hidden="true"><span></span><span i18n>Title</span><span i18n class="book-list__language">Language</span><span i18n>Level</span><span i18n class="book-list__wide">Length</span><span i18n class="book-list__wide">Parallel text</span></div>
+          @for (tile of shownTiles(tiles); track tile.key) {
+            @let book = tile.edition;
+            <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
+              <a class="book-row" [routerLink]="['/books', book.editionSlug]">
+                <span class="book-row__thumb" [style.--book-color]="bookColor(book.workSlug, book.coverUrl)">@if (book.coverUrl) { <img [src]="book.coverUrl" alt="" loading="lazy"> }</span>
+                <span class="book-row__title"><strong>{{ book.title }}</strong><small>{{ bylineFor(book) }}</small></span>
+                <span class="book-list__language">{{ languageName(book.language) }}</span>
+                <span class="book-row__level">{{ levelsFor(tile) }}</span>
+                <span class="book-list__wide">{{ pagesLabel(book.wordCount) }}</span>
+                <span class="book-list__wide" [class.book-row__none]="!book.hasParallelTranslation">@if (book.hasParallelTranslation) { <ng-container i18n>Available</ng-container> } @else { — }</span>
+              </a>
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- The grid (G23): it wraps and keeps going down; nothing on the page scrolls sideways. -->
+        <div class="cover-grid">
+          @for (tile of shownTiles(tiles); track tile.key) {
+            @let book = tile.edition;
+            <div class="book-context" tuiDropdownContext #dropdown="tuiDropdown" [tuiDropdown]="book.progressPercentage ? dropdownTemplate : null" (contextmenu)="onRightClick($event, book)">
+              <a class="cover-book" [routerLink]="['/books', book.editionSlug]">
+                <span class="cover-book__plate"><app-book-cover [title]="book.title" [author]="book.author" [workSlug]="book.workSlug" [coverUrl]="book.coverUrl"></app-book-cover>@if (book.progressPercentage) { <span class="cover-book__progress"><i [style.width.%]="book.progressPercentage"></i></span> }</span>
+                <span class="cover-book__text"><strong>{{ book.title }}</strong><span class="cover-book__author">{{ book.author }}</span><small>{{ metaFor(tile) }}</small></span>
+              </a>
+            </div>
+          }
+        </div>
+      }
     } @else if (emptySearchTerm; as term) {
       <!-- The empty search is the same quiet line with the term in it (G18); the catalogue rows below say what to do. -->
       <p i18n class="ask-line ask-line--empty">Nothing on the shelf for ‘{{ term }}’.</p>
@@ -117,7 +138,7 @@
         <p class="ask-line"><ng-container i18n>Nothing in {{ currentLanguageName }} yet. Search for a book you’d like to read.</ng-container>@if (isAuthenticated) {&ngsp;<a i18n class="ask-line__verb" routerLink="/read/wanted">See what readers want.</a>}</p>
       </div>
     }
-    @if (shelfTiles.length > 0) {
+    @if (tiles.length > 0) {
       <span #shelfEnd class="shelf-end" aria-hidden="true"></span>
       <!-- The foot of the shelf (W3): the way to the Wanted page, for a member who has scrolled this far. -->
       @if (shelfEndReached && isAuthenticated) {
@@ -137,7 +158,7 @@
       <div class="kicker-row">
         <h2 id="my-books-heading" class="kicker"><ng-container i18n>Yours</ng-container> <span class="kicker__count">· {{ yoursCountLabel }}</span></h2>
         <span class="rule" aria-hidden="true"></span>
-        <div class="view-toggle" role="group" aria-label="Your books view" i18n-aria-label><button i18n type="button" [class.active]="privateView === 'spines'" [attr.aria-pressed]="privateView === 'spines'" (click)="setShelfView('private', 'spines')">Spines</button><button i18n type="button" [class.active]="privateView === 'covers'" [attr.aria-pressed]="privateView === 'covers'" (click)="setShelfView('private', 'covers')">Covers</button></div>
+        <div class="view-toggle" role="group" aria-label="Your books view" i18n-aria-label><button i18n type="button" [class.active]="privateView === 'spines'" [attr.aria-pressed]="privateView === 'spines'" (click)="setPrivateView('spines')">Spines</button><button i18n type="button" [class.active]="privateView === 'covers'" [attr.aria-pressed]="privateView === 'covers'" (click)="setPrivateView('covers')">Covers</button></div>
       </div>
       @if (privateShelfBooks.length > 0) {
         <div class="shelf" [class.cover-shelf]="privateView === 'covers'">

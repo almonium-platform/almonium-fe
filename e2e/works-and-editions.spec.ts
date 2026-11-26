@@ -30,66 +30,57 @@ test('the library shows a work once per language and a guest tile opens the orig
   const english = tiles.filter({hasText: 'Mary Shelley'});
   await expect(english).toHaveCount(1);
   await expect(english).toHaveAttribute('href', '/books/frankenstein-en-c1');
-  await expect(english.locator('small')).toHaveText('Mary Shelley · Original C1 · Adapted B2');
+  await expect(english.locator('.cover-book__author')).toHaveText('Mary Shelley');
+  await expect(english.locator('small')).toHaveText('English · Original C1 · Adapted B2 · 311 pp');
 
   // The translated edition is titled in its own language, and the caption names the kind and level of each edition.
   const translated = tiles.filter({hasText: 'Франкенштейн'});
-  await expect(translated.locator('small')).toHaveText('Мері Шеллі · Translation B2');
-  await expect(tiles.filter({hasText: 'Лісова пісня'}).locator('small')).toHaveText('Леся Українка · Original C1');
+  await expect(translated.locator('small')).toHaveText('Ukrainian · Translation B2 · 255 pp');
+  await expect(tiles.filter({hasText: 'Лісова пісня'}).locator('small')).toHaveText('Ukrainian · Original C1 · 120 pp');
   await page.screenshot({path: testInfo.outputPath('library-works.png'), animations: 'disabled'});
 
   // The level filter changes which edition the same tile opens; it never adds a tile.
   await page.locator('.filter-bar select').first().selectOption('B2');
   await expect(tiles).toHaveCount(2);
   await expect(tiles.filter({hasText: 'Mary Shelley'})).toHaveAttribute('href', '/books/frankenstein-en-b2');
-  await expect(tiles.filter({hasText: 'Mary Shelley'}).locator('small')).toHaveText('Mary Shelley · Adapted B2');
+  await expect(tiles.filter({hasText: 'Mary Shelley'}).locator('small')).toHaveText('English · Adapted B2 · 306 pp');
 
-  // Spines carry the same caption in the hover label.
-  await page.getByRole('group', {name: 'Library view'}).getByRole('button', {name: 'Spines'}).click();
-  const spine = shelf.locator('.book-spine').filter({hasText: 'Франкенштейн'});
-  await spine.hover();
-  await expect(page.locator('.hover-label small')).toHaveText('Мері Шеллі · 255 pp · Translation B2');
-  await page.screenshot({path: testInfo.outputPath('library-spines.png'), animations: 'disabled'});
+  // The list (G24) is the same shelf in the same order: one row a book, and the whole row is the link.
+  await page.getByRole('group', {name: 'Library view'}).getByRole('button', {name: 'List'}).click();
+  const rows = shelf.locator('.book-row');
+  await expect(rows).toHaveCount(2);
+  const row = rows.filter({hasText: 'Mary Shelley'});
+  await expect(row).toHaveAttribute('href', '/books/frankenstein-en-b2');
+  await expect(row.locator('span:not(.book-row__thumb):not(.book-row__title)')).toHaveText(['English', 'Adapted B2', '306 pp', 'Available']);
+  expect(await page.evaluate(() => localStorage.getItem('read_library_view'))).toBe('"list"');
+  await page.screenshot({path: testInfo.outputPath('library-list.png'), animations: 'disabled'});
 });
 
-for (const width of [1280, 452, 360]) {
-  test(`spine hints stay fully visible outside the scrolling shelf at ${width}px`, async ({page}, testInfo) => {
-    await page.setViewportSize({width, height: 900});
-    await page.addInitScript(() => localStorage.setItem('read_library_view', JSON.stringify('spines')));
-    const longTitle = {...lisova, title: 'A very long book title that wraps across several lines and must remain completely readable above the shelf'};
-    await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
-      const path = new URL(route.request().url()).pathname;
-      if (path.endsWith('/public/books')) await route.fulfill({json: [original, adapted, ukrainian, longTitle]});
-      else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
-    });
-    await page.goto('/read');
-    const spines = page.locator('.book-spine');
-    await expect(spines).toHaveCount(3);
-    for (const index of [0, 2]) {
-      const spine = spines.nth(index);
-      await spine.hover();
-      const hint = page.locator('.hover-label');
-      await expect(hint).toBeVisible();
-      // An overlay can be visible to Playwright while still clipped by an ancestor.
-      // Hit-test the title's top and bottom corners to check actual painted content.
-      await expect.poll(() => hint.locator('strong').evaluate(element => {
-        const rect = element.getBoundingClientRect();
-        return [rect.top + 1, rect.bottom - 1].every(y =>
-          [rect.left + 1, rect.right - 1].every(x =>
-            x >= 0 && x < innerWidth && y >= 0 && y < innerHeight &&
-            element.contains(document.elementFromPoint(x, y))));
-      })).toBe(true);
-      expect(await hint.evaluate(element => !!element.closest('.shelf'))).toBe(false);
-      await page.mouse.move(0, 0);
-      await expect(hint).toHaveCount(0);
-    }
-    await spines.first().focus();
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Shift+Tab');
-    await expect(page.locator('.hover-label')).toBeVisible();
-    await page.screenshot({path: testInfo.outputPath('spine-hint-focus.png'), animations: 'disabled'});
+test('the covers grid wraps instead of scrolling sideways, and draws 42 works at a time', async ({page}, testInfo) => {
+  const many = Array.from({length: 100}, (_, index) => ({...lisova, id: `01989f47-4c2a-7a10-9e5b-${String(index).padStart(12, '0')}`, editionSlug: `book-${index}`, workSlug: `work-${index}`, title: `Book ${index}`, progressPercentage: null}));
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/public/books')) await route.fulfill({json: many});
+    else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
   });
-}
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({width, height: 900});
+    await page.goto('/read');
+    const shelf = page.locator('.book-shelf--library');
+    await expect(shelf.locator('.kicker__count')).toHaveText('· 100');
+    await expect(shelf.locator('.cover-book')).toHaveCount(42);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 390) {
+      const lefts = await shelf.locator('.cover-book').evaluateAll(tiles => [...new Set(tiles.map(tile => Math.round(tile.getBoundingClientRect().left)))]);
+      expect(lefts).toHaveLength(2);
+    }
+    await page.screenshot({path: testInfo.outputPath(`library-grid-${width}.png`), animations: 'disabled'});
+    await shelf.locator('.shelf-end').scrollIntoViewIfNeeded();
+    await expect(shelf.locator('.cover-book')).toHaveCount(84);
+    await shelf.locator('.shelf-end').scrollIntoViewIfNeeded();
+    await expect(shelf.locator('.cover-book')).toHaveCount(100);
+  }
+});
 
 test('the book page lists same-language editions in an Edition row and other languages as parallel text', async ({page}, testInfo) => {
   // A place kept on this device in the original: its chip carries a hairline.

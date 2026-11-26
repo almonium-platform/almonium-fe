@@ -31,6 +31,10 @@ import {CatalogResultsComponent} from './catalog/catalog-results.component';
 import {ComingFreeComponent} from './catalog/coming-free.component';
 
 type ShelfViewMode = 'covers' | 'spines';
+/** The library's two views (G23, G24). Spines stay on the reader's own shelf, where there are only a few. */
+type LibraryView = 'covers' | 'list';
+/** How many tiles the library draws before the reader scrolls to its foot, and how many each arrival adds. */
+const LIBRARY_PAGE = 42;
 
 @Component({
   selector: 'app-read',
@@ -73,27 +77,37 @@ export class ReadComponent implements OnInit, OnDestroy {
   /** The finished book whose certificate the sheet shows (K4). */
   protected certificateBook: Book | null = null;
 
-  /** The foot of the shelf (G18): the Wanted line shows once the reader has scrolled to it, so a full shelf never advertises what it lacks. */
+  /**
+   * The foot of the shelf. Reaching it draws the next 42 tiles (G23); once none are left it shows the Wanted
+   * line (G18), so a full shelf never advertises what it lacks before the reader has seen all of it.
+   */
   @ViewChild('shelfEnd') set shelfEnd(element: ElementRef<HTMLElement> | undefined) {
     this.shelfEndObserver?.disconnect();
     this.shelfEndObserver = null;
-    if (!element || this.shelfEndReached) return;
+    if (!element) return;
     if (typeof IntersectionObserver === 'undefined') {
+      this.shownCount = Number.MAX_SAFE_INTEGER;
       this.shelfEndReached = true;
       return;
     }
-    this.shelfEndObserver = new IntersectionObserver(entries => {
-      if (entries.some(entry => entry.isIntersecting)) {
+    const observer = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      if (this.shownCount < this.shelfTiles.length) {
+        this.shownCount += LIBRARY_PAGE;
+        // Observing again reports afresh, in case the foot is still on screen after the new rows are drawn.
+        observer.unobserve(element.nativeElement);
+        observer.observe(element.nativeElement);
+      } else {
         this.shelfEndReached = true;
-        this.shelfEndObserver?.disconnect();
-        this.shelfEndObserver = null;
       }
     });
-    this.shelfEndObserver.observe(element.nativeElement);
+    observer.observe(element.nativeElement);
+    this.shelfEndObserver = observer;
   }
 
   private shelfEndObserver: IntersectionObserver | null = null;
   protected shelfEndReached = false;
+  private shownCount = LIBRARY_PAGE;
 
   private readonly destroy$ = new Subject<void>();
   filteredBooks: Book[] = [];
@@ -136,7 +150,7 @@ export class ReadComponent implements OnInit, OnDestroy {
   parallelTranslationToggle = false;
   /** On by default for every language (G17): the point of the chip is to have something to read. */
   includeTranslationsToggle = true;
-  protected libraryView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_library_view') ?? 'covers';
+  protected libraryView: LibraryView = this.localStorageService.getItem<string>('read_library_view') === 'list' ? 'list' : 'covers';
   protected privateView: ShelfViewMode = this.localStorageService.getItem<ShelfViewMode>('read_private_view') ?? 'spines';
 
   loadingSubject$ = new BehaviorSubject<boolean>(false);
@@ -194,6 +208,7 @@ export class ReadComponent implements OnInit, OnDestroy {
 
     // Apply the filtered books to the component
     this.filteredBooks = books;
+    this.shownCount = LIBRARY_PAGE;
   }
 
   /** `/read?q=…` opens the library already searched: the landing's own search and its covers hand over this way. */
@@ -496,14 +511,18 @@ export class ReadComponent implements OnInit, OnDestroy {
     this.applyFiltersAndSort();
   }
 
-  protected setShelfView(shelf: 'library' | 'private', view: ShelfViewMode): void {
-    if (shelf === 'library') {
-      this.libraryView = view;
-      this.localStorageService.saveItem('read_library_view', view);
-    } else {
-      this.privateView = view;
-      this.localStorageService.saveItem('read_private_view', view);
-    }
+  protected setLibraryView(view: LibraryView): void {
+    this.libraryView = view;
+    this.localStorageService.saveItem('read_library_view', view);
+  }
+
+  protected setPrivateView(view: ShelfViewMode): void {
+    this.privateView = view;
+    this.localStorageService.saveItem('read_private_view', view);
+  }
+
+  protected shownTiles(tiles: WorkTile[]): WorkTile[] {
+    return tiles.slice(0, this.shownCount);
   }
 
   /** Read to the end: the bar is full and the tile offers the certificate instead of a place to continue from. */
@@ -557,11 +576,24 @@ export class ReadComponent implements OnInit, OnDestroy {
     };
   }
 
-  /** The tile's caption (G17): author, level, and the one honest word when the prose is a translation. */
-  /** Author, pages when asked, then the levels the work's editions reach on this shelf: "Original C1 · Adapted B2". */
-  protected captionFor(tile: WorkTile, pages = false): string {
+  /**
+   * The line under a cover (G23): language, then the levels the work's editions reach on this shelf with the one
+   * honest word for each kind ("Original C1 · Adapted B2", G17), then length.
+   */
+  protected metaFor(tile: WorkTile): string {
     const book = tile.edition;
-    return [book.author, ...(pages ? [this.pagesLabel(book.wordCount)] : []), tileEditionsLabel(tile.editions)].join(' · ');
+    return [this.languageName(book.language), tileEditionsLabel(tile.editions), this.pagesLabel(book.wordCount)].join(' · ');
+  }
+
+  /** The list's Level cell: the same edition label the cover carries. */
+  protected levelsFor(tile: WorkTile): string {
+    return tileEditionsLabel(tile.editions);
+  }
+
+  /** The list's second line (G24): the author, and how far in only once the book has been started. */
+  protected bylineFor(book: Book): string {
+    const progress = Math.round(book.progressPercentage ?? 0);
+    return progress > 0 ? $localize`${book.author}:author: · ${progress}:progress:% read` : book.author;
   }
 
   /** Search and sort act on the private shelf too; level does not, because imports are not levelled. */
