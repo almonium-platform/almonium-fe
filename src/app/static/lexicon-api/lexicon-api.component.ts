@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit, inject} from '@angular/core';
 import {RouterLink} from '@angular/router';
+import {AppConstants} from '../../app.constants';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
 import {PageSeoService} from '../../shared/seo/page-seo.service';
 
@@ -72,6 +73,8 @@ export class LexiconApiComponent implements OnInit, OnDestroy {
 
   protected readonly contact = CONTACT;
   protected readonly contactHref = `mailto:${CONTACT}`;
+  /** The entry schema as the backend serves it: one file, derived there, with nothing of how an entry was made. */
+  protected readonly schemaHref = `${AppConstants.API_URL}/public/lexicon/schema`;
   protected readonly request = 'api.almonium.com/public/lexicon/es/entries?headword=coger';
   /** The sample split so the structural keys can be tinted. Odd segments are keys. */
   protected readonly sample = SAMPLE.split(STRUCTURAL_KEY).map((text, index) => ({text, key: index % 2 === 1}));

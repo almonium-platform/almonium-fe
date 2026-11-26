@@ -2,7 +2,7 @@
   <header class="container hero">
     <span i18n class="soft-pill">Early access</span>
     <h1 i18n>The Almonium Lexicon, by API</h1>
-    <p i18n>A learner’s dictionary for European languages, served as JSON. Every entry in every language has the same shape, Schema 4. We wrote the entries ourselves and own them, so the licence is a plain commercial one, with no CC BY-SA and no share-alike terms on your product.</p>
+    <p i18n>A learner’s dictionary for European languages, served as JSON. Every entry in every language has the same shape, Schema 4. The entries are written by our own pipeline of language models and checks, not copied from Wiktionary or any other dictionary. Open sources are used only to choose which words get an entry and to check facts such as gender, stress and pronunciation. The licence is a plain commercial one.</p>
     <div class="hero-actions">
       <a class="button button-primary" [href]="contactHref">{{ contact }}</a>
       <a i18n class="text-link" routerLink="/lexicon-api" fragment="schema">See a response</a>
@@ -20,9 +20,9 @@
           <div><dt i18n>Patterns and collocations</dt><dd i18n>Each pattern is given as written and as parts: head, fixed words, open slots with case, form or mood.</dd></div>
           <div><dt i18n>Sounds</dt><dd i18n>IPA for each variety, with weak forms and the context each one is said in.</dd></div>
         </dl>
-        <!-- A plain file from public/, a copy of the backend's lexicon/entry.schema.json. It is not under /lexicon-api/:
-             a directory of that name would answer the page's own URL in nginx (try_files $uri/) with a 403. -->
-        <a i18n class="text-link" href="/lexicon-entry.schema.json" download>Download the JSON Schema &rarr;</a>
+        <!-- Served by the backend from the file its own publication check is derived with, so there is no copy here
+             to fall behind (published_schema.py in the backend writes both). -->
+        <a i18n class="text-link" [href]="schemaHref" download="lexicon-entry.schema.json">Download the JSON Schema &rarr;</a>
       </div>
       <figure class="response">
         <figcaption><b>{{ 'GET' }}</b> {{ request }}</figcaption>

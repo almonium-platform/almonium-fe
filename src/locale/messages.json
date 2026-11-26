@@ -2293,7 +2293,7 @@
     "7164243559171159025": "The agreement between you and Almonium. Short, because there is not much to agree on: read, save words, pay if you want more, be decent to other people.",
     "1680354917400845413": "Early access",
     "6798806716130349519": "The Almonium Lexicon, by API",
-    "5532757592084532082": "A learner’s dictionary for European languages, served as JSON. Every entry in every language has the same shape, Schema 4. We wrote the entries ourselves and own them, so the licence is a plain commercial one, with no CC BY-SA and no share-alike terms on your product.",
+    "786964435589011818": "A learner’s dictionary for European languages, served as JSON. Every entry in every language has the same shape, Schema 4. The entries are written by our own pipeline of language models and checks, not copied from Wiktionary or any other dictionary. Open sources are used only to choose which words get an entry and to check facts such as gender, stress and pronunciation. The licence is a plain commercial one.",
     "2324304145314098457": "See a response",
     "3853321907004769102": "One schema, every language",
     "3314069264911873292": "A Spanish verb, a German noun and a Russian pronoun come back in the same structure, so one parser covers them all.",
