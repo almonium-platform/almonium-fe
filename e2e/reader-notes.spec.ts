@@ -15,7 +15,7 @@ const text = '<section class="chapter"><h2 class="chapter-title" id="chapter-21"
 
 async function openChapter(page: Page): Promise<void> {
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('DE')));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith('/public/books/original-en/chapters')) await route.fulfill({json: chapters});
     else if (url.pathname.endsWith('/public/books/original-en/text')) await route.fulfill({contentType: 'text/html', body: text});

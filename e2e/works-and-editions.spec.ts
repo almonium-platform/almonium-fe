@@ -14,7 +14,7 @@ const variants = [
 
 test('the library shows a work once per language and a guest tile opens the original', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('read_library_view', JSON.stringify('covers')));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books')) await route.fulfill({json: [adapted, ukrainian, original, lisova]});
     else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
@@ -57,7 +57,7 @@ for (const width of [1280, 452, 360]) {
     await page.setViewportSize({width, height: 900});
     await page.addInitScript(() => localStorage.setItem('read_library_view', JSON.stringify('spines')));
     const longTitle = {...lisova, title: 'A very long book title that wraps across several lines and must remain completely readable above the shelf'};
-    await page.route('**/api/v1/**', async route => {
+    await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
       const path = new URL(route.request().url()).pathname;
       if (path.endsWith('/public/books')) await route.fulfill({json: [original, adapted, ukrainian, longTitle]});
       else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
@@ -96,7 +96,7 @@ test('the book page lists same-language editions in an Edition row and other lan
   await page.addInitScript(() => localStorage.setItem('reader_positions', JSON.stringify({
     'guest:public:frankenstein-en-c1': {version: 2, chapter: 3, presentation: 'p', scrollTop: 0, scrollHeight: 10, clientWidth: 10, percentage: 40, anchor: null},
   })));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books/frankenstein-en-b2/chapters')) await route.fulfill({json: []});
     else if (path.endsWith('/public/books/frankenstein-en-b2')) await route.fulfill({json: {...adapted, languageVariants: variants, favorite: false, originalId: original.id, originalLanguage: 'EN'}});

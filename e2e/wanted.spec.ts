@@ -26,7 +26,7 @@ async function routeSignedIn(page: Page, wants: string[]) {
     localStorage.setItem('current_language', JSON.stringify('EN'));
     localStorage.setItem('read_library_view', JSON.stringify('covers'));
   });
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     if (path.endsWith('/users/me')) await route.fulfill({json: user});
@@ -48,7 +48,7 @@ async function routeSignedIn(page: Page, wants: string[]) {
 
 test('a guest searching for a book the shelf lacks sees the catalogue row, and is asked to sign in to want it', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('read_library_view', JSON.stringify('covers')));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books')) await route.fulfill({json: [book]});
     else if (path.endsWith('/public/catalog/search')) await route.fulfill({json: [dracula]});

@@ -27,7 +27,7 @@ check it, and what to do next, in order.
 
 | Piece | Where | Behaviour |
 |---|---|---|
-| Sitemap | `almonium-be` `SitemapOpenController` + `BookSitemapService` at `GET /api/v1/public/sitemap.xml` | Public pages (`/`, `/read`, `/discover`, `/play`, `/pricing`, legal), every catalogue book, and each chapter by its **processor sequence** (not 1..n; a book can start at chapter 11). One processor call per book; a book whose chapters fail lists its page only. Withdrawn books are excluded by the entity. URLs use `app.web-domain`. HTTP cache 1 h. |
+| Sitemap | `almonium-be` `SitemapOpenController` + `BookSitemapService` at `GET /v1/public/sitemap.xml` | Public pages (`/`, `/read`, `/discover`, `/play`, `/pricing`, legal), every catalogue book, and each chapter by its **processor sequence** (not 1..n; a book can start at chapter 11). One processor call per book; a book whose chapters fail lists its page only. Withdrawn books are excluded by the entity. URLs use `app.web-domain`. HTTP cache 1 h. |
 | `/sitemap.xml` on the app domain | `almonium-infra` `nginx-configs/spa.conf` (copied to this repo's `nginx.conf`) | Proxied to the API of the same environment, like the certificate routes. |
 | `robots.txt` | `public/robots.txt` (production), nginx (staging) | Production: disallows signed-in areas, private reader, shared links, profiles; points at the sitemap. Staging: nginx answers `Disallow: /`. |
 | Staging noindex | `spa.conf` | Every staging response carries `X-Robots-Tag: noindex, nofollow`. Other hosts sharing the file (famsub) are untouched. |

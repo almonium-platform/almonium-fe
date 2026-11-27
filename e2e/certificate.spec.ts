@@ -24,7 +24,7 @@ const user = {
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
 test('a stranger sees the certificate as the reader saw it, then one door into the book', async ({page}, testInfo) => {
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/certificates/marta/winnie-the-pooh')) await route.fulfill({json: certificate});
     else await route.fulfill({status: 401, json: {message: 'Anonymous preview'}});
@@ -56,7 +56,7 @@ test('a stranger sees the certificate as the reader saw it, then one door into t
 });
 
 test('a page the reader keeps off is the standard missing-page state at the same address', async ({page}) => {
-  await page.route('**/api/v1/**', route => route.fulfill({status: 404, json: {success: false, message: 'No public certificate at that address'}}));
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, route => route.fulfill({status: 404, json: {success: false, message: 'No public certificate at that address'}}));
 
   await page.goto('/read/@marta/winnie-the-pooh');
   await expect(page.getByRole('heading', {level: 1, name: 'NOT FOUND'})).toBeVisible();
@@ -67,7 +67,7 @@ test('the last page, then the certificate, then the decision', async ({page}, te
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('EN')));
   const calls: string[] = [];
   let publicPage = true;
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     if (path.endsWith('/users/me')) await route.fulfill({json: user});
@@ -124,7 +124,7 @@ test('the last page, then the certificate, then the decision', async ({page}, te
 test('a finished book on the shelf offers Read again and the certificate', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('EN')));
   const finished = {...book, progressPercentage: 100};
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     if (path.endsWith('/users/me')) await route.fulfill({json: user});

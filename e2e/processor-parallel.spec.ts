@@ -5,7 +5,7 @@ test('lists a full book in the contents rail, one line per chapter, describing o
   const id = '01989f47-4c2a-7a10-9e5b-751983624a25';
   const chapters = Array.from({length: 30}, (_, index) => ({id, sequence: index + 1, title: `Chapter ${index + 1}`, analysisStatus: 'complete', cefrEstimate: 'B2', descriptions: ['A chapter description that needs several lines in the narrow contents list.']}));
   const metadata = {id, editionSlug: 'frankenstein-b2', workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: false, languageVariants: [], language: 'EN', cefrLevel: 'B2'};
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: chapters});
     else if (path.endsWith('/frankenstein-b2/text')) await route.fulfill({contentType: 'text/html', body: chapters.map(chapter => `<section class="chapter"><h2 id="chapter-${chapter.sequence}" class="chapter-title">${chapter.title}</h2><p>Chapter text.</p></section>`).join('')});
@@ -43,7 +43,7 @@ test(`selects a ${language} companion and highlights sentence groups in ${mode} 
   const companionText = language === 'UK' ? 'Була вже перша година ночі; дощ стукав у шибки.' : 'It was already one in the morning; the rain pattered against the panes.';
   const pairHtml = html.replace('It was already one in the morning; the rain pattered against the panes.', companionText)
     .replace('data-side="secondary" lang="en"', `data-side="secondary" lang="${language.toLowerCase()}"`);
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books/frankenstein-b2/parallel-edition/frankenstein-original')) {
       requestedPair = true;
@@ -121,7 +121,7 @@ test('does not pair a same-language original as the companion', async ({page}) =
   const original = {id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-original', language: 'EN', editionType: 'original', cefrLevel: 'C1'};
   const metadata = {...primary, workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: true, languageVariants: [primary, original]};
   let requestedPair = false;
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.includes('/parallel-edition/')) {
       requestedPair = true;
@@ -161,7 +161,7 @@ test('underlines the sentence pairs in Side by side only once asked, from a swit
     + sentence('11-2-3', 'і врочисту тишу цієї славної тронної зали величної Природи порушували лише шумливі хвилі, або падіння якогось велетенського уламка, громоподібний звук лавини.') + ' '
     + sentence('11-2-4', 'Ці піднесені й величні краєвиди давали мені найбільшу втіху, яку я тільки міг прийняти.')
     + '</span></span></p><p><span class="seg-pair"><span class="segment" data-side="primary" lang="en">A paragraph aligned as a whole.</span><span class="segment" data-side="secondary" lang="uk">Абзац, вирівняний цілком.</span></span></p></section>';
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/parallel-edition/frankenstein-uk')) await route.fulfill({contentType: 'text/html', body: pairHtml});
     else if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: []});
@@ -215,7 +215,7 @@ test('falls back to On demand below 1100px and offers the merged sheet on a phon
   const companion = {id: '01989f47-4c2a-7a10-9e5b-751983624a26', editionSlug: 'frankenstein-uk', language: 'UK', editionType: 'machine_translation', cefrLevel: 'C1', sourceEditionSlug: 'frankenstein-b2'};
   const metadata = {...primary, workSlug: 'frankenstein', title: 'Frankenstein', author: 'Mary Shelley', description: '', publicationYear: 1818, coverUrl: null, wordCount: 76000, progressPercentage: null, isTranslation: false, hasTranslation: false, hasParallelTranslation: true, languageVariants: [primary, companion]};
   const pairHtml = '<section class="chapter"><h2 id="chapter-11" class="chapter-title">Chapter V</h2><p><span class="seg-pair"><span class="segment" data-side="primary" lang="en"><span class="aligned-sentence" role="button" tabindex="0" data-alignment="11-2-0">The rain fell.</span></span><span class="segment" data-side="secondary" lang="uk"><span class="aligned-sentence" role="button" tabindex="0" data-alignment="11-2-0">Дощ падав.</span></span></span></p></section>';
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/parallel-edition/frankenstein-uk')) await route.fulfill({contentType: 'text/html', body: pairHtml});
     else if (path.endsWith('/frankenstein-b2/chapters')) await route.fulfill({json: []});

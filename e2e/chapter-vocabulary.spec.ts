@@ -15,7 +15,7 @@ const text = `<section class="chapter"><h2 class="chapter-title" id="chapter-11"
 test('a guest reads the chapter page, opens its words in the rail and meets the account ask on the card', async ({page}, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('DE')));
   let lookupContext = '';
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const url = new URL(route.request().url());
     if (url.pathname.endsWith('/public/books/original-en/chapters/11/vocabulary')) {
       await route.fulfill({json: {chapterId: id, chapterSequence: 11, language: 'en', status: 'ready', words: [{lemma: 'lantern', surface: 'lanterns', context, blockId: 'c11.p1'}]}});
@@ -84,7 +84,7 @@ test('a guest reads the chapter page, opens its words in the rail and meets the 
 
 test('the book page lists the contents with levels and links each row to its chapter', async ({page}, testInfo) => {
   const many = Array.from({length: 12}, (_, index) => ({id: `01989f47-4c2a-7a10-9e5b-7519836240${String(index).padStart(2, '0')}`, sequence: index + 1, title: `CHAPTER ${index + 1}.`, analysisStatus: index === 11 ? 'pending' : 'complete', cefrEstimate: index === 11 ? null : (index % 2 ? 'C1' : 'B2'), descriptions: index === 11 ? [] : [`What happens in chapter ${index + 1}.`]}));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/public/books/original-en/chapters')) await route.fulfill({json: many});
     else if (path.endsWith('/public/books/original-en/text')) await route.fulfill({contentType: 'text/html', body: many.map(chapter => `<section class="chapter"><h2 class="chapter-title" id="chapter-${chapter.sequence}">${chapter.title}</h2><p>Text.</p></section>`).join('')});

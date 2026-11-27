@@ -7,14 +7,14 @@ honestly instead of filling the sheet with mock lexical content.
 
 ## Implemented
 
-- Public word or phrase lookup through `GET /api/v1/public/discover/lookup/{language}/{translationLanguage}`.
+- Public word or phrase lookup through `GET /v1/public/discover/lookup/{language}/{translationLanguage}`.
 - A sentence-paste state where each token can open a word sheet and the source
   sentence travels with the lookup.
 - Structured dictionary senses when the configured translation provider returns
   them, including part of speech and transcription.
 - Corpus-frequency band, relative score, and `ngrams.dev` corpus provenance for
   the currently supported English, German, and Russian corpora.
-- Signed-in sense-level saving through `POST /api/v1/cards`, with source context,
+- Signed-in sense-level saving through `POST /v1/cards`, with source context,
   item type, selected sense, and the Understand/Produce/Disambiguate intents.
 - The create-card response now returns the persisted card, so clients can confirm
   the server-created learning item rather than treating an empty 201 as success.

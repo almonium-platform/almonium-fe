@@ -20,7 +20,7 @@ const policy = {
 
 async function routeSignedIn(page: Page, setupStep: string, onLearnerPatch: (body: Record<string, unknown>) => void = () => undefined) {
   await page.addInitScript(() => localStorage.setItem('current_language', JSON.stringify('EN')));
-  await page.route('**/api/v1/**', async route => {
+  await page.route(/(api\.almonium\.com|localhost:9998)\/v1\//, async route => {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/users/me')) await route.fulfill({json: user(setupStep)});
     else if (path.endsWith('/public/csrf/token')) await route.fulfill({body: 'token'});
