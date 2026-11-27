@@ -1,4 +1,4 @@
-import {Component, computed, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, signal} from '@angular/core';
 import {RouterLink} from '@angular/router';
 
 interface ShelfBook {
@@ -37,6 +37,7 @@ const SHELF: ShelfBook[] = [
  */
 @Component({
   selector: 'app-landing-books',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink],
   templateUrl: './landing-books.component.html',
   styleUrl: './landing-books.component.less',

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {AppConstants} from '../../app.constants';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
@@ -64,6 +64,7 @@ interface ComparisonRow {
  */
 @Component({
   selector: 'app-lexicon-api',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, PublicFooterComponent],
   templateUrl: './lexicon-api.component.html',
   styleUrl: './lexicon-api.component.less',

@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject, signal} from '@angular/core';
 import {
   READER_FONT_FAMILIES,
   READER_LINE_SPACINGS,
@@ -17,6 +17,7 @@ const DISMISS_DISTANCE = 80;
  */
 @Component({
   selector: 'app-reader-appearance',
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './reader-appearance.component.html',
   styleUrl: './reader-appearance.component.less',
 })

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject} from '@angular/core';
 import {RouterLink} from '@angular/router';
 import {PublicFooterComponent} from '../../shared/public-footer/public-footer.component';
 import {PageSeoService} from '../../shared/seo/page-seo.service';
@@ -9,6 +9,7 @@ import {PageSeoService} from '../../shared/seo/page-seo.service';
  */
 @Component({
   selector: 'app-about',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, PublicFooterComponent],
   templateUrl: './about.component.html',
   styleUrl: './about.component.less',

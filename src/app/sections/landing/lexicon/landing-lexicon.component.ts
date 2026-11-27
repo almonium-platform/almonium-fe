@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
 import {Router, RouterLink} from '@angular/router';
 import {SHOWCASE_LANGUAGES, ShowcaseSense, ShowcaseWord} from './showcase-entries';
 
@@ -25,6 +25,7 @@ interface SenseView extends ShowcaseSense {
  */
 @Component({
   selector: 'app-landing-lexicon',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink],
   templateUrl: './landing-lexicon.component.html',
   styleUrl: './landing-lexicon.component.less',

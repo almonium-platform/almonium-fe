@@ -1,4 +1,4 @@
-import {Component, OnInit, inject} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, inject} from '@angular/core';
 import {DatePipe, DecimalPipe} from '@angular/common';
 import {RouterLink} from '@angular/router';
 import {finalize} from 'rxjs/operators';
@@ -17,6 +17,7 @@ export function groupId(group: Pick<EntryReportGroup, 'language' | 'headword' | 
  */
 @Component({
   selector: 'app-ops-entry-reports',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './ops-entry-reports.component.html',
   styleUrl: './ops-entry-reports.component.less',
