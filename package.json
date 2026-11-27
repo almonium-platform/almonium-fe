@@ -40,7 +40,7 @@
     "@fontsource/ibm-plex-sans": "^5.3.0",
     "@fontsource/literata": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
-    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/core": "^18.1.0",
     "@paddle/paddle-js": "^1.6.5",
     "@taiga-ui/cdk": "^5.26.0",
     "@taiga-ui/core": "^5.26.0",
